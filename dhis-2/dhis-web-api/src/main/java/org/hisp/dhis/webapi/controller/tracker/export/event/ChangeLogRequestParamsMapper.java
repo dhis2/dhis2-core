@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
 
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams.EventChangeLogOperationParamsBuilder;
@@ -51,13 +55,17 @@ class ChangeLogRequestParamsMapper {
    * done in {@link EventMapper} is not necessary for change logs.
    */
   static EventChangeLogOperationParams map(
-      Set<String> orderableFields, ChangeLogRequestParams requestParams)
+      Set<String> orderableFields,
+      Set<Pair<String, Class<?>>> filterableFields,
+      ChangeLogRequestParams requestParams)
       throws BadRequestException {
     validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
     validateOrderParams(requestParams.getOrder(), orderableFields);
+    validateFilter(requestParams.getFilter(), filterableFields);
 
     EventChangeLogOperationParamsBuilder builder = EventChangeLogOperationParams.builder();
     mapOrderParam(builder, requestParams.getOrder());
+    mapFilterParam(builder, requestParams.getFilter());
     return builder.build();
   }
 
@@ -68,5 +76,12 @@ class ChangeLogRequestParamsMapper {
     }
 
     orders.forEach(order -> builder.orderBy(order.getField(), order.getDirection()));
+  }
+
+  private static void mapFilterParam(EventChangeLogOperationParamsBuilder builder, String filter) {
+    if (filter != null) {
+      String[] split = filter.split(":");
+      builder.filterBy(split[0], new QueryFilter(QueryOperator.EQ, split[2]));
+    }
   }
 }

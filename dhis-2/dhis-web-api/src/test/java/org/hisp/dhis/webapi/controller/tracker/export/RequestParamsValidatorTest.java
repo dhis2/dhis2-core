@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Data;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -141,6 +143,68 @@ class RequestParamsValidatorTest {
         () -> assertContains("repeated", exception.getMessage()),
         () -> assertContains("enrolledAt", exception.getMessage()),
         () -> assertContains("zGlzbfreTOH", exception.getMessage()));
+  }
+
+  @Test
+  void shouldValidateFilterWhenFormatIsCorrect() throws BadRequestException {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    validateFilter("field2:eq:value", supportedFields);
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterFieldNotSupported() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("unknownField:eq:value", supportedFields));
+    assertStartsWith(
+        String.format(
+            "Invalid filter field. Supported fields are '%s'.",
+            String.join(", ", supportedFields.stream().map(Pair::getKey).sorted().toList())),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterOperatorNotSupported() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter("field1:sw:value", supportedFields));
+    assertStartsWith(
+        "Invalid filter operator. The only supported operator is 'eq'.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectFormat() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+    String invalidFilter = "field1:eq";
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter(invalidFilter, supportedFields));
+    assertStartsWith(
+        String.format(
+            "Invalid filter => %s. Expected format is [field]:eq:[value].", invalidFilter),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectUidFormat() {
+    Set<Pair<String, Class<?>>> supportedFields = Set.of(Pair.of("field1", UID.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("field1:eq:QRYjLTiJTr", supportedFields));
+    assertStartsWith("Incorrect filter value provided as UID: QRYjLTiJTr", exception.getMessage());
   }
 
   @Test

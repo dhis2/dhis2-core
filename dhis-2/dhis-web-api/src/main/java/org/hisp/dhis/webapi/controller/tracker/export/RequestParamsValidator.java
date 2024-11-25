@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -73,6 +74,8 @@ public class RequestParamsValidator {
   private static final char COMMA_SEPARATOR = ',';
 
   private static final char ESCAPE = '/';
+
+  private static final String SUPPORTED_CHANGELOG_FILTER_OPERATOR = "eq";
 
   /**
    * Negative lookahead to avoid wrong split of comma-separated list of filters when one or more
@@ -269,6 +272,54 @@ public class RequestParamsValidator {
     }
 
     validateOrderParamsContainNoDuplicates(order, errorSuffix);
+  }
+
+  /**
+   * Validate the {@code filter} request parameter in change log tracker exporters. Allowed filter
+   * values are {@code supportedFieldNames}. Only one field name at a time can be specified. If the
+   * endpoint supports UIDs use {@link #parseFilters(String)}.
+   */
+  public static void validateFilter(String filter, Set<Pair<String, Class<?>>> supportedFields)
+      throws BadRequestException {
+    if (filter == null) {
+      return;
+    }
+
+    String[] split = filter.split(":");
+    Set<String> supportedFieldNames =
+        supportedFields.stream().map(Pair::getKey).collect(Collectors.toSet());
+
+    if (split.length != 3) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid filter => %s. Expected format is [field]:eq:[value]. Supported fields are '%s'. Only one of them can be specified at a time",
+              filter, String.join(", ", supportedFieldNames)));
+    }
+
+    if (!supportedFieldNames.contains(split[0])) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid filter field. Supported fields are '%s'. Only one of them can be specified at a time",
+              String.join(", ", supportedFieldNames)));
+    }
+
+    if (!split[1].equalsIgnoreCase(SUPPORTED_CHANGELOG_FILTER_OPERATOR)) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid filter operator. The only supported operator is '%s'.",
+              SUPPORTED_CHANGELOG_FILTER_OPERATOR));
+    }
+
+    for (Pair<String, Class<?>> filterField : supportedFields) {
+      if (filterField.getKey().equalsIgnoreCase(split[0])
+          && filterField.getValue() == UID.class
+          && !CodeGenerator.isValidUid(filterField.getKey())) {
+        throw new BadRequestException(
+            String.format(
+                "Incorrect filter value provided as UID: %s. UID must be an alphanumeric string of 11 characters starting with a letter.",
+                split[2]));
+      }
+    }
   }
 
   /**
