@@ -97,6 +97,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   @Mock private CategoryService categoryService;
 
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private DatabaseInfoProvider databaseInfoProvider;
@@ -118,8 +119,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   private static final String TABLE_PREFIX = "analytics_event_";
-
-  private static final String FROM_CLAUSE = "from dhis2.public.`event` where eventid=ev.eventid";
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
@@ -203,32 +202,19 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 =
-        "(select json_unquote(json_extract(eventdatavalues, '$.%s.value')) "
-            + FROM_CLAUSE
-            + " ) as `%s`";
+    String aliasD1 = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
     String aliasD2 =
-        "(select cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) "
-            + FROM_CLAUSE
-            + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$') as `%s`";
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) else null end as `deabcdefghP`";
     String aliasD3 =
-        "(select case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end "
-            + FROM_CLAUSE
-            + " ) as `%s`";
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end as `%s`";
     String aliasD4 =
-        "(select cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime) "
-            + FROM_CLAUSE
-            + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as `%s`";
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime) else null end as `%s`";
     String aliasD5 =
         "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.deabcdefghG.value')) ) as `deabcdefghG`";
     String aliasD5Name =
-        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, "
-            + "'$.%s.value')) "
-            + ") as `%s`";
+        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
     String aliasD6 =
-        "(select cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) "
-            + FROM_CLAUSE
-            + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$') as `%s`";
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) else null end as `%s`";
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
