@@ -28,57 +28,43 @@
 package org.hisp.dhis.analytics.trackedentity;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import org.hisp.dhis.analytics.event.data.DefaultEnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link TrackedEntityAnalyticsDimensionsService}. */
+@ExtendWith(MockitoExtension.class)
 class TrackedEntityAnalyticsDimensionsServiceTest {
-  private TrackedEntityAnalyticsDimensionsService trackedEntityAnalyticsDimensionsService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Mock private ProgramService programService;
+
+  @InjectMocks private DefaultTrackedEntityAnalyticsDimensionsService service;
 
   @BeforeEach
   void setup() {
-    ProgramService programService = mock(ProgramService.class);
-    Program program = mock(Program.class);
-    TrackedEntityTypeService trackedEntityTypeService = mock(TrackedEntityTypeService.class);
-
-    when(programService.getProgram(any())).thenReturn(program);
-    when(program.getDataElements()).thenReturn(allValueTypeDataElements());
-    when(program.getProgramIndicators()).thenReturn(emptySet());
-    when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
     when(trackedEntityTypeService.getTrackedEntityType(any())).thenReturn(trackedEntityType());
-
-    trackedEntityAnalyticsDimensionsService =
-        new DefaultTrackedEntityAnalyticsDimensionsService(
-            trackedEntityTypeService,
-            new DefaultEnrollmentAnalyticsDimensionsService(programService, mock(AclService.class)),
-            programService);
   }
 
   @Test
   void testQueryDoesNotContainDisallowedValueTypes() {
     Collection<BaseIdentifiableObject> analyticsDimensions =
-        trackedEntityAnalyticsDimensionsService
-            .getQueryDimensionsByTrackedEntityTypeId("aTeiId", emptySet())
-            .stream()
+        service.getQueryDimensionsByTrackedEntityTypeId("aTeiId", emptySet()).stream()
             .map(PrefixedDimension::getItem)
             .toList();
 

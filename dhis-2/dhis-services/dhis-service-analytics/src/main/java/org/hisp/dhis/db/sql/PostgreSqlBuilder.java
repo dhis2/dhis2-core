@@ -241,17 +241,12 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtract(String column, String property) {
-    return column + " ->> '" + property + "'";
+    return String.format("%s ->> '%s'", column, property);
   }
 
   @Override
-  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
-    return String.format("%s.%s ->> '%s'", tablePrefix, column, jsonPath);
-  }
-
-  @Override
-  public String jsonExtractNested(String column, String... jsonPath) {
-    return String.format("%s #>> '{%s}'", column, String.join(", ", jsonPath));
+  public String jsonExtractNested(String column, String... expression) {
+    return String.format("%s #>> '{%s}'", column, String.join(", ", expression));
   }
 
   // Statements
