@@ -29,12 +29,10 @@ package org.hisp.dhis.db.model;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class ColumnTest {
-
   @Test
   void testIsNotNull() {
     Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);

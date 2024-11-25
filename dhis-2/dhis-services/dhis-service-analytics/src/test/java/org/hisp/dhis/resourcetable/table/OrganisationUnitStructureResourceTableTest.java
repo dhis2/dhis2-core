@@ -28,19 +28,17 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link OrganisationUnitStructureResourceTable}. */
 class OrganisationUnitStructureResourceTableTest {
-
   @Test
   void testCreateBatchObjectsWhenLevelsAreSame() {
-    // Given
     int maxOrgUnitLevels = 3;
     int currentLevel = 3;
 
@@ -65,13 +63,11 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     assertDoesNotThrow(() -> resourceTable.createBatchObjects(organisationUnits, currentLevel));
   }
 
   @Test
   void testCreateBatchObjectsWhenHierarchyLevelIsLowerThanMaxLevel() {
-    // Given
     int maxOrgUnitLevels = 3;
     int currentLevel = 2;
 
@@ -87,13 +83,11 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     assertDoesNotThrow(() -> resourceTable.createBatchObjects(organisationUnits, currentLevel));
   }
 
   @Test
   void testCreateBatchObjectsWhenCurrentLevelIsLargerThanMaxLevel() {
-    // Given
     int maxOrgUnitLevels = 2;
     int currentLevel = 3;
 
@@ -110,7 +104,6 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     Exception ex =
         assertThrows(
             IllegalStateException.class,
@@ -123,7 +116,6 @@ class OrganisationUnitStructureResourceTableTest {
 
   @Test
   void testCreateBatchObjectsWhenCurrentLevelHasNoParent() {
-    // Given
     int maxOrgUnitLevels = 2;
     int currentLevel = 3;
 
@@ -140,7 +132,6 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     Exception ex =
         assertThrows(
             IllegalStateException.class,

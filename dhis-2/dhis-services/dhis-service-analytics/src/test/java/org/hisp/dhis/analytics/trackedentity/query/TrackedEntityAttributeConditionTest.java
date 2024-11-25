@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.trackedentity.query;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.List;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -46,13 +45,11 @@ class TrackedEntityAttributeConditionTest {
   @Test
   void testProgramAttributeConditionProduceCorrectSql() {
 
-    // SETUP
     String attr = "attr";
     List<String> values = List.of("eq:v1");
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         getProgramAttributeDimensionIdentifier("attr", values);
 
-    // CALL
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 

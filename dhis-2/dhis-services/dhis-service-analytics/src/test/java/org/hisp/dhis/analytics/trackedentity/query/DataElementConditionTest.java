@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.trackedentity.query;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.math.BigDecimal;
 import java.util.List;
 import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;

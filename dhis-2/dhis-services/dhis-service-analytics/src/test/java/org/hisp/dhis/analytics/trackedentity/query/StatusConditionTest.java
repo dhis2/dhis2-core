@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.trackedentity.query;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -46,7 +45,6 @@ import org.junit.jupiter.api.Test;
 class StatusConditionTest {
   @Test
   void testProgramStatusCompletedProduceCorrectSql() {
-    // SETUP
     List<String> values = List.of("COMPLETED");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -56,7 +54,6 @@ class StatusConditionTest {
             DimensionParam.StaticDimension.ENROLLMENT_STATUS,
             values);
 
-    // CALL
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
@@ -70,7 +67,6 @@ class StatusConditionTest {
 
   @Test
   void testProgramStatusCompletedActiveProduceCorrectSql() {
-    // SETUP
     List<String> values = List.of("COMPLETED", "ACTIVE");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -80,7 +76,6 @@ class StatusConditionTest {
             DimensionParam.StaticDimension.ENROLLMENT_STATUS,
             values);
 
-    // CALL
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
@@ -94,14 +89,12 @@ class StatusConditionTest {
 
   @Test
   void testEventStatusCompletedProduceCorrectSql() {
-    // SETUP
     List<String> values = List.of("COMPLETED");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         getProgramAttributeDimensionIdentifier(
             "programUid", "programStageUid", DimensionParam.StaticDimension.EVENT_STATUS, values);
 
-    // CALL
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
@@ -115,14 +108,12 @@ class StatusConditionTest {
 
   @Test
   void testEventStatusCompletedScheduleProduceCorrectSql() {
-    // SETUP
     List<String> values = List.of("COMPLETED", "SCHEDULE");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         getProgramAttributeDimensionIdentifier(
             "programUid", "programStageUid", DimensionParam.StaticDimension.EVENT_STATUS, values);
 
-    // CALL
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 

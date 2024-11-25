@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
@@ -60,13 +59,10 @@ class IndexTest {
 
   @Test
   void testDefaults() {
-    // given
     Index.IndexBuilder builder = Index.builder();
 
-    // when
     Index index = builder.build();
 
-    // then
     assertNull(index.getName());
     assertNull(index.getTableName());
     assertNull(index.getCondition());
