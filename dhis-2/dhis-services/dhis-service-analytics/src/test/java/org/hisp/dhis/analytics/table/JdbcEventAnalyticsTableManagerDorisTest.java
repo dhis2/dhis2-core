@@ -64,6 +64,7 @@ import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -143,6 +144,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
   }
 
   @Test
