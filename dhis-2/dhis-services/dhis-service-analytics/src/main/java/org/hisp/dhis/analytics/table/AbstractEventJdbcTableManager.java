@@ -223,10 +223,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     sql += fromClause;
 
-    System.out.println("---- INSERT SQL ------");
-    System.out.println(sql);
-    System.out.println();
-
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
