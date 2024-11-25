@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.time.LocalDate.now;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -41,18 +40,16 @@ import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -61,7 +58,6 @@ import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
@@ -80,7 +76,9 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -96,7 +94,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   @Mock private CategoryService categoryService;
 
   @Mock private SystemSettingsProvider settingsProvider;
-  
+
   @Mock private SystemSettings settings;
 
   @Mock private DatabaseInfoProvider databaseInfoProvider;
@@ -109,17 +107,15 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
-  private final SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
+  @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
 
-  private JdbcEventAnalyticsTableManager subject;
+  @InjectMocks private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
 
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   private static final String TABLE_PREFIX = "analytics_event_";
-
-  private static final String FROM_CLAUSE = "from dhis2.public.`event` where eventid=ev.eventid";
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
@@ -147,88 +143,41 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
-
-    subject =
-        new JdbcEventAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            resourceTableService,
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            databaseInfoProvider,
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
-    assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 
   @Test
   void verifyGetTableWithDataElements() {
-
-    subject =
-        new JdbcEventAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            resourceTableService,
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            databaseInfoProvider,
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            new DorisSqlBuilder("dhis2", "driver"));
-
     when(databaseInfoProvider.getDatabaseInfo())
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
-    DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
-    DataElement d2 = createDataElement('P', ValueType.PERCENTAGE, AggregationType.SUM);
-    DataElement d3 = createDataElement('Y', ValueType.BOOLEAN, AggregationType.NONE);
-    DataElement d4 = createDataElement('W', ValueType.DATE, AggregationType.LAST);
-    DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
-    DataElement d6 = createDataElement('H', ValueType.INTEGER, AggregationType.SUM);
-    DataElement d7 = createDataElement('U', ValueType.COORDINATE, AggregationType.NONE);
+    DataElement deA = createDataElement('A', ValueType.TEXT, AggregationType.SUM);
+    DataElement deB = createDataElement('B', ValueType.PERCENTAGE, AggregationType.SUM);
+    DataElement deC = createDataElement('C', ValueType.BOOLEAN, AggregationType.NONE);
+    DataElement deD = createDataElement('D', ValueType.DATE, AggregationType.LAST);
+    DataElement deE = createDataElement('E', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DataElement deF = createDataElement('F', ValueType.INTEGER, AggregationType.SUM);
+    DataElement deG = createDataElement('G', ValueType.COORDINATE, AggregationType.NONE);
 
-    ProgramStage ps1 = createProgramStage('A', Set.of(d1, d2, d3, d4, d5, d6, d7));
+    ProgramStage ps1 = createProgramStage('A', Set.of(deA, deB, deC, deD, deE, deF, deG));
 
     program.setProgramStages(Set.of(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 =
-        "(select json_unquote(json_extract(eventdatavalues, '$.%s.value')) "
-            + FROM_CLAUSE
-            + " ) as `%s`";
-    String aliasD2 =
-        "(select cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) "
-            + FROM_CLAUSE
-            + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$') as `%s`";
-    String aliasD3 =
-        "(select case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end "
-            + FROM_CLAUSE
-            + " ) as `%s`";
-    String aliasD4 =
-        "(select cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime) "
-            + FROM_CLAUSE
-            + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as `%s`";
-    String aliasD5 =
-        "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.deabcdefghG.value')) ) as `deabcdefghG`";
-    String aliasD5Name =
-        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, "
-            + "'$.%s.value')) "
-            + ") as `%s`";
-    String aliasD6 =
-        "(select cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) "
-            + FROM_CLAUSE
-            + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$') as `%s`";
+    String aliasA = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
+    String aliasB =
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) else null end as `%s`";
+    String aliasC =
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end as `%s`";
+    String aliasD =
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime) else null end as `%s`";
+    String aliasE =
+        "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
+    String aliasF =
+        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
+    String aliasG =
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) else null end as `%s`";
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -251,39 +200,39 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
-            d1.getUid(),
+            deA.getUid(),
             TEXT,
-            toSelectExpression(aliasD1, d1.getUid()),
+            toSelectExpression(aliasA, deA.getUid()),
             Skip.SKIP) // ValueType.TEXT
         .addColumn(
-            d2.getUid(),
+            deB.getUid(),
             DOUBLE,
-            toSelectExpression(aliasD2, d2.getUid()),
+            toSelectExpression(aliasB, deB.getUid()),
             IndexType.BTREE) // ValueType.PERCENTAGE
         .addColumn(
-            d3.getUid(),
+            deC.getUid(),
             INTEGER,
-            toSelectExpression(aliasD3, d3.getUid()),
+            toSelectExpression(aliasC, deC.getUid()),
             IndexType.BTREE) // ValueType.BOOLEAN
         .addColumn(
-            d4.getUid(),
+            deD.getUid(),
             TIMESTAMP,
-            toSelectExpression(aliasD4, d4.getUid()),
+            toSelectExpression(aliasD, deD.getUid()),
             IndexType.BTREE) // ValueType.DATE
         .addColumn(
-            d5.getUid(),
+            deE.getUid(),
             TEXT,
-            toSelectExpression(aliasD5, d5.getUid()),
+            toSelectExpression(aliasE, deE.getUid()),
             IndexType.BTREE) // ValueType.ORGANISATION_UNIT
         .addColumn(
-            d6.getUid(),
+            deF.getUid(),
             BIGINT,
-            toSelectExpression(aliasD6, d6.getUid()),
+            toSelectExpression(aliasG, deF.getUid()),
             IndexType.BTREE) // ValueType.INTEGER
 
         // element d5 also creates a Name column
         .addColumn(
-            d5.getUid() + "_name", TEXT, toSelectExpression(aliasD5Name, d5.getUid()), Skip.SKIP)
+            deE.getUid() + "_name", TEXT, toSelectExpression(aliasF, deE.getUid()), Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();

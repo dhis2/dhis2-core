@@ -30,18 +30,17 @@ package org.hisp.dhis.analytics.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 
 /**
  * @author Luciano Fiandesio
  */
+@Setter
 public class AnalyticsColumnAsserter {
   /** The analytics table column to verify. */
   private AnalyticsTableColumn actual;
-
-  private void setActual(AnalyticsTableColumn actual) {
-    this.actual = actual;
-  }
 
   public void verify(AnalyticsTableColumn expected) {
     assertThat("Column name does not match", expected.getName(), is(actual.getName()));
@@ -62,12 +61,9 @@ public class AnalyticsColumnAsserter {
         is(actual.getIndexType()));
   }
 
+  @RequiredArgsConstructor
   public static class Builder {
-    AnalyticsTableColumn _column;
-
-    public Builder(AnalyticsTableColumn column) {
-      _column = column;
-    }
+    final AnalyticsTableColumn _column;
 
     public AnalyticsColumnAsserter build() {
       AnalyticsColumnAsserter asserter = new AnalyticsColumnAsserter();
