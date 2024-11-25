@@ -28,17 +28,20 @@
 package org.hisp.dhis.analytics.trackedentity;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,9 +54,12 @@ class TrackedEntityAnalyticsDimensionsServiceTest {
 
   @Mock private ProgramService programService;
 
-  @Mock private EnrollmentAnalyticsDimensionsService analyticsService;
-
   @InjectMocks private DefaultTrackedEntityAnalyticsDimensionsService service;
+
+  @BeforeEach
+  void setup() {
+    when(trackedEntityTypeService.getTrackedEntityType(any())).thenReturn(trackedEntityType());
+  }
 
   @Test
   void testQueryDoesNotContainDisallowedValueTypes() {
