@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
@@ -185,8 +183,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    */
   List<Integer> getAndValidateAvailableDataYears() {
     List<Integer> availableYears =
-        periodDataProvider.getAvailableYears(
-            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+        periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
     validateYearsOffset(availableYears);
     return availableYears;
   }
