@@ -521,9 +521,7 @@ class JdbcEventAnalyticsTableManagerTest {
             .today(today)
             .build();
 
-    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -586,9 +584,7 @@ class JdbcEventAnalyticsTableManagerTest {
             .today(today)
             .build();
 
-    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
