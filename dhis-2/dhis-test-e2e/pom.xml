@@ -36,9 +36,38 @@
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.4.1</httpclient5.version>
     <commons-io.version>2.18.0</commons-io.version>
+    <spring.version>6.1.12</spring.version>
+    <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
+    <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.jboss.aerogear</groupId>
+      <artifactId>aerogear-otp-java</artifactId>
+      <version>${aerogear-otp-java.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.subethamail</groupId>
+      <artifactId>subethasmtp-wiser</artifactId>
+      <version>${subethasmtp-wiser.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>

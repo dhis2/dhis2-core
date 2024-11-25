@@ -222,7 +222,7 @@ public class MeController {
       @CurrentUser(required = true) User currentUser)
       throws ConflictException, IOException {
 
-     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
 
