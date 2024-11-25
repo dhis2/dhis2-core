@@ -52,10 +52,6 @@ public enum TwoFactorType {
   }
 
   public boolean isEnabled() {
-    if (this == TOTP || this == EMAIL) {
-      return true;
-    } else {
-      return false;
-    }
+    return this == TOTP || this == EMAIL;
   }
 }
