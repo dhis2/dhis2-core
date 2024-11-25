@@ -424,7 +424,6 @@ class JdbcEventAnalyticsTableManagerTest {
             .today(today)
             .build();
 
-    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
@@ -614,11 +613,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
-  }
-
-  private void mockPeriodYears(List<Integer> years) {
-    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
-    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(years);
   }
 
   @Test
@@ -997,5 +991,10 @@ class JdbcEventAnalyticsTableManagerTest {
             + latestYear;
 
     return sql;
+  }
+
+  private void mockPeriodYears(List<Integer> years) {
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(years);
   }
 }
