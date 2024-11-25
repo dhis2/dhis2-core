@@ -32,7 +32,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -204,6 +203,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql += fromClause;
+    
+    System.out.println("---- INSERT SQL ------");
+    System.out.println(sql);
+    System.out.println();
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

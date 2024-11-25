@@ -699,10 +699,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String selectExpression, String dataFilterClause) {
     String query =
         """
-        (select l.uid from ${maplegend} l
-        inner join ${event} on l.startvalue <= ${select}
-        and l.endvalue > ${select}
-        and l.maplegendsetid=${legendSetId}
+        (select l.uid from ${maplegend} l \
+        inner join ${event} on l.startvalue <= ${select} \
+        and l.endvalue > ${select} \
+        and l.maplegendsetid=${legendSetId} \
         ${dataClause} where eventid = ev.eventid) as ${column}""";
 
     return dataElement.getLegendSets().stream()
