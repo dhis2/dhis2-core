@@ -221,8 +221,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtract(String column, String property) {
-    return String.format("json_unquote(json_extract(%s, '$.%s'))", column, property);
+  public String jsonExtract(String json, String property) {
+    return String.format("json_unquote(json_extract(%s, '$.%s'))", json, property);
   }
 
   @Override
@@ -232,8 +232,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtractNested(String column, String... jsonPath) {
-    String path = "$." + String.join(".", jsonPath);
+  public String jsonExtractNested(String column, String... expression) {
+    String path = "$." + String.join(".", expression);
     return String.format("json_unquote(json_extract(%s, '%s'))", column, path);
   }
 
