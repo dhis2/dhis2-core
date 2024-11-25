@@ -186,10 +186,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param dataType the SQL data type.
    * @return a cast and validate expression.
    */
-  private String getCastExpression(String columnExpression, String filterRegex, String dataType) {
+  String getCastExpression(String columnExpression, String filterRegex, String dataType) {
     String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
     return String.format(
-        "case when %s then cast(%s as %) else null end", filter, columnExpression, dataType);
+        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
   }
 
   @Override

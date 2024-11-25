@@ -128,6 +128,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Mock private CategoryService categoryService;
 
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private DatabaseInfoProvider databaseInfoProvider;
