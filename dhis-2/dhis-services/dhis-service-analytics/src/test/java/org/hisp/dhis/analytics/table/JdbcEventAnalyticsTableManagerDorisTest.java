@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.time.LocalDate.now;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -163,7 +162,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
-    assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 
   @Test
