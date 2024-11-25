@@ -46,6 +46,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -61,7 +62,7 @@ class DataElementGroupResolverTest {
 
   @Mock private ExpressionService expressionService;
 
-  private ExpressionResolver resolver;
+  @InjectMocks private DataElementGroupResolver resolver;
 
   private String uid1;
 
@@ -75,33 +76,25 @@ class DataElementGroupResolverTest {
 
   private DataElement de3;
 
-  DimensionalItemId dimensionalItemId;
+  private DimensionalItemId dimensionalItemId;
 
   private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
   @BeforeEach
   public void setUp() {
     uid1 = CodeGenerator.generateUid();
-
     uid2 = CodeGenerator.generateUid();
-
     uid3 = CodeGenerator.generateUid();
 
     de1 = createDataElement('X');
-
     de2 = createDataElement('Y');
-
     de3 = createDataElement('Z');
 
     DataElementGroup dataElementGroup = createDataElementGroup('A');
 
     dataElementGroup.addDataElement(de1);
-
     dataElementGroup.addDataElement(de2);
-
     dataElementGroup.addDataElement(de3);
-
-    resolver = new DataElementGroupResolver(expressionService, dataElementGroupStore);
 
     when(dataElementGroupStore.getByUid(anyString())).thenReturn(dataElementGroup);
   }

@@ -47,6 +47,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -62,7 +63,7 @@ class CategoryOptionGroupResolverTest {
 
   @Mock private ExpressionService expressionService;
 
-  private ExpressionResolver resolver;
+  @InjectMocks private CategoryOptionGroupResolver resolver;
 
   private String uid1;
 
@@ -89,10 +90,6 @@ class CategoryOptionGroupResolverTest {
     coc1 = createCategoryOptionCombo('X');
     coc2 = createCategoryOptionCombo('Y');
     coc3 = createCategoryOptionCombo('Z');
-
-    resolver =
-        new CategoryOptionGroupResolver(
-            expressionService, categoryOptionGroupStore, categoryOptionComboStore);
   }
 
   @Test

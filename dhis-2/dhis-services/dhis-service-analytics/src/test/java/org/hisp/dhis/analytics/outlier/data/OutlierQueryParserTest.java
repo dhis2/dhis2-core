@@ -55,6 +55,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -66,7 +67,7 @@ class OutlierQueryParserTest {
 
   @Mock private UserService userService;
 
-  private OutlierQueryParser subject;
+  @InjectMocks private OutlierQueryParser subject;
 
   @BeforeEach
   void setup() {
@@ -91,8 +92,6 @@ class OutlierQueryParserTest {
     user.setDataViewOrganisationUnits(Set.of(organisationUnit));
     injectSecurityContextNoSettings(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
-
-    subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);
   }
 
   @Test
