@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests the generic operations offered by the {@link AbstractFullReadOnlyController} using specific
+ * Tests the generic operations offered by the {@code AbstractFullReadOnlyController} using specific
  * endpoints.
  *
  * @author David Mackessy

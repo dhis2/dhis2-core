@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.F_METADATA_IMPORT;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -38,18 +39,16 @@ import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -57,7 +56,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -72,15 +70,13 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.query.Junction;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -88,8 +84,6 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -113,7 +107,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class MessageConversationController
-    extends AbstractCrudController<org.hisp.dhis.message.MessageConversation> {
+    extends AbstractCrudController<
+        org.hisp.dhis.message.MessageConversation,
+        MessageConversationController.GetMessageConversationObjectListParams> {
+
   private final MessageService messageService;
   private final OrganisationUnitService organisationUnitService;
   private final UserGroupService userGroupService;
@@ -122,30 +119,29 @@ public class MessageConversationController
   private final FileResourceService fileResourceService;
   private final DhisConfigurationProvider dhisConfig;
 
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetMessageConversationObjectListParams extends GetObjectListParams {
+    String queryString;
+    String queryOperator;
+  }
+
   @Override
   protected void postProcessResponseEntity(
-      org.hisp.dhis.message.MessageConversation entity,
-      WebOptions options,
-      Map<String, String> parameters) {
+      org.hisp.dhis.message.MessageConversation entity, GetObjectParams params) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!messageService.hasAccessToManageFeedbackMessages(UserDetails.fromUser(currentUser))) {
+    if (!messageService.hasAccessToManageFeedbackMessages(getCurrentUserDetails())) {
       entity.setMessages(
           entity.getMessages().stream().filter(message -> !message.isInternal()).toList());
-    }
-
-    boolean markRead = Boolean.parseBoolean(parameters.get("markRead"));
-
-    if (markRead) {
-      entity.markRead(currentUser);
-      manager.update(entity);
     }
   }
 
   @Override
+  @OpenApi.Param(name = "markRead", value = boolean.class)
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
-      Map<String, String> rpParameters,
+      GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
@@ -167,80 +163,40 @@ public class MessageConversationController
       throw new ForbiddenException("Not authorized to access this conversation.");
     }
 
-    return super.getObject(uid, rpParameters, currentUser, request, response);
+    boolean markRead = "true".equals(request.getParameter("markRead"));
+
+    if (markRead) {
+      messageConversation.markRead(UID.of(currentUser.getUid()));
+      manager.update(messageConversation);
+    }
+
+    return super.getObject(uid, params, currentUser, request, response);
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  protected List<org.hisp.dhis.message.MessageConversation> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<org.hisp.dhis.message.MessageConversation> objects)
-      throws QueryParserException {
-    List<org.hisp.dhis.message.MessageConversation> messageConversations;
+  protected List<UID> getPreQueryMatches(GetMessageConversationObjectListParams params) {
+    String query = params.getQueryString();
+    if (query == null) return null;
 
-    if (objects == null && options.getOptions().containsKey("query")) {
-      messageConversations =
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    } else {
-      messageConversations = new ArrayList<>(messageService.getMessageConversations());
-    }
+    String op = params.getQueryOperator();
+    if (op == null) op = "token";
 
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(), filters, orders, new Pagination(), options.getRootJunction());
-    query.setDefaultOrder();
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    query.setObjects(messageConversations);
+    List<String> filters =
+        List.of(
+            "subject:" + op + ":" + query,
+            "messages.text:" + op + ":" + query,
+            "messages.sender.displayName:" + op + ":" + query);
 
-    messageConversations =
-        (List<org.hisp.dhis.message.MessageConversation>) queryService.query(query);
-
-    if (options.get("queryString") != null) {
-      String queryOperator = "token";
-      if (options.get("queryOperator") != null) {
-        queryOperator = options.get("queryOperator");
-      }
-
-      List<String> queryFilter =
-          Arrays.asList(
-              "subject:" + queryOperator + ":" + options.get("queryString"),
-              "messages.text:" + queryOperator + ":" + options.get("queryString"),
-              "messages.sender.displayName:" + queryOperator + ":" + options.get("queryString"));
-      Query subQuery =
-          queryService.getQueryFromUrl(
-              getEntityClass(),
-              queryFilter,
-              Collections.emptyList(),
-              new Pagination(),
-              Junction.Type.OR);
-      subQuery.setObjects(messageConversations);
-      messageConversations =
-          (List<org.hisp.dhis.message.MessageConversation>) queryService.query(subQuery);
-    }
-
-    int count = messageConversations.size();
-
-    Query paginatedQuery =
-        queryService.getQueryFromUrl(
-            getEntityClass(),
-            Collections.emptyList(),
-            Collections.emptyList(),
-            getPaginationData(options),
-            options.getRootJunction());
-    paginatedQuery.setObjects(messageConversations);
-
-    messageConversations =
-        (List<org.hisp.dhis.message.MessageConversation>) queryService.query(paginatedQuery);
-
-    if (options.hasPaging()) {
-      Pager pager = new Pager(options.getPage(), count, options.getPageSize());
-      metadata.setPager(pager);
-    }
-
-    return messageConversations;
+    GetObjectListParams subQueryParams =
+        new GetObjectListParams()
+            .setPaging(false)
+            .setRootJunction(Junction.Type.OR)
+            .setFilters(filters);
+    Query subQuery = queryService.getQueryFromUrl(getEntityClass(), subQueryParams);
+    // Note: in theory these filters could be added to the main query
+    // but the OR concerns both DB and in-memory properties
+    // which would break if added to the main query ATM
+    return queryService.query(subQuery).stream().map(UID::of).toList();
   }
 
   // --------------------------------------------------------------------------
@@ -1061,7 +1017,10 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation conversation : messageConversations) {
 
-      boolean success = (readValue ? conversation.markRead(user) : conversation.markUnread(user));
+      boolean success =
+          (readValue
+              ? conversation.markRead(UID.of(user.getUid()))
+              : conversation.markUnread(user));
       if (success) {
         messageService.updateMessageConversation(conversation);
         marked.addChild(new SimpleNode("uid", conversation.getUid()));

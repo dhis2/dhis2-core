@@ -224,6 +224,24 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   }
 
   @Test
+  void shouldGetEventChangeLogsWhenFilteringByProperty() {
+    JsonList<JsonEventChangeLog> changeLogs =
+        GET("/tracker/events/{id}/changeLogs?filter=property:eq:occurredAt", event.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonEventChangeLog.class);
+    List<JsonEventChangeLog> eventPropertyChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getEventProperty().getProperty() != null)
+            .toList();
+
+    assertAll(
+        () -> assertHasSize(1, eventPropertyChangeLogs),
+        () ->
+            assertPropertyCreateExists(
+                "occurredAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
+  }
+
+  @Test
   void shouldGetChangeLogPagerWithNextElementWhenMultipleElementsImportedAndFirstPageRequested() {
     JsonPage changeLogs =
         GET(

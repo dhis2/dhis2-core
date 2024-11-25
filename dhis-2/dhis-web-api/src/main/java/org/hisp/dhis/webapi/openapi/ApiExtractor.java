@@ -216,7 +216,7 @@ final class ApiExtractor {
     extractEndpointAuthorities(endpoint);
 
     mapping.path().stream()
-        .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
+        .map(ApiExtractor::sanitizeUrlPath)
         .forEach(path -> endpoint.getPaths().add(path));
     endpoint.getMethods().addAll(mapping.method);
 
@@ -227,6 +227,25 @@ final class ApiExtractor {
     endpoint.getResponses().putAll(extractResponses(endpoint, mapping, consumes));
 
     return endpoint;
+  }
+
+  /**
+   * Make sure path always start with /, do not end with / and have their path variables cleaned
+   * where a potential pattern is stripped.
+   */
+  private static String sanitizeUrlPath(String path) {
+    String norm = path;
+    if (path.endsWith("/")) norm = path.substring(0, path.length() - 1);
+    if (norm.startsWith("/")) norm = norm.substring(1);
+    String[] segments = norm.split("/");
+    for (int i = 0; i < segments.length; i++) {
+      String seg = segments[i];
+      // is this {name:regex} ?
+      if (seg.startsWith("{") && seg.endsWith("}") && seg.contains(":")) {
+        segments[i] = seg.substring(0, seg.indexOf(':')) + "}"; // drop the :regex part
+      }
+    }
+    return "/" + String.join("/", segments);
   }
 
   private static void extractEndpointAuthorities(Api.Endpoint endpoint) {

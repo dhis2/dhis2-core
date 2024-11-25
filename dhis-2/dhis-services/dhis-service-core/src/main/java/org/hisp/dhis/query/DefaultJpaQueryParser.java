@@ -28,10 +28,15 @@
 package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.query.QueryUtils.parseValue;
 
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
@@ -52,16 +57,17 @@ public class DefaultJpaQueryParser implements QueryParser {
   }
 
   @Override
-  public Query parse(Class<?> klass, List<String> filters) throws QueryParserException {
+  public Query parse(Class<?> klass, @Nonnull List<String> filters) throws QueryParserException {
     return parse(klass, filters, Junction.Type.AND);
   }
 
   @Override
-  public Query parse(Class<?> klass, List<String> filters, Junction.Type rootJunction)
+  public Query parse(Class<?> klass, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException {
     Schema schema = schemaService.getDynamicSchema(klass);
     Query query = Query.from(schema, rootJunction);
 
+    List<String> mentions = new ArrayList<>();
     for (String filter : filters) {
       String[] split = filter.split(":");
 
@@ -69,16 +75,22 @@ public class DefaultJpaQueryParser implements QueryParser {
         throw new QueryParserException("Invalid filter => " + filter);
       }
 
+      String path = split[0];
+      String operator = split[1];
       if (split.length >= 3) {
-        int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-
-        if (split[0].equals(IDENTIFIABLE) && !schema.hasProperty(IDENTIFIABLE)) {
-          handleIdentifiablePath(schema, split[1], filter.substring(index), query.addDisjunction());
+        String arg = split.length == 3 ? split[2] : Stream.of(split).skip(2).collect(joining(":"));
+        if ("mentions".equals(path) && "in".equals(operator)) {
+          mentions.add(arg);
+        } else if (path.equals(IDENTIFIABLE) && !schema.hasProperty(IDENTIFIABLE)) {
+          handleIdentifiablePath(schema, operator, arg, query.addDisjunction());
         } else {
-          query.add(getRestriction(schema, split[0], split[1], filter.substring(index)));
+          query.add(getRestriction(schema, path, operator, arg));
         }
       } else {
-        query.add(getRestriction(schema, split[0], split[1], null));
+        query.add(getRestriction(schema, path, operator, null));
+      }
+      if (!mentions.isEmpty()) {
+        getDisjunctionsFromCustomMentions(mentions, query.getSchema());
       }
     }
     return query;
@@ -137,41 +149,41 @@ public class DefaultJpaQueryParser implements QueryParser {
       case "endsWith", "ilike$" ->
           Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.END);
       case "!ilike$" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.END);
-      case "in" -> {
-        Collection values = null;
-
-        if (property.isCollection()) {
-          values = parseValue(Collection.class, property.getItemKlass(), arg);
-        } else {
-          values = parseValue(Collection.class, valueType, arg);
-        }
-
-        if (values == null || values.isEmpty()) {
-          throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
-        }
-
-        yield Restrictions.in(path, values);
-      }
-      case "!in" -> {
-        Collection values = null;
-
-        if (property.isCollection()) {
-          values = parseValue(Collection.class, property.getItemKlass(), arg);
-        } else {
-          values = parseValue(Collection.class, valueType, arg);
-        }
-
-        if (values == null || values.isEmpty()) {
-          throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
-        }
-
-        yield Restrictions.notIn(path, values);
-      }
+      case "in" -> Restrictions.in(path, parseValues(property, valueType, arg));
+      case "!in" -> Restrictions.notIn(path, parseValues(property, valueType, arg));
       case "null" -> Restrictions.isNull(path);
       case "!null" -> Restrictions.isNotNull(path);
       case "empty" -> Restrictions.isEmpty(path);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
+  }
+
+  @Nonnull
+  @SuppressWarnings("rawtypes")
+  private Collection parseValues(Property property, Class<?> valueType, Object arg) {
+    Collection<?> values =
+        property.isCollection()
+            ? parseValue(Collection.class, property.getItemKlass(), arg)
+            : parseValue(Collection.class, valueType, arg);
+
+    if (values == null || values.isEmpty()) {
+      throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
+    }
+    return values;
+  }
+
+  private Collection<Disjunction> getDisjunctionsFromCustomMentions(
+      List<String> mentions, Schema schema) {
+    Collection<Disjunction> disjunctions = new ArrayList<>();
+    for (String m : mentions) {
+      Disjunction disjunction = new Disjunction(schema);
+      String[] split = m.substring(1, m.length() - 1).split(",");
+      List<String> items = Lists.newArrayList(split);
+      disjunction.add(Restrictions.in("mentions.username", items));
+      disjunction.add(Restrictions.in("comments.mentions.username", items));
+      disjunctions.add(disjunction);
+    }
+    return disjunctions;
   }
 
   @Override

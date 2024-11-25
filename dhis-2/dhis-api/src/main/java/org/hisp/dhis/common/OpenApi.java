@@ -469,6 +469,7 @@ public @interface OpenApi {
    */
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
   @interface Shared {
 
     /**

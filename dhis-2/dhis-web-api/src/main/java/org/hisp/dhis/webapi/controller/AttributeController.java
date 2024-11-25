@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -38,4 +39,4 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/attributes")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class AttributeController extends AbstractCrudController<Attribute> {}
+public class AttributeController extends AbstractCrudController<Attribute, GetObjectListParams> {}
