@@ -43,7 +43,6 @@ import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -97,6 +96,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   @Mock private CategoryService categoryService;
 
   @Mock private SystemSettingsProvider settingsProvider;
+  
   @Mock private SystemSettings settings;
 
   @Mock private DatabaseInfoProvider databaseInfoProvider;
