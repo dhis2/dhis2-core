@@ -25,7 +25,7 @@ jobs:
         run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
         timeout-minutes: 30
       - name: Run dependency analysis
-        run: mvn dependency:analyze-only --file ./dhis-2/pom.xml
+        run: mvn dependency:analyze --file ./dhis-2/pom.xml
         timeout-minutes: 2
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
