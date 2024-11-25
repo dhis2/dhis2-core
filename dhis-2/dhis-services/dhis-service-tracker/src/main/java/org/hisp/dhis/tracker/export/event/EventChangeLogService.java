@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -97,5 +98,5 @@ public interface EventChangeLogService {
    * error. Validation of user provided field names should occur before calling {@link
    * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
    */
-  Set<String> getFilterableFields();
+  Set<Pair<String, Class<?>>> getFilterableFields();
 }

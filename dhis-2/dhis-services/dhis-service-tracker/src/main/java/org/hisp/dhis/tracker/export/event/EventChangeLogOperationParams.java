@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.Map;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.tracker.export.Order;
@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.export.Order;
 public class EventChangeLogOperationParams {
 
   private Order order;
-  private Map.Entry<String, QueryFilter> filterEntry;
+  private Pair<String, QueryFilter> filter;
 
   public static class EventChangeLogOperationParamsBuilder {
 
@@ -54,7 +54,7 @@ public class EventChangeLogOperationParams {
       return this;
     }
 
-    private EventChangeLogOperationParamsBuilder filterMap(Map<String, QueryFilter> filterMap) {
+    private EventChangeLogOperationParamsBuilder filterMap(Pair<String, QueryFilter> filterMap) {
       return this;
     }
 
@@ -64,7 +64,7 @@ public class EventChangeLogOperationParams {
     }
 
     public EventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
-      this.filterEntry = Map.entry(field, filter);
+      this.filter = Pair.of(field, filter);
       return this;
     }
   }

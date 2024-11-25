@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -165,7 +166,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   }
 
   @Override
-  public Set<String> getFilterableFields() {
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
     return hibernateEventChangeLogStore.getFilterableFields();
   }
 
