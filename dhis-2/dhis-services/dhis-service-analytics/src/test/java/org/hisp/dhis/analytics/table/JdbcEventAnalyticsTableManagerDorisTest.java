@@ -151,13 +151,13 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
-    DataElement deA = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
-    DataElement deB = createDataElement('P', ValueType.PERCENTAGE, AggregationType.SUM);
-    DataElement deC = createDataElement('Y', ValueType.BOOLEAN, AggregationType.NONE);
-    DataElement deD = createDataElement('W', ValueType.DATE, AggregationType.LAST);
-    DataElement deE = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
-    DataElement deF = createDataElement('H', ValueType.INTEGER, AggregationType.SUM);
-    DataElement deG = createDataElement('U', ValueType.COORDINATE, AggregationType.NONE);
+    DataElement deA = createDataElement('A', ValueType.TEXT, AggregationType.SUM);
+    DataElement deB = createDataElement('B', ValueType.PERCENTAGE, AggregationType.SUM);
+    DataElement deC = createDataElement('C', ValueType.BOOLEAN, AggregationType.NONE);
+    DataElement deD = createDataElement('D', ValueType.DATE, AggregationType.LAST);
+    DataElement deE = createDataElement('E', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DataElement deF = createDataElement('F', ValueType.INTEGER, AggregationType.SUM);
+    DataElement deG = createDataElement('G', ValueType.COORDINATE, AggregationType.NONE);
 
     ProgramStage ps1 = createProgramStage('A', Set.of(deA, deB, deC, deD, deE, deF, deG));
 
@@ -167,13 +167,13 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
     String aliasD1 = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
     String aliasD2 =
-        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) else null end as `deabcdefghP`";
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) else null end as `%s`";
     String aliasD3 =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end as `%s`";
     String aliasD4 =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime) else null end as `%s`";
     String aliasD5 =
-        "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.deabcdefghG.value')) ) as `deabcdefghG`";
+        "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
     String aliasD5Name =
         "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
     String aliasD6 =
