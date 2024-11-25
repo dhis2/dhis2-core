@@ -134,14 +134,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   List<OrganisationUnit> getOrganisationUnitsByUid(@Nonnull Collection<String> uids);
 
   /**
-   * Returns a list of OrganisationUnits based on the given params.
-   *
-   * @param params the params.
-   * @return a list of OrganisationUnits.
-   */
-  List<OrganisationUnit> getOrganisationUnitsByQuery(OrganisationUnitQueryParams params);
-
-  /**
    * Returns an OrganisationUnit with a given name.
    *
    * @param name the name of the OrganisationUnit to return.

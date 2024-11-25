@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -51,7 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/optionSets")
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class OptionSetController extends AbstractCrudController<OptionSet> {
+public class OptionSetController extends AbstractCrudController<OptionSet, GetObjectListParams> {
   private final OptionService optionService;
 
   @GetMapping("/{uid}/metadata")

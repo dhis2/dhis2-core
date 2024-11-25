@@ -46,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
@@ -72,7 +73,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/reports")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class ReportController extends AbstractCrudController<Report> {
+public class ReportController extends AbstractCrudController<Report, GetObjectListParams> {
   @Autowired public ReportService reportService;
 
   @Autowired private OrganisationUnitService organisationUnitService;

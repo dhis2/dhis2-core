@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
@@ -40,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/userGroups")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class UserGroupController extends AbstractCrudController<UserGroup> {
+public class UserGroupController extends AbstractCrudController<UserGroup, GetObjectListParams> {
 
   @Override
   protected void postUpdateEntity(UserGroup entity) {

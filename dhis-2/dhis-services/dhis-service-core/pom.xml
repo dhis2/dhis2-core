@@ -30,6 +30,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-node</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
