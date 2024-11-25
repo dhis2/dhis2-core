@@ -61,8 +61,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class OutlierQueryParserTest {
   @Mock private IdentifiableObjectManager idObjectManager;
+
   @Mock private DimensionalObjectProvider dimensionalObjectProducer;
+
   @Mock private UserService userService;
+
   private OutlierQueryParser subject;
 
   @BeforeEach

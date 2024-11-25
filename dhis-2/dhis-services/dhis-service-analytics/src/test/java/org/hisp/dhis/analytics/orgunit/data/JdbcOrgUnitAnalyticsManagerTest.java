@@ -43,10 +43,11 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -65,15 +66,9 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
   @Mock private TableInfoReader tableInfoReader;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcOrgUnitAnalyticsManager jdbcOrgUnitAnalyticsManager;
-
-  @BeforeEach
-  public void beforeAll() {
-    jdbcOrgUnitAnalyticsManager =
-        new JdbcOrgUnitAnalyticsManager(tableInfoReader, sqlBuilder, jdbcTemplate);
-  }
+  @InjectMocks private JdbcOrgUnitAnalyticsManager manager;
 
   @Test
   void testGetOrgUnitDataWithSuccess() {
@@ -97,7 +92,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
             "analytics_rs_organisationunitgroupsetstructure", Set.of("abc123", "abc456")))
         .thenReturn(Set.of());
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(sqlRowSet);
-    Map<String, Integer> data = jdbcOrgUnitAnalyticsManager.getOrgUnitData(params);
+    Map<String, Integer> data = manager.getOrgUnitData(params);
 
     // Then
     // Based on the mocked sqlRowSet.
@@ -128,9 +123,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
 
     // Then
     assertThrows(
-        QueryRuntimeException.class,
-        () -> jdbcOrgUnitAnalyticsManager.getOrgUnitData(params),
-        E7302.getMessage());
+        QueryRuntimeException.class, () -> manager.getOrgUnitData(params), E7302.getMessage());
   }
 
   private void mockSqlRowSet() {
