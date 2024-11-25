@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -144,8 +145,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
-   * @param isTea whether the selection is in the context of a tracked entity attribute. When
-   *     true, organization unit selections will include an additional subquery wrapper.
+   * @param isTea whether the selection is in the context of a tracked entity attribute. When true,
+   *     organization unit selections will include an additional subquery wrapper.
    * @return a select expression appropriate for the given value type and context.
    */
   private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
@@ -161,7 +162,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnExpression
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
-      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeTimestamp());
+      return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
           + columnExpression
@@ -176,10 +177,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       return columnExpression;
     }
   }
-  
+
   /**
    * Returns a cast expression which includes a value filter for the given value type.
-   * 
+   *
    * @param columnExpression the column expression.
    * @param filterRegex the value type filter regular expression.
    * @param dataType the SQL data type.
@@ -187,8 +188,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   private String getCastExpression(String columnExpression, String filterRegex, String dataType) {
     String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
-    return String.format("case when %s then cast(%s as %) else null end",
-        filter, columnExpression, dataType);
+    return String.format(
+        "case when %s then cast(%s as %) else null end", filter, columnExpression, dataType);
   }
 
   @Override
@@ -222,7 +223,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql += fromClause;
-    
+
     System.out.println("---- INSERT SQL ------");
     System.out.println(sql);
     System.out.println();
