@@ -112,7 +112,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class ExpressionService2Test extends TestBase {
+class ExpressionServiceTest extends TestBase {
   @Mock private HibernateGenericStore<Expression> hibernateGenericStore;
 
   @Mock private ConstantService constantService;
