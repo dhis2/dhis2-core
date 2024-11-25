@@ -56,7 +56,6 @@ import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,10 +69,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -86,7 +83,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -111,8 +107,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -141,9 +139,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcEventAnalyticsTableManager subject;
+  @InjectMocks private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
 
@@ -178,23 +176,6 @@ class JdbcEventAnalyticsTableManagerTest {
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
-
-    subject =
-        new JdbcEventAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            resourceTableService,
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            databaseInfoProvider,
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
-    assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
   }
 
   @Test
