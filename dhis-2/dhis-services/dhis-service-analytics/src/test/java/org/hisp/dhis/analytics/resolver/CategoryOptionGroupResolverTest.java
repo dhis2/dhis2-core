@@ -77,9 +77,9 @@ class CategoryOptionGroupResolverTest {
 
   private CategoryOptionCombo coc3;
 
-  DimensionalItemId dimensionalItemId;
+  private DimensionalItemId dimensionalItemId;
 
-  private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
+  private final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
 
   @BeforeEach
   public void setUp() {

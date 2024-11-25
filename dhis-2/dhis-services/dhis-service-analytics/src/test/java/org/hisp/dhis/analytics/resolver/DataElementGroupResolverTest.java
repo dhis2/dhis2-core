@@ -78,7 +78,7 @@ class DataElementGroupResolverTest {
 
   private DimensionalItemId dimensionalItemId;
 
-  private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
+  private final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
   @BeforeEach
   public void setUp() {

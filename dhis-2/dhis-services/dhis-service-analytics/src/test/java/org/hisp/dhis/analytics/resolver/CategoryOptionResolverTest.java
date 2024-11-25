@@ -78,7 +78,7 @@ class CategoryOptionResolverTest {
 
   private DimensionalItemId dimensionalItemId;
 
-  private static final String CATEGORY_OPTION_PREFIX = "co:";
+  private final String CATEGORY_OPTION_PREFIX = "co:";
 
   @BeforeEach
   public void setUp() {
