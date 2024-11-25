@@ -52,9 +52,9 @@ class DefaultTrackedEntityAnalyticsDimensionsService
     implements TrackedEntityAnalyticsDimensionsService {
   private final TrackedEntityTypeService trackedEntityTypeService;
 
-  private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
-
   private final ProgramService programService;
+
+  private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
   @Override
   public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId(
