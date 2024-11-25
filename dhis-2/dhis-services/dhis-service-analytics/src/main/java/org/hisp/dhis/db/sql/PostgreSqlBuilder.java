@@ -241,7 +241,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtract(String column, String property) {
-    return column + " ->> '" + property + "'";
+    return String.format("%s ->> '%s'", column, property);
   }
 
   @Override
