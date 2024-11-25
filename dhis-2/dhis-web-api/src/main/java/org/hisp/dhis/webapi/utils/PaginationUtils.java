@@ -73,7 +73,7 @@ public class PaginationUtils {
     Pager pager = null;
     if (params.isPaging()) {
       long totalCount = entities.size();
-      int page = params.getPage();
+      int page = Math.max(params.getPage(), 1);
       int pageSize = params.getPageSize();
       long skip = (long) (page - 1) * pageSize;
       entities = entities.stream().skip(skip).limit(pageSize).toList();
