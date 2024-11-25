@@ -100,7 +100,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   protected final String getDateClause() {
-    return " and " + sqlBuilder.regexpMatch("value", "'" + DATE_REGEXP + "'");
+    return " and " + sqlBuilder.regexpMatch("value", DATE_REGEXP);
   }
 
   /**
@@ -124,7 +124,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a select expression.
    */
   protected String getSelectExpression(ValueType valueType, String columnName) {
-    return getSelectExpressionInternal(valueType, columnName, false);
+    return getSelectExpression(valueType, columnName, false);
   }
 
   /**
@@ -136,7 +136,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a select expression.
    */
   protected String getSelectExpressionForAttribute(ValueType valueType, String columnName) {
-    return getSelectExpressionInternal(valueType, columnName, true);
+    return getSelectExpression(valueType, columnName, true);
   }
 
   /**
@@ -145,12 +145,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
-   * @param isTeaContext whether the selection is in the context of a tracked entity attribute. When
-   *     true, organization unit selections will include an additional subquery wrapper.
+   * @param isTea whether the selection is in the context of a tracked entity attribute. When true,
+   *     organisation unit selections will include an additional subquery wrapper.
    * @return a select expression appropriate for the given value type and context.
    */
-  private String getSelectExpressionInternal(
-      ValueType valueType, String columnExpression, boolean isTeaContext) {
+  private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
     String doubleType = sqlBuilder.dataTypeDouble();
 
     if (valueType.isDecimal()) {
@@ -171,7 +170,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
       String ouClause =
-          isTeaContext
+          isTea
               ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}"
               : "ou.uid from ${organisationunit} ou where ou.uid = ${columnName}";
       return replaceQualify(ouClause, Map.of("columnName", columnExpression));
