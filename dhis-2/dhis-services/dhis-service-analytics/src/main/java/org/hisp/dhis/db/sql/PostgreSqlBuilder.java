@@ -220,8 +220,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String regexpMatch(String pattern) {
-    return String.format("~* %s", pattern);
+  public String regexpMatch(String value, String pattern) {
+    return String.format("%s ~* %s", value, pattern);
   }
 
   @Override
@@ -247,6 +247,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String jsonExtract(String tablePrefix, String column, String jsonPath) {
     return String.format("%s.%s ->> '%s'", tablePrefix, column, jsonPath);
+  }
+
+  @Override
+  public String jsonExtractNested(String column, String... jsonPath) {
+    return String.format("%s #>> '{%s}'", column, String.join(", ", jsonPath));
   }
 
   // Statements

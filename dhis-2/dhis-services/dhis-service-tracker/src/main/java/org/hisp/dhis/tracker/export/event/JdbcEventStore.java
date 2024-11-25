@@ -650,7 +650,6 @@ left join
     ) as eventdatavalue(dataelement_uid, value)
     on true
 left join dataelement de on de.uid = eventdatavalue.dataelement_uid
-where eventdatavalue.dataelement_uid is not null
 """);
     }
 
