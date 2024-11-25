@@ -29,9 +29,15 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
@@ -42,6 +48,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -109,23 +116,28 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   public void addDataValueChangeLog(
       Event event,
       DataElement dataElement,
-      String currentValue,
       String previousValue,
+      String value,
       ChangeLogType changeLogType,
       String userName) {
 
     EventChangeLog eventChangeLog =
         new EventChangeLog(
-            event,
-            dataElement,
-            null,
-            previousValue,
-            currentValue,
-            changeLogType,
-            new Date(),
-            userName);
+            event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
 
     hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+  }
+
+  @Override
+  @Transactional
+  public void addPropertyChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+    logIfChanged(
+        "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
+    logIfChanged(
+        "scheduledAt", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
+    logIfChanged(
+        "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
   }
 
   @Override
@@ -151,5 +163,67 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return hibernateEventChangeLogStore.getOrderableFields();
+  }
+
+  private <T> void logIfChanged(
+      String propertyName,
+      Function<Event, T> valueExtractor,
+      Function<T, String> formatter,
+      Event currentEvent,
+      Event event,
+      String userName) {
+
+    String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
+    String newValue = formatter.apply(valueExtractor.apply(event));
+
+    if (!Objects.equals(currentValue, newValue)) {
+      ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
+
+      EventChangeLog eventChangeLog =
+          new EventChangeLog(
+              event,
+              null,
+              propertyName,
+              currentValue,
+              newValue,
+              changeLogType,
+              new Date(),
+              userName);
+
+      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+    }
+  }
+
+  private ChangeLogType getChangeLogType(String oldValue, String newValue) {
+    if (isNewProperty(oldValue, newValue)) {
+      return ChangeLogType.CREATE;
+    } else if (isUpdateProperty(oldValue, newValue)) {
+      return ChangeLogType.UPDATE;
+    } else {
+      return ChangeLogType.DELETE;
+    }
+  }
+
+  private boolean isNewProperty(String originalValue, String payloadValue) {
+    return originalValue == null && payloadValue != null;
+  }
+
+  private boolean isUpdateProperty(String originalValue, String payloadValue) {
+    return originalValue != null && payloadValue != null;
+  }
+
+  private String formatDate(Date date) {
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    return date != null ? formatter.format(date) : null;
+  }
+
+  private String formatGeometry(Geometry geometry) {
+    if (geometry == null) {
+      return null;
+    }
+
+    return Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(Collectors.joining(", "));
   }
 }

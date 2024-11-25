@@ -151,9 +151,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected Boolean spatialSupport;
 
   protected boolean isSpatialSupport() {
-    if (spatialSupport == null)
+    if (spatialSupport == null) {
       spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    return spatialSupport;
+    }
+
+    return spatialSupport && sqlBuilder.supportsGeospatialData();
   }
 
   /**
@@ -356,14 +358,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> columns) {
+      List<AnalyticsTableColumn> columns,
+      List<String> sortKey) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -398,7 +401,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(
@@ -743,11 +746,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         // is part of the previous PR (https://github.com/dhis2/dhis2-core/pull/19131/files)
         .selectExpression(
             """
-                       CASE
-                           WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
-                           ELSE YEAR(ev.occurreddate)
-                       END
-                  """)
+            CASE
+                WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
+                ELSE YEAR(ev.occurreddate)
+            END
+            """)
         .skipIndex(Skip.SKIP)
         .build();
   }

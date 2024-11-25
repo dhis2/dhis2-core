@@ -90,10 +90,10 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
-  /** Analytics database JDBC catalog name. */
+  /** Analytics database JDBC catalog name. Applies to Apache Doris. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
 
-  /** Analytics database JDBC driver filename. */
+  /** Analytics database JDBC driver filename. Applies to Apache Doris. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
   /** JDBC driver class. */
@@ -117,6 +117,15 @@ public enum ConfigurationKey {
 
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
+
+  /** Database host (hostname or IP). Applies to ClickHouse. */
+  CONNECTION_HOST("connection.host", "", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_PORT("connection.port", "5432", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_DATABASE("connection.database", "", false),
 
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),

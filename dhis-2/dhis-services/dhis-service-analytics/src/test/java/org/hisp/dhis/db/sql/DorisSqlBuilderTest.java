@@ -65,9 +65,7 @@ class DorisSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
-
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), Logged.UNLOGGED);
   }
 
   private Table getTableC() {
@@ -178,6 +176,32 @@ class DorisSqlBuilderTest {
   void testDateTrunc() {
     assertEquals(
         "date_trunc(pe.startdate, 'month')", sqlBuilder.dateTrunc("month", "pe.startdate"));
+  }
+
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "(unix_timestamp(a.startdate) - unix_timestamp(b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("value regexp 'test'", sqlBuilder.regexpMatch("value", "'test'"));
+    assertEquals("number regexp '\\d'", sqlBuilder.regexpMatch("number", "'\\d'"));
+    assertEquals("color regexp '^Blue$'", sqlBuilder.regexpMatch("color", "'^Blue$'"));
+    assertEquals("id regexp '[a-z]\\w+\\d{3}'", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
+  }
+
+  @Test
+  void testJsonExtractNested() {
+    assertEquals(
+        "json_unquote(json_extract(eventdatavalues, '$.D7m8vpzxHDJ.value'))",
+        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
   }
 
   // Statements

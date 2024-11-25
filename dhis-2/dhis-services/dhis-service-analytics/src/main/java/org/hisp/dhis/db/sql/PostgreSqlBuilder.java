@@ -214,6 +214,46 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("date_trunc(%s, %s)", singleQuote(text), timestamp);
   }
 
+  @Override
+  public String differenceInSeconds(String columnA, String columnB) {
+    return String.format("extract(epoch from (%s - %s))", columnA, columnB);
+  }
+
+  @Override
+  public String regexpMatch(String value, String pattern) {
+    return String.format("%s ~* %s", value, pattern);
+  }
+
+  @Override
+  public String concat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "trim(" + expression + ")";
+  }
+
+  @Override
+  public String coalesce(String expression, String defaultValue) {
+    return "coalesce(" + expression + ", " + defaultValue + ")";
+  }
+
+  @Override
+  public String jsonExtract(String column, String property) {
+    return column + " ->> '" + property + "'";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return String.format("%s.%s ->> '%s'", tablePrefix, column, jsonPath);
+  }
+
+  @Override
+  public String jsonExtractNested(String column, String... jsonPath) {
+    return String.format("%s #>> '{%s}'", column, String.join(", ", jsonPath));
+  }
+
   // Statements
 
   @Override
@@ -287,11 +327,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String renameTable(Table table, String newName) {
     return String.format("alter table %s rename to %s;", quote(table.getName()), quote(newName));
-  }
-
-  @Override
-  public String dropTableIfExists(String name) {
-    return String.format("drop table if exists %s;", quote(name));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
-
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+package org.hisp.dhis.common.cache;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Enum is used to make sure we do not use same region twice. Each method should have its own
+ * constant.
  */
-public interface EventStore {
-  /** Get all events matching given params. */
-  List<Event> getEvents(EventQueryParams params);
-
-  /** Get a page of events matching given params. */
-  Page<Event> getEvents(EventQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getEvents(EventQueryParams)} can order events by. Ordering by fields other
-   * than these is considered a programmer error. Validation of user provided field names should
-   * occur before calling {@link #getEvents(EventQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+@SuppressWarnings("squid:S115") // allow non enum-ish names
+public enum Region {
+  analyticsResponse,
+  defaultObjectCache,
+  isDataApproved,
+  allConstantsCache,
+  inUserOrgUnitHierarchy,
+  inUserSearchOrgUnitHierarchy,
+  periodIdCache,
+  userAccountRecoverAttempt,
+  userFailedLoginAttempt,
+  twoFaDisableFailedAttempt,
+  programOwner,
+  programTempOwner,
+  currentUserGroupInfoCache,
+  attrOptionComboIdCache,
+  googleAccessToken,
+  dataItemsPagination,
+  metadataAttributes,
+  canDataWriteCocCache,
+  analyticsSql,
+  propertyTransformerCache,
+  programHasRulesCache,
+  userGroupNameCache,
+  userDisplayNameCache,
+  pgmOrgUnitAssocCache,
+  catOptOrgUnitAssocCache,
+  dataSetOrgUnitAssocCache,
+  apiTokensCache,
+  teAttributesCache,
+  programTeAttributesCache,
+  userGroupUIDCache,
+  securityCache,
+  dataIntegritySummaryCache,
+  dataIntegrityDetailsCache,
+  queryAliasCache
 }

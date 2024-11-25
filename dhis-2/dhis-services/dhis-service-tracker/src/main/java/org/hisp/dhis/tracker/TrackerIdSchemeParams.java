@@ -38,6 +38,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -142,6 +143,27 @@ public class TrackerIdSchemeParams implements Serializable {
   @Nonnull
   public TrackerIdSchemeParam getCategoryOptionIdScheme() {
     return categoryOptionIdScheme != null ? categoryOptionIdScheme : idScheme;
+  }
+
+  /**
+   * Get the identifier using the matching {@code idScheme}. Defaults to {@link
+   * IdentifiableObject#getUid()} if the metadata has no dedicated {@code idScheme} parameter.
+   */
+  public <T extends IdentifiableObject & MetadataObject> String getIdentifier(T metadata) {
+    if (metadata instanceof DataElement dataElement) {
+      return getDataElementIdScheme().getIdentifier(dataElement);
+    } else if (metadata instanceof OrganisationUnit orgUnit) {
+      return getOrgUnitIdScheme().getIdentifier(orgUnit);
+    } else if (metadata instanceof Program program) {
+      return getProgramIdScheme().getIdentifier(program);
+    } else if (metadata instanceof ProgramStage programStage) {
+      return getProgramStageIdScheme().getIdentifier(programStage);
+    } else if (metadata instanceof CategoryOptionCombo categoryOptionCombo) {
+      return getCategoryOptionComboIdScheme().getIdentifier(categoryOptionCombo);
+    } else if (metadata instanceof CategoryOption categoryOption) {
+      return getCategoryOptionIdScheme().getIdentifier(categoryOption);
+    }
+    return metadata.getUid();
   }
 
   public TrackerIdSchemeParam getByClass(Class<?> klazz) {

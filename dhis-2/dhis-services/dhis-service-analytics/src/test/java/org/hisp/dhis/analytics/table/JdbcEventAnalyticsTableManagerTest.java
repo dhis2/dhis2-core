@@ -291,7 +291,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumns(periodColumns)
         .addColumn(
             categoryA.getUid(),
@@ -401,7 +401,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD2 =
         "(select cast(eventdatavalues #>> '{%s, value}' as double precision) "
             + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+            + "  and eventdatavalues #>> '{%s, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD3 =
         "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end "
             + FROM_CLAUSE
@@ -409,39 +409,36 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD4 =
         "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) "
             + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
+            + "  and eventdatavalues #>> '{%s, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
     String aliasD5 =
         "(select ou.uid from \"organisationunit\" ou where ou.uid = "
-            + "(select eventdatavalues #>> '{"
+            + "eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
-            + FROM_CLAUSE
-            + " )) as \""
+            + ") as \""
             + d5.getUid()
             + "\"";
     String aliasD6 =
         "(select cast(eventdatavalues #>> '{%s, value}' as bigint) "
             + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+            + "  and eventdatavalues #>> '{%s, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD7 =
         "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from \"event\" where eventid=ev.eventid ) as \"%s\"";
     String aliasD5_geo =
-        "(select ou.geometry from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.geometry from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
-            + FROM_CLAUSE
-            + " )) as \""
+            + ") as \""
             + d5.getUid()
             + "\"";
     String aliasD5_name =
-        "(select ou.name from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.name from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
-            + FROM_CLAUSE
-            + " )) as \""
+            + ") as \""
             + d5.getUid()
             + "\"";
-
+    System.out.println(aliasD5_name);
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(2)
@@ -503,18 +500,10 @@ class JdbcEventAnalyticsTableManagerTest {
             GEOMETRY_POINT,
             toSelectExpression(aliasD7, d7.getUid())) // ValueType.COORDINATES
         // element d5 also creates a Geo column
-        .addColumn(
-            d5.getUid() + "_geom",
-            GEOMETRY,
-            toSelectExpression(aliasD5_geo, d5.getUid()),
-            IndexType.GIST)
+        .addColumn(d5.getUid() + "_geom", GEOMETRY, aliasD5_geo, IndexType.GIST)
         // element d5 also creates a Name column
-        .addColumn(
-            d5.getUid() + "_name",
-            TEXT,
-            toSelectExpression(aliasD5_name, d5.getUid() + "_name"),
-            Skip.SKIP)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .addColumn(d5.getUid() + "_name", TEXT, aliasD5_name, Skip.SKIP)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
   }
@@ -590,7 +579,7 @@ class JdbcEventAnalyticsTableManagerTest {
             TEXT,
             String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
             Skip.SKIP)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
   }
@@ -635,10 +624,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from \"organisationunit\" ou where ou.uid = "
-            + "(select eventdatavalues #>> '{"
+            + "eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' from \"event\" where "
-            + "eventid=ev.eventid )) as \""
+            + ", value}' ) as \""
             + d5.getUid()
             + "\"";
 
@@ -791,13 +779,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouLevels.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
         .addColumn(("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
         .build()
@@ -834,13 +822,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
         .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -876,13 +864,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(cogs.get(0).getUid(), col -> match(cogs.get(0), col))
         .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()
@@ -981,9 +969,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         """
-        (select ou.%s from \"organisationunit\" ou where ou.uid = \
-        (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
-        trackedentityattributeid=9999)) as %s""";
+            (select ou.%s from \"organisationunit\" ou where ou.uid = \
+            (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
+            trackedentityattributeid=9999)) as %s""";
 
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "name", quote(tea.getUid()))));

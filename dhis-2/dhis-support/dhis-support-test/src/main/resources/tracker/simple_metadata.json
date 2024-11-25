@@ -18,6 +18,25 @@
       "trackedEntityTypeAttribute": true,
       "unique": true,
       "valueType": "TEXT"
+    },
+    {
+      "id": "i57a0734128",
+      "categoryOptionAttribute": true,
+      "categoryOptionComboAttribute": true,
+      "dataElementAttribute": true,
+      "name": "no metadata should have an attribute value for this attribute",
+      "organisationUnitAttribute": true,
+      "programAttribute": true,
+      "programStageAttribute": true,
+      "relationshipTypeAttribute": true,
+      "sharing": {
+        "owner": "PQD6wXJ2r5j",
+        "public": "rw------"
+      },
+      "trackedEntityAttributeAttribute": true,
+      "trackedEntityTypeAttribute": true,
+      "unique": true,
+      "valueType": "TEXT"
     }
   ],
   "categories": [
@@ -492,6 +511,14 @@
     },
     {
       "id": "GieVkTxp4HH",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "dataElement GieVkTxp4HH"
+        }
+      ],
       "aggregationType": "AVERAGE",
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
@@ -507,6 +534,14 @@
     },
     {
       "id": "GieVkTxp4HG",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "dataElement GieVkTxp4HG"
+        }
+      ],
       "aggregationType": "AVERAGE",
       "code": "DG_240794",
       "created": "2015-03-31T10:27:46.069",
@@ -1066,9 +1101,38 @@
           },
           "sharing": {},
           "sortOrder": 1
+        },
+        {
+          "id": "x3612481973",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "GieVkTxp4HG"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "qLZC0lvvxQH"
+          },
+          "sharing": {},
+          "sortOrder": 2
         }
       ],
-      "validationStrategy": "ON_UPDATE_AND_INSERT"
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "featureType": "POINT",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "multi-program-stage-attribute"
+        }
+      ]
     },
     {
       "id": "SKNvpoLioON",
@@ -1222,9 +1286,7 @@
           "id": "FdIeUL4gyoB"
         }
       ],
-      "program": {
-        "id": "SeeUNWLQmZk"
-      },
+      "featureType": "POLYGON",
       "repeatable": true,
       "sortOrder": 1,
       "user": {

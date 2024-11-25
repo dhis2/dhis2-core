@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
@@ -148,6 +149,8 @@ class EventQueryParams {
   private Set<UID> enrollments;
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
+
+  @Getter private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   public EventQueryParams() {}
 
@@ -550,5 +553,10 @@ class EventQueryParams {
     return orgUnitMode != null
         && (OrganisationUnitSelectionMode.DESCENDANTS.equals(orgUnitMode)
             || OrganisationUnitSelectionMode.CHILDREN.equals(orgUnitMode));
+  }
+
+  public EventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
+    this.idSchemeParams = idSchemeParams;
+    return this;
   }
 }

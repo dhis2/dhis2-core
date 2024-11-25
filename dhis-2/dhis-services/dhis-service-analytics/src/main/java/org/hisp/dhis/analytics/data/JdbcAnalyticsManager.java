@@ -184,7 +184,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = getParamsWithOffsetPartitions(params, tableType);
       }
 
-      String sql = getSql(params, tableType);
+      final String sql = getSql(params, tableType);
 
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
@@ -313,7 +313,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     StringBuilder builder = new StringBuilder();
 
     builder.append(getSelectClause(params));
-
     builder.append(getFromClause(params, tableType));
 
     // Skip the where clause here if already in sub query
@@ -326,7 +325,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (params.hasMeasureCriteria()
         && params.isDataType(DataType.NUMERIC)
         && !params.hasReportingRates()) {
-      /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
+      // Reporting rates applies the measure criteria after the rates calculation phase
       builder.append(getMeasureCriteriaSql(params));
     }
 
@@ -372,7 +371,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL numeric value column.
    */
   protected String getAggregateValueColumn(DataQueryParams params) {
-    String sql;
+    String sql = null;
 
     AnalyticsAggregationType aggType = params.getAggregationType();
 
@@ -388,8 +387,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       sql = "sum(daysxvalue) / sum(daysno) * 100";
     } else if (SIMPLE_AGGREGATION_TYPES.contains(aggType.getAggregationType())) {
       sql = String.format("%s(%s)", aggType.getAggregationType().getValue(), valueColumn);
-    } else // SUM and no value
-    {
+    } else { // SUM and no value
       sql = "sum(" + valueColumn + ")";
     }
 
@@ -911,16 +909,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
+      String sqlFilter =
+          String.format(
+              " %s %s %s ",
+              getAggregateValueColumn(params), OPERATOR_SQL_MAP.get(filter), criterion);
 
-      sql +=
-          sqlHelper.havingAnd()
-              + " "
-              + getAggregateValueColumn(params)
-              + " "
-              + OPERATOR_SQL_MAP.get(filter)
-              + " "
-              + criterion
-              + " ";
+      sql += sqlHelper.havingAnd() + sqlFilter;
     }
 
     return sql;
