@@ -110,7 +110,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
-  @Spy private final SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
+  @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
 
   private JdbcEventAnalyticsTableManager subject;
 
