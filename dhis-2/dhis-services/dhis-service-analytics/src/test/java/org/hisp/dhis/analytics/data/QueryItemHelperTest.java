@@ -60,21 +60,21 @@ import org.junit.jupiter.api.Test;
  * @author Dusan Bernat
  */
 class QueryItemHelperTest extends TestBase {
-  private String UID_A = CodeGenerator.generateUid();
+  private final String UID_A = CodeGenerator.generateUid();
 
-  private String UID_B = CodeGenerator.generateUid();
+  private final String UID_B = CodeGenerator.generateUid();
 
-  private String OPTION_NAME_A = "OptionA";
+  private final String OPTION_NAME_A = "OptionA";
 
-  private String OPTION_NAME_B = "OptionB";
+  private final String OPTION_NAME_B = "OptionB";
 
-  private String LEGEND_NAME_A = "LegendA";
+  private final String LEGEND_NAME_A = "LegendA";
 
-  private String LEGEND_NAME_B = "LegendB";
+  private final String LEGEND_NAME_B = "LegendB";
 
-  private String LEGEND_CODE_A = "LegendCodeA";
+  private final String LEGEND_CODE_A = "LegendCodeA";
 
-  private String LEGEND_CODE_B = "LegendCodeB";
+  private final String LEGEND_CODE_B = "LegendCodeB";
 
   @Test
   void testGeItemOptionValueWithIdSchemeNAME() {
