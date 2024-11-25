@@ -246,16 +246,16 @@ public interface SqlBuilder {
   /**
    * Creates a SQL concatenation function that combines multiple columns or expressions.
    *
-   * @param columns the column names or expressions to concatenate
-   * @return the SQL function for concatenation
+   * @param columns the column names or expressions to concatenate.
+   * @return the SQL function for concatenation.
    */
   String concat(String... columns);
 
   /**
    * Creates a SQL trim function that removes leading and trailing spaces from an expression.
    *
-   * @param expression the expression to trim
-   * @return the SQL function for trimming
+   * @param expression the expression to trim.
+   * @return the SQL function for trimming.
    */
   String trim(String expression);
 
@@ -263,40 +263,29 @@ public interface SqlBuilder {
    * Creates a SQL COALESCE function that returns the first non-null expression from the provided
    * expressions. If the first expression is null, it returns the default expression.
    *
-   * @param expression the expression to check for null
-   * @param defaultValue the value to return if the first expression is null
-   * @return the SQL function for coalescing
+   * @param expression the expression to check for null.
+   * @param defaultValue the value to return if the first expression is null.
+   * @return the SQL function for coalescing.
    */
   String coalesce(String expression, String defaultValue);
 
   /**
    * Extracts a value from a JSON column using a specified property path.
    *
-   * @param column the JSON column name to extract from
-   * @param property the JSON property path to extract
-   * @return the SQL function for JSON value extraction
+   * @param json the JSON column name or value to extract from.
+   * @param property the JSON property path to extract.
+   * @return the SQL function for JSON value extraction.
    */
-  String jsonExtract(String column, String property);
-
-  /**
-   * Extracts a value from a JSON column using a specified JSON path expression, with support for
-   * table prefix qualification.
-   *
-   * @param tablePrefix the prefix/alias of the table containing the JSON column
-   * @param column the JSON column name to extract from
-   * @param jsonPath the JSON path expression to extract the value
-   * @return the SQL function for JSON value extraction
-   */
-  String jsonExtract(String tablePrefix, String column, String jsonPath);
+  String jsonExtract(String json, String property);
 
   /**
    * Extracts a nested value from a JSON column.
    *
-   * @param column the name of the JSON column from which to extract the value.
-   * @param jsonPath the hierarchical path to the nested value, represented as a sequence of keys.
+   * @param json the JSON column name or value to extract from.
+   * @param expression the hierarchical path expression to the nested value.
    * @return a SQL expression to extract the specified nested value from the JSON column.
    */
-  String jsonExtractNested(String column, String... jsonPath);
+  String jsonExtractNested(String json, String... expression);
 
   // Statements
 

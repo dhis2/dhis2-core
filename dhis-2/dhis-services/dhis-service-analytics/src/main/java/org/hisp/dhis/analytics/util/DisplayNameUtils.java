@@ -145,7 +145,8 @@ public final class DisplayNameUtils {
 
   private static String extractJsonValue(
       SqlBuilder sqlBuilder, String tablePrefix, String originColumn, String path) {
-    String jsonExtracted = sqlBuilder.jsonExtract(tablePrefix, originColumn, path);
+    String json = tablePrefix + "." + originColumn;
+    String jsonExtracted = sqlBuilder.jsonExtract(json, path);
     return sqlBuilder.trim(jsonExtracted);
   }
 
