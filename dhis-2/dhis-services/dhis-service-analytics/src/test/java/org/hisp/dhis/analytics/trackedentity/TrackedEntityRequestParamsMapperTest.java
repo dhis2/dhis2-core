@@ -51,7 +51,7 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Mock private ProgramService programService;
 
-  @InjectMocks private TrackedEntityQueryRequestMapper trackedEntityQueryRequestMapper;
+  @InjectMocks private TrackedEntityQueryRequestMapper mapper;
 
   @Test
   void testOneProgramFailing() {
@@ -82,8 +82,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     final IllegalQueryException thrown =
         assertThrows(
-            IllegalQueryException.class,
-            () -> trackedEntityQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
@@ -105,8 +104,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-    assertDoesNotThrow(
-        () -> trackedEntityQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
+    assertDoesNotThrow(() -> mapper.map(trackedEntityTypeUid, requestParams));
   }
 
   @Test
@@ -120,8 +118,7 @@ class TrackedEntityRequestParamsMapperTest {
     when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
         .thenReturn(trackedEntityType);
 
-    assertDoesNotThrow(
-        () -> trackedEntityQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
+    assertDoesNotThrow(() -> mapper.map(trackedEntityTypeUid, requestParams));
   }
 
   private Program stubProgram(String uid, String tetUid) {

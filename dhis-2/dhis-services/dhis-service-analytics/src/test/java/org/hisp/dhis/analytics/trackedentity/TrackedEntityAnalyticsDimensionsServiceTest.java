@@ -32,49 +32,39 @@ import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trac
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import org.hisp.dhis.analytics.event.data.DefaultEnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityAnalyticsDimensionsServiceTest {
-  @Mock private ProgramService programService;
-
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-  private TrackedEntityAnalyticsDimensionsService trackedEntityAnalyticsDimensionsService;
+  @Mock private ProgramService programService;
+
+  @InjectMocks private DefaultTrackedEntityAnalyticsDimensionsService service;
 
   @BeforeEach
   void setup() {
     when(trackedEntityTypeService.getTrackedEntityType(any())).thenReturn(trackedEntityType());
-
-    trackedEntityAnalyticsDimensionsService =
-        new DefaultTrackedEntityAnalyticsDimensionsService(
-            trackedEntityTypeService,
-            new DefaultEnrollmentAnalyticsDimensionsService(programService, mock(AclService.class)),
-            programService);
   }
 
   @Test
   void testQueryDoesNotContainDisallowedValueTypes() {
     Collection<BaseIdentifiableObject> analyticsDimensions =
-        trackedEntityAnalyticsDimensionsService
-            .getQueryDimensionsByTrackedEntityTypeId("aTeiId", emptySet())
-            .stream()
+        service.getQueryDimensionsByTrackedEntityTypeId("aTeiId", emptySet()).stream()
             .map(PrefixedDimension::getItem)
             .toList();
 

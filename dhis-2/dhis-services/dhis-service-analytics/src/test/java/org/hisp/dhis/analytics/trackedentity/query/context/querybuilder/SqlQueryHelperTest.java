@@ -41,18 +41,27 @@ import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link SqlQueryHelper}. */
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class SqlQueryHelperTest {
 
+  @Mock private DimensionParam dimensionParam;
+
+  @Mock private DimensionIdentifier<DimensionParam> testedDimension;
+
+  @BeforeEach
+  void beforeEach() {
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+  }
+
   @Test
   void test_throws_when_undetected_type() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
-
     assertThrows(
         IllegalArgumentException.class,
         () -> SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field"));
@@ -64,10 +73,6 @@ class SqlQueryHelperTest {
 
   @Test
   void test_subQuery_TE() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
-
     when(testedDimension.isTeDimension()).thenReturn(true);
 
     assertEquals(
@@ -80,9 +85,6 @@ class SqlQueryHelperTest {
 
   @Test
   void test_subQuery_enrollment() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
     when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
@@ -125,9 +127,6 @@ class SqlQueryHelperTest {
 
   @Test
   void test_subQuery_event() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
     when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
@@ -190,12 +189,7 @@ class SqlQueryHelperTest {
 
   @Test
   void test_subQuery_data_element() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-
     when(dimensionParam.isOfType(any())).thenReturn(true);
-
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
     when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
