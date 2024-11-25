@@ -166,23 +166,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-
-    subject =
-        new JdbcEventAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            resourceTableService,
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            databaseInfoProvider,
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            new DorisSqlBuilder("dhis2", "driver"));
-
     when(databaseInfoProvider.getDatabaseInfo())
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
