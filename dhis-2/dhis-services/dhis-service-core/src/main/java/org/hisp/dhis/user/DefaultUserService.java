@@ -68,6 +68,7 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PasswordGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -1462,6 +1463,12 @@ public class DefaultUserService implements UserService {
   @Override
   public String getUserSecret(String username) {
     return userStore.getUserSecret(username);
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
+    return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);
   }
 
   @Override

@@ -86,6 +86,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -111,7 +112,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * </ul>
    */
   protected static final String DATE_REGEXP =
-      "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
+      "'^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$'";
+
+  protected static final String NUMERIC_REGEXP = "'" + MathUtils.NUMERIC_LENIENT_REGEXP + "'";
 
   protected static final Set<ValueType> NO_INDEX_VAL_TYPES =
       Set.of(ValueType.TEXT, ValueType.LONG_TEXT);
@@ -746,11 +749,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         // is part of the previous PR (https://github.com/dhis2/dhis2-core/pull/19131/files)
         .selectExpression(
             """
-                       CASE
-                           WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
-                           ELSE YEAR(ev.occurreddate)
-                       END
-                  """)
+            CASE
+                WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
+                ELSE YEAR(ev.occurreddate)
+            END
+            """)
         .skipIndex(Skip.SKIP)
         .build();
   }

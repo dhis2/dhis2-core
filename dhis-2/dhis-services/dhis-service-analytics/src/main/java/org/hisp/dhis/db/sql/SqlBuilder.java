@@ -237,10 +237,11 @@ public interface SqlBuilder {
   String differenceInSeconds(String columnA, String columnB);
 
   /**
-   * @param pattern the regular expression pattern to match against
-   * @return a regular expression matching clause.
+   * @param value the string value such as a column or expression.
+   * @param pattern the regular expression pattern to match against.
+   * @return a regular expression string matching clause.
    */
-  String regexpMatch(String pattern);
+  String regexpMatch(String value, String pattern);
 
   /**
    * Creates a SQL concatenation function that combines multiple columns or expressions.
@@ -287,6 +288,15 @@ public interface SqlBuilder {
    * @return the SQL function for JSON value extraction
    */
   String jsonExtract(String tablePrefix, String column, String jsonPath);
+
+  /**
+   * Extracts a nested value from a JSON column.
+   *
+   * @param column the name of the JSON column from which to extract the value.
+   * @param jsonPath the hierarchical path to the nested value, represented as a sequence of keys.
+   * @return a SQL expression to extract the specified nested value from the JSON column.
+   */
+  String jsonExtractNested(String column, String... jsonPath);
 
   // Statements
 

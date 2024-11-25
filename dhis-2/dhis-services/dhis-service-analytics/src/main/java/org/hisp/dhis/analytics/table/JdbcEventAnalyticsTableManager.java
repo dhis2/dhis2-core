@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -36,10 +37,10 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -223,7 +224,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     Assert.isTrue(
         lastFullTableUpdate.getTime() > 0L,
-        "A full analytics table update process must be run prior to a latest partition update process");
+        "A full analytics table update process must be run prior to a latest partition update");
 
     Date startDate = lastFullTableUpdate;
     Date endDate = params.getStartTime();
@@ -427,31 +428,25 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         program.getAnalyticsDataElements().stream()
-            .map(de -> getColumnFromDataElement(de, false))
+            .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnFromDataElement(de, true))
+            .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(
-                tea ->
-                    getColumnFromTrackedEntityAttribute(
-                        tea, getNumericClause(), getDateClause(), false))
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(
-                tea ->
-                    getColumnFromTrackedEntityAttribute(
-                        tea, getNumericClause(), getDateClause(), true))
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
             .flatMap(Collection::stream)
             .toList());
 
@@ -461,27 +456,113 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         columns.add(EventAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
       }
     }
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      // Add the year column required for declarative partitioning
+      columns.add(getPartitionColumn());
+    }
 
     return filterDimensionColumns(columns);
   }
 
-  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
-      TrackedEntityAttribute attribute,
-      String numericClause,
-      String dateClause,
-      boolean withLegendSet) {
+  @Override
+  protected AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .selectExpression("dps.year")
+        .build();
+  }
+
+  /**
+   * Returns a column for the given data element. If the value type of the data element is {@link
+   * ValueType#ORGANISATION_UNIT}, an extra column will be included.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param withLegendSet indicates
+   * @return
+   */
+  private List<AnalyticsTableColumn> getColumnForDataElement(
+      DataElement dataElement, boolean withLegendSet) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
+    String columnExpression =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
+    String dataFilterClause = getDataFilterClause(dataElement);
+    String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
+    Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+
+    if (dataElement.getValueType().isOrganisationUnit()) {
+      columns.addAll(getColumnForOrgUnitDataElement(dataElement, dataFilterClause));
+    }
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(dataElement.getUid())
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
+
+    return withLegendSet
+        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause)
+        : columns;
+  }
+
+  private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(
+      DataElement dataElement, String dataFilterClause) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    String columnExpression =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String fromClause =
+        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
+
+    if (isSpatialSupport()) {
+      String fromType = "ou.geometry " + fromClause;
+      String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
+
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(geoSql)
+              .indexType(IndexType.GIST)
+              .build());
+    }
+
+    String fromTypeSql = "ou.name " + fromClause;
+    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataFilterClause);
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
+
+    return columns;
+  }
+
+  private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
+      TrackedEntityAttribute attribute, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String dataClause =
-        attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-    String select = getSelectClause(attribute.getValueType(), "value");
-    String sql = selectForInsert(attribute, select, dataClause);
+    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
+    String dataExpression = getDataFilterClause(attribute);
+    String sql = selectForInsert(attribute, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
+      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataExpression));
     }
+
     columns.add(
         AnalyticsTableColumn.builder()
             .name(attribute.getUid())
@@ -491,14 +572,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet
-        ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
-        : columns;
+    return withLegendSet ? getColumnForAttributeWithLegendSet(attribute) : columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
-      TrackedEntityAttribute attribute, String numericClause) {
-    String selectClause = getSelectClause(attribute.getValueType(), "value");
+  /**
+   * Returns a list of columns based on the given attribute with legend set.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
+      TrackedEntityAttribute attribute) {
+    String selectClause = getSelectExpression(attribute.getValueType(), "value");
+    String numericClause = getNumericClause();
     String query =
         """
         \s(select l.uid from ${maplegend} l \
@@ -531,44 +617,23 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .collect(toList());
   }
 
-  private List<AnalyticsTableColumn> getColumnFromDataElement(
-      DataElement dataElement, boolean withLegendSet) {
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnsForOrgUnitTrackedEntityAttribute(
+      TrackedEntityAttribute attribute, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
-    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-    String select = getSelectClause(dataElement.getValueType(), columnName);
-    String sql = selectForInsert(dataElement, select, dataClause);
-    Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
-
-    if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
-    }
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name(dataElement.getUid())
-            .columnType(AnalyticsColumnType.DYNAMIC)
-            .dataType(dataType)
-            .selectExpression(sql)
-            .skipIndex(skipIndex)
-            .build());
-
-    return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
-        : columns;
-  }
-
-  private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, String dataClause) {
-    final List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    final String fromClause =
+    String fromClause =
         qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = selectForInsert(attribute, fromType, dataClause);
+      String geoSql = selectForInsert(attribute, fromType, dataFilterClause);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -580,7 +645,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
+    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -594,68 +659,51 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
-      DataElement dataElement, String dataClause) {
-    final List<AnalyticsTableColumn> columns = new ArrayList<>();
+  /**
+   * Creates a select statement for the given select expression.
+   *
+   * @param dataElement the data element to create the select statement for.
+   * @param selectExpression the select expression.
+   * @param dataFilterClause the data filter clause.
+   * @return A SQL select expression for the data element.
+   */
+  private String getSelectForInsert(
+      DataElement dataElement, String selectExpression, String dataFilterClause) {
+    String sqlTemplate =
+        dataElement.getValueType().isOrganisationUnit()
+            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
+            : "(select ${selectExpression} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
 
-    final String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-    final String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = (select " + columnName);
-
-    if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoSql = selectForInsert(dataElement, fromType, dataClause);
-
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .columnType(AnalyticsColumnType.DYNAMIC)
-              .dataType(GEOMETRY)
-              .selectExpression(geoSql)
-              .indexType(IndexType.GIST)
-              .build());
-    }
-
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
-            .columnType(AnalyticsColumnType.DYNAMIC)
-            .dataType(TEXT)
-            .selectExpression(ouNameSql)
-            .skipIndex(SKIP)
-            .build());
-
-    return columns;
-  }
-
-  private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
     return replaceQualify(
-        """
-        (select ${fromType} from ${event} \
-        where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+        sqlTemplate,
         Map.of(
-            "fromType",
-            fromType,
+            "selectExpression",
+            selectExpression,
             "dataClause",
-            dataClause,
+            dataFilterClause,
             "closingParentheses",
-            getClosingParentheses(fromType),
-            "dataElementUid",
+            getClosingParentheses(selectExpression),
+            "uid",
             quote(dataElement.getUid())));
   }
 
+  /**
+   * Returns a list of columns.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param selectExpression the select expression.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnayticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
-      DataElement dataElement, String select, String dataClause) {
+      DataElement dataElement, String selectExpression, String dataFilterClause) {
     String query =
         """
-        (select l.uid from ${maplegend} l
-        inner join ${event} on l.startvalue <= ${select}
-        and l.endvalue > ${select}
-        and l.maplegendsetid=${legendSetId}
-        and eventid=ev.eventid ${dataClause}) as ${column}""";
+        (select l.uid from ${maplegend} l \
+        inner join ${event} on l.startvalue <= ${select} \
+        and l.endvalue > ${select} \
+        and l.maplegendsetid=${legendSetId} \
+        ${dataClause} where eventid = ev.eventid) as ${column}""";
 
     return dataElement.getLegendSets().stream()
         .map(
@@ -665,9 +713,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   replaceQualify(
                       query,
                       Map.of(
-                          "select", select,
+                          "select", selectExpression,
                           "legendSetId", String.valueOf(ls.getId()),
-                          "dataClause", dataClause,
+                          "dataClause", dataFilterClause,
                           "column", column));
 
               return AnalyticsTableColumn.builder()
@@ -676,26 +724,58 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .selectExpression(sql)
                   .build();
             })
-        .collect(toList());
+        .toList();
   }
 
-  private String getDataClause(String uid, ValueType valueType) {
-    if (valueType.isNumeric() || valueType.isDate()) {
-      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
+  /**
+   * For numeric and date value types, returns a data filter clause for checking whether the value
+   * is valid according to the value type. For other value types, returns the empty string.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @return an filter expression.
+   */
+  private String getDataFilterClause(DataElement dataElement) {
+    String uid = dataElement.getUid();
+    ValueType valueType = dataElement.getValueType();
 
-      return replace(
-          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
-          Map.of("uid", uid, "regex", regex));
+    if (valueType.isNumeric() || valueType.isDate()) {
+      String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
+      String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
+
+      return " and " + sqlBuilder.regexpMatch(jsonExpression, regex);
     }
 
-    return "";
+    return EMPTY;
   }
 
+  /**
+   * For numeric and date value types, returns a data filter clause for checking whether the value
+   * is valid according to the value type. For other value types, returns the empty string.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return an filter expression.
+   */
+  private String getDataFilterClause(TrackedEntityAttribute attribute) {
+    if (attribute.isNumericType()) {
+      return getNumericClause();
+    }
+    return attribute.isDateType() ? getDateClause() : EMPTY;
+  }
+
+  /**
+   * Returns a list of years for which data exist.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param program the {@link Program}.
+   * @param firstDataYear the first year to include.
+   * @param lastDataYear the last data year to include.
+   * @return a list of years for which data exist.
+   */
   private List<Integer> getDataYears(
       AnalyticsTableUpdateParams params,
       Program program,
       Integer firstDataYear,
-      Integer latestDataYear) {
+      Integer lastDataYear) {
     String fromDateClause =
         params.getFromDate() != null
             ? replace(
@@ -705,7 +785,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     eventDateExpression,
                     "fromDate",
                     toMediumDate(params.getFromDate())))
-            : "";
+            : EMPTY;
     String sql =
         replaceQualify(
             """
@@ -726,7 +806,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "fromDateClause", fromDateClause,
                 "firstDataYear", String.valueOf(firstDataYear),
-                "latestDataYear", String.valueOf(latestDataYear)));
+                "latestDataYear", String.valueOf(lastDataYear)));
 
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
@@ -735,8 +815,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * Retrieve years for partition tables. Year will become a partition key. The default return value
    * is the list with the recent year.
    *
-   * @param dataYears list of years coming from inner join of event and enrollment tables
-   * @return list of partition key values
+   * @param dataYears the list of years coming from inner join of event and enrollment tables.
+   * @return list of partition key values.
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));

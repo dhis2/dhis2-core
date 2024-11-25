@@ -31,7 +31,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -48,7 +51,7 @@ public class MappingErrors {
   // metadata if such large numbers do not have identifiers for the requested idScheme.
   private static final int DISPLAY_MAX_UIDS = 20;
 
-  private final Map<Class<?>, Set<String>> errors = new HashMap<>();
+  private final Map<Class<?>, Set<IdentifiableObject>> errors = new HashMap<>();
   private final TrackerIdSchemeParams idSchemeParams;
 
   /**
@@ -56,7 +59,7 @@ public class MappingErrors {
    * requested {@code idScheme}.
    */
   public <T extends IdentifiableObject & MetadataObject> void add(T metadata) {
-    errors.computeIfAbsent(metadata.getClass(), k -> new HashSet<>()).add(metadata.getUid());
+    errors.computeIfAbsent(metadata.getClass(), k -> new HashSet<>()).add(metadata);
   }
 
   public boolean hasErrors() {
@@ -72,11 +75,13 @@ public class MappingErrors {
     StringBuilder result =
         new StringBuilder(
             "Following metadata listed using their UIDs is missing identifiers for the requested"
-                + " idScheme:");
+                + " idScheme:\n");
+
+    AtomicBoolean hasDefaultCategory = new AtomicBoolean();
 
     errors.forEach(
-        (metadataClass, uids) -> {
-          if (uids.isEmpty()) {
+        (metadataClass, metadatas) -> {
+          if (metadatas.isEmpty()) {
             return;
           }
 
@@ -87,20 +92,43 @@ public class MappingErrors {
           result.append("]=");
 
           int count = 1;
-          int size = uids.size();
-          for (String uid : uids) {
+          int size = metadatas.size();
+          for (IdentifiableObject metadata : metadatas) {
             if (count > DISPLAY_MAX_UIDS) {
               result.append("...");
               return;
             }
 
-            result.append(uid);
+            result.append(metadata.getUid());
+            if (isDefaultCategory(metadata)) {
+              hasDefaultCategory.set(true);
+              result.append("(default)");
+            }
             if (count < size) {
               result.append(",");
             }
             count++;
           }
         });
+
+    // default category option (combo) are guaranteed to have a UID, name and code but no attribute
+    // values
+    if (hasDefaultCategory.get()) {
+      result.append(
+          """
+
+
+Data linked to default category option (combo)s cannot be exported using\
+ idScheme=ATTRIBUTE as they cannot have any attribute values.""");
+    }
     return result.toString();
+  }
+
+  private static boolean isDefaultCategory(IdentifiableObject metadata) {
+    return metadata instanceof CategoryOptionCombo categoryOptionCombo
+            && CategoryOptionCombo.DEFAULT_NAME.equals(
+                categoryOptionCombo.getName()) // CategoryOptionCombo.isDefault
+        // checks the CategoryCombo.name and we might not have mapped the CategoryCombo
+        || metadata instanceof CategoryOption categoryOption && categoryOption.isDefault();
   }
 }

@@ -25,28 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard.embedded;
+package org.hisp.dhis.user;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+public enum UserOrgUnitProperty {
+  ORG_UNITS("organisationUnits"),
+  DATA_VIEW_ORG_UNITS("dataViewOrganisationUnits"),
+  TEI_SEARCH_ORG_UNITS("teiSearchOrganisationUnits");
 
-/**
- * Encapsulates embedded dashboard filter options.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class FilterOptions implements Serializable {
-  /** Whether filter sidebar should be accessible when opening the dashboard. */
-  @JsonProperty private boolean visible;
+  private final String value;
 
-  /** Whether filter sidebar should be expanded when opening the dashboard. */
-  @JsonProperty private boolean expanded;
+  UserOrgUnitProperty(String value) {
+    this.value = value;
+  }
+
+  public String getValue() {
+    return value;
+  }
 }

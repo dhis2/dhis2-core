@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -75,6 +76,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -149,6 +151,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
     Event event = get(Event.class, "QRYjLTiJTrA");
+    assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
     // maps JSON fields to idScheme request parameters
     Map<String, String> idSchemeRequestParams =
@@ -264,6 +267,19 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             .as(JsonEvent.class);
 
     assertMetadataIdScheme(metadata, actual, idSchemeParam, "event");
+  }
+
+  @Test
+  void shouldExportEventUsingNonUIDDataElementIdSchemeEvenIfItHasNoDataValues() {
+    Event event = get(Event.class, "jxgFyJEMUPf");
+    assertIsEmpty(event.getEventDataValues(), "test expects an event with no data values");
+
+    JsonEvent actual =
+        GET("/tracker/events/{id}?fields=event,dataValues&dataElementIdScheme=NAME", event.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertEquals("jxgFyJEMUPf", actual.getEvent());
   }
 
   @ParameterizedTest

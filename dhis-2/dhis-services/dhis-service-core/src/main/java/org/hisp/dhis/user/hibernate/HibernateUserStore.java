@@ -63,6 +63,8 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -78,6 +80,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -650,5 +653,20 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             .createQuery("select u.secret from User u where u.username = :username", String.class);
     query.setParameter("username", username);
     return query.uniqueResult();
+  }
+
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
+    return getQuery(
+        """
+        select distinct u from User u
+        left join fetch u.%s ous
+        where ous.uid = :uid
+        """
+            .formatted(orgUnitProperty.getValue()))
+        .setParameter("uid", uid.getValue())
+        .getResultList();
   }
 }
