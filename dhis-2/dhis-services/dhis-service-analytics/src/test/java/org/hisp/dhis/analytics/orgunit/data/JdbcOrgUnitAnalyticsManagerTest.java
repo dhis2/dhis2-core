@@ -127,9 +127,7 @@ class JdbcOrgUnitAnalyticsManagerTest {
   }
 
   private void mockSqlRowSet() {
-    // Simulate 2 results.
     when(sqlRowSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
-
     when(sqlRowSet.getString("orgunit")).thenReturn("OrgUnit");
     when(sqlRowSet.getString("abc123")).thenReturn("Abc123");
     when(sqlRowSet.getString("abc456")).thenReturn("Abc456");
