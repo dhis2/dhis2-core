@@ -100,7 +100,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   protected final String getDateClause() {
-    return " and " + sqlBuilder.regexpMatch("value", "'" + DATE_REGEXP + "'");
+    return " and " + sqlBuilder.regexpMatch("value", DATE_REGEXP);
   }
 
   /**
@@ -146,11 +146,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
    * @param isTea whether the selection is in the context of a tracked entity attribute. When true,
-   *     organization unit selections will include an additional subquery wrapper.
+   *     organisation unit selections will include an additional subquery wrapper.
    * @return a select expression appropriate for the given value type and context.
    */
   private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
-
     if (valueType.isDecimal()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {

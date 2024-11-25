@@ -739,11 +739,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     ValueType valueType = dataElement.getValueType();
 
     if (valueType.isNumeric() || valueType.isDate()) {
+      String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
       String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
 
-      String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
-
-      return " and " + sqlBuilder.regexpMatch(jsonExpression, "'" + regex + "'");
+      return " and " + sqlBuilder.regexpMatch(jsonExpression, regex);
     }
 
     return EMPTY;
