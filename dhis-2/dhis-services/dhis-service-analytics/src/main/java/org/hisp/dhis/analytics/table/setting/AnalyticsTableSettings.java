@@ -37,6 +37,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DR
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import com.google.common.collect.Lists;
@@ -50,6 +52,7 @@ import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
@@ -90,6 +93,15 @@ public class AnalyticsTableSettings {
   public Integer getMaxPeriodYearsOffset() {
     int yearsOffset = settingsProvider.getCurrentSettings().getAnalyticsPeriodYearsOffset();
     return yearsOffset < 0 ? null : yearsOffset;
+  }
+
+  /**
+   * Returns the {@link PeriodSource} based on the max years offset.
+   *
+   * @return the {@link PeriodSource}.
+   */
+  public PeriodSource getPeriodSource() {
+    return getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE;
   }
 
   /**
