@@ -188,15 +188,15 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
-    DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
-    DataElement d2 = createDataElement('P', ValueType.PERCENTAGE, AggregationType.SUM);
-    DataElement d3 = createDataElement('Y', ValueType.BOOLEAN, AggregationType.NONE);
-    DataElement d4 = createDataElement('W', ValueType.DATE, AggregationType.LAST);
-    DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
-    DataElement d6 = createDataElement('H', ValueType.INTEGER, AggregationType.SUM);
-    DataElement d7 = createDataElement('U', ValueType.COORDINATE, AggregationType.NONE);
+    DataElement deA = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
+    DataElement deB = createDataElement('P', ValueType.PERCENTAGE, AggregationType.SUM);
+    DataElement deC = createDataElement('Y', ValueType.BOOLEAN, AggregationType.NONE);
+    DataElement deD = createDataElement('W', ValueType.DATE, AggregationType.LAST);
+    DataElement deE = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DataElement deF = createDataElement('H', ValueType.INTEGER, AggregationType.SUM);
+    DataElement deG = createDataElement('U', ValueType.COORDINATE, AggregationType.NONE);
 
-    ProgramStage ps1 = createProgramStage('A', Set.of(d1, d2, d3, d4, d5, d6, d7));
+    ProgramStage ps1 = createProgramStage('A', Set.of(deA, deB, deC, deD, deE, deF, deG));
 
     program.setProgramStages(Set.of(ps1));
 
@@ -237,39 +237,39 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
-            d1.getUid(),
+            deA.getUid(),
             TEXT,
-            toSelectExpression(aliasD1, d1.getUid()),
+            toSelectExpression(aliasD1, deA.getUid()),
             Skip.SKIP) // ValueType.TEXT
         .addColumn(
-            d2.getUid(),
+            deB.getUid(),
             DOUBLE,
-            toSelectExpression(aliasD2, d2.getUid()),
+            toSelectExpression(aliasD2, deB.getUid()),
             IndexType.BTREE) // ValueType.PERCENTAGE
         .addColumn(
-            d3.getUid(),
+            deC.getUid(),
             INTEGER,
-            toSelectExpression(aliasD3, d3.getUid()),
+            toSelectExpression(aliasD3, deC.getUid()),
             IndexType.BTREE) // ValueType.BOOLEAN
         .addColumn(
-            d4.getUid(),
+            deD.getUid(),
             TIMESTAMP,
-            toSelectExpression(aliasD4, d4.getUid()),
+            toSelectExpression(aliasD4, deD.getUid()),
             IndexType.BTREE) // ValueType.DATE
         .addColumn(
-            d5.getUid(),
+            deE.getUid(),
             TEXT,
-            toSelectExpression(aliasD5, d5.getUid()),
+            toSelectExpression(aliasD5, deE.getUid()),
             IndexType.BTREE) // ValueType.ORGANISATION_UNIT
         .addColumn(
-            d6.getUid(),
+            deF.getUid(),
             BIGINT,
-            toSelectExpression(aliasD6, d6.getUid()),
+            toSelectExpression(aliasD6, deF.getUid()),
             IndexType.BTREE) // ValueType.INTEGER
 
         // element d5 also creates a Name column
         .addColumn(
-            d5.getUid() + "_name", TEXT, toSelectExpression(aliasD5Name, d5.getUid()), Skip.SKIP)
+            deE.getUid() + "_name", TEXT, toSelectExpression(aliasD5Name, deE.getUid()), Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
