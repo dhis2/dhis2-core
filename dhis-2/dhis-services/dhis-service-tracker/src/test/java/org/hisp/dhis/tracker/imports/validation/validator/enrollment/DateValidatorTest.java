@@ -103,7 +103,7 @@ class DateValidatorTest {
 
   @Test
   void testDatesMustNotBeInTheFuture() {
-    final Instant dateInTheFuture = now().plus(Duration.ofDays(2));
+    final Instant dateInTheFuture = now().plus(Duration.ofDays(1));
     Enrollment enrollment =
         Enrollment.builder()
             .enrollment(UID.generate())
@@ -122,8 +122,7 @@ class DateValidatorTest {
   }
 
   @Test
-  void testDatesMustNotBeInTheFuture1() {
-    // Get "tomorrow" based on the system's default time zone
+  void testDatesWithNoTimeZoneMustNotBeInTheFuture() {
     ZoneId systemZone = ZoneId.systemDefault();
     LocalDate tomorrow = LocalDate.now(systemZone).plusDays(1);
     Instant dateTomorrow = tomorrow.atStartOfDay(systemZone).toInstant();
@@ -137,11 +136,7 @@ class DateValidatorTest {
             .enrolledAt(dateTomorrow)
             .build();
 
-    // Mock a program that does not allow future enrollment/incident dates
-    Program program = new Program();
-    program.setSelectEnrollmentDatesInFuture(false);
-    program.setSelectIncidentDatesInFuture(false);
-    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
     // Run validation
     validator.validate(reporter, bundle, enrollment);
