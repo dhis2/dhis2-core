@@ -151,8 +151,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final String TABLE_PREFIX = "analytics_event_";
 
-  private static final String FROM_CLAUSE = "from \"event\" where eventid=ev.eventid";
-
   private static final String DATE_CLAUSE =
       "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
 
@@ -398,19 +396,19 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
+    String aliasD1 = "eventdatavalues #>> '{%s, value}' as \"%s\"";
     String aliasD2 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as double precision) "
-            + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghP, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
+        then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) else null end as "deabcdefghP\"""";
     String aliasD3 =
-        "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end "
-            + FROM_CLAUSE
-            + " ) as \"%s\"";
+        """
+            case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
+            when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
     String aliasD4 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) "
-            + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) else null end as "deabcdefghW\"""";
     String aliasD5 =
         "(select ou.uid from \"organisationunit\" ou where ou.uid = "
             + "eventdatavalues #>> '{"
@@ -420,11 +418,12 @@ class JdbcEventAnalyticsTableManagerTest {
             + d5.getUid()
             + "\"";
     String aliasD6 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as bigint) "
-            + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
+        then cast(eventdatavalues #>> '{deabcdefghH, value}' as bigint) else null end as "deabcdefghH\"""";
     String aliasD7 =
-        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from \"event\" where eventid=ev.eventid ) as \"%s\"";
+        """
+        ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{deabcdefghU, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}') as "deabcdefghU\"""";
     String aliasD5_geo =
         "(select ou.geometry from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
@@ -439,7 +438,6 @@ class JdbcEventAnalyticsTableManagerTest {
             + ") as \""
             + d5.getUid()
             + "\"";
-    System.out.println(aliasD5_name);
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(2)
@@ -530,7 +528,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
+    String aliasD1 =
+        """
+        eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
     String aliasTea1 =
         "(select %s from \"organisationunit\" ou where ou.uid = (select value from "
             + "\"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
