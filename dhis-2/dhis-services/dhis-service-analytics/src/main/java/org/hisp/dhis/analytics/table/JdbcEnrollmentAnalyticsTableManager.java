@@ -165,6 +165,12 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     populateTableInternal(partition, fromClause);
   }
 
+  /**
+   * Returns a list of columns for the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(fixedColumns);

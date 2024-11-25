@@ -224,7 +224,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     Assert.isTrue(
         lastFullTableUpdate.getTime() > 0L,
-        "A full analytics table update process must be run prior to a latest partition update process");
+        "A full analytics table update process must be run prior to a latest partition update");
 
     Date startDate = lastFullTableUpdate;
     Date endDate = params.getStartTime();
@@ -428,31 +428,25 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         program.getAnalyticsDataElements().stream()
-            .map(de -> getColumnFromDataElement(de, false))
+            .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnFromDataElement(de, true))
+            .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(
-                tea ->
-                    getColumnFromTrackedEntityAttribute(
-                        tea, getNumericClause(), getDateClause(), false))
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(
-                tea ->
-                    getColumnFromTrackedEntityAttribute(
-                        tea, getNumericClause(), getDateClause(), true))
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
             .flatMap(Collection::stream)
             .toList());
 
@@ -487,7 +481,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param withLegendSet indicates
    * @return
    */
-  private List<AnalyticsTableColumn> getColumnFromDataElement(
+  private List<AnalyticsTableColumn> getColumnForDataElement(
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -495,12 +489,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
-    String dataFilterClause = getDataFilterClause(dataElement.getUid(), dataElement.getValueType());
+    String dataFilterClause = getDataFilterClause(dataElement);
     String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitDataElement(dataElement, dataFilterClause));
     }
 
     columns.add(
@@ -517,7 +511,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         : columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
+  private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(
       DataElement dataElement, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -555,22 +549,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
-      TrackedEntityAttribute attribute,
-      String numericClause,
-      String dateClause,
-      boolean withLegendSet) {
+  private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
+      TrackedEntityAttribute attribute, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
-    String dataExpression =
-        attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
+    String dataExpression = getDataFilterClause(attribute);
     String sql = selectForInsert(attribute, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataExpression));
+      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataExpression));
     }
 
     columns.add(
@@ -582,14 +572,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet
-        ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
-        : columns;
+    return withLegendSet ? getColumnForAttributeWithLegendSet(attribute) : columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
-      TrackedEntityAttribute attribute, String numericClause) {
+  /**
+   * Returns a list of columns based on the given attribute with legend set.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
+      TrackedEntityAttribute attribute) {
     String selectClause = getSelectExpression(attribute.getValueType(), "value");
+    String numericClause = getNumericClause();
     String query =
         """
         \s(select l.uid from ${maplegend} l \
@@ -622,7 +617,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .collect(toList());
   }
 
-  private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnsForOrgUnitTrackedEntityAttribute(
       TrackedEntityAttribute attribute, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -669,21 +671,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String selectExpression, String dataFilterClause) {
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${uid}"
-            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
+            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
+            : "(select ${selectExpression} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
 
-    Map<String, String> variables =
+    return replaceQualify(
+        sqlTemplate,
         Map.of(
-            "fromType",
+            "selectExpression",
             selectExpression,
             "dataClause",
             dataFilterClause,
             "closingParentheses",
             getClosingParentheses(selectExpression),
             "uid",
-            quote(dataElement.getUid()));
-
-    return replaceQualify(sqlTemplate, variables);
+            quote(dataElement.getUid())));
   }
 
   /**
@@ -730,11 +731,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * For numeric and date value types, returns a data filter clause for checking whether the value
    * is valid according to the value type. For other value types, returns the empty string.
    *
-   * @param uid the identifier.
-   * @param valueType the {@link ValueType}.
-   * @return an expression for extracting a data value.
+   * @param dataElement the {@link DataElement}.
+   * @return an filter expression.
    */
-  private String getDataFilterClause(String uid, ValueType valueType) {
+  private String getDataFilterClause(DataElement dataElement) {
+    String uid = dataElement.getUid();
+    ValueType valueType = dataElement.getValueType();
+
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
 
@@ -744,6 +747,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     return EMPTY;
+  }
+
+  /**
+   * For numeric and date value types, returns a data filter clause for checking whether the value
+   * is valid according to the value type. For other value types, returns the empty string.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return an filter expression.
+   */
+  private String getDataFilterClause(TrackedEntityAttribute attribute) {
+    if (attribute.isNumericType()) {
+      return getNumericClause();
+    }
+    return attribute.isDateType() ? getDateClause() : EMPTY;
   }
 
   /**
