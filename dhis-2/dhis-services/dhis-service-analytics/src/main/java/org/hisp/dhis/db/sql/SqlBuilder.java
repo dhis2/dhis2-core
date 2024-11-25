@@ -279,17 +279,6 @@ public interface SqlBuilder {
   String jsonExtract(String json, String property);
 
   /**
-   * Extracts a value from a JSON column using a specified JSON path expression, with support for
-   * table prefix qualification.
-   *
-   * @param tablePrefix the prefix/alias of the table containing the JSON column.
-   * @param column the JSON column name to extract from.
-   * @param jsonPath the JSON path expression to extract the value.
-   * @return the SQL function for JSON value extraction.
-   */
-  String jsonExtract(String tablePrefix, String column, String jsonPath);
-
-  /**
    * Extracts a nested value from a JSON column.
    *
    * @param json the JSON column name or value to extract from.
