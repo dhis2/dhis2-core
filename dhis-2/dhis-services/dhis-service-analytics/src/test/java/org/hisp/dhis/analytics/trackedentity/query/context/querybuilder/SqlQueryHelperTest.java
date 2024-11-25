@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.util.function.Consumer;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -53,12 +54,12 @@ class SqlQueryHelperTest {
   @Mock private DimensionParam dimensionParam;
 
   @Mock private DimensionIdentifier<DimensionParam> testedDimension;
-  
+
   @BeforeEach
   void beforeEach() {
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);    
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
   }
-  
+
   @Test
   void test_throws_when_undetected_type() {
     assertThrows(

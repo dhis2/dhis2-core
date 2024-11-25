@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.trackedentity.query;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
