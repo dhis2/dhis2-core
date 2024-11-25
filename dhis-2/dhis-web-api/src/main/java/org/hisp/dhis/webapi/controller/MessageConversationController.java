@@ -187,13 +187,15 @@ public class MessageConversationController
             "messages.text:" + op + ":" + query,
             "messages.sender.displayName:" + op + ":" + query);
 
-    // TODO in another PR: it should work to integrate this
     GetObjectListParams subQueryParams =
         new GetObjectListParams()
             .setPaging(false)
             .setRootJunction(Junction.Type.OR)
             .setFilters(filters);
     Query subQuery = queryService.getQueryFromUrl(getEntityClass(), subQueryParams);
+    // Note: in theory these filters could be added to the main query
+    // but the OR concerns both DB and in-memory properties
+    // which would break if added to the main query ATM
     return queryService.query(subQuery).stream().map(UID::of).toList();
   }
 

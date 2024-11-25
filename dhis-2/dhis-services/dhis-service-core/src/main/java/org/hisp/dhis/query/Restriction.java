@@ -75,7 +75,8 @@ public final class Restriction implements Criterion {
 
   @Override
   public boolean isAlwaysFalse() {
-    if (operator instanceof InOperator<?> in) return in.getCollectionArgs().isEmpty();
+    if (operator instanceof InOperator<?> in)
+      return in.getCollectionArgs().isEmpty() || in.getCollectionArgs().get(0).isEmpty();
     return false;
   }
 }
