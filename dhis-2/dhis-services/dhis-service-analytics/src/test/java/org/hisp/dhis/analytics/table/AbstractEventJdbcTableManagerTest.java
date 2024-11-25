@@ -53,25 +53,52 @@ class AbstractEventJdbcTableManagerTest {
         then cast(eventdatavalues #>> '{GieVkTxp4HH, value}' as double precision) \
         else null end""";
 
-    assertEquals(
-        expected,
+    String actual =
         manager.getCastExpression(
             "eventdatavalues #>> '{GieVkTxp4HH, value}'",
             "'^(-?[0-9]+)(\\.[0-9]+)?$'",
-            "double precision"));
+            "double precision");
+
+    assertEquals(expected, actual);
   }
 
   @Test
-  void testGetSelectExpression() {
+  void testGetSelectExpressionNumber() {
     String expected =
         """
         case when eventdatavalues #>> '{GieVkTxp4HH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
         then cast(eventdatavalues #>> '{GieVkTxp4HH, value}' as double precision) \
         else null end""";
 
-    assertEquals(
-        expected,
-        manager.getSelectExpression(
-            ValueType.NUMBER, "eventdatavalues #>> '{GieVkTxp4HH, value}'"));
+    String actual =
+        manager.getSelectExpression(ValueType.NUMBER, "eventdatavalues #>> '{GieVkTxp4HH, value}'");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetSelectExpressionDate() {
+    String expected =
+        """
+        case when eventdatavalues #>> '{AL04Wbutskk, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        then cast(eventdatavalues #>> '{AL04Wbutskk, value}' as timestamp) \
+        else null end""";
+
+    String actual =
+        manager.getSelectExpression(ValueType.DATE, "eventdatavalues #>> '{AL04Wbutskk, value}'");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetSelectExpressionText() {
+    String expected =
+        """
+        eventdatavalues #>> '{FwUzmc49Pcr, value}'""";
+
+    String actual =
+        manager.getSelectExpression(ValueType.TEXT, "eventdatavalues #>> '{FwUzmc49Pcr, value}'");
+
+    assertEquals(expected, actual);
   }
 }
