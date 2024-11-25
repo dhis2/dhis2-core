@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.junit.jupiter.api.Test;
@@ -50,8 +51,7 @@ class AbstractEventJdbcTableManagerTest {
         """
         case when eventdatavalues #>> '{GieVkTxp4HH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
         then cast(eventdatavalues #>> '{GieVkTxp4HH, value}' as double precision) \
-        else null \
-        end""";
+        else null end""";
 
     assertEquals(
         expected,
@@ -59,5 +59,19 @@ class AbstractEventJdbcTableManagerTest {
             "eventdatavalues #>> '{GieVkTxp4HH, value}'",
             "'^(-?[0-9]+)(\\.[0-9]+)?$'",
             "double precision"));
+  }
+
+  @Test
+  void testGetSelectExpression() {
+    String expected =
+        """
+        case when eventdatavalues #>> '{GieVkTxp4HH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
+        then cast(eventdatavalues #>> '{GieVkTxp4HH, value}' as double precision) \
+        else null end""";
+
+    assertEquals(
+        expected,
+        manager.getSelectExpression(
+            ValueType.NUMBER, "eventdatavalues #>> '{GieVkTxp4HH, value}'"));
   }
 }
