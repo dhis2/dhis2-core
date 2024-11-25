@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -195,6 +196,30 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             .content()
             .getArray("dataSets")
             .isEmpty());
+  }
+
+  @Test
+  @DisplayName("Should not apply token filter for UID if value has length < 4")
+  void testIdentifiableTokenFilterLength() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit 1', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    String ou2 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit 2', 'shortName':'OU2', 'openingDate': '2020-01-01'}"));
+
+    JsonMixed response =
+        GET("/organisationUnits?filter=identifiable:token:" + ou2.substring(0, 3)).content();
+    assertEquals(0, response.getArray("organisationUnits").size());
+
+    response = GET("/organisationUnits?filter=identifiable:token:" + ou2.substring(0, 4)).content();
+    assertEquals(1, response.getArray("organisationUnits").size());
+    assertEquals(ou2, response.getArray("organisationUnits").getObject(0).getString("id").string());
   }
 
   private void setUpTranslation() {
