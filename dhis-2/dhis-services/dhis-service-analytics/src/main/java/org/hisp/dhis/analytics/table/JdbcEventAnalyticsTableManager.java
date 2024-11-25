@@ -41,7 +41,6 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import java.time.Year;
@@ -739,7 +738,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     ValueType valueType = dataElement.getValueType();
 
     if (valueType.isNumeric() || valueType.isDate()) {
-      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
+      String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
 
       String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
 
