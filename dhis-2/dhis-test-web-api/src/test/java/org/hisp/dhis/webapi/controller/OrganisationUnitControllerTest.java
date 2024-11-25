@@ -191,6 +191,11 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetParents_Root() {
+    assertListOfOrganisationUnits(GET("/organisationUnits/{id}/parents", ou0).content());
+  }
+
+  @Test
   void testGetQuery() {
     assertListOfOrganisationUnits(GET("/organisationUnits?query=L21").content(), "L21");
     assertListOfOrganisationUnits(

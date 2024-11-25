@@ -130,6 +130,9 @@ public class OrganisationUnitController
     Integer maxLevel;
     boolean withinUserHierarchy;
     boolean withinUserSearchHierarchy;
+    boolean userOnly;
+    boolean userDataViewOnly;
+    boolean userDataViewFallback;
 
     boolean levelSorted;
   }
@@ -257,54 +260,17 @@ public class OrganisationUnitController
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
-    OrganisationUnit root = getEntity(uid);
-    List<String> ancestorsIds = List.of(root.getPath().split("/"));
-    // TODO check if root is level 1 => no matches
+    OrganisationUnit parent = getEntity(uid);
+    // when parent is root => no matches by adding an impossible in filter
+    if (parent.getLevel() == 1)
+      return getObjectListWith(params, response, currentUser, List.of(in("id", List.<String>of())));
+    List<String> ancestorsIds = List.of(parent.getPath().split("/"));
     List<Criterion> parentPaths = new ArrayList<>();
     for (int i = 0; i < ancestorsIds.size() - 1; i++)
       parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion parents = or(getSchema(), parentPaths);
     params.addOrder("level:asc");
     return getObjectListWith(params, response, currentUser, List.of(parents));
-  }
-
-  @OpenApi.Response(ObjectListResponse.class)
-  @GetMapping(params = "userOnly=true")
-  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getUserOrganisationUnits(
-      @RequestParam boolean userOnly,
-      GetOrganisationUnitObjectListParams params,
-      HttpServletResponse response,
-      @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, ConflictException {
-    Criterion userUnits = in("id", currentUser.getUserOrgUnitIds());
-    return getObjectListWith(params, response, currentUser, List.of(userUnits));
-  }
-
-  @OpenApi.Response(ObjectListResponse.class)
-  @GetMapping(params = "userDataViewOnly=true")
-  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
-      getUserDataViewOrganisationUnits(
-          @RequestParam boolean userDataViewOnly,
-          GetOrganisationUnitObjectListParams params,
-          HttpServletResponse response,
-          @CurrentUser UserDetails currentUser)
-          throws ForbiddenException, BadRequestException, ConflictException {
-    Criterion userDataUnits = in("id", currentUser.getUserDataOrgUnitIds());
-    return getObjectListWith(params, response, currentUser, List.of(userDataUnits));
-  }
-
-  @OpenApi.Response(ObjectListResponse.class)
-  @GetMapping(params = "userDataViewFallback=true")
-  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
-      getUserDataViewOrganisationUnitsWithFallback(
-          @RequestParam boolean userDataViewFallback,
-          GetOrganisationUnitObjectListParams params,
-          HttpServletResponse response,
-          @CurrentUser UserDetails currentUser)
-          throws ForbiddenException, BadRequestException, ConflictException {
-    Set<String> ouIds = currentUser.getUserDataOrgUnitIds();
-    Criterion userDataUnits = ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds);
-    return getObjectListWith(params, response, currentUser, List.of(userDataUnits));
   }
 
   @Override
@@ -344,6 +310,14 @@ public class OrganisationUnitController
               getSchema(),
               parents.stream().map(id -> like("path", id, MatchMode.ANYWHERE)).toList()));
     }
+    if (params.isUserOnly())
+      specialFilters.add(in("id", getCurrentUserDetails().getUserOrgUnitIds()));
+    if (params.isUserDataViewFallback()) {
+      Set<String> ouIds = getCurrentUserDetails().getUserDataOrgUnitIds();
+      specialFilters.add(ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds));
+    } else if (params.isUserDataViewOnly())
+      specialFilters.add(in("id", getCurrentUserDetails().getUserDataOrgUnitIds()));
+
     return specialFilters;
   }
 
