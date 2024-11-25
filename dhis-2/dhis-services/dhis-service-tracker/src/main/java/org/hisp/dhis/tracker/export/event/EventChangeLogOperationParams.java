@@ -54,7 +54,7 @@ public class EventChangeLogOperationParams {
       return this;
     }
 
-    private EventChangeLogOperationParamsBuilder filterMap(Pair<String, QueryFilter> filterMap) {
+    private EventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
       return this;
     }
 
