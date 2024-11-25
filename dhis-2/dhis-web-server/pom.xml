@@ -27,12 +27,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.subethamail</groupId>
-      <artifactId>subethasmtp-wiser</artifactId>
-      <version>1.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
       <type>jar</type>
