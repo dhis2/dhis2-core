@@ -227,9 +227,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
 
   User getUserByVerifiedEmail(String email);
 
-  String getUserSecret(String username);
-
-
   /**
    * Retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in the given
    * table

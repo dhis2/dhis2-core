@@ -495,7 +495,6 @@ public class LoginTest {
     try {
       return restTemplate.postForEntity(dhis2ServerApi + path, requestEntity, String.class);
     } catch (HttpClientErrorException e) {
-      //      log.error("Error", e.getResponseBodyAsString());
       return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
     }
   }

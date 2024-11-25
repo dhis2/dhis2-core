@@ -1461,11 +1461,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public String getUserSecret(String username) {
-    return userStore.getUserSecret(username);
-  }
-
-  @Override
   public List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
     return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);

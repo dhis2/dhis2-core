@@ -805,9 +805,6 @@ public interface UserService {
 
   User getUserByEmailVerificationToken(String token);
 
-  String getUserSecret(String username);
-
-
   /**
    * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
    * the given table
@@ -817,5 +814,4 @@ public interface UserService {
    * @return matching {@link User}s
    */
   List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
-
 }

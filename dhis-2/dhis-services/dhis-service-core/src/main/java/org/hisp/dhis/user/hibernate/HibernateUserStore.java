@@ -64,7 +64,6 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -647,25 +646,15 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public String getUserSecret(String username) {
-    Query<String> query =
-        getSession()
-            .createQuery("select u.secret from User u where u.username = :username", String.class);
-    query.setParameter("username", username);
-    return query.uniqueResult();
-  }
-
-
-  @Override
   public List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
     return getQuery(
-        """
+            """
         select distinct u from User u
         left join fetch u.%s ous
         where ous.uid = :uid
         """
-            .formatted(orgUnitProperty.getValue()))
+                .formatted(orgUnitProperty.getValue()))
         .setParameter("uid", uid.getValue())
         .getResultList();
   }
