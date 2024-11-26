@@ -421,30 +421,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
-
-    columns.addAll(
-        program.getAnalyticsDataElements().stream()
-            .map(de -> getColumnForDataElement(de, false))
-            .flatMap(Collection::stream)
-            .toList());
-
-    columns.addAll(
-        program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnForDataElement(de, true))
-            .flatMap(Collection::stream)
-            .toList());
-
-    columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
-            .flatMap(Collection::stream)
-            .toList());
-
-    columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
-            .flatMap(Collection::stream)
-            .toList());
+    columns.addAll(getDataElementColumns(program));
+    columns.addAll(getAttributeColumns(program));
 
     if (program.isRegistration()) {
       columns.add(EventAnalyticsColumn.TRACKED_ENTITY);
@@ -467,6 +445,27 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .dataType(INTEGER)
         .selectExpression("dps.year")
         .build();
+  }
+
+  /**
+   * Returns columns for data elements of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(
+        program.getAnalyticsDataElements().stream()
+            .map(de -> getColumnForDataElement(de, false))
+            .flatMap(Collection::stream)
+            .toList());
+    columns.addAll(
+        program.getAnalyticsDataElementsWithLegendSet().stream()
+            .map(de -> getColumnForDataElement(de, true))
+            .flatMap(Collection::stream)
+            .toList());
+    return columns;
   }
 
   /**
@@ -545,6 +544,34 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
+  /**
+   * Returns columns for attributes of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(
+        program.getNonConfidentialTrackedEntityAttributes().stream()
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
+            .flatMap(Collection::stream)
+            .toList());
+    columns.addAll(
+        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
+            .flatMap(Collection::stream)
+            .toList());
+    return columns;
+  }
+
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param withLegendSet indicates whether the attribute has a legend set.
+   * @return a list of {@link AnaylyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
       TrackedEntityAttribute attribute, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
