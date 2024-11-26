@@ -165,12 +165,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<OrganisationUnit> getOrganisationUnitsByQuery(OrganisationUnitQueryParams params) {
-    return organisationUnitStore.getOrganisationUnits(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public OrganisationUnit getOrganisationUnit(String uid) {
     return organisationUnitStore.getByUid(uid);
   }

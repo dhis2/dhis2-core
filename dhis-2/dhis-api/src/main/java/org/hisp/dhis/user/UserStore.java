@@ -65,6 +65,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<User> getUsers(UserQueryParams params, @Nullable List<String> orders);
 
+  List<UID> getUserIds(UserQueryParams params, @Nullable List<String> orders);
+
   /**
    * Returns the number of users based on the given query parameters.
    *

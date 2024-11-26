@@ -41,6 +41,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -56,7 +57,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/programIndicators")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramIndicatorController extends AbstractCrudController<ProgramIndicator> {
+public class ProgramIndicatorController
+    extends AbstractCrudController<ProgramIndicator, GetObjectListParams> {
   private final ProgramIndicatorService programIndicatorService;
 
   private final I18nManager i18nManager;
