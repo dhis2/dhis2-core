@@ -134,7 +134,12 @@ public final class Restrictions {
   }
 
   public static Disjunction query(Schema schema, String query) {
-    return or(schema, eq("id", query), eq("code", query), ilike("name", query, MatchMode.ANYWHERE));
+    Restriction name = ilike("name", query, MatchMode.ANYWHERE);
+    Restriction code = eq("code", query);
+    if (query.length() != 11) return or(schema, code, name);
+    // only a query with length 11 has a chance of matching a UID
+    Restriction id = eq("id", query);
+    return or(schema, id, code, name);
   }
 
   public static Disjunction or(Schema schema, Criterion... filters) {

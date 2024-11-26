@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -525,7 +526,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(value = PropertyType.TEXT, required = Property.Value.FALSE)
+  @Property(value = PropertyType.TEXT, required = FALSE)
   public String getUsername() {
     return username;
   }
@@ -702,10 +703,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     }
   }
 
-  /** Returns the concatenated first name and surname. */
   @Override
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Property(required = FALSE, access = Property.Access.READ_ONLY)
   public String getName() {
-    return firstName + " " + surname;
+    return name;
   }
 
   /**
