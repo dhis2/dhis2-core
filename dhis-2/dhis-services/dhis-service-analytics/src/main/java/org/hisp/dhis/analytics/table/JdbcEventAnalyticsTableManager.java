@@ -41,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -88,7 +90,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -332,7 +333,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
-    String attributeJoinClause = getAttributeJoinClause(program);
+    String attributeJoinClause = getAttributeValueJoinClause(program);
 
     String fromClause =
         replaceQualify(
@@ -380,17 +381,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param program the {@link Program}.
    * @return a join clause.
    */
-  private String getAttributeJoinClause(Program program) {
+  private String getAttributeValueJoinClause(Program program) {
     String template =
         """
         left join ${trackedentityattributevalue} ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${uid}""";
 
-    String sql = getAttributeColumns(program).stream()
-        .map(col -> replaceQualify(template, Map.of("uid", quote(col.getName()))))
-        .collect(Collectors.joining(" "));
-    
+    String sql =
+        getAttributeColumns(program).stream()
+            .map(col -> replaceQualify(template, Map.of("uid", quote(col.getName()))))
+            .collect(Collectors.joining(" "));
+
     return sql + " ";
   }
 
