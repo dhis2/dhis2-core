@@ -115,10 +115,7 @@ public non-sealed interface SystemSettings extends Settings {
     return LazySettings.isTranslatable(key);
   }
 
-  /*
-  settings used in core
-   */
-
+  /** Settings used in core */
   default Locale getUiLocale() {
     return asLocale("keyUiLocale", LocaleManager.DEFAULT_LOCALE);
   }
@@ -306,6 +303,10 @@ public non-sealed interface SystemSettings extends Settings {
 
   default boolean getIncludeZeroValuesInAnalytics() {
     return asBoolean("keyIncludeZeroValuesInAnalytics", false);
+  }
+
+  default boolean getEmbeddedDashboardsEnabled() {
+    return asBoolean("keyEmbeddedDashboardsEnabled", false);
   }
 
   default int getSqlViewMaxLimit() {
@@ -720,12 +721,14 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("globalShellAppName", "global-app-shell");
   }
 
-  /*
+  /**
+   * @return true if email verification is enforced for all users.
+   */
+  default boolean getEnforceVerifiedEmail() {
+    return asBoolean("enforceVerifiedEmail", false);
+  }
 
-  Combinators based on several settings
-
-  */
-
+  /** Combinators based on several settings. */
   default boolean isEmailConfigured() {
     return !getEmailHostName().isBlank() && !getEmailUsername().isBlank();
   }

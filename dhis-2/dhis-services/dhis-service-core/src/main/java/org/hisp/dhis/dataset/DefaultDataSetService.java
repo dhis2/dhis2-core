@@ -51,7 +51,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,8 +69,6 @@ public class DefaultDataSetService implements DataSetService {
 
   @Qualifier("jdbcDataSetOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
-
-  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // DataSet

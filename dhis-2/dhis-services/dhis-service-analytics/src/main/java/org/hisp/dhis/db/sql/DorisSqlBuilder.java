@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -131,23 +131,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return "json";
   }
 
-  // Index types
-
-  @Override
-  public String indexTypeBtree() {
-    return notSupported();
-  }
-
-  @Override
-  public String indexTypeGist() {
-    return notSupported();
-  }
-
-  @Override
-  public String indexTypeGin() {
-    return notSupported();
-  }
-
   // Index functions
 
   @Override
@@ -196,16 +179,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quote(String alias, String relation) {
-    return alias + DOT + quote(relation);
-  }
-
-  @Override
-  public String singleQuote(String value) {
-    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
-  }
-
-  @Override
   public String escape(String value) {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
@@ -222,6 +195,42 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("date_trunc(%s, %s)", timestamp, singleQuote(text));
   }
 
+  @Override
+  public String differenceInSeconds(String columnA, String columnB) {
+    return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
+  }
+
+  @Override
+  public String regexpMatch(String value, String pattern) {
+    return String.format("%s regexp %s", value, pattern);
+  }
+
+  @Override
+  public String concat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "trim(" + expression + ")";
+  }
+
+  @Override
+  public String coalesce(String expression, String defaultValue) {
+    return "coalesce(" + expression + ", " + defaultValue + ")";
+  }
+
+  @Override
+  public String jsonExtract(String json, String property) {
+    return String.format("json_unquote(json_extract(%s, '$.%s'))", json, property);
+  }
+
+  @Override
+  public String jsonExtractNested(String column, String... expression) {
+    String path = "$." + String.join(".", expression);
+    return String.format("json_unquote(json_extract(%s, '%s'))", column, path);
+  }
+
   // Statements
 
   @Override
@@ -234,29 +243,18 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      sql.append("(");
+      String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
 
-      for (Column column : table.getColumns()) {
-        String dataType = getDataTypeName(column.getDataType());
-        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-
-        sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
-      }
-
-      removeLastComma(sql).append(") engine = olap ");
+      sql.append("(").append(columns).append(") engine = olap ");
     }
 
     // Primary key
 
     if (table.hasPrimaryKey()) {
       // If primary key exists, use it as keys with the unique model
-      sql.append("unique key (");
+      String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
 
-      for (String columnName : table.getPrimaryKey()) {
-        sql.append(quote(columnName) + ", ");
-      }
-
-      removeLastComma(sql).append(") ");
+      sql.append("unique key (").append(keys).append(") ");
     } else if (table.hasColumns()) {
       // If columns exist, use first as key with the duplicate model
       String key = quote(table.getFirstColumn().getName());
@@ -267,17 +265,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Partitions
 
     if (table.hasPartitions()) {
-      sql.append("partition by range(year) ("); // Make configurable
-
-      for (TablePartition partition : table.getPartitions()) {
-        sql.append("partition ")
-            .append(quote(partition.getName()))
-            .append(" values less than(\"")
-            .append(partition.getValue()) // Set last partition to max value
-            .append("\"),");
-      }
-
-      removeLastComma(sql).append(") ");
+      sql.append(generatePartitionClause(table.getPartitions()));
     }
 
     // Distribution
@@ -299,6 +287,63 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * Generates the partition clause for the table creation SQL.
+   *
+   * @param partitions the list of table partitions
+   * @return the partition clause string
+   */
+  private String generatePartitionClause(List<TablePartition> partitions) {
+    StringBuilder partitionClause =
+        new StringBuilder("partition by range(year) ("); // Make configurable
+
+    List<TablePartition> sortedPartitions;
+    try {
+      sortedPartitions =
+          partitions.stream()
+              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
+              .toList();
+    } catch (NumberFormatException e) {
+      sortedPartitions = partitions;
+    }
+
+    for (int i = 0; i < sortedPartitions.size(); i++) {
+      if (i == sortedPartitions.size() - 1) {
+        // Handle last partition with MAXVALUE
+        partitionClause
+            .append("partition ")
+            .append(quote(sortedPartitions.get(i).getName()))
+            .append(" values less than(MAXVALUE),");
+      } else {
+        partitionClause.append(toPartitionString(sortedPartitions.get(i))).append(",");
+      }
+    }
+    return partitionClause.substring(0, partitionClause.length() - 1) + ") ";
+  }
+
+  /**
+   * Returns a column definition string.
+   *
+   * @param column the {@link Column}.
+   * @return a column clause.
+   */
+  private String toColumnString(Column column) {
+    String dataType = getDataTypeName(column.getDataType());
+    String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+    return quote(column.getName()) + " " + dataType + nullable;
+  }
+
+  /**
+   * Returns a partition definition string.
+   *
+   * @param partition the {@link TablePartition}.
+   * @return a partition definition string.
+   */
+  private String toPartitionString(TablePartition partition) {
+    String condition = "values less than(\"" + partition.getValue() + "\")";
+    return "partition " + quote(partition.getName()) + " " + condition;
+  }
+
+  /**
    * Returns the distribution key. Uses the first primary key column name if any exists, or the
    * first column name if any exists, otherwise null.
    *
@@ -315,23 +360,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String analyzeTable(String name) {
-    return notSupported();
-  }
-
-  @Override
-  public String vacuumTable(Table table) {
-    return notSupported();
-  }
-
-  @Override
   public String renameTable(Table table, String newName) {
     return String.format("alter table %s rename %s;", quote(table.getName()), quote(newName));
-  }
-
-  @Override
-  public String dropTableIfExists(String name) {
-    return String.format("drop table if exists %s;", quote(name));
   }
 
   @Override
@@ -345,21 +375,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String setParentTable(Table table, String parentName) {
-    return notSupported();
-  }
-
-  @Override
-  public String removeParentTable(Table table, String parentName) {
-    return notSupported();
-  }
-
-  @Override
   public String tableExists(String name) {
     return String.format(
         """
         select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' and t.table_name = %s;""",
+        where t.table_schema = 'public' \
+        and t.table_name = %s;""",
         singleQuote(name));
   }
 

@@ -55,8 +55,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class AnalyticsTableServiceTest {
-
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private SqlBuilder sqlBuilder;
@@ -81,7 +81,10 @@ class AnalyticsTableServiceTest {
                 .selectExpression("value")
                 .build());
 
-    AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
+    List<String> sortKey = List.of("dx");
+
+    AnalyticsTable tA =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED);
     tA.addTablePartition(
         List.of(),
         2010,
@@ -93,7 +96,7 @@ class AnalyticsTableServiceTest {
         new DateTime(2011, 1, 1, 0, 0).toDate(),
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
-        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, sortKey, Logged.UNLOGGED);
     List<AnalyticsTablePartition> partitions = tableService.getTablePartitions(List.of(tA, tB));
 
     assertEquals(3, partitions.size());

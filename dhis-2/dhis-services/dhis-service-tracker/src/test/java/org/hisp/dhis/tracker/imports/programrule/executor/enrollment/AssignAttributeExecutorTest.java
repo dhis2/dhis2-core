@@ -43,8 +43,8 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -65,11 +65,11 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class AssignAttributeExecutorTest extends TestBase {
 
-  private static final String TRACKED_ENTITY_ID = "TrackedEntityUid";
+  private static final UID TRACKED_ENTITY_ID = UID.generate();
 
-  private static final String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
+  private static final UID FIRST_ENROLLMENT_ID = UID.generate();
 
-  private static final String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
+  private static final UID SECOND_ENROLLMENT_ID = UID.generate();
 
   private static final UID ATTRIBUTE_UID = UID.of("h4w96yEMlzO");
 
@@ -281,7 +281,7 @@ class AssignAttributeExecutorTest extends TestBase {
   }
 
   private Optional<Attribute> findTeiAttributeByUid(
-      TrackerBundle bundle, String teUid, UID attributeUid) {
+      TrackerBundle bundle, UID teUid, UID attributeUid) {
     TrackedEntity te = bundle.findTrackedEntityByUid(teUid).get();
     return te.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofUid(attributeUid.getValue())))
@@ -289,7 +289,7 @@ class AssignAttributeExecutorTest extends TestBase {
   }
 
   private Optional<Attribute> findAttributeByUid(
-      TrackerBundle bundle, String enrollmentUid, UID attributeUid) {
+      TrackerBundle bundle, UID enrollmentUid, UID attributeUid) {
     Enrollment enrollment = bundle.findEnrollmentByUid(enrollmentUid).get();
     return enrollment.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofUid(attributeUid.getValue())))
@@ -297,7 +297,7 @@ class AssignAttributeExecutorTest extends TestBase {
   }
 
   private Optional<Attribute> findAttributeByCode(
-      TrackerBundle bundle, String enrollmentUid, String attributeCode) {
+      TrackerBundle bundle, UID enrollmentUid, String attributeCode) {
     Enrollment enrollment = bundle.findEnrollmentByUid(enrollmentUid).get();
     return enrollment.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofCode(attributeCode)))
@@ -328,6 +328,7 @@ class AssignAttributeExecutorTest extends TestBase {
   private Enrollment getEnrollmentWithAttributeSet() {
     return Enrollment.builder()
         .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(UID.generate())
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes())
         .build();
@@ -344,6 +345,7 @@ class AssignAttributeExecutorTest extends TestBase {
   private Enrollment getEnrollmentWithAttributeSetSameValue() {
     return Enrollment.builder()
         .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(UID.generate())
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributesSameValue())
         .build();

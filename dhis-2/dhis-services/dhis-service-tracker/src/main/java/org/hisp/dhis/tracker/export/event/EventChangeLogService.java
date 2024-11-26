@@ -29,6 +29,9 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -55,21 +58,45 @@ public interface EventChangeLogService {
   List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params);
 
+  @Deprecated(since = "2.42")
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
+
+  void addDataValueChangeLog(
+      Event event,
+      DataElement dataElement,
+      String previousValue,
+      String value,
+      ChangeLogType changeLogType,
+      String userName);
+
+  void addPropertyChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
 
   @Deprecated(since = "2.42")
   int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
 
   void deleteTrackedEntityDataValueChangeLog(Event event);
 
+  void deleteEventChangeLog(Event event);
+
   void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
+
+  void deleteEventChangeLog(DataElement dataElement);
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
-   * event change logs by. Ordering by fields other than these is considered a programmer error.
+   * event change logs by. Ordering by fields other than these, is considered a programmer error.
    * Validation of user provided field names should occur before calling {@link
    * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can
+   * filter event change logs by. Filtering by fields other than these, is considered a programmer
+   * error. Validation of user provided field names should occur before calling {@link
+   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
+   */
+  Set<Pair<String, Class<?>>> getFilterableFields();
 }

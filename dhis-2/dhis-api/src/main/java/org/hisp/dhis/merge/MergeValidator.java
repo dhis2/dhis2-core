@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge;
 
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
@@ -38,17 +39,27 @@ import org.hisp.dhis.feedback.MergeReport;
 public interface MergeValidator {
 
   /**
+   * Validates source & target {@link UID}s passed in the params. Validation used by all merges.
+   *
+   * @param params {@link MergeParams} that contain {@link UID}s to validate
+   * @param mergeReport {@link MergeReport} to update
+   * @param mergeType {@link MergeType}
+   * @return {@link MergeRequest} to process
+   */
+  MergeRequest validateUIDs(
+      @Nonnull MergeParams params, @Nonnull MergeReport mergeReport, @Nonnull MergeType mergeType);
+
+  /**
    * Verifies whether the source {@link UID}s map to valid {@link IdentifiableObject}s. <br>
    * - If they are valid then they are added to verifiedSources param. <br>
    * - If any are not valid then the {@link MergeReport} is updated with an error.
    *
    * @param paramSources {@link UID}s
-   * @param verifiedSources set to add verified source {@link UID}s
    * @param mergeReport to update if any error
-   * @param clazz {@link IdentifiableObject} type
+   * @param mergeType {@link MergeType}
+   * @return verified source {@link UID}s
    */
-  <T extends IdentifiableObject> void verifySources(
-      Set<UID> paramSources, Set<UID> verifiedSources, MergeReport mergeReport, Class<T> clazz);
+  Set<UID> verifySources(Set<UID> paramSources, MergeReport mergeReport, MergeType mergeType);
 
   /**
    * Checks whether the target is referenced in the sources collection <br>
@@ -57,10 +68,10 @@ public interface MergeValidator {
    * @param sources to check
    * @param target to check if in sources
    * @param mergeReport to update if any error
-   * @param clazz {@link IdentifiableObject} type
+   * @param mergeType {@link MergeType}
    */
-  <T extends IdentifiableObject> void checkIsTargetInSources(
-      Set<UID> sources, UID target, MergeReport mergeReport, Class<T> clazz);
+  void checkIsTargetInSources(
+      Set<UID> sources, UID target, MergeReport mergeReport, MergeType mergeType);
 
   /**
    * Verifies whether the target {@link UID} maps to a valid {@link IdentifiableObject}. <br>
@@ -71,9 +82,9 @@ public interface MergeValidator {
    * @param mergeReport to update if any error
    * @param sources to return in merge request
    * @param params merge params with target to verify
-   * @param clazz {@link IdentifiableObject} type
+   * @param mergeType {@link MergeType}
    * @return merge request
    */
-  <T extends IdentifiableObject> MergeRequest verifyTarget(
-      MergeReport mergeReport, Set<UID> sources, MergeParams params, Class<T> clazz);
+  MergeRequest verifyTarget(
+      MergeReport mergeReport, Set<UID> sources, MergeParams params, MergeType mergeType);
 }

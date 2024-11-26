@@ -92,11 +92,11 @@
       "notes": []
     },
     {
-      "event": "EVENTUID-TOOLONG",
+      "event": "BFcipDERJnX",
       "status": "COMPLETED",
       "program": {
-        "idScheme": "UID",
-        "identifier": "BFcipDERJnf"
+        "idScheme": "CODE",
+        "identifier": "invalid"
       },
       "programStage": {
         "idScheme": "UID",

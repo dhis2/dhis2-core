@@ -128,7 +128,7 @@ public abstract class AttributeValidator {
           () ->
               fileResource != null
                   && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid()),
+                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid().getValue()),
           trackerDto,
           E1009,
           value);
@@ -183,7 +183,7 @@ public abstract class AttributeValidator {
       boolean hasTheSameValue = Objects.equals(uniqueAttributeValue.getValue(), value);
       boolean isNotSameTei =
           trackedEntity == null
-              || !Objects.equals(trackedEntity.getUid(), uniqueAttributeValue.getTeUid());
+              || !Objects.equals(trackedEntity.getUid(), uniqueAttributeValue.getTe().getValue());
 
       if (isTeaUniqueInOrgUnitScope && isTheSameTea && hasTheSameValue && isNotSameTei) {
         reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);

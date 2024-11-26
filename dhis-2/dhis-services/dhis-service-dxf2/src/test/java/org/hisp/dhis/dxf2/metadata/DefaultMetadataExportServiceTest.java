@@ -64,6 +64,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -214,12 +215,13 @@ class DefaultMetadataExportServiceTest {
     schemas.forEach(s -> s.setPersisted(true));
 
     Query query = Query.from(new Schema(EventReport.class, "eventReport", "eventReports"));
-    when(queryService.getQueryFromUrl(any(), any(), any())).thenReturn(query);
+    when(queryService.getQueryFromUrl(any(), any())).thenReturn(query);
 
     // return 5 schemas, including the 2 for the deprecated classes EventChart & EventReport
     when(schemaService.getMetadataSchemas()).thenReturn(schemas);
 
     // when
+    params.setCurrentUserDetails(new SystemUser());
     service.getMetadata(params);
 
     // then

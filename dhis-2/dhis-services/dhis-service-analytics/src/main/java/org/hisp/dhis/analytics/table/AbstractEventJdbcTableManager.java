@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -97,45 +96,99 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
   protected final String getNumericClause() {
-    return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
+    return " and " + sqlBuilder.regexpMatch("value", "'" + NUMERIC_LENIENT_REGEXP + "'");
   }
 
   protected final String getDateClause() {
-    return " and value ~* '" + DATE_REGEXP + "'";
+    return " and " + sqlBuilder.regexpMatch("value", DATE_REGEXP);
   }
 
+  /**
+   * Indicates whether creating an index should be skipped.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param hasOptionSet whether an option set exists.
+   * @return a {@link Skip}.
+   */
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
     boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
   /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   * Returns a select expression for a data element value, handling casting to the appropriate data
+   * type based on the given value type.
    *
-   * @param valueType the value type to represent as database column type.
+   * @param valueType the {@link ValueType}.
+   * @param columnName the column name.
+   * @return a select expression.
    */
-  protected String getSelectClause(ValueType valueType, String columnName) {
+  protected String getSelectExpression(ValueType valueType, String columnName) {
+    return getSelectExpression(valueType, columnName, false);
+  }
+
+  /**
+   * Returns a select expression for a tracked entity attribute, handling casting to the appropriate
+   * data type based on the given value type.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param columnName the column name.
+   * @return a select expression.
+   */
+  protected String getSelectExpressionForAttribute(ValueType valueType, String columnName) {
+    return getSelectExpression(valueType, columnName, true);
+  }
+
+  /**
+   * Returns a select expression, potentially with a cast statement, based on the given value type.
+   * Handles data element and tracked entity attribute select expressions.
+   *
+   * @param valueType the {@link ValueType} to represent as database column type.
+   * @param columnExpression the expression or name of the column to be selected.
+   * @param isTea whether the selection is in the context of a tracked entity attribute. When true,
+   *     organisation unit selections will include an additional subquery wrapper.
+   * @return a select expression appropriate for the given value type and context.
+   */
+  private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
       return "case when "
-          + columnName
+          + columnExpression
           + " = 'true' then 1 when "
-          + columnName
+          + columnExpression
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
+      return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
+          + columnExpression
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+      String ouClause =
+          isTea
+              ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}"
+              : "ou.uid from ${organisationunit} ou where ou.uid = ${columnName}";
+      return replaceQualify(ouClause, Map.of("columnName", columnExpression));
     } else {
-      return columnName;
+      return columnExpression;
     }
+  }
+
+  /**
+   * Returns a cast expression which includes a value filter for the given value type.
+   *
+   * @param columnExpression the column expression.
+   * @param filterRegex the value type filter regular expression.
+   * @param dataType the SQL data type.
+   * @return a cast and validate expression.
+   */
+  String getCastExpression(String columnExpression, String filterRegex, String dataType) {
+    String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
+    return String.format(
+        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
   }
 
   @Override
@@ -182,13 +235,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectClause(attribute.getValueType(), "value");
+      String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
-          replace(
+          replaceQualify(
               """
-              (select ${select} from trackedentityattributevalue \
+              (select ${select} from ${trackedentityattributevalue} \
               where trackedentityid=en.trackedentityid \
               and trackedentityattributeid=${attributeId}\
               ${dataClause})${closingParentheses} as ${attributeUid}""",
@@ -233,24 +286,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * The select statement used by the table population.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param fromType the sql snippet related to "from" part
-   * @param dataClause the data type related clause like "NUMERIC"
-   * @return
+   * @param columnExpression the column expression.
+   * @param dataClause the data type related clause like "NUMERIC".
+   * @return a select statement.
    */
   protected String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
-    return replace(
+      TrackedEntityAttribute attribute, String columnExpression, String dataClause) {
+    return replaceQualify(
         """
-            (select ${fromType} from trackedentityattributevalue \
-            where trackedentityid=en.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
+        (select ${columnExpression} from ${trackedentityattributevalue} \
+        where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=${attributeId}${dataClause})\
+        ${closingParentheses} as ${attributeUid}""",
         Map.of(
-            "fromType", fromType,
+            "columnExpression", columnExpression,
             "dataClause", dataClause,
             "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(fromType),
+            "closingParentheses", getClosingParentheses(columnExpression),
             "attributeUid", quote(attribute.getUid())));
   }
 }

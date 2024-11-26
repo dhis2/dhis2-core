@@ -28,9 +28,9 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -84,12 +84,12 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
           AnalyticsTableColumn.builder()
               .name("pestartdate")
               .dataType(TIMESTAMP)
-              .selectExpression("pe.startdate")
+              .selectExpression("ps.startdate")
               .build(),
           AnalyticsTableColumn.builder()
               .name("peenddate")
               .dataType(TIMESTAMP)
-              .selectExpression("pe.enddate")
+              .selectExpression("ps.enddate")
               .build(),
           AnalyticsTableColumn.builder()
               .name("year")
@@ -97,6 +97,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
               .nullable(NOT_NULL)
               .selectExpression("ps.year")
               .build());
+
+  private static final List<String> SORT_KEY = List.of("dx");
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -137,8 +139,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
+            ? new AnalyticsTable(
+                AnalyticsTableType.VALIDATION_RESULT, List.of(), List.of(), Logged.LOGGED)
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }
@@ -185,21 +188,18 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        replace(
+        replaceQualify(
             """
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
-            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            inner join validationrule vr on vr.validationruleid=vrs.validationruleid
-            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
-            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
-            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
-            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
-            where vrs.created < '${startTime}'
-            and vrs.created is not null ${partitionClause}""",
+            from ${validationresult} vrs \
+            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid \
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid \
+            where vrs.created < '${startTime}' \
+            and vrs.created is not null ${partitionClause} \
+            and (ougs.startdate is null or ps.monthstartdate=ougs.startdate)""",
             Map.of(
-                "peStartDateMonth",
-                sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "startTime",
                 toLongDate(params.getStartTime()),
                 "partitionClause",
@@ -212,18 +212,17 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String fromDateClause =
         params.getFromDate() == null
             ? ""
-            : replace(
-                "and pe.startdate >= '${fromDate}'",
-                Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+            : String.format(
+                " and ps.startdate >= '%s'", DateUtils.toMediumDate(params.getFromDate()));
+
     String sql =
-        replace(
+        replaceQualify(
             """
-            select distinct(extract(year from pe.startdate))
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
-            where pe.startdate is not null
-            and vrs.created < '${startTime}'
-            ${fromDateClause}""",
+            select distinct(extract(year from ps.startdate)) \
+            from ${validationresult} vrs \
+            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
+            where ps.startdate is not null \
+            and vrs.created < '${startTime}'${fromDateClause}""",
             Map.of(
                 "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 
@@ -237,7 +236,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    return format("and ps.year = {} ", partition.getYear());
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
+    return emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {

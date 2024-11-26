@@ -32,9 +32,7 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -163,19 +161,19 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
               .name("ou")
               .dataType(CHARACTER_11)
               .nullable(NULL)
-              .selectExpression("ou.uid")
+              .selectExpression("ous.organisationunituid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouname")
               .dataType(VARCHAR_255)
               .nullable(NULL)
-              .selectExpression("ou.name")
+              .selectExpression("ous.name")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
-              .dataType(CHARACTER_32)
+              .dataType(VARCHAR_50)
               .nullable(NULL)
-              .selectExpression("ou.code")
+              .selectExpression("ous.code")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oulevel")
@@ -247,7 +245,9 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
     columns.add(getOrganisationUnitNameHierarchyColumn());
-
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
     return columns;
   }
 
@@ -282,17 +282,15 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \sfrom enrollment en \
-                inner join trackedentity te on en.trackedentityid = te.trackedentityid \
-                and te.deleted = false \
-                and te.trackedentitytypeid =${trackedEntityTypeId} \
+                \sfrom ${enrollment} en \
+                inner join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
+                and te.deleted = false and te.trackedentitytypeid = ${trackedEntityTypeId} \
                 and te.lastupdated < '${startTime}' \
-                left join program p on p.programid = en.programid \
-                left join organisationunit ou on en.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-                where exists ( select 1 from event ev where ev.deleted = false \
+                left join ${program} p on en.programid=p.programid \
+                left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
+                where exists (select 1 from event ev where ev.deleted = false \
                 and ev.enrollmentid = en.enrollmentid \
                 and ev.status in (${statuses})) \
                 and en.occurreddate is not null \

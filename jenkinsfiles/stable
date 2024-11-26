@@ -38,7 +38,6 @@ pipeline {
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
         // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
         BASE_IMAGE = "tomcat:10.1.30-jre17"
-        IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
     }
 
     stages {
@@ -65,6 +64,7 @@ pipeline {
                 RP_UUID = credentials('report-portal-access-uuid')
                 RP_ENABLE = 'true'
                 RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
+                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
                 DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}"
             }
 
@@ -112,6 +112,10 @@ pipeline {
         }
 
         stage('Publish images') {
+            environment {
+                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
+            }
+
             steps {
                 script {
                     // Remove -rc suffix in case it's there, will be added later if needed.

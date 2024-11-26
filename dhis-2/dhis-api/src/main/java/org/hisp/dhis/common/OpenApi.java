@@ -217,6 +217,8 @@ public @interface OpenApi {
      * @return the class that represents the domain for the annotated controller {@link Class} or
      *     endpoint {@link java.lang.reflect.Method}.
      */
+    // TODO make this metadataEntity() ? => always point out the most related metadata object to
+    // categorise a controller by?
     Class<?> entity() default EntityType.class;
 
     /**
@@ -467,6 +469,7 @@ public @interface OpenApi {
    */
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
   @interface Shared {
 
     /**

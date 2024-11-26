@@ -68,40 +68,40 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
   }
 
   @Override
-  public List<Section> getSectionsByDataElement(String dataElementUid) {
-    String sql =
-        "select * from section s"
-            + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
-            + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
-            + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
-            + ", dataelement de"
-            + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", dataElementUid).list();
+  public List<Section> getSectionsByDataElement(String uid) {
+    final String sql =
+        """
+        select * from section s \
+        left join sectiondataelements sde on s.sectionid = sde.sectionid \
+        left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid \
+        left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid \
+        , dataelement de \
+        where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);""";
+
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", uid).list();
   }
 
   @Override
-  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    String sql =
+  public List<Section> getSectionsByIndicators(Collection<Indicator> indicators) {
+    final String sql =
         """
-            select s.* from section s
-            join sectionindicators si on s.sectionid = si.sectionid
-            where si.indicatorid in :indicators
-            group by s.sectionid
-          """;
+        select s.* from section s \
+        join sectionindicators si on s.sectionid = si.sectionid \
+        where si.indicatorid in :indicators \
+        group by s.sectionid""";
+
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 
   @Override
-  public List<Section> getByDataElement(Collection<DataElement> dataElements) {
-    return getQuery(
-            """
-            select s from Section s
-            join s.dataElements de
-            where de in :dataElements
-            group by s.id
-            """,
-            Section.class)
-        .setParameter("dataElements", dataElements)
-        .getResultList();
+  public List<Section> getSectionsByDataElement(Collection<DataElement> dataElements) {
+    final String sql =
+        """
+        select s from Section s \
+        join s.dataElements de \
+        where de in :dataElements \
+        group by s.id""";
+
+    return getQuery(sql, Section.class).setParameter("dataElements", dataElements).getResultList();
   }
 }

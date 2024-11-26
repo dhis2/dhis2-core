@@ -32,7 +32,9 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
@@ -84,6 +86,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -109,7 +112,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * </ul>
    */
   protected static final String DATE_REGEXP =
-      "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
+      "'^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$'";
+
+  protected static final String NUMERIC_REGEXP = "'" + MathUtils.NUMERIC_LENIENT_REGEXP + "'";
 
   protected static final Set<ValueType> NO_INDEX_VAL_TYPES =
       Set.of(ValueType.TEXT, ValueType.LONG_TEXT);
@@ -149,9 +154,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected Boolean spatialSupport;
 
   protected boolean isSpatialSupport() {
-    if (spatialSupport == null)
+    if (spatialSupport == null) {
       spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    return spatialSupport;
+    }
+
+    return spatialSupport && sqlBuilder.supportsGeospatialData();
   }
 
   /**
@@ -354,14 +361,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> columns) {
+      List<AnalyticsTableColumn> columns,
+      List<String> sortKey) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -396,7 +404,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(
@@ -666,7 +674,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if the table is not empty.
    */
   protected boolean tableIsNotEmpty(String name) {
-    String sql = format("select 1 from {} limit 1;", sqlBuilder.quote(name));
+    String sql = format("select 1 from {} limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
   }
 
@@ -730,6 +738,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     variableNames.forEach(name -> map.putIfAbsent(name, qualify(name)));
 
     return TextUtils.replace(template, map);
+  }
+
+  protected AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .nullable(NOT_NULL)
+        // The expression should use sqlBuilder, but the concept of functions (like YEAR)
+        // is part of the previous PR (https://github.com/dhis2/dhis2-core/pull/19131/files)
+        .selectExpression(
+            """
+            CASE
+                WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
+                ELSE YEAR(ev.occurreddate)
+            END
+            """)
+        .skipIndex(Skip.SKIP)
+        .build();
   }
 
   // -------------------------------------------------------------------------

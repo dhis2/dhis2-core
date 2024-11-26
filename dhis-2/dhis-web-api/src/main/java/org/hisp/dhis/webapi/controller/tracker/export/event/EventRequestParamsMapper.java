@@ -46,6 +46,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
@@ -65,7 +66,8 @@ class EventRequestParamsMapper {
 
   private final EventFieldsParamMapper eventsMapper;
 
-  public EventOperationParams map(EventRequestParams eventRequestParams)
+  public EventOperationParams map(
+      EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
         validateDeprecatedParameter(
@@ -161,7 +163,6 @@ class EventRequestParamsMapper {
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(attributeCategoryCombo)
             .attributeCategoryOptions(attributeCategoryOptions)
-            .idSchemes(eventRequestParams.getIdSchemes())
             .includeAttributes(false)
             .includeAllDataElements(false)
             .dataElementFilters(dataElementFilters)
@@ -169,7 +170,8 @@ class EventRequestParamsMapper {
             .events(eventUids)
             .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
-            .eventParams(eventsMapper.map(eventRequestParams.getFields()));
+            .eventParams(eventsMapper.map(eventRequestParams.getFields()))
+            .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());
 
@@ -202,7 +204,8 @@ class EventRequestParamsMapper {
         && (eventRequestParams.getUpdatedAfter() != null
             || eventRequestParams.getUpdatedBefore() != null)) {
       throw new BadRequestException(
-          "Last updated from and/or to and last updated duration cannot be specified simultaneously");
+          "Last updated from and/or to and last updated duration cannot be specified"
+              + " simultaneously");
     }
 
     if (eventRequestParams.getUpdatedWithin() != null

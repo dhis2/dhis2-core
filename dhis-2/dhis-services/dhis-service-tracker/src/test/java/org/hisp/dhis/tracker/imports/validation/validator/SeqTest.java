@@ -41,8 +41,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -182,10 +183,11 @@ class SeqTest {
 
   @Test
   void testSeqDoesNotCallValidatorsIfItShouldNotRunOnGivenStrategyForATrackerDto() {
+    UID uid = UID.generate();
     bundle =
         TrackerBundle.builder()
             .importStrategy(CREATE_AND_UPDATE)
-            .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of("event1", UPDATE))))
+            .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of(uid, UPDATE))))
             .build();
 
     Validator<Event> validator =
@@ -213,7 +215,7 @@ class SeqTest {
               }
             });
 
-    validator.validate(reporter, bundle, Event.builder().event("event1").build());
+    validator.validate(reporter, bundle, Event.builder().event(uid).build());
 
     assertContainsOnly(List.of("V2"), actualErrorMessages());
   }
@@ -243,7 +245,8 @@ class SeqTest {
    */
   private static void addError(Reporter reporter, String message) {
     reporter.addError(
-        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
+        new Error(
+            message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, UID.generate(), List.of()));
   }
 
   /**
@@ -255,8 +258,8 @@ class SeqTest {
   private static TrackerDto dummyDto() {
     return new TrackerDto() {
       @Override
-      public String getUid() {
-        return "uid";
+      public UID getUid() {
+        return UID.generate();
       }
 
       @Override

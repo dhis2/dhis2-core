@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 @JsonPropertyOrder({
   "trackedEntity",
@@ -53,7 +54,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 class CsvTrackedEntity {
 
-  private String trackedEntity;
+  private UID trackedEntity;
 
   private String trackedEntityType;
 

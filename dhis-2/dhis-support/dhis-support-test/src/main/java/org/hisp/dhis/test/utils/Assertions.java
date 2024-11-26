@@ -40,7 +40,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ErrorCodeException;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -125,6 +129,17 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertIsEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(actual.isEmpty(), message);
+  }
+
+  /**
    * Asserts that the given collection is not null and not empty.
    *
    * @param actual the collection.
@@ -132,6 +147,17 @@ public final class Assertions {
   public static void assertNotEmpty(Collection<?> actual) {
     assertNotNull(actual);
     assertFalse(actual.isEmpty(), "expected collection not to be empty");
+  }
+
+  /**
+   * Asserts that the given collection is not null and not empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertFalse(actual.isEmpty(), message);
   }
 
   /**
@@ -170,7 +196,8 @@ public final class Assertions {
   }
 
   /**
-   * Asserts that the given string neither null, a length of zero nor whitespace only.
+   * Asserts that the given string is not null, has a non-zero length, and contains non-whitespace
+   * characters.
    *
    * @param actual the string.
    */
@@ -180,7 +207,7 @@ public final class Assertions {
   }
 
   /**
-   * Asserts that the given string neither null or a length of zero.
+   * Asserts that the given string is not null and has a non-zero length.
    *
    * @param actual the string.
    */
@@ -190,14 +217,55 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(String actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(!actual.isEmpty(), message);
+  }
+
+  /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertNotEmpty(String actual, Supplier<String> messageSupplier) {
+    assertNotNull(actual, messageSupplier);
+    assertTrue(!actual.isEmpty(), messageSupplier);
+  }
+
+  /**
+   * Asserts that the given character sequence is NOT contained within the actual string.
+   *
+   * @param expected expected character sequence not to be contained within the actual string
+   * @param actual actual string which should not contain the expected character sequence
+   */
+  public static void assertNotContains(CharSequence expected, String actual) {
+    assertNotEmpty(
+        actual,
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', use assertIsEmpty if that is what you expect",
+                expected));
+    assertFalse(
+        actual.contains(expected),
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', got '%s' instead", expected, actual));
+  }
+
+  /**
    * Asserts that the given character sequence is contained within the actual string.
    *
    * @param expected expected character sequence to be contained within the actual string
    * @param actual actual string which should contain the expected character sequence
    */
   public static void assertContains(CharSequence expected, String actual) {
-    assertNotNull(
-        actual, () -> String.format("expected actual to contain '%s', got null instead", expected));
+    assertNotEmpty(actual, () -> String.format("expected actual to contain '%s'", expected));
     assertTrue(
         actual.contains(expected),
         () -> String.format("expected actual to contain '%s', got '%s' instead", expected, actual));
@@ -270,6 +338,22 @@ public final class Assertions {
       assertStartsWith(expected.substring(0, paramsStart + 1), actual);
       assertContainsOnly(toParameterList.apply(expected), toParameterList.apply(actual));
     }
+  }
+
+  /**
+   * Asserts that the UID of the given UidObject is equal to the expected UID.
+   *
+   * @param expected expected UID
+   * @param actual actual value to be checked
+   */
+  public static void assertEqualUids(@Nonnull UID expected, @Nonnull UidObject actual) {
+    assertEquals(
+        expected.getValue(),
+        actual.getUid(),
+        () ->
+            String.format(
+                "expected actual UID to be '%s', got '%s' instead",
+                expected.getValue(), actual.getUid()));
   }
 
   public static void assertErrorReport(

@@ -96,7 +96,7 @@ class PostgreSqlBuilderTest {
 
     List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
 
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
   }
 
   private Table getTableC() {
@@ -204,6 +204,37 @@ class PostgreSqlBuilderTest {
   void testDateTrunc() {
     assertEquals(
         "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
+  }
+
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "extract(epoch from (a.startdate - b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "extract(epoch from (a.\"startdate\" - b.\"enddate\"))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("value ~* 'test'", sqlBuilder.regexpMatch("value", "'test'"));
+    assertEquals("number ~* '\\d'", sqlBuilder.regexpMatch("number", "'\\d'"));
+    assertEquals("color ~* '^Blue$'", sqlBuilder.regexpMatch("color", "'^Blue$'"));
+    assertEquals("id ~* '[a-z]\\w+\\d{3}'", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
+  }
+
+  @Test
+  void testJsonExtract() {
+    assertEquals("value ->> 'D7m8vpzxHDJ'", sqlBuilder.jsonExtract("value", "D7m8vpzxHDJ"));
+  }
+
+  @Test
+  void testJsonExtractNested() {
+    assertEquals(
+        "eventdatavalues #>> '{D7m8vpzxHDJ, value}'",
+        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
   }
 
   // Statements
@@ -351,7 +382,8 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testCountRows() {
-    String expected = """
+    String expected =
+        """
         select count(*) as row_count from "immunization";""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
@@ -372,7 +404,7 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
+        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\",\"created\");";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
   }
@@ -392,7 +424,7 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
+        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"),lower(\"period\"));";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -36,6 +37,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -60,26 +63,33 @@ public interface EventService {
 
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
-   * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
+   * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
+   * #getEvent(UID, TrackerIdSchemeParams, EventParams)} instead to also get the events
+   * relationships and specify different {@code idSchemes}.
    */
   Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
-   * authenticated user.
+   * authenticated user. Metadata identifiers will use the {@code idScheme} defined by {@link
+   * TrackerIdSchemeParams}.
    */
-  Event getEvent(UID uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, EventParams eventParams)
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Get all events matching given params under the privileges of the currently authenticated user.
    */
-  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+  @Nonnull
+  List<Event> getEvents(@Nonnull EventOperationParams params)
+      throws BadRequestException, ForbiddenException;
 
   /**
    * Get a page of events matching given params under the privileges of the currently authenticated
    * user.
    */
-  Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
+  @Nonnull
+  Page<Event> getEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   RelationshipItem getEventInRelationshipItem(UID uid, EventParams eventParams)

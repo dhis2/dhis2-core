@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,6 +37,8 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOption;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
@@ -92,5 +95,59 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
         "Returned catOptions include custom catOptions only");
 
     assertFalse(catOptions.contains("default"), "default catOption was not in payload");
+  }
+
+  @Test
+  @DisplayName("Invalid merge with source and target missing")
+  void testInvalidMerge() {
+    JsonMixed mergeResponse =
+        POST(
+                "/categoryOptions/merge",
+                """
+                {
+                    "sources": ["Uid00000010"],
+                    "target": "Uid00000012",
+                    "deleteSources": true,
+                    "dataMergeStrategy": "DISCARD"
+                }""")
+            .content(HttpStatus.CONFLICT);
+    assertEquals("Conflict", mergeResponse.getString("httpStatus").string());
+    assertEquals("WARNING", mergeResponse.getString("status").string());
+    assertEquals(
+        "One or more errors occurred, please see full details in merge report.",
+        mergeResponse.getString("message").string());
+
+    JsonArray errors =
+        mergeResponse.getObject("response").getObject("mergeReport").getArray("mergeErrors");
+    JsonObject error1 = errors.getObject(0);
+    JsonObject error2 = errors.getObject(1);
+    assertEquals(
+        "SOURCE CategoryOption does not exist: `Uid00000010`",
+        error1.getString("message").string());
+    assertEquals(
+        "TARGET CategoryOption does not exist: `Uid00000012`",
+        error2.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("invalid merge, missing required auth")
+  void testMergeNoAuth() {
+    switchToNewUser("noAuth", "NoAuth");
+    JsonMixed mergeResponse =
+        POST(
+                "/categoryOptions/merge",
+                """
+                {
+                    "sources": ["Uid00000010"],
+                    "target": "Uid00000012",
+                    "deleteSources": true,
+                    "dataMergeStrategy": "DISCARD"
+                }""")
+            .content(HttpStatus.FORBIDDEN);
+    assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
+    assertEquals("ERROR", mergeResponse.getString("status").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_CATEGORY_OPTION_MERGE]",
+        mergeResponse.getString("message").string());
   }
 }

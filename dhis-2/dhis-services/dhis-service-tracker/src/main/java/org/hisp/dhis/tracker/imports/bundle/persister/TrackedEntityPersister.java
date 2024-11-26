@@ -68,16 +68,6 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void updateDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity te,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
-  }
-
-  @Override
   protected void updatePreheat(TrackerPreheat preheat, TrackedEntity dto) {
     preheat.putTrackedEntities(Collections.singletonList(dto));
   }
@@ -109,9 +99,27 @@ public class TrackedEntityPersister
   }
 
   @Override
+  protected void updateDataValues(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
+      TrackedEntity payloadEntity,
+      TrackedEntity currentEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(TrackedEntity entity) {
     return null; // We don't need to keep track, Tei has already been
     // updated
+  }
+
+  @Override
+  protected TrackedEntity cloneEntityProperties(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 
   @Override

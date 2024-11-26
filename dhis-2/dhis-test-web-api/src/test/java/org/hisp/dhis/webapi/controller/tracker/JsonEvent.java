@@ -60,6 +60,14 @@ public interface JsonEvent extends JsonObject {
     return getString("orgUnit").string();
   }
 
+  default String attributeOptionCombo() {
+    return getString("attributeOptionCombo").string();
+  }
+
+  default String attributeCategoryOptions() {
+    return getString("attributeCategoryOptions").string();
+  }
+
   default Boolean getDeleted() {
     return getBoolean("deleted").bool();
   }

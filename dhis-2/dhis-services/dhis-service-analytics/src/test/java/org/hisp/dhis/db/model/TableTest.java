@@ -59,8 +59,8 @@ class TableTest {
   void testIsUnlogged() {
     List<Column> columns = List.of(colA, colB);
 
-    Table tableA = new Table("analytics", columns, List.of(), List.of(), Logged.UNLOGGED);
-    Table tableB = new Table("analytics", columns, List.of(), List.of(), Logged.LOGGED);
+    Table tableA = new Table("analytics", columns, List.of(), Logged.UNLOGGED);
+    Table tableB = new Table("analytics", columns, List.of(), Logged.LOGGED);
 
     assertTrue(tableA.isUnlogged());
     assertFalse(tableB.isUnlogged());
@@ -87,6 +87,7 @@ class TableTest {
 
     assertTrue(tableA.hasPrimaryKey());
     assertFalse(tableB.hasPrimaryKey());
+    assertEquals(List.of("dx"), tableA.getPrimaryKey());
   }
 
   @Test
@@ -94,6 +95,23 @@ class TableTest {
     Table table = new Table("analytics", List.of(colA, colB), List.of("dx", "value"));
 
     assertEquals("dx", table.getFirstPrimaryKey());
+  }
+
+  @Test
+  void testHasSortKey() {
+    Table tableA =
+        new Table(
+            "analytics",
+            List.of(colA, colB),
+            List.of("dx", "value"),
+            List.of("dx"),
+            List.of(),
+            Logged.UNLOGGED);
+    Table tableB = new Table("analytics", List.of(colA, colB), List.of("dx", "value"));
+
+    assertTrue(tableA.hasSortKey());
+    assertFalse(tableB.hasSortKey());
+    assertEquals(List.of("dx"), tableA.getSortKey());
   }
 
   @Test

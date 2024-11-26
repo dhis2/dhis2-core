@@ -40,13 +40,13 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -111,7 +111,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
         .thenReturn(getProgramWithoutRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
 
     // when
@@ -127,7 +127,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setStatus(EventStatus.ACTIVE);
 
@@ -144,7 +144,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setStatus(EventStatus.COMPLETED);
 
@@ -161,7 +161,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(Instant.now());
     event.setStatus(EventStatus.SCHEDULE);
@@ -179,7 +179,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(now());
     event.setCompletedAt(now());
@@ -196,7 +196,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(now());
     event.setCompletedAt(sevenDaysAgo());
@@ -215,7 +215,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(null);
     event.setScheduledAt(null);
@@ -234,7 +234,7 @@ class DateValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(sevenDaysAgo());
     event.setStatus(EventStatus.ACTIVE);

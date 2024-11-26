@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
@@ -43,6 +43,7 @@ import org.mapstruct.Mapping;
       MetadataIdentifierMapper.class
     })
 interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.imports.domain.Event> {
+  @Override
   @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
   @Mapping(
       target = "programStage",

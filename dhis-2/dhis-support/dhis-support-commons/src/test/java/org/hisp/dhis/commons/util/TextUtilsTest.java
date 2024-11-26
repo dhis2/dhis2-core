@@ -200,6 +200,13 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceMultiple() {
+    assertEquals(
+        "Hey John, my name is John",
+        TextUtils.replace("Hey ${name}, my name is ${name}", Map.of("name", "John")));
+  }
+
+  @Test
   void testReplaceVarargs() {
     assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
   }

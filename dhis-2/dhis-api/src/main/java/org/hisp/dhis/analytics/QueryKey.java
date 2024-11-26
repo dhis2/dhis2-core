@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.HashUtils;
 
 /**
  * @author Lars Helge Overland
@@ -110,7 +110,7 @@ public class QueryKey {
 
   /** Returns a 40-character unique key. The key is a SHA-1 hash of the components of this key. */
   public String build() {
-    return DigestUtils.sha1Hex(asPlainKey());
+    return HashUtils.hashSHA1(asPlainKey().getBytes());
   }
 
   /** Equal to {@link QueryKey#build()}. */

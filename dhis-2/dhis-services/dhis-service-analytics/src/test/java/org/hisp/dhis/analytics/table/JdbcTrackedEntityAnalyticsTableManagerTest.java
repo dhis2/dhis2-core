@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +54,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -66,7 +68,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class JdbcTrackedEntityAnalyticsTableManagerTest {
-
   @Mock private JdbcTemplate jdbcTemplate;
   @Mock private AnalyticsTableSettings analyticsTableSettings;
   @Mock private PeriodDataProvider periodDataProvider;
@@ -102,9 +103,20 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     confidentialTea.setConfidential(true);
     confidentialTea.setValueType(ValueType.TEXT);
 
+    Program program = mock(Program.class);
+
+    when(sqlBuilder.qualifyTable(anyString()))
+        .thenAnswer(inv -> SqlUtils.quote(inv.getArgument(0)));
+
+    when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
+
+    when(sqlBuilder.coalesce(anyString(), anyString()))
+        .thenAnswer(inv -> "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + "))");
+
+    when(sqlBuilder.trim(anyString())).thenAnswer(inv -> "trim(" + inv.getArgument(0) + ")");
+
     when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
 
-    Program program = mock(Program.class);
     when(program.getTrackedEntityType()).thenReturn(tet);
 
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(tet));
