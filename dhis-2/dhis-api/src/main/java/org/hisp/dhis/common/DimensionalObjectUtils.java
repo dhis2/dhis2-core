@@ -38,9 +38,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,7 +50,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
@@ -63,6 +59,9 @@ import org.hisp.dhis.eventvisualization.Attribute;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -141,7 +140,6 @@ public class DimensionalObjectUtils {
       EventAnalyticalObject eventAnalyticalObject,
       DimensionalObject dimensionalObject,
       Attribute parent) {
-    // Associating event repetitions.
     List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
 
     if (isNotEmpty(repetitions)) {

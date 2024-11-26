@@ -34,9 +34,8 @@ public enum ColumnHeader {
   GEOMETRY("geometry", "Geometry"),
   ENROLLMENT_DATE("enrollmentdate", "Enrollment date"),
   /**
-   * @deprecated use @Link{#OCCURRED_DATE} instead.
+   * Deprecated since 2.42. Use @Link{#OCCURRED_DATE} instead.
    */
-  @Deprecated(since = "2.42")
   INCIDENT_DATE("incidentdate", "Incident date"),
   OCCURRED_DATE("occurreddate", "Occurred date"),
   STORED_BY("storedby", "Stored by"),
