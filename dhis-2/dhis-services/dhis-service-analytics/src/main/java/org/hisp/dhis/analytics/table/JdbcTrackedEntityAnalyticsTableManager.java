@@ -223,9 +223,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());
-    if (sqlBuilder.supportsDeclarativePartitioning()) {
-      columns.add(getPartitionColumn());
-    }
 
     return columns;
   }
@@ -279,7 +276,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           " cast(${columnName} as ${type})",
           Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
     }
-    if (valueType.isGeo() && isSpatialSupport()) {
+    if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
       return replace(
           """
           \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
