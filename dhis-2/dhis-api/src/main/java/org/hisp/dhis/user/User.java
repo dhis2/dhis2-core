@@ -711,6 +711,8 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Property(required = FALSE, access = Property.Access.READ_ONLY)
   public String getName() {
+    // this is to maintain name for transient User objects initialized without setting name
+    if (name == null) return firstName + " " + surname;
     return name;
   }
 
