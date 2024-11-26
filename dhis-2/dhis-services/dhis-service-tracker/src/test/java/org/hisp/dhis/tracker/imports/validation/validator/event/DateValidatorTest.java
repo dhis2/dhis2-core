@@ -246,6 +246,24 @@ class DateValidatorTest extends TestBase {
     assertHasError(reporter, event, E1047);
   }
 
+  @Test
+  void testEventIsValidWhenScheduledDateBelongsToFuturePeriod() {
+    // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+            .thenReturn(getProgramWithRegistration());
+    Event event = new Event();
+    event.setEvent(UID.generate());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setScheduledAt(sevenDaysLater());
+    event.setStatus(EventStatus.SCHEDULE);
+
+    // when
+    validator.validate(reporter, bundle, event);
+
+    // then
+    assertIsEmpty(reporter.getErrors());
+  }
+
   private Program getProgramWithRegistration() {
     Program program = createProgram('A');
     program.setUid(PROGRAM_WITH_REGISTRATION_ID);
@@ -269,5 +287,9 @@ class DateValidatorTest extends TestBase {
 
   private Instant sevenDaysAgo() {
     return LocalDateTime.now().minusDays(7).toInstant(ZoneOffset.UTC);
+  }
+
+  private Instant sevenDaysLater() {
+    return LocalDateTime.now().plusDays(7).toInstant(ZoneOffset.UTC);
   }
 }

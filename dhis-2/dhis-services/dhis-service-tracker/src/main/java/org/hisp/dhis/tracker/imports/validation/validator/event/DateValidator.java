@@ -71,8 +71,8 @@ class DateValidator implements Validator<Event> {
     }
 
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
-    validateExpiryDays(reporter, event, program, bundle.getUser());
-    validatePeriodType(reporter, event, program);
+    validateCompletionExpiryDays(reporter, event, program, bundle.getUser());
+    validateExpiryPeriodType(reporter, event, program);
   }
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(Reporter reporter, Event event) {
@@ -81,7 +81,7 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private void validateExpiryDays(
+  private void validateCompletionExpiryDays(
       Reporter reporter, Event event, Program program, UserDetails user) {
     if (event.getCompletedAt() == null || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
@@ -95,10 +95,10 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private void validatePeriodType(Reporter reporter, Event event, Program program) {
+  private void validateExpiryPeriodType(Reporter reporter, Event event, Program program) {
     PeriodType periodType = program.getExpiryPeriodType();
 
-    if (periodType == null || program.getExpiryDays() == 0) {
+    if (periodType == null) {
       // Nothing more to check here, return out
       return;
     }
@@ -111,9 +111,10 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    Period period = periodType.createPeriod(new Date());
 
-    if (referenceDate.isBefore(period.getStartDate().toInstant())) {
+    Period eventPeriod = periodType.createPeriod(Date.from(referenceDate));
+
+    if (eventPeriod.getEndDate().toInstant().plus(ofDays(program.getExpiryDays())).isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
     }
   }
