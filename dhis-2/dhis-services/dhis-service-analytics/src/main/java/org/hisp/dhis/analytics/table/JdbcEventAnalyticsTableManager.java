@@ -439,7 +439,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getAttributeCategoryColumns(Program program) {
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getDataDimensionCategories();
-
       return categories.stream()
           .map(
               category ->
