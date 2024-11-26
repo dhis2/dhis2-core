@@ -31,7 +31,6 @@ import static org.hisp.dhis.util.DateUtils.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.common.TableInfoReader;
@@ -48,6 +47,7 @@ class ContinuousAnalyticsTableJobTest {
   @Mock private AnalyticsTableGenerator analyticsTableGenerator;
 
   @Mock private SystemSettingsService settingsService;
+  
   @Mock private SystemSettings settings;
 
   @Mock private TableInfoReader tableInfoReader;
