@@ -55,7 +55,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -407,7 +407,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           columns.add(
               AnalyticsTableColumn.builder()
                   .name(category.getUid())
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(category.getUid()))
                   .created(category.getCreated())
@@ -496,7 +496,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name(dataElement.getUid())
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
             .selectExpression(sql)
             .skipIndex(skipIndex)
@@ -523,7 +523,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
               .selectExpression(geoSql)
               .indexType(IndexType.GIST)
@@ -536,7 +536,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(ouNameSql)
             .skipIndex(SKIP)
@@ -562,7 +562,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name(attribute.getUid())
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
             .selectExpression(sql)
             .skipIndex(skipIndex)
@@ -633,7 +633,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
               .selectExpression(geoSql)
               .indexType(IndexType.GIST)
@@ -646,7 +646,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(ouNameSql)
             .skipIndex(SKIP)
