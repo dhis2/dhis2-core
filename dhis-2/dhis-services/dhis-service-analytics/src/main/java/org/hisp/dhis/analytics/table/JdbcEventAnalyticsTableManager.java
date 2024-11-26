@@ -375,6 +375,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     populateTableInternal(partition, fromClause);
   }
 
+  /**
+   * Returns a join clause for attribute value for every attribute of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a join clause.
+   */
   private String getAttributeJoinClause(Program program) {
     String template =
         """
