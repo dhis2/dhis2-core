@@ -98,7 +98,7 @@ class DateValidator implements Validator<Event> {
   private void validateExpiryPeriodType(Reporter reporter, Event event, Program program) {
     PeriodType periodType = program.getExpiryPeriodType();
 
-    if (periodType == null) {
+    if (periodType == null || program.getExpiryDays() == 0) {
       // Nothing more to check here, return out
       return;
     }

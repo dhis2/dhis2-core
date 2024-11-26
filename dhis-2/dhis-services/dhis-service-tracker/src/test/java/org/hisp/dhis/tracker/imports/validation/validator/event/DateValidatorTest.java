@@ -125,7 +125,7 @@ class DateValidatorTest extends TestBase {
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -142,7 +142,7 @@ class DateValidatorTest extends TestBase {
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -159,7 +159,7 @@ class DateValidatorTest extends TestBase {
   void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -177,7 +177,7 @@ class DateValidatorTest extends TestBase {
   void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -194,7 +194,7 @@ class DateValidatorTest extends TestBase {
   void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -213,7 +213,7 @@ class DateValidatorTest extends TestBase {
   void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -229,10 +229,10 @@ class DateValidatorTest extends TestBase {
   }
 
   @Test
-  void testEventIsNotValidWhenDateBelongsToExpiredPeriod() {
+  void shouldFailValidationForEventWhenDateBelongsToExpiredPeriod() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -247,10 +247,28 @@ class DateValidatorTest extends TestBase {
   }
 
   @Test
-  void testEventIsValidWhenScheduledDateBelongsToFuturePeriod() {
+  void shouldPassValidationForEventWhenDateBelongsToPastPeriodWithZeroExpiryDays() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(0));
+    Event event = new Event();
+    event.setEvent(UID.generate());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(sevenDaysAgo());
+    event.setStatus(EventStatus.ACTIVE);
+
+    // when
+    validator.validate(reporter, bundle, event);
+
+    // then
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
+    // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -264,12 +282,12 @@ class DateValidatorTest extends TestBase {
     assertIsEmpty(reporter.getErrors());
   }
 
-  private Program getProgramWithRegistration() {
+  private Program getProgramWithRegistration(int expiryDays) {
     Program program = createProgram('A');
     program.setUid(PROGRAM_WITH_REGISTRATION_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setCompleteEventsExpiryDays(5);
-    program.setExpiryDays(5);
+    program.setExpiryDays(expiryDays);
     program.setExpiryPeriodType(new DailyPeriodType());
     return program;
   }
