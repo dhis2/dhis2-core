@@ -398,24 +398,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>(fixedColumns);
-
-    if (program.hasNonDefaultCategoryCombo()) {
-      List<Category> categories = program.getCategoryCombo().getCategories();
-
-      for (Category category : categories) {
-        if (category.isDataDimension()) {
-          columns.add(
-              AnalyticsTableColumn.builder()
-                  .name(category.getUid())
-                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
-                  .dataType(CHARACTER_11)
-                  .selectExpression("acs." + quote(category.getUid()))
-                  .created(category.getCreated())
-                  .build());
-        }
-      }
-    }
-
+    columns.addAll(getAttributeCategoryColumns(program));
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
@@ -445,6 +428,32 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .dataType(INTEGER)
         .selectExpression("dps.year")
         .build();
+  }
+
+  /**
+   * Returns columns for attribute categories of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getAttributeCategoryColumns(Program program) {
+    if (program.hasNonDefaultCategoryCombo()) {
+      List<Category> categories = program.getCategoryCombo().getDataDimensionCategories();
+
+      return categories.stream()
+          .map(
+              category ->
+                  AnalyticsTableColumn.builder()
+                      .name(category.getUid())
+                      .dimensionType(AnalyticsDimensionType.DYNAMIC)
+                      .dataType(CHARACTER_11)
+                      .selectExpression("acs." + quote(category.getUid()))
+                      .created(category.getCreated())
+                      .build())
+          .toList();
+    }
+
+    return List.of();
   }
 
   /**
