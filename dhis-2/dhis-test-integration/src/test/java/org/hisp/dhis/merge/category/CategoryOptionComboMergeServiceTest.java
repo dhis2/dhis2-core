@@ -28,28 +28,29 @@
 package org.hisp.dhis.merge.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeService;
-import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -63,10 +64,11 @@ import org.springframework.transaction.annotation.Transactional;
  * target CategoryOptionCombo
  */
 @Transactional
-@ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
+// @ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
 class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private CategoryOptionStore categoryOptionStore;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private MergeService categoryOptionComboMergeService;
 
@@ -157,49 +159,51 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // given category option combo state before merge
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
+    assertEquals(9, allCategoryOptions.size(), "9 COs including 1 default");
 
-    //    List<CategoryOptionCombo> cocsSourcesBefore =
-    //        categoryService.getAllCategoryOptionCombos(
-    //            List.of(UID.of(coSource1A.getUid()), UID.of(coSource2B.getUid())));
-    //    List<Category> categoryTargetBefore =
-    //        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A.getUid())));
-    //
-    //    assertEquals(
-    //        2, categorySourcesBefore.size(), "Expect 2 categories with source category option
-    // refs");
-    //    assertEquals(
-    //        1, categoryTargetBefore.size(), "Expect 1 category with target category option refs");
+    List<CategoryOption> coSourcesBefore =
+        categoryOptionStore.getByCategoryOptionCombo(
+            List.of(UID.of(cocSource1.getUid()), UID.of(cocSource2.getUid())));
+    List<CategoryOption> coTargetBefore =
+        categoryOptionStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget.getUid())));
+
+    assertEquals(
+        4,
+        coSourcesBefore.size(),
+        "Expect 4 category options with source category option combo refs");
+    assertEquals(
+        2,
+        coTargetBefore.size(),
+        "Expect 2 category options with target category option combo refs");
 
     // when
-    //    MergeParams mergeParams = getMergeParams();
-    //    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    //    List<Category> categorySources =
-    //        categoryService.getCategoriesByCategoryOption(
-    //            List.of(UID.of(coSource1A), UID.of(coSource2B)));
-    //    List<Category> categoryTarget =
-    //        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A)));
-    //    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
-    //
-    //    assertFalse(report.hasErrorMessages());
-    //    assertEquals(0, categorySources.size(), "Expect 0 entries with source category option
-    // refs");
-    //    assertEquals(3, categoryTarget.size(), "Expect 3 entries with target category option
-    // refs");
+    List<CategoryOption> coSourcesAfter =
+        categoryOptionStore.getByCategoryOptionCombo(
+            List.of(UID.of(cocSource1), UID.of(cocSource2)));
+    List<CategoryOption> coTargetAfter =
+        categoryOptionStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+    List<CategoryOption> allCatOptions = categoryService.getAllCategoryOptions();
 
-    // 8 custom + 1 default
-    //    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    //    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertFalse(report.hasErrorMessages());
+    assertEquals(
+        0, coSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
+    assertEquals(
+        6, coTargetAfter.size(), "Expect 6 entries with target category option combo refs");
   }
 
   private MergeParams getMergeParams() {
     MergeParams mergeParams = new MergeParams();
-    mergeParams.setSources(UID.of(List.of(co1A.getUid(), co2B.getUid())));
-    mergeParams.setTarget(UID.of(co3A.getUid()));
+    mergeParams.setSources(UID.of(List.of(cocSource1.getUid(), cocSource2.getUid())));
+    mergeParams.setTarget(UID.of(cocTarget.getUid()));
     mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+    mergeParams.setDeleteSources(true);
     return mergeParams;
   }
 }

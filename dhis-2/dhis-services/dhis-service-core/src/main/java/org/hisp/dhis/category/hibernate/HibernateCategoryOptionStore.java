@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
@@ -83,7 +84,7 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
   }
 
   @Override
-  public List<CategoryOption> getByCategoryOptionCombo(@Nonnull Collection<String> uids) {
+  public List<CategoryOption> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
     if (uids.isEmpty()) return List.of();
     return getQuery(
             """
@@ -91,7 +92,7 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
             join co.categoryOptionCombos coc
             where coc.uid in :uids
             """)
-        .setParameter("uids", uids)
+        .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }
 }

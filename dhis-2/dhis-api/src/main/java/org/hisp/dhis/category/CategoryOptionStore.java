@@ -30,6 +30,7 @@ package org.hisp.dhis.category;
 import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -40,5 +41,5 @@ public interface CategoryOptionStore extends IdentifiableObjectStore<CategoryOpt
 
   List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails userDetails);
 
-  List<CategoryOption> getByCategoryOptionCombo(Collection<String> uids);
+  List<CategoryOption> getByCategoryOptionCombo(Collection<UID> uids);
 }

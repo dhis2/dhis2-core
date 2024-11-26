@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -58,7 +59,8 @@ public class MetadataCategoryOptionComboMergeHandler {
    */
   public void handleCategoryOptions(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
     List<CategoryOption> categoryOptions =
-        categoryOptionStore.getByCategoryOptionCombo(UID.toUidValueSet(sources));
+        categoryOptionStore.getByCategoryOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 
     categoryOptions.forEach(
         co -> {
