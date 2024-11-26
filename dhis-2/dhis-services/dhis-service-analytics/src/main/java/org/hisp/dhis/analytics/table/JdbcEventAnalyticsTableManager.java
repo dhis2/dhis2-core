@@ -41,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -88,7 +90,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -388,8 +389,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
     return program.getNonConfidentialTrackedEntityAttributes().stream()
-        .map(at -> replaceQualify(template, Map.of(
-            "uid", quote(at.getUid()), "id", String.valueOf(at.getId()))))
+        .map(
+            at ->
+                replaceQualify(
+                    template, Map.of("uid", quote(at.getUid()), "id", String.valueOf(at.getId()))))
         .collect(Collectors.joining());
   }
 
