@@ -597,7 +597,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
     String dataExpression = getDataFilterClause(attribute);
-    String sql = selectForInsert(attribute, selectExpression, dataExpression);
+    String sql = getSelectSubquery(attribute, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
@@ -674,7 +674,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = selectForInsert(attribute, fromType, dataFilterClause);
+      String geoSql = getSelectSubquery(attribute, fromType, dataFilterClause);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -686,7 +686,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataFilterClause);
+    String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()

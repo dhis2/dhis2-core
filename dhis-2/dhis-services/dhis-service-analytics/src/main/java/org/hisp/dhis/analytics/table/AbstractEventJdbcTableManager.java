@@ -220,14 +220,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * The select statement used by the table population.
+   * The select subquery statement.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
    * @param columnExpression the column expression.
    * @param dataClause the data type related clause like "NUMERIC".
    * @return a select statement.
    */
-  protected String selectForInsert(
+  protected String getSelectSubquery(
       TrackedEntityAttribute attribute, String columnExpression, String dataClause) {
     return replaceQualify(
         """

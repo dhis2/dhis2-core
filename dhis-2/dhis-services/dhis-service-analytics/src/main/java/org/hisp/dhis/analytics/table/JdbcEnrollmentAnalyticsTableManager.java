@@ -239,7 +239,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
       if (attribute.getValueType().isOrganisationUnit()) {
         String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
+        String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataClause);
 
         columns.add(
             AnalyticsTableColumn.builder()
