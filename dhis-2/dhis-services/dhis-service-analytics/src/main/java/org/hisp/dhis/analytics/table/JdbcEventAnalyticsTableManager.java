@@ -55,7 +55,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -398,53 +398,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>(fixedColumns);
-
-    if (program.hasNonDefaultCategoryCombo()) {
-      List<Category> categories = program.getCategoryCombo().getCategories();
-
-      for (Category category : categories) {
-        if (category.isDataDimension()) {
-          columns.add(
-              AnalyticsTableColumn.builder()
-                  .name(category.getUid())
-                  .columnType(AnalyticsColumnType.DYNAMIC)
-                  .dataType(CHARACTER_11)
-                  .selectExpression("acs." + quote(category.getUid()))
-                  .created(category.getCreated())
-                  .build());
-        }
-      }
-    }
-
+    columns.addAll(getAttributeCategoryColumns(program));
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
-
-    columns.addAll(
-        program.getAnalyticsDataElements().stream()
-            .map(de -> getColumnForDataElement(de, false))
-            .flatMap(Collection::stream)
-            .toList());
-
-    columns.addAll(
-        program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnForDataElement(de, true))
-            .flatMap(Collection::stream)
-            .toList());
-
-    columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
-            .flatMap(Collection::stream)
-            .toList());
-
-    columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
-            .flatMap(Collection::stream)
-            .toList());
+    columns.addAll(getDataElementColumns(program));
+    columns.addAll(getAttributeColumns(program));
 
     if (program.isRegistration()) {
       columns.add(EventAnalyticsColumn.TRACKED_ENTITY);
@@ -466,6 +427,52 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .dataType(INTEGER)
         .selectExpression("dps.year")
         .build();
+  }
+
+  /**
+   * Returns columns for attribute categories of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getAttributeCategoryColumns(Program program) {
+    if (program.hasNonDefaultCategoryCombo()) {
+      List<Category> categories = program.getCategoryCombo().getDataDimensionCategories();
+      return categories.stream()
+          .map(
+              category ->
+                  AnalyticsTableColumn.builder()
+                      .name(category.getUid())
+                      .dimensionType(AnalyticsDimensionType.DYNAMIC)
+                      .dataType(CHARACTER_11)
+                      .selectExpression("acs." + quote(category.getUid()))
+                      .created(category.getCreated())
+                      .build())
+          .toList();
+    }
+
+    return List.of();
+  }
+
+  /**
+   * Returns columns for data elements of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(
+        program.getAnalyticsDataElements().stream()
+            .map(de -> getColumnForDataElement(de, false))
+            .flatMap(Collection::stream)
+            .toList());
+    columns.addAll(
+        program.getAnalyticsDataElementsWithLegendSet().stream()
+            .map(de -> getColumnForDataElement(de, true))
+            .flatMap(Collection::stream)
+            .toList());
+    return columns;
   }
 
   /**
@@ -495,7 +502,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name(dataElement.getUid())
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
             .selectExpression(sql)
             .skipIndex(skipIndex)
@@ -522,7 +529,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
               .selectExpression(geoSql)
               .indexType(IndexType.GIST)
@@ -535,7 +542,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(ouNameSql)
             .skipIndex(SKIP)
@@ -544,6 +551,34 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
+  /**
+   * Returns columns for attributes of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(
+        program.getNonConfidentialTrackedEntityAttributes().stream()
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
+            .flatMap(Collection::stream)
+            .toList());
+    columns.addAll(
+        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
+            .flatMap(Collection::stream)
+            .toList());
+    return columns;
+  }
+
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param withLegendSet indicates whether the attribute has a legend set.
+   * @return a list of {@link AnaylyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
       TrackedEntityAttribute attribute, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -561,7 +596,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name(attribute.getUid())
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
             .selectExpression(sql)
             .skipIndex(skipIndex)
@@ -632,7 +667,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
               .selectExpression(geoSql)
               .indexType(IndexType.GIST)
@@ -645,7 +680,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(ouNameSql)
             .skipIndex(SKIP)

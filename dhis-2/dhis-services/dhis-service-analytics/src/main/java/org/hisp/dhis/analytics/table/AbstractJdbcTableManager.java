@@ -52,7 +52,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -535,7 +535,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = ougs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("ougs." + quote(name))
                   .skipIndex(skipIndex(ougs))
@@ -552,7 +552,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = degs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("degs." + quote(name))
                   .skipIndex(skipIndex(degs))
@@ -569,7 +569,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
                   .skipIndex(skipIndex(cogs))
@@ -586,7 +586,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
                   .skipIndex(skipIndex(cogs))
@@ -603,7 +603,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
                   .skipIndex(skipIndex(category))
@@ -620,7 +620,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
                   .skipIndex(skipIndex(category))

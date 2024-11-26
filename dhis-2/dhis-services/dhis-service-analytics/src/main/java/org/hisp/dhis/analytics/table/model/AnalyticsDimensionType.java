@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.table.model;
  * Represents a type of dimension, either static, meaning fixed, or dynamic, meaning based on a
  * dimensional configuration entity.
  */
-public enum AnalyticsColumnType {
+public enum AnalyticsDimensionType {
   STATIC,
   DYNAMIC;
 }
