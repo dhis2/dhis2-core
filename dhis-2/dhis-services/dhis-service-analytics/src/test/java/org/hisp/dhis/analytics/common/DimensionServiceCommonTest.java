@@ -30,8 +30,7 @@ package org.hisp.dhis.analytics.common;
 import java.util.function.Predicate;
 import org.hisp.dhis.common.ValueType;
 
-public class DimensionServiceCommonTest {
-
+class DimensionServiceCommonTest {
   public static Predicate<ValueType> queryDisallowedValueTypesPredicate() {
     return DimensionsServiceCommon.QUERY_DISALLOWED_VALUE_TYPES::contains;
   }
