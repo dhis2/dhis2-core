@@ -385,13 +385,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         """
         left join ${trackedentityattributevalue} ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
-        and ${uid}.trackedentityattributeid = ${uid}""";
+        and ${uid}.trackedentityattributeid = ${id}\s""";
 
-    String sql =getAttributeColumns(program).stream()
-        .map(col -> replaceQualify(template, Map.of("uid", quote(col.getName()))))
-        .collect(Collectors.joining(" "));
-
-    return sql + " ";
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(at -> replaceQualify(template, Map.of(
+            "uid", quote(at.getUid()), "id", String.valueOf(at.getId()))))
+        .collect(Collectors.joining());
   }
 
   /**
