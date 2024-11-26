@@ -445,6 +445,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return filterDimensionColumns(columns);
   }
 
+  /**
+   * Returns a partition column.
+   *
+   * @return an {@link AnalyticsTableColumn}.
+   */
   private AnalyticsTableColumn getPartitionColumn() {
     return AnalyticsTableColumn.builder()
         .name("year")
@@ -537,6 +542,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         : columns;
   }
 
+  /**
+   * Returns a list of columns.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param dataFilterClause the data filter SQL clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(
       DataElement dataElement, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -585,12 +597,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
+            .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
+            .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());
     return columns;
@@ -603,14 +615,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param withLegendSet indicates whether the attribute has a legend set.
    * @return a list of {@link AnaylyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, boolean withLegendSet) {
+  private List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
     String dataExpression = getDataFilterClause(attribute);
-    String sql = selectForInsert(attribute, selectExpression, dataExpression);
+    String sql = getSelectSubquery(attribute, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
@@ -626,7 +637,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet ? getColumnForAttributeWithLegendSet(attribute) : columns;
+    return columns;
   }
 
   /**
@@ -687,7 +698,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = selectForInsert(attribute, fromType, dataFilterClause);
+      String geoSql = getSelectSubquery(attribute, fromType, dataFilterClause);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -699,7 +710,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataFilterClause);
+    String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
