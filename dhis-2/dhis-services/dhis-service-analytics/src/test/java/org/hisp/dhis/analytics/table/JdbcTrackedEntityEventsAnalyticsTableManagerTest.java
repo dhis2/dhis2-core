@@ -53,6 +53,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.PostgresAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -78,6 +79,7 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
   @Mock private AnalyticsTableSettings analyticsTableSettings;
   @Mock private PeriodDataProvider periodDataProvider;
   @Spy private PostgreSqlBuilder sqlBuilder;
+  @Spy private PostgresAnalyticsSqlBuilder analyticsSqlBuilder;
   @Mock private PartitionManager partitionManager;
   @Mock private SystemSettingsProvider systemSettingsProvider;
   @Mock private IdentifiableObjectManager identifiableObjectManager;
@@ -120,24 +122,49 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
 
     tableManager.populateTable(params, partition);
 
+    String subQuery =
+        """
+                (select json_object_agg(l2.keys, l2.datavalue) as value
+                        from (
+                            select l1.uid,
+                            l1.keys,
+                            json_strip_nulls(json_build_object(
+                            'value', l1.eventdatavalues -> l1.keys ->> 'value',
+                            'created', l1.eventdatavalues -> l1.keys ->> 'created',
+                            'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
+                            'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
+                            'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
+                            'value_name', (select ou.name
+                                from organisationunit ou
+                                where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
+                            'value_code', (select ou.code
+                                from organisationunit ou
+                                where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
+                            from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
+                            from event inner_evt) as l1) as l2
+                        where l2.uid = ev.uid
+                        group by l2.uid)::jsonb
+                        """;
+
     String expectedSql =
         """
-            insert into analytics_te_event_tetuid_temp ("trackedentity","program","enrollment","programstage","event","occurreddate","lastupdated","created",
-            "scheduleddate","status","uidlevel1","uidlevel2","uidlevel3","uidlevel4","ou","ouname","oucode","oulevel","eventdatavalues","eventgeometry",
-            "evlongitude","evlatitude","ounamehierarchy") select distinct te.uid,p.uid,en.uid,ps.uid,ev.uid,ev.occurreddate,ev.lastupdated,
-            ev.created,ev.scheduleddate,ev.status,ous.uidlevel1,ous.uidlevel2,ous.uidlevel3,ous.uidlevel4,ous.organisationunituid,ous.name,ous.code,ous.level,
-            ev.eventdatavalues,
-            ev.geometry,case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end,case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end,concat_ws(' / ',) as ounamehierarchy
-            from "event" ev inner join "enrollment" en on en.enrollmentid=ev.enrollmentid
-            and en.deleted = false inner join "trackedentity" te on te.trackedentityid=en.trackedentityid
-            and te.deleted = false and te.trackedentitytypeid = 0
-            and te.lastupdated < '2019-08-01T00:00:00' left join "programstage" ps on ev.programstageid=ps.programstageid
-            left join "program" p on ps.programid=p.programid
-            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid
-            where ev.status in ('COMPLETED','ACTIVE','SCHEDULE')
-            and (CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END) >= 'null'
-            and (CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END) < 'null'
-            and ev.deleted = false""";
+                        insert into analytics_te_event_tetuid_temp ("trackedentity","program","enrollment","programstage","event","occurreddate","lastupdated","created",
+                        "scheduleddate","status","uidlevel1","uidlevel2","uidlevel3","uidlevel4","ou","ouname","oucode","oulevel","eventdatavalues","eventgeometry",
+                        "evlongitude","evlatitude","ounamehierarchy") select distinct te.uid,p.uid,en.uid,ps.uid,ev.uid,ev.occurreddate,ev.lastupdated,
+                        ev.created,ev.scheduleddate,ev.status,ous.uidlevel1,ous.uidlevel2,ous.uidlevel3,ous.uidlevel4,ous.organisationunituid,ous.name,ous.code,ous.level,
+                        %s,
+                        ev.geometry,case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end,case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end,concat_ws(' / ',) as ounamehierarchy
+                        from "event" ev inner join "enrollment" en on en.enrollmentid=ev.enrollmentid
+                        and en.deleted = false inner join "trackedentity" te on te.trackedentityid=en.trackedentityid
+                        and te.deleted = false and te.trackedentitytypeid = 0
+                        and te.lastupdated < '2019-08-01T00:00:00' left join "programstage" ps on ev.programstageid=ps.programstageid
+                        left join "program" p on ps.programid=p.programid
+                        left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid
+                        where ev.status in ('COMPLETED','ACTIVE','SCHEDULE')
+                        and (CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END) >= 'null'
+                        and (CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END) < 'null'
+                        and ev.deleted = false"""
+            .formatted(subQuery);
 
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
     verify(jdbcTemplate, times(1)).execute(sqlCaptor.capture()); // verify it was called twice

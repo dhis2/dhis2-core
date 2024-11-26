@@ -71,6 +71,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -82,10 +83,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableManager")
 public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
@@ -197,6 +196,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   private static final String AND = " and (";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   public JdbcTrackedEntityEventsAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -212,7 +212,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -228,6 +229,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
+    this.analyticsSqlBuilder = analyticsSqlBuilder;
   }
 
   /**
@@ -288,7 +290,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     return AnalyticsTableColumn.builder()
         .name("eventdatavalues")
         .dataType(JSONB)
-        .selectExpression("ev.eventdatavalues")
+        .selectExpression(analyticsSqlBuilder.getEventDataValues())
         .skipIndex(Skip.SKIP)
         .build();
   }
