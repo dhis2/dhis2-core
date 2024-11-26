@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -332,6 +333,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
+    String attributeJoinClause = getAttributeJoinClause(program);
 
     String fromClause =
         replaceQualify(
@@ -350,6 +352,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+            ${attributeJoinClause}\
             where ev.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and ev.organisationunitid is not null \
@@ -362,6 +365,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
+                "attributeJoinClause", attributeJoinClause,
                 "startTime", toLongDate(params.getStartTime()),
                 "programId", String.valueOf(program.getId()),
                 "firstDataYear", String.valueOf(firstDataYear),
@@ -369,6 +373,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
 
     populateTableInternal(partition, fromClause);
+  }
+
+  private String getAttributeJoinClause(Program program) {
+    String template =
+        """
+        left join ${trackedentityattributevalue} ${uid} \
+        on en.trackedentityid=${uid}.trackedentityid \
+        and ${uid}.trackedentityattributeid = ${uid}""";
+
+    return getAttributeColumns(program).stream()
+            .map(col -> replaceQualify(template, Map.of("uid", quote(col.getName()))))
+            .collect(Collectors.joining(" "))
+        + " ";
   }
 
   /**
@@ -420,7 +437,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return filterDimensionColumns(columns);
   }
 
-  protected AnalyticsTableColumn getPartitionColumn() {
+  private AnalyticsTableColumn getPartitionColumn() {
     return AnalyticsTableColumn.builder()
         .name("year")
         .dataType(INTEGER)
@@ -815,6 +832,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     "fromDate",
                     toMediumDate(params.getFromDate())))
             : EMPTY;
+
     String sql =
         replaceQualify(
             """
