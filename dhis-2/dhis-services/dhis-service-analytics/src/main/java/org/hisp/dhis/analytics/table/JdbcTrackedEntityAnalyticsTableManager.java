@@ -237,15 +237,15 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
   private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributes(
       TrackedEntityType trackedEntityType, Map<String, List<Program>> programsByTetUid) {
 
-    // Given TET has program(s) defined.
+    // Given TET has program(s) defined
     if (programsByTetUid.containsKey(trackedEntityType.getUid())) {
 
-      // Programs defined for TET -> get attr from program and TET.
+      // Programs defined for TET -> get attr from program and TET
       return getAllTrackedEntityAttributesByPrograms(
           trackedEntityType, programsByTetUid.get(trackedEntityType.getUid()));
     }
 
-    // No programs defined for TET -> get only attributes from TET.
+    // No programs defined for TET -> get only attributes from TET
     return getAllTrackedEntityAttributesByEntityType(trackedEntityType);
   }
 
@@ -297,9 +297,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
   private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributesByPrograms(
       TrackedEntityType trackedEntityType, List<Program> programs) {
     return Stream.concat(
-            /* all attributes of programs */
             trackedEntityAttributeService.getProgramTrackedEntityAttributes(programs).stream(),
-            /* all attributes of the trackedEntityType */
             getAllTrackedEntityAttributesByEntityType(trackedEntityType))
         .distinct();
   }
