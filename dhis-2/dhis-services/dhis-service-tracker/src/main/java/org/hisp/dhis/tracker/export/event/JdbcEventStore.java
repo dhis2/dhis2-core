@@ -288,7 +288,8 @@ class JdbcEventStore {
         mapSqlParameterSource,
         resultSet -> {
           Set<String> notes = new HashSet<>();
-          Set<String> dataElementUids = new HashSet<>();
+          // data elements per event
+          Map<String, Set<String>> dataElementUids = new HashMap<>();
 
           while (resultSet.next()) {
             if (resultSet.getString(COLUMN_EVENT_UID) == null) {
@@ -305,6 +306,7 @@ class JdbcEventStore {
               event.setId(resultSet.getLong(COLUMN_EVENT_ID));
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
+              dataElementUids.put(eventUid, new HashSet<>());
 
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
@@ -437,11 +439,11 @@ class JdbcEventStore {
               // data value per data element. The same data element can be in the result set
               // multiple times if the event also has notes.
               String dataElementUid = resultSet.getString("de_uid");
-              if (!dataElementUids.contains(dataElementUid)) {
+              if (!dataElementUids.get(eventUid).contains(dataElementUid)) {
                 EventDataValue eventDataValue = parseEventDataValue(dataElementIdScheme, resultSet);
                 if (eventDataValue != null) {
                   event.getEventDataValues().add(eventDataValue);
-                  dataElementUids.add(dataElementUid);
+                  dataElementUids.get(eventUid).add(dataElementUid);
                 }
               }
             }
@@ -536,8 +538,7 @@ class JdbcEventStore {
       case CODE:
         return resultSet.getString("de_code");
       case NAME:
-        return resultSet.getString("de_uid");
-      // return resultSet.getString("de_name");
+        return resultSet.getString("de_name");
       case ATTRIBUTE:
         String attributeValuesString = resultSet.getString("de_attributevalues");
         if (StringUtils.isEmpty(attributeValuesString)) {
