@@ -28,15 +28,14 @@
 package org.hisp.dhis.security.spring2fa;
 
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
+import static org.hisp.dhis.security.twofa.TwoFactorAuthUtils.isValid2FACode;
 
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
-import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +97,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     Authentication result = super.authenticate(auth);
     UserDetails userDetails = (UserDetails) result.getPrincipal();
 
-    // Prevents other authentication methods (e.g. OAuth2/LDAP),
+    // Prevents other authentication methods (e.g., OAuth2/LDAP),
     // to use password login.
     if (userDetails.isExternalAuth()) {
       log.info(
@@ -107,86 +106,58 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
           "Invalid login method, user is using external authentication");
     }
 
-    if (userDetails.isTwoFactorEnabled()) {
-      // If the user has 2FA enabled and tries to authenticate with HTTP Basic
-      if (!(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails)) {
-        throw new PreAuthenticatedCredentialsNotFoundException(
-            "User has 2FA enabled, but attempted to authenticate with a non-form based login method: "
-                + userDetails.getUsername());
-      }
-      validateTwoFactor(userDetails, auth.getDetails());
+    // If the user requires 2FA, and it's not enabled, redirect to
+    // the enrolment page, (via the CustomAuthFailureHandler)
+    boolean has2FARestrictionOnRole =
+        userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
+    if (!userDetails.isTwoFactorEnabled() && has2FARestrictionOnRole) {
+      throw new TwoFactorAuthenticationEnrolmentException(
+          "User must setup two-factor authentication first before logging in");
     }
 
-    // If the user requires 2FA, and it's not enabled/provisioned, redirect to
-    // the enrolment page, (via the CustomAuthFailureHandler)
-    boolean has2FARestriction =
-        userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
-    if (has2FARestriction && !userDetails.isTwoFactorEnabled()) {
-      throw new TwoFactorAuthenticationEnrolmentException(
-          "User must setup two-factor authentication before logging in");
+    boolean isHTTPBasicRequest = !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails);
+    if (userDetails.isTwoFactorEnabled() && isHTTPBasicRequest) {
+      // If the user has 2FA enabled and tries to authenticate with HTTP Basic
+      throw new PreAuthenticatedCredentialsNotFoundException(
+          "User has 2FA enabled, but attempted to authenticate with a non-form based login method: "
+              + userDetails.getUsername());
+    }
+
+    if (userDetails.isTwoFactorEnabled()
+        && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails authDetails) {
+      validateTwoFactor(userDetails, authDetails);
     }
 
     return new UsernamePasswordAuthenticationToken(
         userDetails, result.getCredentials(), result.getAuthorities());
   }
 
-  private void validateTwoFactor(UserDetails userDetails, Object details) {
-    if (!userDetails.isTwoFactorEnabled()) return;
-
-    if (details == null) {
-      log.warn(
-          "Missing 2FA authentication details in authentication request, for user: '{}'",
-          userDetails.getUsername());
-      throw new PreAuthenticatedCredentialsNotFoundException(
-          "Missing authentication details in authentication request");
-    }
-    if (!(details instanceof TwoFactorWebAuthenticationDetails authDetails)) {
-      log.warn(
-          "Missing 2FA authentication details in authentication request, for user: '{}'",
-          userDetails.getUsername());
-      throw new PreAuthenticatedCredentialsNotFoundException(
-          "Missing authentication details in authentication request");
-    }
-
+  private void validateTwoFactor(
+      UserDetails userDetails, TwoFactorWebAuthenticationDetails authDetails) {
     String code = StringUtils.deleteWhitespace(authDetails.getCode());
     validate2FACode(code, userDetails);
   }
 
   private void validate2FACode(String code, UserDetails userDetails) {
-    String username = userDetails.getUsername();
     TwoFactorType type = userDetails.getTwoFactorType();
-    String secret = userDetails.getSecret();
 
+    // Send 2FA code via Email if the user has email 2FA enabled and the code is empty.
     if (TwoFactorType.EMAIL == type && (code == null || code.isEmpty())) {
       twoFactorAuthService.sendEmail2FACode(userDetails);
+      throw new TwoFactorAuthenticationException("No 2FA code provided, code sent via email");
     }
 
-    if (isValid2FACode(code, type, secret)) {
-      if (type.isEnrolling()) {
-        // We need this special case to approve the 2FA secret if the user is doing enforced
-        // enrolling during login.
-        twoFactorAuthService.setEnabled2FA(userDetails, new SystemUser());
+    try {
+      if (!isValid2FACode(code, type, userDetails.getSecret())) {
+        throw new TwoFactorAuthenticationException("Invalid 2FA code");
       }
-    } else {
-      log.debug("Two-factor authentication failure for user: '{}'", username);
-      if (type.isEnrolling()) {
-        // We need to reset the two-factor secret if the user has one for approval, this probably
-        // means that the user has not finished the 2FA enrollment, and has logged out and
-        // the enrollment setup cannot continue. During enforced enrollment, we need to reset and
-        // start over.
-        twoFactorAuthService.reset2FA(userDetails, new SystemUser());
-        throw new TwoFactorAuthenticationEnrolmentException("Invalid 2FA code");
-      }
+    } catch (Exception e) {
+      log.warn(
+          "Failed to validate 2FA code for user: '{}', an exception occurred",
+          userDetails.getUsername(),
+          e);
       throw new TwoFactorAuthenticationException("Invalid 2FA code");
     }
     // All good, 2FA code is valid!
-  }
-
-  private boolean isValid2FACode(String code, TwoFactorType type, String secret) {
-    try {
-      return TwoFactorAuthUtils.isValid2FACode(code, type, secret);
-    } catch (Exception e) {
-      return false;
-    }
   }
 }

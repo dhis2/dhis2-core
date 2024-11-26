@@ -59,7 +59,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Jan Bernitt
  */
 @Service
-@Profile("test")
+@Profile({"test", "test-h2"})
 public class DefaultFakeMessageSender implements MessageSender {
 
   private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();

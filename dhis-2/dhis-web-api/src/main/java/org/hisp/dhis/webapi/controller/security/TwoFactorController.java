@@ -40,6 +40,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -66,6 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
+@Slf4j
 @OpenApi.Document(
     entity = User.class,
     classifiers = {"team:platform", "purpose:support"})
@@ -188,10 +190,6 @@ public class TwoFactorController {
       throw new ConflictException(ErrorCode.E3022);
     }
 
-    if (!currentUser.getTwoFactorType().equals(TwoFactorType.ENROLLING_TOTP)) {
-      throw new ConflictException(ErrorCode.E3047);
-    }
-
     twoFactorAuthService.enrollTOTP2FA(currentUser);
 
     writeQRCodeToResponse(currentUser, response, settings);
@@ -260,6 +258,7 @@ public class TwoFactorController {
     String code = body.get("code");
 
     if (twoFactorAuthService.isInvalid2FACode(currentUser, code)) {
+      log.error("1. Invalid 2FA code for user: {} code: {}", currentUser.getUsername(), code);
       throw new ForbiddenException(ErrorCode.E3023);
     }
 

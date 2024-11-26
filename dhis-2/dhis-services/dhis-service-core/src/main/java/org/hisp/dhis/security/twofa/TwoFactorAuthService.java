@@ -146,6 +146,7 @@ public class TwoFactorAuthService {
     }
 
     if (isInvalid2FACode(user, code)) {
+      log.error("2. Invalid 2FA code for user: {} code: {}", user.getUsername(), code);
       throw new IllegalStateException("Invalid 2FA code");
     }
 
@@ -265,10 +266,10 @@ public class TwoFactorAuthService {
     userService.updateUser(user);
   }
 
-  private record Email2FACode(String code, String encodedCode) {}
+  public record Email2FACode(String code, String encodedCode) {}
 
   @Nonnull
-  private static Email2FACode generateEmail2FACode() {
+  public static Email2FACode generateEmail2FACode() {
     String code = new String(CodeGenerator.generateSecureRandomNumber(6));
     String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
     return new Email2FACode(code, encodedCode);
@@ -279,18 +280,17 @@ public class TwoFactorAuthService {
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
-
-    Map<String, Object> vars = new HashMap<>();
-    vars.put("applicationTitle", applicationTitle);
-    vars.put("code", code);
-    vars.put("username", user.getUsername());
-    vars.put("email", user.getEmail());
-    vars.put("fullName", user.getName());
-
     I18n i18n =
         i18nManager.getI18n(
             userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
     vars.put("i18n", i18n);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+    vars.put("fullName", user.getName());
+    vars.put("code", code);
 
     VelocityManager vm = new VelocityManager();
     String messageBody = vm.render(vars, "twofa_email_body_template_v1");
@@ -299,25 +299,13 @@ public class TwoFactorAuthService {
     OutboundMessageResponse status =
         emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
 
-    boolean success = status.getResponseObject() == EmailResponse.SENT;
-
-    if (!success) {
+    if (EmailResponse.SENT != status.getResponseObject()) {
       throw new IllegalStateException("Sending 2FA code with email failed");
     }
   }
 
   /**
-   * If the user has a role with the 2FA authentication required restriction, return true.
-   *
-   * @param userDetails The user object that is being checked for the role.
-   * @return A boolean value.
-   */
-  public boolean hasTwoFactorRoleRestriction(UserDetails userDetails) {
-    return userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
-  }
-
-  /**
-   * If the user is not the same as the user to modify, and the user has the proper acl permissions
+   * If the user is different from the user to modify, and the user has the proper acl permissions
    * to modify the user, then the user can modify the user.
    *
    * @param before The state before the update.
@@ -338,13 +326,13 @@ public class TwoFactorAuthService {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    // Current user can not update their own 2FA settings, must use
+    // Current user cannot update their own 2FA settings, must use
     // /2fa/enable or disable API, even if they are admin.
     if (currentUserDetails.getUid().equals(userToModify.getUid())) {
       throw new ForbiddenException(ErrorCode.E3030.getMessage());
     }
 
-    // If current user has access to manage this user, they can disable 2FA.
+    // If the current user has access to manage this user, they can disable 2FA.
     if (!aclService.canUpdate(currentUserDetails, userToModify)) {
       throw new ForbiddenException(
           String.format(

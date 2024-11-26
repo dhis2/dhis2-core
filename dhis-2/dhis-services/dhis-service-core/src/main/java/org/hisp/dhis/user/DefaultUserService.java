@@ -944,6 +944,15 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public void invalidateAllSessions() {
+    for (Object allPrincipal : sessionRegistry.getAllPrincipals()) {
+      for (SessionInformation allSession : sessionRegistry.getAllSessions(allPrincipal, true)) {
+        sessionRegistry.removeSessionInformation(allSession.getSessionId());
+      }
+    }
+  }
+
+  @Override
   public void invalidateUserSessions(String userUid) {
     UserDetails principal = getPrincipalFromSessionRegistry(userUid);
     if (principal != null) {

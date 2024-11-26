@@ -530,6 +530,8 @@ public interface UserService {
   @Nonnull
   List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser);
 
+  void invalidateAllSessions();
+
   void invalidateUserSessions(String uid);
 
   /**

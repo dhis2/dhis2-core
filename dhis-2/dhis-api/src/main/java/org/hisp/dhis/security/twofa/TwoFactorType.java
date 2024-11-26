@@ -47,7 +47,7 @@ public enum TwoFactorType {
     } else if (this == ENROLLING_EMAIL) {
       return EMAIL;
     } else {
-      throw new IllegalStateException("Two factor type is not enrolling");
+      return this;
     }
   }
 

@@ -92,7 +92,7 @@ public class TwoFactorAuthUtils {
   }
 
   /**
-   * Generate TOTP URL based appName and {@link User}, this is used as input to the TOTP generator.
+   * Generate TOTP URL-based appName and {@link User}, this is used as input to the TOTP generator.
    */
   public static String generateTOTP2FAURL(
       String appName, String secret, String username, Consumer<ErrorCode> errorCode) {
@@ -109,7 +109,7 @@ public class TwoFactorAuthUtils {
     } else if (TwoFactorType.EMAIL == type || TwoFactorType.ENROLLING_EMAIL == type) {
       return TwoFactorAuthUtils.verifyEmail2FACode(code, secret);
     }
-    throw new IllegalStateException("Unknown 2FA type: " + type);
+    return false;
   }
 
   public static boolean verifyEmail2FACode(String code, String secret) {
@@ -144,10 +144,6 @@ public class TwoFactorAuthUtils {
     }
 
     Totp totp = new Totp(secret);
-    try {
-      return totp.verify(code);
-    } catch (NumberFormatException ex) {
-      return false;
-    }
+    return totp.verify(code);
   }
 }

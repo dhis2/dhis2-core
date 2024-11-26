@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.message.MessageSender;
@@ -66,6 +67,7 @@ import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.jboss.aerogear.security.otp.api.Base32.DecodingException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,12 +78,19 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  * @author Morten Svanæs
  */
+@Slf4j
 @Transactional
 class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private TwoFactorAuthService twoFactorAuthService;
   @Autowired private SystemSettingsService systemSettingsService;
   @Autowired private MessageSender emailMessageSender;
+
+  @AfterEach
+  void tearDown() {
+    emailMessageSender.clearMessages();
+    systemSettingsService.put("email2FAEnabled", "false");
+  }
 
   @Test
   void testEnrollTOTP2FA()
@@ -124,7 +133,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     BufferedImage qrImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
     assertNotNull(qrImage, "QR image could not be loaded");
 
-    // Decode the QR code
+    // Decode QR code
     String qrCodeContent = decodeQRCode(qrImage);
     assertNotNull(qrCodeContent, "QR code content could not be decoded");
 
@@ -173,9 +182,19 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertSame(TwoFactorType.ENROLLING_EMAIL, enrolledUser.getTwoFactorType());
 
     List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(emailAddress);
+    for (OutboundMessage message : messagesByEmail) {
+      log.error("message: " + message.getText());
+    }
     assertFalse(messagesByEmail.isEmpty());
     String email = messagesByEmail.get(0).getText();
     String code = email.substring(email.indexOf("code:\n") + 6, email.indexOf("code:\n") + 12);
+
+    log.error("email: " + email);
+
+    List<User> allUsers = userService.getAllUsers();
+    for (User allUser : allUsers) {
+      log.error("User: " + allUser.getUsername() + " - " + allUser.getSecret());
+    }
 
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
   }
