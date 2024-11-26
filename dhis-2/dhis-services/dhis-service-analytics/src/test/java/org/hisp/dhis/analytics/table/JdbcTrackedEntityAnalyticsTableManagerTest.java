@@ -68,7 +68,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class JdbcTrackedEntityAnalyticsTableManagerTest {
-
   @Mock private JdbcTemplate jdbcTemplate;
   @Mock private AnalyticsTableSettings analyticsTableSettings;
   @Mock private PeriodDataProvider periodDataProvider;

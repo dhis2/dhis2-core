@@ -46,6 +46,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -61,7 +62,7 @@ class CategoryOptionResolverTest {
 
   @Mock private ExpressionService expressionService;
 
-  private ExpressionResolver resolver;
+  @InjectMocks private CategoryOptionResolver resolver;
 
   private String uid1;
 
@@ -75,33 +76,25 @@ class CategoryOptionResolverTest {
 
   private CategoryOptionCombo coc3;
 
-  DimensionalItemId dimensionalItemId;
+  private DimensionalItemId dimensionalItemId;
 
-  private static final String CATEGORY_OPTION_PREFIX = "co:";
+  private final String CATEGORY_OPTION_PREFIX = "co:";
 
   @BeforeEach
   public void setUp() {
     uid1 = CodeGenerator.generateUid();
-
     uid2 = CodeGenerator.generateUid();
-
     uid3 = CodeGenerator.generateUid();
 
     CategoryOption categoryOption = createCategoryOption('A');
 
     coc1 = createCategoryOptionCombo('X');
-
-    categoryOption.addCategoryOptionCombo(coc1);
-
     coc2 = createCategoryOptionCombo('Y');
-
-    categoryOption.addCategoryOptionCombo(coc2);
-
     coc3 = createCategoryOptionCombo('Z');
 
+    categoryOption.addCategoryOptionCombo(coc1);
+    categoryOption.addCategoryOptionCombo(coc2);
     categoryOption.addCategoryOptionCombo(coc3);
-
-    resolver = new CategoryOptionResolver(expressionService, categoryOptionStore);
 
     when(categoryOptionStore.getByUid(anyString())).thenReturn(categoryOption);
   }

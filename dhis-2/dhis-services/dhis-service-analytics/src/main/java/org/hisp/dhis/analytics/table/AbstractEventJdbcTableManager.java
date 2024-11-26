@@ -286,24 +286,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * The select statement used by the table population.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param fromType the sql snippet related to "from" part
+   * @param columnExpression the column expression.
    * @param dataClause the data type related clause like "NUMERIC".
    * @return a select statement.
    */
   protected String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+      TrackedEntityAttribute attribute, String columnExpression, String dataClause) {
     return replaceQualify(
         """
-        (select ${fromType} from ${trackedentityattributevalue} \
+        (select ${columnExpression} from ${trackedentityattributevalue} \
         where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId}\
-        ${dataClause})\
+        and trackedentityattributeid=${attributeId}${dataClause})\
         ${closingParentheses} as ${attributeUid}""",
         Map.of(
-            "fromType", fromType,
+            "columnExpression", columnExpression,
             "dataClause", dataClause,
             "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(fromType),
+            "closingParentheses", getClosingParentheses(columnExpression),
             "attributeUid", quote(attribute.getUid())));
   }
 }
