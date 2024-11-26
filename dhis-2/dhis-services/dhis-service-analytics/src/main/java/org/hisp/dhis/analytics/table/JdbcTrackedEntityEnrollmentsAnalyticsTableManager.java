@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -114,24 +115,6 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
               .name("enrollmentstatus")
               .dataType(VARCHAR_50)
               .selectExpression("en.status")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentgeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("en.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentlongitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(en.geometry) then ST_X(en.geometry) end")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentlatitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(en.geometry) then ST_Y(en.geometry) end")
               .build(),
           AnalyticsTableColumn.builder()
               .name("uidlevel1")
@@ -243,7 +226,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    columns.addAll(getFixedCols());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     if (sqlBuilder.supportsDeclarativePartitioning()) {
       columns.add(getPartitionColumn());
@@ -290,7 +273,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
                 and te.lastupdated < '${startTime}' \
                 left join ${program} p on en.programid=p.programid \
                 left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
-                where exists (select 1 from event ev where ev.deleted = false \
+                where exists (select 1 from ${event} ev where ev.deleted = false \
                 and ev.enrollmentid = en.enrollmentid \
                 and ev.status in (${statuses})) \
                 and en.occurreddate is not null \
@@ -302,5 +285,47 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
+  }
+
+  private List<AnalyticsTableColumn> getFixedCols() {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(getGeospatialCols());
+    }
+    return columns;
+  }
+
+  private List<AnalyticsTableColumn> getGeospatialCols() {
+
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name("enrollmentgeometry")
+            .dataType(GEOMETRY)
+            .selectExpression("en.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("enrollmentlongitude")
+            .dataType(DOUBLE)
+            .selectExpression(
+                "case when 'POINT' = GeometryType(en.geometry) then ST_X(en.geometry) end")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("enrollmentlatitude")
+            .dataType(DOUBLE)
+            .selectExpression(
+                "case when 'POINT' = GeometryType(en.geometry) then ST_Y(en.geometry) end")
+            .build());
+  }
+
+  private AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .nullable(NOT_NULL)
+        .selectExpression("extract(year from en.occurreddate)")
+        .skipIndex(Skip.SKIP)
+        .build();
   }
 }

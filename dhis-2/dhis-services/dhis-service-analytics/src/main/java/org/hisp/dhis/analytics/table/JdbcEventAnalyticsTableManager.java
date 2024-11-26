@@ -421,7 +421,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return filterDimensionColumns(columns);
   }
 
-  @Override
   protected AnalyticsTableColumn getPartitionColumn() {
     return AnalyticsTableColumn.builder()
         .name("year")
