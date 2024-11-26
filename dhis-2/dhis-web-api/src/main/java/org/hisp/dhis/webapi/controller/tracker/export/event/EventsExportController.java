@@ -370,7 +370,10 @@ class EventsExportController {
       HttpServletRequest request)
       throws NotFoundException, BadRequestException, ForbiddenException {
     EventChangeLogOperationParams operationParams =
-        ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
+        ChangeLogRequestParamsMapper.map(
+            eventChangeLogService.getOrderableFields(),
+            eventChangeLogService.getFilterableFields(),
+            requestParams);
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 

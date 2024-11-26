@@ -50,6 +50,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -70,7 +71,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/categoryOptions")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class CategoryOptionController extends AbstractCrudController<CategoryOption> {
+public class CategoryOptionController
+    extends AbstractCrudController<CategoryOption, GetObjectListParams> {
   private final CategoryService categoryService;
   private final MergeService categoryOptionMergeService;
 

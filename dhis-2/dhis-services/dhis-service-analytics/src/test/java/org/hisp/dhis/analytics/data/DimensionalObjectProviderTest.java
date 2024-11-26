@@ -105,17 +105,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for {@link DimensionalObjectProducer}.
+ * Unit tests for {@link DimensionalObjectProvider}.
  *
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
-class DimensionalObjectProducerTest {
-  private DimensionalObjectProducer target;
+class DimensionalObjectProviderTest {
 
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -124,6 +124,7 @@ class DimensionalObjectProducerTest {
   @Mock private DimensionService dimensionService;
 
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private AclService aclService;
@@ -134,17 +135,11 @@ class DimensionalObjectProducerTest {
 
   @Mock private I18nFormat i18nFormat;
 
+  @InjectMocks private DimensionalObjectProvider target;
+
   @BeforeEach
   public void setUp() {
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
-    target =
-        new DimensionalObjectProducer(
-            idObjectManager,
-            organisationUnitService,
-            settingsProvider,
-            i18nManager,
-            dimensionService,
-            aclService);
   }
 
   @Test

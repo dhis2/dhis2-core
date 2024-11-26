@@ -93,7 +93,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.DataQueryService")
 @RequiredArgsConstructor
 public class DefaultDataQueryService implements DataQueryService {
-  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final DimensionalObjectProvider dimensionalObjectProducer;
 
   private final IdentifiableObjectManager idObjectManager;
 

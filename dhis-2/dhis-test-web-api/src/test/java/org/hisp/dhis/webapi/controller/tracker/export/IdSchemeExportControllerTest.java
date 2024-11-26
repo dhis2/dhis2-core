@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -49,6 +50,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -56,8 +58,10 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.render.RenderFormat;
@@ -75,6 +79,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -149,6 +154,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
     Event event = get(Event.class, "QRYjLTiJTrA");
+    assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
     // maps JSON fields to idScheme request parameters
     Map<String, String> idSchemeRequestParams =
@@ -266,6 +272,48 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     assertMetadataIdScheme(metadata, actual, idSchemeParam, "event");
   }
 
+  @Test
+  void shouldExportEventUsingNonUIDDataElementIdSchemeEvenIfItHasNoDataValues() {
+    Event event = get(Event.class, "jxgFyJEMUPf");
+    assertIsEmpty(event.getEventDataValues(), "test expects an event with no data values");
+
+    JsonEvent actual =
+        GET("/tracker/events/{id}?fields=event,dataValues&dataElementIdScheme=NAME", event.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertEquals("jxgFyJEMUPf", actual.getEvent());
+  }
+
+  @Test
+  void shouldExportEventsUsingNonUIDDataElementIdScheme() {
+    Event event1 = get(Event.class, "QRYjLTiJTrA");
+    Event event2 = get(Event.class, "kWjSezkXHVp");
+    assertNotEmpty(
+        CollectionUtils.intersection(
+            event1.getEventDataValues().stream()
+                .map(EventDataValue::getDataElement)
+                .collect(Collectors.toSet()),
+            event2.getEventDataValues().stream()
+                .map(EventDataValue::getDataElement)
+                .collect(Collectors.toSet())),
+        "test expects both events to have at least one data value for the same data element");
+
+    JsonList<JsonEvent> jsonEvents =
+        GET("/tracker/events?events=QRYjLTiJTrA,kWjSezkXHVp&fields=event,dataValues&dataElementIdScheme=NAME")
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    Map<String, JsonEvent> events =
+        jsonEvents.stream().collect(Collectors.toMap(JsonEvent::getEvent, Function.identity()));
+    assertContainsOnly(List.of(event1.getUid(), event2.getUid()), events.keySet());
+
+    TrackerIdSchemeParam idSchemeParam = TrackerIdSchemeParam.NAME;
+    assertAll(
+        () -> assertDataValues(events.get("QRYjLTiJTrA"), event1, idSchemeParam),
+        () -> assertDataValues(events.get("kWjSezkXHVp"), event2, idSchemeParam));
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"/{id}?", "?events={id}&paging=true&", "?events={id}&paging=false&"})
   void shouldReportMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
@@ -332,6 +380,35 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             String.format(
                 "field \"%s\" does not have required idScheme '%s' in response",
                 field, idSchemeParam));
+  }
+
+  private void assertDataValues(
+      JsonEvent actual, Event expected, TrackerIdSchemeParam idSchemeParam) {
+    String field = "dataValues";
+    List<String> expectedDataElement =
+        expected.getEventDataValues().stream()
+            .map(dv -> idSchemeParam.getIdentifier(get(DataElement.class, dv.getDataElement())))
+            .toList();
+    assertNotEmpty(
+        expectedDataElement,
+        String.format(
+            "metadata corresponding to field \"%s\" has no value in test data for"
+                + " idScheme '%s'",
+            field, idSchemeParam));
+    assertTrue(
+        actual.has(field),
+        () ->
+            String.format(
+                "field \"%s\" is not in response %s for idScheme '%s'",
+                field, actual, idSchemeParam));
+    List<String> actualDataElement =
+        actual
+            .getList(field, JsonObject.class)
+            .toList(el -> el.getString("dataElement").string(""));
+    assertContainsOnly(
+        expectedDataElement,
+        actualDataElement,
+        "mismatch in data elements of event " + expected.getUid());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

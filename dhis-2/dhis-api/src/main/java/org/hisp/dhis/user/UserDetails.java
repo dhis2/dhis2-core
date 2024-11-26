@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -249,6 +250,14 @@ public interface UserDetails
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
   void setId(Long id);
+
+  default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
+    if (role == null) return false;
+    if (isSuper()) return true;
+    if (hasAnyAuthorities(List.of(Authorities.ALL))) return true;
+    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) return false;
+    return getAllAuthorities().containsAll(role.getAuthorities());
+  }
 
   default boolean isInUserHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserOrgUnitIds());

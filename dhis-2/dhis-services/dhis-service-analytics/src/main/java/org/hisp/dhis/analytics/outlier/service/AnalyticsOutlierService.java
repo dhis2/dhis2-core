@@ -63,7 +63,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.TableInfoReader;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -104,7 +104,7 @@ public class AnalyticsOutlierService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final DimensionalObjectProvider dimensionalObjectProducer;
 
   /**
    * Transform the incoming request into api response (json).

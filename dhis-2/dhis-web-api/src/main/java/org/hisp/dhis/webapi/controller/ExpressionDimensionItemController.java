@@ -31,6 +31,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class ExpressionDimensionItemController
-    extends AbstractCrudController<ExpressionDimensionItem> {
+    extends AbstractCrudController<ExpressionDimensionItem, GetObjectListParams> {
   @Override
   protected void preCreateEntity(ExpressionDimensionItem expressionDimensionItem)
       throws ConflictException {

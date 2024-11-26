@@ -49,7 +49,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -90,7 +90,7 @@ class AnalyticsControllerTest {
 
   @Mock private DimensionService dimensionService;
 
-  @Mock private DimensionalObjectProducer dimensionalObjectProducer;
+  @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 

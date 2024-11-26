@@ -198,8 +198,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String regexpMatch(String pattern) {
-    return String.format("match %s", pattern); // TO DO
+  public String regexpMatch(String value, String pattern) {
+    return String.format("match(%s, %s)", value, pattern);
   }
 
   @Override
@@ -218,13 +218,14 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtract(String column, String property) {
-    return "JSONExtractRaw(" + column + ", '" + property + "')";
+  public String jsonExtract(String json, String property) {
+    return String.format("JSONExtractString(%s, '%s')", json, property);
   }
 
   @Override
-  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
-    return String.format("JSONExtractRaw(%s.%s, '%s')", tablePrefix, column, jsonPath);
+  public String jsonExtractNested(String json, String... expression) {
+    String path = String.join(".", expression);
+    return String.format("JSONExtractString(%s, '%s')", json, path);
   }
 
   // Statements

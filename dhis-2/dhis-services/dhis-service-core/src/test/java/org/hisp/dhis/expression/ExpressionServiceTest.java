@@ -60,6 +60,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -112,7 +113,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class ExpressionService2Test extends TestBase {
+class ExpressionServiceTest extends TestBase {
   @Mock private HibernateGenericStore<Expression> hibernateGenericStore;
 
   @Mock private ConstantService constantService;
@@ -228,8 +229,6 @@ class ExpressionService2Test extends TestBase {
   private String expressionM;
 
   private String expressionN;
-
-  private String expressionO;
 
   private String expressionP;
 
@@ -392,7 +391,6 @@ class ExpressionService2Test extends TestBase {
             + SEPARATOR
             + cocA.getUid()
             + "}";
-    expressionO = "#{" + opA.getDimensionItem() + "}+sum(#{" + opB.getDimensionItem() + "})";
     expressionP = "#{" + deB.getUid() + SEPARATOR + coc.getUid() + "}";
     expressionR =
         "#{"
@@ -693,20 +691,17 @@ class ExpressionService2Test extends TestBase {
 
     when(idObjectManager.getNoAcl(
             eq(OrganisationUnitGroup.class),
-            (java.util.Collection<String>)
-                argThat(containsInAnyOrder(groupA.getUid(), groupB.getUid()))))
+            (Collection<String>) argThat(containsInAnyOrder(groupA.getUid(), groupB.getUid()))))
         .thenReturn(List.of(groupA, groupB));
 
     when(idObjectManager.getNoAcl(
             eq(DataSet.class),
-            (java.util.Collection<String>)
-                argThat(containsInAnyOrder(dataSetA.getUid(), dataSetB.getUid()))))
+            (Collection<String>) argThat(containsInAnyOrder(dataSetA.getUid(), dataSetB.getUid()))))
         .thenReturn(List.of(dataSetA, dataSetB));
 
     when(idObjectManager.getNoAcl(
             eq(Program.class),
-            (java.util.Collection<String>)
-                argThat(containsInAnyOrder(programA.getUid(), programB.getUid()))))
+            (Collection<String>) argThat(containsInAnyOrder(programA.getUid(), programB.getUid()))))
         .thenReturn(List.of(programA, programB));
 
     ExpressionParams baseParams = target.getBaseExpressionParams(info);
