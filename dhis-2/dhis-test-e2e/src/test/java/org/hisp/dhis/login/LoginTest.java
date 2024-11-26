@@ -85,7 +85,7 @@ public class LoginTest {
   private static void startSMTPServer() {
     smtpPort = findAvailablePort();
     wiser = new Wiser();
-    wiser.setHostname("localhost");
+    wiser.setHostname("test");
     wiser.setPort(smtpPort);
     wiser.start();
   }
@@ -93,8 +93,8 @@ public class LoginTest {
   @BeforeAll
   static void setup() throws JsonProcessingException {
     startSMTPServer();
-    dhis2ServerApi = TestConfiguration.get().baseUrl();
-    dhis2Server = TestConfiguration.get().baseUrl().replace("/api", "/");
+    dhis2ServerApi = "http://localhost:51261/api";
+    dhis2Server = "http://localhost:51261/";
     // Create a new org unit for the new users
     orgUnitUID = createOrgUnit(objectMapper);
   }
