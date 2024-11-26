@@ -573,12 +573,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(tea -> getColumnForAttribute(tea))
+            .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(tea -> getColumnForAttributeWithLegendSet(tea))
+            .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());
     return columns;
