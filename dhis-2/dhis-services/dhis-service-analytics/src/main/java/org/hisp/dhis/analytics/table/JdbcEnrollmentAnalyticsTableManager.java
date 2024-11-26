@@ -187,13 +187,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(getTrackedEntityAttributeColumns(program));
-
-    if (program.isRegistration()) {
-      columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
-      if (sqlBuilder.supportsGeospatialData()) {
-        columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
-      }
-    }
+    columns.addAll(getTrackedEntityColumns(program));
 
     return filterDimensionColumns(columns);
   }
@@ -251,6 +245,25 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
                 .build());
       }
     }
+    return columns;
+  }
+
+  /**
+   * Returns a list of tracked entity {@link AnalyticsTableColumn}.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getTrackedEntityColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    if (program.isRegistration()) {
+      columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
+      if (sqlBuilder.supportsGeospatialData()) {
+        columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      }
+    }
+
     return columns;
   }
 }
