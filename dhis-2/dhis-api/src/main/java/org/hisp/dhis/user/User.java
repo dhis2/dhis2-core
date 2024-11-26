@@ -703,6 +703,10 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     }
   }
 
+  /**
+   * Note that setting read-only both ways seems needed when this is a DB field that is not null but
+   * generated.
+   */
   @Override
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @Property(required = FALSE, access = Property.Access.READ_ONLY)
