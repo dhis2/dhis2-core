@@ -414,7 +414,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       }
     }
     if (sqlBuilder.supportsDeclarativePartitioning()) {
-      // Add the year column required for declarative partitioning
       columns.add(getPartitionColumn());
     }
 
