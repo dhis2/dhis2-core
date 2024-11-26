@@ -141,7 +141,6 @@ public class DimensionalObjectUtils {
       EventAnalyticalObject eventAnalyticalObject,
       DimensionalObject dimensionalObject,
       Attribute parent) {
-    // Associating event repetitions.
     List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
 
     if (isNotEmpty(repetitions)) {

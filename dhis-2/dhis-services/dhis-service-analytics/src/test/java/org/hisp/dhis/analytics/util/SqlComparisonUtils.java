@@ -25,13 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.analytics.util;
 
-/**
- * Represents a type of dimension, either static, meaning fixed, or dynamic, meaning based on a
- * dimensional configuration entity.
- */
-public enum AnalyticsColumnType {
-  STATIC,
-  DYNAMIC;
+public class SqlComparisonUtils {
+
+  /**
+   * Normalizes a SQL string by removing excess whitespace and standardizing formatting. This
+   * method:
+   *
+   * <ul>
+   *   <li>Replaces multiple spaces with a single space
+   *   <li>Removes spaces around commas, equals signs, and parentheses
+   *   <li>Converts the string to lowercase
+   *   <li>Trims leading and trailing whitespace
+   * </ul>
+   *
+   * @param sql the SQL string to normalize
+   * @return the normalized SQL string
+   */
+  public static String normalizeSql(String sql) {
+    return sql.replaceAll("\\s+", " ") // Replace multiple spaces with single space
+        .replaceAll("\\s*,\\s*", ",") // Remove spaces around commas
+        .replaceAll("\\s*=\\s*", "=") // Remove spaces around equals
+        .replaceAll("\\s*\\(\\s*", "(") // Remove spaces around parentheses
+        .replaceAll("\\s*\\)\\s*", ")")
+        .trim()
+        .toLowerCase(); // Convert to lowercase if case-insensitive comparison is desired
+  }
 }
