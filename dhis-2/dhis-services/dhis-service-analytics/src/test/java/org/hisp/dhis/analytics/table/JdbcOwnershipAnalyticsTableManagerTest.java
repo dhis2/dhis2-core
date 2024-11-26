@@ -87,8 +87,10 @@ import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.invocation.Invocation;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -135,7 +137,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @InjectMocks private JdbcOwnershipAnalyticsTableManager manager;
 
   private static final Program programA = createProgram('A');
 
@@ -147,27 +151,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   private static AnalyticsTablePartition partitionA;
 
-  private JdbcOwnershipAnalyticsTableManager target;
-
   @BeforeEach
   public void setUp() {
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
-    target =
-        new JdbcOwnershipAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            settingsProvider,
-            dataApprovalLevelService,
-            resourceTableService,
-            tableHookService,
-            partitionManager,
-            databaseInfoProvider,
-            jdbcTemplate,
-            jdbcConfiguration,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
 
     tableA =
         new AnalyticsTable(
@@ -188,7 +174,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Test
   void testGetAnalyticsTableType() {
-    assertEquals(AnalyticsTableType.OWNERSHIP, target.getAnalyticsTableType());
+    assertEquals(AnalyticsTableType.OWNERSHIP, manager.getAnalyticsTableType());
   }
 
   @Test
@@ -197,19 +183,19 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
     AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
 
-    assertEquals(List.of(tableA, tableB), target.getAnalyticsTables(params));
+    assertEquals(List.of(tableA, tableB), manager.getAnalyticsTables(params));
 
     params =
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
-    assertEquals(emptyList(), target.getAnalyticsTables(params));
+    assertEquals(emptyList(), manager.getAnalyticsTables(params));
   }
 
   @Test
   void testGetPartitionChecks() {
-    assertTrue(target.getPartitionChecks(1, new Date()).isEmpty());
+    assertTrue(manager.getPartitionChecks(1, new Date()).isEmpty());
   }
 
   @Test
@@ -275,7 +261,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
     try (MockedStatic<JdbcOwnershipWriter> mocked = mockStatic(JdbcOwnershipWriter.class)) {
       mocked.when(() -> JdbcOwnershipWriter.getInstance(any())).thenReturn(writer);
 
-      target.populateTable(params, partitionA);
+      manager.populateTable(params, partitionA);
     }
 
     List<Invocation> jdbcInvocations = getInvocations(jdbcTemplate);
