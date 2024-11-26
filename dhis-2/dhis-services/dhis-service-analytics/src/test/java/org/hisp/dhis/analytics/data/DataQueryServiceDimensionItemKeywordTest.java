@@ -78,6 +78,7 @@ import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -103,14 +104,6 @@ class DataQueryServiceDimensionItemKeywordTest {
               OrganisationUnit.class,
               Set.of("geometry", "parent", "groups", "children")));
 
-  private DimensionalObjectProducer dimensionalObjectProducer;
-
-  private RequestBuilder rb;
-
-  private OrganisationUnit rootOu;
-
-  private DefaultDataQueryService target;
-
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private OrganisationUnitService organisationUnitService;
@@ -129,18 +122,18 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private I18n i18n;
 
+  @InjectMocks private DimensionalObjectProvider dimensionalObjectProducer;
+
+  private DefaultDataQueryService target;
+
+  private RequestBuilder rb;
+
+  private OrganisationUnit rootOu;
+
   @BeforeEach
   public void setUp() {
     lenient().when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
 
-    dimensionalObjectProducer =
-        new DimensionalObjectProducer(
-            idObjectManager,
-            organisationUnitService,
-            settingsService,
-            i18nManager,
-            dimensionService,
-            aclService);
     target =
         new DefaultDataQueryService(dimensionalObjectProducer, idObjectManager, securityManager);
 

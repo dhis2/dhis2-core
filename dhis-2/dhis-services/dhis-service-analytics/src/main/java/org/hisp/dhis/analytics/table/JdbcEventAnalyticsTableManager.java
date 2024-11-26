@@ -39,9 +39,6 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -151,8 +148,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         isSpatialSupport());
 
     List<Integer> availableDataYears =
-        periodDataProvider.getAvailableYears(
-            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+        periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
 
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
@@ -331,8 +327,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
-        periodDataProvider.getAvailableYears(
-            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+        periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
@@ -673,7 +668,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
             ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "(select ${selectExpression} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
+            : "${selectExpression}${closingParentheses} as ${uid}";
 
     return replaceQualify(
         sqlTemplate,
@@ -700,10 +695,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String selectExpression, String dataFilterClause) {
     String query =
         """
-        (select l.uid from ${maplegend} l
-        inner join ${event} on l.startvalue <= ${select}
-        and l.endvalue > ${select}
-        and l.maplegendsetid=${legendSetId}
+        (select l.uid from ${maplegend} l \
+        inner join ${event} on l.startvalue <= ${select} \
+        and l.endvalue > ${select} \
+        and l.maplegendsetid=${legendSetId} \
         ${dataClause} where eventid = ev.eventid) as ${column}""";
 
     return dataElement.getLegendSets().stream()
@@ -740,11 +735,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     ValueType valueType = dataElement.getValueType();
 
     if (valueType.isNumeric() || valueType.isDate()) {
-      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
-
       String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
+      String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
 
-      return " and " + sqlBuilder.regexpMatch(jsonExpression, "'" + regex + "'");
+      return " and " + sqlBuilder.regexpMatch(jsonExpression, regex);
     }
 
     return EMPTY;

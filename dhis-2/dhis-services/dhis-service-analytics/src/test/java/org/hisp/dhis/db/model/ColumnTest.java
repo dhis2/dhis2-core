@@ -34,7 +34,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class ColumnTest {
-
   @Test
   void testIsNotNull() {
     Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);

@@ -89,6 +89,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
@@ -116,7 +117,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/dataSets")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataSetController extends AbstractCrudController<DataSet> {
+public class DataSetController extends AbstractCrudController<DataSet, GetObjectListParams> {
   public static final String DSD_TRANSFORM = "/templates/metadata2dsd.xsl";
 
   // -------------------------------------------------------------------------

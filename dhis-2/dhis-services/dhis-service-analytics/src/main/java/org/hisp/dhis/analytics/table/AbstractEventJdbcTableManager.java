@@ -100,9 +100,16 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   protected final String getDateClause() {
-    return " and " + sqlBuilder.regexpMatch("value", "'" + DATE_REGEXP + "'");
+    return " and " + sqlBuilder.regexpMatch("value", DATE_REGEXP);
   }
 
+  /**
+   * Indicates whether creating an index should be skipped.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param hasOptionSet whether an option set exists.
+   * @return a {@link Skip}.
+   */
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
     boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
@@ -117,7 +124,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a select expression.
    */
   protected String getSelectExpression(ValueType valueType, String columnName) {
-    return getSelectExpressionInternal(valueType, columnName, false);
+    return getSelectExpression(valueType, columnName, false);
   }
 
   /**
@@ -129,7 +136,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a select expression.
    */
   protected String getSelectExpressionForAttribute(ValueType valueType, String columnName) {
-    return getSelectExpressionInternal(valueType, columnName, true);
+    return getSelectExpression(valueType, columnName, true);
   }
 
   /**
@@ -137,40 +144,51 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Handles data element and tracked entity attribute select expressions.
    *
    * @param valueType the {@link ValueType} to represent as database column type.
-   * @param columnName the name of the column to be selected.
-   * @param isTeaContext whether the selection is in the context of a tracked entity attribute. When
-   *     true, organization unit selections will include an additional subquery wrapper.
-   * @return A SQL select expression appropriate for the given value type and context.
+   * @param columnExpression the expression or name of the column to be selected.
+   * @param isTea whether the selection is in the context of a tracked entity attribute. When true,
+   *     organisation unit selections will include an additional subquery wrapper.
+   * @return a select expression appropriate for the given value type and context.
    */
-  private String getSelectExpressionInternal(
-      ValueType valueType, String columnName, boolean isTeaContext) {
-    String doubleType = sqlBuilder.dataTypeDouble();
-
+  private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as " + doubleType + ")";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
       return "case when "
-          + columnName
+          + columnExpression
           + " = 'true' then 1 when "
-          + columnName
+          + columnExpression
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as " + sqlBuilder.dataTypeTimestamp() + ")";
+      return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
+          + columnExpression
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
       String ouClause =
-          isTeaContext
+          isTea
               ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}"
               : "ou.uid from ${organisationunit} ou where ou.uid = ${columnName}";
-      return replaceQualify(ouClause, Map.of("columnName", columnName));
+      return replaceQualify(ouClause, Map.of("columnName", columnExpression));
     } else {
-      return columnName;
+      return columnExpression;
     }
+  }
+
+  /**
+   * Returns a cast expression which includes a value filter for the given value type.
+   *
+   * @param columnExpression the column expression.
+   * @param filterRegex the value type filter regular expression.
+   * @param dataType the SQL data type.
+   * @return a cast and validate expression.
+   */
+  String getCastExpression(String columnExpression, String filterRegex, String dataType) {
+    String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
+    return String.format(
+        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
   }
 
   @Override
@@ -268,24 +286,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * The select statement used by the table population.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param fromType the sql snippet related to "from" part
+   * @param columnExpression the column expression.
    * @param dataClause the data type related clause like "NUMERIC".
    * @return a select statement.
    */
   protected String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+      TrackedEntityAttribute attribute, String columnExpression, String dataClause) {
     return replaceQualify(
         """
-        (select ${fromType} from ${trackedentityattributevalue} \
+        (select ${columnExpression} from ${trackedentityattributevalue} \
         where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId}\
-        ${dataClause})\
+        and trackedentityattributeid=${attributeId}${dataClause})\
         ${closingParentheses} as ${attributeUid}""",
         Map.of(
-            "fromType", fromType,
+            "columnExpression", columnExpression,
             "dataClause", dataClause,
             "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(fromType),
+            "closingParentheses", getClosingParentheses(columnExpression),
             "attributeUid", quote(attribute.getUid())));
   }
 }

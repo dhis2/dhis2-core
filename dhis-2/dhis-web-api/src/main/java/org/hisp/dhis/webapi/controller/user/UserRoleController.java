@@ -29,20 +29,20 @@ package org.hisp.dhis.webapi.controller.user;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,27 +55,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/api/userRoles")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class UserRoleController extends AbstractCrudController<UserRole> {
-  @Autowired private UserService userService;
+public class UserRoleController
+    extends AbstractCrudController<UserRole, UserRoleController.GetUserRoleObjectListParams> {
+
+  private final UserService userService;
+
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetUserRoleObjectListParams extends GetObjectListParams {
+    boolean canIssue;
+  }
 
   @Override
-  protected List<UserRole> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<UserRole> objects)
-      throws BadRequestException {
-    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders, objects);
-
-    if (options.getOptions().containsKey("canIssue")
-        && Boolean.parseBoolean(options.getOptions().get("canIssue"))) {
-      userService.canIssueFilter(entityList);
-    }
-
-    return entityList;
+  protected List<UID> getPreQueryMatches(GetUserRoleObjectListParams params) {
+    if (!params.isCanIssue()) return null;
+    return userService.getRolesCurrentUserCanIssue();
   }
 
   @RequestMapping(

@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,18 +60,5 @@ public final class MentionUtils {
       }
     }
     return users;
-  }
-
-  public static List<String> removeCustomFilters(List<String> filters) {
-    List<String> mentions = new ArrayList<String>();
-    ListIterator<String> filterIterator = filters.listIterator();
-    while (filterIterator.hasNext()) {
-      String[] filterSplit = filterIterator.next().split(":");
-      if (filterSplit[1].equals("in") && filterSplit[0].equals("mentions")) {
-        mentions.add(filterSplit[2]);
-        filterIterator.remove();
-      }
-    }
-    return mentions;
   }
 }

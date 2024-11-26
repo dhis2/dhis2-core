@@ -40,7 +40,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import com.google.common.collect.Sets;
@@ -278,9 +277,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
-        skipDataTypeValidation
-            ? ""
-            : "and " + sqlBuilder.regexpMatch("dv.value", "'" + NUMERIC_LENIENT_REGEXP + "'");
+        skipDataTypeValidation ? "" : "and " + sqlBuilder.regexpMatch("dv.value", NUMERIC_REGEXP);
     String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
     String zeroValueClause =
         replace(
