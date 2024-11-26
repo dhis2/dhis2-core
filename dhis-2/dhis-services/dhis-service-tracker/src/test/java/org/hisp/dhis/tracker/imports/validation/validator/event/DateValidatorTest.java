@@ -250,7 +250,7 @@ class DateValidatorTest extends TestBase {
   void testEventIsValidWhenScheduledDateBelongsToFuturePeriod() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-            .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));

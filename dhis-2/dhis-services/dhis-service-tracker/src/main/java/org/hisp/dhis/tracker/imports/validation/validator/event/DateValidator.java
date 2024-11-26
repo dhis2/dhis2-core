@@ -111,10 +111,13 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-
     Period eventPeriod = periodType.createPeriod(Date.from(referenceDate));
 
-    if (eventPeriod.getEndDate().toInstant().plus(ofDays(program.getExpiryDays())).isBefore(Instant.now())) {
+    if (eventPeriod
+        .getEndDate()
+        .toInstant()
+        .plus(ofDays(program.getExpiryDays()))
+        .isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
     }
   }
