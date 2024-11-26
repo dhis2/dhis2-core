@@ -192,6 +192,12 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     return filterDimensionColumns(columns);
   }
 
+  /**
+   * Returns a list of tracked entity attribute {@link AnalyticsTableColumn}.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
