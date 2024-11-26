@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.common.TableInfoReader;
@@ -39,6 +40,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -47,12 +49,12 @@ class ContinuousAnalyticsTableJobTest {
   @Mock private AnalyticsTableGenerator analyticsTableGenerator;
 
   @Mock private SystemSettingsService settingsService;
-  
+
   @Mock private SystemSettings settings;
 
   @Mock private TableInfoReader tableInfoReader;
 
-  private ContinuousAnalyticsTableJob job;
+  @InjectMocks private ContinuousAnalyticsTableJob job;
 
   private final Date dateA = getDate(2024, 1, 4, 23, 0);
   private final Date dateB = getDate(2024, 1, 5, 2, 0);
@@ -61,8 +63,6 @@ class ContinuousAnalyticsTableJobTest {
   @BeforeEach
   public void beforeEach() {
     when(settingsService.getCurrentSettings()).thenReturn(settings);
-    job =
-        new ContinuousAnalyticsTableJob(analyticsTableGenerator, settingsService, tableInfoReader);
   }
 
   @Test
