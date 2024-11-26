@@ -193,9 +193,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .selectExpression("ous.level")
               .build());
 
-  private static final String AND = " and (";
-
   private final TrackedEntityTypeService trackedEntityTypeService;
+
   private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   public JdbcTrackedEntityEventsAnalyticsTableManager(
@@ -340,7 +339,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
                 "tetId", String.valueOf(tet.getId()))));
 
     if (params.getFromDate() != null) {
-      sql.append(AND + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+      sql.append(
+          " and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
     }
 
     List<Integer> availableDataYears =
@@ -451,6 +451,11 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
+  /**
+   * Returns a partition column.
+   *
+   * @return an {@link AnalyticsTableColumn}.
+   */
   private AnalyticsTableColumn getPartitionColumn() {
     return AnalyticsTableColumn.builder()
         .name("year")

@@ -296,6 +296,11 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     return columns;
   }
 
+  /**
+   * Returns a list of geospatial columns.
+   *
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getGeospatialCols() {
 
     return List.of(
@@ -319,6 +324,11 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             .build());
   }
 
+  /**
+   * Returns a partition column.
+   *
+   * @return an {@link AnalyticsTableColumn}.
+   */
   private AnalyticsTableColumn getPartitionColumn() {
     return AnalyticsTableColumn.builder()
         .name("year")

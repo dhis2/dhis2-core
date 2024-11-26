@@ -421,7 +421,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return filterDimensionColumns(columns);
   }
 
-  protected AnalyticsTableColumn getPartitionColumn() {
+  /**
+   * Returns a partition column.
+   *
+   * @return an {@link AnalyticsTableColumn}.
+   */
+  private AnalyticsTableColumn getPartitionColumn() {
     return AnalyticsTableColumn.builder()
         .name("year")
         .dataType(INTEGER)
@@ -513,6 +518,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         : columns;
   }
 
+  /**
+   * Returns a list of columns.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param dataFilterClause the data filter SQL clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(
       DataElement dataElement, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -561,12 +573,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
+            .map(tea -> getColumnForAttribute(tea))
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
+            .map(tea -> getColumnForAttributeWithLegendSet(tea))
             .flatMap(Collection::stream)
             .toList());
     return columns;
@@ -579,8 +591,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param withLegendSet indicates whether the attribute has a legend set.
    * @return a list of {@link AnaylyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, boolean withLegendSet) {
+  private List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
@@ -602,7 +613,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet ? getColumnForAttributeWithLegendSet(attribute) : columns;
+    return columns;
   }
 
   /**
