@@ -146,7 +146,6 @@ public class TwoFactorAuthService {
     }
 
     if (isInvalid2FACode(user, code)) {
-      log.error("2. Invalid 2FA code for user: {} code: {}", user.getUsername(), code);
       throw new IllegalStateException("Invalid 2FA code");
     }
 

@@ -72,19 +72,17 @@ import org.subethamail.wiser.WiserMessage;
 public class LoginTest {
 
   public static final String SUPER_USER_ROLE_UID = "yrB6vc5Ip3r";
-  public static String dhis2ServerApi = "http://localhost:8080/api";
-  public static String dhis2Server = "http://localhost:8080/";
-  private static String orgUnitUID;
-
-  // Added for the fake SMTP server
-  private static int smtpPort;
-  private static Wiser wiser;
-  private static ObjectMapper objectMapper = new ObjectMapper();
-  private static RestTemplate restTemplate =
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final RestTemplate restTemplate =
       new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
+  public static String dhis2ServerApi = "http://localhost:8080/api";
+  public static String dhis2Server = "http://localhost:8080/";
+  private static int smtpPort;
+  private static Wiser wiser;
+  private static String orgUnitUID;
+
   private static void startSMTPServer() {
-    // Start the fake SMTP server
     smtpPort = findAvailablePort();
     wiser = new Wiser();
     wiser.setHostname("localhost");
@@ -94,11 +92,9 @@ public class LoginTest {
 
   @BeforeAll
   static void setup() throws JsonProcessingException {
-    // Setup
+    startSMTPServer();
     dhis2ServerApi = TestConfiguration.get().baseUrl();
     dhis2Server = TestConfiguration.get().baseUrl().replace("/api", "/");
-    startSMTPServer();
-
     // Create a new org unit for the new users
     orgUnitUID = createOrgUnit(objectMapper);
   }
@@ -107,14 +103,14 @@ public class LoginTest {
   void testLoginAndGetCookie() {
     String username = TestConfiguration.get().defaultUserUsername();
     String password = TestConfiguration.get().defaultUSerPassword();
-    // First Login
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
+
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
     String cookie = extractSessionCookie(loginResponse);
 
-    // Verify session
+    // Verify session cookie works
     ResponseEntity<String> meResponse = getWithCookie("/me", cookie);
     assertEquals(org.springframework.http.HttpStatus.OK, meResponse.getStatusCode());
     assertNotNull(meResponse.getBody());

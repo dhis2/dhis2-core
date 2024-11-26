@@ -32,7 +32,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,17 +88,14 @@ public class TwoFactorController {
     if (currentUser.getTwoFactorType().isEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
     }
-
     twoFactorAuthService.enrollTOTP2FA(currentUser);
-
     return ok(
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
   }
 
   @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessage enrollEmail2FA(
-      @CurrentUser User currentUser, SystemSettings settings, HttpServletRequest request)
+  public WebMessage enrollEmail2FA(@CurrentUser User currentUser, SystemSettings settings)
       throws ConflictException {
     if (!settings.getEmail2FAEnabled()) {
       throw new ConflictException(ErrorCode.E3045);
@@ -110,9 +106,7 @@ public class TwoFactorController {
     if (!userService.isEmailVerified(currentUser)) {
       throw new ConflictException(ErrorCode.E3043);
     }
-
     twoFactorAuthService.enrollEmail2FA(currentUser);
-
     return ok(
         "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
   }
@@ -162,7 +156,6 @@ public class TwoFactorController {
       throw new ConflictException(ErrorCode.E3047);
     }
     byte[] qrCode = generateQRCodeBytes(currentUser, settings);
-
     return new QRCode(currentUser.getSecret(), Base64.getEncoder().encodeToString(qrCode));
   }
 
@@ -171,8 +164,8 @@ public class TwoFactorController {
   /**
    * Enrolls the user in TOTP 2FA and generates a QR code for the user to scan.
    *
-   * @throws IOException
-   * @throws ConflictException
+   * @throws IOException The QR code could not be generated.
+   * @throws ConflictException The user is already enrolled in 2FA.
    */
   @OpenApi.Response(byte[].class)
   @GetMapping(
@@ -189,9 +182,7 @@ public class TwoFactorController {
     if (currentUser.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
     }
-
     twoFactorAuthService.enrollTOTP2FA(currentUser);
-
     writeQRCodeToResponse(currentUser, response, settings);
   }
 
@@ -199,14 +190,12 @@ public class TwoFactorController {
       User currentUser, HttpServletResponse response, SystemSettings settings)
       throws IOException, ConflictException {
     byte[] qrCode = generateQRCodeBytes(currentUser, settings);
-
     response.getOutputStream().write(qrCode);
   }
 
   private static byte[] generateQRCodeBytes(User currentUser, SystemSettings settings)
       throws ConflictException {
     List<ErrorCode> errorCodes = new ArrayList<>();
-
     String totpURL =
         TwoFactorAuthUtils.generateTOTP2FAURL(
             settings.getApplicationTitle(),
@@ -217,9 +206,9 @@ public class TwoFactorController {
     if (!errorCodes.isEmpty()) {
       throw new ConflictException(errorCodes.get(0));
     }
-
+    // Generate QR code
     byte[] qrCode = TwoFactorAuthUtils.generateQRCode(totpURL, 200, 200, errorCodes::add);
-
+    // Check for errors in the QR code generation
     if (!errorCodes.isEmpty()) {
       throw new ConflictException(errorCodes.get(0));
     }
@@ -254,16 +243,11 @@ public class TwoFactorController {
     if (!currentUser.getTwoFactorType().isEnrolling()) {
       throw new ConflictException(ErrorCode.E3029);
     }
-
     String code = body.get("code");
-
     if (twoFactorAuthService.isInvalid2FACode(currentUser, code)) {
-      log.error("1. Invalid 2FA code for user: {} code: {}", currentUser.getUsername(), code);
       throw new ForbiddenException(ErrorCode.E3023);
     }
-
     twoFactorAuthService.enable2FA(currentUser, code);
-
     return ok("Two factor authentication was enabled successfully");
   }
 
@@ -286,16 +270,12 @@ public class TwoFactorController {
     if (userService.is2FADisableEndpointLocked(currentUser.getUsername())) {
       throw new ConflictException(ErrorCode.E3042.getMessage());
     }
-
     String code = body.get("code");
-
     if (twoFactorAuthService.isInvalid2FACode(currentUser, code)) {
       userService.registerFailed2FADisableAttempt(currentUser.getUsername());
       throw new ForbiddenException(ErrorCode.E3023);
     }
-
     twoFactorAuthService.disable2FA(currentUser, code);
-
     return ok("Two factor authentication was disabled successfully");
   }
 }
