@@ -122,35 +122,6 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Duplicate CategoryOptionCombos should not be allowed")
-  void catOptionCombosDuplicatedTest() {
-
-    JsonObject response =
-        GET("/categoryOptionCombos?filter=id:eq:CocUid0001&fields=id,categoryCombo[id],categoryOptions[id]")
-            .content();
-    JsonList<JsonCategoryOptionCombo> catOptionCombos =
-        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
-    String catOptionComboAOptions = catOptionCombos.get(0).getCategoryOptions().get(0).getId();
-    String catOptionComboACatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
-
-    JsonErrorReport error =
-        POST(
-                "/categoryOptionCombos/",
-                """
-                { "name": "A_1",
-                "categoryOptions" : [{"id" : "%s"}],
-                "categoryCombo" : {"id" : "%s"} }
-                """
-                    .formatted(catOptionComboAOptions, catOptionComboACatComboId))
-            .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
-    assertNotNull(error);
-    assertEquals(
-        "Category option combo A_1 already exists for category combo CatOptCombo A",
-        error.getMessage());
-  }
-
-  @Test
   @DisplayName("Duplicate default category option combos should not be allowed")
   void catOptionCombosDuplicatedDefaultTest() {
     JsonObject response =
@@ -176,7 +147,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
     assertNotNull(error);
     assertEquals(
-        "Category option combo Not default already exists for category combo default",
+        "Category option combo Not default cannot be associated with the default category combo",
         error.getMessage());
   }
 }

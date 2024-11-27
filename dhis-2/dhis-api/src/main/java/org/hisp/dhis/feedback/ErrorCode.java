@@ -67,10 +67,7 @@ public enum ErrorCode {
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
   E1121("Data element `{0}` value type cannot be changed as it has associated data values"),
 
-  E1122("Category option combo {0} already exists for category combo {1}"),
-  E1123("Category option combo {0} must be associated with a category combo"),
-  E1124("Category option combo {0} cannot be associated with the default category combo"),
-
+  E1122("Category option combo {0} cannot be associated with the default category combo"),
   E1125("Category option combo {0} contains options not associated with category combo {1}"),
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),

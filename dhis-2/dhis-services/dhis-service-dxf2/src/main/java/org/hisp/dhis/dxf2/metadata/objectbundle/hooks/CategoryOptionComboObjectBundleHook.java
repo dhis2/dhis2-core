@@ -27,13 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -46,70 +42,6 @@ import org.springframework.stereotype.Component;
 public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
   private final CategoryService categoryService;
-
-  static boolean haveEqualCatComboCatOptionReferenceIds(
-      CategoryOptionCombo one, CategoryOptionCombo other) {
-    if (one == null || other == null) {
-      return false;
-    }
-
-    if (one.getCategoryCombo() == null || other.getCategoryCombo() == null) {
-      return false;
-    }
-
-    if (one.getCategoryOptions() == null || other.getCategoryOptions() == null) {
-      return false;
-    }
-
-    if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
-      return false;
-    }
-
-    Set<String> oneCategoryOptionUids =
-        one.getCategoryOptions().stream().map(CategoryOption::getUid).collect(Collectors.toSet());
-
-    Set<String> otherCategoryOptionUids =
-        other.getCategoryOptions().stream().map(CategoryOption::getUid).collect(Collectors.toSet());
-
-    return oneCategoryOptionUids.equals(otherCategoryOptionUids);
-  }
-
-  private void checkDuplicateCategoryOptionCombos(
-      CategoryOptionCombo categoryOptionCombo,
-      ObjectBundle bundle,
-      Consumer<ErrorReport> addReports) {
-
-    if (bundle.isPersisted(categoryOptionCombo)) {
-      return; // Only check for duplicates if the object is not persisted
-    }
-
-    List<CategoryOptionCombo> categoryOptionCombos =
-        categoryService.getAllCategoryOptionCombos().stream()
-            .filter(
-                coc ->
-                    coc.getCategoryCombo()
-                        .getUid()
-                        .equals(categoryOptionCombo.getCategoryCombo().getUid()))
-            .toList();
-
-    // This could be an update or re-import of the same object.
-    if (categoryOptionCombos.stream()
-        .anyMatch(coc -> coc.getUid().equals(categoryOptionCombo.getUid()))) {
-      return;
-    }
-    // Check to see if the COC already exists in the list of COCs by comparing reference ids
-    for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
-      if (haveEqualCatComboCatOptionReferenceIds(categoryOptionCombo, existingCategoryOptionCombo)
-          && !categoryOptionCombo.getUid().equals(existingCategoryOptionCombo.getUid())) {
-        addReports.accept(
-            new ErrorReport(
-                CategoryOptionCombo.class,
-                ErrorCode.E1122,
-                categoryOptionCombo.getName(),
-                existingCategoryOptionCombo.getName()));
-      }
-    }
-  }
 
   private void checkNonStandardDefaultCatOptionCombo(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
@@ -125,7 +57,7 @@ public class CategoryOptionComboObjectBundleHook
     if (!categoryOptionCombo.getUid().equals(defaultCatOptionCombo.getUid())) {
       addReports.accept(
           new ErrorReport(
-              CategoryOptionCombo.class, ErrorCode.E1124, categoryOptionCombo.getName()));
+              CategoryOptionCombo.class, ErrorCode.E1122, categoryOptionCombo.getName()));
     }
   }
 
@@ -136,6 +68,5 @@ public class CategoryOptionComboObjectBundleHook
       Consumer<ErrorReport> addReports) {
 
     checkNonStandardDefaultCatOptionCombo(categoryOptionCombo, addReports);
-    checkDuplicateCategoryOptionCombos(categoryOptionCombo, bundle, addReports);
   }
 }
