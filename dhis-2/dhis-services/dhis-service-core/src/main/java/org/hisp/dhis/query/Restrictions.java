@@ -133,6 +133,13 @@ public final class Restrictions {
     return new Restriction(path, new EmptyOperator<>());
   }
 
+  /**
+   * Builds a PR group to match the query string against id, code and name.
+   *
+   * @param schema of the root entity
+   * @param query the query string value used the URL {@code query} parameter
+   * @return OR group with the filters for the query string
+   */
   public static Disjunction query(Schema schema, String query) {
     Restriction name = ilike("name", query, MatchMode.ANYWHERE);
     Restriction code = eq("code", query);

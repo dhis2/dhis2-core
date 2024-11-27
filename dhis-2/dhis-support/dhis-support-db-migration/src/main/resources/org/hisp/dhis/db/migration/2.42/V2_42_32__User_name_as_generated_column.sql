@@ -8,4 +8,4 @@ Since both source columns are not null the name can and should also be not null
 and the computation does not need to handle null.
 */
 alter table userinfo
-    add column if not exists name character varying(321) not null generated always as ( firstname || ' ' || userinfo.surname ) stored;
+    add column if not exists name character varying(321) not null generated always as ( firstname || ' ' || surname ) stored;
