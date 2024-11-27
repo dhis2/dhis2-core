@@ -233,7 +233,7 @@ public class EnrollmentController {
         if (!importSummary.getStatus().equals(ImportStatus.ERROR)) {
           importSummaries(importSummaries)
               .setHttpStatus(HttpStatus.CREATED)
-              .setLocation("enrollments/" + importSummary.getReference());
+              .setLocation("/enrollments/" + importSummary.getReference());
         }
       }
 
@@ -280,7 +280,7 @@ public class EnrollmentController {
         if (!importSummary.getStatus().equals(ImportStatus.ERROR)) {
           importSummaries(importSummaries)
               .setHttpStatus(HttpStatus.CREATED)
-              .setLocation("enrollments/" + importSummary.getReference());
+              .setLocation("/enrollments/" + importSummary.getReference());
         }
       }
 
