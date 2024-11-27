@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertUser;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -50,6 +51,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -57,8 +59,10 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.render.RenderFormat;
@@ -73,6 +77,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -282,6 +287,81 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     assertEquals("jxgFyJEMUPf", actual.getEvent());
   }
 
+  @Test
+  void shouldExportEventsUsingNonUIDDataElementIdScheme() {
+    Event event1 = get(Event.class, "QRYjLTiJTrA");
+    Event event2 = get(Event.class, "kWjSezkXHVp");
+    assertNotEmpty(
+        CollectionUtils.intersection(
+            event1.getEventDataValues().stream()
+                .map(EventDataValue::getDataElement)
+                .collect(Collectors.toSet()),
+            event2.getEventDataValues().stream()
+                .map(EventDataValue::getDataElement)
+                .collect(Collectors.toSet())),
+        "test expects both events to have at least one data value for the same data element");
+
+    JsonList<JsonEvent> jsonEvents =
+        GET("/tracker/events?events=QRYjLTiJTrA,kWjSezkXHVp&fields=event,dataValues&dataElementIdScheme=NAME")
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    Map<String, JsonEvent> events =
+        jsonEvents.stream().collect(Collectors.toMap(JsonEvent::getEvent, Function.identity()));
+    assertContainsOnly(List.of(event1.getUid(), event2.getUid()), events.keySet());
+
+    TrackerIdSchemeParam idSchemeParam = TrackerIdSchemeParam.NAME;
+    assertAll(
+        () -> assertDataValues(events.get("QRYjLTiJTrA"), event1, idSchemeParam),
+        () -> assertDataValues(events.get("kWjSezkXHVp"), event2, idSchemeParam));
+  }
+
+  @Test
+  void shouldExportEventDataValuesEquallyWithIdSchemeUIDAndName() {
+    // ensure the event data value JSON is identical when idScheme=UID than other idSchemes as
+    // different code is used to map it due to it being stored as JSONB
+    Event event = get(Event.class, "QRYjLTiJTrA");
+    assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = get(DataElement.class, dataElementUid);
+
+    JsonEvent uidJson =
+        GET("/tracker/events/QRYjLTiJTrA?fields=event,dataValues&dataElementIdScheme=UID")
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+    JsonEvent nameJson =
+        GET("/tracker/events/QRYjLTiJTrA?fields=event,dataValues&dataElementIdScheme=NAME")
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    JsonDataValue uidDataValue =
+        uidJson.getDataValues().stream()
+            .filter(dv -> dataElementUid.equals(dv.getDataElement()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(uidDataValue, "event should have dataValues");
+    JsonDataValue nameDataValue =
+        nameJson.getDataValues().stream()
+            .filter(dv -> dataElement.getName().equals(dv.getDataElement()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(nameDataValue, "event should have dataValues");
+    // dataElement is asserted in other tests
+    assertAll(
+        "assert event fields",
+        () -> assertEquals(uidDataValue.getValue(), nameDataValue.getValue(), "value"),
+        () -> assertEquals(uidDataValue.getCreatedAt(), nameDataValue.getCreatedAt(), "createdAt"),
+        () -> assertEquals(uidDataValue.getUpdatedAt(), nameDataValue.getUpdatedAt(), "updatedAt"),
+        () -> assertEquals(uidDataValue.getStoredBy(), nameDataValue.getStoredBy(), "storedBy"),
+        () ->
+            assertEquals(
+                uidDataValue.getProvidedElsewhere(),
+                nameDataValue.getProvidedElsewhere(),
+                "providedElsewhere"),
+        () -> assertUser(uidDataValue.getCreatedBy(), nameDataValue.getCreatedBy(), "createdBy"),
+        () -> assertUser(uidDataValue.getUpdatedBy(), nameDataValue.getUpdatedBy(), "updatedBy"));
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"/{id}?", "?events={id}&paging=true&", "?events={id}&paging=false&"})
   void shouldReportMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
@@ -348,6 +428,35 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             String.format(
                 "field \"%s\" does not have required idScheme '%s' in response",
                 field, idSchemeParam));
+  }
+
+  private void assertDataValues(
+      JsonEvent actual, Event expected, TrackerIdSchemeParam idSchemeParam) {
+    String field = "dataValues";
+    List<String> expectedDataElement =
+        expected.getEventDataValues().stream()
+            .map(dv -> idSchemeParam.getIdentifier(get(DataElement.class, dv.getDataElement())))
+            .toList();
+    assertNotEmpty(
+        expectedDataElement,
+        String.format(
+            "metadata corresponding to field \"%s\" has no value in test data for"
+                + " idScheme '%s'",
+            field, idSchemeParam));
+    assertTrue(
+        actual.has(field),
+        () ->
+            String.format(
+                "field \"%s\" is not in response %s for idScheme '%s'",
+                field, actual, idSchemeParam));
+    List<String> actualDataElement =
+        actual
+            .getList(field, JsonObject.class)
+            .toList(el -> el.getString("dataElement").string(""));
+    assertContainsOnly(
+        expectedDataElement,
+        actualDataElement,
+        "mismatch in data elements of event " + expected.getUid());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

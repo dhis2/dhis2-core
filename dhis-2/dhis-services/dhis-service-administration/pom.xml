@@ -131,7 +131,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>1.5.3</version>
+      <version>1.5.4</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.commons</groupId>

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -193,6 +194,11 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
 
   public boolean hasOptionCombos() {
     return optionCombos != null && !optionCombos.isEmpty();
+  }
+
+  @JsonIgnore
+  public List<Category> getDataDimensionCategories() {
+    return categories.stream().filter(Category::isDataDimension).toList();
   }
 
   // -------------------------------------------------------------------------

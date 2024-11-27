@@ -116,7 +116,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DimensionalObjectProducer {
+public class DimensionalObjectProvider {
   private final IdentifiableObjectManager idObjectManager;
 
   private final OrganisationUnitService organisationUnitService;

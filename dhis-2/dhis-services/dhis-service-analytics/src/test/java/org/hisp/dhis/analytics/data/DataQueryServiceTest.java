@@ -52,7 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DataQueryServiceTest {
 
-  @Mock private DimensionalObjectProducer dimensionalObjectProducer;
+  @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
   @Mock private IdentifiableObjectManager idObjectManager;
 

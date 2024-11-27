@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable.table;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.hisp.dhis.resourcetable.util.UniqueNameContext;
-import org.junit.jupiter.api.Test;
+package org.hisp.dhis.db.sql;
 
 /**
- * Tests the {@link UniqueNameContext}.
- *
- * @author Jan Bernitt
+ * Interface for resolving specific SQL queries for analytics, that requires custom logic that can't
+ * be resolved by the default <code>SqlBuilder</code> implementations.
  */
-class UniqueNameContextTest {
-  private final UniqueNameContext context = new UniqueNameContext();
-
-  @Test
-  void alreadyUniqueNameIsKept() {
-    assertEquals("Foo", context.uniqueName("Foo"));
-    assertEquals("Bar", context.uniqueName("Bar"));
-    assertEquals("Baz", context.uniqueName("Baz"));
-  }
-
-  @Test
-  void nonUniqueNameIsExtendedWithCounter() {
-    assertEquals("Foo", context.uniqueName("Foo"));
-    assertEquals("Foo1", context.uniqueName("Foo"));
-    assertEquals("Foo2", context.uniqueName("Foo"));
-    assertEquals("Foo3", context.uniqueName("Foo"));
-  }
-
-  @Test
-  void nonUniqueNameExtensionDoesNotCollideWithExistingNames() {
-    assertEquals("Foo", context.uniqueName("Foo"));
-    assertEquals("Foo2", context.uniqueName("Foo2"));
-    assertEquals("Foo3", context.uniqueName("Foo"));
-    assertEquals("Foo23", context.uniqueName("Foo2"));
-    assertEquals("Foo4", context.uniqueName("Foo"));
-    assertEquals("Foo25", context.uniqueName("Foo2"));
-  }
+public interface AnalyticsSqlBuilder {
+  /**
+   * Returns the correct SQL based on the underlying database for fetching the event data values.
+   *
+   * @return a SQL snippet.
+   */
+  String getEventDataValues();
 }
