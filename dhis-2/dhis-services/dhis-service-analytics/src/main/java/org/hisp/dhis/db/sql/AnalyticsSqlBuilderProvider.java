@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.db.sql;
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
+import java.util.Objects;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
 
-/**
- * @author Lars Helge Overland
- */
-public class UserRoleCanIssueFilter implements Filter<UserRole> {
-  private User user;
+/** Provider of {@link AnalyticsSqlBuilder} implementations. */
+@Service
+public class AnalyticsSqlBuilderProvider {
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
-  private boolean canGrantOwnUserRoles = false;
-
-  protected UserRoleCanIssueFilter() {}
-
-  public UserRoleCanIssueFilter(User user, boolean canGrantOwnUserRoles) {
-    if (user != null) {
-      this.user = user;
-      this.canGrantOwnUserRoles = canGrantOwnUserRoles;
-    }
+  public AnalyticsSqlBuilderProvider(AnalyticsTableSettings config) {
+    Objects.requireNonNull(config);
+    this.analyticsSqlBuilder = getSqlBuilder(config);
   }
 
-  @Override
-  public boolean retain(UserRole group) {
-    return user != null && user.canIssueUserRole(group, canGrantOwnUserRoles);
+  /**
+   * Returns a {@link AnalyticsSqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link AnalyticsSqlBuilder}.
+   */
+  public AnalyticsSqlBuilder getAnalyticsSqlBuilder() {
+    return analyticsSqlBuilder;
+  }
+
+  /**
+   * Returns the appropriate {@link AnalyticsSqlBuilder} implementation based on the system
+   * configuration.
+   *
+   * @param config the {@link DhisConfigurationProvider}.
+   * @return a {@link AnalyticsSqlBuilder}.
+   */
+  private AnalyticsSqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
+    Database database = config.getAnalyticsDatabase();
+    Objects.requireNonNull(database);
+
+    return switch (database) {
+      case DORIS -> new DorisAnalyticsSqlBuilder();
+      case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
+      default -> new PostgresAnalyticsSqlBuilder();
+    };
   }
 }

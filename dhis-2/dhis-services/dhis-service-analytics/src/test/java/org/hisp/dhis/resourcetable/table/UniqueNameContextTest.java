@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class UniqueNameContextTest {
-
   private final UniqueNameContext context = new UniqueNameContext();
 
   @Test

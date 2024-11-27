@@ -28,6 +28,7 @@
 package org.hisp.dhis.query;
 
 import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.query.operators.BetweenOperator;
 import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
@@ -45,6 +46,7 @@ import org.hisp.dhis.query.operators.NotNullOperator;
 import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.query.operators.TokenOperator;
+import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -129,6 +131,30 @@ public final class Restrictions {
 
   public static Restriction isEmpty(String path) {
     return new Restriction(path, new EmptyOperator<>());
+  }
+
+  public static Disjunction query(Schema schema, String query) {
+    return or(schema, eq("id", query), eq("code", query), ilike("name", query, MatchMode.ANYWHERE));
+  }
+
+  public static Disjunction or(Schema schema, Criterion... filters) {
+    return or(schema, List.of(filters));
+  }
+
+  public static Disjunction or(Schema schema, List<? extends Criterion> filters) {
+    Disjunction or = new Disjunction(schema);
+    or.add(filters);
+    return or;
+  }
+
+  public static Conjunction and(Schema schema, Criterion... filters) {
+    return and(schema, List.of(filters));
+  }
+
+  public static Conjunction and(Schema schema, List<? extends Criterion> filters) {
+    Conjunction and = new Conjunction(schema);
+    and.add(filters);
+    return and;
   }
 
   private Restrictions() {}

@@ -25,13 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.model;
+package org.hisp.dhis.db.sql;
 
-/**
- * Represents a type of dimension, either static, meaning fixed, or dynamic, meaning based on a
- * dimensional configuration entity.
- */
-public enum AnalyticsColumnType {
-  STATIC,
-  DYNAMIC;
+public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
+  @Override
+  public String getEventDataValues() {
+    return "ev.eventdatavalues";
+  }
 }

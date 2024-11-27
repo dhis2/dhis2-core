@@ -36,6 +36,7 @@ import java.util.Map;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Component;
@@ -61,7 +62,7 @@ public class DimensionItemPageHandler {
    * pagination flag must be set to true. See {@link WebOptions#hasPaging(boolean)}.
    *
    * @param rootNode the root node where the pagination node will be appended to.
-   * @param webOptions the WebOptions settings.
+   * @param params for the paging used
    * @param dimensionUid the uid of the dimension queried in the API url. See {@link
    *     DimensionController#getItems(String, Map, OrderParams)}.
    * @param totalOfItems the total of items. This is represented as page total. See {@link
@@ -69,14 +70,14 @@ public class DimensionItemPageHandler {
    */
   void addPaginationToNodeIfEnabled(
       final RootNode rootNode,
-      final WebOptions webOptions,
+      final GetObjectListParams params,
       final String dimensionUid,
       final int totalOfItems) {
-    final boolean isPaginationEnabled = webOptions.hasPaging(false);
+    final boolean isPaginationEnabled = params.isPaging();
 
     if (isPaginationEnabled) {
       final String apiRelativeUrl = format(RESOURCE_PATH + "/%s/items", dimensionUid);
-      final Pager pager = new Pager(webOptions.getPage(), totalOfItems, webOptions.getPageSize());
+      final Pager pager = new Pager(params.getPage(), totalOfItems, params.getPageSize());
 
       linkService.generatePagerLinks(pager, apiRelativeUrl);
       rootNode.addChild(createPager(pager));

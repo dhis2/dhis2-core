@@ -195,6 +195,38 @@ class ClickHouseSqlBuilderTest {
         "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "(toUnixTimestamp(a.startdate) - toUnixTimestamp(b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "(toUnixTimestamp(a.\"startdate\") - toUnixTimestamp(b.\"enddate\"))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("match(value, 'test')", sqlBuilder.regexpMatch("value", "'test'"));
+    assertEquals("match(number, '\\d')", sqlBuilder.regexpMatch("number", "'\\d'"));
+    assertEquals("match(color, '^Blue$')", sqlBuilder.regexpMatch("color", "'^Blue$'"));
+    assertEquals("match(id, '[a-z]\\w+\\d{3}')", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
+  }
+
+  @Test
+  void testJsonExtract() {
+    assertEquals(
+        "JSONExtractString(value, 'D7m8vpzxHDJ')", sqlBuilder.jsonExtract("value", "D7m8vpzxHDJ"));
+  }
+
+  @Test
+  void testJsonExtractNested() {
+    assertEquals(
+        "JSONExtractString(eventdatavalues, 'D7m8vpzxHDJ.value')",
+        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+  }
+
   // Statements
 
   @Test

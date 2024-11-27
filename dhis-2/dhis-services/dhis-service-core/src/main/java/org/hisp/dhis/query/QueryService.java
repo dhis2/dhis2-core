@@ -65,23 +65,8 @@ public interface QueryService {
    * orders.
    *
    * @param klass Type of object you want to query
-   * @param filters List of filters to use as basis for query instance
-   * @param orders List of orders to use for query
-   * @param rootJunction Root junction (defaults to AND)
+   * @param params standard object list query parameters
    * @return New query instance using provided filters/orders
    */
-  Query getQueryFromUrl(
-      Class<?> klass,
-      List<String> filters,
-      List<Order> orders,
-      Pagination pagination,
-      Junction.Type rootJunction)
-      throws QueryParserException;
-
-  Query getQueryFromUrl(
-      Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination)
-      throws QueryParserException;
-
-  Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders)
-      throws QueryParserException;
+  Query getQueryFromUrl(Class<?> klass, GetObjectListParams params) throws QueryParserException;
 }

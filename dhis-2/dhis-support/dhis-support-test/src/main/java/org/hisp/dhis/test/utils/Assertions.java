@@ -66,6 +66,19 @@ public final class Assertions {
    * @param actual the actual collection.
    */
   public static <E> void assertContainsOnly(Collection<E> expected, Collection<E> actual) {
+    assertContainsOnly(expected, actual, "assertContainsOnly found mismatch");
+  }
+
+  /**
+   * Asserts that the given collection contains exactly the given items in any order.
+   *
+   * @param <E> the type.
+   * @param expected the expected items.
+   * @param actual the actual collection.
+   * @param heading the assertAll heading
+   */
+  public static <E> void assertContainsOnly(
+      Collection<E> expected, Collection<E> actual, String heading) {
     assertNotNull(
         actual,
         () -> String.format("Expected collection to contain %s, got null instead", expected));
@@ -73,7 +86,7 @@ public final class Assertions {
     List<E> missing = CollectionUtils.difference(expected, actual);
     List<E> extra = CollectionUtils.difference(actual, expected);
     assertAll(
-        "assertContainsOnly found mismatch",
+        heading,
         () ->
             assertTrue(
                 missing.isEmpty(), () -> String.format("Expected %s to be in %s", missing, actual)),
@@ -126,6 +139,17 @@ public final class Assertions {
   public static void assertIsEmpty(Collection<?> actual) {
     assertNotNull(actual);
     assertTrue(actual.isEmpty(), actual.toString());
+  }
+
+  /**
+   * Asserts that the given collection is not null and empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertIsEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(actual.isEmpty(), message);
   }
 
   /**

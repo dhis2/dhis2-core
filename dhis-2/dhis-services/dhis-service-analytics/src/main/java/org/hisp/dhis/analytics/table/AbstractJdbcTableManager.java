@@ -32,9 +32,7 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
@@ -54,7 +52,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -86,6 +84,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -111,7 +110,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * </ul>
    */
   protected static final String DATE_REGEXP =
-      "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
+      "'^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$'";
+
+  protected static final String NUMERIC_REGEXP = "'" + MathUtils.NUMERIC_LENIENT_REGEXP + "'";
 
   protected static final Set<ValueType> NO_INDEX_VAL_TYPES =
       Set.of(ValueType.TEXT, ValueType.LONG_TEXT);
@@ -534,7 +535,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = ougs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("ougs." + quote(name))
                   .skipIndex(skipIndex(ougs))
@@ -551,7 +552,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = degs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("degs." + quote(name))
                   .skipIndex(skipIndex(degs))
@@ -568,7 +569,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
                   .skipIndex(skipIndex(cogs))
@@ -585,7 +586,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
                   .skipIndex(skipIndex(cogs))
@@ -602,7 +603,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
                   .skipIndex(skipIndex(category))
@@ -619,7 +620,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
                   .skipIndex(skipIndex(category))
@@ -735,24 +736,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     variableNames.forEach(name -> map.putIfAbsent(name, qualify(name)));
 
     return TextUtils.replace(template, map);
-  }
-
-  protected AnalyticsTableColumn getPartitionColumn() {
-    return AnalyticsTableColumn.builder()
-        .name("year")
-        .dataType(INTEGER)
-        .nullable(NOT_NULL)
-        // The expression should use sqlBuilder, but the concept of functions (like YEAR)
-        // is part of the previous PR (https://github.com/dhis2/dhis2-core/pull/19131/files)
-        .selectExpression(
-            """
-                       CASE
-                           WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
-                           ELSE YEAR(ev.occurreddate)
-                       END
-                  """)
-        .skipIndex(Skip.SKIP)
-        .build();
   }
 
   // -------------------------------------------------------------------------

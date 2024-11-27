@@ -31,7 +31,7 @@ import static java.time.LocalDate.now;
 import static java.util.Collections.sort;
 import static java.util.Collections.unmodifiableList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +56,10 @@ public class PeriodDataProvider {
 
   private final JdbcTemplate jdbcTemplate;
 
-  public enum DataSource {
+  public enum PeriodSource {
+    /** Fixed boundaries. Backwards compatible. */
     SYSTEM_DEFINED,
+    /** Dynamic from data in database. */
     DATABASE
   }
 
@@ -65,21 +67,19 @@ public class PeriodDataProvider {
    * Returns a distinct union of all years available in the "event" table + "period" table, both
    * from aggregate and tracker, with 5 years previous and future additions.
    *
-   * <p>ie: [extra_5_previous_years, data_years, extra_5_future_year]
+   * <p><code>[extra_5_previous_years, data_years, extra_5_future_year]</code>
    *
-   * @param source the source ({@link DataSource}) where the years wil be retrieved from.
+   * @param source the source ({@link PeriodSource}) where the years wil be retrieved from.
    * @return an unmodifiable list of distinct years and the respective additions.
    */
-  public List<Integer> getAvailableYears(DataSource source) {
+  public List<Integer> getAvailableYears(PeriodSource source) {
     List<Integer> availableDataYears = new ArrayList<>();
 
     if (source == SYSTEM_DEFINED) {
-      // Add default hard-coded years (keeps it backward compatible).
       for (int year = DEFAULT_FIRST_YEAR_SUPPORTED; year <= DEFAULT_LATEST_YEAR_SUPPORTED; year++) {
         availableDataYears.add(year);
       }
     } else {
-      // Add years dynamically, based on the database.
       availableDataYears.addAll(fetchAvailableYears());
       addSafetyBuffer(availableDataYears, BEFORE_AND_AFTER_DATA_YEARS_SUPPORTED);
     }

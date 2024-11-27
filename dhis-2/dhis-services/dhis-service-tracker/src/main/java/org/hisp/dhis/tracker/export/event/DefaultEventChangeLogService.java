@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -69,8 +70,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
     // check existence and access
     eventService.getEvent(event);
 
-    return hibernateEventChangeLogStore.getEventChangeLogs(
-        event, operationParams.getOrder(), pageParams);
+    return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
   }
 
   @Transactional
@@ -163,6 +163,11 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return hibernateEventChangeLogStore.getOrderableFields();
+  }
+
+  @Override
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return hibernateEventChangeLogStore.getFilterableFields();
   }
 
   private <T> void logIfChanged(

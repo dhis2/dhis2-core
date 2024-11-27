@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.analytics.util;
 
-import java.util.List;
+public class SqlComparisonUtils {
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum FieldPreset {
-  ID("id", List.of("id")),
-  CODE("code", List.of("code")),
-  ID_NAME("idName", List.of("id", "displayName")),
-  ALL("all", List.of("*")),
-  IDENTIFIABLE(
-      "identifiable", List.of("id", "name", "code", "created", "lastUpdated", "lastUpdatedBy")),
-  NAMEABLE(
-      "nameable",
-      List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated")),
-  OWNER("owner", List.of("owner")),
-  PERSISTED("persisted", List.of("persisted")),
-  SIMPLE("simple", List.of("simple"));
-
-  private final String name;
-
-  private final List<String> fields;
-
-  FieldPreset(String name, List<String> fields) {
-    this.name = name;
-    this.fields = fields;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public List<String> getFields() {
-    return fields;
-  }
-
-  public static FieldPreset defaultPreset() {
-    return FieldPreset.ID_NAME;
-  }
-
-  public static FieldPreset defaultAssociationPreset() {
-    return FieldPreset.ID;
+  /**
+   * Normalizes a SQL string by removing excess whitespace and standardizing formatting. This
+   * method:
+   *
+   * <ul>
+   *   <li>Replaces multiple spaces with a single space
+   *   <li>Removes spaces around commas, equals signs, and parentheses
+   *   <li>Converts the string to lowercase
+   *   <li>Trims leading and trailing whitespace
+   * </ul>
+   *
+   * @param sql the SQL string to normalize
+   * @return the normalized SQL string
+   */
+  public static String normalizeSql(String sql) {
+    return sql.replaceAll("\\s+", " ") // Replace multiple spaces with single space
+        .replaceAll("\\s*,\\s*", ",") // Remove spaces around commas
+        .replaceAll("\\s*=\\s*", "=") // Remove spaces around equals
+        .replaceAll("\\s*\\(\\s*", "(") // Remove spaces around parentheses
+        .replaceAll("\\s*\\)\\s*", ")")
+        .trim()
+        .toLowerCase(); // Convert to lowercase if case-insensitive comparison is desired
   }
 }
