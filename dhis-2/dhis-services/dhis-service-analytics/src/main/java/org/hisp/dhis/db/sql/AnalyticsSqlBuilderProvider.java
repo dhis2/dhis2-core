@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable.table;
+package org.hisp.dhis.db.sql;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Objects;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.resourcetable.util.UniqueNameContext;
-import org.junit.jupiter.api.Test;
+/** Provider of {@link AnalyticsSqlBuilder} implementations. */
+@Service
+public class AnalyticsSqlBuilderProvider {
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
-/**
- * Tests the {@link UniqueNameContext}.
- *
- * @author Jan Bernitt
- */
-class UniqueNameContextTest {
-  private final UniqueNameContext context = new UniqueNameContext();
-
-  @Test
-  void alreadyUniqueNameIsKept() {
-    assertEquals("Foo", context.uniqueName("Foo"));
-    assertEquals("Bar", context.uniqueName("Bar"));
-    assertEquals("Baz", context.uniqueName("Baz"));
+  public AnalyticsSqlBuilderProvider(AnalyticsTableSettings config) {
+    Objects.requireNonNull(config);
+    this.analyticsSqlBuilder = getSqlBuilder(config);
   }
 
-  @Test
-  void nonUniqueNameIsExtendedWithCounter() {
-    assertEquals("Foo", context.uniqueName("Foo"));
-    assertEquals("Foo1", context.uniqueName("Foo"));
-    assertEquals("Foo2", context.uniqueName("Foo"));
-    assertEquals("Foo3", context.uniqueName("Foo"));
+  /**
+   * Returns a {@link AnalyticsSqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link AnalyticsSqlBuilder}.
+   */
+  public AnalyticsSqlBuilder getAnalyticsSqlBuilder() {
+    return analyticsSqlBuilder;
   }
 
-  @Test
-  void nonUniqueNameExtensionDoesNotCollideWithExistingNames() {
-    assertEquals("Foo", context.uniqueName("Foo"));
-    assertEquals("Foo2", context.uniqueName("Foo2"));
-    assertEquals("Foo3", context.uniqueName("Foo"));
-    assertEquals("Foo23", context.uniqueName("Foo2"));
-    assertEquals("Foo4", context.uniqueName("Foo"));
-    assertEquals("Foo25", context.uniqueName("Foo2"));
+  /**
+   * Returns the appropriate {@link AnalyticsSqlBuilder} implementation based on the system
+   * configuration.
+   *
+   * @param config the {@link DhisConfigurationProvider}.
+   * @return a {@link AnalyticsSqlBuilder}.
+   */
+  private AnalyticsSqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
+    Database database = config.getAnalyticsDatabase();
+    Objects.requireNonNull(database);
+
+    return switch (database) {
+      case DORIS -> new DorisAnalyticsSqlBuilder();
+      case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
+      default -> new PostgresAnalyticsSqlBuilder();
+    };
   }
 }

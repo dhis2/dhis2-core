@@ -110,12 +110,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for {@link DimensionalObjectProducer}.
+ * Unit tests for {@link DimensionalObjectProvider}.
  *
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
-class DimensionalObjectProducerTest {
+class DimensionalObjectProviderTest {
 
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -135,7 +135,7 @@ class DimensionalObjectProducerTest {
 
   @Mock private I18nFormat i18nFormat;
 
-  @InjectMocks private DimensionalObjectProducer target;
+  @InjectMocks private DimensionalObjectProvider target;
 
   @BeforeEach
   public void setUp() {

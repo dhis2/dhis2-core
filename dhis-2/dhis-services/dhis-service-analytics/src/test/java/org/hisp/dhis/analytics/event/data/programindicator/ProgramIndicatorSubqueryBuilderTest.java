@@ -47,6 +47,7 @@ import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -61,22 +62,21 @@ class ProgramIndicatorSubqueryBuilderTest {
 
   private static final BeanRandomizer rnd = BeanRandomizer.create();
 
-  @Mock private ProgramIndicatorService programIndicatorService;
-
   private Program program;
 
   private Date startDate;
 
   private Date endDate;
 
-  private DefaultProgramIndicatorSubqueryBuilder subject;
+  @Mock private ProgramIndicatorService programIndicatorService;
+
+  @InjectMocks private DefaultProgramIndicatorSubqueryBuilder subject;
 
   @BeforeEach
   public void setUp() {
     program = createProgram('A');
     startDate = getDate(2018, 1, 1);
     endDate = getDate(2018, 6, 30);
-    subject = new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
   }
 
   @Test

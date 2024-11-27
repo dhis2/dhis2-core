@@ -154,7 +154,7 @@ public final class AnalyticsIndexHelper {
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TEXT
-        && !column.isStatic()
+        && !column.isStaticDimension()
         && isValidUid(columnName)
         && isSingleColumn) {
       String name = indexName + "_lower";
@@ -178,7 +178,7 @@ public final class AnalyticsIndexHelper {
 
     boolean isSingleColumn = indexColumns.size() == 1;
 
-    if (column.getDataType() == TIMESTAMP && column.isStatic() && isSingleColumn) {
+    if (column.getDataType() == TIMESTAMP && column.isStaticDimension() && isSingleColumn) {
       indexes.add(
           Index.builder()
               .name(indexName + "_desc")

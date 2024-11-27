@@ -74,7 +74,8 @@ public class AnalyticsTableColumn {
   @Builder.Default private final List<String> indexColumns = List.of();
 
   /** The column type indicates the column origin. */
-  @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.STATIC;
+  @Builder.Default
+  private final AnalyticsDimensionType dimensionType = AnalyticsDimensionType.STATIC;
 
   /** Date of creation of the underlying data dimension. */
   private final Date created;
@@ -104,8 +105,8 @@ public class AnalyticsTableColumn {
   }
 
   /** Indicates whether the column type is set to a non-default value. */
-  public boolean isStatic() {
-    return AnalyticsColumnType.STATIC == columnType;
+  public boolean isStaticDimension() {
+    return AnalyticsDimensionType.STATIC == dimensionType;
   }
 
   @Override

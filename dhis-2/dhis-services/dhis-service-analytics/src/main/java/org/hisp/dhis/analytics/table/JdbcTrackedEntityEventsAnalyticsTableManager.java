@@ -71,6 +71,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -82,35 +83,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableManager")
 public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTableManager {
-
-  private static final String EVENT_DATA_VALUE_REBUILDER =
-      """
-      (select json_object_agg(l2.keys, l2.datavalue) as value
-      from (
-          select l1.uid,
-          l1.keys,
-          json_strip_nulls(json_build_object(
-          'value', l1.eventdatavalues -> l1.keys ->> 'value',
-          'created', l1.eventdatavalues -> l1.keys ->> 'created',
-          'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
-          'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
-          'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
-          'value_name', (select ou.name
-              from organisationunit ou
-              where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
-          'value_code', (select ou.code
-              from organisationunit ou
-              where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
-          from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
-          from event inner_evt) as l1) as l2
-      where l2.uid = ev.uid
-      group by l2.uid)::jsonb
-      """;
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
@@ -170,24 +145,6 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .selectExpression("ev.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("eventgeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("ev.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("evlongitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("evlatitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end")
-              .build(),
-          AnalyticsTableColumn.builder()
               .name("uidlevel1")
               .dataType(CHARACTER_11)
               .nullable(NULL)
@@ -234,17 +191,11 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .dataType(INTEGER)
               .nullable(NULL)
               .selectExpression("ous.level")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("eventdatavalues")
-              .dataType(JSONB)
-              .selectExpression(EVENT_DATA_VALUE_REBUILDER)
-              .skipIndex(Skip.SKIP)
               .build());
 
-  private static final String AND = " and (";
-
   private final TrackedEntityTypeService trackedEntityTypeService;
+
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   public JdbcTrackedEntityEventsAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -260,7 +211,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -276,6 +228,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
+    this.analyticsSqlBuilder = analyticsSqlBuilder;
   }
 
   /**
@@ -322,6 +275,48 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     return tables;
   }
 
+  private List<AnalyticsTableColumn> getFixedCols() {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getEventDataValueColumn());
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(getGeospatialCols());
+    }
+    return columns;
+  }
+
+  private AnalyticsTableColumn getEventDataValueColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("eventdatavalues")
+        .dataType(JSONB)
+        .selectExpression(analyticsSqlBuilder.getEventDataValues())
+        .skipIndex(Skip.SKIP)
+        .build();
+  }
+
+  private List<AnalyticsTableColumn> getGeospatialCols() {
+
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name("eventgeometry")
+            .dataType(GEOMETRY)
+            .selectExpression("ev.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("evlongitude")
+            .dataType(DOUBLE)
+            .selectExpression(
+                "case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("evlatitude")
+            .dataType(DOUBLE)
+            .selectExpression(
+                "case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end")
+            .build());
+  }
+
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
     StringBuilder sql = new StringBuilder();
     sql.append(
@@ -344,7 +339,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
                 "tetId", String.valueOf(tet.getId()))));
 
     if (params.getFromDate() != null) {
-      sql.append(AND + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+      sql.append(
+          " and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
     }
 
     List<Integer> availableDataYears =
@@ -367,7 +363,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    columns.addAll(getFixedCols());
 
     if (sqlBuilder.supportsDeclarativePartitioning()) {
       columns.add(getPartitionColumn());
@@ -394,7 +390,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     AnalyticsTable masterTable = partition.getMasterTable();
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
-    String partitionClause = getPartitionClause(partition);
+    String partitionClause =
+        sqlBuilder.supportsDeclarativePartitioning() ? "" : getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -452,5 +449,18 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     return partition.isLatestPartition()
         ? latestFilter
         : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
+  }
+
+  /**
+   * Returns a partition column.
+   *
+   * @return an {@link AnalyticsTableColumn}.
+   */
+  private AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .selectExpression("ev.lastupdated")
+        .build();
   }
 }
