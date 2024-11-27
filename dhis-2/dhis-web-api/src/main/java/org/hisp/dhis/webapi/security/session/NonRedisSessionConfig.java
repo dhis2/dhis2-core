@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.security.session;
 
 import jakarta.servlet.Filter;
 import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-/**
- * Configuration registered if {@link RedisDisabledCondition} matches to true. This serves as a
- * fallback to spring-session if redis is disabled. Since web.xml has a
- * "springSessionRepositoryFilter" mapped to all urls, the container will expect a filter bean with
- * that name. Therefore we define a dummy {@link Filter} named springSessionRepositoryFilter. Here
- * we define a {@link CharacterEncodingFilter} without setting any encoding so that requests will
- * simply pass through the filter.
- *
- * @author Ameen Mohamed
- */
 @Configuration
+@Order(1998)
 @Conditional(RedisDisabledCondition.class)
-public class DefaultSessionConfig {
-  //  /**
-  //   * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
-  //   *
-  //   * @return a {@link CharacterEncodingFilter} without specifying encoding.
-  //   */
-  //  @Bean
-  //  public Filter springSessionRepositoryFilter() {
-  //    return new CharacterEncodingFilter();
-  //  }
+public class NonRedisSessionConfig {
+
+  @Bean
+  public SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
+
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
+  }
+
+  @Bean
+  public Filter springSessionRepositoryFilter() {
+    return new CharacterEncodingFilter();
+  }
 }

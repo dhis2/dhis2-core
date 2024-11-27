@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -64,12 +66,12 @@ import org.springframework.security.web.authentication.session.ConcurrentSession
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -104,8 +106,8 @@ public class AuthenticationController {
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
-
   @Autowired protected ApplicationEventPublisher eventPublisher;
+  @Autowired private HttpSessionEventPublisher httpSessionEventPublisher;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -121,16 +123,14 @@ public class AuthenticationController {
 
       int maxSessions =
           Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
+
       ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
           new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
       concurrentStrategy.setMaximumSessions(maxSessions);
 
       sessionStrategy =
           new CompositeSessionAuthenticationStrategy(
-              List.of(
-                  concurrentStrategy,
-                  new SessionFixationProtectionStrategy(),
-                  new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+              List.of(new RegisterSessionAuthenticationStrategy(sessionRegistry)));
     }
   }
 
@@ -144,7 +144,6 @@ public class AuthenticationController {
       validateRequest(loginRequest);
 
       Authentication authenticationResult = doAuthentication(request, loginRequest);
-
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
       saveContext(request, response, authenticationResult);
 
@@ -205,11 +204,22 @@ public class AuthenticationController {
 
   private void saveContext(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+
     SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
     context.setAuthentication(authentication);
 
+    // Get or create the session explicitly
+    HttpSession session = request.getSession(true);
+
+    // Set the security context in session
+    //    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+    // context);
+
     this.securityContextHolderStrategy.setContext(context);
     this.securityContextRepository.saveContext(context, request, response);
+
+    // Notify the session registry
+    httpSessionEventPublisher.sessionCreated(new HttpSessionEvent(session));
   }
 
   private String getRedirectUrl(

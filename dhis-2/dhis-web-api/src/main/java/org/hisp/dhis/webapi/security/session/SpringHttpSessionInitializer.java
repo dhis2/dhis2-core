@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.security.session;
 
 import org.hisp.dhis.webapi.filter.DefaultSessionConfig;
-import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
 /**
  * This is used for adding springSessionRepositoryFilter into the filter chain. The actual filter
@@ -37,4 +36,5 @@ import org.springframework.session.web.context.AbstractHttpSessionApplicationIni
  *
  * @author Ameen Mohamed
  */
-public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {}
+// extends AbstractHttpSessionApplicationInitializer {}
+public class SpringHttpSessionInitializer {}
