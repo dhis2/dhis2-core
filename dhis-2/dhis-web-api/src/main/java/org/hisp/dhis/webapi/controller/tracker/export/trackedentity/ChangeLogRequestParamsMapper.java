@@ -43,13 +43,6 @@ class ChangeLogRequestParamsMapper {
     throw new IllegalStateException("Utility class");
   }
 
-  /**
-   * This mapper is different from other tracker exporter mappers as it takes in the orderable
-   * fields. This difference comes from {@link
-   * org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog} being the view which is
-   * already returned from the service/store. Tracker exporter services return a representation we
-   * have to map to a view model.
-   */
   static TrackedEntityChangeLogOperationParams map(
       Set<String> orderableFields, ChangeLogRequestParams requestParams)
       throws BadRequestException {

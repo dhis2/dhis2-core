@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
@@ -116,6 +117,9 @@ class TrackedEntitiesExportController {
   private static final String GZIP_EXT = ".gz";
 
   private static final String ZIP_EXT = ".zip";
+
+  private static final TrackedEntityChangeLogMapper TRACKED_ENTITY_CHANGE_LOG_MAPPER =
+      Mappers.getMapper(TrackedEntityChangeLogMapper.class);
 
   private final TrackedEntityService trackedEntityService;
 
@@ -352,7 +356,7 @@ class TrackedEntitiesExportController {
   }
 
   @GetMapping("/{trackedEntity}/changeLogs")
-  Page<ObjectNode> getTrackedEntityAttributeChangeLog(
+  ResponseEntity<Page<ObjectNode>> getTrackedEntityAttributeChangeLog(
       @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
           UID trackedEntity,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
@@ -370,6 +374,17 @@ class TrackedEntitiesExportController {
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             trackedEntity, program, operationParams, pageParams);
 
-    return fieldFilterRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
+    List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog>
+        trackedEntityChangeLogs =
+            changeLogs.getItems().stream().map(TRACKED_ENTITY_CHANGE_LOG_MAPPER::map).toList();
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(trackedEntityChangeLogs, requestParams.getFields());
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+            Page.withPager(
+                "changeLogs", changeLogs.withItems(objectNodes), getRequestURL(request)));
   }
 }

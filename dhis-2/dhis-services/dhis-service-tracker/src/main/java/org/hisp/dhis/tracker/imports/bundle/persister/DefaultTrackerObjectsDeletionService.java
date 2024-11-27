@@ -74,7 +74,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityChangeLogService attributeValueAuditService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -209,7 +209,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
       }
 
-      attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(entity);
+      trackedEntityChangeLogService.deleteTrackedEntityChangeLogs(entity);
 
       manager.delete(entity);
 

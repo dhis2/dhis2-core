@@ -1985,6 +1985,21 @@
             "id": "ja8NY4PW7Xm"
           },
           "valueType": "TEXT"
+        },
+        {
+          "displayInList": true,
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "id": "dIVt4l5vIOa",
+          "name": "Person Given name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "numericAttr"
+          },
+          "trackedEntityType": {
+            "id": "ja8NY4PW7Xm"
+          },
+          "valueType": "TEXT"
         }
       ],
       "user": {
@@ -2005,6 +2020,25 @@
       "name": "Inaccessible person",
       "sharing": {
         "public": "--------"
+      },
+      "user": {
+        "id": "tTgjgobT1oS"
+      }
+    },
+    {
+      "id": "Fa7NY4PW6DL",
+      "created": "2020-05-31T08:59:52.758",
+      "description": "person",
+      "featureType": "NONE",
+      "lastUpdated": "2020-05-31T11:41:22.419",
+      "lastUpdatedBy": {
+        "id": "tTgjgobT1oS"
+      },
+      "maxTeiCountToReturn": 0,
+      "minAttributesRequiredToSearch": 1,
+      "name": "Unused tracked entity type",
+      "sharing": {
+        "public": "rwrw----"
       },
       "user": {
         "id": "tTgjgobT1oS"

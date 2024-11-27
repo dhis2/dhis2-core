@@ -29,17 +29,27 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityChangeLogService {
   void addTrackedEntityAttributeValueChangeLog(
       TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+
+  void addTrackedEntityChangeLog(
+      TrackedEntity trackedEntity,
+      TrackedEntityAttribute trackedEntityAttribute,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      String userName);
 
   /**
    * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
@@ -52,7 +62,7 @@ public interface TrackedEntityChangeLogService {
   int countTrackedEntityAttributeValueChangeLogs(
       TrackedEntityAttributeValueChangeLogQueryParams params);
 
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity);
 
   /**
    * Retrieves the change log data for a particular tracked entity.
