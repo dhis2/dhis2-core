@@ -457,7 +457,7 @@ public class TrackedEntityInstanceController {
           .setLocation(
               singleSummary == null
                   ? null
-                  : "trackedEntityInstances/" + singleSummary.getReference());
+                  : "/trackedEntityInstances/" + singleSummary.getReference());
     }
     return jobConfigurationReport(jobId);
   }
