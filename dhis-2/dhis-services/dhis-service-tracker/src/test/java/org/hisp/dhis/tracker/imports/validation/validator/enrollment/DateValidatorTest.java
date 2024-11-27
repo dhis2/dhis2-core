@@ -124,7 +124,7 @@ class DateValidatorTest {
     // Create enrollment with dates set to tomorrow
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(UID.generate())
+            .enrollment(CodeGenerator.generateUid())
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .occurredAt(dateTomorrow)
             .enrolledAt(dateTomorrow)
