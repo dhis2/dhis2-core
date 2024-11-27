@@ -75,6 +75,7 @@ public class LoginTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final RestTemplate restTemplate =
       new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+  public static final String SMTP_HOSTNAME = "test";
 
   public static String dhis2ServerApi = "http://localhost:8080/api";
   public static String dhis2Server = "http://localhost:8080/";
@@ -85,7 +86,7 @@ public class LoginTest {
   private static void startSMTPServer() {
     smtpPort = findAvailablePort();
     wiser = new Wiser();
-    wiser.setHostname("test");
+    wiser.setHostname(SMTP_HOSTNAME);
     wiser.setPort(smtpPort);
     wiser.start();
   }
@@ -93,8 +94,8 @@ public class LoginTest {
   @BeforeAll
   static void setup() throws JsonProcessingException {
     startSMTPServer();
-    dhis2ServerApi = "http://localhost:51261/api";
-    dhis2Server = "http://localhost:51261/";
+    dhis2ServerApi = TestConfiguration.get().baseUrl();
+    dhis2Server = TestConfiguration.get().baseUrl().replace("/api", "/");
     // Create a new org unit for the new users
     orgUnitUID = createOrgUnit(objectMapper);
   }
@@ -213,7 +214,7 @@ public class LoginTest {
 
     // Enable Email 2FA in system settings, set up SMTP server
     setSystemPropertyWithCookie("email2FAEnabled", "true", cookie);
-    setSystemPropertyWithCookie("keyEmailHostName", "localhost", cookie);
+    setSystemPropertyWithCookie("keyEmailHostName", SMTP_HOSTNAME, cookie);
     setSystemPropertyWithCookie("keyEmailPort", String.valueOf(smtpPort), cookie);
     setSystemPropertyWithCookie("keyEmailUsername", "nils", cookie);
     setSystemPropertyWithCookie("keyEmailSender", "system@nils.no", cookie);
