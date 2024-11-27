@@ -52,7 +52,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class TrackedEntityChangeLogServiceTest extends TrackerTest {
+class TrackedEntityChangeLogServiceTest extends TrackerTest {
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
