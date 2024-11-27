@@ -66,6 +66,7 @@ import org.springframework.security.web.authentication.session.ConcurrentSession
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
@@ -106,6 +107,7 @@ public class AuthenticationController {
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
+
   @Autowired protected ApplicationEventPublisher eventPublisher;
   @Autowired private HttpSessionEventPublisher httpSessionEventPublisher;
 
@@ -123,14 +125,16 @@ public class AuthenticationController {
 
       int maxSessions =
           Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
-
       ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
           new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
       concurrentStrategy.setMaximumSessions(maxSessions);
 
       sessionStrategy =
           new CompositeSessionAuthenticationStrategy(
-              List.of(new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+              List.of(
+                  concurrentStrategy,
+                  new SessionFixationProtectionStrategy(),
+                  new RegisterSessionAuthenticationStrategy(sessionRegistry)));
     }
   }
 

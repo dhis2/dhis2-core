@@ -95,9 +95,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
-    // Disable default session cookie
-    //    context.setSessionTrackingModes(Collections.emptySet());
-
     context
         .addFilter(
             "SpringSessionRepositoryFilter",
