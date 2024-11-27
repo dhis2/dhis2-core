@@ -319,27 +319,23 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
   private void updateAttributeValue(
       String trackedEntity, String trackedEntityAttribute, String newValue) {
-    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
-        trackerObjects.getTrackedEntities().stream()
-            .filter(t -> t.getTrackedEntity().getValue().equalsIgnoreCase(trackedEntity))
-            .findFirst()
-            .stream()
-            .toList();
-
-    trackedEntities.stream()
-        .flatMap(
-            t ->
-                t.getAttributes().stream()
-                    .filter(
-                        tea ->
-                            tea.getAttribute()
-                                .getIdentifier()
-                                .equalsIgnoreCase(trackedEntityAttribute)))
+    trackerObjects.getTrackedEntities().stream()
+        .filter(t -> t.getTrackedEntity().getValue().equalsIgnoreCase(trackedEntity))
         .findFirst()
-        .ifPresent(tea -> tea.setValue(newValue));
+        .ifPresent(
+            t -> {
+              t.getAttributes().stream()
+                  .filter(
+                      tea ->
+                          tea.getAttribute()
+                              .getIdentifier()
+                              .equalsIgnoreCase(trackedEntityAttribute))
+                  .findFirst()
+                  .ifPresent(attribute -> attribute.setValue(newValue));
 
-    assertNoErrors(
-        trackerImportService.importTracker(
-            importParams, TrackerObjects.builder().trackedEntities(trackedEntities).build()));
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().trackedEntities(List.of(t)).build()));
+            });
   }
 }
