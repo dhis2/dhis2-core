@@ -40,8 +40,8 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integrity check to identify users who have a data view organisation unit, but who cannot access
- * data which they have possibly entered at a higher level of the hierarchy. {@see
+ * Integrity check to identify users who have a data view organisation unit which does not have
+ * access to their data entry organisation units. {@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_capture_ou_not_in_data_view_ou.yaml}
  *
  * @author Jason P. Pickering
@@ -116,9 +116,9 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
                 + userRoleUid
                 + "'}]}"));
 
-    // Note that there are already two users which exist due to the overall test setup, thus, five
+    // Note that there are already two users which exist due to the overall test setup, thus, four
     // users in total. Only userB should be flagged.
-    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 20, userBUid, "janedoe", null, true);
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 25, userBUid, "janedoe", null, true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
