@@ -29,15 +29,21 @@ package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.sms.command.code.SMSCode;
+import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,6 +56,11 @@ import org.springframework.stereotype.Component;
 public class MetadataCategoryOptionComboMergeHandler {
 
   private final CategoryOptionStore categoryOptionStore;
+  private final CategoryComboStore categoryComboStore;
+  private final DataElementOperandStore dataElementOperandStore;
+  private final MinMaxDataElementStore minMaxDataElementStore;
+  private final PredictorStore predictorStore;
+  private final SMSCommandStore smsCommandStore;
 
   /**
    * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}
@@ -70,54 +81,78 @@ public class MetadataCategoryOptionComboMergeHandler {
   }
 
   /**
-   * Remove sources from {@link CategoryOptionCombo} and add target to {@link CategoryOptionCombo}
+   * Remove sources from {@link CategoryCombo} and add target to {@link CategoryCombo}
    *
    * @param sources to be removed
    * @param target to add
    */
   public void handleCategoryCombos(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+    List<CategoryCombo> categoryCombos =
+        categoryComboStore.getByCategoryOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+    categoryCombos.forEach(
+        cc -> {
+          cc.addCategoryOptionCombo(target);
+          cc.removeCategoryOptionCombos(sources);
+        });
   }
 
   /**
-   * Remove sources from {@link DataElementOperand} and add target to {@link DataElementOperand}
+   * Set target to {@link DataElementOperand}
    *
-   * @param sources to be removed
+   * @param sources to be actioned
    * @param target to add
    */
   public void handleDataElementOperands(
       List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO x 2
+    List<DataElementOperand> dataElementOperands =
+        dataElementOperandStore.getByCategoryOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+    dataElementOperands.forEach(deo -> deo.setCategoryOptionCombo(target));
   }
 
   /**
-   * Remove sources from {@link MinMaxDataElement} and add target to {@link MinMaxDataElement}
+   * Set target to {@link MinMaxDataElement}
    *
-   * @param sources to be removed
+   * @param sources to be actioned
    * @param target to add
    */
   public void handleMinMaxDataElements(
       List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+    List<MinMaxDataElement> minMaxDataElements =
+        minMaxDataElementStore.getByCategoryOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+    minMaxDataElements.forEach(mmde -> mmde.setOptionCombo(target));
   }
 
   /**
-   * Remove sources from {@link Predictor} and add target to {@link Predictor}
+   * Set target to {@link Predictor}
    *
-   * @param sources to be removed
+   * @param sources to be actioned
    * @param target to add
    */
   public void handlePredictors(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+    List<Predictor> predictors =
+        predictorStore.getByCategoryOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+    predictors.forEach(p -> p.setOutputCombo(target));
   }
 
   /**
-   * Remove sources from {@link SMSCode} and add target to {@link SMSCode}
+   * Set target to {@link SMSCode}
    *
    * @param sources to be removed
    * @param target to add
    */
   public void handleSmsCodes(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+    List<SMSCode> smsCodes =
+        smsCommandStore.getCodesByCategoryOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+    smsCodes.forEach(smsCode -> smsCode.setOptionId(target));
   }
 }

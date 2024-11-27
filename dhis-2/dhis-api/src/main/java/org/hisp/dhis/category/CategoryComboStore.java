@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
  */
 public interface CategoryComboStore extends IdentifiableObjectStore<CategoryCombo> {
   List<CategoryCombo> getCategoryCombosByDimensionType(DataDimensionType dataDimensionType);
+
+  List<CategoryCombo> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

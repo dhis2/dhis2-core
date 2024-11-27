@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -45,4 +46,6 @@ public interface PredictorStore extends IdentifiableObjectStore<Predictor> {
 
   List<Predictor> getAllWithSampleSkipTestContainingDataElement(
       @Nonnull List<String> dataElementUids);
+
+  List<Predictor> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

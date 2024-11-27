@@ -29,10 +29,13 @@ package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -62,5 +65,18 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimensionType))
             .addPredicate(root -> builder.equal(root.get("name"), "default")));
+  }
+
+  @Override
+  public List<CategoryCombo> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct cc from CategoryCombo cc
+            join cc.optionCombos coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
   }
 }

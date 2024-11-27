@@ -29,7 +29,9 @@ package org.hisp.dhis.dataelement;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,4 +40,6 @@ public interface DataElementOperandStore extends IdentifiableObjectStore<DataEle
   String ID = DataElementOperand.class.getName();
 
   List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements);
+
+  List<DataElementOperand> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }
