@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_SCHEMA;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
@@ -44,6 +45,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
@@ -155,6 +157,8 @@ public class HibernateConfig {
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
     }
 
+    properties.put(AvailableSettings.HBM2DDL_AUTO, getHibernateSchemaAction(dhisConfig));
+
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
 
@@ -190,5 +194,17 @@ public class HibernateConfig {
    */
   private boolean shouldGenerateDDL(DhisConfigurationProvider dhisConfig) {
     return "update".equals(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
+  }
+
+  private Action getHibernateSchemaAction(DhisConfigurationProvider dhisConfig) {
+    try {
+      return Action.interpretHbm2ddlSetting(dhisConfig.getProperty(CONNECTION_SCHEMA));
+    } catch (Exception e) {
+      log.warn(
+          String.format(
+              "Invalid value for property connection.schema: %s. Using validate as default mode.",
+              dhisConfig.getProperty(CONNECTION_SCHEMA)));
+      return Action.VALIDATE;
+    }
   }
 }
