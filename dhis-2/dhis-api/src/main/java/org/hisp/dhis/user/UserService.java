@@ -541,7 +541,12 @@ public interface UserService {
 
   void invalidateAllSessions();
 
-  void invalidateUserSessions(String uid);
+  /**
+   * Invalidate all sessions for the given user.
+   *
+   * @param username the username of the user account.
+   */
+  void invalidateUserSessions(String username);
 
   /**
    * Register a account recovery attempt for the given user account.

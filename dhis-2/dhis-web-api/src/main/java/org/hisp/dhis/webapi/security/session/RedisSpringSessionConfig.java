@@ -57,10 +57,9 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @EnableRedisHttpSession
 public class RedisSpringSessionConfig {
 
-  @Autowired LettuceConnectionFactory lettuceConnectionFactory;
-
   @Bean
-  public RedisIndexedSessionRepository sessionRepository() {
+  public RedisIndexedSessionRepository sessionRepository(
+      @Autowired LettuceConnectionFactory lettuceConnectionFactory) {
     RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
     redisTemplate.setConnectionFactory(lettuceConnectionFactory);
     redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -100,10 +99,4 @@ public class RedisSpringSessionConfig {
   public HttpSessionEventPublisher httpSessionEventPublisher() {
     return new HttpSessionEventPublisher();
   }
-
-  //  @Bean
-  //  public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-  //    //    return new GenericJackson2JsonRedisSerializer();
-  //    return new GenericJackson2JsonRedisSerializer();
-  //  }
 }

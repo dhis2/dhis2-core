@@ -418,7 +418,6 @@ public class LoginTest {
     LoginRequest floginRequest =
         LoginRequest.builder().username("username").password("password").build();
     HttpEntity<LoginRequest> frequestEntity = new HttpEntity<>(floginRequest, fheaders);
-
     ResponseEntity<LoginResponse> firstResponse =
         restTemplate.postForEntity(dhis2Server + url, frequestEntity, LoginResponse.class);
     cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
@@ -429,7 +428,10 @@ public class LoginTest {
         LoginRequest.builder().username("admin").password("district").build();
     HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
 
-    restTemplate.postForEntity(dhis2ServerApi + "/auth/login", requestEntity, LoginResponse.class);
+    ResponseEntity<LoginResponse> loginResponseResponseEntity =
+        restTemplate.postForEntity(
+            dhis2ServerApi + "/auth/login", requestEntity, LoginResponse.class);
+    cookie = extractSessionCookie(loginResponseResponseEntity);
 
     HttpHeaders headers = new HttpHeaders();
     headers.set("Cookie", cookie);

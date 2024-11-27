@@ -217,7 +217,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     updateUserSettings(persistedUser);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUid());
+      userService.invalidateUserSessions(persistedUser.getUsername());
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);

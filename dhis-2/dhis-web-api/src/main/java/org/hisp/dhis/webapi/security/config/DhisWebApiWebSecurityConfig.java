@@ -243,7 +243,6 @@ public class DhisWebApiWebSecurityConfig {
     http.requestCache().requestCache(requestCache);
 
     configureMatchers(http);
-    //    configureFormLogin(http);
     configureCspFilter(http, dhisConfig, configurationService);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
@@ -251,18 +250,6 @@ public class DhisWebApiWebSecurityConfig {
     setHttpHeaders(http);
 
     return http.build();
-  }
-
-  private void configureFormLogin(HttpSecurity http) throws Exception {
-    http.formLogin()
-        .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-        .loginPage("/dhis-web-login/")
-        .usernameParameter("j_username")
-        .passwordParameter("j_password")
-        .loginProcessingUrl("/api/authentication/login")
-        .failureUrl("/dhis-web-login/?error=true")
-        .defaultSuccessUrl("/dhis-web-dashboard/", true)
-        .permitAll();
   }
 
   public static void setHttpHeaders(HttpSecurity http) throws Exception {
@@ -491,19 +478,6 @@ public class DhisWebApiWebSecurityConfig {
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
         .expiredUrl("/dhis-web-commons-security/logout.action");
-
-    //
-    //        .sessionManagement()
-    //        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-    //        .maximumSessions(10)
-    //        //        .sessionRegistry(sessionRegistry())
-    //        .and()
-    //        .sessionFixation()
-    //        .newSession();
-
-    //        .migrateSession()
-    //        .enableSessionUrlRewriting(false)
-    //        .expiredUrl("/dhis-web-commons-security/logout.action");
   }
 
   @Bean
