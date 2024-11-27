@@ -51,6 +51,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -262,7 +263,7 @@ public class TwoFactorAuthService {
 
     send2FACodeWithEmailSender(user, email2FACode.code());
 
-    userService.updateUser(user);
+    userService.updateUser(user, new SystemUser());
   }
 
   public record Email2FACode(String code, String encodedCode) {}
