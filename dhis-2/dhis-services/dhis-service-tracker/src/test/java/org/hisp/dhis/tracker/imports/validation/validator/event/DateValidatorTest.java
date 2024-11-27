@@ -90,7 +90,6 @@ class DateValidatorTest extends TestBase {
 
   @Test
   void testEventIsValid() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
         .thenReturn(getProgramWithoutRegistration());
     Event event = new Event();
@@ -98,32 +97,26 @@ class DateValidatorTest extends TestBase {
     event.setOccurredAt(now());
     event.setStatus(EventStatus.ACTIVE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertIsEmpty(reporter.getErrors());
   }
 
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
         .thenReturn(getProgramWithoutRegistration());
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1031);
   }
 
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -131,16 +124,13 @@ class DateValidatorTest extends TestBase {
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setStatus(EventStatus.ACTIVE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1031);
   }
 
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -148,16 +138,13 @@ class DateValidatorTest extends TestBase {
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setStatus(EventStatus.COMPLETED);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1031);
   }
 
   @Test
   void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -166,16 +153,13 @@ class DateValidatorTest extends TestBase {
     event.setOccurredAt(Instant.now());
     event.setStatus(EventStatus.SCHEDULE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1050);
   }
 
   @Test
   void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -192,7 +176,6 @@ class DateValidatorTest extends TestBase {
 
   @Test
   void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -202,16 +185,13 @@ class DateValidatorTest extends TestBase {
     event.setCompletedAt(sevenDaysAgo());
     event.setStatus(EventStatus.COMPLETED);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1043);
   }
 
   @Test
   void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -221,16 +201,13 @@ class DateValidatorTest extends TestBase {
     event.setScheduledAt(null);
     event.setStatus(EventStatus.SKIPPED);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1046);
   }
 
   @Test
   void shouldFailValidationForEventWhenDateBelongsToExpiredPeriod() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -239,16 +216,13 @@ class DateValidatorTest extends TestBase {
     event.setOccurredAt(sevenDaysAgo());
     event.setStatus(EventStatus.ACTIVE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertHasError(reporter, event, E1047);
   }
 
   @Test
   void shouldPassValidationForEventWhenDateBelongsToPastPeriodWithZeroExpiryDays() {
-    // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(0));
     Event event = new Event();
@@ -257,16 +231,13 @@ class DateValidatorTest extends TestBase {
     event.setOccurredAt(sevenDaysAgo());
     event.setStatus(EventStatus.ACTIVE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void shouldFailValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
-    // given
+  void shouldPassValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
@@ -275,10 +246,8 @@ class DateValidatorTest extends TestBase {
     event.setScheduledAt(sevenDaysLater());
     event.setStatus(EventStatus.SCHEDULE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
     assertIsEmpty(reporter.getErrors());
   }
 
