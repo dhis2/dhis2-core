@@ -68,7 +68,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
@@ -79,8 +78,6 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserSettingsService userSettingsService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private SystemSettingsService settingsService;
@@ -88,8 +85,6 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private PasswordManager passwordManager;
-
-  @Autowired private TransactionTemplate transactionTemplate;
 
   private OrganisationUnit unitA;
 
@@ -680,6 +675,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testBCryptedPasswordOnInputError() {
     User user = new User();
+    user.setFirstName("test");
+    user.setSurname("tester");
     user.setUsername("test");
     user.setPassword("password");
     userService.addUser(user);
