@@ -235,7 +235,8 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testVerifyEmailWithTokenTwice() {
-    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
 
     User user = switchToNewUser("kent");
 
@@ -254,7 +255,8 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testSendEmailVerification() {
-    settingsService.put("keyAccountRecovery", true);
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
 
     User user = switchToNewUser("clark");
 
