@@ -47,9 +47,11 @@ import javax.mail.MessagingException;
 import javax.mail.Part;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -60,21 +62,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 
 @Tag("logintests")
+@Slf4j
 public class LoginTest {
-
   public static final String SUPER_USER_ROLE_UID = "yrB6vc5Ip3r";
   private static final ObjectMapper objectMapper = new ObjectMapper();
-  private static final RestTemplate restTemplate =
-      new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+  private static final RestTemplate restTemplate = new RestTemplate();
   public static final String SMTP_HOSTNAME = "test";
 
   public static String dhis2ServerApi = "http://localhost:8080/api";
@@ -82,6 +81,8 @@ public class LoginTest {
   private static int smtpPort;
   private static Wiser wiser;
   private static String orgUnitUID;
+
+  private static String cookie;
 
   private static void startSMTPServer() {
     smtpPort = findAvailablePort();
@@ -100,16 +101,27 @@ public class LoginTest {
     orgUnitUID = createOrgUnit(objectMapper);
   }
 
+  @AfterEach
+  void tearDown() {
+    wiser.getMessages().clear();
+    logoutWithCookie(cookie);
+    cookie = null;
+  }
+
   @Test
-  void testLoginAndGetCookie() {
-    String username = TestConfiguration.get().defaultUserUsername();
-    String password = TestConfiguration.get().defaultUSerPassword();
+  void testLoginAndGetCookie() throws JsonProcessingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    // Create a new user with the superuser role
+    createSuperuser(username, password, orgUnitUID);
+
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
 
+    cookie = extractSessionCookie(loginResponse);
+
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
-    String cookie = extractSessionCookie(loginResponse);
 
     // Verify session cookie works
     ResponseEntity<String> meResponse = getWithCookie("/me", cookie);
@@ -130,7 +142,7 @@ public class LoginTest {
 
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
-    String cookie = extractSessionCookie(loginResponse);
+    cookie = extractSessionCookie(loginResponse);
 
     // Verify session
     ResponseEntity<String> getResponse = getWithCookie("/me", cookie);
@@ -167,10 +179,10 @@ public class LoginTest {
     ResponseEntity<LoginResponse> login2FAResp =
         loginWithUsernameAndPassword(username, password, login2FACode);
     assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
-    String newSessionCookie = extractSessionCookie(login2FAResp);
+    cookie = extractSessionCookie(login2FAResp);
 
     // Verify new session cookie works
-    ResponseEntity<String> apiMeResp = getWithCookie("/me", newSessionCookie);
+    ResponseEntity<String> apiMeResp = getWithCookie("/me", cookie);
     assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
     assertNotNull(apiMeResp.getBody());
   }
@@ -202,7 +214,7 @@ public class LoginTest {
 
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
-    String cookie = extractSessionCookie(loginResponse);
+    cookie = extractSessionCookie(loginResponse);
 
     // Verify session
     ResponseEntity<String> meResponse = getWithCookie("/me", cookie);
@@ -266,8 +278,8 @@ public class LoginTest {
     assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
 
     // Verify new session cookie works
-    String newSessionCookie = extractSessionCookie(login2FAResp);
-    ResponseEntity<String> apiMeResp = getWithCookie("/me", newSessionCookie);
+    cookie = extractSessionCookie(login2FAResp);
+    ResponseEntity<String> apiMeResp = getWithCookie("/me", cookie);
     assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
     assertNotNull(apiMeResp.getBody());
   }
@@ -361,18 +373,17 @@ public class LoginTest {
   }
 
   private static void assertRedirectUrl(String url, String redirectUrl) {
-    RestTemplate restTemplate = new RestTemplate();
     // Do an invalid login and capture response cookie, we need to do this first
     // so that unauthorized URL is cached in the session
     ResponseEntity<LoginResponse> firstResponse =
         restTemplate.postForEntity(dhis2Server + url, null, LoginResponse.class);
     HttpHeaders headersFirstResponse = firstResponse.getHeaders();
-    String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
+    cookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
 
     // Do a valid login request with the first cookie, check that we get redirected to the first
     // cached URL
     HttpHeaders getHeaders = new HttpHeaders();
-    getHeaders.set("Cookie", firstCookie);
+    getHeaders.set("Cookie", cookie);
     LoginRequest loginRequest =
         LoginRequest.builder().username("admin").password("district").build();
     HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
@@ -402,29 +413,26 @@ public class LoginTest {
         };
 
     RestTemplate restTemplate = new RestTemplate(requestFactory);
-    restTemplate
-        .getMessageConverters()
-        .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+    HttpHeaders fheaders = new HttpHeaders();
+    LoginRequest floginRequest =
+        LoginRequest.builder().username("username").password("password").build();
+    HttpEntity<LoginRequest> frequestEntity = new HttpEntity<>(floginRequest, fheaders);
 
     ResponseEntity<LoginResponse> firstResponse =
-        restTemplate.postForEntity(dhis2Server + url, null, LoginResponse.class);
-    HttpHeaders headersFirstResponse = firstResponse.getHeaders();
-    String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
+        restTemplate.postForEntity(dhis2Server + url, frequestEntity, LoginResponse.class);
+    cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
 
     HttpHeaders getHeaders = new HttpHeaders();
-    getHeaders.set("Cookie", firstCookie);
+    getHeaders.set("Cookie", cookie);
     LoginRequest loginRequest =
         LoginRequest.builder().username("admin").password("district").build();
     HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
 
-    ResponseEntity<LoginResponse> loginResponse =
-        restTemplate.postForEntity(
-            dhis2ServerApi + "/auth/login", requestEntity, LoginResponse.class);
-    HttpHeaders loginHeaders = loginResponse.getHeaders();
-    String loggedInCookie = loginHeaders.get(HttpHeaders.SET_COOKIE).get(0);
+    restTemplate.postForEntity(dhis2ServerApi + "/auth/login", requestEntity, LoginResponse.class);
 
     HttpHeaders headers = new HttpHeaders();
-    headers.set("Cookie", loggedInCookie);
+    headers.set("Cookie", cookie);
     HttpEntity<String> entity = new HttpEntity<>(headers);
     ResponseEntity<String> redirResp =
         restTemplate.exchange(
@@ -434,7 +442,8 @@ public class LoginTest {
     List<String> location = respHeaders.get("Location");
     assertNotNull(location);
     assertEquals(1, location.size());
-    assertEquals(redirectUrl, location.get(0));
+    String actual = location.get(0);
+    assertEquals(redirectUrl, actual.replaceAll(dhis2Server, ""));
   }
 
   private static void setSystemPropertyWithCookie(String property, String value, String cookie) {
@@ -528,6 +537,21 @@ public class LoginTest {
     try {
       return restTemplate.exchange(
           dhis2ServerApi + path, HttpMethod.GET, requestEntity, String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+  }
+
+  private static ResponseEntity<String> logoutWithCookie(String cookie) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Cookie", cookie);
+    HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
+    try {
+      return restTemplate.exchange(
+          dhis2Server + "/dhis-web-commons-security/logout.action",
+          HttpMethod.GET,
+          requestEntity,
+          String.class);
     } catch (HttpClientErrorException e) {
       return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
     }
