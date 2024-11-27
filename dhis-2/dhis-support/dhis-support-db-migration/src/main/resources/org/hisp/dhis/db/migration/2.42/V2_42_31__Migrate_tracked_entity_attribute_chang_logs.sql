@@ -38,7 +38,7 @@ select
     coalesce (cl.modifiedby, '--')
 from (
          select audit.trackedentityattributevalueauditid, audit.trackedentityid, audit.created, tea.trackedentityattributeid, audit.audittype, audit.modifiedby,
-                lead (audit.value) over (partition by audit.trackedentityid, audit.trackedentityattributeid order by audit.created DESC) as previouschangelogvalue,
+                lead (audit.value) over (partition by audit.trackedentityid, audit.trackedentityattributeid order by audit.created desc) as previouschangelogvalue,
                 audit.value as currentchangelogvalue
          from trackedentityattributevalueaudit audit
                   join trackedentity t using(trackedentityid)
