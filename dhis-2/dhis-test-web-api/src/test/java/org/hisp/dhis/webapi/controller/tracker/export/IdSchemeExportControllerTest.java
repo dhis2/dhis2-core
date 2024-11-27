@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertUser;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -76,6 +77,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -312,6 +314,52 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     assertAll(
         () -> assertDataValues(events.get("QRYjLTiJTrA"), event1, idSchemeParam),
         () -> assertDataValues(events.get("kWjSezkXHVp"), event2, idSchemeParam));
+  }
+
+  @Test
+  void shouldExportEventDataValuesEquallyWithIdSchemeUIDAndName() {
+    // ensure the event data value JSON is identical when idScheme=UID than other idSchemes as
+    // different code is used to map it due to it being stored as JSONB
+    Event event = get(Event.class, "QRYjLTiJTrA");
+    assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = get(DataElement.class, dataElementUid);
+
+    JsonEvent uidJson =
+        GET("/tracker/events/QRYjLTiJTrA?fields=event,dataValues&dataElementIdScheme=UID")
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+    JsonEvent nameJson =
+        GET("/tracker/events/QRYjLTiJTrA?fields=event,dataValues&dataElementIdScheme=NAME")
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    JsonDataValue uidDataValue =
+        uidJson.getDataValues().stream()
+            .filter(dv -> dataElementUid.equals(dv.getDataElement()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(uidDataValue, "event should have dataValues");
+    JsonDataValue nameDataValue =
+        nameJson.getDataValues().stream()
+            .filter(dv -> dataElement.getName().equals(dv.getDataElement()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(nameDataValue, "event should have dataValues");
+    // dataElement is asserted in other tests
+    assertAll(
+        "assert event fields",
+        () -> assertEquals(uidDataValue.getValue(), nameDataValue.getValue(), "value"),
+        () -> assertEquals(uidDataValue.getCreatedAt(), nameDataValue.getCreatedAt(), "createdAt"),
+        () -> assertEquals(uidDataValue.getUpdatedAt(), nameDataValue.getUpdatedAt(), "updatedAt"),
+        () -> assertEquals(uidDataValue.getStoredBy(), nameDataValue.getStoredBy(), "storedBy"),
+        () ->
+            assertEquals(
+                uidDataValue.getProvidedElsewhere(),
+                nameDataValue.getProvidedElsewhere(),
+                "providedElsewhere"),
+        () -> assertUser(uidDataValue.getCreatedBy(), nameDataValue.getCreatedBy(), "createdBy"),
+        () -> assertUser(uidDataValue.getUpdatedBy(), nameDataValue.getUpdatedBy(), "updatedBy"));
   }
 
   @ParameterizedTest
