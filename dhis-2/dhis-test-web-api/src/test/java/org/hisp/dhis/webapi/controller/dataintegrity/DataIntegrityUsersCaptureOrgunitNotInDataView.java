@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,7 +38,6 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -120,8 +118,8 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
                 + "'}]}"));
 
     JsonArray users = GET("/users").content().getArray("users");
-    assertEquals( 4, users.size());
-    //1 user out of 4, thus 25% of users have data integrity issues
+    assertEquals(4, users.size());
+    // 1 user out of 4, thus 25% of users have data integrity issues
     assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 25, userBUid, "janedoe", null, true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
