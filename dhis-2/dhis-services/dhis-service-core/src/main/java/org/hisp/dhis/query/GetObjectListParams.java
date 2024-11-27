@@ -40,6 +40,7 @@ import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * Base for parameters supported by CRUD {@code CRUD.getObjectList}.
@@ -70,6 +71,18 @@ public class GetObjectListParams extends GetObjectParams {
    * (contains). Can be used in combination with regular filters.
    */
   @JsonProperty String query;
+
+  @OpenApi.Ignore
+  @CheckForNull
+  public List<String> getFilters() {
+    return filters;
+  }
+
+  @OpenApi.Ignore
+  @CheckForNull
+  public List<String> getOrders() {
+    return orders;
+  }
 
   @Nonnull
   @JsonIgnore

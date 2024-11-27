@@ -126,7 +126,7 @@ public class OrganisationUnitController
     String memberObject;
 
     String memberCollection;
-    Integer parentLevel;
+    @OpenApi.Ignore Integer parentLevel;
     Integer level;
     Integer maxLevel;
     boolean withinUserHierarchy;
