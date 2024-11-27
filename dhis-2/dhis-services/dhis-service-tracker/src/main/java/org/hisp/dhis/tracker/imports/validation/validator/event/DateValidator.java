@@ -128,8 +128,7 @@ class DateValidator implements Validator<Event> {
         .plus(
             ofDays(
                 program.getExpiryDays()
-                    + 1)) // An extra 1 day has to be added to account for the full 24 hours of the
-        // final expiring day.
+                    + 1)) // Extra day added to account for final 24 hours of expiring day
         .isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
     }
