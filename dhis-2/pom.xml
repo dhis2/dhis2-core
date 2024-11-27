@@ -2063,6 +2063,7 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-cql</ignoredUnusedDeclaredDependency>
@@ -2081,7 +2082,9 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.hibernate:hibernate-micrometer</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-spring-legacy</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
               <!-- Needed by dhis-web-server modules -->
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.velocity.tools:velocity-tools-generic</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
@@ -2115,6 +2118,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
@@ -2130,11 +2134,13 @@ jasperreports.version=${jasperreports.version}
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
+              <ignoredNonTestScopedDependency>org.springframework.data:spring-data-redis:jar</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-databind</ignoredNonTestScopedDependency>
               <!-- Needed by dhis-web-server module -->
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-system</ignoredUnusedDeclaredDependency>
             </ignoredNonTestScopedDependencies>
