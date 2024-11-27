@@ -85,6 +85,7 @@ public class DataElementOperandController {
 
   @Data
   @EqualsAndHashCode(callSuper = true)
+  @OpenApi.Property
   public static final class GetDataElementOperandObjectListParams extends GetObjectListParams {
     boolean persisted;
     boolean totals;
