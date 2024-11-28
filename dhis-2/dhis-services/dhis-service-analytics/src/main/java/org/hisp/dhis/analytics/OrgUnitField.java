@@ -223,7 +223,7 @@ public class OrgUnitField {
           + ((noColumnAlias) ? "" : " as " + col);
     }
 
-    return quote(tableAlias, col);
+    return sqlBuilder.quote(tableAlias, col);
   }
 
   @Override
