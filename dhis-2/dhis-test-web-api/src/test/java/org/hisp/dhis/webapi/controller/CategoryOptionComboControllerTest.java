@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
@@ -149,5 +150,27 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     assertEquals(
         "Category option combo Not default cannot be associated with the default category combo",
         error.getMessage());
+  }
+
+  @Test
+  @DisplayName("Can delete a duplicate default COC")
+  void canAllowDeleteDuplicatedDefaultCOC() {
+    // Revert to the service layer as the API should not allow us to create a duplicate default COC
+    CategoryOptionCombo defaultCOC = categoryService.getDefaultCategoryOptionCombo();
+    CategoryCombo categoryCombo =
+        categoryService.getCategoryCombo(defaultCOC.getCategoryCombo().getUid());
+    CategoryOptionCombo existingCategoryOptionCombo =
+        categoryService.getCategoryOptionCombo(defaultCOC.getUid());
+    CategoryOptionCombo categoryOptionComboDuplicate = new CategoryOptionCombo();
+    categoryOptionComboDuplicate.setAutoFields();
+    categoryOptionComboDuplicate.setCategoryCombo(categoryCombo);
+    Set<CategoryOption> newCategoryOptions =
+        new HashSet<>(existingCategoryOptionCombo.getCategoryOptions());
+    categoryOptionComboDuplicate.setCategoryOptions(newCategoryOptions);
+    categoryOptionComboDuplicate.setName("dupDefault");
+    categoryService.addCategoryOptionCombo(categoryOptionComboDuplicate);
+
+    // Can delete the duplicated default COC
+    DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()).content(HttpStatus.OK);
   }
 }
