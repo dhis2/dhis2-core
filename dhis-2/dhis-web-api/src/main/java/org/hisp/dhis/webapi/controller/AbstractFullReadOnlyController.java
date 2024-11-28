@@ -505,7 +505,7 @@ public abstract class AbstractFullReadOnlyController<
     // by default: nothing special to do
   }
 
-  protected void getEntityListPostProcess(P params, List<T> entities) {}
+  protected void getEntityListPostProcess(P params, List<T> entities) throws BadRequestException {}
 
   private long countGetObjectList(P params, List<Criterion> additionalFilters)
       throws BadRequestException {

@@ -52,25 +52,50 @@ import org.hisp.dhis.common.OpenApi;
 @EqualsAndHashCode(callSuper = true)
 public class GetObjectListParams extends GetObjectParams {
 
+  @OpenApi.Description(
+      """
+      Filter results using `filter={property}:{operator}[:{value}]` expressions as described in detail in
+      [Metadata-object-filter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_object_filter).
+    """)
   @JsonProperty("filter")
   @CheckForNull
   List<String> filters;
 
+  @OpenApi.Description(
+      """
+    Adds ordering to the result list.
+    Case-sensitive: `{property}:asc`, `{property}:desc`
+    Case-insensitive: `{property}:iasc`, `{property}:idesc`
+    Only supports properties that are both persisted and simple.
+    """)
   @JsonProperty("order")
   @CheckForNull
   List<String> orders;
 
-  @JsonProperty Junction.Type rootJunction = Junction.Type.AND;
+  @OpenApi.Description("Combine `filter`s with `AND` (default) or `OR` logic.")
+  @JsonProperty
+  Junction.Type rootJunction = Junction.Type.AND;
 
-  @JsonProperty boolean paging = true;
-  @JsonProperty int page = 1;
-  @JsonProperty int pageSize = 50;
+  @OpenApi.Description(
+      "Use paging controlled by `page` and `pageSize` or return all matches (use with caution).")
+  @JsonProperty
+  boolean paging = true;
 
-  /**
-   * A special filter that matches the query term against the ID and code (equals) and against name
-   * (contains). Can be used in combination with regular filters.
-   */
-  @JsonProperty String query;
+  @OpenApi.Description("The page number to show.")
+  @JsonProperty
+  int page = 1;
+
+  @OpenApi.Description("The maximum number of elements on a page.")
+  @JsonProperty
+  int pageSize = 50;
+
+  @OpenApi.Description(
+      """
+   Adds a filter equivalent to the following three `filter`s combined _OR_ (independent of `rootJunction`):
+   `id:eq:{query}`, `code:eq:{query}`, `name:like:{query}`. Can be used in addition to regular `filter`s.
+    """)
+  @JsonProperty
+  String query;
 
   @OpenApi.Ignore
   @CheckForNull

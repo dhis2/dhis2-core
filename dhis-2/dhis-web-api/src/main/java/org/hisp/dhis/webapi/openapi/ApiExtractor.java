@@ -471,8 +471,8 @@ final class ApiExtractor {
       } else if (isOfSuitableParamsObjectType(p)) {
         if (isOfConstructableParamsObjectType(p.getParameterizedType())) {
           extractParams(endpoint, p.getType());
-        } else if (p.getParameterizedType() instanceof TypeVariable<?> var
-            && var.getName().equals("P")) {
+        } else if (p.getParameterizedType() instanceof TypeVariable<?> v
+            && v.getName().equals("P")) {
           // Note: this makes simplified assumptions and works using an approximation of the type
           // variable substitution
           // it only works under the assumption that the parameter is called P and is always the 2nd

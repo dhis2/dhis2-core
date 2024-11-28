@@ -87,9 +87,16 @@ public class DataElementOperandController {
   @EqualsAndHashCode(callSuper = true)
   @OpenApi.Property
   public static final class GetDataElementOperandObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        "When set all existing operands are the basis of the result list (takes precedence).")
     boolean persisted;
+
+    @OpenApi.Description(
+        "Whether to include totals when loading operands by `dataSet` or data element groups from `filter`s.")
     boolean totals;
 
+    @OpenApi.Description(
+        "When set the operands linked to the specified dataset are the basis for the result list.")
     @OpenApi.Property({UID.class, DataSet.class})
     String dataSet;
   }
