@@ -182,6 +182,14 @@ public abstract class TrackerTest extends IntegrationTestBase {
     injectSecurityContext(user);
   }
 
+  public TrackedEntityInstance persistTrackedEntityInstance(String uid) {
+    TrackedEntityInstance entityInstance = createTrackedEntityInstance(organisationUnitA);
+    entityInstance.setTrackedEntityType(trackedEntityTypeA);
+    entityInstance.setUid(uid);
+    trackedEntityInstanceService.addTrackedEntityInstance(entityInstance);
+    return entityInstance;
+  }
+
   public TrackedEntityInstance persistTrackedEntityInstance() {
     TrackedEntityInstance entityInstance = createTrackedEntityInstance(organisationUnitA);
     entityInstance.setTrackedEntityType(trackedEntityTypeA);
@@ -244,6 +252,10 @@ public abstract class TrackerTest extends IntegrationTestBase {
     return _persistTrackedEntityInstanceWithEnrollmentAndEvents(0, new HashMap<>());
   }
 
+  public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollments(String uid) {
+    return _persistTrackedEntityInstanceWithTwoEnrollments(uid);
+  }
+
   public TrackedEntityInstance persistTrackedEntityInstanceWithEnrollmentAndEvents() {
     return _persistTrackedEntityInstanceWithEnrollmentAndEvents(5, new HashMap<>());
   }
@@ -283,6 +295,26 @@ public abstract class TrackerTest extends IntegrationTestBase {
             ImportOptions.getDefaultImportOptions());
     assertEquals(0, importSummary.getConflictCount());
     assertThat(importSummary.getEvents().getImported(), is(eventSize));
+    return entityInstance;
+  }
+
+  private TrackedEntityInstance _persistTrackedEntityInstanceWithTwoEnrollments(String uid) {
+    TrackedEntityInstance entityInstance = persistTrackedEntityInstance(uid);
+    Enrollment enrollmentA =
+        createEnrollmentWithEvents(this.programA, entityInstance, 0, new HashMap<>());
+    this.programA.getOrganisationUnits().add(organisationUnitB);
+    manager.update(programA);
+    Enrollment enrollmentB =
+        createEnrollmentWithEvents(this.programA, entityInstance, 0, new HashMap<>());
+    enrollmentB.setOrgUnit(organisationUnitB.getUid());
+    ImportSummary importSummary =
+        enrollmentService.addEnrollment(enrollmentA, ImportOptions.getDefaultImportOptions());
+    assertEquals(0, importSummary.getConflictCount());
+    assertThat(importSummary.getEvents().getImported(), is(0));
+    importSummary =
+        enrollmentService.addEnrollment(enrollmentB, ImportOptions.getDefaultImportOptions());
+    assertEquals(0, importSummary.getConflictCount());
+    assertThat(importSummary.getEvents().getImported(), is(0));
     return entityInstance;
   }
 

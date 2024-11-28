@@ -79,6 +79,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -577,5 +578,16 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     query.setParameter("usernames", usernames);
 
     return query.getResultList();
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid) {
+    return getQuery(
+            String.format(
+                "select distinct u from User u left join fetch u.%s ous where ous.uid = :uid ",
+                orgUnitProperty.getValue()))
+        .setParameter("uid", uid)
+        .getResultList();
   }
 }

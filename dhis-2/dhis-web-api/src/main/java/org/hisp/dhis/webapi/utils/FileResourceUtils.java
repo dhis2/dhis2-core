@@ -81,7 +81,11 @@ public class FileResourceUtils {
   private static final int AVATAR_TARGET_HEIGHT = 200;
   private static final int AVATAR_TARGET_WIDTH = 200;
 
+  private static final int ORGUNIT_TARGET_HEIGHT = 800;
+  private static final int ORGUNIT_TARGET_WIDTH = 800;
+
   private static final long MAX_AVATAR_IMAGE_SIZE_IN_BYTES = 2_000_000;
+  private static final long MAX_ORGUNIT_IMAGE_SIZE_IN_BYTES = 8_000_000;
 
   private static final List<String> ALLOWED_IMAGE_FILE_EXTENSIONS =
       List.of("jpg", "jpeg", "png", "gif");
@@ -240,6 +244,12 @@ public class FileResourceUtils {
     validateFileSize(file, MAX_AVATAR_IMAGE_SIZE_IN_BYTES);
   }
 
+  public void validateOrgUnitImage(MultipartFile file) {
+    validateContentType(file.getContentType(), ALLOWED_IMAGE_MIME_TYPES);
+    validateFileExtension(file.getOriginalFilename(), ALLOWED_IMAGE_FILE_EXTENSIONS);
+    validateFileSize(file, MAX_ORGUNIT_IMAGE_SIZE_IN_BYTES);
+  }
+
   private void validateContentType(String contentType, List<String> validExtensions) {
     if (contentType == null) {
       throw new IllegalQueryException("Invalid content type, content type is NULL");
@@ -311,5 +321,10 @@ public class FileResourceUtils {
       throws IOException {
     return resizeImageToCustomSize(
         multipartFile, AVATAR_TARGET_WIDTH, AVATAR_TARGET_HEIGHT, Mode.AUTOMATIC);
+  }
+
+  public MultipartFile resizeOrgToDefaultSize(MultipartFile multipartFile) throws IOException {
+    return resizeImageToCustomSize(
+        multipartFile, ORGUNIT_TARGET_WIDTH, ORGUNIT_TARGET_HEIGHT, Mode.AUTOMATIC);
   }
 }
