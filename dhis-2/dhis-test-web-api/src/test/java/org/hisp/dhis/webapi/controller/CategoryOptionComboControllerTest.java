@@ -172,6 +172,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     categoryService.addCategoryOptionCombo(categoryOptionComboDuplicate);
 
     // Can delete the duplicated default COC
-    assertStatus(HttpStatus.OK,DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
+    assertStatus(
+        HttpStatus.OK, DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
   }
 }
