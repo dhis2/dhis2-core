@@ -32,9 +32,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -79,12 +80,12 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Transactional
   @Override
   public void addTrackedEntityChangeLog(
-      TrackedEntity trackedEntity,
-      TrackedEntityAttribute trackedEntityAttribute,
-      String previousValue,
-      String currentValue,
-      ChangeLogType changeLogType,
-      String username) {
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull TrackedEntityAttribute trackedEntityAttribute,
+      @Nullable String previousValue,
+      @Nullable String currentValue,
+      @Nonnull ChangeLogType changeLogType,
+      @Nonnull String username) {
 
     TrackedEntityChangeLog trackedEntityChangeLog =
         new TrackedEntityChangeLog(
@@ -142,10 +143,10 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Override
   @Transactional(readOnly = true)
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
+      @Nonnull UID trackedEntityUid,
+      @Nullable UID programUid,
+      @Nonnull TrackedEntityChangeLogOperationParams operationParams,
+      @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
     if (trackedEntity == null) {
@@ -153,7 +154,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    Set<String> trackedEntityAttributes = Collections.emptySet();
+    Set<UID> trackedEntityAttributes = Collections.emptySet();
     if (programUid != null) {
       Program program = validateProgram(programUid.getValue());
       validateOwnership(currentUser, trackedEntity, program);
@@ -198,7 +199,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
   }
 
-  private Set<String> validateTrackedEntityAttributes(TrackedEntity trackedEntity)
+  private Set<UID> validateTrackedEntityAttributes(TrackedEntity trackedEntity)
       throws NotFoundException {
     Set<TrackedEntityAttribute> attributes =
         trackedEntityAttributeService.getTrackedEntityTypeAttributes(
@@ -208,6 +209,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
 
-    return attributes.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
+    return attributes.stream().map(a -> UID.of(a.getUid())).collect(Collectors.toSet());
   }
 }

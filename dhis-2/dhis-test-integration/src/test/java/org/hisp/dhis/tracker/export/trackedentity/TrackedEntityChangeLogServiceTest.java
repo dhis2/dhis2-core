@@ -98,7 +98,10 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(deletedTrackedEntity), UID.of(program), null, null));
+                    UID.of(deletedTrackedEntity),
+                    UID.of(program),
+                    defaultOperationParams,
+                    defaultPageParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", deletedTrackedEntity),
         exception.getMessage());
@@ -114,7 +117,10 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(trackedEntity), UID.of(deletedProgram), null, null));
+                    UID.of(trackedEntity),
+                    UID.of(deletedProgram),
+                    defaultOperationParams,
+                    defaultPageParams));
     assertEquals(
         String.format("Program with id %s could not be found.", deletedProgram),
         exception.getMessage());
@@ -129,7 +135,7 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
             NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
-                    UID.of(trackedEntity), null, null, null));
+                    UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams));
 
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntity),

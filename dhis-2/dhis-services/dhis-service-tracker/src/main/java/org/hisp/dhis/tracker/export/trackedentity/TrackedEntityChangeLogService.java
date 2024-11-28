@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -44,12 +46,12 @@ public interface TrackedEntityChangeLogService {
       TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
 
   void addTrackedEntityChangeLog(
-      TrackedEntity trackedEntity,
-      TrackedEntityAttribute trackedEntityAttribute,
-      String previousValue,
-      String currentValue,
-      ChangeLogType changeLogType,
-      String userName);
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull TrackedEntityAttribute trackedEntityAttribute,
+      @Nullable String previousValue,
+      @Nullable String currentValue,
+      @Nonnull ChangeLogType changeLogType,
+      @Nonnull String username);
 
   /**
    * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
@@ -70,10 +72,10 @@ public interface TrackedEntityChangeLogService {
    * @return the paged change logs of the supplied tracked entity, if any
    */
   Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
+      @Nonnull UID trackedEntityUid,
+      @Nullable UID programUid,
+      @Nonnull TrackedEntityChangeLogOperationParams operationParams,
+      @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**

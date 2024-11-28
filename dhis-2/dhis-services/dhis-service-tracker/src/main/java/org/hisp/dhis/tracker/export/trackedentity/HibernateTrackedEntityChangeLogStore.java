@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hibernate.Session;
@@ -73,7 +74,7 @@ public class HibernateTrackedEntityChangeLogStore {
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
       @Nonnull UID trackedEntity,
       @Nullable UID program,
-      @Nonnull Set<String> attributes,
+      @Nonnull Set<UID> attributes,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
 
@@ -130,7 +131,8 @@ public class HibernateTrackedEntityChangeLogStore {
     }
 
     if (!attributes.isEmpty()) {
-      query.setParameter("attributes", attributes);
+      query.setParameter(
+          "attributes", attributes.stream().map(UID::getValue).collect(Collectors.toSet()));
     }
 
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());

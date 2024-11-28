@@ -44,7 +44,7 @@ public interface TrackedEntityChangeLogMapper {
   @Mapping(
       target = "change.attributeValue",
       source = "trackedEntityChangeLog",
-      qualifiedByName = "mapIfDataValueChangeExists")
+      qualifiedByName = "mapIfTrackedEntityChangeExists")
   TrackedEntityChangeLog map(
       org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
@@ -61,8 +61,8 @@ public interface TrackedEntityChangeLogMapper {
   TrackedEntityAttributeChange mapAttributeChange(
       org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
-  @Named("mapIfDataValueChangeExists")
-  default TrackedEntityAttributeChange mapIfDataValueChangeExists(
+  @Named("mapIfTrackedEntityChangeExists")
+  default TrackedEntityAttributeChange mapIfTrackedEntityChangeExists(
       org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog) {
     if (trackedEntityChangeLog.getTrackedEntityAttribute() == null) {
       return null;
