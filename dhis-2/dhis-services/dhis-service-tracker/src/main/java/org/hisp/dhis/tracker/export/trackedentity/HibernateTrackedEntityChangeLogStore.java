@@ -34,12 +34,15 @@ import jakarta.persistence.Query;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -53,11 +56,19 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore")
 public class HibernateTrackedEntityChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "tecl.created";
+  private static final String COLUMN_CHANGELOG_USER = "tecl.createdByUsername";
+  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "tea.uid";
+
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
+
+  private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
+      Map.ofEntries(
+          entry(Pair.of("username", String.class), COLUMN_CHANGELOG_USER),
+          entry(Pair.of("attribute", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT));
 
   private final EntityManager entityManager;
   private final Session session;
@@ -77,6 +88,8 @@ public class HibernateTrackedEntityChangeLogStore {
       @Nonnull Set<UID> attributes,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
+
+    Pair<String, QueryFilter> filter = operationParams.getFilter();
 
     String hql =
         """
@@ -121,6 +134,17 @@ public class HibernateTrackedEntityChangeLogStore {
           """;
     }
 
+    if (filter != null) {
+      String filterField =
+          FILTERABLE_FIELDS.entrySet().stream()
+              .filter(entry -> entry.getKey().getLeft().equals(filter.getKey()))
+              .findFirst()
+              .map(Entry::getValue)
+              .get();
+
+      hql += String.format(" and %s = :filterValue ", filterField);
+    }
+
     hql += String.format("order by %s".formatted(sortExpressions(operationParams.getOrder())));
 
     Query query = entityManager.createQuery(hql);
@@ -137,6 +161,10 @@ public class HibernateTrackedEntityChangeLogStore {
 
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize() + 1);
+
+    if (filter != null) {
+      query.setParameter("filterValue", filter.getValue().getFilter());
+    }
 
     List<Object[]> results = query.getResultList();
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
@@ -188,6 +216,10 @@ public class HibernateTrackedEntityChangeLogStore {
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS.keySet();
+  }
+
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return FILTERABLE_FIELDS.keySet();
   }
 
   private static String sortExpressions(Order order) {
