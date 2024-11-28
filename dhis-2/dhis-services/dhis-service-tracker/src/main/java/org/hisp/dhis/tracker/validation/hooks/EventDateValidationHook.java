@@ -102,7 +102,8 @@ public class EventDateValidationHook implements TrackerValidationHook {
     }
   }
 
-  private void validateExpiryPeriodType(ValidationErrorReporter reporter, Event event, Program program) {
+  private void validateExpiryPeriodType(
+      ValidationErrorReporter reporter, Event event, Program program) {
     checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
     checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
@@ -124,13 +125,13 @@ public class EventDateValidationHook implements TrackerValidationHook {
     Period eventPeriod = periodType.createPeriod(Date.from(referenceDate));
 
     if (eventPeriod
-            .getEndDate()
-            .toInstant() // This will be 00:00 time of the period end date.
-            .plus(
-                    ofDays(
-                            program.getExpiryDays()
-                                    + 1L)) // Extra day added to account for final 24 hours of expiring day
-            .isBefore(Instant.now())) {
+        .getEndDate()
+        .toInstant() // This will be 00:00 time of the period end date.
+        .plus(
+            ofDays(
+                program.getExpiryDays()
+                    + 1L)) // Extra day added to account for final 24 hours of expiring day
+        .isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
     }
   }

@@ -222,7 +222,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
   @Test
   void shouldPassValidationForEventWhenDateBelongsToPastPeriodWithZeroExpiryDays() {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-            .thenReturn(getProgramWithRegistration(0));
+        .thenReturn(getProgramWithRegistration(0));
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -237,7 +237,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
   @Test
   void shouldPassValidationForEventWhenDateBelongsPastEventPeriodButWithinExpiryDays() {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-            .thenReturn(getProgramWithRegistration(7));
+        .thenReturn(getProgramWithRegistration(7));
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -252,7 +252,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
   @Test
   void shouldPassValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-            .thenReturn(getProgramWithRegistration(5));
+        .thenReturn(getProgramWithRegistration(5));
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
