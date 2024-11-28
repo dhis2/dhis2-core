@@ -115,8 +115,11 @@ class DateValidator implements Validator<Event> {
 
     if (eventPeriod
         .getEndDate()
-        .toInstant()
-        .plus(ofDays(program.getExpiryDays()))
+        .toInstant() // This will be 00:00 time of the period end date.
+        .plus(
+            ofDays(
+                program.getExpiryDays()
+                    + 1L)) // Extra day added to account for final 24 hours of expiring day
         .isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
     }
