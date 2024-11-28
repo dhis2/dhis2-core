@@ -57,9 +57,11 @@ public class CategoryOptionComboMergeService implements MergeService {
 
   private final CategoryService categoryService;
   private final MetadataCategoryOptionComboMergeHandler metadataMergeHandler;
+  private final DataCategoryOptionComboMergeHandler dataMergeHandler;
   private final MergeValidator validator;
   private final EntityManager entityManager;
   private List<MetadataMergeHandler> metadataMergeHandlers;
+  private List<DataMergeHandler> dataMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -85,6 +87,7 @@ public class CategoryOptionComboMergeService implements MergeService {
     // merge metadata
     log.info("Handling CategoryOptionCombo reference associations and merges");
     metadataMergeHandlers.forEach(h -> h.merge(sources, target));
+    dataMergeHandlers.forEach(h -> h.merge(sources, target, request));
 
     // a flush is required here to bring the system into a consistent state. This is required so
     // that the deletion handler hooks, which are usually done using JDBC (non-Hibernate), can
@@ -115,6 +118,8 @@ public class CategoryOptionComboMergeService implements MergeService {
             metadataMergeHandler::handleDataElementOperands,
             metadataMergeHandler::handleMinMaxDataElements,
             metadataMergeHandler::handleSmsCodes);
+
+    dataMergeHandlers = List.of(dataMergeHandler::handleDataValues);
   }
 
   /**

@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -91,6 +93,8 @@ public interface DataValueStore {
    * @param dataElement the data element.
    */
   void deleteDataValues(DataElement dataElement);
+
+  void deleteDataValues(CategoryOptionCombo categoryOptionCombo);
 
   void deleteDataValue(DataValue dataValue);
 
@@ -193,4 +197,8 @@ public interface DataValueStore {
    * @return true, if any values exist, otherwise false
    */
   boolean dataValueExistsForDataElement(String uid);
+
+  List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids);
+
+  List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids);
 }

@@ -51,10 +51,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -127,6 +129,16 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     String hql = "delete from DataValue d where d.dataElement = :dataElement";
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValues(CategoryOptionCombo categoryOptionCombo) {
+    String hql = "delete from DataValue d where d.categoryOptionCombo = :categoryOptionCombo";
+
+    entityManager
+        .createQuery(hql)
+        .setParameter("categoryOptionCombo", categoryOptionCombo)
+        .executeUpdate();
   }
 
   @Override
@@ -274,6 +286,32 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .setMaxResults(1)
         .getResultList()
         .isEmpty();
+  }
+
+  @Override
+  public List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select dv from DataValue dv
+            join dv.categoryOptionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
+  }
+
+  @Override
+  public List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+        select dv from DataValue dv
+        join dv.attributeOptionCombo aoc
+        where aoc.uid in :uids
+        """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
   }
 
   // -------------------------------------------------------------------------

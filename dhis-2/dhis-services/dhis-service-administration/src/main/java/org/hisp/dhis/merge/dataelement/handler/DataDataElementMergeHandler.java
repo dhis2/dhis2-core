@@ -152,7 +152,7 @@ public class DataDataElementMergeHandler {
             + sourceDataValuesDuplicates.size()
             + " duplicate data values, keeping later lastUpdated value");
 
-    // group Data values by key so we can deal with each duplicate correctly
+    // group Data values by key, so we can deal with each duplicate correctly
     Map<String, List<DataValue>> sourceDataValuesGroupedByKey =
         sourceDataValuesDuplicates.stream()
             .collect(Collectors.groupingBy(DataDataElementMergeHandler::getDataValueKey));
@@ -208,7 +208,6 @@ public class DataDataElementMergeHandler {
         sourceDataValue -> {
           DataValue copyWithNewDataElementRef =
               DataValue.dataValueWithNewDataElement(sourceDataValue, target);
-
           dataValueStore.addDataValue(copyWithNewDataElementRef);
         });
 
