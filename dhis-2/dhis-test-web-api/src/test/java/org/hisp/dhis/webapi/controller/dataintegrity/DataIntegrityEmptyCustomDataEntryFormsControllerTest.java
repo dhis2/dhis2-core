@@ -114,7 +114,6 @@ class DataIntegrityEmptyCustomDataEntryFormsControllerTest
     final String check = "programs_custom_data_entry_forms_empty";
     final String programUID = "IpHINAT79UW";
     final String programStageUID = "Zj7UnCAulGe";
-    final String dataEntryFormUID = "V2wox39jSdy";
     String defaultCatCombo = getDefaultCatCombo();
 
     assertHasNoDataIntegrityIssues("programs", check, false);
