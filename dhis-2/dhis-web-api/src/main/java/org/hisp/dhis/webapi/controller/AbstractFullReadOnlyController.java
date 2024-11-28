@@ -71,6 +71,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
@@ -200,7 +201,11 @@ public abstract class AbstractFullReadOnlyController<
 
     addProgrammaticModifiers(params);
 
-    boolean isAlwaysEmpty = additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
+    // a top level restriction combined with AND that is always false always results in an empty
+    // list
+    boolean isAlwaysEmpty =
+        params.getRootJunction() == Junction.Type.AND
+            && additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
     List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
     postProcessResponseEntities(entities, params);
 

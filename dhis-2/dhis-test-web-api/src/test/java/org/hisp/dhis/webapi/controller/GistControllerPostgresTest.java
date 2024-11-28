@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.trackedentity;
+package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for {@link TrackedEntityQueryRequestValidator}.
+ * Tests for the Gist API that cannot run on H2 but require an actual postgres DB.
  *
- * @author maikel arabori
+ * @author Jan Bernitt
  */
-class TrackedEntityQueryRequestValidatorTest {
+class GistControllerPostgresTest extends AbstractGistControllerPostgresTest {
+
+  /**
+   * Note: this test was moved here unchanged to verify the functionality in the API hasn't changed.
+   * However, when the "name" became a generated column instead of using a from transformation it
+   * has to run with an actual postgres DB. The test name is kept to allow seeing the evolution
+   * looking back to versions that do use from instead of a generated column to synthesize the name
+   * from firstName and surname post DB query.
+   */
   @Test
-  void testValidateWhenTrackedEntityTypeIsInvalid() {
-    String teiUid = CodeGenerator.generateUid() + "invalid";
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams(teiUid);
-
-    TrackedEntityQueryRequestValidator trackedEntityQueryRequestValidator =
-        new TrackedEntityQueryRequestValidator();
-
-    IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams));
-
+  void testField_UserNameAutomaticFromTransformation() {
+    JsonArray users = GET("/users/gist?fields=id,name&headless=true").content();
     assertEquals(
-        "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage());
+        "FirstNameuserGist SurnameuserGist", users.getObject(1).getString("name").string());
   }
 
+  /** Note: now that user "name" is a generated column we can also filter on it */
   @Test
-  void testValidateWhenNoTrackedEntityType() {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams(null);
-
-    TrackedEntityQueryRequestValidator trackedEntityQueryRequestValidator =
-        new TrackedEntityQueryRequestValidator();
-
-    IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams));
-
-    assertEquals("Invalid UID `null` for property `trackedEntityType`", exception.getMessage());
+  void testFilter_UserName() {
+    JsonArray users =
+        GET("/users/gist?fields=id,name&headless=true&filter=name:like:Gist").content();
+    assertFalse(users.isEmpty());
   }
 }
