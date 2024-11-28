@@ -38,6 +38,7 @@ checks:
   - option_sets/unused_option_sets.yaml
   - option_sets/option_sets_wrong_sort_order.yaml
   - option_sets/option_groups_empty.yaml
+  - programs/programs_custom_data_entry_form_empty.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
@@ -50,7 +51,6 @@ checks:
   - analytical_objects/push_analysis_no_recipients.yaml
   - data_elements/aggregate_des_no_groups.yaml
   - data_elements/aggregate_des_abandoned.yaml
-  - data_elements/aggregate_des_inconsistent_agg_operator.yaml
   - data_elements/aggregate_des_excess_groupset_membership.yaml
   - data_elements/aggregate_des_no_analysis.yaml
   - data_elements/aggregate_des_datasets_different_period_types.yaml

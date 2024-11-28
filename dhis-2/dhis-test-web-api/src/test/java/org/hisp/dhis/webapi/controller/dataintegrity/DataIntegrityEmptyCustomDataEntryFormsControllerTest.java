@@ -34,8 +34,10 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for aggregate datasets with empty data entry forms. {@see
- * dhis-2/dhis-test-web-api/src/test/java/org/hisp/dhis/webapi/controller/dataintegrity/DataIntegrityCategoryOptionNoCategoryControllerTest.javal
- * }
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/datasets/datasets_custom_data_entry_forms_empty.yaml}
+ *
+ * <p>Tests for programs and program stages with empty data entry forms. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/programs/programs_custom_data_entry_form_empty.yaml}
  *
  * @author Jason P. Pickering
  */
@@ -104,5 +106,228 @@ class DataIntegrityEmptyCustomDataEntryFormsControllerTest
     """));
 
     assertHasDataIntegrityIssues("dataSets", check, 100, dataSetUID, "Test", "Test", true);
+  }
+
+  @Test
+  void testNoEventForm() {
+
+    final String check = "programs_custom_data_entry_forms_empty";
+    final String programUID = "IpHINAT79UW";
+    final String programStageUID = "Zj7UnCAulGe";
+    final String dataEntryFormUID = "V2wox39jSdy";
+    String defaultCatCombo = getDefaultCatCombo();
+
+    assertHasNoDataIntegrityIssues("programs", check, false);
+
+    // No form should be OK
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+               {
+               "programStages": [
+                    {
+                        "id": "%s",
+                        "name": "Test",
+                        "shortName": "Test",
+                        "programStageDataElements": []
+                    }
+                ],
+               "programs": [
+                   {
+                       "id": "%s",
+                       "name": "Test",
+                       "shortName": "Test",
+                       "programType": "WITHOUT_REGISTRATION",
+                       "categoryCombo": {"id": "%s"},
+                       "programStages": [{"id": "%s"}]
+                       }
+                     ]
+                }
+                """
+                .formatted(programStageUID, programUID, defaultCatCombo, programStageUID)));
+
+    assertHasNoDataIntegrityIssues("programs", check, true);
+  }
+
+  @Test
+  void testNonEmptyEventFormHasNoDataIntegrityIssues() {
+    final String check = "programs_custom_data_entry_forms_empty";
+    final String programUID = "IpHINAT79UW";
+    final String programStageUID = "Zj7UnCAulGe";
+    final String dataEntryFormUID = "V2wox39jSdy";
+    String defaultCatCombo = getDefaultCatCombo();
+
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+                   {
+                   "dataEntryForms": [
+                       {
+                           "id": "%s",
+                           "name": "Test",
+                           "htmlCode": "<h1>Test</h1>"
+                       }
+                   ],
+                   "programStages": [
+                        {
+                            "id": "%s",
+                            "name": "Test",
+                            "shortName": "Test",
+                            "programStageDataElements": [],
+                            "dataEntryForm": {"id": "%s"}
+                        }
+                    ],
+                   "programs": [
+                       {
+                           "id": "%s",
+                           "name": "Test",
+                           "shortName": "Test",
+                           "programType": "WITHOUT_REGISTRATION",
+                           "categoryCombo": {"id": "%s"},
+                           "programStages": [{"id": "%s"}]
+                           }
+                         ]
+                    }
+                    """
+                .formatted(
+                    dataEntryFormUID,
+                    programStageUID,
+                    dataEntryFormUID,
+                    programUID,
+                    defaultCatCombo,
+                    programStageUID)));
+
+    assertHasNoDataIntegrityIssues("programs", check, true);
+  }
+
+  @Test
+  void testEmptyEventFormHasIntegrityIssues() {
+    final String check = "programs_custom_data_entry_forms_empty";
+    final String programUID = "IpHINAT79UW";
+    final String programStageUID = "Zj7UnCAulGe";
+    final String dataEntryFormUID = "V2wox39jSdy";
+    String defaultCatCombo = getDefaultCatCombo();
+
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+               {
+               "dataEntryForms": [
+                   {
+                       "id": "%s",
+                       "name": "Test",
+                       "htmlCode": ""
+                   }
+               ],
+               "programStages": [
+                    {
+                        "id": "%s",
+                        "name": "Test PS",
+                        "shortName": "Test PS",
+                        "programStageDataElements": [],
+                        "dataEntryForm": {"id": "%s"}
+                    }
+                ],
+               "programs": [
+                   {
+                       "id": "%s",
+                       "name": "Test",
+                       "shortName": "Test",
+                       "programType": "WITHOUT_REGISTRATION",
+                       "categoryCombo": {"id": "%s"},
+                       "programStages": [{"id": "%s"}]
+                       }
+                     ]
+                }
+                """
+                .formatted(
+                    dataEntryFormUID,
+                    programStageUID,
+                    dataEntryFormUID,
+                    programUID,
+                    defaultCatCombo,
+                    programStageUID)));
+
+    assertHasDataIntegrityIssues("programs", check, 100, programUID, "Test", "Test PS", true);
+  }
+
+  @Test
+  void testNonEmptyTrackerFormHasNoDataIntegrityIssues() {
+    final String check = "programs_custom_data_entry_forms_empty";
+    final String programUID = "IpHINAT79UW";
+    final String dataEntryFormUID = "V2wox39jSdy";
+    String defaultCatCombo = getDefaultCatCombo();
+
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+            {
+                "dataEntryForms": [
+                    {
+                        "id": "%s",
+                        "name": "Test",
+                        "htmlCode": "<h1>Test</h1>"
+                    }
+                ],
+                "programs": [
+                    {
+                        "id": "%s",
+                        "name": "Test",
+                        "shortName": "Test",
+                        "programType": "WITH_REGISTRATION",
+                        "categoryCombo": {"id": "%s"},
+                        "dataEntryForm": {"id": "%s"}
+                    }
+                ]
+            }
+            """
+                .formatted(dataEntryFormUID, programUID, defaultCatCombo, dataEntryFormUID)));
+
+    assertHasNoDataIntegrityIssues("programs", check, true);
+  }
+
+  @Test
+  void testEmptyTrackerFormHasDataIntegrityIssues() {
+    final String check = "programs_custom_data_entry_forms_empty";
+    final String programUID = "IpHINAT79UW";
+    final String dataEntryFormUID = "V2wox39jSdy";
+    String defaultCatCombo = getDefaultCatCombo();
+
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata",
+            """
+            {
+                "dataEntryForms": [
+                    {
+                        "id": "%s",
+                        "name": "Test",
+                        "htmlCode": ""
+                    }
+                ],
+                "programs": [
+                    {
+                        "id": "%s",
+                        "name": "Test",
+                        "shortName": "Test",
+                        "programType": "WITH_REGISTRATION",
+                        "categoryCombo": {"id": "%s"},
+                        "dataEntryForm": {"id": "%s"}
+                    }
+                ]
+            }
+            """
+                .formatted(dataEntryFormUID, programUID, defaultCatCombo, dataEntryFormUID)));
+
+    assertHasDataIntegrityIssues("programs", check, 100, programUID, "Test", "Enrollment", true);
   }
 }
