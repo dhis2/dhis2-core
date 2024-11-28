@@ -64,8 +64,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
   private TrackerImportParams importParams;
 
-  private final TrackedEntityChangeLogOperationParams defaultOperationParams =
-      TrackedEntityChangeLogOperationParams.builder().build();
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
   private TrackerObjects trackerObjects;
