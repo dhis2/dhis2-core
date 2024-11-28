@@ -74,11 +74,11 @@ public class EventDateValidationHook implements TrackerValidationHook {
       return;
     }
 
-    validateExpiryDays(reporter, bundle, event, program);
-    validatePeriodType(reporter, event, program);
+    validateCompletionExpiryDays(reporter, bundle, event, program);
+    validateExpiryPeriodType(reporter, event, program);
   }
 
-  private void validateExpiryDays(
+  private void validateCompletionExpiryDays(
       ValidationErrorReporter reporter, TrackerBundle bundle, Event event, Program program) {
     User actingUser = bundle.getUser();
 
@@ -102,7 +102,7 @@ public class EventDateValidationHook implements TrackerValidationHook {
     }
   }
 
-  private void validatePeriodType(ValidationErrorReporter reporter, Event event, Program program) {
+  private void validateExpiryPeriodType(ValidationErrorReporter reporter, Event event, Program program) {
     checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
     checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
@@ -121,9 +121,16 @@ public class EventDateValidationHook implements TrackerValidationHook {
       return;
     }
 
-    Period period = periodType.createPeriod(new Date());
+    Period eventPeriod = periodType.createPeriod(Date.from(referenceDate));
 
-    if (referenceDate.isBefore(period.getStartDate().toInstant())) {
+    if (eventPeriod
+            .getEndDate()
+            .toInstant() // This will be 00:00 time of the period end date.
+            .plus(
+                    ofDays(
+                            program.getExpiryDays()
+                                    + 1L)) // Extra day added to account for final 24 hours of expiring day
+            .isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
     }
   }
