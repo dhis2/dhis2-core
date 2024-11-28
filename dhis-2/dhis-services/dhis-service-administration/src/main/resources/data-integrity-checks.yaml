@@ -20,6 +20,7 @@ checks:
   - categories/category_option_combinations_no_names.yaml
   - datasets/datasets_empty.yaml
   - datasets/datasets_not_assigned_to_org_units.yaml
+  - datasets/datasets_custom_data_entry_forms_empty.yaml
   - orgunits/compulsory_orgunit_groups.yaml
   - orgunits/orgunit_open_date_gt_closed_date.yaml
   - orgunits/orgunits_multiple_spaces.yaml
