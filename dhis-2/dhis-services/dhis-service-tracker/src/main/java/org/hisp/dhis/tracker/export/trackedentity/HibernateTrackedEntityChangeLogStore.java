@@ -63,7 +63,10 @@ public class HibernateTrackedEntityChangeLogStore {
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
   private static final Map<String, String> ORDERABLE_FIELDS =
-      Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
+      Map.ofEntries(
+          entry("createdAt", COLUMN_CHANGELOG_CREATED),
+          entry("username", COLUMN_CHANGELOG_USER),
+          entry("attribute", COLUMN_CHANGELOG_DATA_ELEMENT));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
