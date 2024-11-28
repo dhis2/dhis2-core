@@ -55,28 +55,25 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Transactional
 public abstract class CompressionSMSListener extends BaseSMSListener {
   protected abstract SmsResponse postProcess(
-      IncomingSms sms, SmsSubmission submission, String username) throws SMSProcessingException;
+      IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
+      throws SMSProcessingException;
 
   protected abstract boolean handlesType(SubmissionType type);
-
-  protected final UserService userService;
 
   protected final IdentifiableObjectManager manager;
 
   public CompressionSMSListener(
       IncomingSmsService incomingSmsService,
       MessageSender smsSender,
-      UserService userService,
       IdentifiableObjectManager manager) {
     super(incomingSmsService, smsSender);
-    this.userService = userService;
     this.manager = manager;
   }
 
@@ -96,7 +93,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(@Nonnull IncomingSms sms, @Nonnull String username) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
     SmsSubmissionReader reader = new SmsSubmissionReader();
     SmsSubmissionHeader header = getHeader(sms);
     if (header == null) {
@@ -117,7 +114,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
     SmsResponse resp;
     try {
-      resp = postProcess(sms, subm, username);
+      resp = postProcess(sms, subm, smsCreatedBy);
     } catch (SMSProcessingException e) {
       log.error(e.getMessage());
       sendSMSResponse(e.getResp(), sms, header.getSubmissionId());

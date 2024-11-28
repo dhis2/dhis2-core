@@ -33,9 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonProperty;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,5 +116,33 @@ class SchemaControllerTest extends H2ControllerIntegrationTestBase {
       assertNull(schema.getSingular());
       assertNull(schema.getPlural());
     }
+  }
+
+  @Test
+  void testAttributeWritable() {
+    JsonSchema schema = GET("/schemas/attribute").content().as(JsonSchema.class);
+    schema
+        .getProperties()
+        .forEach(
+            p -> {
+              if (p.getName().endsWith("Attribute")
+                  && p.getPropertyType() == PropertyType.BOOLEAN) {
+                assertTrue(p.isWritable());
+                assertTrue(p.isPersisted());
+              }
+            });
+  }
+
+  @Test
+  void testUserNameIsPersistedButReadOnly() {
+    JsonSchema user = GET("/schemas/user").content().as(JsonSchema.class);
+    Optional<JsonProperty> maybeName =
+        user.getProperties().stream().filter(p -> "name".equals(p.getName())).findFirst();
+    assertTrue(maybeName.isPresent());
+    JsonProperty name = maybeName.get();
+    assertTrue(name.isPersisted());
+    assertTrue(name.isReadable());
+    assertFalse(name.isWritable());
+    assertFalse(name.isRequired());
   }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.validation;
 
 import java.util.List;
 import lombok.Value;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 
 @Value
@@ -37,7 +38,7 @@ public class Error implements Validation {
   String message;
   ValidationCode code;
   TrackerType type;
-  String uid;
+  UID uid;
   List<Object> args;
 
   public ValidationCode getErrorCode() {
@@ -64,7 +65,7 @@ public class Error implements Validation {
   }
 
   @Override
-  public String getUid() {
+  public UID getUid() {
     return uid;
   }
 

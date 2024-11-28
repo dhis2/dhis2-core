@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Data;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -66,11 +68,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
 
-  private static final String TEA_1_UID = "TvjwTPToKHO";
+  private static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
-  private static final String TEA_2_UID = "cy2oRh2sNr6";
+  private static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
 
-  public static final String TEA_3_UID = "cy2oRh2sNr7";
+  public static final UID TEA_3_UID = UID.of("cy2oRh2sNr7");
 
   private static final OrganisationUnit orgUnit = new OrganisationUnit();
 
@@ -144,8 +146,70 @@ class RequestParamsValidatorTest {
   }
 
   @Test
+  void shouldValidateFilterWhenFormatIsCorrect() throws BadRequestException {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    validateFilter("field2:eq:value", supportedFields);
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterFieldNotSupported() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("unknownField:eq:value", supportedFields));
+    assertStartsWith(
+        String.format(
+            "Invalid filter field. Supported fields are '%s'.",
+            String.join(", ", supportedFields.stream().map(Pair::getKey).sorted().toList())),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterOperatorNotSupported() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter("field1:sw:value", supportedFields));
+    assertStartsWith(
+        "Invalid filter operator. The only supported operator is 'eq'.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectFormat() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+    String invalidFilter = "field1:eq";
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter(invalidFilter, supportedFields));
+    assertStartsWith(
+        String.format(
+            "Invalid filter => %s. Expected format is [field]:eq:[value].", invalidFilter),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectUidFormat() {
+    Set<Pair<String, Class<?>>> supportedFields = Set.of(Pair.of("field1", UID.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("field1:eq:QRYjLTiJTr", supportedFields));
+    assertStartsWith("Incorrect filter value provided as UID: QRYjLTiJTr", exception.getMessage());
+  }
+
+  @Test
   void shouldParseFilters() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
 
     assertEquals(
@@ -160,7 +224,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFiltersGivenRepeatedUID() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
 
     assertEquals(
@@ -175,21 +239,21 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFiltersOnlyContainingAnIdentifier() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID);
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_1_UID.getValue());
 
     assertEquals(Map.of(TEA_1_UID, List.of()), filters);
   }
 
   @Test
   void shouldParseFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":");
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_1_UID.getValue() + ":");
 
     assertEquals(Map.of(TEA_1_UID, List.of()), filters);
   }
 
   @Test
   void shouldParseFiltersGivenBlankInput() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(" ");
+    Map<UID, List<QueryFilter>> filters = parseFilters(" ");
 
     assertTrue(filters.isEmpty());
   }
@@ -210,7 +274,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFiltersWithFilterNameHasSeparationCharInIt() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
 
     assertEquals(
         Map.of(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))), filters);
@@ -227,7 +291,7 @@ class RequestParamsValidatorTest {
   @Test
   void shouldParseFilterWhenFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
       throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(
             TEA_1_UID
                 + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
@@ -243,7 +307,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFilterWhenFilterHasMultipleOperatorAndTextRange() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
 
     assertEquals(
@@ -257,7 +321,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFilterWhenMultipleFiltersAreMixedCommaAndSlash() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(
             TEA_1_UID
                 + ":eq:project///,/,//"
@@ -278,7 +342,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFilterWhenFilterHasMultipleOperatorWithFinalColon() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":like:value1/::like:value2");
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":like:value1/::like:value2");
 
     assertEquals(
         Map.of(
@@ -331,9 +395,7 @@ class RequestParamsValidatorTest {
   void shouldPassWhenTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
     assertDoesNotThrow(
-        () ->
-            validateOrgUnitModeForTrackedEntities(
-                emptySet(), orgUnitMode, Set.of(UID.of(TEA_1_UID))));
+        () -> validateOrgUnitModeForTrackedEntities(emptySet(), orgUnitMode, Set.of(TEA_1_UID)));
   }
 
   @ParameterizedTest

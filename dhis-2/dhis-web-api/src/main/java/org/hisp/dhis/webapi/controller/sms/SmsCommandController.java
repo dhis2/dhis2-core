@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.sms;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -38,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/smsCommands")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class SmsCommandController extends AbstractCrudController<SMSCommand> {}
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+public class SmsCommandController extends AbstractCrudController<SMSCommand, GetObjectListParams> {}

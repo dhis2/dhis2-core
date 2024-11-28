@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -41,22 +41,30 @@ import org.hisp.dhis.tracker.export.Order;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventChangeLogOperationParams {
 
-  private List<Order> order;
+  private Order order;
+  private Pair<String, QueryFilter> filter;
 
   public static class EventChangeLogOperationParamsBuilder {
 
-    private final List<Order> order = new ArrayList<>();
+    // Do not remove these unused methods. They hide the order and filter fields from the builder
+    // which Lombok
+    // does not support.
+    // They should be added via their respective orderBy and filterBy builder methods.
+    private EventChangeLogOperationParamsBuilder order(Order order) {
+      return this;
+    }
 
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private EventChangeLogOperationParamsBuilder order(List<Order> order) {
+    private EventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
       return this;
     }
 
     public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order.add(new Order(field, direction));
+      this.order = new Order(field, direction);
+      return this;
+    }
+
+    public EventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
+      this.filter = Pair.of(field, filter);
       return this;
     }
   }

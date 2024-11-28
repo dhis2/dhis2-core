@@ -47,11 +47,11 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -320,22 +320,22 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
 
   private String createJsonPayload(int value) {
     return """
-        {
-          "trackedEntities": [
-            {
-              "attributes": [
-                {
-                  "attribute": "numericAttr",
-                  "value": %d
-                }
-              ],
-              "trackedEntity": "IOR1AXXl24H",
-              "trackedEntityType": "ja8NY4PW7Xm",
-              "orgUnit": "h4w96yEMlzO"
-            }
-          ]
-        }
-        """
+           {
+             "trackedEntities": [
+               {
+                 "attributes": [
+                   {
+                     "attribute": "numericAttr",
+                     "value": %d
+                   }
+                 ],
+                 "trackedEntity": "IOR1AXXl24H",
+                 "trackedEntityType": "ja8NY4PW7Xm",
+                 "orgUnit": "h4w96yEMlzO"
+               }
+             ]
+           }
+           """
         .formatted(value);
   }
 
@@ -385,14 +385,6 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
         () -> assertUser(actual),
         () -> assertEquals("UPDATE", actual.getType()),
         () -> assertChange(attribute, previousValue, currentValue, actual));
-  }
-
-  private static void assertDelete(
-      TrackedEntityAttribute attribute, String previousValue, JsonTrackedEntityChangeLog actual) {
-    assertAll(
-        () -> assertUser(actual),
-        () -> assertEquals("DELETE", actual.getType()),
-        () -> assertChange(attribute, previousValue, null, actual));
   }
 
   private static void assertChange(

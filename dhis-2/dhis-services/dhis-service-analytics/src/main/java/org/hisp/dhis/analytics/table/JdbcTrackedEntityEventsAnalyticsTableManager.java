@@ -32,11 +32,11 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -46,8 +46,8 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -71,45 +71,21 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableManager")
 public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTableManager {
-
-  private static final String EVENT_DATA_VALUE_REBUILDER =
-      """
-            (select json_object_agg(l2.keys, l2.datavalue) as value
-             from (select l1.uid,
-                          l1.keys,
-                          json_strip_nulls(json_build_object(
-                                  'value', l1.eventdatavalues -> l1.keys ->> 'value',
-                                  'created', l1.eventdatavalues -> l1.keys ->> 'created',
-                                  'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
-                                  'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
-                                  'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
-                                  'value_name', (select ou.name
-                                                 from organisationunit ou
-                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
-                                  'value_code', (select ou.code
-                                                 from organisationunit ou
-                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
-                   from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
-                         from event inner_evt) as l1) as l2
-             where l2.uid = ev.uid
-             group by l2.uid)::jsonb
-      """;
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
@@ -169,24 +145,6 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .selectExpression("ev.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("eventgeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("ev.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("evlongitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("evlatitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end")
-              .build(),
-          AnalyticsTableColumn.builder()
               .name("uidlevel1")
               .dataType(CHARACTER_11)
               .nullable(NULL)
@@ -214,42 +172,36 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .name("ou")
               .dataType(CHARACTER_11)
               .nullable(NULL)
-              .selectExpression("ou.uid")
+              .selectExpression("ous.organisationunituid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouname")
               .dataType(VARCHAR_255)
               .nullable(NULL)
-              .selectExpression("ou.name")
+              .selectExpression("ous.name")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
-              .dataType(CHARACTER_32)
+              .dataType(VARCHAR_50)
               .nullable(NULL)
-              .selectExpression("ou.code")
+              .selectExpression("ous.code")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oulevel")
               .dataType(INTEGER)
               .nullable(NULL)
               .selectExpression("ous.level")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("eventdatavalues")
-              .dataType(JSONB)
-              .selectExpression(EVENT_DATA_VALUE_REBUILDER)
-              .skipIndex(Skip.SKIP)
               .build());
 
-  private static final String AND = " and (";
-
   private final TrackedEntityTypeService trackedEntityTypeService;
+
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   public JdbcTrackedEntityEventsAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -259,12 +211,13 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -275,6 +228,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
+    this.analyticsSqlBuilder = analyticsSqlBuilder;
   }
 
   /**
@@ -321,19 +275,60 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     return tables;
   }
 
+  private List<AnalyticsTableColumn> getFixedCols() {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getEventDataValueColumn());
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(getGeospatialCols());
+    }
+    return columns;
+  }
+
+  private AnalyticsTableColumn getEventDataValueColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("eventdatavalues")
+        .dataType(JSONB)
+        .selectExpression(analyticsSqlBuilder.getEventDataValues())
+        .skipIndex(Skip.SKIP)
+        .build();
+  }
+
+  private List<AnalyticsTableColumn> getGeospatialCols() {
+
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name("eventgeometry")
+            .dataType(GEOMETRY)
+            .selectExpression("ev.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("evlongitude")
+            .dataType(DOUBLE)
+            .selectExpression(
+                "case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("evlatitude")
+            .dataType(DOUBLE)
+            .selectExpression(
+                "case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end")
+            .build());
+  }
+
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
     StringBuilder sql = new StringBuilder();
     sql.append(
-        replace(
+        replaceQualify(
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from trackedentity te \
-            inner join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid \
-            inner join enrollment en on en.trackedentityid = te.trackedentityid \
-            inner join event ev on ev.enrollmentid = en.enrollmentid \
+            from ${trackedentity} te \
+            inner join ${enrollment} en on te.trackedentityid=en.trackedentityid \
+            inner join ${event} ev on en.enrollmentid=ev.enrollmentid \
             where ev.lastupdated <= '${startTime}' \
-            and tet.trackedentitytypeid = ${tetId} \
+            and te.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
             and ev.deleted = false \
@@ -344,7 +339,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
                 "tetId", String.valueOf(tet.getId()))));
 
     if (params.getFromDate() != null) {
-      sql.append(AND + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+      sql.append(
+          " and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
     }
 
     List<Integer> availableDataYears =
@@ -367,7 +363,12 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    columns.addAll(getFixedCols());
+
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
+
     columns.add(getOrganisationUnitNameHierarchyColumn());
 
     return columns;
@@ -386,9 +387,11 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
    */
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    AnalyticsTable masterTable = partition.getMasterTable();
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
-    String partitionClause = getPartitionClause(partition);
+    String partitionClause =
+        sqlBuilder.supportsDeclarativePartitioning() ? "" : getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -404,25 +407,20 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from event ev \
-                inner join enrollment en on en.enrollmentid = ev.enrollmentid \
-                and en.deleted = false \
-                inner join trackedentity te on te.trackedentityid = en.trackedentityid \
-                and te.deleted = false \
-                and te.trackedentitytypeid = ${tetId} \
-                and te.lastupdated < '${startTime}' \
-                left join programstage ps on ps.programstageid = ev.programstageid \
-                left join program p on p.programid = ps.programid \
-                left join organisationunit ou on ev.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                \s from ${event} ev \
+                inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
+                inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
+                and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
+                left join ${programstage} ps on ev.programstageid=ps.programstageid \
+                left join ${program} p on ps.programid=p.programid \
+                left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                 where ev.status in (${statuses}) \
                 ${partitionClause} \
                 and ev.deleted = false\s""",
                 Map.of(
-                    "tetId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "tetId", String.valueOf(masterTable.getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
                     "partitionClause", partitionClause)));
@@ -448,6 +446,21 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             eventDateExpression,
             end);
 
-    return partition.isLatestPartition() ? latestFilter : partitionFilter;
+    return partition.isLatestPartition()
+        ? latestFilter
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
+  }
+
+  /**
+   * Returns a partition column.
+   *
+   * @return an {@link AnalyticsTableColumn}.
+   */
+  private AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .selectExpression("ev.lastupdated")
+        .build();
   }
 }

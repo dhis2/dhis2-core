@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.common.query;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-/** Class to represent a renderable with it's groupId. */
+/** Class to represent a renderable with groupId. */
 @Data
 @RequiredArgsConstructor(staticName = "of")
 public class GroupableCondition {

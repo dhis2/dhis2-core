@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.sms;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -52,7 +53,7 @@ import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,17 +69,17 @@ public class RelationshipSMSListener extends CompressionSMSListener {
   public RelationshipSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
-      UserService userService,
       IdentifiableObjectManager identifiableObjectManager,
       RelationshipTypeService relationshipTypeService,
       TrackerImportService trackerImportService) {
-    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
+    super(incomingSmsService, smsSender, identifiableObjectManager);
     this.relationshipTypeService = relationshipTypeService;
     this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
+  protected SmsResponse postProcess(
+      IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
       throws SMSProcessingException {
     RelationshipSmsSubmission subm = (RelationshipSmsSubmission) submission;
 
@@ -111,7 +112,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
                     .relationshipType(MetadataIdentifier.ofUid(relType))
                     .relationship(
                         submission.getRelationship() != null
-                            ? submission.getRelationship().getUid()
+                            ? UID.of(submission.getRelationship().getUid())
                             : null)
                     .from(relationshipItem(relType.getFromConstraint(), submission.getFrom()))
                     .to(relationshipItem(relType.getToConstraint(), submission.getTo()))
@@ -122,9 +123,9 @@ public class RelationshipSMSListener extends CompressionSMSListener {
   private static RelationshipItem relationshipItem(RelationshipConstraint constraint, Uid uid) {
     return switch (constraint.getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
-          RelationshipItem.builder().trackedEntity(uid.getUid()).build();
-      case PROGRAM_INSTANCE -> RelationshipItem.builder().enrollment(uid.getUid()).build();
-      case PROGRAM_STAGE_INSTANCE -> RelationshipItem.builder().event(uid.getUid()).build();
+          RelationshipItem.builder().trackedEntity(UID.of(uid.getUid())).build();
+      case PROGRAM_INSTANCE -> RelationshipItem.builder().enrollment(UID.of(uid.getUid())).build();
+      case PROGRAM_STAGE_INSTANCE -> RelationshipItem.builder().event(UID.of(uid.getUid())).build();
     };
   }
 

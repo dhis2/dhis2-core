@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -38,22 +41,26 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -65,37 +72,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager")
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          EnrollmentAnalyticsColumn.ENROLLMENT,
-          EnrollmentAnalyticsColumn.ENROLLMENT_DATE,
-          EnrollmentAnalyticsColumn.OCCURRED_DATE,
-          EnrollmentAnalyticsColumn.COMPLETED_DATE,
-          EnrollmentAnalyticsColumn.LAST_UPDATED,
-          EnrollmentAnalyticsColumn.STORED_BY,
-          EnrollmentAnalyticsColumn.CREATED_BY_USERNAME,
-          EnrollmentAnalyticsColumn.CREATED_BY_NAME,
-          EnrollmentAnalyticsColumn.CREATED_BY_LASTNAME,
-          EnrollmentAnalyticsColumn.CREATED_BY_DISPLAYNAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_USERNAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_NAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_LASTNAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_DISPLAYNAME,
-          EnrollmentAnalyticsColumn.ENROLLMENT_STATUS,
-          EnrollmentAnalyticsColumn.LONGITUDE,
-          EnrollmentAnalyticsColumn.LATITUDE,
-          EnrollmentAnalyticsColumn.OU,
-          EnrollmentAnalyticsColumn.OU_NAME,
-          EnrollmentAnalyticsColumn.OU_CODE,
-          EnrollmentAnalyticsColumn.OU_LEVEL,
-          EnrollmentAnalyticsColumn.ENROLLMENT_GEOMETRY,
-          EnrollmentAnalyticsColumn.REGISTRATION_OU);
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -109,7 +92,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -119,6 +102,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         analyticsExportSettings,
         periodDataProvider,
         sqlBuilder);
+    fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override
@@ -164,14 +148,14 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
-        replace(
+        replaceQualify(
             """
-            \s from enrollment en \
-            inner join program pr on en.programid=pr.programid \
-            left join trackedentity te on en.trackedentityid=te.trackedentityid \
+            \s from ${enrollment} en \
+            inner join ${program} pr on en.programid=pr.programid \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
             and te.deleted = false \
-            left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid \
-            inner join organisationunit ou on en.organisationunitid=ou.organisationunitid \
+            left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
+            inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
             and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
@@ -189,20 +173,103 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     populateTableInternal(partition, fromClause);
   }
 
+  /**
+   * Returns a list of columns for the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    columns.addAll(fixedColumns);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(getTrackedEntityAttributeColumns(program));
+    columns.addAll(getTrackedEntityColumns(program));
+
+    return filterDimensionColumns(columns);
+  }
+
+  /**
+   * Returns a list of tracked entity attribute {@link AnalyticsTableColumn}.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
+      DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+      String dataClause =
+          attribute.isNumericType()
+              ? getNumericClause()
+              : attribute.isDateType() ? getDateClause() : "";
+      String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
+      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+
+      String sql =
+          replaceQualify(
+              """
+              (select ${select} from ${trackedentityattributevalue} \
+              where trackedentityid=en.trackedentityid \
+              and trackedentityattributeid=${attributeId}\
+              ${dataClause})${closingParentheses} as ${attributeUid}""",
+              Map.of(
+                  "select",
+                  select,
+                  "attributeId",
+                  String.valueOf(attribute.getId()),
+                  "dataClause",
+                  dataClause,
+                  "closingParentheses",
+                  getClosingParentheses(select),
+                  "attributeUid",
+                  quote(attribute.getUid())));
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name(attribute.getUid())
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
+              .dataType(dataType)
+              .selectExpression(sql)
+              .skipIndex(skipIndex)
+              .build());
+
+      if (attribute.getValueType().isOrganisationUnit()) {
+        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataClause);
+
+        columns.add(
+            AnalyticsTableColumn.builder()
+                .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+                .dimensionType(AnalyticsDimensionType.DYNAMIC)
+                .dataType(TEXT)
+                .selectExpression(ouNameSql)
+                .skipIndex(SKIP)
+                .build());
+      }
+    }
+    return columns;
+  }
+
+  /**
+   * Returns a list of tracked entity {@link AnalyticsTableColumn}.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getTrackedEntityColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (program.isRegistration()) {
       columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
-      columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      if (sqlBuilder.supportsGeospatialData()) {
+        columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      }
     }
 
-    return filterDimensionColumns(columns);
+    return columns;
   }
 }

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -199,6 +200,13 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceMultiple() {
+    assertEquals(
+        "Hey John, my name is John",
+        TextUtils.replace("Hey ${name}, my name is ${name}", Map.of("name", "John")));
+  }
+
+  @Test
   void testReplaceVarargs() {
     assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
   }
@@ -266,5 +274,17 @@ class TextUtilsTest {
   void testEmptyIfTrue() {
     assertEquals("", TextUtils.emptyIfTrue("foo", true));
     assertEquals("foo", TextUtils.emptyIfTrue("foo", false));
+  }
+
+  @Test
+  void testGetVariableNames() {
+    assertEquals(
+        Set.of("animal", "target"),
+        TextUtils.getVariableNames("The ${animal} jumped over the ${target}."));
+  }
+
+  @Test
+  void testGetVariableNamesWithNullInput() {
+    assertEquals(Set.of(), TextUtils.getVariableNames(null));
   }
 }

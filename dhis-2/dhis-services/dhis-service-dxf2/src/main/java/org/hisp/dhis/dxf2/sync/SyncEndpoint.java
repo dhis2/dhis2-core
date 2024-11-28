@@ -31,7 +31,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -44,5 +44,5 @@ public enum SyncEndpoint {
 
   private final String path;
 
-  private final Class<? extends AbstractWebMessageResponse> klass;
+  private final Class<? extends WebMessageResponse> klass;
 }

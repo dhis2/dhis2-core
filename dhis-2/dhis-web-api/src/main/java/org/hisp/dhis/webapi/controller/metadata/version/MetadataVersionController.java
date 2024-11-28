@@ -53,8 +53,7 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -72,12 +71,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author aamerm
  */
-@OpenApi.Document(domain = MetadataVersion.class)
+@OpenApi.Document(entity = MetadataVersion.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/metadata")
 public class MetadataVersionController {
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsProvider settingsProvider;
 
   @Autowired private MetadataVersionService versionService;
 
@@ -298,7 +297,7 @@ public class MetadataVersionController {
   // ----------------------------------------------------------------------------------------
 
   private boolean isMetadataVersioningEnabled() {
-    return systemSettingManager.getBoolSetting(SettingKey.METADATAVERSION_ENABLED);
+    return settingsProvider.getCurrentSettings().getVersionEnabled();
   }
 
   private RootNode getMetadataVersionsAsNode(List<MetadataVersion> versions) {

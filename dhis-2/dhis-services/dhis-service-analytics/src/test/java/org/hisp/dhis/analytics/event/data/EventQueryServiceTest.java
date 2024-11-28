@@ -31,7 +31,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createProgram;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -58,9 +58,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -71,8 +71,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class EventQueryServiceTest {
-  @Mock private EventQueryService eventQueryService;
-
   @Mock private EventQueryValidator queryValidator;
 
   @Mock private MetadataItemsHandler metadataHandler;
@@ -91,22 +89,11 @@ class EventQueryServiceTest {
 
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 
+  @InjectMocks private EventQueryService eventQueryService;
+
   @BeforeAll
   static void setup() {
-    injectSecurityContext(new SystemUser());
-  }
-
-  @BeforeEach
-  public void setUp() {
-    eventQueryService =
-        new EventQueryService(
-            securityManager,
-            queryValidator,
-            eventAnalyticsManager,
-            queryPlanner,
-            databaseInfoProvider,
-            metadataHandler,
-            schemeIdHandler);
+    injectSecurityContextNoSettings(new SystemUser());
   }
 
   @Test

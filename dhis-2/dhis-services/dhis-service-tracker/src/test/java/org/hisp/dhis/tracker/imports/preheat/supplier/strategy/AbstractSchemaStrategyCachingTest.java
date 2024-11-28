@@ -49,7 +49,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
@@ -90,10 +90,10 @@ class AbstractSchemaStrategyCachingTest extends TestBase {
     // Given
     final Schema schema = new ProgramSchemaDescriptor().getSchema();
 
-    String UID = CodeGenerator.generateUid();
+    String uid = CodeGenerator.generateUid();
 
     Program program = rnd.nextObject(Program.class);
-    when(cache.get(Program.class.getSimpleName(), UID)).thenReturn(Optional.of(program));
+    when(cache.get(Program.class.getSimpleName(), uid)).thenReturn(Optional.of(program));
 
     ProgramStrategy strategy = new ProgramStrategy(schemaService, queryService, manager, cache);
 
@@ -102,7 +102,7 @@ class AbstractSchemaStrategyCachingTest extends TestBase {
         preheat,
         schema,
         TrackerIdSchemeParam.UID,
-        singletonList(singletonList(UID)),
+        singletonList(singletonList(uid)),
         ProgramMapper.INSTANCE.getClass());
 
     // Then
@@ -114,11 +114,11 @@ class AbstractSchemaStrategyCachingTest extends TestBase {
     // Given
     final Schema schema = new ProgramSchemaDescriptor().getSchema();
 
-    String UID = CodeGenerator.generateUid();
+    String uid = CodeGenerator.generateUid();
 
     Program program = rnd.nextObject(Program.class);
 
-    when(cache.get(Program.class.getSimpleName(), UID)).thenReturn(Optional.empty());
+    when(cache.get(Program.class.getSimpleName(), uid)).thenReturn(Optional.empty());
 
     doReturn(singletonList(program)).when(queryService).query(any(Query.class));
     ProgramStrategy strategy = new ProgramStrategy(schemaService, queryService, manager, cache);
@@ -128,7 +128,7 @@ class AbstractSchemaStrategyCachingTest extends TestBase {
         preheat,
         schema,
         TrackerIdSchemeParam.UID,
-        singletonList(singletonList(UID)),
+        singletonList(singletonList(uid)),
         CopyMapper.class);
 
     // Then

@@ -72,6 +72,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -107,6 +108,7 @@ import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
@@ -180,6 +182,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
@@ -198,6 +201,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.ValidationRule;
@@ -274,6 +278,8 @@ public abstract class TestBase {
   // -------------------------------------------------------------------------
 
   protected UserService userService;
+
+  @Autowired private UserSettingsService userSettingsService;
 
   protected RenderService renderService;
 
@@ -725,6 +731,19 @@ public abstract class TestBase {
   }
 
   /**
+   * Creates a {@see CategoryDimension} with name and uid.
+   *
+   * @param dimension desired category
+   * @return {@see CategoryDimension}
+   */
+  public static CategoryDimension createCategoryDimension(Category dimension) {
+    CategoryDimension categoryDimension = new CategoryDimension();
+    categoryDimension.setDimension(dimension);
+
+    return categoryDimension;
+  }
+
+  /**
    * @param uniqueIdentifier A unique character to identify the category option group.
    * @param categoryOptions the category options.
    * @return CategoryOptionGroup
@@ -897,6 +916,20 @@ public abstract class TestBase {
     groupSet.setName("IndicatorGroupSet" + uniqueCharacter);
 
     return groupSet;
+  }
+
+  /**
+   * @param uniqueCharacter A unique character to identify the object.
+   */
+  public static Section createSection(
+      char uniqueCharacter,
+      DataSet dataSet,
+      List<DataElement> dataElements,
+      List<Indicator> indicators) {
+    Section section = new Section("Section" + uniqueCharacter, dataSet, dataElements, Set.of());
+    section.setAutoFields();
+    section.getIndicators().addAll(indicators);
+    return section;
   }
 
   /**
@@ -2661,13 +2694,21 @@ public abstract class TestBase {
     injectSecurityContext(userDetails);
   }
 
-  public static void injectSecurityContext(UserDetails currentUserDetails) {
+  public static void injectSecurityContextNoSettings(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);
+  }
+
+  public void injectSecurityContext(UserDetails currentUserDetails) {
+    injectSecurityContextNoSettings(currentUserDetails);
+    if (userSettingsService != null) {
+      String username = currentUserDetails.getUsername();
+      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, true));
+    }
   }
 
   public static void clearSecurityContext() {

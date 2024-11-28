@@ -62,7 +62,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Document(domain = JobConfiguration.class)
+@OpenApi.Document(
+    entity = JobConfiguration.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/scheduling")
 @AllArgsConstructor

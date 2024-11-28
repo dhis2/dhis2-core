@@ -33,8 +33,6 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
-import static org.hisp.dhis.setting.SettingKey.ANALYSIS_RELATIVE_PERIOD;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.system.grid.GridUtils.toCsv;
 import static org.hisp.dhis.system.grid.GridUtils.toHtml;
 import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
@@ -68,10 +66,10 @@ import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -83,7 +81,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = Enrollment.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @ApiVersion({DEFAULT, ALL})
 @RequestMapping("/api/analytics/enrollments/aggregate")
@@ -103,7 +103,7 @@ public class EnrollmentAggregateAnalyticsController {
 
   @Nonnull private DimensionMapperService dimensionMapperService;
 
-  @Nonnull private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingsProvider settingsProvider;
 
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
@@ -253,11 +253,10 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       boolean analyzeOnly) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    criteria.definePageSize(settings.getAnalyticsMaxLimit());
 
-    defineDefaultPeriodForCriteria(
-        criteria,
-        systemSettingManager.getSystemSetting(ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+    defineDefaultPeriodForCriteria(criteria, settings.getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()

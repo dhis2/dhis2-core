@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -92,9 +92,9 @@ class IndicatorControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject error1 = errors.getObject(0);
     JsonObject error2 = errors.getObject(1);
     assertEquals(
-        "SOURCE indicator does not exist: `Uid00000010`", error1.getString("message").string());
+        "SOURCE Indicator does not exist: `Uid00000010`", error1.getString("message").string());
     assertEquals(
-        "TARGET indicator does not exist: `Uid00000012`", error2.getString("message").string());
+        "TARGET Indicator does not exist: `Uid00000012`", error2.getString("message").string());
   }
 
   @Test

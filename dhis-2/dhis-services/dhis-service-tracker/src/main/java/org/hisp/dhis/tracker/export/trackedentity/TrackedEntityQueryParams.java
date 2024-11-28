@@ -43,10 +43,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -113,7 +113,7 @@ public class TrackedEntityQueryParams {
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   /** Set of te uids to explicitly select. */
-  private Set<String> trackedEntityUids = new HashSet<>();
+  private Set<UID> trackedEntities = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
   private ProgramStage programStage;
@@ -148,7 +148,7 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams() {}
 
   public boolean hasTrackedEntities() {
-    return CollectionUtils.isNotEmpty(this.trackedEntityUids);
+    return CollectionUtils.isNotEmpty(this.trackedEntities);
   }
 
   public boolean hasFilterForEvents() {
@@ -157,10 +157,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Returns a list of attributes and filters combined. */
-  public Set<String> getFilterIds() {
-    return filters.keySet().stream()
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toSet());
+  public Set<UID> getFilterIds() {
+    return filters.keySet().stream().map(UID::of).collect(Collectors.toSet());
   }
 
   /** Indicates whether these parameters specify any filters. */
@@ -546,12 +544,12 @@ public class TrackedEntityQueryParams {
         .collect(Collectors.toSet());
   }
 
-  public Set<String> getTrackedEntityUids() {
-    return trackedEntityUids;
+  public Set<UID> getTrackedEntities() {
+    return trackedEntities;
   }
 
-  public TrackedEntityQueryParams setTrackedEntityUids(Set<String> trackedEntityUids) {
-    this.trackedEntityUids = trackedEntityUids;
+  public TrackedEntityQueryParams setTrackedEntities(Set<UID> trackedEntities) {
+    this.trackedEntities = trackedEntities;
     return this;
   }
 

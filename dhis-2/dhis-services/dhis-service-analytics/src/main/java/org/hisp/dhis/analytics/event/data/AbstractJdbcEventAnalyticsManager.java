@@ -41,12 +41,14 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
+import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
+import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
@@ -55,7 +57,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
@@ -102,7 +103,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InQueryFilter;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.Reference;
@@ -114,7 +114,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -139,9 +138,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-  private static final String COL_VALUE = "value";
+  static final String COL_VALUE = "value";
 
-  private static final String OUTER_SQL_ALIAS = "t1";
+  static final String OUTER_SQL_ALIAS = "t1";
 
   private static final String AND = " and ";
 
@@ -338,12 +337,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             dimension -> {
               if (params.isAggregatedEnrollments()
                   && dimension.getDimensionType() == DimensionType.PERIOD) {
-                dimension
-                    .getItems()
-                    .forEach(
-                        it ->
-                            columns.add(
-                                ((Period) it).getPeriodType().getPeriodTypeEnum().getName()));
+                for (DimensionalItemObject it : dimension.getItems()) {
+                  columns.add(((Period) it).getPeriodType().getPeriodTypeEnum().getName());
+                }
                 return;
               }
 
@@ -906,7 +902,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
-      return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
+      return params
+          .getOrgUnitField()
+          .withSqlBuilder(sqlBuilder)
+          .getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()
@@ -951,54 +950,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getWhereClause(params);
 
-    final String tempSql = sql;
-
-    String headerColumns =
-        headers.stream()
-            .filter(
-                header ->
-                    !header.getName().equalsIgnoreCase(COL_VALUE)
-                        && !header.getName().equalsIgnoreCase(PERIOD_DIM_ID)
-                        && !header.getName().equalsIgnoreCase(ORGUNIT_DIM_ID))
-            .map(
-                header -> {
-                  String headerName = header.getName();
-                  if (tempSql.contains(headerName)) {
-                    return OUTER_SQL_ALIAS + "." + quote(headerName);
-                  }
-                  if (headerName.contains(".")) {
-                    headerName = headerName.split("\\.")[1];
-                  }
-
-                  return OUTER_SQL_ALIAS + "." + quote(headerName);
-                })
-            .collect(joining(","));
-
-    String orgColumns = EMPTY;
-
-    if (!params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)
-        && !params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-
-      orgColumns =
-          params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
-              .map(d -> LEVEL_PREFIX + ((OrganisationUnit) d).getLevel())
-              .distinct()
-              .collect(joining(","));
-    }
-
-    String periodColumns =
-        params.getDimensions().stream()
-            .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
-            .flatMap(
-                d ->
-                    d.getItems().stream()
-                        .map(
-                            it ->
-                                OUTER_SQL_ALIAS
-                                    + "."
-                                    + ((Period) it).getPeriodType().getPeriodTypeEnum().getName())
-                        .distinct())
-            .collect(joining(","));
+    String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
+    String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
+    String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
 
     String columns =
         (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)

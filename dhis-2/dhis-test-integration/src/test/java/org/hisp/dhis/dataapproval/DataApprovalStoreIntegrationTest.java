@@ -45,12 +45,11 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -101,7 +100,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CacheProvider cacheProvider;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -154,7 +153,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
             periodService,
             periodStore,
             categoryService,
-            systemSettingManager,
+            settingsService,
             userService);
 
     // ---------------------------------------------------------------------
@@ -167,23 +166,11 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
     userApprovalLevels = List.of(level1);
 
-    PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-
-    workflowA = new DataApprovalWorkflow("workflowA1", periodType, newHashSet(level1));
-
-    dataApprovalService.addWorkflow(workflowA);
-
     sourceA = createOrganisationUnit('A');
 
     sourceA.setHierarchyLevel(1);
 
     organisationUnitService.addOrganisationUnit(sourceA);
-
-    dataSetA = createDataSet('A', new MonthlyPeriodType(), categoryComboA);
-    dataSetA.assignWorkflow(workflowA);
-    dataSetA.addOrganisationUnit(sourceA);
-
-    dataSetService.addDataSet(dataSetA);
 
     periodJan = createPeriod("202001");
     periodFeb = createPeriod("202002");
@@ -248,6 +235,19 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
     categoryComboA.getOptionCombos().add(categoryOptionCombo);
 
     categoryService.updateCategoryCombo(categoryComboA);
+
+    PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
+
+    workflowA =
+        new DataApprovalWorkflow("workflowA1", periodType, categoryComboA, newHashSet(level1));
+
+    dataApprovalService.addWorkflow(workflowA);
+
+    dataSetA = createDataSet('A', periodType, categoryComboA);
+    dataSetA.assignWorkflow(workflowA);
+    dataSetA.addOrganisationUnit(sourceA);
+
+    dataSetService.addDataSet(dataSetA);
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();

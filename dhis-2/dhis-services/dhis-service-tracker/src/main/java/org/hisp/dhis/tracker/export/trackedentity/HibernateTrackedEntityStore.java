@@ -57,14 +57,14 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -130,7 +130,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
@@ -138,14 +138,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       ApplicationEventPublisher publisher,
       AclService aclService,
       OrganisationUnitStore organisationUnitStore,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingsProvider settingsProvider) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(organisationUnitStore);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
 
     this.organisationUnitStore = organisationUnitStore;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
   }
 
   @Override
@@ -469,7 +469,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       trackedEntity
           .append(whereAnd.whereAnd())
           .append("TE.uid IN (")
-          .append(encodeAndQuote(params.getTrackedEntityUids()))
+          .append(encodeAndQuote(UID.toValueSet(params.getTrackedEntities())))
           .append(") ");
     }
 
@@ -846,7 +846,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append("SELECT userinfoid AS userid ")
           .append("FROM userinfo ")
           .append("WHERE uid IN (")
-          .append(encodeAndQuote(params.getAssignedUserQueryParam().getAssignedUsers()))
+          .append(
+              encodeAndQuote(UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers())))
           .append(") ")
           .append(") AU ON AU.userid = EV.assigneduserid");
     }
@@ -1037,7 +1038,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       TrackedEntityQueryParams params, PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    int teQueryLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
     if (limit == 0 && pageParams == null) {
       if (teQueryLimit > 0) {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,16 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +52,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
-  @Autowired private UserSettingService userSettingService;
+  @Autowired private UserSettingsService userSettingsService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Test
   void testGetNonAccessibleObject() {
@@ -97,10 +95,10 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Test
   @DisplayName("Search by token should use translations column instead of default columns")
-  void testSearchByToken() {
+  void testSearchByToken() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+    userSettingsService.put("keyDbLocale", Locale.FRENCH, userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
@@ -146,18 +144,15 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Test
   @DisplayName("Search by token should use default properties instead of translations column")
-  void testSearchTokenWithNullLocale() {
+  void testSearchTokenWithNullLocale() throws Exception {
     setUpTranslation();
-    doInTransaction(
-        () -> systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH));
-    systemSettingManager.invalidateCache();
-    assertEquals(
-        Locale.ENGLISH,
-        systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE));
+    doInTransaction(() -> settingsService.put("keyDbLocale", Locale.ENGLISH));
+    settingsService.clearCurrentSettings();
+    assertEquals(Locale.ENGLISH, settingsService.getCurrentSettings().getDbLocale());
 
-    User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
+    User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContextUser(userA);
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, null);
+    userSettingsService.put("keyDbLocale", null);
 
     assertTrue(
         GET("/dataSets?filter=identifiable:token:testToken")
@@ -182,10 +177,10 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @Test
   @DisplayName(
       "Search by token should use default properties if the translation value does not exist or does not match the search token")
-  void testSearchTokenWithFallback() {
+  void testSearchTokenWithFallback() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+    userSettingsService.put("keyDbLocale", Locale.FRENCH, userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
@@ -201,6 +196,30 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             .content()
             .getArray("dataSets")
             .isEmpty());
+  }
+
+  @Test
+  @DisplayName("Should not apply token filter for UID if value has length < 4")
+  void testIdentifiableTokenFilterLength() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit 1', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    String ou2 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit 2', 'shortName':'OU2', 'openingDate': '2020-01-01'}"));
+
+    JsonMixed response =
+        GET("/organisationUnits?filter=identifiable:token:" + ou2.substring(0, 3)).content();
+    assertEquals(0, response.getArray("organisationUnits").size());
+
+    response = GET("/organisationUnits?filter=identifiable:token:" + ou2.substring(0, 4)).content();
+    assertEquals(1, response.getArray("organisationUnits").size());
+    assertEquals(ou2, response.getArray("organisationUnits").getObject(0).getString("id").string());
   }
 
   private void setUpTranslation() {

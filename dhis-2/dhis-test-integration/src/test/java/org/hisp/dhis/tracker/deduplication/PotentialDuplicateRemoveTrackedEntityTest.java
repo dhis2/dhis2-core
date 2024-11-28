@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -176,10 +177,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(manager.get(TrackedEntity.class, control2.getUid()));
     removeTrackedEntity(duplicate);
     assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(enrollment2.getUid()));
-    assertNotNull(enrollmentService.getEnrollment(enrollment1.getUid()));
-    assertNotNull(enrollmentService.getEnrollment(enrollment3.getUid()));
-    assertNotNull(enrollmentService.getEnrollment(enrollment4.getUid()));
+        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment2)));
+    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment1)));
+    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment3)));
+    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment4)));
     assertNull(manager.get(TrackedEntity.class, duplicate.getUid()));
   }
 
@@ -192,7 +193,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   }
 
   private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
-    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntity.getUid()));
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(trackedEntity)));
   }
 
   private Relationship getRelationship(String uid) {

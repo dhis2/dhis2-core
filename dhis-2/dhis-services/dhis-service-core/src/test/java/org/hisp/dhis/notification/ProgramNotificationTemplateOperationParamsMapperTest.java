@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.notification;
 
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -51,8 +50,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationTemplateOperationParamsMapperTest {
-  private static final UID PROGRAM = UID.of(CodeGenerator.generateUid());
-  private static final UID PROGRAM_STAGE = UID.of(CodeGenerator.generateUid());
+  private static final UID PROGRAM = UID.generate();
+  private static final UID PROGRAM_STAGE = UID.generate();
 
   @Mock private IdentifiableObjectManager manager;
 
@@ -67,7 +66,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     user = new User();
     user.setUsername("admin");
 
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     program = new Program();
     program.setName("TB-Program");
@@ -118,7 +117,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
 
   @Test
   void shouldThrowWhenProgramIdIsInvalid() {
-    UID invalidProgram = UID.of(CodeGenerator.generateUid());
+    UID invalidProgram = UID.generate();
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder().program(invalidProgram).build();
     when(manager.get(Program.class, invalidProgram.getValue())).thenReturn(null);
@@ -135,7 +134,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
 
   @Test
   void shouldThrowWhenProgramStageIdIsInvalid() {
-    UID invalidProgramStage = UID.of(CodeGenerator.generateUid());
+    UID invalidProgramStage = UID.generate();
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder()
             .programStage(invalidProgramStage)

@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -81,9 +82,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,13 +93,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.DataQueryService")
 @RequiredArgsConstructor
 public class DefaultDataQueryService implements DataQueryService {
-  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final DimensionalObjectProvider dimensionalObjectProducer;
 
   private final IdentifiableObjectManager idObjectManager;
 
   private final AnalyticsSecurityManager securityManager;
-
-  private final UserSettingService userSettingService;
 
   // -------------------------------------------------------------------------
   // DataQueryService implementation
@@ -112,7 +110,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     IdScheme inputIdScheme = firstNonNull(request.getInputIdScheme(), UID);
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
@@ -184,7 +182,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     Date date = object.getRelativePeriodDate();
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     String userOrgUnit =
         object.getRelativeOrganisationUnit() != null
@@ -299,7 +297,7 @@ public class DefaultDataQueryService implements DataQueryService {
           units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(currentUser.getDataViewOrganisationUnits().stream().sorted().toList());
+          units.addAll(getAnalyticsOrganisationUnitsOrDefault(currentUser));
           break;
         case TEI_SEARCH:
           units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
@@ -310,6 +308,30 @@ public class DefaultDataQueryService implements DataQueryService {
     }
 
     return units;
+  }
+
+  /**
+   * Retrieve the list of organisation units to which the current user has access rights. If the
+   * user has analytics organisation units assigned, those will be returned. Otherwise, it returns
+   * the default ones (data capture organisation units).
+   *
+   * @param currentUser {@link User}
+   * @return a list of {@link OrganisationUnit}.
+   */
+  private List<OrganisationUnit> getAnalyticsOrganisationUnitsOrDefault(User currentUser) {
+    Set<OrganisationUnit> organisationUnits = currentUser.getDataViewOrganisationUnits();
+    if (organisationUnits != null && !organisationUnits.isEmpty()) {
+      return organisationUnits.stream().sorted().toList();
+    } else {
+      // If the user has no analytics permissions for any organization unit,
+      // returns data capture organization units, instead.
+      Set<OrganisationUnit> defaultOrganisationUnits = currentUser.getOrganisationUnits();
+      if (defaultOrganisationUnits != null && !defaultOrganisationUnits.isEmpty()) {
+        return defaultOrganisationUnits.stream().sorted().toList();
+      }
+    }
+
+    return new ArrayList<>();
   }
 
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {

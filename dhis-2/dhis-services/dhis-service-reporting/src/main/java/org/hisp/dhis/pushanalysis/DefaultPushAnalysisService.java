@@ -67,8 +67,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -96,7 +95,7 @@ import org.springframework.util.MimeTypeUtils;
 public class DefaultPushAnalysisService implements PushAnalysisService {
   private static final Encoder encoder = new Encoder();
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -252,8 +251,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
     DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
     itemHtml.put("date", dateFormat.format(Calendar.getInstance().getTime()));
     itemHtml.put("instanceBaseUrl", dhisConfigurationProvider.getServerBaseUrl());
-    itemHtml.put(
-        "instanceName", systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE));
+    itemHtml.put("instanceName", settingsProvider.getCurrentSettings().getApplicationTitle());
 
     // ----------------------------------------------------------------------
     // Set up template context, including pre-processed dashboard items

@@ -63,11 +63,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RelationshipOperationParamsMapperTest extends TestBase {
 
-  private static final String TE_UID = "OBzmpRP6YUh";
+  private static final UID TE_UID = UID.of("OBzmpRP6YUh");
 
-  private static final String EN_UID = "KSd4PejqBf9";
+  private static final UID EN_UID = UID.of("KSd4PejqBf9");
 
-  private static final String EV_UID = "TvjwTPToKHO";
+  private static final UID EV_UID = UID.of("TvjwTPToKHO");
 
   @Mock private TrackedEntityService trackedEntityService;
 
@@ -92,11 +92,11 @@ class RelationshipOperationParamsMapperTest extends TestBase {
     ProgramStage programStage = createProgramStage('A', program);
 
     trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_UID);
+    trackedEntity.setUid(TE_UID.getValue());
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
-    enrollment.setUid(EN_UID);
+    enrollment.setUid(EN_UID.getValue());
     event = createEvent(programStage, enrollment, organisationUnit);
-    event.setUid(EV_UID);
+    event.setUid(EV_UID.getValue());
   }
 
   @Test
@@ -109,7 +109,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     assertInstanceOf(TrackedEntity.class, queryParams.getEntity());
-    assertEquals(TE_UID, queryParams.getEntity().getUid());
+    assertEquals(TE_UID.getValue(), queryParams.getEntity().getUid());
   }
 
   @Test
@@ -122,20 +122,20 @@ class RelationshipOperationParamsMapperTest extends TestBase {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     assertInstanceOf(Enrollment.class, queryParams.getEntity());
-    assertEquals(EN_UID, queryParams.getEntity().getUid());
+    assertEquals(EN_UID.getValue(), queryParams.getEntity().getUid());
   }
 
   @Test
   void shouldMapEventWhenAEventIsPassed()
       throws NotFoundException, ForbiddenException, BadRequestException {
-    when(eventService.getEvent(UID.of(EV_UID))).thenReturn(event);
+    when(eventService.getEvent(EV_UID)).thenReturn(event);
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
     assertInstanceOf(Event.class, queryParams.getEntity());
-    assertEquals(EV_UID, queryParams.getEntity().getUid());
+    assertEquals(EV_UID.getValue(), queryParams.getEntity().getUid());
   }
 
   @Test

@@ -44,11 +44,11 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 class AssignedUserQueryParamTest {
-  public static final String CURRENT_USER_UID = "Kj6vYde4LHh";
+  public static final UID CURRENT_USER_UID = UID.of("Kj6vYde4LHh");
 
-  public static final String NON_CURRENT_USER_UID = "f1AyMswryyX";
+  public static final UID NON_CURRENT_USER_UID = UID.of("f1AyMswryyX");
 
-  public static final Set<String> NON_CURRENT_USER_UIDS = Set.of(NON_CURRENT_USER_UID);
+  public static final Set<UID> NON_CURRENT_USER_UIDS = Set.of(NON_CURRENT_USER_UID);
 
   @Test
   void testUserWithAssignedUsersGivenUsersAndModeProvided() {
@@ -74,7 +74,7 @@ class AssignedUserQueryParamTest {
 
   @ParameterizedTest
   @NullAndEmptySource
-  void testUserWithAssignedUsersGivenNoModeAndNoUsers(Set<String> users) {
+  void testUserWithAssignedUsersGivenNoModeAndNoUsers(Set<UID> users) {
 
     AssignedUserQueryParam param = new AssignedUserQueryParam(null, users, CURRENT_USER_UID);
 
@@ -85,7 +85,7 @@ class AssignedUserQueryParamTest {
 
   @ParameterizedTest
   @NullAndEmptySource
-  void testUserWithAssignedUsersFailsGivenNoUsersAndProvided(Set<String> users) {
+  void testUserWithAssignedUsersFailsGivenNoUsersAndProvided(Set<UID> users) {
 
     assertThrows(
         IllegalQueryException.class,
@@ -94,7 +94,7 @@ class AssignedUserQueryParamTest {
 
   @ParameterizedTest
   @NullAndEmptySource
-  void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull(Set<String> users) {
+  void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull(Set<UID> users) {
     AssignedUserQueryParam param = new AssignedUserQueryParam(CURRENT, users, CURRENT_USER_UID);
 
     assertEquals(PROVIDED, param.getMode());

@@ -91,11 +91,11 @@ class TrackedEntityOperationParamsMapper {
   public TrackedEntityQueryParams map(
       TrackedEntityOperationParams operationParams, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
     TrackedEntityType requestedTrackedEntityType =
-        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
 
     List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
 
@@ -134,7 +134,7 @@ class TrackedEntityOperationParamsMapper {
         .setEventStartDate(operationParams.getEventStartDate())
         .setEventEndDate(operationParams.getEventEndDate())
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
-        .setTrackedEntityUids(operationParams.getTrackedEntityUids())
+        .setTrackedEntities(operationParams.getTrackedEntities())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
@@ -179,11 +179,11 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      TrackedEntityQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
+      TrackedEntityQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
-          attributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+          attributeService.getTrackedEntityAttribute(attributeFilter.getKey().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
@@ -205,24 +205,24 @@ class TrackedEntityOperationParamsMapper {
       TrackedEntityOperationParams requestParams, Program program) throws BadRequestException {
 
     ProgramStage ps =
-        requestParams.getProgramStageUid() != null
-            ? getProgramStageFromProgram(program, requestParams.getProgramStageUid())
+        requestParams.getProgramStage() != null
+            ? getProgramStageFromProgram(program, requestParams.getProgramStage())
             : null;
-    if (requestParams.getProgramStageUid() != null && ps == null) {
+    if (requestParams.getProgramStage() != null && ps == null) {
       throw new BadRequestException(
           "Program does not contain the specified programStage: "
-              + requestParams.getProgramStageUid());
+              + requestParams.getProgramStage());
     }
     return ps;
   }
 
-  private ProgramStage getProgramStageFromProgram(Program program, String programStage) {
+  private ProgramStage getProgramStageFromProgram(Program program, UID programStage) {
     if (program == null) {
       return null;
     }
 
     return program.getProgramStages().stream()
-        .filter(ps -> ps.getUid().equals(programStage))
+        .filter(ps -> ps.getUid().equals(programStage.getValue()))
         .findFirst()
         .orElse(null);
   }
@@ -265,12 +265,12 @@ class TrackedEntityOperationParamsMapper {
         && trackedEntityType == null
         && operationParams.getFilters() != null
         && orgUnits.isEmpty()) {
-      List<String> uniqueAttributeIds =
+      List<UID> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
-              .map(TrackedEntityAttribute::getUid)
+              .map(UID::of)
               .toList();
 
-      for (String att : params.getFilterIds()) {
+      for (UID att : params.getFilterIds()) {
         if (!uniqueAttributeIds.contains(att)) {
           throw new IllegalQueryException(
               "Either a program or tracked entity type must be specified");
@@ -284,7 +284,7 @@ class TrackedEntityOperationParamsMapper {
     if (!isLocalSearch(params, user)) {
 
       if (params.hasFilters()) {
-        List<String> searchableAttributeIds = getSearchableAttributeIds(params);
+        List<UID> searchableAttributeIds = getSearchableAttributeIds(params);
         validateSearchableAttributes(params, searchableAttributeIds);
       }
 
@@ -294,21 +294,22 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private List<String> getSearchableAttributeIds(TrackedEntityQueryParams params) {
-    List<String> searchableAttributeIds = new ArrayList<>();
+  private List<UID> getSearchableAttributeIds(TrackedEntityQueryParams params) {
+    List<UID> searchableAttributeIds = new ArrayList<>();
 
     if (params.hasProgram()) {
-      searchableAttributeIds.addAll(params.getProgram().getSearchableAttributeIds());
+      searchableAttributeIds.addAll(UID.of(params.getProgram().getSearchableAttributeIds()));
     }
 
     if (params.hasTrackedEntityType()) {
-      searchableAttributeIds.addAll(params.getTrackedEntityType().getSearchableAttributeIds());
+      searchableAttributeIds.addAll(
+          UID.of(params.getTrackedEntityType().getSearchableAttributeIds()));
     }
 
     if (!params.hasProgram() && !params.hasTrackedEntityType()) {
       searchableAttributeIds.addAll(
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
-              .map(TrackedEntityAttribute::getUid)
+              .map(UID::of)
               .toList());
     }
 
@@ -316,10 +317,10 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private void validateSearchableAttributes(
-      TrackedEntityQueryParams params, List<String> searchableAttributeIds) {
-    List<String> violatingAttributes = new ArrayList<>();
+      TrackedEntityQueryParams params, List<UID> searchableAttributeIds) {
+    List<UID> violatingAttributes = new ArrayList<>();
 
-    for (String attributeId : params.getFilterIds()) {
+    for (UID attributeId : params.getFilterIds()) {
       if (!searchableAttributeIds.contains(attributeId)) {
         violatingAttributes.add(attributeId);
       }

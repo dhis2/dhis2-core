@@ -34,12 +34,14 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
@@ -65,7 +67,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
-public class PushAnalysisController extends AbstractCrudController<PushAnalysis> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
+public class PushAnalysisController
+    extends AbstractCrudController<PushAnalysis, GetObjectListParams> {
 
   private final PushAnalysisService pushAnalysisService;
   private final ContextUtils contextUtils;

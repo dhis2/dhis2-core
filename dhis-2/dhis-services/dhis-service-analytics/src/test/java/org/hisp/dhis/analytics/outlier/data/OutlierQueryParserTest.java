@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.outlier.data;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createDataSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
@@ -55,15 +55,19 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OutlierQueryParserTest {
   @Mock private IdentifiableObjectManager idObjectManager;
-  @Mock private DimensionalObjectProducer dimensionalObjectProducer;
+
+  @Mock private DimensionalObjectProvider dimensionalObjectProducer;
+
   @Mock private UserService userService;
-  private OutlierQueryParser subject;
+
+  @InjectMocks private OutlierQueryParser subject;
 
   @BeforeEach
   void setup() {
@@ -86,10 +90,8 @@ class OutlierQueryParserTest {
     User user = new User();
     user.setUsername("test");
     user.setDataViewOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
-
-    subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);
   }
 
   @Test

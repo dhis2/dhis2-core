@@ -62,7 +62,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -97,7 +98,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/account")
 @Slf4j
@@ -116,16 +119,17 @@ public class AccountController {
 
   private final PasswordManager passwordManager;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final PasswordValidationService passwordValidationService;
 
   @PostMapping("/recovery")
   @ResponseBody
   @Deprecated(forRemoval = true, since = "2.41")
-  public WebMessage recoverAccount(@RequestParam String username, HttpServletRequest request)
+  public WebMessage recoverAccount(
+      @RequestParam String username, SystemSettings settings, HttpServletRequest request)
       throws WebMessageException {
-    if (!systemSettingManager.accountRecoveryEnabled()) {
+    if (!settings.getAccountRecoveryEnabled()) {
       return conflict("Account recovery is not enabled");
     }
 
@@ -172,7 +176,8 @@ public class AccountController {
   @PostMapping("/restore")
   @ResponseBody
   @Deprecated(forRemoval = true, since = "2.41")
-  public WebMessage restoreAccount(@RequestParam String token, @RequestParam String password) {
+  public WebMessage restoreAccount(
+      @RequestParam String token, @RequestParam String password, SystemSettings settings) {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
@@ -183,7 +188,7 @@ public class AccountController {
 
     String restoreToken = idAndRestoreToken[1];
 
-    if (!systemSettingManager.accountRecoveryEnabled()) {
+    if (!settings.getAccountRecoveryEnabled()) {
       return conflict("Account recovery is not enabled");
     }
 
@@ -306,7 +311,7 @@ public class AccountController {
   }
 
   WebMessage validateCaptcha(String recapResponse, HttpServletRequest request) throws IOException {
-    if (!systemSettingManager.selfRegistrationNoRecaptcha()) {
+    if (!settingsProvider.getCurrentSettings().getSelfRegistrationNoRecaptcha()) {
       if (recapResponse == null) {
         return badRequest("Recaptcha validation failed.");
       }

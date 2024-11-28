@@ -58,7 +58,8 @@ class IdSchemesTest {
     IdSchemes original = new IdSchemes();
     original.setProgramIdScheme("CODE");
     // language=JSON
-    String expected = """
+    String expected =
+        """
         {"programIdScheme":{"type":"CODE"}}""";
     assertEquals(expected, new ObjectMapper().writeValueAsString(original));
   }

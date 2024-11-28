@@ -156,7 +156,11 @@ public class DefaultDatastoreService implements DatastoreService {
               "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
     }
     validateEntry(entry);
-    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
+    writeProtectedIn(
+        getCurrentUserDetails(),
+        entry.getNamespace(),
+        () -> singletonList(entry),
+        () -> store.save(entry));
   }
 
   @Override
@@ -170,21 +174,29 @@ public class DefaultDatastoreService implements DatastoreService {
       throws BadRequestException {
     validateEntry(key, value);
     Runnable update = () -> store.updateEntry(ns, key, value, path, roll);
-    writeProtectedIn(ns, () -> List.of(store.getEntry(ns, key)), update);
+    writeProtectedIn(getCurrentUserDetails(), ns, () -> List.of(store.getEntry(ns, key)), update);
   }
 
   @Override
   @Transactional
   public void saveOrUpdateEntry(DatastoreEntry entry)
       throws BadRequestException, ForbiddenException {
+    saveOrUpdateEntry(entry, getCurrentUserDetails());
+  }
+
+  @Override
+  @Transactional
+  public void saveOrUpdateEntry(DatastoreEntry entry, UserDetails user)
+      throws BadRequestException, ForbiddenException {
     validateEntry(entry);
     DatastoreEntry existing = getEntry(entry.getNamespace(), entry.getKey());
     if (existing != null) {
       existing.setValue(entry.getValue());
       writeProtectedIn(
-          entry.getNamespace(), () -> singletonList(existing), () -> store.update(existing));
+          user, entry.getNamespace(), () -> singletonList(existing), () -> store.update(existing));
     } else {
-      writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
+      writeProtectedIn(
+          user, entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
     }
   }
 
@@ -192,6 +204,7 @@ public class DefaultDatastoreService implements DatastoreService {
   @Transactional
   public void deleteNamespace(String namespace) {
     writeProtectedIn(
+        getCurrentUserDetails(),
         namespace,
         () -> store.getEntriesInNamespace(namespace),
         () -> store.deleteNamespace(namespace));
@@ -200,7 +213,13 @@ public class DefaultDatastoreService implements DatastoreService {
   @Override
   @Transactional
   public void deleteEntry(DatastoreEntry entry) {
-    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.delete(entry));
+    deleteEntry(entry, getCurrentUserDetails());
+  }
+
+  @Override
+  public void deleteEntry(DatastoreEntry entry, UserDetails user) {
+    writeProtectedIn(
+        user, entry.getNamespace(), () -> singletonList(entry), () -> store.delete(entry));
   }
 
   private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read)
@@ -281,8 +300,7 @@ public class DefaultDatastoreService implements DatastoreService {
    *     for restricted namespace {@link DatastoreEntry}
    */
   private void writeProtectedIn(
-      String namespace, Supplier<List<DatastoreEntry>> entries, Runnable write) {
-    UserDetails user = getCurrentUserDetails();
+      UserDetails user, String namespace, Supplier<List<DatastoreEntry>> entries, Runnable write) {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     if (userHasNamespaceWriteAccess(user, protection)) {
       for (DatastoreEntry entry : entries.get()) {

@@ -41,23 +41,27 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventOperationParams {
-  private String programUid;
+  private UID program;
 
-  private String programStageUid;
+  private UID programStage;
 
   private EnrollmentStatus enrollmentStatus;
 
@@ -65,15 +69,15 @@ public class EventOperationParams {
 
   private Boolean followUp;
 
-  private String orgUnitUid;
+  private UID orgUnit;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserSelectionMode assignedUserMode;
 
-  private Set<String> assignedUsers;
+  private Set<UID> assignedUsers;
 
-  private String trackedEntityUid;
+  private UID trackedEntity;
 
   private Date occurredAfter;
 
@@ -100,13 +104,11 @@ public class EventOperationParams {
 
   private Date enrollmentOccurredAfter;
 
-  private String attributeCategoryCombo;
+  private UID attributeCategoryCombo;
 
-  @Builder.Default private Set<String> attributeCategoryOptions = Collections.emptySet();
+  @Builder.Default private Set<UID> attributeCategoryOptions = Collections.emptySet();
 
   private CategoryOptionCombo categoryOptionCombo;
-
-  @Builder.Default private IdSchemes idSchemes = new IdSchemes();
 
   private boolean includeRelationships;
 
@@ -126,28 +128,27 @@ public class EventOperationParams {
 
   private boolean includeAllDataElements;
 
-  @Builder.Default private Set<String> events = new HashSet<>();
+  @Builder.Default private Set<UID> events = new HashSet<>();
 
   /** Data element filters per data element UID. */
-  @Builder.Default private Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
+  @Builder.Default private Map<UID, List<QueryFilter>> dataElementFilters = new HashMap<>();
 
   /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<String, List<QueryFilter>> attributeFilters = new HashMap<>();
+  @Builder.Default private Map<UID, List<QueryFilter>> attributeFilters = new HashMap<>();
 
   private boolean includeDeleted;
-
-  private Set<String> accessiblePrograms;
-
-  private Set<String> accessibleProgramStages;
 
   private boolean synchronizationQuery;
 
   /** Indicates a point in the time used to decide the data that should not be synchronized */
   private Date skipChangedBefore;
 
-  private Set<String> enrollments;
+  private Set<UID> enrollments;
 
   private EventParams eventParams;
+
+  @Builder.Default
+  private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   public static class EventOperationParamsBuilder {
 
@@ -168,6 +169,46 @@ public class EventOperationParams {
 
     public EventOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
       this.order.add(new Order(uid, direction));
+      return this;
+    }
+
+    public EventOperationParamsBuilder program(UID uid) {
+      this.program = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder program(Program program) {
+      this.program = UID.of(program);
+      return this;
+    }
+
+    public EventOperationParamsBuilder programStage(UID uid) {
+      this.programStage = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder programStage(ProgramStage programStage) {
+      this.programStage = UID.of(programStage);
+      return this;
+    }
+
+    public EventOperationParamsBuilder orgUnit(UID uid) {
+      this.orgUnit = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder orgUnit(OrganisationUnit orgUnit) {
+      this.orgUnit = UID.of(orgUnit);
+      return this;
+    }
+
+    public EventOperationParamsBuilder trackedEntity(UID uid) {
+      this.trackedEntity = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
+      this.trackedEntity = UID.of(trackedEntity);
       return this;
     }
   }

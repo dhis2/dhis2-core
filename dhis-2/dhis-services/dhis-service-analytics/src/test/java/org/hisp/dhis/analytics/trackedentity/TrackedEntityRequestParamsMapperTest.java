@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
@@ -40,23 +39,19 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TrackedEntityRequestParamsMapperTest {
-  private final TrackedEntityTypeService trackedEntityTypeService =
-      mock(TrackedEntityTypeService.class);
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-  private final ProgramService programService = mock(ProgramService.class);
+  @Mock private ProgramService programService;
 
-  private TrackedEntityQueryRequestMapper trackedEntityQueryRequestMapper;
-
-  @BeforeEach
-  @SuppressWarnings("unchecked")
-  public void setUp() {
-    trackedEntityQueryRequestMapper =
-        new TrackedEntityQueryRequestMapper(trackedEntityTypeService, programService);
-  }
+  @InjectMocks private TrackedEntityQueryRequestMapper mapper;
 
   @Test
   void testOneProgramFailing() {
@@ -87,8 +82,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     final IllegalQueryException thrown =
         assertThrows(
-            IllegalQueryException.class,
-            () -> trackedEntityQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
+            IllegalQueryException.class, () -> mapper.map(trackedEntityTypeUid, requestParams));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
@@ -110,8 +104,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-    assertDoesNotThrow(
-        () -> trackedEntityQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
+    assertDoesNotThrow(() -> mapper.map(trackedEntityTypeUid, requestParams));
   }
 
   @Test
@@ -125,10 +118,7 @@ class TrackedEntityRequestParamsMapperTest {
     when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
         .thenReturn(trackedEntityType);
 
-    when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of());
-
-    assertDoesNotThrow(
-        () -> trackedEntityQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
+    assertDoesNotThrow(() -> mapper.map(trackedEntityTypeUid, requestParams));
   }
 
   private Program stubProgram(String uid, String tetUid) {

@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class AnalyticsTableColumnTest {
-
   @Test
   void testIsNotNull() {
     AnalyticsTableColumn colA =

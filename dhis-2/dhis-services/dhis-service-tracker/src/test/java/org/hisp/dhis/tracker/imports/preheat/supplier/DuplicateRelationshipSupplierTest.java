@@ -32,13 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -53,23 +54,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DuplicateRelationshipSupplierTest extends TestBase {
 
-  private static final String REL_A_UID = "RELA";
+  private static final UID REL_A_UID = UID.generate();
 
-  private static final String REL_B_UID = "RELB";
+  private static final UID REL_B_UID = UID.generate();
 
-  private static final String REL_C_UID = "RELC";
+  private static final UID REL_C_UID = UID.generate();
 
-  private static final String TE_A_UID = "TE_A";
+  private static final UID TE_A_UID = UID.generate();
 
-  private static final String TE_B_UID = "TE_B";
+  private static final UID TE_B_UID = UID.generate();
 
-  private static final String TE_C_UID = "TE_C";
+  private static final UID TE_C_UID = UID.generate();
 
-  private static final String KEY_REL_A = "UNIRELTYPE_TE_A_TE_B";
+  private static final String KEY_REL_A =
+      "UNIRELTYPE_" + TE_A_UID.getValue() + "_" + TE_B_UID.getValue();
 
-  private static final String KEY_REL_B = "BIRELTYPE_TE_B_TE_C";
+  private static final String KEY_REL_B =
+      "BIRELTYPE_" + TE_B_UID.getValue() + "_" + TE_C_UID.getValue();
 
-  private static final String KEY_REL_C = "UNIRELTYPE_TE_C_TE_A";
+  private static final String KEY_REL_C =
+      "UNIRELTYPE_" + TE_C_UID.getValue() + "_" + TE_A_UID.getValue();
 
   private static final String UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "UNIRELTYPE";
 
@@ -106,11 +110,11 @@ class DuplicateRelationshipSupplierTest extends TestBase {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
 
     teA = createTrackedEntity(organisationUnit);
-    teA.setUid(TE_A_UID);
+    teA.setUid(TE_A_UID.getValue());
     teB = createTrackedEntity(organisationUnit);
-    teB.setUid(TE_B_UID);
+    teB.setUid(TE_B_UID.getValue());
     teC = createTrackedEntity(organisationUnit);
-    teC.setUid(TE_C_UID);
+    teC.setUid(TE_C_UID.getValue());
 
     relationshipA =
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()

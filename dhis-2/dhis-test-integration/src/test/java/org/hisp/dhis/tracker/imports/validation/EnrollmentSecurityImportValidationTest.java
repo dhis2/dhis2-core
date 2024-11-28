@@ -39,8 +39,8 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -365,11 +365,11 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(program.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnit.getUid()))
-            .trackedEntity(trackedEntity.getUid())
+            .trackedEntity(UID.of(trackedEntity))
             .status(EnrollmentStatus.ACTIVE)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .build());
   }
 }

@@ -37,9 +37,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Note;
@@ -115,7 +114,7 @@ class NoteValidatorTest {
   @Test
   void testNotesAreValidWhenUidDoesNotExist() {
     // Given
-    final List<Note> notes = rnd.objects(Note.class, 5).collect(Collectors.toList());
+    final List<Note> notes = rnd.objects(Note.class, 5).toList();
 
     enrollment.setNotes(notes);
 

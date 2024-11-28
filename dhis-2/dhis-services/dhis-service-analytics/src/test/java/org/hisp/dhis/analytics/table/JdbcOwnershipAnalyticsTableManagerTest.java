@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
@@ -77,7 +78,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.quick.JdbcConfiguration;
@@ -85,8 +87,10 @@ import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.invocation.Invocation;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -105,7 +109,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private DataApprovalLevelService dataApprovalLevelService;
 
@@ -133,7 +137,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @InjectMocks private JdbcOwnershipAnalyticsTableManager manager;
 
   private static final Program programA = createProgram('A');
 
@@ -145,26 +151,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   private static AnalyticsTablePartition partitionA;
 
-  private JdbcOwnershipAnalyticsTableManager target;
-
   @BeforeEach
   public void setUp() {
-    target =
-        new JdbcOwnershipAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            systemSettingManager,
-            dataApprovalLevelService,
-            resourceTableService,
-            tableHookService,
-            partitionManager,
-            databaseInfoProvider,
-            jdbcTemplate,
-            jdbcConfiguration,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
 
     tableA =
         new AnalyticsTable(
@@ -185,7 +174,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Test
   void testGetAnalyticsTableType() {
-    assertEquals(AnalyticsTableType.OWNERSHIP, target.getAnalyticsTableType());
+    assertEquals(AnalyticsTableType.OWNERSHIP, manager.getAnalyticsTableType());
   }
 
   @Test
@@ -194,19 +183,19 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
     AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
 
-    assertEquals(List.of(tableA, tableB), target.getAnalyticsTables(params));
+    assertEquals(List.of(tableA, tableB), manager.getAnalyticsTables(params));
 
     params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(AnalyticsTablePartition.LATEST_PARTITION)
+            .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
-    assertEquals(emptyList(), target.getAnalyticsTables(params));
+    assertEquals(emptyList(), manager.getAnalyticsTables(params));
   }
 
   @Test
   void testGetPartitionChecks() {
-    assertTrue(target.getPartitionChecks(1, new Date()).isEmpty());
+    assertTrue(manager.getPartitionChecks(1, new Date()).isEmpty());
   }
 
   @Test
@@ -272,7 +261,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
     try (MockedStatic<JdbcOwnershipWriter> mocked = mockStatic(JdbcOwnershipWriter.class)) {
       mocked.when(() -> JdbcOwnershipWriter.getInstance(any())).thenReturn(writer);
 
-      target.populateTable(params, partitionA);
+      manager.populateTable(params, partitionA);
     }
 
     List<Invocation> jdbcInvocations = getInvocations(jdbcTemplate);
@@ -288,18 +277,18 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
         """
         select te.uid,a.startdate,a.enddate,ou.uid from (\
         select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid \
-        from programownershiphistory h \
+        from "programownershiphistory" h \
         where h.programid=0 and h.organisationunitid is not null \
         union \
         select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid \
-        from trackedentityprogramowner o \
+        from "trackedentityprogramowner" o \
         where o.programid=0 \
-        and exists (select 1 from programownershiphistory p \
+        and exists (select 1 from "programownershiphistory" p \
         where o.trackedentityid = p.trackedentityid \
         and p.programid=0 and p.organisationunitid is not null)\
         ) a \
-        inner join trackedentity te on a.trackedentityid = te.trackedentityid \
-        inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
+        inner join "trackedentity" te on a.trackedentityid = te.trackedentityid \
+        inner join "organisationunit" ou on a.organisationunitid = ou.organisationunitid \
         left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
         left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
         order by te.uid, a.startdate, a.enddate""",

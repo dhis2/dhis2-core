@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
@@ -70,7 +72,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/reports")
-public class ReportController extends AbstractCrudController<Report> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class ReportController extends AbstractCrudController<Report, GetObjectListParams> {
   @Autowired public ReportService reportService;
 
   @Autowired private OrganisationUnitService organisationUnitService;

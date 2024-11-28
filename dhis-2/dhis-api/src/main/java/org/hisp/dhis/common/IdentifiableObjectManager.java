@@ -102,6 +102,16 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull String uid);
 
   /**
+   * Retrieves the object of the given type and UID, or null if no object exists.
+   *
+   * @param type the object class type.
+   * @param uid the UID.
+   * @return the object with the given UID.
+   */
+  @CheckForNull
+  <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull UID uid);
+
+  /**
    * Retrieves the object of the given type and UID, throws exception if no object exists.
    *
    * @param type the object class type.
@@ -171,9 +181,6 @@ public interface IdentifiableObjectManager {
 
   @CheckForNull
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);
-
-  @Nonnull
-  <T extends IdentifiableObject> List<T> filter(@Nonnull Class<T> type, @Nonnull String query);
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getAll(@Nonnull Class<T> type);

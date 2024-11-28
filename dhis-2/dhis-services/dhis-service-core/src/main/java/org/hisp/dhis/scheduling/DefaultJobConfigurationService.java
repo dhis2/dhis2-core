@@ -72,8 +72,7 @@ import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -92,7 +91,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsProvider settingsProvider;
   private final JobCreationHelper jobCreationHelper;
 
   @Override
@@ -188,7 +187,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public int deleteFinishedJobs(int ttlMinutes) {
     if (ttlMinutes <= 0) {
-      ttlMinutes = systemSettings.getIntSetting(SettingKey.JOBS_CLEANUP_AFTER_MINUTES);
+      ttlMinutes = settingsProvider.getCurrentSettings().getJobsCleanupAfterMinutes();
     }
     return jobConfigurationStore.deleteFinishedJobs(ttlMinutes);
   }
@@ -197,7 +196,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public int rescheduleStaleJobs(int timeoutMinutes) {
     if (timeoutMinutes <= 0) {
-      timeoutMinutes = systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+      timeoutMinutes = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
     }
     return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
   }
@@ -253,7 +252,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
-        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+        Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
     return jobConfigurationStore
         .getDueJobConfigurations(includeWaiting)
         .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay))
@@ -264,8 +263,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional(readOnly = true)
   public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
     if (staleForSeconds <= 0) {
-      staleForSeconds =
-          60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+      staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
     }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }
