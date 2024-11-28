@@ -39,6 +39,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.hibernate.Session;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -117,9 +119,8 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getAllQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class, Lists.newArrayList(), Lists.newArrayList(), new Pagination());
+    GetObjectListParams params = new GetObjectListParams().setPaging(false);
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     assertEquals(6, queryService.query(query).size());
   }
 
@@ -145,10 +146,8 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   private List<? extends IdentifiableObject> getResultWithPagination(int page, int pageSize) {
-    Pagination pagination = new Pagination(page, pageSize);
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class, Lists.newArrayList(), Lists.newArrayList(), pagination);
+    GetObjectListParams params = new GetObjectListParams().setPage(page).setPageSize(pageSize);
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     return queryService.query(query);
   }
 
@@ -175,12 +174,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getEqQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("id:eq:deabcdefghA"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("id:eq:deabcdefghA"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(1, objects.size());
     assertEquals("deabcdefghA", objects.get(0).getUid());
@@ -231,12 +227,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getIeqQueryUrlMatch() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("name:ieq:dataelementa"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("name:ieq:dataelementa"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(1, objects.size());
     assertEquals("DataElementA", objects.get(0).getName());
@@ -244,12 +237,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getIeqQueryUrlMatchMixedCase() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("name:ieq:dAtAeLeMeNta"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("name:ieq:dAtAeLeMeNta"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(1, objects.size());
     assertEquals("DataElementA", objects.get(0).getName());
@@ -257,12 +247,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getIeqQueryUrlNoMatchExtraCharAtStart() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("name:ieq:ddataelementa"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("name:ieq:ddataelementa"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(0, objects.size());
   }
@@ -283,12 +270,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNeQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("id:ne:deabcdefghA"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("id:ne:deabcdefghA"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(5, objects.size());
     assertFalse(collectionContainsUid(objects, "deabcdefghA"));
@@ -310,12 +294,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLikeQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("name:like:F"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("name:like:F"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(1, objects.size());
     assertEquals("deabcdefghF", objects.get(0).getUid());
@@ -334,12 +315,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getGtQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("created:gt:2003"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("created:gt:2003"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(3, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghD"));
@@ -359,12 +337,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLtQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("created:lt:2003"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("created:lt:2003"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(2, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghA"));
@@ -385,12 +360,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getGeQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("created:ge:2003"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("created:ge:2003"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(4, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghC"));
@@ -412,12 +384,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLeQueryUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("created:le:2003"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("created:le:2003"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(3, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghA"));
@@ -585,12 +554,9 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIsNotNullUrl() throws QueryParserException {
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class,
-            Lists.newArrayList("categoryCombo:!null"),
-            Lists.newArrayList(),
-            new Pagination());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("categoryCombo:!null"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(6, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghA"));
@@ -631,8 +597,22 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     query.add(Restrictions.eq("dataElements.id", "deabcdefghD"));
     query.add(Restrictions.eq("dataElements.id", "deabcdefghE"));
     query.add(Restrictions.eq("dataElements.id", "deabcdefghF"));
+    Session session = entityManager.unwrap(Session.class);
+    Statistics statistics = session.getSessionFactory().getStatistics();
+    statistics.setStatisticsEnabled(true);
     List<? extends IdentifiableObject> objects = queryService.query(query);
+    String[] queries = statistics.getQueries();
+    boolean findQuery = false;
+    for (String q : queries) {
+      if (q.equals(
+          "select generatedAlias0 from DataElementGroup as generatedAlias0 inner join generatedAlias0.members as members where ( members.uid=:param0 ) and ( members.uid=:param1 ) and ( members.uid=:param2 ) and ( members.uid=:param3 ) and ( members.uid=:param4 ) and ( members.uid=:param5 )")) {
+        findQuery = true;
+        break;
+      }
+    }
+    assertTrue(findQuery);
     assertTrue(objects.isEmpty());
+    statistics.setStatisticsEnabled(false);
   }
 
   @Test

@@ -126,6 +126,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -140,14 +141,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
+@Order(1) // must run before other tests in analytics package (for some unknown reason)
 class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventQueryService eventQueryTarget;
 
   @Autowired private EventAggregateService eventAggregateService;
 
   @Autowired private EnrollmentQueryService enrollmentQueryTarget;
-
-  @Autowired private EnrollmentAggregateService enrollmentAggregateService;
 
   @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
@@ -573,7 +573,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().startTime(oneSecondFromNow).build(),
         JobProgress.noop());
   }
 

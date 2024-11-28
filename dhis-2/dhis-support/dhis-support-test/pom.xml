@@ -38,6 +38,10 @@
 
     <!-- Other -->
     <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
     </dependency>
@@ -176,6 +180,10 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.ttddyy</groupId>
+      <artifactId>datasource-proxy</artifactId>
     </dependency>
   </dependencies>
 </project>

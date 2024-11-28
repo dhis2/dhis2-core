@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -45,7 +44,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -62,8 +60,8 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +83,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class JdbcAnalyticsTableManagerTest {
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+
+  @Mock private SystemSettings settings;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -95,16 +95,18 @@ class JdbcAnalyticsTableManagerTest {
 
   @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private AnalyticsTableManager subject;
+  private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
   public void setUp() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
     subject =
         new JdbcAnalyticsTableManager(
             mock(IdentifiableObjectManager.class),
             mock(OrganisationUnitService.class),
             mock(CategoryService.class),
-            systemSettingManager,
+            settingsProvider,
             mock(DataApprovalLevelService.class),
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
@@ -117,12 +119,55 @@ class JdbcAnalyticsTableManagerTest {
   }
 
   @Test
+  void testReplaceQualify() {
+    String template =
+        """
+      from ${datavalue} dv \
+      inner join ${dataelement} de on dv.dataelementid = de.dataelementid \
+      inner join ${period} pe on dv.periodid = pe.periodid \
+      where de.valuetype in (${value_type}) \
+      and de.aggregationtype in (${agg_type});""";
+
+    Map<String, String> variables =
+        Map.of(
+            "value_type", "'INTEGER','NUMERIC'",
+            "agg_type", "'SUM','AVERAGE'");
+
+    String expected =
+        """
+      from "datavalue" dv \
+      inner join "dataelement" de on dv.dataelementid = de.dataelementid \
+      inner join "period" pe on dv.periodid = pe.periodid \
+      where de.valuetype in ('INTEGER','NUMERIC') \
+      and de.aggregationtype in ('SUM','AVERAGE');""";
+
+    assertEquals(expected, subject.replaceQualify(template, variables));
+  }
+
+  @Test
+  void testQualifyVariables() {
+    String template =
+        """
+      from ${datavalue} dv \
+      inner join ${dataelement} de on dv.dataelementid = de.dataelementid \
+      inner join ${period} pe on dv.periodid = pe.periodid;""";
+
+    String expected =
+        """
+      from "datavalue" dv \
+      inner join "dataelement" de on dv.dataelementid = de.dataelementid \
+      inner join "period" pe on dv.periodid = pe.periodid;""";
+
+    assertEquals(expected, subject.qualifyVariables(template));
+  }
+
+  @Test
   void testGetRegularAnalyticsTable() {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
     List<Integer> dataYears = List.of(2018, 2019);
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
 
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
@@ -163,7 +208,7 @@ class JdbcAnalyticsTableManagerTest {
     List<Integer> dataYears = List.of(2018, 2019);
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
 
     when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
@@ -204,18 +249,13 @@ class JdbcAnalyticsTableManagerTest {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
 
     List<Map<String, Object>> queryResp = new ArrayList<>();
     queryResp.add(Map.of("dataelementid", 1));
 
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
-        .thenReturn(lastFullTableUpdate);
-    when(systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
@@ -245,19 +285,14 @@ class JdbcAnalyticsTableManagerTest {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
 
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE))
-        .thenReturn(null);
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
-        .thenReturn(null);
-    when(systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(42L));
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
-    assertThrows(IllegalArgumentException.class, () -> subject.getAnalyticsTables(params));
+
+    assertTrue(subject.getAnalyticsTables(params).isEmpty());
   }
 
   @Test
@@ -265,22 +300,20 @@ class JdbcAnalyticsTableManagerTest {
       "Verify if the method swapParentTable is called with the swapped table name not the staging table name")
   void testSwapTable() {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("year")
+                .dataType(INTEGER)
+                .selectExpression("")
+                .build());
+    List<String> sortKey = List.of("dx");
     AnalyticsTable table =
-        new AnalyticsTable(
-            AnalyticsTableType.DATA_VALUE,
-            List.of(
-                AnalyticsTableColumn.builder()
-                    .name("year")
-                    .dataType(INTEGER)
-                    .selectExpression("")
-                    .build()),
-            LOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, LOGGED);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
     when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytic")));
 
     Table swappedPartition = table.getTablePartitions().get(0).swapFromStaging();

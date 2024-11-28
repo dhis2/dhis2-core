@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.EMPTY_SET;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -60,8 +61,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +94,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected DataSetService dataSetService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private TransactionTemplate transactionTemplate;
 
@@ -103,7 +103,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   // Supporting data
   // -------------------------------------------------------------------------
-  private CategoryCombo defaultCategoryCombo;
+  private CategoryCombo defCatCombo;
 
   private CategoryOptionCombo defaultOptionCombo;
 
@@ -278,7 +278,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
-    defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+    defCatCombo = categoryService.getDefaultCategoryCombo();
     defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     periodType = periodService.reloadPeriodType(PeriodType.getPeriodTypeByName("Monthly"));
     // Monthly: Jan
@@ -343,17 +343,17 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     dataApprovalLevelService.addDataApprovalLevel(level2);
     dataApprovalLevelService.addDataApprovalLevel(level3);
     dataApprovalLevelService.addDataApprovalLevel(level4);
-    workflow0 = new DataApprovalWorkflow("workflow0", periodType, newHashSet());
-    workflow1 = new DataApprovalWorkflow("workflow1", periodType, newHashSet(level1));
-    workflow12 = new DataApprovalWorkflow("workflow12", periodType, newHashSet(level1, level2));
-    workflow12A = new DataApprovalWorkflow("workflow12A", periodType, newHashSet(level1, level2));
-    workflow12B = new DataApprovalWorkflow("workflow12B", periodType, newHashSet(level1, level2));
-    workflow3 = new DataApprovalWorkflow("workflow3", periodType, newHashSet(level3));
+    workflow0 = newWorkflow("workflow0", periodType, defCatCombo, EMPTY_SET);
+    workflow1 = newWorkflow("workflow1", periodType, defCatCombo, Set.of(level1));
+    workflow12 = newWorkflow("workflow12", periodType, defCatCombo, Set.of(level1, level2));
+    workflow12A = newWorkflow("workflow12A", periodType, defCatCombo, Set.of(level1, level2));
+    workflow12B = newWorkflow("workflow12B", periodType, defCatCombo, Set.of(level1, level2));
+    workflow3 = newWorkflow("workflow3", periodType, defCatCombo, Set.of(level3));
     workflow1234 =
-        new DataApprovalWorkflow(
-            "workflow1234", periodType, newHashSet(level1, level2, level3, level4));
-    workflow13 = new DataApprovalWorkflow("workflow13", periodType, newHashSet(level1, level3));
-    workflow24 = new DataApprovalWorkflow("workflow24", periodType, newHashSet(level2, level4));
+        newWorkflow(
+            "workflow1234", periodType, defCatCombo, Set.of(level1, level2, level3, level4));
+    workflow13 = newWorkflow("workflow13", periodType, defCatCombo, Set.of(level1, level3));
+    workflow24 = newWorkflow("workflow24", periodType, defCatCombo, Set.of(level2, level4));
     workflow0.setUid("workflow000");
     workflow1.setUid("workflow001");
     workflow12.setUid("workflow012");
@@ -372,15 +372,15 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     dataApprovalService.addWorkflow(workflow1234);
     dataApprovalService.addWorkflow(workflow13);
     dataApprovalService.addWorkflow(workflow24);
-    dataSetA = createDataSet('A', periodType, defaultCategoryCombo);
-    dataSetB = createDataSet('B', periodType, defaultCategoryCombo);
-    dataSetC = createDataSet('C', periodType, defaultCategoryCombo);
-    dataSetD = createDataSet('D', periodType, defaultCategoryCombo);
-    dataSetE = createDataSet('E', periodType, defaultCategoryCombo);
-    dataSetF = createDataSet('F', periodType, defaultCategoryCombo);
-    dataSetG = createDataSet('G', periodType, defaultCategoryCombo);
-    dataSetI = createDataSet('I', periodType, defaultCategoryCombo);
-    dataSetJ = createDataSet('J', periodType, defaultCategoryCombo);
+    dataSetA = createDataSet('A', periodType, defCatCombo);
+    dataSetB = createDataSet('B', periodType, defCatCombo);
+    dataSetC = createDataSet('C', periodType, defCatCombo);
+    dataSetD = createDataSet('D', periodType, defCatCombo);
+    dataSetE = createDataSet('E', periodType, defCatCombo);
+    dataSetF = createDataSet('F', periodType, defCatCombo);
+    dataSetG = createDataSet('G', periodType, defCatCombo);
+    dataSetI = createDataSet('I', periodType, defCatCombo);
+    dataSetJ = createDataSet('J', periodType, defCatCombo);
     dataSetA.assignWorkflow(workflow0);
     dataSetB.assignWorkflow(workflow1);
     dataSetC.assignWorkflow(workflow12);
@@ -437,6 +437,9 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     userB = makeUser("B");
     userService.addUser(userA);
     userService.addUser(userB);
+
+    settingsService.put("keyAcceptanceRequiredForApproval", false);
+    settingsService.clearCurrentSettings();
   }
 
   @AfterEach
@@ -575,8 +578,11 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     dataApprovalLevelService.addDataApprovalLevel(level2EFGH);
     dataApprovalLevelService.addDataApprovalLevel(level2ABCD);
     workflow12A_H =
-        new DataApprovalWorkflow(
-            "workflow12A_H", periodType, newHashSet(level1, level2, level2ABCD, level2EFGH));
+        newWorkflow(
+            "workflow12A_H",
+            periodType,
+            categoryComboA,
+            Set.of(level1, level2, level2ABCD, level2EFGH));
     workflow12A_H.setUid("workflo12AH");
     dataApprovalService.addWorkflow(workflow12A_H);
     dataSetH = createDataSet('H', periodType, categoryComboA);
@@ -3573,21 +3579,17 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Test
   void testApprovalsWithCategories() {
+    settingsService.put("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
     Date date = new Date();
-    transactionTemplate.execute(
-        status -> {
-          systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
-          setUpCategories();
-          createUserAndInjectSecurityContext(
-              singleton(organisationUnitA),
-              false,
-              DataApproval.AUTH_APPROVE,
-              DataApproval.AUTH_APPROVE_LOWER_LEVELS,
-              DataApproval.AUTH_ACCEPT_LOWER_LEVELS,
-              AUTH_APPR_LEVEL);
-          dbmsManager.flushSession();
-          return null;
-        });
+    setUpCategories();
+    createUserAndInjectSecurityContext(
+        singleton(organisationUnitA),
+        false,
+        DataApproval.AUTH_APPROVE,
+        DataApproval.AUTH_APPROVE_LOWER_LEVELS,
+        DataApproval.AUTH_ACCEPT_LOWER_LEVELS,
+        AUTH_APPR_LEVEL);
     // Category A -> Options A,B,C,D
     // Category B -> Options E,F,G,H
     //
@@ -4107,15 +4109,11 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
             NOT_ACCEPTED,
             date,
             userA);
-    transactionTemplate.execute(
-        status -> {
-          systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
-          createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
-          dataApprovalStore.addDataApproval(dataApprovalA);
-          dataApprovalStore.addDataApproval(dataApprovalB);
-          dbmsManager.flushSession();
-          return null;
-        });
+    settingsService.put("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
+    createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
     DataApprovalStatus status =
         dataApprovalService.getDataApprovalStatus(
             workflow1234, periodA, organisationUnitA, defaultOptionCombo);
@@ -4125,6 +4123,14 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     assertFalse(status.getPermissions().isMayAccept());
     assertEquals(userA.getName(), status.getPermissions().getApprovedBy());
     assertEquals(date, status.getPermissions().getApprovedAt());
+  }
+
+  private DataApprovalWorkflow newWorkflow(
+      String name,
+      PeriodType periodType,
+      CategoryCombo categoryCombo,
+      Set<DataApprovalLevel> levels) {
+    return new DataApprovalWorkflow(name, periodType, categoryCombo, levels);
   }
 
   /**

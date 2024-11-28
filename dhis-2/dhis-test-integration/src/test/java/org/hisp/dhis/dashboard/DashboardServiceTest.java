@@ -29,7 +29,6 @@ package org.hisp.dhis.dashboard;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.IntStream.range;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dashboard.DashboardItemType.EVENT_REPORT;
@@ -40,11 +39,16 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABL
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
+import org.hisp.dhis.dashboard.embedded.EmbeddedOptions;
+import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
+import org.hisp.dhis.dashboard.embedded.FilterOptions;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
@@ -78,9 +82,13 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager objectManager;
 
+  private static final String UUID_A = "41c52308-1db4-4971-ade4-50c4d12c201d";
+
   private Dashboard dbA;
 
   private Dashboard dbB;
+
+  private Dashboard dbC;
 
   private DashboardItem diA;
 
@@ -91,6 +99,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
   private DashboardItem diD;
 
   private DashboardItem diE;
+
+  private DashboardItem diF;
 
   private Visualization vzA;
 
@@ -136,28 +146,53 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     diE = new DashboardItem();
     diE.setAutoFields();
     diE.setEventVisualization(evzB);
+    diF = new DashboardItem();
+    diF.setAutoFields();
+    diF.setVisualization(vzA);
+
     dbA = new Dashboard("A");
     dbA.setAutoFields();
     dbA.getItems().add(diA);
     dbA.getItems().add(diB);
     dbA.getItems().add(diC);
+
     dbB = new Dashboard("B");
     dbB.setAutoFields();
     dbB.setRestrictFilters(true);
     dbB.setAllowedFilters(allowedFilters);
     dbB.getItems().add(diD);
     dbB.getItems().add(diE);
+
+    dbC = new Dashboard("C");
+    dbC.setAutoFields();
+    dbC.getItems().add(diF);
+    dbC.setEmbedded(
+        new EmbeddedDashboard(
+            EmbeddedProvider.SUPERSET,
+            UUID_A,
+            new EmbeddedOptions(true, true, new FilterOptions(true, true))));
   }
 
   @Test
-  void testAddGet() {
+  void testSaveGet() {
     long dAId = dashboardService.saveDashboard(dbA);
     long dBId = dashboardService.saveDashboard(dbB);
+    long dCId = dashboardService.saveDashboard(dbC);
     assertEquals(dbA, dashboardService.getDashboard(dAId));
     assertEquals(dbB, dashboardService.getDashboard(dBId));
+    assertEquals(dbC, dashboardService.getDashboard(dCId));
     assertEquals(2, dbB.getAllowedFilters().size());
     assertEquals(3, dashboardService.getDashboard(dAId).getItems().size());
     assertEquals(2, dashboardService.getDashboard(dBId).getItems().size());
+    assertEquals(1, dashboardService.getDashboard(dCId).getItems().size());
+
+    Dashboard rdC = dashboardService.getDashboard(dCId);
+    assertNotNull(rdC.getEmbedded());
+    assertEquals(EmbeddedProvider.SUPERSET, rdC.getEmbedded().getProvider());
+    assertEquals(UUID_A, rdC.getEmbedded().getId());
+    assertNotNull(rdC.getEmbedded().getOptions());
+    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
+    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
   }
 
   @Test
@@ -211,16 +246,6 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAddItemContent() {
-    dashboardService.saveDashboard(dbA);
-    dashboardService.saveDashboard(dbB);
-    DashboardItem itemA =
-        dashboardService.addItemContent(dbA.getUid(), VISUALIZATION, vzA.getUid());
-    assertNotNull(itemA);
-    assertNotNull(itemA.getUid());
-  }
-
-  @Test
   void testSearchDashboard() {
     dashboardService.saveDashboard(dbA);
     dashboardService.saveDashboard(dbB);
@@ -244,7 +269,7 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         .forEach(
             i -> {
               Visualization visualization = createVisualization('A');
-              visualization.setName(randomAlphabetic(5));
+              visualization.setName("Visualization" + i);
               visualizationService.save(visualization);
             });
 
@@ -252,18 +277,18 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         .forEach(
             i -> {
               EventVisualization eventVisualization = createEventVisualization("A", prA);
-              eventVisualization.setName(randomAlphabetic(5));
+              eventVisualization.setName("EventVisualization" + i);
               eventVisualizationService.save(eventVisualization);
             });
 
     // Non Line List event visualization should be ignored when we search for EVENT_VISUALIZATION:
     EventVisualization eventVisualization = createEventVisualization("A", prA);
-    eventVisualization.setName(randomAlphabetic(5));
+    eventVisualization.setName("EventVisualizationA");
     eventVisualization.setType(COLUMN);
     eventVisualizationService.save(eventVisualization);
 
-    range(1, 30).forEach(i -> eventChartService.saveEventChart(createEventChart(prA)));
-    range(1, 20).forEach(i -> eventReportService.saveEventReport(createEventReport(prA)));
+    range(1, 30).forEach(i -> eventChartService.saveEventChart(createEventChart(prA, i)));
+    range(1, 20).forEach(i -> eventReportService.saveEventReport(createEventReport(prA, i)));
 
     DashboardSearchResult result = dashboardService.search(Set.of(VISUALIZATION));
     assertThat(result.getVisualizationCount(), is(25));
@@ -302,15 +327,15 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     return eventVisualization;
   }
 
-  private EventChart createEventChart(Program program) {
-    EventChart eventChart = new EventChart(randomAlphabetic(5));
+  private EventChart createEventChart(Program program, int i) {
+    EventChart eventChart = new EventChart("EventChart" + i);
     eventChart.setProgram(program);
     eventChart.setType(COLUMN);
     return eventChart;
   }
 
-  private EventReport createEventReport(Program program) {
-    EventReport eventReport = new EventReport(randomAlphabetic(5));
+  private EventReport createEventReport(Program program, int i) {
+    EventReport eventReport = new EventReport("EventReport" + i);
     eventReport.setProgram(program);
     eventReport.setType(PIVOT_TABLE);
     return eventReport;

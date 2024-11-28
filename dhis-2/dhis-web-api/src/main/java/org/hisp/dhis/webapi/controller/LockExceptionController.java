@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -88,6 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/lockExceptions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class LockExceptionController extends AbstractGistReadOnlyController<LockException> {
 
   @Autowired private ContextService contextService;

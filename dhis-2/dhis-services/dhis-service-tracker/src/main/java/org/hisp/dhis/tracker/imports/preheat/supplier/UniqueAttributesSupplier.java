@@ -46,11 +46,12 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -95,7 +96,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         Stream.concat(
                 uniqueAttributeValuesFromPayload.stream(), uniqueAttributeValuesFromDB.stream())
             .distinct()
-            .collect(toList());
+            .toList();
 
     preheat.setUniqueAttributeValues(uniqueAttributeValues);
   }
@@ -137,13 +138,13 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
-      TrackerObjects trackerObjects, TrackerPreheat preheat, String teUid) {
+      TrackerObjects trackerObjects, TrackerPreheat preheat, UID teUid) {
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
 
     // Get te from Preheat
     Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
         trackerObjects.getTrackedEntities().stream()
-            .filter(te -> Objects.equals(te.getTrackedEntity(), teUid))
+            .filter(te -> Objects.equals(te.getUid(), teUid))
             .findAny();
     if (optionalTe.isPresent()) {
       return optionalTe.get();
@@ -212,7 +213,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     return teByAttributeValue.entrySet().stream()
         .filter(e -> e.getValue().size() > 1)
         .flatMap(av -> buildUniqueAttributeValues(av.getKey(), av.getValue()).stream())
-        .collect(toList());
+        .toList();
   }
 
   private Collection<UniqueAttributeValue> buildUniqueAttributeValues(
@@ -222,7 +223,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
             te ->
                 new UniqueAttributeValue(
                     te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
-        .collect(toList());
+        .toList();
   }
 
   private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
@@ -247,11 +248,11 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             av ->
                 new UniqueAttributeValue(
-                    av.getTrackedEntity().getUid(),
+                    UID.of(av.getTrackedEntity()),
                     idSchemes.toMetadataIdentifier(av.getAttribute()),
                     av.getValue(),
                     idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))
-        .collect(toList());
+        .toList();
   }
 
   private TrackedEntityAttribute extractAttribute(

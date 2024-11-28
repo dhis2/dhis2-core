@@ -39,10 +39,12 @@ import com.nimbusds.jose.jwk.RSAKey;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.oauth2.jose.jws.JwsAlgorithm;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -56,6 +58,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/publicKeys")
 @RequiredArgsConstructor

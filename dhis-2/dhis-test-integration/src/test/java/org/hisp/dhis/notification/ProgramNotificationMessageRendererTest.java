@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -86,7 +87,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   private String orgUnitUid = CodeGenerator.generateUid();
 
-  private String enrollmentUid = CodeGenerator.generateUid();
+  private UID enrollmentUid = UID.generate();
 
   private String trackedEntityUid = CodeGenerator.generateUid();
 
@@ -213,7 +214,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     enrollmentA = createEnrollment(programA, trackedEntityA, organisationUnitA);
     enrollmentA.setEnrollmentDate(enrollmentDate);
     enrollmentA.setOccurredDate(occurredDate);
-    enrollmentA.setUid(enrollmentUid);
+    enrollmentA.setUid(enrollmentUid.getValue());
     manager.save(enrollmentA);
     trackedEntityA.getEnrollments().add(enrollmentA);
     manager.update(trackedEntityA);

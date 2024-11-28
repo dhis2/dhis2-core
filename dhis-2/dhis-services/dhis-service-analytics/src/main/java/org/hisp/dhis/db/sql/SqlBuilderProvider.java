@@ -60,10 +60,14 @@ public class SqlBuilderProvider {
    */
   private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
     Database database = config.getAnalyticsDatabase();
+    String catalog = config.getAnalyticsDatabaseCatalog();
+    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
 
     Objects.requireNonNull(database);
 
     return switch (database) {
+      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
+      case CLICKHOUSE -> new ClickHouseSqlBuilder();
       default -> new PostgreSqlBuilder();
     };
   }

@@ -76,7 +76,8 @@ public class Each<T, R> implements Validator<T> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, T input) {
     for (R in : map.apply(input)) {
-      if ((in instanceof TrackerDto && !validator.needsToRun(bundle.getStrategy((TrackerDto) in)))
+      if ((in instanceof TrackerDto trackerDto
+              && !validator.needsToRun(bundle.getStrategy(trackerDto)))
           || (!(in instanceof TrackerDto) && !validator.needsToRun(bundle.getImportStrategy()))) {
         continue;
       }

@@ -36,6 +36,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 
 @Value
 @Builder
@@ -45,7 +46,7 @@ public class Error {
   @Nonnull @JsonProperty String message;
   @Nonnull @JsonProperty String errorCode;
   @Nonnull @JsonProperty String trackerType;
-  @Nonnull @JsonProperty String uid;
+  @Nonnull @JsonProperty UID uid;
   @EqualsAndHashCode.Exclude @Nonnull @JsonProperty List<String> args;
 
   @JsonCreator
@@ -53,7 +54,7 @@ public class Error {
       @Nonnull @JsonProperty("message") String message,
       @Nonnull @JsonProperty("errorCode") String errorCode,
       @Nonnull @JsonProperty("trackerType") String trackerType,
-      @Nonnull @JsonProperty("uid") String uid,
+      @Nonnull @JsonProperty("uid") UID uid,
       @CheckForNull @JsonProperty("args") List<String> args) {
     this.message = message;
     this.errorCode = errorCode;

@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultSectionService implements SectionService {
   private final SectionStore sectionStore;
-
-  private final DataSetService dataSetService;
 
   @Override
   @Transactional
@@ -59,49 +59,29 @@ public class DefaultSectionService implements SectionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Section> getAllSections() {
-    return sectionStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    return sectionStore.getSectionsByIndicators(indicators);
-  }
-
-  @Override
-  @Transactional
-  public void removeIndicator(Section s, Indicator i) {
-    s.removeIndicator(i);
-  }
-
-  @Override
-  @Transactional
-  public void addIndicator(Section s, Indicator i) {
-    s.addIndicator(i);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Section getSection(long id) {
-    return sectionStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Section getSection(String uid) {
     return sectionStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Section getSectionByName(String name, Integer dataSetId) {
-    return sectionStore.getSectionByName(name, dataSetService.getDataSet(dataSetId));
   }
 
   @Override
   @Transactional
   public void updateSection(Section section) {
     sectionStore.update(section);
+  }
+
+  @Override
+  public List<Section> getSectionsByDataElement(String uid) {
+    return sectionStore.getSectionsByDataElement(uid);
+  }
+
+  @Override
+  public List<Section> getSectionsByDataElement(Collection<DataElement> dataElements) {
+    return sectionStore.getSectionsByDataElement(dataElements);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Section> getSectionsByIndicators(Collection<Indicator> indicators) {
+    return sectionStore.getSectionsByIndicators(indicators);
   }
 }

@@ -38,6 +38,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,29 +49,25 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -78,6 +75,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -85,16 +83,14 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -107,13 +103,9 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -130,11 +122,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
+@OpenApi.Document(
+    group = OpenApi.Document.GROUP_MANAGE,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Slf4j
 @Controller
 @RequestMapping("/api/users")
-public class UserController extends AbstractCrudController<User> {
+public class UserController
+    extends AbstractCrudController<User, UserController.GetUserObjectListParams> {
+
   public static final String INVITE_PATH = "/invite";
 
   public static final String BULK_INVITE_PATH = "/invites";
@@ -153,97 +149,81 @@ public class UserController extends AbstractCrudController<User> {
   // GET
   // -------------------------------------------------------------------------
 
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetUserObjectListParams extends GetObjectListParams {
+    String phoneNumber;
+    boolean canManage;
+    boolean authSubset;
+    Date lastLogin;
+    Integer inactiveMonths;
+    Date inactiveSince;
+    boolean selfRegistered;
+    UserInvitationStatus invitationStatus;
+    boolean userOrgUnits;
+    boolean includeChildren;
+    UserOrgUnitType orgUnitBoundary;
+
+    @OpenApi.Property({UID.class, OrganisationUnit.class})
+    String ou;
+
+    boolean manage;
+
+    @JsonIgnore
+    boolean isUsingAnySpecialFilters() {
+      return phoneNumber != null
+          || canManage
+          || authSubset
+          || lastLogin != null
+          || inactiveMonths != null
+          || inactiveSince != null
+          || selfRegistered
+          || invitationStatus != null
+          || userOrgUnits
+          || includeChildren
+          || orgUnitBoundary != null
+          || ou != null
+          || manage;
+    }
+  }
+
   @Override
-  @SuppressWarnings("unchecked")
-  protected List<User> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<User> objects)
-      throws QueryParserException {
-    UserQueryParams params = makeUserQueryParams(options);
+  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
+    if (!params.isUsingAnySpecialFilters()) return null;
+    UserQueryParams queryParams = toUserQueryParams(params);
 
-    String ou = options.get("ou");
-
+    String ou = params.getOu();
     if (ou != null) {
-      params.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
+      queryParams.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
     }
 
-    if (options.isManage()) {
-      params.setCanManage(true);
-      params.setAuthSubset(true);
+    if (params.isManage()) {
+      queryParams.setCanManage(true);
+      queryParams.setAuthSubset(true);
     }
-
-    boolean hasUserGroupFilter = filters.stream().anyMatch(f -> f.startsWith("userGroups."));
-    params.setPrefetchUserGroups(hasUserGroupFilter);
-
-    if (filters.isEmpty() && options.hasPaging()) {
-      metadata.setPager(makePager(options, params));
-    }
-
-    Query query = makeQuery(options, filters, orders, params);
-
-    return (List<User>) queryService.query(query);
+    return userService.getUserIds(queryParams, params.getOrders());
   }
 
-  private Pager makePager(WebOptions options, UserQueryParams params) {
-    long count = userService.getUserCount(params);
-
-    Pager pager = new Pager(options.getPage(), count, options.getPageSize());
-    params.setFirst(pager.getOffset());
-    params.setMax(pager.getPageSize());
-
-    return pager;
-  }
-
-  private Query makeQuery(
-      WebOptions options, List<String> filters, List<Order> orders, UserQueryParams params) {
-    Pagination pagination =
-        CollectionUtils.isEmpty(filters) ? new Pagination() : getPaginationData(options);
-
-    List<String> ordersAsString =
-        (orders == null)
-            ? null
-            : orders.stream().map(Order::toOrderString).collect(Collectors.toList());
-
-    /*
-     * Keep the memory query on the result
-     */
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(), filters, orders, pagination, options.getRootJunction());
-
-    // Fetches all users if there are no query, i.e only filters...
-    List<User> users = userService.getUsers(params, ordersAsString);
-    query.setObjects(users);
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    query.setDefaultOrder();
-
-    return query;
-  }
-
-  private UserQueryParams makeUserQueryParams(WebOptions options) {
-    UserQueryParams params = new UserQueryParams();
-    params.setQuery(StringUtils.trimToNull(options.get("query")));
-    params.setPhoneNumber(StringUtils.trimToNull(options.get("phoneNumber")));
-    params.setCanManage(options.isTrue("canManage"));
-    params.setAuthSubset(options.isTrue("authSubset"));
-    params.setLastLogin(options.getDate("lastLogin"));
-    params.setInactiveMonths(options.getInt("inactiveMonths"));
-    params.setInactiveSince(options.getDate("inactiveSince"));
-    params.setSelfRegistered(options.isTrue("selfRegistered"));
-    params.setInvitationStatus(UserInvitationStatus.fromValue(options.get("invitationStatus")));
-    params.setUserOrgUnits(options.isTrue("userOrgUnits"));
-    params.setIncludeOrgUnitChildren(options.isTrue("includeChildren"));
-    params.setOrgUnitBoundary(UserOrgUnitType.fromValue(options.get("orgUnitBoundary")));
-
-    return params;
+  private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
+    UserQueryParams res = new UserQueryParams();
+    res.setQuery(StringUtils.trimToNull(params.getQuery()));
+    res.setPhoneNumber(StringUtils.trimToNull(params.getPhoneNumber()));
+    res.setCanManage(params.isCanManage());
+    res.setAuthSubset(params.isAuthSubset());
+    res.setLastLogin(params.getLastLogin());
+    res.setInactiveMonths(params.getInactiveMonths());
+    res.setInactiveSince(params.getInactiveSince());
+    res.setSelfRegistered(params.isSelfRegistered());
+    res.setInvitationStatus(params.getInvitationStatus());
+    res.setUserOrgUnits(params.isUserOrgUnits());
+    res.setIncludeOrgUnitChildren(params.isIncludeChildren());
+    res.setOrgUnitBoundary(params.getOrgUnitBoundary());
+    return res;
   }
 
   @Override
   @Nonnull
-  protected User getEntity(String uid, WebOptions options) throws NotFoundException {
+  protected User getEntity(String uid) throws NotFoundException {
     User user = userService.getUser(uid);
     if (user == null) {
       throw new NotFoundException(User.class, uid);
@@ -257,14 +237,12 @@ public class UserController extends AbstractCrudController<User> {
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
-      @RequestParam Map<String, String> rpParameters,
-      TranslateParams translateParams,
+      @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
-      return super.getObjectProperty(
-          pvUid, pvProperty, rpParameters, translateParams, currentUser, response);
+      return super.getObjectProperty(pvUid, pvProperty, fields, currentUser, response);
     }
 
     User user = userService.getUser(pvUid);
@@ -420,9 +398,12 @@ public class UserController extends AbstractCrudController<User> {
   @RequiresAuthority(anyOf = F_REPLICATE_USER)
   @PostMapping("/{uid}/replica")
   @ResponseBody
-  public WebMessage replicateUser(
-      @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException {
+  public WebMessage replicateUser(@PathVariable String uid, HttpServletRequest request)
+      throws IOException,
+          ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          BadRequestException {
     User existingUser = userService.getUser(uid);
     if (existingUser == null) {
       return conflict("User not found: " + uid);
@@ -489,13 +470,8 @@ public class UserController extends AbstractCrudController<User> {
     // Replicate user settings
     // ---------------------------------------------------------------------
 
-    List<UserSetting> settings = userSettingService.getUserSettings(existingUser);
-    for (UserSetting setting : settings) {
-      Optional<UserSettingKey> key = UserSettingKey.getByName(setting.getName());
-      key.ifPresent(
-          userSettingKey ->
-              userSettingService.saveUserSetting(userSettingKey, setting.getValue(), userReplica));
-    }
+    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
+    userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
 
     return created("User replica created")
         .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());
@@ -565,7 +541,7 @@ public class UserController extends AbstractCrudController<User> {
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-    return importReport(updateUser(pvUid, inputUser)).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(updateUser(pvUid, inputUser));
   }
 
   protected ImportReport updateUser(String userUid, User inputUser)
@@ -790,20 +766,12 @@ public class UserController extends AbstractCrudController<User> {
         userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 
-  private User mergeLastLoginAttribute(User source, User target) {
-    if (target == null) {
-      return target;
-    }
-
-    if (target.getLastLogin() != null) {
-      return target;
-    }
+  private void mergeLastLoginAttribute(User source, User target) {
+    if (target == null || target.getLastLogin() != null) return;
 
     if (source != null && source.getLastLogin() != null) {
       target.setLastLogin(source.getLastLogin());
     }
-
-    return target;
   }
 
   /**
@@ -850,12 +818,11 @@ public class UserController extends AbstractCrudController<User> {
     User userToModify = userService.getUser(uid);
     checkCurrentUserCanModify(userToModify);
 
-    User user = userToModify;
-    user.setAccountExpiry(accountExpiry);
-    userService.updateUser(user);
+    userToModify.setAccountExpiry(accountExpiry);
+    userService.updateUser(userToModify);
 
-    if (!user.isAccountNonExpired()) {
-      userService.invalidateUserSessions(user.getUid());
+    if (!userToModify.isAccountNonExpired()) {
+      userService.invalidateUserSessions(userToModify.getUid());
     }
   }
 

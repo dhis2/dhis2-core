@@ -56,8 +56,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobQueueService;
 import org.hisp.dhis.scheduling.SchedulingType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -77,7 +76,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Document(domain = JobConfiguration.class)
+@OpenApi.Document(
+    entity = JobConfiguration.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/scheduler")
 @RequiredArgsConstructor
@@ -86,7 +87,7 @@ public class JobSchedulerController {
 
   private final JobConfigurationService jobConfigurationService;
   private final JobQueueService jobQueueService;
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsProvider settingsProvider;
 
   @GetMapping
   public List<SchedulerEntry> getSchedulerEntries(@RequestParam(required = false) String order) {
@@ -99,7 +100,7 @@ public class JobSchedulerController {
             ? comparing(SchedulerEntry::getName)
             : comparing(SchedulerEntry::getNextExecutionTime, nullsLast(naturalOrder()));
     Duration maxCronDelay =
-        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+        Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
     return configsByQueueNameOrUid.values().stream()
         .map(config -> SchedulerEntry.of(config, maxCronDelay))
         .sorted(sortBy)
@@ -113,7 +114,7 @@ public class JobSchedulerController {
             ? config -> true
             : config -> !name.equals(config.getQueueName());
     Duration maxCronDelay =
-        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+        Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
     return jobConfigurationService.getAllJobConfigurations().stream()
         .filter(JobConfiguration::isConfigurable)
         .filter(config -> config.getSchedulingType() == SchedulingType.CRON)

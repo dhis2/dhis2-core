@@ -49,7 +49,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -61,7 +61,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,7 @@ class AnalyticsControllerTest {
 
   @Mock private DimensionService dimensionService;
 
-  @Mock private DimensionalObjectProducer dimensionalObjectProducer;
+  @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -102,8 +101,7 @@ class AnalyticsControllerTest {
         new DefaultDataQueryService(
             dimensionalObjectProducer,
             mock(IdentifiableObjectManager.class),
-            mock(AnalyticsSecurityManager.class),
-            mock(UserSettingService.class));
+            mock(AnalyticsSecurityManager.class));
 
     when(dimensionalObjectProducer.getPeriodDimension(Mockito.any(), Mockito.any()))
         .thenAnswer(

@@ -30,11 +30,13 @@ package org.hisp.dhis.webapi.controller.option;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -49,7 +51,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/api/optionSets")
 @AllArgsConstructor
-public class OptionSetController extends AbstractCrudController<OptionSet> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class OptionSetController extends AbstractCrudController<OptionSet, GetObjectListParams> {
   private final OptionService optionService;
 
   @GetMapping("/{uid}/metadata")

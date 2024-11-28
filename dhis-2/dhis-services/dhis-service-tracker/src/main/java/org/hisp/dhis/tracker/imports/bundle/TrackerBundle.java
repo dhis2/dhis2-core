@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -122,11 +123,10 @@ public class TrackerBundle {
   private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
 
   @Builder.Default
-  private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
-      initStrategyMap();
+  private Map<TrackerType, Map<UID, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
 
-  private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap() {
-    Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
+  private static Map<TrackerType, Map<UID, TrackerImportStrategy>> initStrategyMap() {
+    Map<TrackerType, Map<UID, TrackerImportStrategy>> resolvedStrategyMap =
         new EnumMap<>(TrackerType.class);
 
     resolvedStrategyMap.put(TrackerType.RELATIONSHIP, new HashMap<>());
@@ -139,23 +139,23 @@ public class TrackerBundle {
 
   @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
 
-  public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
+  public Optional<TrackedEntity> findTrackedEntityByUid(@Nonnull UID uid) {
     return findById(this.trackedEntities, uid);
   }
 
-  public Optional<Enrollment> findEnrollmentByUid(String uid) {
+  public Optional<Enrollment> findEnrollmentByUid(@Nonnull UID uid) {
     return findById(this.enrollments, uid);
   }
 
-  public Optional<Event> findEventByUid(String uid) {
+  public Optional<Event> findEventByUid(@Nonnull UID uid) {
     return findById(this.events, uid);
   }
 
-  public Optional<Relationship> findRelationshipByUid(String uid) {
+  public Optional<Relationship> findRelationshipByUid(@Nonnull UID uid) {
     return findById(this.relationships, uid);
   }
 
-  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, String uid) {
+  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, UID uid) {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
@@ -167,50 +167,11 @@ public class TrackerBundle {
     return Map.copyOf(eventNotifications);
   }
 
-  public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
-    return this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUid(), strategy);
+  public void setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
+    this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUid(), strategy);
   }
 
   public TrackerImportStrategy getStrategy(TrackerDto dto) {
     return getResolvedStrategyMap().get(dto.getTrackerType()).get(dto.getUid());
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T extends TrackerDto> List<T> get(Class<T> type) {
-    Objects.requireNonNull(type);
-    if (type == TrackedEntity.class) {
-      return (List<T>) trackedEntities;
-    } else if (type == Enrollment.class) {
-      return (List<T>) enrollments;
-    } else if (type == Event.class) {
-      return (List<T>) events;
-    } else if (type == Relationship.class) {
-      return (List<T>) relationships;
-    }
-    // only reached if a new TrackerDto implementation is added
-    throw new IllegalStateException("TrackerType " + type.getName() + " not yet supported.");
-  }
-
-  /** Checks if an entity exists in the payload. */
-  public <T extends TrackerDto> boolean exists(T entity) {
-    return exists(entity.getTrackerType(), entity.getUid());
-  }
-
-  /**
-   * Checks if an entity of given type and UID exists in the payload.
-   *
-   * @param type tracker type
-   * @param uid uid of entity to check
-   * @return true if an entity of given type and UID exists in the payload
-   */
-  public boolean exists(TrackerType type, String uid) {
-    Objects.requireNonNull(type);
-
-    return switch (type) {
-      case TRACKED_ENTITY -> findTrackedEntityByUid(uid).isPresent();
-      case ENROLLMENT -> findEnrollmentByUid(uid).isPresent();
-      case EVENT -> findEventByUid(uid).isPresent();
-      case RELATIONSHIP -> findRelationshipByUid(uid).isPresent();
-    };
   }
 }

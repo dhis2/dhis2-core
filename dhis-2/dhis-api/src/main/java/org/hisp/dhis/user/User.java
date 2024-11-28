@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,6 +41,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -206,7 +209,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * <p>It is not initialised when loading a user from the database.
    */
-  private transient UserSettings settings;
+  private transient Map<String, String> settings;
 
   /** User's verified email. */
   private String verifiedEmail;
@@ -523,7 +526,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(value = PropertyType.TEXT, required = Property.Value.FALSE)
+  @Property(value = PropertyType.TEXT, required = FALSE)
   public String getUsername() {
     return username;
   }
@@ -629,11 +632,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(access = Property.Access.WRITE_ONLY)
-  public UserSettings getSettings() {
+  public Map<String, String> getSettings() {
     return settings;
   }
 
-  public void setSettings(UserSettings settings) {
+  public void setSettings(Map<String, String> settings) {
     this.settings = settings;
   }
 
@@ -700,10 +703,17 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     }
   }
 
-  /** Returns the concatenated first name and surname. */
+  /**
+   * Note that setting read-only both ways seems needed when this is a DB field that is not null but
+   * generated.
+   */
   @Override
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Property(required = FALSE, access = Property.Access.READ_ONLY)
   public String getName() {
-    return firstName + " " + surname;
+    // this is to maintain name for transient User objects initialized without setting name
+    if (name == null) return firstName + " " + surname;
+    return name;
   }
 
   /**
@@ -1189,6 +1199,12 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getVerifiedEmail() {
     return this.verifiedEmail;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isEmailVerified() {
+    return this.getEmail() != null && Objects.equals(this.getEmail(), this.getVerifiedEmail());
   }
 
   public void setVerifiedEmail(String verifiedEmail) {

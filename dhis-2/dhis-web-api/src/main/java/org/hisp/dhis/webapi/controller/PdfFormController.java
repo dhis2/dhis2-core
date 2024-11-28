@@ -51,13 +51,12 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -72,7 +71,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Document(domain = DataEntryForm.class)
+@OpenApi.Document(
+    entity = DataEntryForm.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/pdfForm")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -109,8 +110,7 @@ public class PdfFormController {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PdfWriter writer = PdfWriter.getInstance(document, baos);
     PdfFormFontSettings pdfFormFontSettings =
-        new PdfFormFontSettings(
-            CurrentUserUtil.getUserSetting(UserSettingKey.UI_LOCALE, LocaleManager.DEFAULT_LOCALE));
+        new PdfFormFontSettings(UserSettings.getCurrentSettings().getUserUiLocale());
 
     PdfDataEntryFormUtil.setDefaultFooterOnDocument(
         document,

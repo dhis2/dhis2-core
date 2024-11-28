@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -104,7 +104,7 @@ class TrackerImportControllerTest {
 
   @BeforeEach
   public void setUp() {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
 
     renderService =
         new DefaultRenderService(
@@ -131,7 +131,7 @@ class TrackerImportControllerTest {
 
   @Test
   void verifyAsync() throws Exception {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
     // Then
     mockMvc
         .perform(

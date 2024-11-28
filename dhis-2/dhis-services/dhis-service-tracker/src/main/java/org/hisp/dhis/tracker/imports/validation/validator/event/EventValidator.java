@@ -52,7 +52,6 @@ public class EventValidator implements Validator<TrackerBundle> {
             each(
                 TrackerBundle::getEvents,
                 seq(
-                    new UidValidator(),
                     new ExistenceValidator(),
                     new MandatoryFieldsValidator(),
                     new MetaValidator(),

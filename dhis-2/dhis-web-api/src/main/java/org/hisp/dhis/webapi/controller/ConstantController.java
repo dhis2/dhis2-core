@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -36,4 +38,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/constants")
-public class ConstantController extends AbstractCrudController<Constant> {}
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class ConstantController extends AbstractCrudController<Constant, GetObjectListParams> {}

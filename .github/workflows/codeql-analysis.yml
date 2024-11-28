@@ -13,12 +13,13 @@ on:
     branches:
       - master
   schedule:
-    - cron: '0 12 * * *'
+    - cron: "0 12 * * *"
 concurrency:
-    group: ${{ github.workflow}}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   analyze:
+    if: github.actor != 'dependabot[bot]'
     name: Analyze
     runs-on: ubuntu-latest
 
@@ -27,7 +28,7 @@ jobs:
       matrix:
         # Override automatic language detection by changing the below list
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: [ 'java' ]
+        language: ["java"]
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 

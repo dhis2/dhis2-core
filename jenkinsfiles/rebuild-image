@@ -20,7 +20,7 @@ pipeline {
         stage('Rebuild Docker images') {
             environment {
                 OLD_VERSION_SCHEMA_PREFIX = '2'
-                SUPPORTED_VERSIONS_JSON = sh(returnStdout: true, script: 'curl -fsSL "https://raw.githubusercontent.com/dhis2/dhis2-releases/master/downloads/v1/versions/stable.json" | jq -r \'.versions[] | select(.supported == true)\'').trim()
+                SUPPORTED_VERSIONS_JSON = sh(returnStdout: true, script: 'curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json" | jq -r \'.versions[] | select(.supported == true)\'').trim()
             }
 
             steps {
@@ -38,16 +38,38 @@ pipeline {
                         // We don't have 2.M.m.p tags with 0 patch version in the dhis2-core git repo,
                         // hence we have to use the version "name" from the stable.json as the matching git tag.
                         env.VERSIONS_TO_REBUILD.tokenize(" ").each { version ->
+                            def majorVersion = version.split('\\.')[0].toInteger()
+                            if (majorVersion >= 42) {
+                                // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
+                                env.BASE_IMAGE = "tomcat:10.1.30-jre17"
+                            } else if (majorVersion == 41) {
+                                env.BASE_IMAGE = "tomcat:9.0-jre17"
+                            } else {
+                                env.BASE_IMAGE = "tomcat:9.0-jre11"
+                            }
+
                             sh """#!/bin/bash
                                 export VERSION_NAME=\$(jq -r '.patchVersions[] | select(.displayName == \"$version\") .name' <<< \$SUPPORTED_VERSIONS_JSON)
                                 export DHIS2_VERSION=\$VERSION_NAME
+                                export DHIS2_DB_DUMP_URL="https://databases.dhis2.org/sierra-leone/\$DHIS2_VERSION/dhis2-db-sierra-leone.sql.gz"
+                                export DHIS2_IMAGE="dhis2/core:\$DHIS2_VERSION"
                                 export GIT_BRANCH=\$DHIS2_VERSION
                                 export GIT_COMMIT=\$(git rev-parse \$VERSION_NAME)
                                 echo "DHIS2 version is \$DHIS2_VERSION"
                                 echo "Git commit is \$GIT_COMMIT"
 
                                 ./dhis-2/build-docker-image.sh -t \"$version\" -r
+
+                                docker compose up -d
                             """
+
+                            catchError(message: "DHIS2 version ${version} didn't respond with 200", buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                timeout(5) {
+                                    waitFor.statusOk("localhost:8080")
+                                }
+                            }
+
+                            sh 'docker compose down --remove-orphans --volumes'
                         }
                     }
                 }

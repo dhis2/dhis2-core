@@ -37,9 +37,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -52,7 +56,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -67,8 +70,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping("/api/trackedEntityAttributes")
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class TrackedEntityAttributeController
-    extends AbstractCrudController<TrackedEntityAttribute> {
+    extends AbstractCrudController<
+        TrackedEntityAttribute,
+        TrackedEntityAttributeController.GetTrackedEntityAttributeObjectListParams> {
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -77,6 +83,12 @@ public class TrackedEntityAttributeController
   @Autowired private ReservedValueService reservedValueService;
 
   @Autowired private ContextService context;
+
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetTrackedEntityAttributeObjectListParams extends GetObjectListParams {
+    boolean indexableOnly;
+  }
 
   @GetMapping(
       value = "/{id}/generateAndReserve",
@@ -165,7 +177,7 @@ public class TrackedEntityAttributeController
 
     requiredValues.removeAll(result.keySet());
 
-    if (requiredValues.size() > 0) {
+    if (!requiredValues.isEmpty()) {
       throw new WebMessageException(
           conflict(
               "Missing required values: "
@@ -176,12 +188,11 @@ public class TrackedEntityAttributeController
   }
 
   @Override
-  protected void forceFiltering(final WebOptions webOptions, final List<String> filters) {
-    if (webOptions == null || !webOptions.isTrue("indexableOnly")) {
-      return;
-    }
+  protected void addProgrammaticModifiers(GetTrackedEntityAttributeObjectListParams params) {
+    if (!params.isIndexableOnly()) return;
 
-    if (filters.stream().anyMatch(f -> f.startsWith("id:"))) {
+    List<String> filters = params.getFilters();
+    if (filters != null && filters.stream().anyMatch(f -> f.startsWith("id:"))) {
       throw new IllegalArgumentException(
           "indexableOnly parameter cannot be set if a separate filter for id is specified");
     }
@@ -189,13 +200,13 @@ public class TrackedEntityAttributeController
     Set<TrackedEntityAttribute> indexableTeas =
         trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
-    StringBuilder sb = new StringBuilder("id:in:");
-    sb.append(
-        indexableTeas.stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.joining(",", "[", "]")));
+    String filter =
+        "id:in:"
+            + indexableTeas.stream()
+                .map(IdentifiableObject::getUid)
+                .collect(Collectors.joining(",", "[", "]"));
 
-    filters.add(sb.toString());
+    params.addFilter(filter);
   }
 
   private TrackedEntityAttribute getTrackedEntityAttribute(String id) throws WebMessageException {

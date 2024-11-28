@@ -138,7 +138,8 @@ public class JdbcTrackedEntityChangeLogStore {
 
     List<TrackedEntityChangeLog> changeLogs;
     if (!attributes.isEmpty()) {
-      sql += """
+      sql +=
+          """
               and tea.uid in (:attributes)
           """;
       parameters.addValue("attributes", attributes);

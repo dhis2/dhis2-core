@@ -59,13 +59,14 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.test.TestBase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -80,9 +81,9 @@ class AnalyticsManagerTest extends TestBase {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcAnalyticsManager analyticsManager;
+  @InjectMocks private JdbcAnalyticsManager analyticsManager;
 
   private static Stream<Arguments> data() {
     return Stream.of(
@@ -90,12 +91,6 @@ class AnalyticsManagerTest extends TestBase {
         arguments("2017July", 77.5D),
         arguments("2017Oct", 39.25),
         arguments("2017Nov", 26.5D));
-  }
-
-  @BeforeEach
-  void before() {
-    analyticsManager =
-        new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, sqlBuilder);
   }
 
   @ParameterizedTest

@@ -35,6 +35,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -44,6 +45,7 @@ import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -58,7 +60,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/messages")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+public class ProgramMessageController
+    extends AbstractCrudController<ProgramMessage, GetObjectListParams> {
   @Autowired private ProgramMessageService programMessageService;
 
   @Autowired protected ProgramMessageRequestParamMapper requestParamMapper;

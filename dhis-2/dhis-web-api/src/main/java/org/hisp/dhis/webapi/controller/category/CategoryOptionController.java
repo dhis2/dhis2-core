@@ -27,30 +27,54 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import static org.hisp.dhis.security.Authorities.F_CATEGORY_OPTION_MERGE;
+import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import jakarta.persistence.PersistenceException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.Maturity.Beta;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping("/api/categoryOptions")
 @RequiredArgsConstructor
-public class CategoryOptionController extends AbstractCrudController<CategoryOption> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class CategoryOptionController
+    extends AbstractCrudController<CategoryOption, GetObjectListParams> {
   private final CategoryService categoryService;
+  private final MergeService categoryOptionMergeService;
 
   @ResponseBody
   @GetMapping(value = "orgUnits")
@@ -63,5 +87,26 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
         .orElseThrow(
             () ->
                 new IllegalArgumentException("At least one categoryOption uid must be specified"));
+  }
+
+  @Beta
+  @ResponseStatus(HttpStatus.OK)
+  @RequiresAuthority(anyOf = F_CATEGORY_OPTION_MERGE)
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeCategoryOptions(@RequestBody MergeParams params)
+      throws ConflictException {
+    log.info("CategoryOption merge received");
+
+    MergeReport report;
+    try {
+      report = categoryOptionMergeService.processMerge(params);
+    } catch (PersistenceException ex) {
+      String helpfulMessage = getHelpfulMessage(ex);
+      log.error("Error while processing CategoryOption merge: {}", helpfulMessage);
+      throw ex;
+    }
+
+    log.info("CategoryOption merge processed with report: {}", report);
+    return WebMessageUtils.mergeReport(report);
   }
 }

@@ -229,6 +229,64 @@ public interface SqlBuilder {
    */
   String dateTrunc(String timeUnit, String source);
 
+  /**
+   * @param columnA the name of the first date column.
+   * @param columnB the name of the second date column.
+   * @return an expression which returns the difference in seconds.
+   */
+  String differenceInSeconds(String columnA, String columnB);
+
+  /**
+   * @param value the string value such as a column or expression.
+   * @param pattern the regular expression pattern to match against.
+   * @return a regular expression string matching clause.
+   */
+  String regexpMatch(String value, String pattern);
+
+  /**
+   * Creates a SQL concatenation function that combines multiple columns or expressions.
+   *
+   * @param columns the column names or expressions to concatenate.
+   * @return the SQL function for concatenation.
+   */
+  String concat(String... columns);
+
+  /**
+   * Creates a SQL trim function that removes leading and trailing spaces from an expression.
+   *
+   * @param expression the expression to trim.
+   * @return the SQL function for trimming.
+   */
+  String trim(String expression);
+
+  /**
+   * Creates a SQL COALESCE function that returns the first non-null expression from the provided
+   * expressions. If the first expression is null, it returns the default expression.
+   *
+   * @param expression the expression to check for null.
+   * @param defaultValue the value to return if the first expression is null.
+   * @return the SQL function for coalescing.
+   */
+  String coalesce(String expression, String defaultValue);
+
+  /**
+   * Extracts a value from a JSON column using a specified property path.
+   *
+   * @param json the JSON column name or value to extract from.
+   * @param property the JSON property path to extract.
+   * @return the SQL function for JSON value extraction.
+   */
+  String jsonExtract(String json, String property);
+
+  /**
+   * Extracts a nested value from a JSON column.
+   *
+   * @param json the JSON column name or value to extract from.
+   * @param expression the hierarchical path expression to the nested value.
+   * @return a SQL expression to extract the specified nested value from the JSON column.
+   */
+  String jsonExtractNested(String json, String... expression);
+
   // Statements
 
   /**

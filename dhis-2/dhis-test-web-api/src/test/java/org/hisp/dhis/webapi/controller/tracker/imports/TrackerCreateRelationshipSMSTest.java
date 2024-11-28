@@ -42,8 +42,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -63,7 +65,6 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -197,7 +198,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () -> {
-          Relationship relationship = relationshipService.getRelationship(relationshipUid);
+          Relationship relationship = relationshipService.getRelationship(UID.of(relationshipUid));
           assertAll(
               () -> assertEquals(relationshipUid, relationship.getUid()),
               () -> assertEquals(event1, relationship.getFrom().getEvent()),

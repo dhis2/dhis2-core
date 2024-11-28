@@ -34,11 +34,13 @@ import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PUBLIC_ADD;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -52,7 +54,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/legendSets")
-public class LegendSetController extends AbstractCrudController<LegendSet> {
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
+public class LegendSetController extends AbstractCrudController<LegendSet, GetObjectListParams> {
   @Override
   @RequiresAuthority(anyOf = {F_LEGEND_SET_PUBLIC_ADD, F_LEGEND_SET_PRIVATE_ADD})
   public WebMessage postJsonObject(HttpServletRequest request)

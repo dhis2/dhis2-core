@@ -35,8 +35,9 @@ pipeline {
         DOCKER_IMAGE_NAME_DEV = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core"
         DOCKER_IMAGE_TAG = "${env.DHIS2_VERSION.replace('SNAPSHOT', 'rc')}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:10.0-jre17" // source of image to publish to Dockerhub (one of the matrix axes)
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
+        // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
+        BASE_IMAGE = "tomcat:10.1.30-jre17"
     }
 
     stages {
@@ -52,7 +53,7 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --activate-profiles -default --update-snapshots'
+                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --activate-profiles --update-snapshots'
                     }
                 }
             }
@@ -63,60 +64,45 @@ pipeline {
                 RP_UUID = credentials('report-portal-access-uuid')
                 RP_ENABLE = 'true'
                 RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
-                DOCKER_IMAGE_NAME_BASE = 'tomcat'
+                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
+                DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}"
             }
 
-            matrix {
-                axes {
-                    axis {
-                        name 'DOCKER_IMAGE_TAG_BASE'
-                        values '10.0-jre17'
+            stages {
+                stage('Build Docker image') {
+                    steps {
+                        withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                            withMaven(options: [artifactsPublisher(disabled: true)]) {
+                                sh './dhis-2/build-docker-image.sh -t "${DOCKER_IMAGE_TAG}" -d'
+                            }
+                        }
                     }
                 }
 
-                environment {
-                    DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" // used to test against different Tomcat variants
-                    BASE_IMAGE = "${DOCKER_IMAGE_NAME_BASE}:${DOCKER_IMAGE_TAG_BASE}"
-                    IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
-                    UNARCHIVED_WAR_DIR = "dhis2-war-$DOCKER_IMAGE_TAG_BASE" // this needs to be different for the two matrix stages, as they run in parallel
-                }
-
-                stages {
-                    stage('Build Docker image') {
-                        steps {
-                            withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                                withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                    sh './dhis-2/build-docker-image.sh -t "${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" -d'
-                                }
+                stage('Run tests') {
+                    steps {
+                        script {
+                            dir("dhis-2/dhis-test-e2e") {
+                                sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
+                                sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                             }
                         }
                     }
 
-                    stage('Run tests') {
-                        steps {
+                    post {
+                        always {
                             script {
                                 dir("dhis-2/dhis-test-e2e") {
-                                    sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+                                    archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
                                 }
                             }
                         }
 
-                        post {
-                            always {
-                                script {
-                                    dir("dhis-2/dhis-test-e2e") {
-                                        archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
-                                    }
-                                }
-                            }
-
-                            failure {
-                                script {
-                                    dir("dhis-2/dhis-test-e2e") {
-                                        sh "docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} logs web > ${DOCKER_IMAGE_TAG_BASE}_logs.txt"
-                                        archiveArtifacts artifacts: "${DOCKER_IMAGE_TAG_BASE}_logs.txt"
-                                    }
+                        failure {
+                            script {
+                                dir("dhis-2/dhis-test-e2e") {
+                                    sh "docker compose logs web > web-logs.txt"
+                                    archiveArtifacts artifacts: "web-logs.txt"
                                 }
                             }
                         }
@@ -127,7 +113,6 @@ pipeline {
 
         stage('Publish images') {
             environment {
-                BASE_IMAGE = "$DOCKER_IMAGE_NAME_PUBLISH_SOURCE"
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
             }
 

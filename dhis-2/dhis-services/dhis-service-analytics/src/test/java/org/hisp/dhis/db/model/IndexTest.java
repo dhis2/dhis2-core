@@ -60,13 +60,10 @@ class IndexTest {
 
   @Test
   void testDefaults() {
-    // given
     Index.IndexBuilder builder = Index.builder();
 
-    // when
     Index index = builder.build();
 
-    // then
     assertNull(index.getName());
     assertNull(index.getTableName());
     assertNull(index.getCondition());

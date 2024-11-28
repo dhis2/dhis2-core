@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.util;
 
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -50,9 +48,9 @@ public class RelationshipKeySupport {
       RelationshipItem relationshipItem) {
     if (Objects.nonNull(relationshipItem)) {
       return RelationshipKey.RelationshipItemKey.builder()
-          .trackedEntity(trimToEmpty(relationshipItem.getTrackedEntity()))
-          .enrollment(trimToEmpty(relationshipItem.getEnrollment()))
-          .event(trimToEmpty(relationshipItem.getEvent()))
+          .trackedEntity(relationshipItem.getTrackedEntity())
+          .enrollment(relationshipItem.getEnrollment())
+          .event(relationshipItem.getEvent())
           .build();
     }
     throw new IllegalStateException("Unable to determine uid for relationship item");

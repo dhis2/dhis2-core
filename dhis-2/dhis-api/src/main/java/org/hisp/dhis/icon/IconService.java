@@ -60,6 +60,17 @@ public interface IconService {
       throws ConflictException;
 
   /**
+   * A phantom default icon is an icon that exists as {@link
+   * org.hisp.dhis.fileresource.FileResource} but for some reason has lost its file in the store. To
+   * repair the icon the file is re-uploaded.
+   *
+   * @return the number of {@link DefaultIcon} {@link org.hisp.dhis.fileresource.FileResource}s that
+   *     were repaired.
+   * @throws ConflictException when an exception occurred during repair
+   */
+  int repairPhantomDefaultIcons() throws ConflictException;
+
+  /**
    * Get the count of Icons based on filters provided in {@link IconQueryParams}
    *
    * @param params filters

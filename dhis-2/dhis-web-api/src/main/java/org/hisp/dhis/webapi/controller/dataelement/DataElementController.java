@@ -34,6 +34,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -41,8 +42,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
-import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -60,10 +61,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/dataElements")
 @RequiredArgsConstructor
-public class DataElementController extends AbstractCrudController<DataElement> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class DataElementController
+    extends AbstractCrudController<DataElement, GetObjectListParams> {
 
   private final DataElementService dataElementService;
-  private final MergeProcessor dataElementMergeProcessor;
+  private final MergeService dataElementMergeService;
 
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_DATA_ELEMENT_MERGE)
@@ -71,11 +74,10 @@ public class DataElementController extends AbstractCrudController<DataElement> {
   public @ResponseBody WebMessage mergeDataElements(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Data element merge received");
-    params.setMergeType(MergeType.DATA_ELEMENT);
 
     MergeReport report;
     try {
-      report = dataElementMergeProcessor.processMerge(params);
+      report = dataElementMergeService.processMerge(params);
     } catch (PersistenceException ex) {
       String helpfulMessage = getHelpfulMessage(ex);
       log.error("Error while processing Data element merge: {}", helpfulMessage);

@@ -43,10 +43,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,7 +68,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -75,7 +79,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link CommonRequestParamsParser}. */
 @ExtendWith(MockitoExtension.class)
 class CommonRequestParamsMapperTest {
-  @Mock SystemSettingManager systemSettingManager;
+  @Mock SystemSettingsProvider settingsProvider;
 
   @Mock private DataQueryService dataQueryService;
 
@@ -84,6 +88,11 @@ class CommonRequestParamsMapperTest {
   @Mock private ProgramService programService;
 
   @Mock private DimensionIdentifierConverter dimensionIdentifierConverter;
+
+  @BeforeEach
+  void setUp() {
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+  }
 
   @Test
   void mapWithSuccessOnlyDimension() {
@@ -140,7 +149,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+                settingsProvider,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -240,7 +249,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+                settingsProvider,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -364,7 +373,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+                settingsProvider,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -420,14 +429,13 @@ class CommonRequestParamsMapperTest {
 
     CommonRequestParamsParser commonRequestParamsParser =
         new CommonRequestParamsParser(
-            systemSettingManager,
+            settingsProvider,
             dataQueryService,
             eventDataQueryService,
             programService,
             dimensionIdentifierConverter);
 
-    // List has only one Program, but the CommonQueryRequest, below, has
-    // two.
+    // List has only one Program, but the CommonQueryRequest, has two
     List<Program> programs = List.of(program1);
 
     CommonRequestParams commonRequestParams =
@@ -506,7 +514,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+                settingsProvider,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -565,7 +573,7 @@ class CommonRequestParamsMapperTest {
 
     CommonRequestParamsParser commonRequestParamsParser =
         new CommonRequestParamsParser(
-            systemSettingManager,
+            settingsProvider,
             dataQueryService,
             eventDataQueryService,
             programService,
@@ -667,7 +675,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+                settingsProvider,
                 dataQueryService,
                 eventDataQueryService,
                 programService,

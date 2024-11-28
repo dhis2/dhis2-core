@@ -54,8 +54,8 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -78,7 +78,7 @@ public class CredentialsExpiryAlertJob implements Job {
 
   private final I18nManager i18nManager;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   public JobType getJobType() {
@@ -87,7 +87,8 @@ public class CredentialsExpiryAlertJob implements Job {
 
   @Override
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    if (!systemSettingManager.getBoolSetting(SettingKey.CREDENTIALS_EXPIRY_ALERT)) {
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    if (!settings.getCredentialsExpiryAlert()) {
       log.info("credentialsExpiryAlertTask aborted. Expiry alerts are disabled");
       return;
     }
@@ -99,10 +100,8 @@ public class CredentialsExpiryAlertJob implements Job {
     }
     progress.completedStage(null);
 
-    int daysUntilDisable =
-        systemSettingManager.getIntSetting(SettingKey.CREDENTIALS_EXPIRES_REMINDER_IN_DAYS);
-    int daysBeforePasswordChangeRequired =
-        systemSettingManager.getIntSetting(SettingKey.CREDENTIALS_EXPIRES) * 30;
+    int daysUntilDisable = settings.getCredentialsExpiresReminderInDays();
+    int daysBeforePasswordChangeRequired = settings.getCredentialsExpires() * 30;
     if (daysBeforePasswordChangeRequired <= 0) {
       progress.completedProcess(
           "Passwords expire after n months is configured to zero (feature disabled)");

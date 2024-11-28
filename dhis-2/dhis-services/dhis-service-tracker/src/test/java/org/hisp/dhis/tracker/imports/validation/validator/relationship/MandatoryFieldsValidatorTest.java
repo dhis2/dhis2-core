@@ -34,8 +34,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -90,7 +91,7 @@ class MandatoryFieldsValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relTypeUid))
             .from(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .to(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
@@ -108,7 +109,7 @@ class MandatoryFieldsValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipMissingFrom() {
-    String relationshipUid = CodeGenerator.generateUid();
+    UID relationshipUid = UID.generate();
     Relationship relationship =
         Relationship.builder()
             .relationship(relationshipUid)
@@ -129,7 +130,7 @@ class MandatoryFieldsValidatorTest {
 
   @Test
   void shouldFailWhenFromItemHasNoEntities() {
-    String relationshipUid = CodeGenerator.generateUid();
+    UID relationshipUid = UID.generate();
     Relationship relationship =
         Relationship.builder()
             .relationship(relationshipUid)
@@ -151,15 +152,15 @@ class MandatoryFieldsValidatorTest {
 
   @Test
   void shouldFailWhenFromItemHasMultipleEntities() {
-    String relationshipUid = CodeGenerator.generateUid();
+    UID relationshipUid = UID.generate();
     Relationship relationship =
         Relationship.builder()
             .relationship(relationshipUid)
             .relationshipType(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .from(
                 RelationshipItem.builder()
-                    .trackedEntity("tracked entity")
-                    .enrollment("enrollment")
+                    .trackedEntity(UID.generate())
+                    .enrollment(UID.generate())
                     .build())
             .to(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .build();
@@ -177,7 +178,7 @@ class MandatoryFieldsValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipMissingTo() {
-    String relationshipUid = CodeGenerator.generateUid();
+    UID relationshipUid = UID.generate();
     Relationship relationship =
         Relationship.builder()
             .relationship(relationshipUid)
@@ -198,7 +199,7 @@ class MandatoryFieldsValidatorTest {
 
   @Test
   void shouldFailWhenToItemHasNoEntities() {
-    String relationshipUid = CodeGenerator.generateUid();
+    UID relationshipUid = UID.generate();
     Relationship relationship =
         Relationship.builder()
             .relationship(relationshipUid)
@@ -220,7 +221,7 @@ class MandatoryFieldsValidatorTest {
 
   @Test
   void shouldFailWhenToItemHasMultipleEntities() {
-    String relationshipUid = CodeGenerator.generateUid();
+    UID relationshipUid = UID.generate();
     Relationship relationship =
         Relationship.builder()
             .relationship(relationshipUid)
@@ -228,8 +229,8 @@ class MandatoryFieldsValidatorTest {
             .from(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .to(
                 RelationshipItem.builder()
-                    .trackedEntity("tracked entity")
-                    .enrollment("enrollment")
+                    .trackedEntity(UID.generate())
+                    .enrollment(UID.generate())
                     .build())
             .build();
 
@@ -248,7 +249,7 @@ class MandatoryFieldsValidatorTest {
   void verifyRelationshipValidationFailsOnMissingRelationshipType() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.EMPTY_UID)
             .from(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .to(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
@@ -263,7 +264,7 @@ class MandatoryFieldsValidatorTest {
     AssertValidations.assertMissingProperty(reporter, dto, ValidationCode.E1124, property);
   }
 
-  private String trackedEntity() {
-    return CodeGenerator.generateUid();
+  private UID trackedEntity() {
+    return UID.generate();
   }
 }

@@ -63,14 +63,14 @@ class EnrollmentOperationParamsMapper {
   public EnrollmentQueryParams map(
       @Nonnull EnrollmentOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     TrackedEntityType trackedEntityType =
-        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
 
     Set<OrganisationUnit> orgUnits =
-        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), user);
+        paramsValidator.validateOrgUnits(operationParams.getOrgUnits(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
@@ -87,7 +87,7 @@ class EnrollmentOperationParamsMapper {
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setOrder(operationParams.getOrder());
-    params.setEnrollmentUids(operationParams.getEnrollmentUids());
+    params.setEnrollments(operationParams.getEnrollments());
 
     mergeOrgUnitModes(operationParams, params, user);
 

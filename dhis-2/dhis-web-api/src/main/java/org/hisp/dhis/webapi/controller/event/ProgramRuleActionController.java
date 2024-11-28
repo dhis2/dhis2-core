@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -39,6 +40,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -56,7 +58,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/programRuleActions")
-public class ProgramRuleActionController extends AbstractCrudController<ProgramRuleAction> {
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+public class ProgramRuleActionController
+    extends AbstractCrudController<ProgramRuleAction, GetObjectListParams> {
   private final I18nManager i18nManager;
 
   private final ProgramRuleEngine programRuleEngine;

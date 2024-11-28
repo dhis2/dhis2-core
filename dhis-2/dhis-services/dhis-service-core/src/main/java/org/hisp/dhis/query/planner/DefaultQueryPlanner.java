@@ -47,10 +47,8 @@ import org.hisp.dhis.query.operators.TokenOperator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,7 +58,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DefaultQueryPlanner implements QueryPlanner {
   private final SchemaService schemaService;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   public QueryPlan planQuery(Query query) {
@@ -219,14 +217,12 @@ public class DefaultQueryPlanner implements QueryPlanner {
           setQueryPathLocale(restriction);
         }
 
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias()
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
-          pQuery
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
           pQuery.getCriterions().add(criterion);
           iterator.remove();
+          if (restriction.getQueryPath().haveAlias()) {
+            pQuery.getAliases().addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
+          }
         }
       }
     }
@@ -268,14 +264,15 @@ public class DefaultQueryPlanner implements QueryPlanner {
           setQueryPathLocale(restriction);
         }
 
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias(1)
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
-          criteriaJunction
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
+          if (restriction.getQueryPath().haveAlias()) {
+            criteriaJunction
+                .getAliases()
+                .addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
+          }
           criteriaJunction.getCriterions().add(criterion);
           iterator.remove();
+
         } else if (persistedOnly) {
           throw new RuntimeException(
               "Path "
@@ -300,12 +297,16 @@ public class DefaultQueryPlanner implements QueryPlanner {
    * @param restriction the {@link Restriction} which contains the query path.
    */
   private void setQueryPathLocale(Restriction restriction) {
-    restriction
-        .getQueryPath()
-        .setLocale(
-            CurrentUserUtil.getUserSetting(
-                UserSettingKey.DB_LOCALE,
-                systemSettingManager.getSystemSetting(
-                    SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE)));
+    restriction.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
+  }
+
+  /**
+   * Handle attribute filter such as /attributes?fields=id,name&filter=userAttribute:eq:true
+   *
+   * @return true if attribute filter
+   */
+  private boolean isAttributeFilter(Query query, Restriction restriction) {
+    return query.getSchema().getKlass().isAssignableFrom(Attribute.class)
+        && Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
   }
 }

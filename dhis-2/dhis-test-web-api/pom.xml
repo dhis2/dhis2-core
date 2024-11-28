@@ -82,7 +82,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-setting</artifactId>
-      <scope>compile</scope>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -124,6 +124,11 @@
       <artifactId>dhis-support-system</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Test -->
     <dependency>
@@ -139,6 +144,16 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core-jakarta</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -336,7 +351,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.8.0</version>
+      <version>7.10.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -376,10 +391,10 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-jdbc</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <!-- compile dependency to get coverage in aggregate report -->
-            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>

@@ -40,23 +40,24 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,7 +73,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/sqlViews")
 @RequiredArgsConstructor
-public class SqlViewController extends AbstractCrudController<SqlView> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
+public class SqlViewController extends AbstractCrudController<SqlView, GetObjectListParams> {
   private final SqlViewService sqlViewService;
 
   private final JobConfigurationService jobConfigurationService;
@@ -168,7 +170,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     Grid grid = querySQLView(uid, criteria, vars, response, ContextUtils.CONTENT_TYPE_PDF);
 
     GridUtils.toPdf(
-        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
+        UserSettings.getCurrentSettings().getUserDbLocale(), grid, response.getOutputStream());
   }
 
   private Grid querySQLView(

@@ -58,9 +58,8 @@ public enum ValidationCode {
   E1020("Enrollment date: `{0}`, cannot be a future date."),
   E1021("Incident date: `{0}`, cannot be a future date."),
   E1022("TrackedEntity: `{0}`, must have same TrackedEntityType as Program `{1}`."),
-  E1023(
-      "DisplayIncidentDate is true but property occurredAt is null or has an invalid format: `{0}`."),
-  E1025("Property enrolledAt is null or has an invalid format: `{0}`."),
+  E1023("DisplayIncidentDate is true but property occurredAt is null."),
+  E1025("Property enrolledAt is null."),
   E1029("Event OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
   E1030("Event: `{0}`, already exists."),
   E1031("Event occurredAt date is missing."),
@@ -69,7 +68,6 @@ public enum ValidationCode {
   E1035("Event: `{0}`, ProgramStage value is null."),
   E1039("ProgramStage: `{0}`, is not repeatable and an event already exists."),
   E1041("Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
-  E1042("Event: `{0}`, needs to have completed date."),
   E1043("Event: `{0}`, completeness date has expired. Not possible to make changes to this event."),
   E1044("Event: `{0}`, needs to have event date."),
   E1045(
@@ -80,6 +78,8 @@ public enum ValidationCode {
   E1048("Object: `{0}`, uid: `{1}`, has an invalid uid format."),
   E1049("Could not find OrganisationUnit: `{0}`, linked to Tracked Entity."),
   E1050("Event ScheduledAt date is missing."),
+  E1051("Event: `{0}`, completedAt must be null when status is `{1}`"),
+  E1052("Enrollment: `{0}`, completedAt must be null when status is `{1}`"),
   E1054("AttributeOptionCombo `{0}` is not in the event programs category combo `{1}`."),
   E1055("Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo."),
   E1056("Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`."),

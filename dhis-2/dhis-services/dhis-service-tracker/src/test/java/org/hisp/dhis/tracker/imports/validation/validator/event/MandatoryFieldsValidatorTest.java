@@ -36,8 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -87,7 +88,7 @@ class MandatoryFieldsValidatorTest {
   void verifyEventValidationSuccess() {
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
@@ -102,7 +103,7 @@ class MandatoryFieldsValidatorTest {
   void verifyEventValidationFailsOnMissingProgram() {
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .program(MetadataIdentifier.EMPTY_UID)
@@ -117,7 +118,7 @@ class MandatoryFieldsValidatorTest {
   void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram() {
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
@@ -136,7 +137,7 @@ class MandatoryFieldsValidatorTest {
   void verifyEventValidationFailsOnMissingProgramStage() {
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.EMPTY_UID)
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
@@ -151,7 +152,7 @@ class MandatoryFieldsValidatorTest {
   void verifyEventValidationFailsOnMissingOrgUnit() {
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .orgUnit(MetadataIdentifier.EMPTY_UID)
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))

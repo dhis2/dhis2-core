@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.config;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.CurrentUserSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DefaultsSupplier;
@@ -40,7 +39,6 @@ import org.hisp.dhis.tracker.imports.preheat.supplier.EventProgramEnrollmentSupp
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventProgramStageMapSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.FileResourceSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.OrgUnitValueTypeSupplier;
-import org.hisp.dhis.tracker.imports.preheat.supplier.PeriodTypeSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatStrategyScanner;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOrgUnitsSupplier;
@@ -64,7 +62,6 @@ public class TrackerPreheatConfig {
           EventProgramStageMapSupplier.class,
           ProgramOrgUnitsSupplier.class,
           ProgramOwnerSupplier.class,
-          PeriodTypeSupplier.class,
           UniqueAttributesSupplier.class,
           CurrentUserSupplier.class,
           UserSupplier.class,
@@ -76,7 +73,7 @@ public class TrackerPreheatConfig {
 
   @Bean("preheatOrder")
   public List<String> getPreheatOrder() {
-    return preheatOrder.stream().map(Class::getSimpleName).collect(Collectors.toList());
+    return preheatOrder.stream().map(Class::getSimpleName).toList();
   }
 
   @Bean("preheatStrategies")

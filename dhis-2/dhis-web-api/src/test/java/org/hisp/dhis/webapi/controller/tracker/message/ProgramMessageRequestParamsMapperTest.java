@@ -31,7 +31,6 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -52,9 +51,9 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramMessageRequestParamsMapperTest {
-  private static UID ENROLLMENT = UID.of(CodeGenerator.generateUid());
-  private static UID PROGRAM_INSTANCE = UID.of(CodeGenerator.generateUid());
-  private static UID EVENT = UID.of(CodeGenerator.generateUid());
+  private static final UID ENROLLMENT = UID.generate();
+  private static final UID PROGRAM_INSTANCE = UID.generate();
+  private static final UID EVENT = UID.generate();
 
   @InjectMocks private ProgramMessageRequestParamMapper subject;
 

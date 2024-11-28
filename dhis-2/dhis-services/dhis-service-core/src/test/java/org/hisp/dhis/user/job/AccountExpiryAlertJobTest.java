@@ -41,8 +41,8 @@ import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,21 +60,23 @@ class AccountExpiryAlertJobTest {
 
   private final MessageSender messageSender = mock(EmailMessageSender.class);
 
-  private final SystemSettingManager settingManager = mock(SystemSettingManager.class);
+  private final SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+  private final SystemSettings settings = mock(SystemSettings.class);
 
   private final AccountExpiryAlertJob job =
-      new AccountExpiryAlertJob(userService, messageSender, settingManager);
+      new AccountExpiryAlertJob(userService, messageSender, settingsProvider);
 
   @BeforeEach
   void setUp() {
     // mock normal run conditions
-    when(settingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)).thenReturn(true);
-    when(settingManager.getIntSetting(SettingKey.ACCOUNT_EXPIRES_IN_DAYS)).thenReturn(7);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getAccountExpiryAlert()).thenReturn(true);
+    when(settings.getAccountExpiresInDays()).thenReturn(7);
   }
 
   @Test
   void testDisabledJobDoesNotExecute() {
-    when(settingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)).thenReturn(false);
+    when(settings.getAccountExpiryAlert()).thenReturn(false);
     job.execute(new JobConfiguration(), JobProgress.noop());
     verify(userService, never()).getExpiringUserAccounts(anyInt());
   }

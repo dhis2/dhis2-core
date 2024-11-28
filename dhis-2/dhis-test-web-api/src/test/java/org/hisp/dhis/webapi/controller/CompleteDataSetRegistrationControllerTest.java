@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Accept;
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClient.ContentType;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,9 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,16 +63,6 @@ class CompleteDataSetRegistrationControllerTest extends H2ControllerIntegrationT
   }
 
   @Test
-  void testPostCompleteRegistrationsJson_Pre38() {
-    JsonImportSummary summary =
-        POST("/37/completeDataSetRegistrations", "{}")
-            .content(HttpStatus.OK)
-            .as(JsonImportSummary.class);
-    assertEquals("ImportSummary", summary.getResponseType());
-    assertEquals("ERROR", summary.getStatus());
-  }
-
-  @Test
   void testPostCompleteRegistrationsXml() {
     HttpResponse response =
         POST(
@@ -84,19 +73,6 @@ class CompleteDataSetRegistrationControllerTest extends H2ControllerIntegrationT
     assertEquals(HttpStatus.CONFLICT, response.status());
     String content = response.content(MediaType.APPLICATION_XML.toString());
     assertTrue(content.startsWith("<webMessage "));
-  }
-
-  @Test
-  void testPostCompleteRegistrationsXml_Pre38() {
-    HttpResponse response =
-        POST(
-            "/37/completeDataSetRegistrations",
-            Body("<completeDataSetRegistrations></completeDataSetRegistrations>"),
-            ContentType(CONTENT_TYPE_XML),
-            Accept(CONTENT_TYPE_XML));
-    assertEquals(HttpStatus.OK, response.status());
-    String content = response.content(MediaType.APPLICATION_XML.toString());
-    assertTrue(content.startsWith("<importSummary "));
   }
 
   @Test

@@ -41,11 +41,14 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Chau Thu Tran
@@ -234,6 +237,17 @@ public interface UserService {
   List<User> getUsers(UserQueryParams params, @Nullable List<String> orders);
 
   /**
+   * Returns a list of users based on the given query parameters. If the specified list of orders
+   * are empty, default order of last name and first name will be applied.
+   *
+   * @param params the user query parameters.
+   * @param orders the already validated order strings (e.g. email:asc).
+   * @return a List of users.
+   */
+  List<UID> getUserIds(UserQueryParams params, @Nullable List<String> orders)
+      throws ConflictException;
+
+  /**
    * Returns the number of users based on the given query parameters.
    *
    * @param params the user query parameters.
@@ -248,6 +262,7 @@ public interface UserService {
    */
   int getUserCount();
 
+  @Nonnull
   List<User> getUsersByPhoneNumber(String phoneNumber);
 
   /**
@@ -405,12 +420,9 @@ public interface UserService {
   int countDataSetUserRoles(DataSet dataSet);
 
   /**
-   * Filters the given collection of user roles based on whether the current user is allowed to
-   * issue it.
-   *
-   * @param userRoles the collection of user roles.
+   * @return IDs of the roles the current user can issue
    */
-  void canIssueFilter(Collection<UserRole> userRoles);
+  List<UID> getRolesCurrentUserCanIssue();
 
   /**
    * Validate that the current user are allowed to create or modify properties of the given user.
@@ -890,4 +902,14 @@ public interface UserService {
   boolean isEmailVerified(User currentUser);
 
   User getUserByVerificationToken(String token);
+
+  /**
+   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
+   * the given table
+   *
+   * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
+   * @param uid {@link OrganisationUnit} {@link UID} to match on
+   * @return matching {@link User}s
+   */
+  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
 }

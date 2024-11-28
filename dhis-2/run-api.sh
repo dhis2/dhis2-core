@@ -21,7 +21,7 @@ DHIS2_PORT=9090
 SKIP_COMPILE=0
 
 # Set DHIS2 home directory to DHIS2_HOME_DIR env variable if set
-if [[ -v "$DHIS2_HOME" ]]; then
+if [[ -n "$DHIS2_HOME" ]]; then
   DHIS2_HOME_DIR=$DHIS2_HOME
 fi
 
@@ -59,7 +59,7 @@ function build_dhis2() {
     --file "$(dirname "$0")/pom.xml" \
     --batch-mode --threads 100C \
     -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
-    --activate-profiles dev,embedded
+    --activate-profiles embedded
 }
 
 # Read command line options

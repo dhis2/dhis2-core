@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.objectReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
@@ -192,6 +191,11 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetParents_Root() {
+    assertListOfOrganisationUnits(GET("/organisationUnits/{id}/parents", ou0).content());
+  }
+
+  @Test
   void testGetQuery() {
     assertListOfOrganisationUnits(GET("/organisationUnits?query=L21").content(), "L21");
     assertListOfOrganisationUnits(
@@ -261,7 +265,9 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
                 + "', 'shortName':'"
                 + name
                 + "', 'openingDate':'2021', 'parent': "
-                + objectReference(parentId)
+                + "{'id':'"
+                + parentId
+                + "'}"
                 + " }"));
   }
 }

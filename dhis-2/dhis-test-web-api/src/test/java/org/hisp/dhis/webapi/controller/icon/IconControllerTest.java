@@ -45,10 +45,10 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -229,6 +229,12 @@ class IconControllerTest extends PostgresControllerIntegrationTestBase {
         3,
         icons.size(),
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
+  }
+
+  @Test
+  void testRepairPhantomIcons() {
+    JsonWebMessage msg = PATCH("/icons").content().as(JsonWebMessage.class);
+    assertEquals("0 icons repaired", msg.getMessage());
   }
 
   private JsonWebMessage createIcon(Set<String> keywords, String key) throws ConflictException {

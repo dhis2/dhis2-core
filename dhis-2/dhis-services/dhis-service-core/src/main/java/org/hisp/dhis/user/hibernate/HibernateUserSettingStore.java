@@ -27,79 +27,133 @@
  */
 package org.hisp.dhis.user.hibernate;
 
+import static java.util.stream.Collectors.toMap;
+
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import java.util.List;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.HibernateNativeStore;
+import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt (refactored version)
  */
-@Repository("org.hisp.dhis.user.UserSettingStore")
-public class HibernateUserSettingStore implements UserSettingStore {
-  private static final boolean CACHEABLE = true;
+@Slf4j
+@Repository
+public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
+    implements UserSettingStore {
 
-  private @PersistenceContext EntityManager entityManager;
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  // UserSettingStore implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addUserSetting(UserSetting userSetting) {
-    getSession().save(userSetting);
+  public HibernateUserSettingStore(EntityManager em) {
+    super(em, UserSetting.class);
   }
 
-  @Override
-  public void updateUserSetting(UserSetting userSetting) {
-    getSession().update(userSetting);
-  }
-
-  @Override
-  @Transactional
-  public UserSetting getUserSettingTx(String username, String name) {
-    return getUserSetting(username, name);
-  }
-
+  @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public UserSetting getUserSetting(String username, String name) {
-    Query<UserSetting> query =
-        getSession()
-            .createQuery(
-                "from UserSetting us where us.user.username = :username and us.name = :name");
-    query.setParameter("username", username);
-    query.setParameter("name", name);
-    query.setCacheable(CACHEABLE);
-
-    return query.uniqueResult();
+  public Map<String, String> getAll(@Nonnull String username) {
+    String sql =
+        """
+      select name, value from usersetting
+      where userinfoid = (select userinfoid from userinfo where username = :user limit 1)""";
+    Stream<Object[]> res = nativeSynchronizedQuery(sql).setParameter("user", username).stream();
+    return res.collect(toMap(row -> (String) row[0], row -> fromBinary((String) row[0], row[1])));
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public List<UserSetting> getAllUserSettings(String username) {
-    Query<UserSetting> query =
-        getSession().createQuery("from UserSetting us where us.user.username = :username");
-    query.setParameter("username", username);
-    query.setCacheable(CACHEABLE);
-
-    return query.list();
+  public void put(@Nonnull String username, @Nonnull String key, @Nonnull String value) {
+    String sql =
+        """
+      update usersetting set value = :value
+      where name = :key
+      and userinfoid = (select u.userinfoid from userinfo u where u.username = :user limit 1)""";
+    int updated =
+        nativeSynchronizedQuery(sql)
+            .setParameter("user", username)
+            .setParameter("key", key)
+            .setParameter("value", toBinary(value))
+            .executeUpdate();
+    if (updated > 0) return;
+    sql =
+        """
+      insert into usersetting (userinfoid, name, value)
+      (select u.userinfoid, :key, :value from userinfo u where u.username = :user limit 1)""";
+    nativeSynchronizedQuery(sql)
+        .setParameter("user", username)
+        .setParameter("key", key)
+        .setParameter("value", toBinary(value))
+        .executeUpdate();
   }
 
   @Override
-  public void deleteUserSetting(UserSetting userSetting) {
-    getSession().delete(userSetting);
+  public int delete(@Nonnull String username, @Nonnull Set<String> keys) {
+    if (keys.isEmpty()) return 0;
+    String sql =
+        """
+      delete from usersetting
+        where name in :names
+        and userinfoid = (select userinfoid from userinfo where username = :user limit 1)""";
+    return nativeSynchronizedQuery(sql)
+        .setParameter("user", username)
+        .setParameterList("names", keys)
+        .executeUpdate();
   }
 
-  private Session getSession() {
-    return entityManager.unwrap(Session.class);
+  @Override
+  public void deleteAll(@Nonnull String username) {
+    String sql =
+        """
+      delete from usersetting
+        where userinfoid = (select userinfoid from userinfo where username = :user limit 1)""";
+    nativeSynchronizedQuery(sql).setParameter("user", username).executeUpdate();
+  }
+
+  /**
+   * ATM values are stored as binary data serialized from {@link java.io.Serializable}. As we are
+   * only dealing with primitive values they all implement {@link Object#toString()} in a way that
+   * yields the proper {@link String} form. This is the 1st step in away from storing binary data by
+   * only using strings outside the store layer. Also, once settings are updated they always are
+   * {@link String}s just still in their binary form.
+   */
+  private static String fromBinary(String key, Object value) {
+    if (value == null) return "";
+    if (value instanceof byte[] binary) {
+      try {
+        ByteArrayInputStream bis = new ByteArrayInputStream(binary);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        return Settings.valueOf((Serializable) ois.readObject());
+      } catch (Exception ex) {
+        log.warn(
+            "Failed to de-serialize user setting %s from binary representation, using default"
+                .formatted(key));
+        return "";
+      }
+    }
+    if (value instanceof Serializable s) return Settings.valueOf(s);
+    log.warn(
+        "Failed to de-serialize user setting %s from unknown source type: %s, using default"
+            .formatted(key, value.getClass()));
+    return "";
+  }
+
+  private static byte[] toBinary(final String value) {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos)) {
+      out.writeObject(value);
+      out.flush();
+      return bos.toByteArray();
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(ex);
+    }
   }
 }
