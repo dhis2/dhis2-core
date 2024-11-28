@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -171,6 +172,6 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     categoryService.addCategoryOptionCombo(categoryOptionComboDuplicate);
 
     // Can delete the duplicated default COC
-    DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()).content(HttpStatus.OK);
+    assertStatus(HttpStatus.OK,DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
   }
 }
