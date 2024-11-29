@@ -574,13 +574,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, cTargetAfter.size(), "Expect 3 entries with target category option combo refs");
   }
 
-  // ------------------------
-  // -- DataValue --
-  // ------------------------
+  // -------------------------------------
+  // -- DataValue Category Option Combo --
+  // -------------------------------------
   @Test
   @DisplayName(
       "Non-duplicate DataValues with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
-  void dataValueMergeLastUpdatedTest() throws ConflictException {
+  void dataValueMergeCocLastUpdatedTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
@@ -628,7 +628,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "Duplicate DataValues with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
-  void duplicateDataValueMergeLastUpdatedTest() throws ConflictException {
+  void duplicateDataValueMergeCocLastUpdatedTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
@@ -679,7 +679,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "DataValues with references to source COCs are replaced with target COC using DISCARD strategy")
-  void dataValueMergeDiscardTest() throws ConflictException {
+  void dataValueMergeCocDiscardTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
@@ -727,7 +727,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "DataValues with references to source COCs are replaced with target COC, source COCs are deleted")
-  void dataValueMergeSourcesDeletedTest() throws ConflictException {
+  void dataValueMergeCocSourcesDeletedTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
@@ -758,6 +758,203 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         dataValueStore.getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2));
     List<DataValue> targetItems =
         dataValueStore.getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entries with target COC refs");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  // --------------------------------------
+  // -- DataValue Attribute Option Combo --
+  // --------------------------------------
+  @Test
+  @DisplayName(
+      "Non-duplicate DataValues with references to source AOCs are replaced with target AOC using LAST_UPDATED strategy")
+  void dataValueMergeAocLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
+    DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocSource2, "value2");
+    DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(cocSource1, cocSource2));
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Duplicate DataValues with references to source AOCs are replaced with target AOC using LAST_UPDATED strategy")
+  void duplicateDataValueAocMergeLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+
+    // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
+    dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
+    DataValue dv2 = createDataValue(de1, p1, ou1, cocRandom, cocSource2, "value2");
+    dv2.setLastUpdated(DateUtils.parseDate("2021-6-18"));
+    DataValue dv3 = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "value3");
+    dv3.setLastUpdated(DateUtils.parseDate("2022-4-15"));
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then there should be no source data values present
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(cocSource1, cocSource2));
+    // and only 1 target data value (as 3 duplicates merged using last updated value)
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC refs");
+    assertEquals(
+        DateUtils.parseDate("2024-6-8"),
+        targetItems.get(0).getLastUpdated(),
+        "It should be the latest lastUpdated value from duplicate data values");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "DataValues with references to source AOCs are replaced with target AOC using DISCARD strategy")
+  void dataValueMergeAocDiscardTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
+    DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocSource2, "value2");
+    DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(cocSource1, cocSource2));
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "DataValues with references to source AOCs are replaced with target AOC, source AOCs are deleted")
+  void dataValueMergeAocSourcesDeletedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
+    DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocSource2, "value2");
+    DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(cocSource1, cocSource2));
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValuesByAttrOptCombo(List.of(UID.of(cocTarget)));
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();

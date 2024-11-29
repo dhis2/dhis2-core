@@ -77,13 +77,13 @@ public class DataDataElementMergeHandler {
       @Nonnull MergeRequest mergeRequest) {
     // get DVs from sources
     List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
-    log.info(sourceDataValues.size() + " source data values retrieved");
+    log.info("{} data values retrieved for source DataElements", sourceDataValues.size());
 
     // get map of target data values, using the duplicate key constraints as the key
     Map<String, DataValue> targetDataValues =
         dataValueStore.getAllDataValuesByDataElement(List.of(target)).stream()
             .collect(Collectors.toMap(getDataValueKey, dv -> dv));
-    log.info(targetDataValues.size() + " target data values retrieved");
+    log.info("{} data values retrieved for target DataElement", targetDataValues.size());
 
     commonDataMergeHandler.handleDataValues(
         new DataValueMergeParams<>(

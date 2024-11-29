@@ -304,15 +304,15 @@ public class DataValue implements Serializable {
           };
 
   /**
-   * Method that creates a new {@link DataValue}. All the old values are used from the supplied old
-   * {@link DataValue} except for the {@link CategoryOptionCombo} field, which uses the supplied
-   * {@link CategoryOptionCombo}.
+   * Creates a new {@link DataValue}. All the old values are used from the supplied old {@link
+   * DataValue} except for the {@link CategoryOptionCombo} field, which uses the supplied {@link
+   * CategoryOptionCombo}.
    *
    * @param oldDv old {@link DataValue} whose values will be used in the new {@link DataValue}
    * @param newCoc {@link CategoryOptionCombo} to be used in the new {@link DataValue}
    * @return new {@link DataValue}
    */
-  public static BiFunction<DataValue, BaseIdentifiableObject, DataValue>
+  public static final BiFunction<DataValue, BaseIdentifiableObject, DataValue>
       dataValueWithNewCatOptionCombo =
           (oldDv, newCoc) -> {
             DataValue newValue =
@@ -322,6 +322,27 @@ public class DataValue implements Serializable {
                     .source(oldDv.getSource())
                     .categoryOptionCombo((CategoryOptionCombo) newCoc)
                     .attributeOptionCombo(oldDv.getAttributeOptionCombo())
+                    .value(oldDv.getValue())
+                    .storedBy(oldDv.getStoredBy())
+                    .lastUpdated(oldDv.getLastUpdated())
+                    .comment(oldDv.getComment())
+                    .followup(oldDv.isFollowup())
+                    .deleted(oldDv.isDeleted())
+                    .build();
+            newValue.setCreated(oldDv.getCreated());
+            return newValue;
+          };
+
+  public static final BiFunction<DataValue, BaseIdentifiableObject, DataValue>
+      dataValueWithNewAttrOptionCombo =
+          (oldDv, newAoc) -> {
+            DataValue newValue =
+                DataValue.builder()
+                    .dataElement(oldDv.getDataElement())
+                    .period(oldDv.getPeriod())
+                    .source(oldDv.getSource())
+                    .categoryOptionCombo(oldDv.getCategoryOptionCombo())
+                    .attributeOptionCombo((CategoryOptionCombo) newAoc)
                     .value(oldDv.getValue())
                     .storedBy(oldDv.getStoredBy())
                     .lastUpdated(oldDv.getLastUpdated())

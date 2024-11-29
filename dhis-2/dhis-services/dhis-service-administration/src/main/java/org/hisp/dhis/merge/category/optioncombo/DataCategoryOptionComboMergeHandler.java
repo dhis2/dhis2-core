@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.category.optioncombo;
 
+import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewAttrOptionCombo;
 import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewCatOptionCombo;
 
 import java.util.List;
@@ -61,33 +62,64 @@ public class DataCategoryOptionComboMergeHandler {
   //  private final DataValueAuditStore dataValueAuditStore;
   private final CommonDataMergeHandler commonDataMergeHandler;
 
-  /** */
   public void handleDataValues(
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
+    // ----------------------
     // category option combos
-    List<DataValue> sourceDataValues =
+    // ----------------------
+    List<DataValue> sourceCocDataValues =
         dataValueStore.getAllDataValuesByCatOptCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+    log.info(
+        "{} data values retrieved for source categoryOptionCombos", sourceCocDataValues.size());
 
     // get map of target data values, using the duplicate key constraints as the key
-    Map<String, DataValue> targetDataValues =
+    Map<String, DataValue> targetCocDataValues =
         dataValueStore.getAllDataValuesByCatOptCombo(UID.of(List.of(target.getUid()))).stream()
-            .collect(Collectors.toMap(getDataValueKey, dv -> dv));
-    log.info(targetDataValues.size() + " target data values retrieved");
+            .collect(Collectors.toMap(getCocDataValueKey, dv -> dv));
+    log.info("{} data values retrieved for target categoryOptionCombo", targetCocDataValues.size());
 
     commonDataMergeHandler.handleDataValues(
         new DataValueMergeParams<>(
             mergeRequest,
             sources,
             target,
-            sourceDataValues,
-            targetDataValues,
-            dataValueStore::deleteDataValues,
-            dataValueDuplicates,
+            sourceCocDataValues,
+            targetCocDataValues,
+            dataValueStore::deleteDataValuesByCategoryOptionCombo,
+            cocDataValueDuplicates,
             dataValueWithNewCatOptionCombo,
-            getDataValueKey));
+            getCocDataValueKey));
+
+    // ----------------------
+    // attribute option combos
+    // ----------------------
+    List<DataValue> sourceAocDataValues =
+        dataValueStore.getAllDataValuesByAttrOptCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+    log.info(
+        "{} data values retrieved for source attributeOptionCombos", sourceAocDataValues.size());
+
+    // get map of target data values, using the duplicate key constraints as the key
+    Map<String, DataValue> targetAocDataValues =
+        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(List.of(target.getUid()))).stream()
+            .collect(Collectors.toMap(getAocDataValueKey, dv -> dv));
+    log.info(
+        "{} data values retrieved for target attributeOptionCombo", targetAocDataValues.size());
+
+    commonDataMergeHandler.handleDataValues(
+        new DataValueMergeParams<>(
+            mergeRequest,
+            sources,
+            target,
+            sourceAocDataValues,
+            targetAocDataValues,
+            dataValueStore::deleteDataValuesByAttributeOptionCombo,
+            aocDataValueDuplicates,
+            dataValueWithNewAttrOptionCombo,
+            getAocDataValueKey));
   }
 
   /** */
@@ -117,13 +149,23 @@ public class DataCategoryOptionComboMergeHandler {
     // TODO
   }
 
-  private static final Function<DataValue, String> getDataValueKey =
+  private static final Function<DataValue, String> getCocDataValueKey =
       dv ->
           String.valueOf(dv.getPeriod().getId())
               + dv.getSource().getId()
               + dv.getDataElement().getId()
               + dv.getAttributeOptionCombo().getId();
 
-  private static final BiPredicate<DataValue, Map<String, DataValue>> dataValueDuplicates =
-      (sourceDv, targetDvs) -> targetDvs.containsKey(getDataValueKey.apply(sourceDv));
+  private static final BiPredicate<DataValue, Map<String, DataValue>> cocDataValueDuplicates =
+      (sourceDv, targetDvs) -> targetDvs.containsKey(getCocDataValueKey.apply(sourceDv));
+
+  private static final Function<DataValue, String> getAocDataValueKey =
+      dv ->
+          String.valueOf(dv.getPeriod().getId())
+              + dv.getSource().getId()
+              + dv.getDataElement().getId()
+              + dv.getCategoryOptionCombo().getId();
+
+  private static final BiPredicate<DataValue, Map<String, DataValue>> aocDataValueDuplicates =
+      (sourceDv, targetDvs) -> targetDvs.containsKey(getAocDataValueKey.apply(sourceDv));
 }

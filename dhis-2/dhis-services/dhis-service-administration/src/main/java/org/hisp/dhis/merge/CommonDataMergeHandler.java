@@ -65,8 +65,6 @@ public class CommonDataMergeHandler {
 
   public <T extends BaseIdentifiableObject> void handleDataValues(
       @Nonnull DataValueMergeParams<T> merge) {
-    log.info(merge.targetDataValues.size() + " target data values retrieved");
-
     // merge based on chosen strategy
     DataMergeStrategy dataMergeStrategy = merge.mergeRequest.getDataMergeStrategy();
     if (dataMergeStrategy == DataMergeStrategy.DISCARD) {
@@ -170,7 +168,7 @@ public class CommonDataMergeHandler {
           dataValueStore.addDataValue(copyWithNewCocRef);
         });
 
-    log.info("Deleting all data values referencing sources");
+    log.info("Deleting all data values referencing source CategoryOptionCombos");
     dvMergeParams.sources.forEach(dvMergeParams.dvStoreDelete);
   }
 
