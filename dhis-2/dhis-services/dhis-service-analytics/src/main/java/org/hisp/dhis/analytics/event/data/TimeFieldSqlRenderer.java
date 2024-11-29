@@ -51,7 +51,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.parser.expression.statement.PostgreSqlStatementBuilder;
+import org.hisp.dhis.parser.expression.statement.DefaultStatementBuilder;
 import org.hisp.dhis.parser.expression.statement.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -59,7 +59,7 @@ import org.hisp.dhis.period.PeriodType;
 /** Provides methods targeting the generation of SQL statements for periods and time fields. */
 public abstract class TimeFieldSqlRenderer {
   protected final SqlBuilder sqlBuilder;
-  protected final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
+  protected final StatementBuilder statementBuilder = new DefaultStatementBuilder();
 
   protected TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
     this.sqlBuilder = sqlBuilder;

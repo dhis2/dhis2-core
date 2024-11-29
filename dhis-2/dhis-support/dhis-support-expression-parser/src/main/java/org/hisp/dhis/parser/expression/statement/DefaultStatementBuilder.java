@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @NoArgsConstructor
-public class PostgreSqlStatementBuilder implements StatementBuilder {
+public class DefaultStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
   protected static final String SINGLE_QUOTE = "'";
