@@ -499,6 +499,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
+    if (withLegendSet) {
+      return getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause);
+    }
+
     if (dataElement.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnForOrgUnitDataElement(dataElement, dataFilterClause));
     }
@@ -512,9 +516,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause)
-        : columns;
+    return columns;
   }
 
   /**
@@ -654,7 +656,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .selectExpression(sql)
                   .build();
             })
-        .collect(toList());
+        .toList();
   }
 
   /**
