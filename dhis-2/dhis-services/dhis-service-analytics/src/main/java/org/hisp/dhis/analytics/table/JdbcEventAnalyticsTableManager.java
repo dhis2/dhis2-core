@@ -414,7 +414,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       }
     }
     if (sqlBuilder.supportsDeclarativePartitioning()) {
-      // Add the year column required for declarative partitioning
       columns.add(getPartitionColumn());
     }
 
@@ -827,6 +826,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     "fromDate",
                     toMediumDate(params.getFromDate())))
             : EMPTY;
+
     String sql =
         replaceQualify(
             """
