@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
@@ -50,17 +49,6 @@ public interface EventChangeLogService {
   Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException;
-
-  /**
-   * @deprecated use {@link EventChangeLogService#getEventChangeLog} instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params);
-
-  @Deprecated(since = "2.42")
-  void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
   void addDataValueChangeLog(
       Event event,

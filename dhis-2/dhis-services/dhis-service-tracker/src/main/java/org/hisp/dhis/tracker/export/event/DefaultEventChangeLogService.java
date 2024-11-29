@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,7 +43,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.locationtech.jts.geom.Geometry;
@@ -60,7 +56,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final EventService eventService;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
   private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
-  private final TrackerAccessManager trackerAccessManager;
 
   @Override
   @Transactional(readOnly = true)
@@ -83,32 +78,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Override
   public void deleteEventChangeLog(DataElement dataElement) {
     hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params) {
-
-    return trackedEntityDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(params).stream()
-        .filter(
-            changeLog ->
-                trackerAccessManager
-                    .canRead(
-                        getCurrentUserDetails(),
-                        changeLog.getEvent(),
-                        changeLog.getDataElement(),
-                        false)
-                    .isEmpty())
-        .toList();
-  }
-
-  @Override
-  @Transactional
-  public void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
-    trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
-        trackedEntityDataValueChangeLog);
   }
 
   @Override

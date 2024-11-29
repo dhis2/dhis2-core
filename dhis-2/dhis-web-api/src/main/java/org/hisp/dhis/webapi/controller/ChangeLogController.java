@@ -49,7 +49,6 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UID;
@@ -81,16 +80,11 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -119,8 +113,6 @@ public class ChangeLogController {
   private final IdentifiableObjectManager manager;
 
   private final DataValueAuditService dataValueAuditService;
-
-  private final EventChangeLogService eventChangeLogService;
 
   private final TrackedEntityChangeLogService attributeValueChangeLogService;
 
@@ -256,89 +248,6 @@ public class ChangeLogController {
   }
 
   /**
-   * @deprecated use EventsExportController#getEventChangeLogsByUid instead
-   */
-  @Deprecated(forRemoval = true, since = "2.42")
-  @GetMapping("trackedEntityDataValue")
-  public RootNode getTrackedEntityDataValueChangeLog(
-      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
-          List<String> de,
-      @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
-          List<String> ou,
-      @Deprecated(since = "2.41")
-          @OpenApi.Param({UID[].class, Event.class})
-          @RequestParam(required = false, defaultValue = "")
-          List<String> psi,
-      @OpenApi.Param({UID[].class, Event.class}) @RequestParam(required = false, defaultValue = "")
-          Set<UID> events,
-      @OpenApi.Param({UID[].class, ProgramStage.class}) @RequestParam(required = false)
-          List<String> ps,
-      @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) Date endDate,
-      @RequestParam(required = false) OrganisationUnitSelectionMode ouMode,
-      @RequestParam(required = false) List<ChangeLogType> auditType,
-      @RequestParam(required = false) Boolean skipPaging,
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws BadRequestException {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
-
-    List<DataElement> dataElements = manager.loadByUid(DataElement.class, de);
-    List<OrganisationUnit> orgUnits = manager.loadByUid(OrganisationUnit.class, ou);
-    List<ProgramStage> programStages = manager.loadByUid(ProgramStage.class, ps);
-    Set<UID> eventUids =
-        validateDeprecatedUidsParameter("psi", String.join(";", psi), "events", events);
-    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
-
-    List<TrackedEntityDataValueChangeLog> dataValueChangeLogs;
-    Pager pager = null;
-
-    TrackedEntityDataValueChangeLogQueryParams params =
-        new TrackedEntityDataValueChangeLogQueryParams()
-            .setDataElements(dataElements)
-            .setOrgUnits(orgUnits)
-            .setEvents(manager.loadByUid(Event.class, UID.toValueSet(eventUids)))
-            .setProgramStages(programStages)
-            .setStartDate(startDate)
-            .setEndDate(endDate)
-            .setOuMode(ouMode)
-            .setAuditTypes(changeLogTypes);
-
-    if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      dataValueChangeLogs = eventChangeLogService.getTrackedEntityDataValueChangeLogs(params);
-    } else {
-      int total = eventChangeLogService.countTrackedEntityDataValueChangeLogs(params);
-
-      pager = new Pager(page, total, pageSize);
-
-      dataValueChangeLogs =
-          eventChangeLogService.getTrackedEntityDataValueChangeLogs(params.setPager(pager));
-    }
-
-    RootNode rootNode = NodeUtils.createMetadata();
-
-    if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
-    }
-
-    CollectionNode trackedEntityAttributeValueChangeLogs =
-        rootNode.addChild(new CollectionNode("trackedEntityDataValueAudits", true));
-    trackedEntityAttributeValueChangeLogs.addChildren(
-        fieldFilterService
-            .toCollectionNode(
-                TrackedEntityDataValueChangeLog.class,
-                new FieldFilterParams(dataValueChangeLogs, fields))
-            .getChildren());
-
-    return rootNode;
-  }
-
-  /**
    * @deprecated use TrackedEntitiesExportController#getTrackedEntityAttributeChangeLog instead
    */
   @Deprecated(forRemoval = true, since = "2.42")
@@ -466,11 +375,11 @@ public class ChangeLogController {
   }
 
   /**
-   * @deprecated use {@link #getTrackedEnityChangeLog} instead.
+   * @deprecated use {@link #getTrackedEntityAudit} instead.
    */
   @Deprecated(since = "2.41")
   @GetMapping("trackedEntityInstance")
-  public RootNode getTrackedEnityInstanceChangeLog(
+  public RootNode getTrackedEntityInstanceChangeLog(
       @Deprecated(since = "2.41")
           @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
@@ -537,8 +446,7 @@ public class ChangeLogController {
   }
 
   @GetMapping("trackedEntity")
-  @Deprecated(since = "2.42", forRemoval = true)
-  public RootNode getTrackedEnityChangeLog(
+  public RootNode getTrackedEntityAudit(
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
