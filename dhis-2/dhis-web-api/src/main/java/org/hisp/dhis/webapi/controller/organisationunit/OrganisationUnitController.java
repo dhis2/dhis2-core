@@ -102,11 +102,8 @@ public class OrganisationUnitController
         OrganisationUnit, OrganisationUnitController.GetOrganisationUnitObjectListParams> {
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
   @Autowired private VersionService versionService;
-
   @Autowired private OrgUnitSplitService orgUnitSplitService;
-
   @Autowired private OrgUnitMergeService orgUnitMergeService;
 
   @ResponseStatus(HttpStatus.OK)
@@ -120,20 +117,80 @@ public class OrganisationUnitController
 
   @Data
   @EqualsAndHashCode(callSuper = true)
+  @OpenApi.Property
   public static final class GetOrganisationUnitObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        """
+      When set for each organisation unit in the result list a count is added as property `memberCount`.
+      This count is the number of organisation units in the unit's subtree (including itself) where
+      the `memberObject` is a member of the relation defined by the `memberCollection` property.
+      Use with caution, as this is an expensive operation.
+      """)
     @OpenApi.Property(UID.class)
     String memberObject;
 
+    @OpenApi.Description(
+        """
+      Name of the organisation unit collection property to use when checking of the `memberObject` is a member.
+      For example, `groups`, `dataSets`, `programs`, `users`, `categoryOptions`.
+      """)
     String memberCollection;
-    Integer parentLevel;
+
+    @OpenApi.Ignore Integer parentLevel;
+
+    @OpenApi.Description(
+        """
+      Limits results to organisation units on the given level (absolute starting with 1 for the root).
+      When used for list relative to a parent this is the level relative to the parent level where `level=1` are
+      all direct children of the parent.
+      Can be combined with further `filter`s and/or one of the `withinUser*`/`userOnly*` limitations.
+      """)
     Integer level;
+
+    @OpenApi.Description(
+        """
+      Limits results to organisation units on the given level or above (absolute starting with 1 for the root).
+      Can be combined with further `filter`s and/or one of the `withinUser*`/`userOnly*` limitations.
+      """)
     Integer maxLevel;
+
+    @OpenApi.Description(
+        """
+      Limits result to organisation units for which current user has data capture privileges.
+      Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
+      """)
     boolean withinUserHierarchy;
+
+    @OpenApi.Description(
+        """
+      Limits result to organisation units for which the current user has search privileges.
+      Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
+      """)
     boolean withinUserSearchHierarchy;
+
+    @OpenApi.Description(
+        """
+      Limits result to organisation units that are explicitly listed in the current user's data capture set (excluding any non-listed children).
+      Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
+      """)
     boolean userOnly;
+
+    @OpenApi.Description(
+        """
+      Limits result to organisation units that are explicitly listed in the current user's data view set (excluding any non-listed children).
+      Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
+      """)
     boolean userDataViewOnly;
+
+    @OpenApi.Description(
+        """
+      Limits result to organisation units that are explicitly listed in the current user's data view set (excluding any non-listed children)
+      with fallback to the user's data capture set if the data view set is empty.
+      Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
+      """)
     boolean userDataViewFallback;
 
+    @OpenApi.Description("Shorthand equivalent for the URL parameter `order=level:asc`.")
     boolean levelSorted;
   }
 
@@ -146,7 +203,7 @@ public class OrganisationUnitController
     return ok("Organisation units merged");
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeChildren=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeChildren(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -157,7 +214,7 @@ public class OrganisationUnitController
     return getChildren(uid, params, response, currentUser);
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/children")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -173,7 +230,7 @@ public class OrganisationUnitController
     return getObjectListWith(params, response, currentUser, children);
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "level")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectWithLevel(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -185,7 +242,7 @@ public class OrganisationUnitController
     return getChildrenWithLevel(uid, level, params, response, currentUser);
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}/children", params = "level")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildrenWithLevel(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -200,7 +257,7 @@ public class OrganisationUnitController
     return getObjectListWith(params, response, currentUser, childrenWithLevel);
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeDescendants=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeDescendants(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -211,7 +268,7 @@ public class OrganisationUnitController
     return getDescendants(uid, params, response, currentUser);
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/descendants")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getDescendants(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -223,7 +280,7 @@ public class OrganisationUnitController
     return getObjectListWith(params, response, currentUser, List.of(descendants));
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeAncestors=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeAncestors(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -234,7 +291,7 @@ public class OrganisationUnitController
     return getAncestors(uid, params, response, currentUser);
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/ancestors")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -252,7 +309,7 @@ public class OrganisationUnitController
     return getObjectListWith(params, response, currentUser, List.of(ancestors));
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/parents")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
@@ -323,7 +380,8 @@ public class OrganisationUnitController
 
   @Override
   protected void getEntityListPostProcess(
-      GetOrganisationUnitObjectListParams params, List<OrganisationUnit> entities) {
+      GetOrganisationUnitObjectListParams params, List<OrganisationUnit> entities)
+      throws BadRequestException {
     String memberObject = params.getMemberObject();
     String memberCollection = params.getMemberCollection();
     if (memberObject != null && memberCollection != null) {
