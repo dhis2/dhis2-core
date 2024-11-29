@@ -287,6 +287,11 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
 
+  /**
+   * Returns a list of fixed columns.
+   *
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getFixedCols() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
