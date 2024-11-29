@@ -123,7 +123,7 @@ public class DimensionController
    * DimensionalObject} and there is no specific {@link InternalHibernateGenericStore} to retrieve
    * them from.
    */
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @Override
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(

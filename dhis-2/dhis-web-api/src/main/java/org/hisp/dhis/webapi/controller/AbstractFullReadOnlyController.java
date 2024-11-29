@@ -50,7 +50,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -159,16 +158,15 @@ public abstract class AbstractFullReadOnlyController<
   // GET Full
   // --------------------------------------------------------------------------
 
-  @Value
   @OpenApi.Shared(value = false)
-  protected static class ObjectListResponse {
+  protected static class GetObjectListResponse {
     @OpenApi.Property Pager pager;
 
     @OpenApi.Property(name = "path$", value = OpenApi.EntityType[].class)
     List<Object> entries;
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
       P params, HttpServletResponse response, @CurrentUser UserDetails currentUser)
@@ -507,7 +505,7 @@ public abstract class AbstractFullReadOnlyController<
     // by default: nothing special to do
   }
 
-  protected void getEntityListPostProcess(P params, List<T> entities) {}
+  protected void getEntityListPostProcess(P params, List<T> entities) throws BadRequestException {}
 
   private long countGetObjectList(P params, List<Criterion> additionalFilters)
       throws BadRequestException {
