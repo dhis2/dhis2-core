@@ -109,7 +109,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/audits")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ChangeLogController {
+public class AuditController {
   private final IdentifiableObjectManager manager;
 
   private final DataValueAuditService dataValueAuditService;
