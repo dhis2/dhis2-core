@@ -25,29 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.db;
 
-import org.hisp.dhis.analytics.table.init.AnalyticsDatabaseInit;
+import java.util.Objects;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.setting.SqlBuilderSettings;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilderProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Service;
 
-/**
- * Enumeration of database platforms.
- *
- * <p>To add support for a new analytics database engine, add the following:
- *
- * <ul>
- *   <li>Value to this {@link Database}.
- *   <li>Implementation class of {@link SqlBuilder}.
- *   <li>Register {@link SqlBuilder} implementation in {@link SqlBuilderProvider}.
- *   <li>Method to {@link AnalyticsDatabaseInit} (optional).
- *   <li>JDBC driver in <code>pom.xml</code>.
- * </ul>
- *
- * @author Lars Helge Overland
- */
-public enum Database {
-  POSTGRESQL,
-  DORIS,
-  CLICKHOUSE
+/** Provider of {@link SqlBuilder} implementations. */
+@Service
+public class SqlBuilderProvider {
+  private final SqlBuilder sqlBuilder;
+
+  public SqlBuilderProvider(SqlBuilderSettings config) {
+    Objects.requireNonNull(config);
+    this.sqlBuilder = getSqlBuilder(config);
+  }
+
+  /**
+   * Returns a {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link SqlBuilder}.
+   */
+  public SqlBuilder getSqlBuilder() {
+    return sqlBuilder;
+  }
+
+  /**
+   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @param config the {@link DhisConfigurationProvider}.
+   * @return a {@link SqlBuilder}.
+   */
+  private SqlBuilder getSqlBuilder(SqlBuilderSettings config) {
+    Database database = config.getAnalyticsDatabase();
+    String catalog = config.getAnalyticsDatabaseCatalog();
+    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+
+    Objects.requireNonNull(database);
+
+    return switch (database) {
+      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
+      case CLICKHOUSE -> new ClickHouseSqlBuilder();
+      default -> new PostgreSqlBuilder();
+    };
+  }
 }
