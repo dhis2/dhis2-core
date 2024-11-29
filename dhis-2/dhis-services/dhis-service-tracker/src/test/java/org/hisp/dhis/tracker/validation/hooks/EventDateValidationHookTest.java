@@ -94,7 +94,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
     bundle = TrackerBundle.builder().user(user).preheat(preheat).build();
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
+        .thenReturn(getProgramWithRegistration(5));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
         .thenReturn(getProgramWithoutRegistration());
 
@@ -104,7 +104,6 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
 
   @Test
   void testEventIsValid() {
-    // given
     Event event = new Event();
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
     event.setOccurredAt(now());
@@ -113,92 +112,74 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
     TrackerBundle bundle =
         TrackerBundle.builder().user(getEditExpiredUser()).preheat(preheat).build();
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     assertFalse(reporter.hasErrors());
   }
 
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1031, EVENT, event.getUid());
   }
 
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setStatus(EventStatus.ACTIVE);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1031, EVENT, event.getUid());
   }
 
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setStatus(EventStatus.COMPLETED);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1031, EVENT, event.getUid());
   }
 
   @Test
   void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(Instant.now());
     event.setStatus(EventStatus.SCHEDULE);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1050, EVENT, event.getUid());
   }
 
   @Test
   void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(now());
     event.setStatus(EventStatus.COMPLETED);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1042, EVENT, event.getUid());
   }
 
   @Test
   void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -206,16 +187,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
     event.setCompletedAt(sevenDaysAgo());
     event.setStatus(EventStatus.COMPLETED);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1043, EVENT, event.getUid());
   }
 
   @Test
   void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
-    // given
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -223,35 +201,75 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
     event.setScheduledAt(null);
     event.setStatus(EventStatus.SKIPPED);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1046, EVENT, event.getUid());
   }
 
   @Test
-  void testEventIsNotValidWhenDateBelongsToExpiredPeriod() {
-    // given
+  void shouldFailValidationForEventWhenDateBelongsToExpiredPeriod() {
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(sevenDaysAgo());
     event.setStatus(EventStatus.ACTIVE);
 
-    // when
     this.hookToTest.validateEvent(reporter, bundle, event);
 
-    // then
     hasTrackerError(reporter, E1047, EVENT, event.getUid());
   }
 
-  private Program getProgramWithRegistration() {
+  @Test
+  void shouldPassValidationForEventWhenDateBelongsToPastPeriodWithZeroExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration(0));
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(sevenDaysAgo());
+    event.setStatus(EventStatus.ACTIVE);
+
+    this.hookToTest.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void shouldPassValidationForEventWhenDateBelongsPastEventPeriodButWithinExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration(7));
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(sevenDaysAgo());
+    event.setStatus(EventStatus.ACTIVE);
+
+    this.hookToTest.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void shouldPassValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration(5));
+    Event event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setScheduledAt(sevenDaysLater());
+    event.setStatus(EventStatus.SCHEDULE);
+
+    this.hookToTest.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  private Program getProgramWithRegistration(int expiryDays) {
     Program program = createProgram('A');
     program.setUid(PROGRAM_WITH_REGISTRATION_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setCompleteEventsExpiryDays(5);
-    program.setExpiryDays(5);
+    program.setExpiryDays(expiryDays);
     program.setExpiryPeriodType(new DailyPeriodType());
     return program;
   }
@@ -279,5 +297,9 @@ class EventDateValidationHookTest extends DhisConvenienceTest {
 
   private Instant sevenDaysAgo() {
     return LocalDateTime.now().minus(7, ChronoUnit.DAYS).toInstant(ZoneOffset.UTC);
+  }
+
+  private Instant sevenDaysLater() {
+    return LocalDateTime.now().plusDays(7).toInstant(ZoneOffset.UTC);
   }
 }
