@@ -133,8 +133,20 @@ public final class Restrictions {
     return new Restriction(path, new EmptyOperator<>());
   }
 
+  /**
+   * Builds a PR group to match the query string against id, code and name.
+   *
+   * @param schema of the root entity
+   * @param query the query string value used the URL {@code query} parameter
+   * @return OR group with the filters for the query string
+   */
   public static Disjunction query(Schema schema, String query) {
-    return or(schema, eq("id", query), eq("code", query), ilike("name", query, MatchMode.ANYWHERE));
+    Restriction name = ilike("name", query, MatchMode.ANYWHERE);
+    Restriction code = eq("code", query);
+    if (query.length() != 11) return or(schema, code, name);
+    // only a query with length 11 has a chance of matching a UID
+    Restriction id = eq("id", query);
+    return or(schema, id, code, name);
   }
 
   public static Disjunction or(Schema schema, Criterion... filters) {

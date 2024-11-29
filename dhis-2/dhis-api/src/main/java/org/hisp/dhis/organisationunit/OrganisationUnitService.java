@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
@@ -304,7 +305,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @return the count of member OrganisationUnits.
    */
   Long getOrganisationUnitHierarchyMemberCount(
-      OrganisationUnit parent, Object member, String collectionName);
+      OrganisationUnit parent, Object member, String collectionName) throws BadRequestException;
 
   OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user);
 
