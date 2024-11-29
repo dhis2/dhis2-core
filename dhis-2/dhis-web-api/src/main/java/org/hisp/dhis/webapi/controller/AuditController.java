@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -506,13 +505,10 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<DataElement> getDataElementsByDataSet(List<String> uids) throws WebMessageException {
+  private List<DataElement> getDataElementsByDataSet(List<String> uids) {
     List<DataSet> dataSets = manager.loadByUid(DataSet.class, uids);
 
-    return dataSets.stream()
-        .map(ds -> ds.getDataElements())
-        .flatMap(Set::stream)
-        .collect(Collectors.toList());
+    return dataSets.stream().map(DataSet::getDataElements).flatMap(Set::stream).toList();
   }
 
   private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
