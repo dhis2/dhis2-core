@@ -42,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,8 +52,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SqlBuilderSettings {
   private final DhisConfigurationProvider config;
-
-  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
