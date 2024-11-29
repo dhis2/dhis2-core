@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.statement;
+package org.hisp.dhis.jdbc;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.SPACE;
@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @NoArgsConstructor
-public class DefaultSqlStatementBuilder implements StatementBuilder {
+public class PostgreSqlStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
   protected static final String SINGLE_QUOTE = "'";
