@@ -282,24 +282,26 @@ public class DataValue implements Serializable {
    * @param newDataElement {@link DataElement} to be used in the new {@link DataValue}
    * @return new {@link DataValue}
    */
-  public static DataValue dataValueWithNewDataElement(DataValue oldDv, DataElement newDataElement) {
-    DataValue newValue =
-        DataValue.builder()
-            .dataElement(newDataElement)
-            .period(oldDv.getPeriod())
-            .source(oldDv.getSource())
-            .categoryOptionCombo(oldDv.getCategoryOptionCombo())
-            .attributeOptionCombo(oldDv.getAttributeOptionCombo())
-            .value(oldDv.getValue())
-            .storedBy(oldDv.getStoredBy())
-            .lastUpdated(oldDv.getLastUpdated())
-            .comment(oldDv.getComment())
-            .followup(oldDv.isFollowup())
-            .deleted(oldDv.isDeleted())
-            .build();
-    newValue.setCreated(oldDv.getCreated());
-    return newValue;
-  }
+  public static BiFunction<DataValue, BaseIdentifiableObject, DataValue>
+      dataValueWithNewDataElement =
+          (oldDv, newDataElement) -> {
+            DataValue newValue =
+                DataValue.builder()
+                    .dataElement((DataElement) newDataElement)
+                    .period(oldDv.getPeriod())
+                    .source(oldDv.getSource())
+                    .categoryOptionCombo(oldDv.getCategoryOptionCombo())
+                    .attributeOptionCombo(oldDv.getAttributeOptionCombo())
+                    .value(oldDv.getValue())
+                    .storedBy(oldDv.getStoredBy())
+                    .lastUpdated(oldDv.getLastUpdated())
+                    .comment(oldDv.getComment())
+                    .followup(oldDv.isFollowup())
+                    .deleted(oldDv.isDeleted())
+                    .build();
+            newValue.setCreated(oldDv.getCreated());
+            return newValue;
+          };
 
   /**
    * Method that creates a new {@link DataValue}. All the old values are used from the supplied old

@@ -87,7 +87,6 @@ import org.springframework.transaction.annotation.Transactional;
  * target CategoryOptionCombo
  */
 @Transactional
-// @ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
 class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
