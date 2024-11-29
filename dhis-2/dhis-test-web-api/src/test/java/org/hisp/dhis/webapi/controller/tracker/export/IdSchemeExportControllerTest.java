@@ -288,6 +288,21 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   }
 
   @Test
+  void shouldExportEventUsingNonUIDDataElementIdSchemeIfItHasRelationships() {
+    Event event = get(Event.class, "pTzf9KYMk72");
+    assertNotEmpty(event.getRelationshipItems(), "test expects an event with relationships");
+
+    JsonEvent actual =
+        GET(
+                "/tracker/events/{id}?fields=event,relationships&dataElementIdScheme=NAME",
+                event.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertEquals("pTzf9KYMk72", actual.getEvent());
+  }
+
+  @Test
   void shouldExportEventsUsingNonUIDDataElementIdScheme() {
     Event event1 = get(Event.class, "QRYjLTiJTrA");
     Event event2 = get(Event.class, "kWjSezkXHVp");
