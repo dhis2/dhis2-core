@@ -83,7 +83,7 @@ public final class EventAnalyticsColumn {
           .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
-          .selectExpression("ao.uid")
+          .selectExpression("acs.categoryoptioncombouid")
           .build();
   private static final AnalyticsTableColumn ENROLLMENT_DATE =
       AnalyticsTableColumn.builder()
