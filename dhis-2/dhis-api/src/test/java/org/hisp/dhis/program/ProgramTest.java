@@ -85,7 +85,6 @@ class ProgramTest {
     assertEquals(2, prA.getDataElements().size());
     assertTrue(prA.getDataElements().contains(deA));
     assertTrue(prA.getDataElements().contains(deB));
-    assertEquals(1, prA.getAnalyticsDataElements().size());
     assertTrue(prA.getDataElements().contains(deA));
   }
 
@@ -106,7 +105,6 @@ class ProgramTest {
     // check equal
     assertEquals(original.getAccess(), copy.getAccess());
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
-    assertEquals(original.getAnalyticsDataElements(), copy.getAnalyticsDataElements());
     assertEquals(original.getCategoryCombo(), copy.getCategoryCombo());
     assertEquals(original.getCompleteEventsExpiryDays(), copy.getCompleteEventsExpiryDays());
     assertEquals(original.getDataElements(), copy.getDataElements());
@@ -180,10 +178,7 @@ class ProgramTest {
     assertEquals("copynull", copy.getName());
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
     assertEquals(original.getDescription(), copy.getDescription());
-    assertTrue(copy.getAnalyticsDataElements().isEmpty());
     assertTrue(copy.getDataElements().isEmpty());
-    assertTrue(copy.getNonConfidentialTrackedEntityAttributes().isEmpty());
-    assertTrue(copy.getNonConfidentialTrackedEntityAttributesWithLegendSet().isEmpty());
     assertTrue(copy.getNotificationTemplates().isEmpty());
     assertTrue(copy.getOrganisationUnits().isEmpty());
     assertTrue(copy.getProgramAttributes().isEmpty());

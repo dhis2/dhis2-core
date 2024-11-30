@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +68,7 @@ import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -90,6 +92,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -223,7 +226,61 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       eventQueryParams = builder.build();
     }
 
+    validateQueryParamsForConfidentialAndSkipAnalytics(eventQueryParams);
+
     return eventQueryParams;
+  }
+
+  private void validateQueryParamsForConfidentialAndSkipAnalytics(
+      EventQueryParams eventQueryParams) {
+    if (eventQueryParams.includeConfidentialOrSkipAnalyticsItems()) {
+      return;
+    }
+    Set<TrackedEntityAttribute> confidentialAttributes =
+        Stream.concat(
+                eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
+            .map(QueryItem::getItem)
+            .filter(TrackedEntityAttribute.class::isInstance)
+            .map(TrackedEntityAttribute.class::cast)
+            .filter(TrackedEntityAttribute::isConfidentialBool)
+            .collect(Collectors.toSet());
+
+    if (!confidentialAttributes.isEmpty()) {
+      throw new IllegalQueryException(
+          new ErrorMessage(
+              ErrorCode.E7239,
+              confidentialAttributes.stream()
+                  .map(TrackedEntityAttribute::getDisplayName)
+                  .collect(Collectors.joining(", "))));
+    }
+
+    Set<DataElement> skipAnalyticsDataElements =
+        Stream.concat(
+                eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
+            .filter(item -> item.getItem() instanceof DataElement)
+            .filter(this::isSkipAnalytics)
+            .map(item -> (DataElement) item.getItem())
+            .collect(Collectors.toSet());
+
+    if (!skipAnalyticsDataElements.isEmpty()) {
+      throw new IllegalQueryException(
+          new ErrorMessage(
+              ErrorCode.E7240,
+              skipAnalyticsDataElements.stream()
+                  .map(DataElement::getDisplayName)
+                  .collect(Collectors.joining(", "))));
+    }
+  }
+
+  private boolean isSkipAnalytics(QueryItem item) {
+    return Optional.of(item)
+        .map(QueryItem::getProgramStage)
+        .map(ProgramStage::getProgramStageDataElements)
+        .orElse(Set.of())
+        .stream()
+        .map(ProgramStageDataElement::getDataElement)
+        .map(BaseIdentifiableObject::getUid)
+        .anyMatch(uid -> uid.equals(item.getItem().getUid()));
   }
 
   private boolean hasPeriodDimension(EventQueryParams eventQueryParams) {

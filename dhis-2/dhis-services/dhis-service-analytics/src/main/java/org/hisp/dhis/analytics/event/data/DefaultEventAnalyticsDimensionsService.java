@@ -135,9 +135,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                                 .filter(pi -> aclService.canRead(currentUserDetails, pi))
                                 .collect(Collectors.toSet())),
                         filterByValueType(QUERY, ofDataElements(programStage)),
-                        filterByValueType(
-                            QUERY,
-                            ofItemsWithProgram(p, getTeasIfRegistrationAndNotConfidential(p))),
+                        filterByValueType(QUERY, ofItemsWithProgram(p, getTeasIfRegistration(p))),
                         ofItemsWithProgram(p, getCategories(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
         .orElse(List.of());
@@ -187,17 +185,10 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of());
   }
 
-  private List<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(Program program) {
+  static List<TrackedEntityAttribute> getTeasIfRegistration(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
-        .orElse(List.of())
-        .stream()
-        .filter(this::isNotConfidential)
-        .collect(Collectors.toList());
-  }
-
-  private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
-    return !trackedEntityAttribute.isConfidentialBool();
+        .orElse(List.of());
   }
 }

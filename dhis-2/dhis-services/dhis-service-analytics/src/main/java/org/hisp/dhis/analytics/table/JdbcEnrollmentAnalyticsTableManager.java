@@ -201,7 +201,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
+    for (TrackedEntityAttribute attribute : program.getTrackedEntityAttributes()) {
       DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
       String dataClause =
           attribute.isNumericType()

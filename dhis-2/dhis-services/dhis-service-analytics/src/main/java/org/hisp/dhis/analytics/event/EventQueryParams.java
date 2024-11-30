@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 
 import com.google.common.base.MoreObjects;
@@ -996,6 +997,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean isRowContext() {
     return rowContext;
+  }
+
+  public boolean includeConfidentialOrSkipAnalyticsItems() {
+    return endpointAction == AGGREGATE;
   }
 
   // -------------------------------------------------------------------------
