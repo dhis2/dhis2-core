@@ -238,7 +238,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
       TrackedEntityType trackedEntityType, Map<String, List<Program>> programsByTetUid) {
 
     if (programsByTetUid.containsKey(trackedEntityType.getUid())) {
-
       return getAllTrackedEntityAttributesByPrograms(
           trackedEntityType, programsByTetUid.get(trackedEntityType.getUid()));
     }

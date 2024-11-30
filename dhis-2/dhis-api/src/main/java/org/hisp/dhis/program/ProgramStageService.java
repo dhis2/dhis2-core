@@ -34,8 +34,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
  * @author Abyot Asalefew
  */
 public interface ProgramStageService {
-  String ID = ProgramStageService.class.getName();
-
   // -------------------------------------------------------------------------
   // ProgramStage
   // -------------------------------------------------------------------------

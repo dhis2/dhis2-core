@@ -122,7 +122,12 @@ public class MessageConversationController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetMessageConversationObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        "Adds a _fuzzy_ search filter for the query term in subject, message text or sender name")
     String queryString;
+
+    @OpenApi.Description(
+        "The operator used when using the `queryString` filter (default is `token`)")
     String queryOperator;
   }
 

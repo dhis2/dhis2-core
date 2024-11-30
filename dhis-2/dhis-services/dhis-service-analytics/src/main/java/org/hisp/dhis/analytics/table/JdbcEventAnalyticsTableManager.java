@@ -340,7 +340,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
             inner join ${programstage} ps on ev.programstageid=ps.programstageid \
             inner join ${program} pr on en.programid=pr.programid and en.deleted = false \
-            inner join ${categoryoptioncombo} ao on ev.attributeoptioncomboid=ao.categoryoptioncomboid \
             left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
@@ -414,7 +413,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       }
     }
     if (sqlBuilder.supportsDeclarativePartitioning()) {
-      // Add the year column required for declarative partitioning
       columns.add(getPartitionColumn());
     }
 
@@ -500,6 +498,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
+    if (withLegendSet) {
+      return getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause);
+    }
+
     if (dataElement.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnForOrgUnitDataElement(dataElement, dataFilterClause));
     }
@@ -513,9 +515,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause)
-        : columns;
+    return columns;
   }
 
   /**
@@ -655,7 +655,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .selectExpression(sql)
                   .build();
             })
-        .collect(toList());
+        .toList();
   }
 
   /**
@@ -827,6 +827,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     "fromDate",
                     toMediumDate(params.getFromDate())))
             : EMPTY;
+
     String sql =
         replaceQualify(
             """

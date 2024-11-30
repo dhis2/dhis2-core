@@ -33,9 +33,6 @@ import org.hisp.dhis.user.UserDetails;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public interface ProgramTempOwnerStore {
-
-  String ID = ProgramTempOwnerStore.class.getName();
-
   /**
    * Adds program temp owner record
    *
