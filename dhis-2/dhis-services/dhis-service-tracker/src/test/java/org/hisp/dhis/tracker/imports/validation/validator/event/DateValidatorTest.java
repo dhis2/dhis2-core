@@ -237,6 +237,21 @@ class DateValidatorTest extends TestBase {
   }
 
   @Test
+  void shouldPassValidationForEventWhenDateBelongsPastEventPeriodButWithinExpiryDays() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration(7));
+    Event event = new Event();
+    event.setEvent(UID.generate());
+    event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
+    event.setOccurredAt(sevenDaysAgo());
+    event.setStatus(EventStatus.ACTIVE);
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
   void shouldPassValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration(5));

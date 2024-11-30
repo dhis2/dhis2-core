@@ -31,12 +31,6 @@ package org.hisp.dhis.program;
  * @author Chau Thu Tran
  */
 public interface ProgramStageSectionService {
-  String ID = ProgramStageSection.class.getName();
-
-  // -------------------------------------------------------------------------
-  // ProgramStageSection
-  // -------------------------------------------------------------------------
-
   /**
    * Adds an {@link ProgramStageSection}
    *
