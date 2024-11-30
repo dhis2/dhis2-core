@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -91,6 +91,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -629,14 +631,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
+    String columnName = String.format("%s.value", quote(attribute.getUid()));
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
-    String dataExpression = getDataFilterClause(attribute);
-    String sql = getSelectSubquery(attribute, selectExpression, dataExpression);
+    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), columnName);
+    String dataFilterClause = getDataFilterClause(attribute);
+    String sql = getSelectForInsert(attribute, selectExpression);
+    //String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataExpression));
+      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
     }
 
     columns.add(
@@ -761,6 +765,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             getClosingParentheses(selectExpression),
             "uid",
             quote(dataElement.getUid())));
+  }
+  
+  private String getSelectForInsert(TrackedEntityAttribute attribute, String selectExpression) {
+      return String.format( "%s as %s", selectExpression, quote(attribute.getUid()));
   }
 
   /**
