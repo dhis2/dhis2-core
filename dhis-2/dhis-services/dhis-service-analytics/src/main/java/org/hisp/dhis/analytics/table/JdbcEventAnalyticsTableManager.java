@@ -709,13 +709,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private String getSelectForInsert(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
-    String sqlTemplate =
-        dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "${selectExpression}${closingParentheses} as ${uid}";
+    String template = "${selectExpression}${closingParentheses} as ${uid}";
 
     return replaceQualify(
-        sqlTemplate,
+        template,
         Map.of(
             "selectExpression",
             selectExpression,
