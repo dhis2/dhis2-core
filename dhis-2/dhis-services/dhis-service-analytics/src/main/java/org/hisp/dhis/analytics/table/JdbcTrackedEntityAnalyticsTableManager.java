@@ -351,11 +351,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
-        .append(" ")
         .append(
             replaceQualify(
                 """
-                from ${trackedentity} te \
+                \sfrom ${trackedentity} te \
                 left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
                 Map.of()));
@@ -372,25 +371,23 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         Map.of(
                             "teaUid", quote(tea.getUid()),
                             "teaId", String.valueOf(tea.getId())))));
-    sql.append(" ")
-        .append(
-            replaceQualify(
-                """
-                where te.trackedentitytypeid = ${tetId} \
-                and te.lastupdated < '${startTime}' \
-                and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
-                and exists (select 1 from ${enrollment} en \
-                    where en.trackedentityid = te.trackedentityid \
-                    and exists (select 1 from ${event} ev \
-                    where ev.enrollmentid = en.enrollmentid \
-                    and ev.status in (${statuses}) \
-                    and ev.deleted = false)) \
-                and te.created is not null \
-                and te.deleted = false""",
-                Map.of(
-                    "tetId", String.valueOf(trackedEntityType.getId()),
-                    "startTime", toLongDate(params.getStartTime()),
-                    "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
+    sql.append(
+        replaceQualify(
+            """
+            \swhere te.trackedentitytypeid = ${tetId} \
+            and te.lastupdated < '${startTime}' \
+            and exists (select 1 from ${enrollment} en \
+                where en.trackedentityid = te.trackedentityid \
+                and exists (select 1 from ${event} ev \
+                where ev.enrollmentid = en.enrollmentid \
+                and ev.status in (${statuses}) \
+                and ev.deleted = false)) \
+            and te.created is not null \
+            and te.deleted = false""",
+            Map.of(
+                "tetId", String.valueOf(trackedEntityType.getId()),
+                "startTime", toLongDate(params.getStartTime()),
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
