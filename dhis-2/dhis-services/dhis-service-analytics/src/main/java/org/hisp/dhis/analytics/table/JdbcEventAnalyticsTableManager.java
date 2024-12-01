@@ -343,22 +343,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-            and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
-            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             where ev.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and ev.status in (${exportableEventStatues}) \
             and ev.deleted = false""",
             Map.of(
-                "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
                 "startTime", toLongDate(params.getStartTime()),
