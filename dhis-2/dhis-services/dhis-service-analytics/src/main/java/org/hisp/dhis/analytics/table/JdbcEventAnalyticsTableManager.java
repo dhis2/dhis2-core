@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -91,8 +91,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -386,7 +384,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getAttributeValueJoinClause(Program program) {
     String template =
         """
-        left join ${trackedentityattributevalue} ${uid} \
+        left join ${trackedentityattributevalue} as ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
@@ -636,7 +634,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), columnName);
     String dataFilterClause = getDataFilterClause(attribute);
     String sql = getSelectForInsert(attribute, selectExpression);
-    //String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
@@ -740,12 +737,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Creates a select statement for the given select expression.
+   * Returns a select statement.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
-   * @return A SQL select expression for the data element.
+   * @return a select expression.
    */
   private String getSelectForInsert(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
@@ -766,9 +763,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "uid",
             quote(dataElement.getUid())));
   }
-  
+
+  /**
+   * Returns a select statement.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}
+   * @param selectExpression the select expression.
+   * @return a select expression.
+   */
   private String getSelectForInsert(TrackedEntityAttribute attribute, String selectExpression) {
-      return String.format( "%s as %s", selectExpression, quote(attribute.getUid()));
+    return String.format("%s as %s", selectExpression, quote(attribute.getUid()));
   }
 
   /**
