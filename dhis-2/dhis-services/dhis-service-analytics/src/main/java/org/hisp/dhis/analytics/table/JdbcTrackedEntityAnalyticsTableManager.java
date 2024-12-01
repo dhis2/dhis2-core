@@ -352,14 +352,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
     removeLastComma(sql)
         .append(
-            replaceQualify(
+            qualify(
                 """
                 \s from ${trackedentity} te \
                 left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid \
-                and (cast(${trackedEntityCreatedMonth} as date)=ougs.startdate \
-                or ougs.startdate is null)""",
-                Map.of("trackedEntityCreatedMonth", sqlBuilder.dateTrunc("month", "te.created"))));
+                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid"""));
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
@@ -378,12 +375,13 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             """
             \s where te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and exists (select 1 from ${enrollment} en \
-            where en.trackedentityid = te.trackedentityid \
-            and exists (select 1 from ${event} ev \
-            where ev.enrollmentid = en.enrollmentid \
-            and ev.status in (${statuses}) \
-            and ev.deleted = false)) \
+                where en.trackedentityid = te.trackedentityid \
+                and exists (select 1 from ${event} ev \
+                where ev.enrollmentid = en.enrollmentid \
+                and ev.status in (${statuses}) \
+                and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
             Map.of(
