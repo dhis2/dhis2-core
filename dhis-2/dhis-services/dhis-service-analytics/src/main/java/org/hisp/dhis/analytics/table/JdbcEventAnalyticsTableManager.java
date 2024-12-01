@@ -349,7 +349,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
             ${attributeJoinClause}\
@@ -357,6 +356,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and pr.programid=${programId} \
             and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and ev.status in (${exportableEventStatues}) \
@@ -736,7 +736,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Returns a select statement.
+   * <<<<<<< HEAD Returns a select statement. ======= Retyrns a select statement for the given
+   * select expression. >>>>>>> master
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
@@ -819,7 +820,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * is valid according to the value type. For other value types, returns the empty string.
    *
    * @param dataElement the {@link DataElement}.
-   * @return an filter expression.
+   * @return a data filter clause.
    */
   private String getDataFilterClause(DataElement dataElement) {
     String uid = dataElement.getUid();
@@ -840,7 +841,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * is valid according to the value type. For other value types, returns the empty string.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @return an filter expression.
+   * @return a data filter clause.
    */
   private String getDataFilterClause(TrackedEntityAttribute attribute) {
     if (attribute.isNumericType()) {
@@ -856,7 +857,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param program the {@link Program}.
    * @param firstDataYear the first year to include.
    * @param lastDataYear the last data year to include.
-   * @return a list of years for which data exist.
+   * @return a list of years for which data exists.
    */
   private List<Integer> getDataYears(
       AnalyticsTableUpdateParams params,
