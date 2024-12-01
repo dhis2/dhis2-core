@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.So
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -70,6 +71,7 @@ import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -242,7 +244,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
             .map(QueryItem::getItem)
             .filter(Objects::nonNull)
-            .filter(DefaultEventDataQueryService::isProgramAttribute)
+            .filter(dimObj -> isOfType(dimObj, PROGRAM_ATTRIBUTE))
             .map(TrackedEntityAttribute.class::cast)
             .filter(TrackedEntityAttribute::isConfidentialBool)
             .collect(Collectors.toSet());
@@ -259,7 +261,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     Set<DataElement> skipAnalyticsDataElements =
         Stream.concat(
                 eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
-            .filter(item -> item.getItem() instanceof DataElement)
+            .filter(item -> isOfType(item.getItem(), DATA_ELEMENT))
             .filter(this::isSkipAnalytics)
             .map(item -> (DataElement) item.getItem())
             .collect(Collectors.toSet());
@@ -274,8 +276,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
-  private static boolean isProgramAttribute(DimensionalItemObject dimensionalItemObject) {
-    return PROGRAM_ATTRIBUTE.equals(dimensionalItemObject.getDimensionItemType());
+  private static boolean isOfType(
+      DimensionalItemObject dimensionalItemObject, DimensionItemType type) {
+    return type.equals(dimensionalItemObject.getDimensionItemType());
   }
 
   /**
