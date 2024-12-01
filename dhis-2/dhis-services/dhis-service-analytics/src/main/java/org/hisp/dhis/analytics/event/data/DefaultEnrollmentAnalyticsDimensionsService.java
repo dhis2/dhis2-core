@@ -89,13 +89,13 @@ public class DefaultEnrollmentAnalyticsDimensionsService
       DimensionsServiceCommon.OperationType operationType, Program program) {
     return program.getProgramStages().stream()
         .map(ProgramStage::getProgramStageDataElements)
-        .map(psdes -> excludeIfSKipAnalytics(operationType, psdes))
+        .map(psdes -> excludeIfSkipAnalytics(operationType, psdes))
         .map(psdes -> filterByValueType(operationType, ofProgramStageDataElements(psdes)))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }
 
-  private Collection<ProgramStageDataElement> excludeIfSKipAnalytics(
+  private Set<ProgramStageDataElement> excludeIfSkipAnalytics(
       OperationType operationType, Set<ProgramStageDataElement> programStageDataElements) {
     if (operationType == QUERY) {
       return programStageDataElements.stream()

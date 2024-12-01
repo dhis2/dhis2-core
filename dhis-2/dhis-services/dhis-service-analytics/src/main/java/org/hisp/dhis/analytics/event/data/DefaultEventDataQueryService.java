@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.So
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
@@ -240,7 +241,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         Stream.concat(
                 eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
             .map(QueryItem::getItem)
-            .filter(TrackedEntityAttribute.class::isInstance)
+            .filter(Objects::nonNull)
+            .filter(DefaultEventDataQueryService::isProgramAttribute)
             .map(TrackedEntityAttribute.class::cast)
             .filter(TrackedEntityAttribute::isConfidentialBool)
             .collect(Collectors.toSet());
@@ -272,12 +274,25 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
+  private static boolean isProgramAttribute(DimensionalItemObject dimensionalItemObject) {
+    return PROGRAM_ATTRIBUTE.equals(dimensionalItemObject.getDimensionItemType());
+  }
+
+  /**
+   * Checks if the data element is marked as skip analytics by looking at the program stage data
+   * elements associated with the program stage. If any of the program stage data elements has the
+   * skip analytics flag set to true, the data element in it is considered to be skipAnalytics.
+   *
+   * @param item the query item
+   * @return true if the data element is marked as skip analytics, false otherwise
+   */
   private boolean isSkipAnalytics(QueryItem item) {
     return Optional.of(item)
         .map(QueryItem::getProgramStage)
         .map(ProgramStage::getProgramStageDataElements)
         .orElse(Set.of())
         .stream()
+        .filter(ProgramStageDataElement::getSkipAnalytics)
         .map(ProgramStageDataElement::getDataElement)
         .map(BaseIdentifiableObject::getUid)
         .anyMatch(uid -> uid.equals(item.getItem().getUid()));
