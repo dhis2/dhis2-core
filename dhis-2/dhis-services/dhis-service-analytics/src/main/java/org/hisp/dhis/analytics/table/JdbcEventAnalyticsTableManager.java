@@ -343,22 +343,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-            and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
-            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             where ev.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and ev.status in (${exportableEventStatues}) \
             and ev.deleted = false""",
             Map.of(
-                "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
                 "startTime", toLongDate(params.getStartTime()),
@@ -596,12 +595,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
-    String dataExpression = getDataFilterClause(attribute);
-    String sql = getSelectSubquery(attribute, selectExpression, dataExpression);
+    String dataFilterClause = getDataFilterClause(attribute);
+    String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataExpression));
+      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
     }
 
     columns.add(
@@ -701,12 +700,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Creates a select statement for the given select expression.
+   * Retyrns a select statement for the given select expression.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
-   * @return A SQL select expression for the data element.
+   * @return a select expression.
    */
   private String getSelectForInsert(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
@@ -773,7 +772,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * is valid according to the value type. For other value types, returns the empty string.
    *
    * @param dataElement the {@link DataElement}.
-   * @return an filter expression.
+   * @return a data filter clause.
    */
   private String getDataFilterClause(DataElement dataElement) {
     String uid = dataElement.getUid();
@@ -794,7 +793,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * is valid according to the value type. For other value types, returns the empty string.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @return an filter expression.
+   * @return a data filter clause.
    */
   private String getDataFilterClause(TrackedEntityAttribute attribute) {
     if (attribute.isNumericType()) {
@@ -810,7 +809,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param program the {@link Program}.
    * @param firstDataYear the first year to include.
    * @param lastDataYear the last data year to include.
-   * @return a list of years for which data exist.
+   * @return a list of years for which data exists.
    */
   private List<Integer> getDataYears(
       AnalyticsTableUpdateParams params,
