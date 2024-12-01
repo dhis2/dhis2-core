@@ -351,10 +351,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
+        .append(" ")
         .append(
             qualify(
                 """
-                \s from ${trackedentity} te \
+                from ${trackedentity} te \
                 left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid"""));
 
@@ -370,10 +371,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         Map.of(
                             "teaUid", quote(tea.getUid()),
                             "teaId", String.valueOf(tea.getId())))));
-    sql.append(
-        replaceQualify(
-            """
-            \s where te.trackedentitytypeid = ${tetId} \
+    sql.append(" ")
+        .append(
+            replaceQualify(
+                """
+            where te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and exists (select 1 from ${enrollment} en \
@@ -384,10 +386,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
-            Map.of(
-                "tetId", String.valueOf(trackedEntityType.getId()),
-                "startTime", toLongDate(params.getStartTime()),
-                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
+                Map.of(
+                    "tetId", String.valueOf(trackedEntityType.getId()),
+                    "startTime", toLongDate(params.getStartTime()),
+                    "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
