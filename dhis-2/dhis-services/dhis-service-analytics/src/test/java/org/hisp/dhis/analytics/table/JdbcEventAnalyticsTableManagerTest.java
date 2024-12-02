@@ -323,8 +323,8 @@ class JdbcEventAnalyticsTableManagerTest {
         created.getSelectExpression(),
         is(
             """
-           case when ev.createdatclient is not null \
-           then ev.createdatclient else ev.created end"""));
+            case when ev.createdatclient is not null \
+            then ev.createdatclient else ev.created end"""));
   }
 
   @Test
