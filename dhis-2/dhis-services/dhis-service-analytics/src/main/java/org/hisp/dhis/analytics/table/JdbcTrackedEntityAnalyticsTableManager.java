@@ -247,8 +247,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
   /**
    * Returns the select clause, potentially with a cast statement, based on the given value type.
-   * (this method is an adapted version of {@link
-   * JdbcEventAnalyticsTableManager#getSelectExpression(ValueType, String)})
    *
    * @param valueType the value type to represent as database column type.
    */

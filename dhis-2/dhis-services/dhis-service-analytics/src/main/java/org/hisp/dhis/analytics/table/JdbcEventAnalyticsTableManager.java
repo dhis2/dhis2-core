@@ -789,20 +789,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * For numeric and date value types, returns a data filter clause for checking whether the value
-   * is valid according to the value type. For other value types, returns the empty string.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a data filter clause.
-   */
-  private String getDataFilterClause(TrackedEntityAttribute attribute) {
-    if (attribute.isNumericType()) {
-      return getNumericClause();
-    }
-    return attribute.isDateType() ? getDateClause() : EMPTY;
-  }
-
-  /**
    * Returns a list of years for which data exist.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.

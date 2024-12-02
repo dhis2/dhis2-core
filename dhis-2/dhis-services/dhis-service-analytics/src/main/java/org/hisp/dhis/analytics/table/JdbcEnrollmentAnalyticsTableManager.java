@@ -201,10 +201,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
       DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-      String dataClause =
-          attribute.isNumericType()
-              ? getNumericClause()
-              : attribute.isDateType() ? getDateClause() : "";
+      String dataClause = getDataFilterClause(attribute);
       String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 

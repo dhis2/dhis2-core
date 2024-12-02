@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -171,6 +172,22 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
+   * For numeric and date value types, returns a data filter clause for checking whether the value
+   * is valid according to the value type. For other value types, returns the empty string.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return a data filter clause.
+   */
+  protected String getDataFilterClause(TrackedEntityAttribute attribute) {
+    if (attribute.isNumericType()) {
+      return getNumericClause();
+    } else if (attribute.isDateType()) {
+      return getDateClause();
+    }
+    return EMPTY;
+  }
+
+  /**
    * Returns a cast expression which includes a value filter for the given value type.
    *
    * @param columnExpression the column expression.
@@ -178,7 +195,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param dataType the SQL data type.
    * @return a cast and validate expression.
    */
-  String getCastExpression(String columnExpression, String filterRegex, String dataType) {
+  protected String getCastExpression(String columnExpression, String filterRegex, String dataType) {
     String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
     return String.format(
         "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
