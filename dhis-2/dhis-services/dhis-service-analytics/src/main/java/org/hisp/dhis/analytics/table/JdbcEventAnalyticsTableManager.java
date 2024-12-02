@@ -672,8 +672,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
 
     if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectSubquery(attribute, fromType, dataFilterClause);
+      String selectExpression = "ou.geometry " + fromClause;
+      String geoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
