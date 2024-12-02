@@ -659,7 +659,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Retyrns a select statement for the given select expression.
+   * Returns a select statement for the given select expression.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
@@ -684,17 +684,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             getClosingParentheses(selectExpression),
             "uid",
             quote(dataElement.getUid())));
-  }
-
-  /**
-   * Returns a select statement.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}
-   * @param selectExpression the select expression.
-   * @return a select expression.
-   */
-  private String getSelectForInsert(TrackedEntityAttribute attribute, String selectExpression) {
-    return String.format("%s as %s", selectExpression, quote(attribute.getUid()));
   }
 
   /**
