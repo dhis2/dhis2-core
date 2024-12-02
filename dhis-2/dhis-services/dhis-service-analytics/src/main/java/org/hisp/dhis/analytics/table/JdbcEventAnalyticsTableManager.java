@@ -673,17 +673,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
             : "${selectExpression}${closingParentheses} as ${uid}";
 
+    String s = getClosingParentheses(selectExpression);
     return replaceQualify(
         sqlTemplate,
         Map.of(
-            "selectExpression",
-            selectExpression,
-            "dataClause",
-            dataFilterClause,
-            "closingParentheses",
-            getClosingParentheses(selectExpression),
-            "uid",
-            quote(dataElement.getUid())));
+            "selectExpression", selectExpression,
+            "dataClause", dataFilterClause,
+            "closingParentheses", s,
+            "uid", quote(dataElement.getUid())));
   }
 
   /**
