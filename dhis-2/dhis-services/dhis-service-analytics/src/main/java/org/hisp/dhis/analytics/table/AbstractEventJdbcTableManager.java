@@ -28,13 +28,19 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -44,6 +50,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -86,6 +94,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         periodDataProvider,
         sqlBuilder);
   }
+
+  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
@@ -257,5 +267,79 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             "attributeId", String.valueOf(attribute.getId()),
             "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
+  }
+
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param withLegendSet indicates whether the attribute has a legend set.
+   * @return a list of {@link AnaylyticsTableColumn}.
+   */
+  protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
+    String dataFilterClause = getDataFilterClause(attribute);
+    String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+    Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+
+    if (attribute.getValueType().isOrganisationUnit()) {
+      columns.addAll(getColumnForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
+    }
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(attribute.getUid())
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
+
+    return columns;
+  }
+
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnForOrgUnitTrackedEntityAttribute(
+      TrackedEntityAttribute attribute, String dataFilterClause) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    String fromClause =
+        qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
+
+    if (isSpatialSupport()) {
+      String selectExpression = "ou.geometry " + fromClause;
+      String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(ouGeoSql)
+              .indexType(IndexType.GIST)
+              .build());
+    }
+
+    String selectExpression = "ou.name " + fromClause;
+    String ouNameSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
+
+    return columns;
   }
 }

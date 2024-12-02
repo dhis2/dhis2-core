@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -40,17 +37,14 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -199,35 +193,9 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-      String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
-      String dataFilterClause = getDataFilterClause(attribute);
-      String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
-      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
-
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name(attribute.getUid())
-              .dimensionType(AnalyticsDimensionType.DYNAMIC)
-              .dataType(dataType)
-              .selectExpression(sql)
-              .skipIndex(skipIndex)
-              .build());
-
-      if (attribute.getValueType().isOrganisationUnit()) {
-        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
-
-        columns.add(
-            AnalyticsTableColumn.builder()
-                .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-                .dimensionType(AnalyticsDimensionType.DYNAMIC)
-                .dataType(TEXT)
-                .selectExpression(ouNameSql)
-                .skipIndex(SKIP)
-                .build());
-      }
+      columns.addAll(getColumnForAttribute(attribute));
     }
+
     return columns;
   }
 
