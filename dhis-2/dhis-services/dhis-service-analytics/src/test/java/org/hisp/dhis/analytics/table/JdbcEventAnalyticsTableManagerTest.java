@@ -387,8 +387,8 @@ class JdbcEventAnalyticsTableManagerTest {
         then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) else null end as "deabcdefghP\"""";
     String aliasD3 =
         """
-            case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
-            when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
+        case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
+        when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
     String aliasD4 =
         """
         case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
