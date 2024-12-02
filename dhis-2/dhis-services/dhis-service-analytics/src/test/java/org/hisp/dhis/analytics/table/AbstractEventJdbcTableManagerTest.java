@@ -84,6 +84,19 @@ class AbstractEventJdbcTableManagerTest {
   }
 
   @Test
+  void testGetSelectExpressionBoolean() {
+    String expected =
+        """
+        case when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'true' then 1 when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'false' then 0 else null end""";
+
+    String actual =
+        manager.getSelectExpression(
+            ValueType.BOOLEAN, "eventdatavalues #>> '{Xl3voRRcmpo, value}'");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
   void testGetSelectExpressionDate() {
     String expected =
         """
