@@ -600,7 +600,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
     }
 
     columns.add(
@@ -610,6 +610,48 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .dataType(dataType)
             .selectExpression(sql)
             .skipIndex(skipIndex)
+            .build());
+
+    return columns;
+  }
+
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnForOrgUnitTrackedEntityAttribute(
+      TrackedEntityAttribute attribute, String dataFilterClause) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    String fromClause =
+        qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
+
+    if (isSpatialSupport()) {
+      String selectExpression = "ou.geometry " + fromClause;
+      String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(ouGeoSql)
+              .indexType(IndexType.GIST)
+              .build());
+    }
+
+    String fromTypeSql = "ou.name " + fromClause;
+    String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
             .build());
 
     return columns;
@@ -655,48 +697,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .build();
             })
         .toList();
-  }
-
-  /**
-   * Returns a list of columns based on the given attribute.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @param dataFilterClause the data filter clause.
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  private List<AnalyticsTableColumn> getColumnsForOrgUnitTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, String dataFilterClause) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
-
-    if (isSpatialSupport()) {
-      String selectExpression = "ou.geometry " + fromClause;
-      String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .dimensionType(AnalyticsDimensionType.DYNAMIC)
-              .dataType(GEOMETRY)
-              .selectExpression(ouGeoSql)
-              .indexType(IndexType.GIST)
-              .build());
-    }
-
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .dimensionType(AnalyticsDimensionType.DYNAMIC)
-            .dataType(TEXT)
-            .selectExpression(ouNameSql)
-            .skipIndex(SKIP)
-            .build());
-
-    return columns;
   }
 
   /**
