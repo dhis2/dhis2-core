@@ -316,10 +316,15 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "case when ev.lastupdatedatclient is not null then ev.lastupdatedatclient else ev.lastupdated end"));
+            """
+            case when ev.lastupdatedatclient is not null \
+            then ev.lastupdatedatclient else ev.lastupdated end"""));
     assertThat(
         created.getSelectExpression(),
-        is("case when ev.createdatclient is not null then ev.createdatclient else ev.created end"));
+        is(
+            """
+           case when ev.createdatclient is not null \
+           then ev.createdatclient else ev.created end"""));
   }
 
   @Test
@@ -389,13 +394,7 @@ class JdbcEventAnalyticsTableManagerTest {
         case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
         then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) else null end as "deabcdefghW\"""";
     String aliasD5 =
-        "(select ou.uid from \"organisationunit\" ou where ou.uid = "
-            + "eventdatavalues #>> '{"
-            + d5.getUid()
-            + ", value}' "
-            + ") as \""
-            + d5.getUid()
-            + "\"";
+        "eventdatavalues #>> '{" + d5.getUid() + ", value}' as \"" + d5.getUid() + "\"";
     String aliasD6 =
         """
         case when eventdatavalues #>> '{deabcdefghH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
@@ -509,10 +508,16 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 =
         """
         eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
+    String aliasTeaUid =
+        """
+        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=%d) as "%s\"""";
+
     String aliasTea1 =
-        "(select %s from \"organisationunit\" ou where ou.uid = (select value from "
-            + "\"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
-            + "trackedentityattributeid=%d)) as \"%s\"";
+        """
+        (select %s from "organisationunit" ou where ou.uid = \
+        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=%d)) as "%s\"""";
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -544,14 +549,14 @@ class JdbcEventAnalyticsTableManagerTest {
             TEXT,
             toSelectExpression(aliasD1, d1.getUid()),
             Skip.SKIP) // ValueType.TEXT
-        .addColumn(
-            tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
-        // Second Geometry column created from the OU column above
+        .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, tea1.getId(), tea1.getUid()))
+        // Org unit geometry column
         .addColumn(
             tea1.getUid() + "_geom",
             GEOMETRY,
             String.format(aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid()),
             IndexType.GIST)
+        // Org unit name column
         .addColumn(
             tea1.getUid() + "_name",
             TEXT,
@@ -599,16 +604,21 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
-            + "eventdatavalues #>> '{"
-            + d5.getUid()
-            + ", value}' ) as \""
-            + d5.getUid()
-            + "\"";
+    String ouUidQuery =
+        String.format(
+            """
+            eventdatavalues #>> '{%s, value}' as %s""",
+            d5.getUid(), quote(d5.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = \
+            eventdatavalues #>> '{%s, value}' ) as %s""",
+            d5.getUid(), quote(d5.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   @Test
@@ -649,15 +659,23 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
-            + "(select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
-            + "trackedentityattributeid=9999)) as \""
-            + tea.getUid()
-            + "\"";
+    String ouUidQuery =
+        String.format(
+            """
+        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid and \
+        trackedentityattributeid=9999) as %s""",
+            quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    String ouNameQuery =
+        String.format(
+            """
+        (select ou.name from "organisationunit" ou where ou.uid = \
+        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid and \
+        trackedentityattributeid=9999)) as %s""",
+            quote(tea.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   @Test
@@ -937,14 +955,23 @@ class JdbcEventAnalyticsTableManagerTest {
 
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        """
-            (select ou.%s from \"organisationunit\" ou where ou.uid = \
-            (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999)) as %s""";
+    String ouUidQuery =
+        String.format(
+            """
+            select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
+            and trackedentityattributeid=9999) as %s""",
+            quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name", quote(tea.getUid()))));
+    String ouNameQuery =
+        String.format(
+            """
+        (select ou.name from "organisationunit" ou where ou.uid = \
+        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=9999)) as %s""",
+            quote(tea.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   private String toSelectExpression(String template, String uid) {
