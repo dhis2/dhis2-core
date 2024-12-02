@@ -133,7 +133,7 @@
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
     <!-- Velocity -->
-    <velocity.version>2.4</velocity.version>
+    <velocity.version>2.4.1</velocity.version>
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
