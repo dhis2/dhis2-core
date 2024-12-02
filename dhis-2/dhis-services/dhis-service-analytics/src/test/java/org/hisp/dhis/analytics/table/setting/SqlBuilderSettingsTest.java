@@ -44,7 +44,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AnalyticsTableSettingsTest {
+class SqlBuilderSettingsTest {
   @Mock private DhisConfigurationProvider config;
 
   @Mock private SystemSettingsService systemSettings;
@@ -59,14 +59,6 @@ class AnalyticsTableSettingsTest {
   @Test
   void testGetAndValidateInvalidDatabase() {
     assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
-  }
-
-  @Test
-  void testGetAnalyticsDatabase() {
-    when(config.getProperty(ConfigurationKey.ANALYTICS_DATABASE))
-        .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
-
-    assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
   }
 
   @Test

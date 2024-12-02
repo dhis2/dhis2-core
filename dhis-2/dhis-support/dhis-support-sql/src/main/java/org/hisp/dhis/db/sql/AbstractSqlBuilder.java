@@ -187,7 +187,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       case JSONB -> dataTypeJson();
       default ->
           throw new UnsupportedOperationException(
-              String.format("Unsuported data type: %s", dataType));
+              String.format("Unsupported data type: %s", dataType));
     };
   }
 
@@ -203,7 +203,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       case LOWER -> indexFunctionLower();
       default ->
           throw new UnsupportedOperationException(
-              String.format("Unsuported index function: %s", indexFunction));
+              String.format("Unsupported index function: %s", indexFunction));
     };
   }
 
@@ -220,7 +220,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       case GIN -> indexTypeGin();
       default ->
           throw new UnsupportedOperationException(
-              String.format("Unsuported index type: %s", indexType));
+              String.format("Unsupported index type: %s", indexType));
     };
   }
 
@@ -255,7 +255,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * Indicates that the feature or syntax is not supported by throwing an {@link
    * UnsupportedOperationException}.
    *
-   * @throws UnsupportedOperationException
+   * @throws UnsupportedOperationException if the feature or syntax is not supported.
    */
   protected String notSupported() {
     throw new UnsupportedOperationException();
@@ -265,7 +265,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * Converts the given collection to a comma-separated string, using the given mapping function to
    * convert each item in the collection to a string.
    *
-   * @param <T>
+   * @param <T> the type of the collection.
    * @param collection the {@link Collection}.
    * @param mapper the string mapping {@link Function}.
    * @return a comma-separated string.
