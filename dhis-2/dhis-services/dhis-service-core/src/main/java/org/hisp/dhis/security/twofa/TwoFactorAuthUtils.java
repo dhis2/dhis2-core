@@ -68,7 +68,7 @@ public class TwoFactorAuthUtils {
    * @param qrContent content to be used for generating the QR code.
    * @param width width of the generated PNG image.
    * @param height height of the generated PNG image.
-   * @return PNG image as byte array.
+   * @return PNG image as a byte array.
    */
   public static byte[] generateQRCode(
       String qrContent, int width, int height, Consumer<ErrorCode> errorCode) {

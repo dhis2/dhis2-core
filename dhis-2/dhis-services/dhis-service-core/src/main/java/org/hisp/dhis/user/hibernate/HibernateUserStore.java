@@ -661,10 +661,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
     return getQuery(
             """
-        select distinct u from User u
-        left join fetch u.%s ous
-        where ous.uid = :uid
-        """
+            select distinct u from User u
+            left join fetch u.%s ous
+            where ous.uid = :uid
+            """
                 .formatted(orgUnitProperty.getValue()))
         .setParameter("uid", uid.getValue())
         .getResultList();

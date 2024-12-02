@@ -210,21 +210,13 @@ public class AuthenticationController {
 
   private void saveContext(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-
     SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
     context.setAuthentication(authentication);
-
-    // Get or create the session explicitly
-    HttpSession session = request.getSession(true);
-
-    // Set the security context in session
-    //    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-    // context);
 
     this.securityContextHolderStrategy.setContext(context);
     this.securityContextRepository.saveContext(context, request, response);
 
-    // Notify the session registry
+    HttpSession session = request.getSession(true);
     httpSessionEventPublisher.sessionCreated(new HttpSessionEvent(session));
   }
 

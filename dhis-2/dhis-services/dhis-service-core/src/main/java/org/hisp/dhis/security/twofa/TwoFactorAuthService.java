@@ -107,7 +107,7 @@ public class TwoFactorAuthService {
   }
 
   /**
-   * Enroll user in email based two-factor authentication.
+   * Enroll user in email-based two-factor authentication.
    *
    * @param user The user object that is being enrolled.
    */
@@ -134,7 +134,7 @@ public class TwoFactorAuthService {
    *
    * @param user The user to enable 2FA authentication.
    * @param code The TOTP code that the user generated with the authenticator app, or the email code
-   *     that was sent to the user.
+   *     sent to the user.
    */
   @Transactional
   public void enable2FA(User user, String code) {
@@ -154,15 +154,6 @@ public class TwoFactorAuthService {
   }
 
   public void setEnabled2FA(User user, UserDetails actingUser) {
-    user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
-    userService.updateUser(user, actingUser);
-  }
-
-  public void setEnabled2FA(UserDetails userDetails, UserDetails actingUser) {
-    User user = userService.getUserByUsername(userDetails.getUsername());
-    if (!user.getTwoFactorType().isEnrolling()) {
-      throw new IllegalStateException("Two factor type is not enrolling");
-    }
     user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
     userService.updateUser(user, actingUser);
   }

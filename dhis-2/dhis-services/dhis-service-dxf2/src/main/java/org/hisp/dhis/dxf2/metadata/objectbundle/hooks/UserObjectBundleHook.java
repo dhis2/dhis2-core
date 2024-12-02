@@ -71,6 +71,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
+
   private final TwoFactorAuthService validateTwoFactorUpdate;
 
   private final FileResourceService fileResourceService;

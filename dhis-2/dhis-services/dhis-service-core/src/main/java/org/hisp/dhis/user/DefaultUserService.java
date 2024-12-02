@@ -1456,12 +1456,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public boolean verifyEmail(String token) {
-
-    List<User> all = userStore.getAll();
-    for (User user : all) {
-      log.error("User: " + user.getUsername() + " " + user.getEmailVerificationToken());
-    }
-
     User user = getUserByEmailVerificationToken(token);
     if (user == null) {
       return false;

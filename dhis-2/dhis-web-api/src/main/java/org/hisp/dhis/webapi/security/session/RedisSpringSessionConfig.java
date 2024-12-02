@@ -76,8 +76,8 @@ public class RedisSpringSessionConfig {
   public CookieHttpSessionIdResolver httpSessionIdResolver() {
     CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
     DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
-    cookieSerializer.setCookieName("JSESSIONID"); // Use the traditional name
-    cookieSerializer.setSameSite("Lax"); // Match your security requirements
+    cookieSerializer.setCookieName("JSESSIONID");
+    cookieSerializer.setSameSite("Lax");
     cookieSerializer.setUseSecureCookie(false);
     cookieSerializer.setUseHttpOnlyCookie(true);
     resolver.setCookieSerializer(cookieSerializer);
@@ -85,7 +85,7 @@ public class RedisSpringSessionConfig {
   }
 
   @Bean
-  public SpringSessionBackedSessionRegistry<?> sessionRegistry(
+  public SpringSessionBackedSessionRegistry sessionRegistry(
       RedisIndexedSessionRepository sessionRepository) {
     return new SpringSessionBackedSessionRegistry<>(sessionRepository);
   }

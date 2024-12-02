@@ -224,7 +224,7 @@ public class TwoFactorController {
   }
 
   /**
-   * Enable 2FA authentication for the current user, if the user is the enrollment mode and the code
+   * Enable 2FA authentication for the current user if the user is the enrollment mode and the code
    * is valid.
    *
    * @param body The body of the request.
