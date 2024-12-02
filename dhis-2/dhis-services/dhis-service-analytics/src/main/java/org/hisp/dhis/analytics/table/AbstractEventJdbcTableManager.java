@@ -38,6 +38,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -64,6 +65,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Markus Bekken
  */
+@Slf4j
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
   public AbstractEventJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -120,40 +122,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * Returns a select expression for a data element value, handling casting to the appropriate data
-   * type based on the given value type.
-   *
-   * @param valueType the {@link ValueType}.
-   * @param columnName the column name.
-   * @return a select expression.
-   */
-  protected String getSelectExpression(ValueType valueType, String columnName) {
-    return getSelectExpression(valueType, columnName, false);
-  }
-
-  /**
-   * Returns a select expression for a tracked entity attribute, handling casting to the appropriate
-   * data type based on the given value type.
-   *
-   * @param valueType the {@link ValueType}.
-   * @param columnName the column name.
-   * @return a select expression.
-   */
-  protected String getSelectExpressionForAttribute(ValueType valueType, String columnName) {
-    return getSelectExpression(valueType, columnName, true);
-  }
-
-  /**
    * Returns a select expression, potentially with a cast statement, based on the given value type.
    * Handles data element and tracked entity attribute select expressions.
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
-   * @param isTea whether the selection is in the context of a tracked entity attribute. When true,
-   *     organisation unit selections will include an additional subquery wrapper.
    * @return a select expression appropriate for the given value type and context.
    */
-  private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
+  protected String getSelectExpression(ValueType valueType, String columnExpression) {
     if (valueType.isDecimal()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
@@ -169,12 +145,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           """
           ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
           columnExpression);
-    } else if (valueType.isOrganisationUnit()) {
-      String ouClause =
-          isTea
-              ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}"
-              : "ou.uid from ${organisationunit} ou where ou.uid = ${columnName}";
-      return replaceQualify(ouClause, Map.of("columnName", columnExpression));
     } else {
       return columnExpression;
     }
@@ -242,6 +212,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     sql += fromClause;
 
+    log.info("Populate table SQL: '{}'", sql);
+
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
@@ -255,7 +227,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
+    String selectExpression = getSelectExpression(attribute.getValueType(), "value");
     String dataFilterClause = getDataFilterClause(attribute);
     String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
