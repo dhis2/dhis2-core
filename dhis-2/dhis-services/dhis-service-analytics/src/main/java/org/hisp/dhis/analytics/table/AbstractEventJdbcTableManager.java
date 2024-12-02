@@ -38,7 +38,6 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -65,7 +64,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Markus Bekken
  */
-@Slf4j
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
   public AbstractEventJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -211,8 +209,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql += fromClause;
-
-    log.info("Populate table SQL: '{}'", sql);
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
