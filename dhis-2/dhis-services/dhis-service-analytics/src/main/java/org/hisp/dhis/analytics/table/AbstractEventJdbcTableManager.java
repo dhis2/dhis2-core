@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -172,9 +171,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isOrganisationUnit()) {
       String ouClause =
           isTea
-              ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}"
-              : "ou.uid from ${organisationunit} ou where ou.uid = ${columnName}";
-      return replaceQualify(ouClause, Map.of("columnName", columnExpression));
+              ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnExpression}"
+              : "ou.uid from ${organisationunit} ou where ou.uid = ${columnExpression}";
+      return replaceQualify(ouClause, Map.of("columnExpression", columnExpression));
     } else {
       return columnExpression;
     }
@@ -316,6 +315,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             .build());
 
     return columns;
+  }
+  
+  private String getSelectForInsert(TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
+    return
+        String.format(
+        """
+        %s.%s as %s, """);
   }
 
   /**
