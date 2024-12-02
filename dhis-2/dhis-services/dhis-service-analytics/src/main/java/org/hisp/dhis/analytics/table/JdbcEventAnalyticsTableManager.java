@@ -668,18 +668,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private String getSelectForInsert(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
+    String parentheses = getClosingParentheses(selectExpression);
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
             ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
             : "${selectExpression}${closingParentheses} as ${uid}";
 
-    String s = getClosingParentheses(selectExpression);
     return replaceQualify(
         sqlTemplate,
         Map.of(
             "selectExpression", selectExpression,
             "dataClause", dataFilterClause,
-            "closingParentheses", s,
+            "closingParentheses", parentheses,
             "uid", quote(dataElement.getUid())));
   }
 
