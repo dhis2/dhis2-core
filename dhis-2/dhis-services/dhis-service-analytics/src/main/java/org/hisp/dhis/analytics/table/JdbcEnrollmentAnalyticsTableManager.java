@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -150,7 +149,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     String fromClause =
         replaceQualify(
             """
-            \s from ${enrollment} en \
+            \sfrom ${enrollment} en \
             inner join ${program} pr on en.programid=pr.programid \
             left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
@@ -201,28 +200,11 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
       DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-      String dataClause = getDataFilterClause(attribute);
       String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
+      String dataFilterClause = getDataFilterClause(attribute);
+      String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
-      String sql =
-          replaceQualify(
-              """
-              (select ${selectExpression} from ${trackedentityattributevalue} \
-              where trackedentityid=en.trackedentityid \
-              and trackedentityattributeid=${attributeId}\
-              ${dataClause})${closingParentheses} as ${attributeUid}""",
-              Map.of(
-                  "selectExpression",
-                  selectExpression,
-                  "attributeId",
-                  String.valueOf(attribute.getId()),
-                  "dataClause",
-                  dataClause,
-                  "closingParentheses",
-                  getClosingParentheses(selectExpression),
-                  "attributeUid",
-                  quote(attribute.getUid())));
       columns.add(
           AnalyticsTableColumn.builder()
               .name(attribute.getUid())
@@ -234,7 +216,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
       if (attribute.getValueType().isOrganisationUnit()) {
         String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataClause);
+        String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
 
         columns.add(
             AnalyticsTableColumn.builder()
