@@ -30,11 +30,12 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getServletPath;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldFilterRequestHandler {
 
   public static String getRequestURL(HttpServletRequest request) {
