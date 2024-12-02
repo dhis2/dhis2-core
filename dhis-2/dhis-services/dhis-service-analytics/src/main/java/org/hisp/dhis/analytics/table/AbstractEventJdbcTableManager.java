@@ -246,34 +246,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * The select subquery statement.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @param selectExpression the select expression.
-   * @param dataFilterClause the data filter clause.
-   * @return a select statement.
-   */
-  protected String getSelectSubquery(
-      TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
-    return replaceQualify(
-        """
-        (select ${selectExpression} from ${trackedentityattributevalue} \
-        where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId}${dataFilterClause})\
-        ${closingParentheses} as ${attributeUid}""",
-        Map.of(
-            "selectExpression", selectExpression,
-            "dataFilterClause", dataFilterClause,
-            "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(selectExpression),
-            "attributeUid", quote(attribute.getUid())));
-  }
-
-  /**
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param withLegendSet indicates whether the attribute has a legend set.
    * @return a list of {@link AnaylyticsTableColumn}.
    */
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
@@ -341,5 +316,29 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             .build());
 
     return columns;
+  }
+
+  /**
+   * The select subquery statement.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param selectExpression the select expression.
+   * @param dataFilterClause the data filter clause.
+   * @return a select statement.
+   */
+  private String getSelectSubquery(
+      TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
+    return replaceQualify(
+        """
+        (select ${selectExpression} from ${trackedentityattributevalue} \
+        where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=${attributeId}${dataFilterClause})\
+        ${closingParentheses} as ${attributeUid}""",
+        Map.of(
+            "selectExpression", selectExpression,
+            "dataFilterClause", dataFilterClause,
+            "attributeId", String.valueOf(attribute.getId()),
+            "closingParentheses", getClosingParentheses(selectExpression),
+            "attributeUid", quote(attribute.getUid())));
   }
 }
