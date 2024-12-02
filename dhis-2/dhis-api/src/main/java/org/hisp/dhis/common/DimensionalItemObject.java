@@ -87,4 +87,8 @@ public interface DimensionalItemObject extends NameableObject {
   default int getPeriodOffset() {
     return (getQueryMods() != null) ? getQueryMods().getPeriodOffset() : 0;
   }
+
+  default boolean isOfType(DimensionItemType type) {
+    return type == getDimensionItemType();
+  }
 }

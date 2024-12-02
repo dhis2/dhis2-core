@@ -71,7 +71,6 @@ import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -244,7 +243,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
             .map(QueryItem::getItem)
             .filter(Objects::nonNull)
-            .filter(dimObj -> isOfType(dimObj, PROGRAM_ATTRIBUTE))
+            .filter(dimObj -> dimObj.isOfType(PROGRAM_ATTRIBUTE))
             .map(TrackedEntityAttribute.class::cast)
             .filter(TrackedEntityAttribute::isConfidentialBool)
             .collect(Collectors.toSet());
@@ -254,14 +253,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           new ErrorMessage(
               ErrorCode.E7239,
               confidentialAttributes.stream()
-                  .map(TrackedEntityAttribute::getDisplayName)
+                  .map(TrackedEntityAttribute::getUid)
                   .collect(Collectors.joining(", "))));
     }
 
     Set<DataElement> skipAnalyticsDataElements =
         Stream.concat(
                 eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
-            .filter(item -> isOfType(item.getItem(), DATA_ELEMENT))
+            .filter(item -> item.getItem().isOfType(DATA_ELEMENT))
             .filter(this::isSkipAnalytics)
             .map(item -> (DataElement) item.getItem())
             .collect(Collectors.toSet());
@@ -271,14 +270,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           new ErrorMessage(
               ErrorCode.E7240,
               skipAnalyticsDataElements.stream()
-                  .map(DataElement::getDisplayName)
+                  .map(DataElement::getUid)
                   .collect(Collectors.joining(", "))));
     }
-  }
-
-  private static boolean isOfType(
-      DimensionalItemObject dimensionalItemObject, DimensionItemType type) {
-    return type.equals(dimensionalItemObject.getDimensionItemType());
   }
 
   /**

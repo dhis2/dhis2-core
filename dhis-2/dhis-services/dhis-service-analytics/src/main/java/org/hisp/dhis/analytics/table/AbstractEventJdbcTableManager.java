@@ -249,7 +249,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a list of {@link AnaylyticsTableColumn}.
+   * @return a list of {@link AnalyticsTableColumn}.
    */
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
