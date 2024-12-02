@@ -41,16 +41,13 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
-import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -252,13 +249,13 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     String defaultCatOptionComboCatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
     response =
         POST(
-            "/categoryOptionCombos/",
-            """
+                "/categoryOptionCombos/",
+                """
     { "name": "Not default",
     "categoryOptions" : [{"id" : "%s"}],
     "categoryCombo" : {"id" : "%s"} }
     """
-                .formatted(defaultCatOptionComboOptions, defaultCatOptionComboCatComboId))
+                    .formatted(defaultCatOptionComboOptions, defaultCatOptionComboCatComboId))
             .content(HttpStatus.CONFLICT);
 
     JsonErrorReport error =

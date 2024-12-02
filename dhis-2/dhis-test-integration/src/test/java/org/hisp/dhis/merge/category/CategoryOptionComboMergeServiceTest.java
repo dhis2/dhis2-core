@@ -1006,9 +1006,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocSource1, List.of(p1));
-    DataValueAuditQueryParams source2DvaQueryParams = getQueryParams(cocSource2, List.of(p1));
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget, List.of(p1));
+    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocSource1);
+    DataValueAuditQueryParams source2DvaQueryParams = getQueryParams(cocSource2);
+    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
 
     List<DataValueAudit> source1Audits =
         dataValueAuditStore.getDataValueAudits(source1DvaQueryParams);
@@ -1046,15 +1046,14 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // params
     MergeParams mergeParams = getMergeParams();
-    mergeParams.setDeleteSources(false);
 
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocSource1, List.of(p1));
-    DataValueAuditQueryParams source2DvaQueryParams = getQueryParams(cocSource2, List.of(p1));
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget, List.of(p1));
+    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocSource1);
+    DataValueAuditQueryParams source2DvaQueryParams = getQueryParams(cocSource2);
+    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
 
     List<DataValueAudit> source1Audits =
         dataValueAuditStore.getDataValueAudits(source1DvaQueryParams);
@@ -1106,7 +1105,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return dva;
   }
 
-  private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc, List<Period> periods) {
-    return new DataValueAuditQueryParams().setCategoryOptionCombo(coc).setPeriods(periods);
+  private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {
+    return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
   }
 }
