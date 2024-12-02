@@ -232,9 +232,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String cast(String column, DataType dataType) {
     return switch (dataType) {
-      case NUMERIC -> "toDecimal64(" + column + ", 8)"; // 8 decimal places precision
-      case BOOLEAN -> "toUInt8(" + column + ") != 0"; // ClickHouse uses UInt8 for boolean
-      case TEXT -> "toString(" + column + ")";
+      case NUMERIC -> String.format("toDecimal64(%s, 8)", column); // 8 decimal places precision
+      case BOOLEAN -> String.format("toUInt8(%s) != 0", column);   // ClickHouse uses UInt8 for boolean
+      case TEXT -> String.format("toString(%s)", column);
     };
   }
 

@@ -235,9 +235,9 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String cast(String column, DataType dataType) {
     return switch (dataType) {
-      case NUMERIC -> "CAST(" + column + " AS DECIMAL)";
-      case BOOLEAN -> "CAST(" + column + " AS DECIMAL) != 0";
-      case TEXT -> "CAST(" + column + " AS CHAR)";
+      case NUMERIC -> String.format("CAST(%s AS DECIMAL)", column);
+      case BOOLEAN -> String.format("CAST(%s AS DECIMAL) != 0", column);
+      case TEXT -> String.format("CAST(%s AS CHAR)", column);
     };
   }
 
