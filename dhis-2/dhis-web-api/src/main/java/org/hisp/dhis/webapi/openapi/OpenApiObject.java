@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.OpenApi;
@@ -292,6 +293,7 @@ public interface OpenApiObject extends JsonObject {
       return parameters().stream()
           .map(ParameterObject::resolve)
           .map(ParameterObject::name)
+          .filter(Objects::nonNull)
           .collect(toUnmodifiableSet());
     }
 

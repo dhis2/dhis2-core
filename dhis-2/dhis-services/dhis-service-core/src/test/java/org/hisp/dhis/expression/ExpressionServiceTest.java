@@ -283,6 +283,7 @@ class ExpressionServiceTest extends TestBase {
 
     coc = rnd.nextObject(CategoryOptionCombo.class);
     coc.setName(DEFAULT_CATEGORY_COMBO_NAME);
+    assertTrue(coc.isDefault(), "coc must be the default category option combo");
 
     optionCombos.add(coc);
 
@@ -873,21 +874,12 @@ class ExpressionServiceTest extends TestBase {
 
     when(dimensionService.getDataDimensionalItemObject(getId(deA))).thenReturn(deA);
     description = target.getExpressionDescription(expressionM, INDICATOR_EXPRESSION);
-    assertThat(
-        description,
-        is(deA.getDisplayName() + "-" + deB.getDisplayName() + " " + coc.getDisplayName()));
+    assertThat(description, is(deA.getDisplayName() + "-" + deB.getDisplayName()));
 
     when(dimensionService.getDataDimensionalItemObject(getId(reportingRate)))
         .thenReturn(reportingRate);
     description = target.getExpressionDescription(expressionR, INDICATOR_EXPRESSION);
-    assertThat(
-        description,
-        is(
-            deB.getDisplayName()
-                + " "
-                + coc.getDisplayName()
-                + " + "
-                + reportingRate.getDisplayName()));
+    assertThat(description, is(deB.getDisplayName() + " + " + reportingRate.getDisplayName()));
   }
 
   @Test

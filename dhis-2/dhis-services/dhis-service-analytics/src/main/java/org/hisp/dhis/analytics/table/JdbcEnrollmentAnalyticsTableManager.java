@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -41,17 +38,14 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -60,7 +54,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -150,23 +143,21 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     String fromClause =
         replaceQualify(
             """
-            \s from ${enrollment} en \
+            \sfrom ${enrollment} en \
             inner join ${program} pr on en.programid=pr.programid \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
-            and te.deleted = false \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
-            and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
-            left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
-            where pr.programid=${programId}  \
+            where pr.programid=${programId} \
             and en.organisationunitid is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and en.lastupdated <= '${startTime}' \
             and en.occurreddate is not null \
             and en.deleted = false\s""",
             Map.of(
-                "enrollmentDateMonth", sqlBuilder.dateTrunc("month", "en.enrollmentdate"),
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
 
@@ -199,59 +190,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-      String dataClause =
-          attribute.isNumericType()
-              ? getNumericClause()
-              : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
-      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
-
-      String sql =
-          replaceQualify(
-              """
-              (select ${select} from ${trackedentityattributevalue} \
-              where trackedentityid=en.trackedentityid \
-              and trackedentityattributeid=${attributeId}\
-              ${dataClause})${closingParentheses} as ${attributeUid}""",
-              Map.of(
-                  "select",
-                  select,
-                  "attributeId",
-                  String.valueOf(attribute.getId()),
-                  "dataClause",
-                  dataClause,
-                  "closingParentheses",
-                  getClosingParentheses(select),
-                  "attributeUid",
-                  quote(attribute.getUid())));
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name(attribute.getUid())
-              .dimensionType(AnalyticsDimensionType.DYNAMIC)
-              .dataType(dataType)
-              .selectExpression(sql)
-              .skipIndex(skipIndex)
-              .build());
-
-      if (attribute.getValueType().isOrganisationUnit()) {
-        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataClause);
-
-        columns.add(
-            AnalyticsTableColumn.builder()
-                .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-                .dimensionType(AnalyticsDimensionType.DYNAMIC)
-                .dataType(TEXT)
-                .selectExpression(ouNameSql)
-                .skipIndex(SKIP)
-                .build());
-      }
-    }
-    return columns;
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(this::getColumnForAttribute)
+        .flatMap(Collection::stream)
+        .toList();
   }
 
   /**

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.init;
+package org.hisp.dhis.db.init;
 
 import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
 
@@ -33,11 +33,11 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,7 +64,7 @@ import org.springframework.stereotype.Component;
 public class AnalyticsDatabaseInit {
   private final DhisConfigurationProvider config;
 
-  private final AnalyticsTableSettings settings;
+  private final SqlBuilderSettings settings;
 
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;

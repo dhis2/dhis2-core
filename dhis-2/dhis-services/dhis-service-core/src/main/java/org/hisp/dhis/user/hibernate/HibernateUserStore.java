@@ -304,6 +304,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.selfRegistered = true ";
     }
 
+    // TODO(JB) shoundn't UserInvitationStatus.NONE match "u.invitation = false" and null mean no
+    // filter at all?
     if (UserInvitationStatus.ALL.equals(params.getInvitationStatus())) {
       hql += hlp.whereAnd() + " u.invitation = true ";
     }

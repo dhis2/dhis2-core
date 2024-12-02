@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.db.model;
 
-import org.hisp.dhis.analytics.table.init.AnalyticsDatabaseInit;
-import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilderProvider;
-
 /**
  * Enumeration of database platforms.
  *
