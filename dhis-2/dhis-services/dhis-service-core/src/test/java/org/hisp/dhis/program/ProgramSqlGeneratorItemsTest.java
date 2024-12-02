@@ -241,6 +241,7 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(sqlBuilder)
             .build();
 
     visitor.setExpressionLiteral(exprLiteral);
