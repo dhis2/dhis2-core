@@ -299,8 +299,7 @@ public class Assertions {
             .collect(Collectors.toList());
 
     assertTrue(
-        ruleEngineSideEffects.stream()
-            .noneMatch(effect -> effect instanceof TrackerSendMessageSideEffect),
+        ruleEngineSideEffects.stream().noneMatch(TrackerSendMessageSideEffect.class::isInstance),
         "Unexpected notification side effect (TrackerSendMessageSideEffect) found.");
   }
 
@@ -323,8 +322,7 @@ public class Assertions {
             .collect(Collectors.toList()); // Collect into a single list
 
     assertTrue(
-        ruleEngineSideEffects.stream()
-            .anyMatch(effect -> effect instanceof TrackerSendMessageSideEffect),
+        ruleEngineSideEffects.stream().anyMatch(TrackerSendMessageSideEffect.class::isInstance),
         "Expected notification side effect (TrackerSendMessageSideEffect) but none were found.");
   }
 

@@ -519,16 +519,6 @@ class ProgramRuleTest extends TrackerTest {
     return programRuleAction;
   }
 
-  private ProgramRuleAction createSendMessageProgramRuleAction(
-      ProgramRule programRule, String notification, String data) {
-    ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
-    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
-    programRuleAction.setData(data);
-    programRuleAction.setTemplateUid(notification);
-
-    return programRuleAction;
-  }
-
   private Constant constant() {
     Constant constant = new Constant();
     constant.setValue(7.8);
