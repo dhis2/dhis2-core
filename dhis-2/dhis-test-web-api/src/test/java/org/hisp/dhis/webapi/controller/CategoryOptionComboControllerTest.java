@@ -27,19 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -114,5 +121,58 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     assertFalse(
         catOptionComboNames.contains("default"), "default catOptionCombo is not in payload");
+  }
+
+  @Test
+  @DisplayName("Duplicate default category option combos should not be allowed")
+  void catOptionCombosDuplicatedDefaultTest() {
+    JsonObject response =
+        GET("/categoryOptionCombos?filter=name:eq:default&fields=id,categoryCombo[id],categoryOptions[id]")
+            .content();
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    String defaultCatOptionComboOptions =
+        catOptionCombos.get(0).getCategoryOptions().get(0).getId();
+    String defaultCatOptionComboCatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
+    response =
+        POST(
+                "/categoryOptionCombos/",
+                """
+        { "name": "Not default",
+        "categoryOptions" : [{"id" : "%s"}],
+        "categoryCombo" : {"id" : "%s"} }
+        """
+                    .formatted(defaultCatOptionComboOptions, defaultCatOptionComboCatComboId))
+            .content(HttpStatus.CONFLICT);
+
+    JsonErrorReport error =
+        response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
+    assertNotNull(error);
+    assertEquals(
+        "Category option combo Not default cannot be associated with the default category combo",
+        error.getMessage());
+  }
+
+  @Test
+  @DisplayName("Can delete a duplicate default COC")
+  void canAllowDeleteDuplicatedDefaultCOC() {
+    // Revert to the service layer as the API should not allow us to create a duplicate default COC
+    CategoryOptionCombo defaultCOC = categoryService.getDefaultCategoryOptionCombo();
+    CategoryCombo categoryCombo =
+        categoryService.getCategoryCombo(defaultCOC.getCategoryCombo().getUid());
+    CategoryOptionCombo existingCategoryOptionCombo =
+        categoryService.getCategoryOptionCombo(defaultCOC.getUid());
+    CategoryOptionCombo categoryOptionComboDuplicate = new CategoryOptionCombo();
+    categoryOptionComboDuplicate.setAutoFields();
+    categoryOptionComboDuplicate.setCategoryCombo(categoryCombo);
+    Set<CategoryOption> newCategoryOptions =
+        new HashSet<>(existingCategoryOptionCombo.getCategoryOptions());
+    categoryOptionComboDuplicate.setCategoryOptions(newCategoryOptions);
+    categoryOptionComboDuplicate.setName("dupDefault");
+    categoryService.addCategoryOptionCombo(categoryOptionComboDuplicate);
+
+    // Can delete the duplicated default COC
+    assertStatus(
+        HttpStatus.OK, DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
   }
 }
