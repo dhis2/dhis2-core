@@ -240,23 +240,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * The select subquery statement.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param columnExpression the column expression.
+   * @param selectExpression the column expression.
    * @param dataFilterClause the data filter clause.
    * @return a select statement.
    */
   protected String getSelectSubquery(
-      TrackedEntityAttribute attribute, String columnExpression, String dataFilterClause) {
+      TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
     return replaceQualify(
         """
-        (select ${columnExpression} from ${trackedentityattributevalue} \
+        (select ${selectExpression} from ${trackedentityattributevalue} \
         where trackedentityid=en.trackedentityid \
         and trackedentityattributeid=${attributeId}${dataFilterClause})\
         ${closingParentheses} as ${attributeUid}""",
         Map.of(
-            "columnExpression", columnExpression,
+            "selectExpression", selectExpression,
             "dataFilterClause", dataFilterClause,
             "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(columnExpression),
+            "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
   }
 }
