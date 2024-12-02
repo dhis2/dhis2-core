@@ -289,7 +289,7 @@ public interface SqlBuilder {
   String jsonExtractNested(String json, String... expression);
 
   /**
-   * Generates a database-specific SQL casting expression for the given column or expression.
+   * Generates a SQL casting expression for the given column or expression.
    *
    * @param column The column or expression to be cast. Must not be null.
    * @param dataType The target data type for the cast operation. Must not be null.

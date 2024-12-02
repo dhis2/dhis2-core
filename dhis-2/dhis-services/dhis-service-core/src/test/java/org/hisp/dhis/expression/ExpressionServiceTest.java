@@ -108,6 +108,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -127,7 +128,7 @@ class ExpressionServiceTest extends TestBase {
 
   @Mock private CacheProvider cacheProvider;
 
-  private PostgreSqlBuilder postgreSqlBuilder;
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   private DefaultExpressionService target;
 
@@ -252,7 +253,7 @@ class ExpressionServiceTest extends TestBase {
             idObjectManager,
             i18nManager,
             cacheProvider,
-            postgreSqlBuilder);
+            sqlBuilder);
 
     categoryOptionA = new CategoryOption("Under 5");
     categoryOptionB = new CategoryOption("Over 5");
