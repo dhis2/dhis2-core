@@ -37,14 +37,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerSendMessageSideEffect;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.format.DateTimeFormat;
@@ -272,6 +278,54 @@ public class Assertions {
                 report.getValidationReport().getWarnings(),
                 "Expected import without warnings, instead got:\n"
                     + report.getValidationReport().getWarnings()));
+  }
+
+  public static void assertHasNoNotificationSideEffects(ImportReport report) {
+    assertNotNull(report, "The ImportReport should not be null.");
+
+    TrackerTypeReport typeReport =
+        report.getPersistenceReport().getTypeReportMap().get(TrackerType.EVENT);
+
+    assertNotNull(typeReport, "The TrackerTypeReport for EVENT should not be null.");
+    assertFalse(
+        typeReport.getSideEffectDataBundles().isEmpty(),
+        "Expected side effect data bundles but none were found.");
+
+    TrackerSideEffectDataBundle sideEffectDataBundle = typeReport.getSideEffectDataBundles().get(0);
+
+    List<TrackerRuleEngineSideEffect> ruleEngineSideEffects =
+        sideEffectDataBundle.getEventRuleEffects().values().stream()
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+    assertTrue(
+        ruleEngineSideEffects.stream()
+            .noneMatch(effect -> effect instanceof TrackerSendMessageSideEffect),
+        "Unexpected notification side effect (TrackerSendMessageSideEffect) found.");
+  }
+
+  public static void assertHasNotificationSideEffects(ImportReport report) {
+    assertNotNull(report, "The ImportReport should not be null.");
+
+    TrackerTypeReport typeReport =
+        report.getPersistenceReport().getTypeReportMap().get(TrackerType.EVENT);
+
+    assertNotNull(typeReport, "The TrackerTypeReport for EVENT should not be null.");
+    assertFalse(
+        typeReport.getSideEffectDataBundles().isEmpty(),
+        "Expected side effect data bundles but none were found.");
+
+    TrackerSideEffectDataBundle sideEffectDataBundle = typeReport.getSideEffectDataBundles().get(0);
+
+    List<TrackerRuleEngineSideEffect> ruleEngineSideEffects =
+        sideEffectDataBundle.getEventRuleEffects().values().stream()
+            .flatMap(List::stream) // Flatten the list of lists into a single stream
+            .collect(Collectors.toList()); // Collect into a single list
+
+    assertTrue(
+        ruleEngineSideEffects.stream()
+            .anyMatch(effect -> effect instanceof TrackerSendMessageSideEffect),
+        "Expected notification side effect (TrackerSendMessageSideEffect) but none were found.");
   }
 
   public static void assertNoErrors(ImportReport report) {
