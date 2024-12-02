@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.security.core.session.SessionInformation;
 
 /**
  * @author Chau Thu Tran
@@ -539,6 +540,25 @@ public interface UserService {
   @Nonnull
   List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser);
 
+  /**
+   * List all user's sessions
+   *
+   * @param userUID
+   * @return
+   */
+  List<SessionInformation> listSessions(String userUID);
+
+  /**
+   * List all user's sessions
+   *
+   * @param principal
+   * @return
+   */
+  List<SessionInformation> listSessions(UserDetails principal);
+
+  /**
+   * Invalidate all sessions for all users WARNING: This does not work when using Redis sessions.
+   */
   void invalidateAllSessions();
 
   /**

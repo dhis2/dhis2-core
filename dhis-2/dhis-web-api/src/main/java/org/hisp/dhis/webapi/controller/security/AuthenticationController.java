@@ -121,21 +121,23 @@ public class AuthenticationController {
 
   @PostConstruct
   public void init() {
-    if (sessionRegistry != null) {
-
-      int maxSessions =
-          Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
-      ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
-          new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
-      concurrentStrategy.setMaximumSessions(maxSessions);
-
-      sessionStrategy =
-          new CompositeSessionAuthenticationStrategy(
-              List.of(
-                  concurrentStrategy,
-                  new SessionFixationProtectionStrategy(),
-                  new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+    if (sessionRegistry == null) {
+      throw new IllegalStateException("SessionRegistry is null");
     }
+
+    int maxSessions =
+        Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
+
+    ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
+        new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
+    concurrentStrategy.setMaximumSessions(maxSessions);
+
+    sessionStrategy =
+        new CompositeSessionAuthenticationStrategy(
+            List.of(
+                concurrentStrategy,
+                new SessionFixationProtectionStrategy(),
+                new RegisterSessionAuthenticationStrategy(sessionRegistry)));
   }
 
   @PostMapping("/login")

@@ -958,6 +958,20 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public List<SessionInformation> listSessions(String userUID) {
+    User user = userStore.getByUid(userUID);
+    if (user == null) {
+      return List.of();
+    }
+    return sessionRegistry.getAllSessions(createUserDetails(user), true);
+  }
+
+  @Override
+  public List<SessionInformation> listSessions(UserDetails principal) {
+    return sessionRegistry.getAllSessions(principal, true);
+  }
+
+  @Override
   public void invalidateAllSessions() {
     for (Object allPrincipal : sessionRegistry.getAllPrincipals()) {
       for (SessionInformation allSession : sessionRegistry.getAllSessions(allPrincipal, true)) {
@@ -967,9 +981,13 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public void invalidateUserSessions(String principal) {
-    List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
-    allSessions.forEach(SessionInformation::expireNow);
+  public void invalidateUserSessions(String username) {
+    User user = getUserByUsername(username);
+    UserDetails userDetails = createUserDetails(user);
+    if (userDetails != null) {
+      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
+      allSessions.forEach(SessionInformation::expireNow);
+    }
   }
 
   @Override

@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -74,6 +75,7 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -87,6 +89,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -570,6 +573,14 @@ public class AccountController {
     if (!userService.verifyEmail(token)) {
       throw new ConflictException("Verification token is invalid");
     }
+  }
+
+  @GetMapping("/listSessions")
+  public @ResponseBody Map<String, String> listSessions(@CurrentUser UserDetails userDetails) {
+    List<SessionInformation> sessionInformation = userService.listSessions(userDetails);
+    return sessionInformation.stream()
+        .collect(
+            Collectors.toMap(SessionInformation::getSessionId, s -> String.valueOf(s.isExpired())));
   }
 
   // ---------------------------------------------------------------------

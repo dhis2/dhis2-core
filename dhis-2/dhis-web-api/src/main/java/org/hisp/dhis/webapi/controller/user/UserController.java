@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_REPLICATE_USER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -50,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -110,6 +112,7 @@ import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -503,6 +506,23 @@ public class UserController
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void unexpireUser(@PathVariable("uid") String uid) throws Exception {
     setExpires(uid, null);
+  }
+
+  @PostMapping("/{uid}/invalidateSessions")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  @RequiresAuthority(anyOf = ALL)
+  public void invalidateSessions(@PathVariable("uid") String uid) {
+    User user = userService.getUser(uid);
+    userService.invalidateUserSessions(user.getUsername());
+  }
+
+  @PostMapping("/{uid}/listSessions")
+  @ResponseBody
+  public Map<String, String> listSessions(@PathVariable("uid") String uid) {
+    List<SessionInformation> sessionInformation = userService.listSessions(uid);
+    return sessionInformation.stream()
+        .collect(
+            Collectors.toMap(SessionInformation::getSessionId, s -> String.valueOf(s.isExpired())));
   }
 
   /**
