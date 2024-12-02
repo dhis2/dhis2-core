@@ -240,7 +240,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * The select subquery statement.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param selectExpression the column expression.
+   * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
    * @return a select statement.
    */
