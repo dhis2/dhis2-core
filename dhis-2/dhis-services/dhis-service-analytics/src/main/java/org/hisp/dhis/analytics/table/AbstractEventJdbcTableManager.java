@@ -261,7 +261,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitAttribute(attribute, dataFilterClause));
     }
 
     columns.add(
@@ -283,7 +283,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param dataFilterClause the data filter clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getColumnForOrgUnitTrackedEntityAttribute(
+  private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
       TrackedEntityAttribute attribute, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
