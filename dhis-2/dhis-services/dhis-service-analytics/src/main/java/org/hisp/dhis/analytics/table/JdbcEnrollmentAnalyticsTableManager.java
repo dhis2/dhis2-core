@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -190,13 +190,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      columns.addAll(getColumnForAttribute(attribute));
-    }
-
-    return columns;
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(this::getColumnForAttribute)
+        .flatMap(Collection::stream)
+        .toList();
   }
 
   /**
