@@ -43,9 +43,12 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -58,16 +61,20 @@ import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.note.NoteService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Note;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.locationtech.jts.io.ParseException;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -104,6 +111,10 @@ public class TrackerImportController {
   private final JobConfigurationService jobConfigurationService;
 
   private final ObjectMapper jsonMapper;
+
+  private final NoteService noteService;
+
+  private final NoteMapper noteMapper = Mappers.getMapper(NoteMapper.class);
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -253,5 +264,23 @@ public class TrackerImportController {
     return Optional.ofNullable(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid))
         .map(report -> trackerImportService.buildImportReport((ImportReport) report, reportMode))
         .orElseThrow(() -> new NotFoundException("Summary for job " + uid + " does not exist"));
+  }
+
+  @PostMapping(value = "/enrollments/{uid}/note", consumes = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Note> addNoteToEnrollment(@RequestBody Note note, @PathVariable UID uid)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    noteService.addNoteForEnrollment(noteMapper.from(note), uid);
+
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(note);
+  }
+
+  @PostMapping(value = "/events/{uid}/note", consumes = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Note> addNoteToEvent(@RequestBody Note note, @PathVariable UID uid)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    noteService.addNoteForEvent(noteMapper.from(note), uid);
+
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(note);
   }
 }

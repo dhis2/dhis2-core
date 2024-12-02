@@ -59,6 +59,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
+import org.hisp.dhis.tracker.imports.note.NoteService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -100,6 +101,8 @@ class TrackerImportControllerTest {
 
   @Mock private UserService userService;
 
+  @Mock private NoteService noteService;
+
   private RenderService renderService;
 
   @BeforeEach
@@ -120,7 +123,8 @@ class TrackerImportControllerTest {
             notifier,
             jobSchedulerService,
             jobConfigurationService,
-            new ObjectMapper());
+            new ObjectMapper(),
+            noteService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
