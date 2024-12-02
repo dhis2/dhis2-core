@@ -84,6 +84,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nManager;
@@ -146,6 +147,10 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
   private final Cache<String> analyticsSqlCache;
 
+  private final SqlBuilder sqlBuilder;
+
+  public static ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS;
+
   public DefaultProgramIndicatorService(
       ProgramIndicatorStore programIndicatorStore,
       @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore")
@@ -155,7 +160,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       ExpressionService expressionService,
       DimensionService dimensionService,
       I18nManager i18nManager,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      SqlBuilder sqlBuilder) {
     checkNotNull(programIndicatorStore);
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
@@ -164,6 +170,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
+    checkNotNull(sqlBuilder);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;
@@ -173,57 +180,63 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.dimensionService = dimensionService;
     this.i18nManager = i18nManager;
     this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
+    this.sqlBuilder = sqlBuilder;
+
+    PROGRAM_INDICATOR_ITEMS = buildExpressionMap();
   }
 
-  public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS =
-      ImmutableMap.<Integer, ExpressionItem>builder()
+  private ImmutableMap<Integer, ExpressionItem> buildExpressionMap() {
+    return ImmutableMap.<Integer, ExpressionItem>builder()
 
-          // Common functions
+        // Common functions
 
-          .putAll(COMMON_EXPRESSION_ITEMS)
+        .putAll(COMMON_EXPRESSION_ITEMS)
 
-          // Program functions
+        // Program functions
 
-          .put(D2_CONDITION, new D2Condition())
-          .put(D2_COUNT, new D2Count())
-          .put(D2_COUNT_IF_CONDITION, new D2CountIfCondition())
-          .put(D2_COUNT_IF_VALUE, new D2CountIfValue())
-          .put(D2_DAYS_BETWEEN, new D2DaysBetween())
-          .put(D2_HAS_VALUE, new D2HasValue())
-          .put(D2_MAX_VALUE, new D2MaxValue())
-          .put(D2_MINUTES_BETWEEN, new D2MinutesBetween())
-          .put(D2_MIN_VALUE, new D2MinValue())
-          .put(D2_MONTHS_BETWEEN, new D2MonthsBetween())
-          .put(D2_OIZP, new D2Oizp())
-          .put(D2_RELATIONSHIP_COUNT, new D2RelationshipCount())
-          .put(D2_WEEKS_BETWEEN, new D2WeeksBetween())
-          .put(D2_YEARS_BETWEEN, new D2YearsBetween())
-          .put(D2_ZING, new D2Zing())
-          .put(D2_ZPVC, new D2Zpvc())
+        .put(
+            D2_CONDITION,
+            new D2Condition().withSqlBuilder(sqlBuilder)) // TODO shall we use constructor instead
+        .put(D2_COUNT, new D2Count().withSqlBuilder(sqlBuilder))
+        .put(D2_COUNT_IF_CONDITION, new D2CountIfCondition().withSqlBuilder(sqlBuilder))
+        .put(D2_COUNT_IF_VALUE, new D2CountIfValue().withSqlBuilder(sqlBuilder))
+        .put(D2_DAYS_BETWEEN, new D2DaysBetween().withSqlBuilder(sqlBuilder))
+        .put(D2_HAS_VALUE, new D2HasValue().withSqlBuilder(sqlBuilder))
+        .put(D2_MAX_VALUE, new D2MaxValue().withSqlBuilder(sqlBuilder))
+        .put(D2_MINUTES_BETWEEN, new D2MinutesBetween().withSqlBuilder(sqlBuilder))
+        .put(D2_MIN_VALUE, new D2MinValue().withSqlBuilder(sqlBuilder))
+        .put(D2_MONTHS_BETWEEN, new D2MonthsBetween().withSqlBuilder(sqlBuilder))
+        .put(D2_OIZP, new D2Oizp().withSqlBuilder(sqlBuilder))
+        .put(D2_RELATIONSHIP_COUNT, new D2RelationshipCount().withSqlBuilder(sqlBuilder))
+        .put(D2_WEEKS_BETWEEN, new D2WeeksBetween().withSqlBuilder(sqlBuilder))
+        .put(D2_YEARS_BETWEEN, new D2YearsBetween().withSqlBuilder(sqlBuilder))
+        .put(D2_ZING, new D2Zing().withSqlBuilder(sqlBuilder))
+        .put(D2_ZPVC, new D2Zpvc().withSqlBuilder(sqlBuilder))
 
-          // Program functions for custom aggregation
+        // Program functions for custom aggregation
 
-          .put(AVG, new VectorAvg())
-          .put(COUNT, new VectorCount())
-          .put(MAX, new VectorMax())
-          .put(MIN, new VectorMin())
-          .put(STDDEV, new VectorStddevSamp())
-          .put(SUM, new VectorSum())
-          .put(VARIANCE, new VectorVariance())
+        .put(AVG, new VectorAvg())
+        .put(COUNT, new VectorCount())
+        .put(MAX, new VectorMax())
+        .put(MIN, new VectorMin())
+        .put(STDDEV, new VectorStddevSamp())
+        .put(SUM, new VectorSum())
+        .put(VARIANCE, new VectorVariance())
 
-          // Data items
+        // Data items
 
-          .put(HASH_BRACE, new ProgramItemStageElement())
-          .put(A_BRACE, new ProgramItemAttribute())
-          .put(PS_EVENTDATE, new ProgramItemPsEventdate())
+        .put(HASH_BRACE, new ProgramItemStageElement().withSqlBuilder(sqlBuilder))
+        .put(A_BRACE, new ProgramItemAttribute().withSqlBuilder(sqlBuilder))
+        .put(PS_EVENTDATE, new ProgramItemPsEventdate().withSqlBuilder(sqlBuilder))
 
-          // Program variables
+        // Program variables
 
-          .put(V_BRACE, new ProgramVariableItem())
+        .put(V_BRACE, new ProgramVariableItem().withSqlBuilder(sqlBuilder))
 
-          // . functions
-          .put(STAGE_OFFSET, new RepeatableProgramStageOffset())
-          .build();
+        // . functions
+        .put(STAGE_OFFSET, new RepeatableProgramStageOffset())
+        .build();
+  }
 
   // -------------------------------------------------------------------------
   // ProgramIndicator CRUD
@@ -522,6 +535,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .itemMethod(itemMethod)
         .params(params)
         .progParams(progParams)
+        .sqlBuilder(sqlBuilder)
         .build();
   }
 

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
@@ -229,6 +230,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String jsonExtractNested(String column, String... expression) {
     String path = "$." + String.join(".", expression);
     return String.format("json_unquote(json_extract(%s, '%s'))", column, path);
+  }
+
+  @Override
+  public String cast(String column, DataType dataType) {
+    return switch (dataType) {
+      case NUMERIC -> "CAST(" + column + " AS DECIMAL)";
+      case BOOLEAN -> "CAST(" + column + " AS DECIMAL) != 0";
+      case TEXT -> "CAST(" + column + " AS CHAR)";
+    };
   }
 
   // Statements

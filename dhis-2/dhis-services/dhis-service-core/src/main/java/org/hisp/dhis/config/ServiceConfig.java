@@ -29,7 +29,18 @@ package org.hisp.dhis.config;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.db.SqlBuilderProvider;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.expression.DefaultExpressionService;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.message.MessageSender;
@@ -44,6 +55,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @Configuration("coreServiceConfig")
 public class ServiceConfig {
+
+  @Bean
+  public SqlBuilder sqlBuilder(SqlBuilderProvider provider) {
+    return provider.getSqlBuilder();
+  }
 
   @Bean("taskScheduler")
   public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
@@ -70,5 +86,26 @@ public class ServiceConfig {
   @Bean("org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager")
   public ResourceBundleManager resourceBundleManager() {
     return new DefaultResourceBundleManager();
+  }
+
+  @Bean("org.hisp.dhis.expression.ExpressionService")
+  public ExpressionService expressionService(
+      @Qualifier("org.hisp.dhis.expression.ExpressionStore")
+          HibernateGenericStore<Expression> expressionStore,
+      ConstantService constantService,
+      DimensionService dimensionService,
+      IdentifiableObjectManager idObjectManager,
+      I18nManager i18nManager,
+      CacheProvider cacheProvider,
+      SqlBuilder sqlBuilder) {
+
+    return new DefaultExpressionService(
+        expressionStore,
+        constantService,
+        dimensionService,
+        idObjectManager,
+        i18nManager,
+        cacheProvider,
+        sqlBuilder);
   }
 }
