@@ -25,48 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.setting;
+package org.hisp.dhis.db.setting;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
-import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
-import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
-import com.google.common.collect.Lists;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
-import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for exposing analytics table settings. Provides settings living in
- * configuration files (dhis.conf) and in system settings.
- *
- * @author maikel arabori
+ * Component responsible for exposing analytics table settings related to the SqlBuilder. The source
+ * of the settings are configuration files (dhis.conf) and system settings.
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsTableSettings {
+public class SqlBuilderSettings {
   private final DhisConfigurationProvider config;
-
-  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -83,51 +68,32 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns the years' offset defined for the period generation configured by {@link
-   * SystemSettings#getAnalyticsPeriodYearsOffset()}
+   * Returns the analytics database JDBC catalog name.
    *
-   * @return the offset defined in system settings, or null if nothing is set.
+   * @return the analytics database JDBC catalog name.
    */
-  public Integer getMaxPeriodYearsOffset() {
-    int yearsOffset = settingsProvider.getCurrentSettings().getAnalyticsPeriodYearsOffset();
-    return yearsOffset < 0 ? null : yearsOffset;
+  public String getAnalyticsDatabaseCatalog() {
+    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
   }
 
   /**
-   * Returns the {@link PeriodSource} based on the max years offset.
+   * Returns the configured analytics {@link Database}. The default is {@link Database#POSTGRESQL}.
    *
-   * @return the {@link PeriodSource}.
+   * @return the analytics {@link Database}.
    */
-  public PeriodSource getPeriodSource() {
-    return getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE;
+  public Database getAnalyticsDatabase() {
+    String value = config.getProperty(ANALYTICS_DATABASE);
+    String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
+    return getAndValidateDatabase(valueUpperCase);
   }
 
   /**
-   * Indicates whether an analytics database instance is configured.
+   * Returns the analytics database JDBC driver filename.
    *
-   * @return true if an analytics database instance is configured.
+   * @return the analytics database JDBC driver filename.
    */
-  public boolean isAnalyticsDatabaseConfigured() {
-    return config.isAnalyticsDatabaseConfigured();
-  }
-
-  /**
-   * Returns a set of dimension identifiers for which to skip building indexes for columns on
-   * analytics tables.
-   *
-   * @return a set of dimension identifiers.
-   */
-  public Set<String> getSkipIndexDimensions() {
-    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
-  }
-
-  /**
-   * Returns a set of dimension identifiers for which to skip creating columns for analytics tables.
-   *
-   * @return a set of dimension identifiers.
-   */
-  public Set<String> getSkipColumnDimensions() {
-    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
+  public String getAnalyticsDatabaseDriverFilename() {
+    return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
   }
 
   /**
@@ -151,32 +117,5 @@ public class AnalyticsTableSettings {
     }
 
     return database;
-  }
-
-  /**
-   * Splits the given value on comma, and returns the values as a set.
-   *
-   * @param value the value.
-   * @return a set of values.
-   */
-  Set<String> toSet(String value) {
-    if (isBlank(value)) {
-      return Set.of();
-    }
-
-    return Lists.newArrayList(value.split(",")).stream()
-        .filter(Objects::nonNull)
-        .map(String::trim)
-        .collect(Collectors.toSet());
-  }
-
-  /**
-   * Converts the boolean enabled flag to a {@link Skip} value.
-   *
-   * @param enabled the boolean enabled flag.
-   * @return a {@link Skip} value.
-   */
-  Skip toSkip(boolean enabled) {
-    return enabled ? Skip.INCLUDE : Skip.SKIP;
   }
 }
