@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +50,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -133,23 +131,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
       addReports.accept(
           new ErrorReport(User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp")
               .setErrorProperty("whatsApp"));
-    }
-
-    validateTwoFactorType(user, addReports);
-  }
-
-  private static void validateTwoFactorType(User user, Consumer<ErrorReport> addReports) {
-    try {
-      Field field = User.class.getDeclaredField("twoFactorType");
-      field.setAccessible(true);
-      TwoFactorType twoFactorType = (TwoFactorType) field.get(user);
-      if (twoFactorType != null) {
-        addReports.accept(
-            new ErrorReport(User.class, ErrorCode.E3048, twoFactorType.name(), "twoFactorType")
-                .setErrorProperty("twoFactorType"));
-      }
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException("Error accessing field 'twoFactorType' in User class", e);
     }
   }
 
