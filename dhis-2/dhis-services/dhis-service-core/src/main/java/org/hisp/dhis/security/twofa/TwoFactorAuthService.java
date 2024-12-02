@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.twofa;
 
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.user.UserService.DEFAULT_APPLICATION_TITLE;
 
 import java.util.HashMap;
@@ -292,49 +291,6 @@ public class TwoFactorAuthService {
 
     if (EmailResponse.SENT != status.getResponseObject()) {
       throw new IllegalStateException("Sending 2FA code with email failed");
-    }
-  }
-
-  /**
-   * If the user is different from the user to modify, and the user has the proper acl permissions
-   * to modify the user, then the user can modify the user.
-   *
-   * @param before The state before the update.
-   * @param after The state after the update.
-   * @param userToModify The user object that is being updated.
-   */
-  @Transactional
-  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
-      throws ForbiddenException {
-
-    if (before == after) {
-      return;
-    }
-
-    if (!before) {
-      throw new ForbiddenException("You can not enable 2FA with this API endpoint, only disable.");
-    }
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    // Current user cannot update their own 2FA settings, must use
-    // /2fa/enable or disable API, even if they are admin.
-    if (currentUserDetails.getUid().equals(userToModify.getUid())) {
-      throw new ForbiddenException(ErrorCode.E3030.getMessage());
-    }
-
-    // If the current user has access to manage this user, they can disable 2FA.
-    if (!aclService.canUpdate(currentUserDetails, userToModify)) {
-      throw new ForbiddenException(
-          String.format(
-              "User `%s` is not allowed to update object `%s`.",
-              currentUserDetails.getUsername(), userToModify));
-    }
-
-    User currentUser = userService.getUserByUsername(currentUserDetails.getUsername());
-    if (!userService.canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUserDetails.canModifyUser(userToModify)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
   }
 }

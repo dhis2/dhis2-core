@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -44,14 +45,13 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.security.twofa.TwoFactorAuthService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -71,8 +71,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
-
-  private final TwoFactorAuthService validateTwoFactorUpdate;
 
   private final FileResourceService fileResourceService;
 
@@ -136,6 +134,23 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
           new ErrorReport(User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp")
               .setErrorProperty("whatsApp"));
     }
+
+    validateTwoFactorType(user, addReports);
+  }
+
+  private static void validateTwoFactorType(User user, Consumer<ErrorReport> addReports) {
+    try {
+      Field field = User.class.getDeclaredField("twoFactorType");
+      field.setAccessible(true);
+      TwoFactorType twoFactorType = (TwoFactorType) field.get(user);
+      if (twoFactorType != null) {
+        addReports.accept(
+            new ErrorReport(User.class, ErrorCode.E3048, twoFactorType.name(), "twoFactorType")
+                .setErrorProperty("twoFactorType"));
+      }
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("Error accessing field 'twoFactorType' in User class", e);
+    }
   }
 
   @Override
@@ -186,12 +201,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
         fileResource.setAssigned(true);
         fileResourceService.updateFileResource(fileResource);
       }
-    }
-    try {
-      validateTwoFactorUpdate.validateTwoFactorUpdate(
-          persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(), persisted);
-    } catch (ForbiddenException e) {
-      throw new RuntimeException(e);
     }
   }
 

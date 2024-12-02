@@ -215,6 +215,7 @@ public enum ErrorCode {
   E3045("Email based 2FA is not enabled in the system settings"),
   E3046("TOTP 2FA is not enabled in the system settings"),
   E3047("User is not in TOTP 2FA enrollment mode"),
+  E3048("User's two factor can only be set via dedicated endpoints"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
