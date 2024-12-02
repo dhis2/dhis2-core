@@ -97,8 +97,6 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.EventAnalyticsTableManager")
 public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManager {
 
-  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
-
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
   protected final List<AnalyticsTableColumn> fixedColumns;
@@ -343,22 +341,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-            and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
-            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             where ev.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and ev.status in (${exportableEventStatues}) \
             and ev.deleted = false""",
             Map.of(
-                "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
                 "startTime", toLongDate(params.getStartTime()),
@@ -585,37 +582,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Returns a list of columns based on the given attribute.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  private List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
-    String dataExpression = getDataFilterClause(attribute);
-    String sql = getSelectSubquery(attribute, selectExpression, dataExpression);
-    Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
-
-    if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataExpression));
-    }
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name(attribute.getUid())
-            .dimensionType(AnalyticsDimensionType.DYNAMIC)
-            .dataType(dataType)
-            .selectExpression(sql)
-            .skipIndex(skipIndex)
-            .build());
-
-    return columns;
-  }
-
-  /**
    * Returns a list of columns based on the given attribute with legend set.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
@@ -658,54 +624,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Returns a list of columns based on the given attribute.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @param dataFilterClause the data filter clause.
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  private List<AnalyticsTableColumn> getColumnsForOrgUnitTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, String dataFilterClause) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
-
-    if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectSubquery(attribute, fromType, dataFilterClause);
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .dimensionType(AnalyticsDimensionType.DYNAMIC)
-              .dataType(GEOMETRY)
-              .selectExpression(geoSql)
-              .indexType(IndexType.GIST)
-              .build());
-    }
-
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectSubquery(attribute, fromTypeSql, dataFilterClause);
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .dimensionType(AnalyticsDimensionType.DYNAMIC)
-            .dataType(TEXT)
-            .selectExpression(ouNameSql)
-            .skipIndex(SKIP)
-            .build());
-
-    return columns;
-  }
-
-  /**
-   * Creates a select statement for the given select expression.
+   * Retyrns a select statement for the given select expression.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
-   * @return A SQL select expression for the data element.
+   * @return a select expression.
    */
   private String getSelectForInsert(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
@@ -772,7 +696,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * is valid according to the value type. For other value types, returns the empty string.
    *
    * @param dataElement the {@link DataElement}.
-   * @return an filter expression.
+   * @return a data filter clause.
    */
   private String getDataFilterClause(DataElement dataElement) {
     String uid = dataElement.getUid();
@@ -789,27 +713,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * For numeric and date value types, returns a data filter clause for checking whether the value
-   * is valid according to the value type. For other value types, returns the empty string.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return an filter expression.
-   */
-  private String getDataFilterClause(TrackedEntityAttribute attribute) {
-    if (attribute.isNumericType()) {
-      return getNumericClause();
-    }
-    return attribute.isDateType() ? getDateClause() : EMPTY;
-  }
-
-  /**
    * Returns a list of years for which data exist.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param program the {@link Program}.
    * @param firstDataYear the first year to include.
    * @param lastDataYear the last data year to include.
-   * @return a list of years for which data exist.
+   * @return a list of years for which data exists.
    */
   private List<Integer> getDataYears(
       AnalyticsTableUpdateParams params,

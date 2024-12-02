@@ -25,48 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.db;
 
 import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.setting.SqlBuilderSettings;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
-/** Provider of {@link AnalyticsSqlBuilder} implementations. */
+/** Provider of {@link SqlBuilder} implementations. */
 @Service
-public class AnalyticsSqlBuilderProvider {
-  private final AnalyticsSqlBuilder analyticsSqlBuilder;
+public class SqlBuilderProvider {
+  private final SqlBuilder sqlBuilder;
 
-  public AnalyticsSqlBuilderProvider(AnalyticsTableSettings config) {
+  public SqlBuilderProvider(SqlBuilderSettings config) {
     Objects.requireNonNull(config);
-    this.analyticsSqlBuilder = getSqlBuilder(config);
+    this.sqlBuilder = getSqlBuilder(config);
   }
 
   /**
-   * Returns a {@link AnalyticsSqlBuilder} implementation based on the system configuration.
+   * Returns a {@link SqlBuilder} implementation based on the system configuration.
    *
-   * @return a {@link AnalyticsSqlBuilder}.
+   * @return a {@link SqlBuilder}.
    */
-  public AnalyticsSqlBuilder getAnalyticsSqlBuilder() {
-    return analyticsSqlBuilder;
+  public SqlBuilder getSqlBuilder() {
+    return sqlBuilder;
   }
 
   /**
-   * Returns the appropriate {@link AnalyticsSqlBuilder} implementation based on the system
-   * configuration.
+   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
    *
    * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link AnalyticsSqlBuilder}.
+   * @return a {@link SqlBuilder}.
    */
-  private AnalyticsSqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
+  private SqlBuilder getSqlBuilder(SqlBuilderSettings config) {
     Database database = config.getAnalyticsDatabase();
+    String catalog = config.getAnalyticsDatabaseCatalog();
+    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+
     Objects.requireNonNull(database);
 
     return switch (database) {
-      case DORIS -> new DorisAnalyticsSqlBuilder();
-      case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
-      default -> new PostgresAnalyticsSqlBuilder();
+      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
+      case CLICKHOUSE -> new ClickHouseSqlBuilder();
+      default -> new PostgreSqlBuilder();
     };
   }
 }

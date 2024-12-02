@@ -243,8 +243,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
   /**
    * Returns the select clause, potentially with a cast statement, based on the given value type.
-   * (this method is an adapted version of {@link
-   * JdbcEventAnalyticsTableManager#getSelectExpression(ValueType, String)})
    *
    * @param valueType the value type to represent as database column type.
    */
@@ -350,12 +348,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
         .append(
             replaceQualify(
                 """
-                \s from ${trackedentity} te \
+                \sfrom ${trackedentity} te \
                 left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid \
-                and (cast(${trackedEntityCreatedMonth} as date)=ougs.startdate \
-                or ougs.startdate is null)""",
-                Map.of("trackedEntityCreatedMonth", sqlBuilder.dateTrunc("month", "te.created"))));
+                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
+                Map.of()));
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
@@ -372,14 +368,14 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     sql.append(
         replaceQualify(
             """
-            \s where te.trackedentitytypeid = ${tetId} \
+            \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
             and exists (select 1 from ${enrollment} en \
-            where en.trackedentityid = te.trackedentityid \
-            and exists (select 1 from ${event} ev \
-            where ev.enrollmentid = en.enrollmentid \
-            and ev.status in (${statuses}) \
-            and ev.deleted = false)) \
+                where en.trackedentityid = te.trackedentityid \
+                and exists (select 1 from ${event} ev \
+                where ev.enrollmentid = en.enrollmentid \
+                and ev.status in (${statuses}) \
+                and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
             Map.of(
