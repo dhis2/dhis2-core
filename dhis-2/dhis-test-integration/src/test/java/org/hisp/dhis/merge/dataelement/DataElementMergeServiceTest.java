@@ -2555,9 +2555,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   // --------------------------------------
   @Test
   @DisplayName(
-      "TrackedEntityChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
-  void trackedEntityChangeLogMergeTest()
-      throws ConflictException, ForbiddenException, NotFoundException {
+      "EventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
+  void eventChangeLogMergeTest() throws ConflictException, ForbiddenException, NotFoundException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
     identifiableObjectManager.save(trackedEntity);

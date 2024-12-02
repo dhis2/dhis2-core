@@ -61,9 +61,6 @@ public interface EventChangeLogService {
   void addPropertyChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
 
-  @Deprecated(since = "2.42")
-  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
-
   void deleteTrackedEntityDataValueChangeLog(Event event);
 
   void deleteEventChangeLog(Event event);

@@ -110,13 +110,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public int countTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params) {
-    return trackedEntityDataValueChangeLogStore.countTrackedEntityDataValueChangeLogs(params);
-  }
-
-  @Override
   @Transactional
   public void deleteTrackedEntityDataValueChangeLog(Event event) {
     trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(event);

@@ -378,7 +378,7 @@ public class AuditController {
    */
   @Deprecated(since = "2.41")
   @GetMapping("trackedEntityInstance")
-  public RootNode getTrackedEntityInstanceChangeLog(
+  public RootNode getTrackedEntityInstanceAudit(
       @Deprecated(since = "2.41")
           @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")
@@ -415,7 +415,7 @@ public class AuditController {
             .setStartDate(startDate)
             .setEndDate(endDate);
 
-    List<TrackedEntityAudit> teChangeLogs;
+    List<TrackedEntityAudit> teAudits;
     Pager pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
@@ -423,9 +423,9 @@ public class AuditController {
 
       pager = new Pager(page, total, pageSize);
 
-      teChangeLogs = trackedEntityAuditService.getTrackedEntityAudits(params);
+      teAudits = trackedEntityAuditService.getTrackedEntityAudits(params);
     } else {
-      teChangeLogs = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
+      teAudits = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -434,11 +434,11 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode changeLogs =
+    CollectionNode audits =
         rootNode.addChild(new CollectionNode("trackedEntityInstanceAudits", true));
-    changeLogs.addChildren(
+    audits.addChildren(
         fieldFilterService
-            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teChangeLogs, fields))
+            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teAudits, fields))
             .getChildren());
 
     return rootNode;
@@ -473,7 +473,7 @@ public class AuditController {
             .setStartDate(startDate)
             .setEndDate(endDate);
 
-    List<TrackedEntityAudit> teChangeLogs;
+    List<TrackedEntityAudit> teAudits;
     Pager pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
@@ -481,9 +481,9 @@ public class AuditController {
 
       pager = new Pager(page, total, pageSize);
 
-      teChangeLogs = trackedEntityAuditService.getTrackedEntityAudits(params);
+      teAudits = trackedEntityAuditService.getTrackedEntityAudits(params);
     } else {
-      teChangeLogs = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
+      teAudits = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -492,10 +492,10 @@ public class AuditController {
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    CollectionNode changeLogs = rootNode.addChild(new CollectionNode("trackedEntityAudits", true));
-    changeLogs.addChildren(
+    CollectionNode audits = rootNode.addChild(new CollectionNode("trackedEntityAudits", true));
+    audits.addChildren(
         fieldFilterService
-            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teChangeLogs, fields))
+            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teAudits, fields))
             .getChildren());
 
     return rootNode;
