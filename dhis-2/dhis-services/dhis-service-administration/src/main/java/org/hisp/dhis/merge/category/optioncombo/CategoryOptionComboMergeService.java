@@ -119,7 +119,8 @@ public class CategoryOptionComboMergeService implements MergeService {
             metadataMergeHandler::handleMinMaxDataElements,
             metadataMergeHandler::handleSmsCodes);
 
-    dataMergeHandlers = List.of(dataMergeHandler::handleDataValues);
+    dataMergeHandlers =
+        List.of(dataMergeHandler::handleDataValues, dataMergeHandler::handleDataValueAudits);
   }
 
   /**

@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
@@ -40,6 +41,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -48,6 +50,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
+import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
@@ -100,6 +105,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
   @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataValueAuditStore dataValueAuditStore;
   private Category cat1;
   private Category cat2;
   private Category cat3;
@@ -968,6 +974,101 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
   }
 
+  // ------------------------
+  // -- DataValueAudit --
+  // ------------------------
+  @Test
+  @DisplayName(
+      "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
+  void dataValueAuditMergeTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+
+    DataValueAudit dva1 = createDataValueAudit(cocSource1, "1", p1);
+    DataValueAudit dva2 = createDataValueAudit(cocSource1, "2", p1);
+    DataValueAudit dva3 = createDataValueAudit(cocSource2, "1", p1);
+    DataValueAudit dva4 = createDataValueAudit(cocSource2, "2", p1);
+    DataValueAudit dva5 = createDataValueAudit(cocTarget, "1", p1);
+
+    dataValueAuditStore.addDataValueAudit(dva1);
+    dataValueAuditStore.addDataValueAudit(dva2);
+    dataValueAuditStore.addDataValueAudit(dva3);
+    dataValueAuditStore.addDataValueAudit(dva4);
+    dataValueAuditStore.addDataValueAudit(dva5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(false);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocSource1, List.of(p1));
+    DataValueAuditQueryParams source2DvaQueryParams = getQueryParams(cocSource2, List.of(p1));
+    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget, List.of(p1));
+
+    List<DataValueAudit> source1Audits =
+        dataValueAuditStore.getDataValueAudits(source1DvaQueryParams);
+    List<DataValueAudit> source2Audits =
+        dataValueAuditStore.getDataValueAudits(source2DvaQueryParams);
+
+    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(
+        4, source1Audits.size() + source2Audits.size(), "Expect 4 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+  }
+
+  @Test
+  @DisplayName(
+      "DataValueAudits with references to source DataElements are deleted when sources are deleted")
+  void dataValueAuditMergeDeleteTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+
+    DataValueAudit dva1 = createDataValueAudit(cocSource1, "1", p1);
+    DataValueAudit dva2 = createDataValueAudit(cocSource1, "2", p1);
+    DataValueAudit dva3 = createDataValueAudit(cocSource2, "1", p1);
+    DataValueAudit dva4 = createDataValueAudit(cocSource2, "2", p1);
+    DataValueAudit dva5 = createDataValueAudit(cocTarget, "1", p1);
+
+    dataValueAuditStore.addDataValueAudit(dva1);
+    dataValueAuditStore.addDataValueAudit(dva2);
+    dataValueAuditStore.addDataValueAudit(dva3);
+    dataValueAuditStore.addDataValueAudit(dva4);
+    dataValueAuditStore.addDataValueAudit(dva5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(false);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocSource1, List.of(p1));
+    DataValueAuditQueryParams source2DvaQueryParams = getQueryParams(cocSource2, List.of(p1));
+    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget, List.of(p1));
+
+    List<DataValueAudit> source1Audits =
+        dataValueAuditStore.getDataValueAudits(source1DvaQueryParams);
+    List<DataValueAudit> source2Audits =
+        dataValueAuditStore.getDataValueAudits(source2DvaQueryParams);
+
+    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(
+        0, source1Audits.size() + source2Audits.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+  }
+
   private MergeParams getMergeParams() {
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(List.of(cocSource1.getUid(), cocSource2.getUid())));
@@ -990,5 +1091,22 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             })
         .toList()
         .get(0);
+  }
+
+  private DataValueAudit createDataValueAudit(CategoryOptionCombo coc, String value, Period p) {
+    DataValueAudit dva = new DataValueAudit();
+    dva.setDataElement(de1);
+    dva.setValue(value);
+    dva.setAuditType(ChangeLogType.CREATE);
+    dva.setCreated(new Date());
+    dva.setCategoryOptionCombo(coc);
+    dva.setAttributeOptionCombo(coc);
+    dva.setPeriod(p);
+    dva.setOrganisationUnit(ou1);
+    return dva;
+  }
+
+  private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc, List<Period> periods) {
+    return new DataValueAuditQueryParams().setCategoryOptionCombo(coc).setPeriods(periods);
   }
 }

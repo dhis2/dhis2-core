@@ -42,6 +42,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.CommonDataMergeHandler;
 import org.hisp.dhis.merge.CommonDataMergeHandler.DataValueMergeParams;
@@ -59,7 +61,7 @@ import org.springframework.stereotype.Component;
 public class DataCategoryOptionComboMergeHandler {
 
   private final DataValueStore dataValueStore;
-  //  private final DataValueAuditStore dataValueAuditStore;
+  private final DataValueAuditStore dataValueAuditStore;
   private final CommonDataMergeHandler commonDataMergeHandler;
 
   public void handleDataValues(
@@ -93,9 +95,9 @@ public class DataCategoryOptionComboMergeHandler {
             dataValueWithNewCatOptionCombo,
             getCocDataValueKey));
 
-    // ----------------------
+    // -----------------------
     // attribute option combos
-    // ----------------------
+    // -----------------------
     List<DataValue> sourceAocDataValues =
         dataValueStore.getAllDataValuesByAttrOptCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -122,9 +124,22 @@ public class DataCategoryOptionComboMergeHandler {
             getAocDataValueKey));
   }
 
-  /** */
-  public void handleDataValueAudits(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO x 2
+  /**
+   * All {@link DataValueAudit}s will either be deleted or left as is, based on whether the source
+   * {@link CategoryOptionCombo}s are being deleted or not.
+   */
+  public void handleDataValueAudits(
+      @Nonnull List<CategoryOptionCombo> sources,
+      CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
+    if (mergeRequest.isDeleteSources()) {
+      log.info(
+          "Deleting source data value audit records as source CategoryOptionCombos are being deleted");
+      sources.forEach(dataValueAuditStore::deleteDataValueAudits);
+    } else {
+      log.info(
+          "Leaving source data value audit records as is, source CategoryOptionCombos are not being deleted");
+    }
   }
 
   /** */
