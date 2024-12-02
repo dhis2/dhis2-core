@@ -202,25 +202,25 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
       DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
       String dataClause = getDataFilterClause(attribute);
-      String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
+      String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
           replaceQualify(
               """
-              (select ${select} from ${trackedentityattributevalue} \
+              (select ${selectExpression} from ${trackedentityattributevalue} \
               where trackedentityid=en.trackedentityid \
               and trackedentityattributeid=${attributeId}\
               ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
-                  "select",
-                  select,
+                  "selectExpression",
+                  selectExpression,
                   "attributeId",
                   String.valueOf(attribute.getId()),
                   "dataClause",
                   dataClause,
                   "closingParentheses",
-                  getClosingParentheses(select),
+                  getClosingParentheses(selectExpression),
                   "attributeUid",
                   quote(attribute.getUid())));
       columns.add(
