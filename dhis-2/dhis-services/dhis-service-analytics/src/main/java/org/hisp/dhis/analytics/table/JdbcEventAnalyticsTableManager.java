@@ -758,15 +758,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Program program,
       Integer firstDataYear,
       Integer lastDataYear) {
+    String fromDate = toMediumDate(params.getFromDate());
     String fromDateClause =
         params.getFromDate() != null
             ? replace(
                 "and (${eventDateExpression}) >= '${fromDate}'",
                 Map.of(
-                    "eventDateExpression",
-                    eventDateExpression,
-                    "fromDate",
-                    toMediumDate(params.getFromDate())))
+                    "eventDateExpression", eventDateExpression,
+                    "fromDate", fromDate))
             : EMPTY;
 
     String sql =
