@@ -57,11 +57,11 @@ public enum AnalyticsPeriodBoundaryType {
     return value;
   }
 
-  public Boolean isEndBoundary() {
+  public boolean isEndBoundary() {
     return this == BEFORE_END_OF_REPORTING_PERIOD || this == BEFORE_START_OF_REPORTING_PERIOD;
   }
 
-  public Boolean isStartBoundary() {
+  public boolean isStartBoundary() {
     return this == AFTER_END_OF_REPORTING_PERIOD || this == AFTER_START_OF_REPORTING_PERIOD;
   }
 }

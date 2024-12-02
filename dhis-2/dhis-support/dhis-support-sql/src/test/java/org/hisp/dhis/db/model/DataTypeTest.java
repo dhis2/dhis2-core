@@ -25,48 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.db.model;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Provider of {@link AnalyticsSqlBuilder} implementations. */
-@Service
-public class AnalyticsSqlBuilderProvider {
-  private final AnalyticsSqlBuilder analyticsSqlBuilder;
+import org.junit.jupiter.api.Test;
 
-  public AnalyticsSqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.analyticsSqlBuilder = getSqlBuilder(config);
+class DataTypeTest {
+  @Test
+  void testIsNumeric() {
+    assertTrue(DataType.BIGINT.isNumeric());
+    assertFalse(DataType.CHARACTER_11.isNumeric());
   }
 
-  /**
-   * Returns a {@link AnalyticsSqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link AnalyticsSqlBuilder}.
-   */
-  public AnalyticsSqlBuilder getAnalyticsSqlBuilder() {
-    return analyticsSqlBuilder;
+  @Test
+  void testIsBoolean() {
+    assertTrue(DataType.BOOLEAN.isBoolean());
+    assertFalse(DataType.DOUBLE.isBoolean());
   }
 
-  /**
-   * Returns the appropriate {@link AnalyticsSqlBuilder} implementation based on the system
-   * configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link AnalyticsSqlBuilder}.
-   */
-  private AnalyticsSqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      case DORIS -> new DorisAnalyticsSqlBuilder();
-      case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
-      default -> new PostgresAnalyticsSqlBuilder();
-    };
+  @Test
+  void testIsCharacter() {
+    assertTrue(DataType.VARCHAR_255.isCharacter());
+    assertFalse(DataType.DECIMAL.isCharacter());
   }
 }
