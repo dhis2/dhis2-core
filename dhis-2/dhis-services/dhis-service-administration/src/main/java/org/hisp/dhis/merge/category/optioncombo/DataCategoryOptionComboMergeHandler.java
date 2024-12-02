@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
@@ -62,6 +63,7 @@ public class DataCategoryOptionComboMergeHandler {
 
   private final DataValueStore dataValueStore;
   private final DataValueAuditStore dataValueAuditStore;
+  private final DataApprovalAuditStore dataApprovalAuditStore;
   private final CommonDataMergeHandler commonDataMergeHandler;
 
   public void handleDataValues(
@@ -149,8 +151,16 @@ public class DataCategoryOptionComboMergeHandler {
 
   /** */
   public void handleDataApprovalAudits(
-      List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+      List<CategoryOptionCombo> sources, CategoryOptionCombo target, MergeRequest mergeRequest) {
     // TODO
+    if (mergeRequest.isDeleteSources()) {
+      log.info(
+          "Deleting source data approval audit records as source CategoryOptionCombos are being deleted");
+      sources.forEach(dataApprovalAuditStore::deleteDataApprovalAudits);
+    } else {
+      log.info(
+          "Leaving source data approval audit records as is, source CategoryOptionCombos are not being deleted");
+    }
   }
 
   /** */

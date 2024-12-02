@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.merge.category;
 
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
@@ -46,6 +50,11 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataapproval.DataApprovalAudit;
+import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
+import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
+import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
@@ -106,6 +115,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   private Category cat1;
   private Category cat2;
   private Category cat3;
@@ -1068,6 +1078,128 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
   }
 
+  // ------------------------
+  // -- DataApprovalAudit --
+  // ------------------------
+  @Test
+  @DisplayName(
+      "DataApprovalAudits with references to source DataElements are not changed or deleted when sources not deleted")
+  void dataApprovalAuditMergeTest() throws ConflictException {
+    // given
+    DataApprovalLevel level1 = new DataApprovalLevel();
+    level1.setLevel(1);
+    level1.setName("DAL1");
+    manager.save(level1);
+
+    DataApprovalLevel level2 = new DataApprovalLevel();
+    level2.setLevel(2);
+    level2.setName("DAL2");
+    manager.save(level2);
+
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+
+    Period p2 = createPeriod(DateUtils.parseDate("2023-1-4"), DateUtils.parseDate("2023-1-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p2);
+
+    DataApprovalWorkflow daw = new DataApprovalWorkflow();
+    daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw.setName("DAW");
+    daw.setCategoryCombo(cc1);
+    manager.save(daw);
+
+    DataApprovalAudit daa1 = createDataApprovalAudit(cocSource1, level1, daw, p1);
+    DataApprovalAudit daa2 = createDataApprovalAudit(cocSource1, level2, daw, p2);
+    DataApprovalAudit daa3 = createDataApprovalAudit(cocSource2, level1, daw, p1);
+    DataApprovalAudit daa4 = createDataApprovalAudit(cocSource2, level2, daw, p2);
+    DataApprovalAudit daa5 = createDataApprovalAudit(cocTarget, level1, daw, p1);
+
+    dataApprovalAuditStore.save(daa1);
+    dataApprovalAuditStore.save(daa2);
+    dataApprovalAuditStore.save(daa3);
+    dataApprovalAuditStore.save(daa4);
+    dataApprovalAuditStore.save(daa5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(false);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    DataApprovalAuditQueryParams targetDaaQueryParams =
+        new DataApprovalAuditQueryParams()
+            .setAttributeOptionCombos(new HashSet<>(Collections.singletonList(cocTarget)))
+            .setLevels(Set.of(level1));
+
+    List<DataApprovalAudit> sourceAudits = dataApprovalAuditStore.getAll();
+    List<DataApprovalAudit> targetItems =
+        dataApprovalAuditStore.getDataApprovalAudits(targetDaaQueryParams);
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(5, sourceAudits.size(), "Expect 4 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+  }
+
+  @Test
+  @DisplayName(
+      "DataApprovalAudits with references to source DataElements are deleted when sources are deleted")
+  void dataApprovalAuditMergeDeleteTest() throws ConflictException {
+    // given
+    DataApprovalLevel dataApprovalLevel = new DataApprovalLevel();
+    dataApprovalLevel.setLevel(1);
+    dataApprovalLevel.setName("DAL");
+    manager.save(dataApprovalLevel);
+
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+
+    DataApprovalWorkflow daw = new DataApprovalWorkflow();
+    daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw.setName("DAW");
+    daw.setCategoryCombo(cc1);
+    manager.save(daw);
+
+    DataApprovalAudit daa1 = createDataApprovalAudit(cocSource1, dataApprovalLevel, daw, p1);
+    DataApprovalAudit daa2 = createDataApprovalAudit(cocSource1, dataApprovalLevel, daw, p1);
+    DataApprovalAudit daa3 = createDataApprovalAudit(cocSource2, dataApprovalLevel, daw, p1);
+    DataApprovalAudit daa4 = createDataApprovalAudit(cocSource2, dataApprovalLevel, daw, p1);
+    DataApprovalAudit daa5 = createDataApprovalAudit(cocTarget, dataApprovalLevel, daw, p1);
+
+    dataApprovalAuditStore.save(daa1);
+    dataApprovalAuditStore.save(daa2);
+    dataApprovalAuditStore.save(daa3);
+    dataApprovalAuditStore.save(daa4);
+    dataApprovalAuditStore.save(daa5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    DataApprovalAuditQueryParams source1DaaQueryParams =
+        new DataApprovalAuditQueryParams()
+            .setAttributeOptionCombos(new HashSet<>(Arrays.asList(cocSource1, cocSource2)));
+    DataApprovalAuditQueryParams targetDaaQueryParams =
+        new DataApprovalAuditQueryParams()
+            .setAttributeOptionCombos(new HashSet<>(Collections.singletonList(cocTarget)));
+
+    List<DataApprovalAudit> sourceAudits =
+        dataApprovalAuditStore.getDataApprovalAudits(source1DaaQueryParams);
+    List<DataApprovalAudit> targetItems =
+        dataApprovalAuditStore.getDataApprovalAudits(targetDaaQueryParams);
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+  }
+
   private MergeParams getMergeParams() {
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(List.of(cocSource1.getUid(), cocSource2.getUid())));
@@ -1103,6 +1235,20 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dva.setPeriod(p);
     dva.setOrganisationUnit(ou1);
     return dva;
+  }
+
+  private DataApprovalAudit createDataApprovalAudit(
+      CategoryOptionCombo coc, DataApprovalLevel level, DataApprovalWorkflow workflow, Period p) {
+    DataApprovalAudit daa = new DataApprovalAudit();
+    daa.setAttributeOptionCombo(coc);
+    daa.setOrganisationUnit(ou1);
+    daa.setLevel(level);
+    daa.setWorkflow(workflow);
+    daa.setPeriod(p);
+    daa.setAction(APPROVE);
+    daa.setCreated(new Date());
+    daa.setCreator(getCurrentUser());
+    return daa;
   }
 
   private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {
