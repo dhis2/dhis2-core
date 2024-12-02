@@ -133,7 +133,7 @@
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
     <!-- Velocity -->
-    <velocity.version>2.4</velocity.version>
+    <velocity.version>2.4.1</velocity.version>
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
@@ -178,7 +178,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.18.1</jsoup.version>
+    <jsoup.version>1.18.3</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>33.3.1-jre</guava.version>
