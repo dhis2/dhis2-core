@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -105,9 +104,6 @@ class MappingErrorsTest {
     CategoryOptionCombo defaultCategoryOptionCombo = new CategoryOptionCombo();
     defaultCategoryOptionCombo.setName(CategoryOptionCombo.DEFAULT_NAME);
     defaultCategoryOptionCombo.setUid(CodeGenerator.generateUid());
-    CategoryCombo defaultCategoryCombo = new CategoryCombo();
-    defaultCategoryCombo.setName(CategoryOptionCombo.DEFAULT_NAME);
-    defaultCategoryOptionCombo.setCategoryCombo(defaultCategoryCombo);
     assertTrue(
         defaultCategoryOptionCombo.isDefault(),
         "this test needs the CategoryOptionCombo to be the default one");
