@@ -106,8 +106,8 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
       GetObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    return getObjectList(params, response, currentUser);
+      throws ForbiddenException, BadRequestException, ConflictException {
+    return super.getObjectList(params, response, currentUser);
   }
 
   @PostMapping(produces = APPLICATION_JSON_VALUE)
