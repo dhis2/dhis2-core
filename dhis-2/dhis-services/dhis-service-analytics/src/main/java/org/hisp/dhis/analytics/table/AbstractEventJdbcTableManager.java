@@ -157,7 +157,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return String.format(
           """
-          ST_GeomFromGeoJSON('{\type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
           columnExpression);
     } else if (valueType.isOrganisationUnit()) {
       String ouClause =

@@ -28,10 +28,12 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,6 +46,11 @@ class AbstractEventJdbcTableManagerTest {
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @InjectMocks private JdbcEventAnalyticsTableManager manager;
+
+  @BeforeEach
+  public void beforeEach() {
+    manager.spatialSupport = true;
+  }
 
   @Test
   void testGetCastExpression() {
@@ -98,6 +105,21 @@ class AbstractEventJdbcTableManagerTest {
 
     String actual =
         manager.getSelectExpression(ValueType.TEXT, "eventdatavalues #>> '{FwUzmc49Pcr, value}'");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetSelectExpressionGeometry() {
+    when(manager.isSpatialSupport()).thenReturn(Boolean.TRUE);
+
+    String expected =
+        """
+        ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (eventdatavalues #>> '{C6bh7GevJfH, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""";
+
+    String actual =
+        manager.getSelectExpression(
+            ValueType.GEOJSON, "eventdatavalues #>> '{C6bh7GevJfH, value}'");
 
     assertEquals(expected, actual);
   }
