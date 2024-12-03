@@ -152,21 +152,64 @@ public class UserController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetUserObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        "Limits results to users with the given phone number (shorthand for `filter=phoneNumber:eq:{value}`)")
     String phoneNumber;
+
+    @OpenApi.Description(
+        "Limits results to users that are members of a group the current user can manage.")
     boolean canManage;
+
+    @OpenApi.Description(
+        "Limits result to users that have no authority the current user doesn't have as well.")
     boolean authSubset;
+
+    @OpenApi.Description(
+        "Limits results to users that were logged in on or after the given date(-time) (shorthand for `filter=lastLogin:ge:{date}`).")
     Date lastLogin;
+
+    @OpenApi.Description(
+        "Limits results to users that haven't logged in for at least this number of months.")
     Integer inactiveMonths;
+
+    @OpenApi.Description(
+        "Limits results to users that haven't logged in since this date(-time) (shorthand for `filter=lastLogin:lt:{date}`).")
     Date inactiveSince;
+
+    @OpenApi.Description(
+        "Limits results to users that have self registered (shorthand for `filter=selfRegistered:eq:true`)")
     boolean selfRegistered;
+
+    @OpenApi.Description(
+        """
+      Limits results to users that with the provided invitation status
+      (`ALL` equals `filter=invitation:eq:true`, `EXPIRED` also requires the invitation to have expired by now).""")
     UserInvitationStatus invitationStatus;
+
+    @OpenApi.Description("Shorthand for `orgUnitBoundary=DATA_CAPTURE`")
     boolean userOrgUnits;
-    boolean includeChildren;
+
+    @OpenApi.Description(
+        """
+      Limits results to users that have a common organisation unit connection with the current user.
+      The `orgUnitBoundary` determines if the data capture, data view or search sets are considered.
+      When `includeChildren=true` is used the comparison includes the subtree of all units in the compared set.
+      """)
     UserOrgUnitType orgUnitBoundary;
 
+    @OpenApi.Description("See `orgUnitBoundary`")
+    boolean includeChildren;
+
+    @OpenApi.Description(
+        """
+      Limits results to users that have data capture connection to the given organisation unit.
+      The compared set can be changed using `orgUnitBoundary`.
+      """)
     @OpenApi.Property({UID.class, OrganisationUnit.class})
     String ou;
 
+    @OpenApi.Description(
+        "Shorthand for `canManage=true` + `authSubset=true` (takes precedence over individual parameters)")
     boolean manage;
 
     @JsonIgnore
@@ -192,11 +235,6 @@ public class UserController
     if (!params.isUsingAnySpecialFilters()) return null;
     UserQueryParams queryParams = toUserQueryParams(params);
 
-    String ou = params.getOu();
-    if (ou != null) {
-      queryParams.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
-    }
-
     if (params.isManage()) {
       queryParams.setCanManage(true);
       queryParams.setAuthSubset(true);
@@ -217,7 +255,12 @@ public class UserController
     res.setInvitationStatus(params.getInvitationStatus());
     res.setUserOrgUnits(params.isUserOrgUnits());
     res.setIncludeOrgUnitChildren(params.isIncludeChildren());
-    res.setOrgUnitBoundary(params.getOrgUnitBoundary());
+    String ou = params.getOu();
+    if (ou != null) {
+      res.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
+    }
+    UserOrgUnitType boundary = params.getOrgUnitBoundary();
+    if (boundary != null) res.setOrgUnitBoundary(boundary);
     return res;
   }
 

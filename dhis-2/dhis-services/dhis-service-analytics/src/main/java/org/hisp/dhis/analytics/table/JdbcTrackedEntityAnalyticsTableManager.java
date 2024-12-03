@@ -223,9 +223,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());
-    if (sqlBuilder.supportsDeclarativePartitioning()) {
-      columns.add(getPartitionColumn());
-    }
 
     return columns;
   }
@@ -240,22 +237,16 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
   private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributes(
       TrackedEntityType trackedEntityType, Map<String, List<Program>> programsByTetUid) {
 
-    // Given TET has program(s) defined.
     if (programsByTetUid.containsKey(trackedEntityType.getUid())) {
-
-      // Programs defined for TET -> get attr from program and TET.
       return getAllTrackedEntityAttributesByPrograms(
           trackedEntityType, programsByTetUid.get(trackedEntityType.getUid()));
     }
 
-    // No programs defined for TET -> get only attributes from TET.
     return getAllTrackedEntityAttributesByEntityType(trackedEntityType);
   }
 
   /**
    * Returns the select clause, potentially with a cast statement, based on the given value type.
-   * (this method is an adapted version of {@link
-   * JdbcEventAnalyticsTableManager#getSelectExpression(ValueType, String)})
    *
    * @param valueType the value type to represent as database column type.
    */
@@ -279,7 +270,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           " cast(${columnName} as ${type})",
           Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
     }
-    if (valueType.isGeo() && isSpatialSupport()) {
+    if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
       return replace(
           """
           \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
@@ -300,9 +291,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
   private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributesByPrograms(
       TrackedEntityType trackedEntityType, List<Program> programs) {
     return Stream.concat(
-            /* all attributes of programs */
             trackedEntityAttributeService.getProgramTrackedEntityAttributes(programs).stream(),
-            /* all attributes of the trackedEntityType */
             getAllTrackedEntityAttributesByEntityType(trackedEntityType))
         .distinct();
   }
@@ -363,12 +352,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
         .append(
             replaceQualify(
                 """
-                \s from ${trackedentity} te \
+                \sfrom ${trackedentity} te \
                 left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid \
-                and (cast(${trackedEntityCreatedMonth} as date)=ougs.startdate \
-                or ougs.startdate is null)""",
-                Map.of("trackedEntityCreatedMonth", sqlBuilder.dateTrunc("month", "te.created"))));
+                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
+                Map.of()));
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
@@ -377,22 +364,22 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 sql.append(
                     replaceQualify(
                         """
-                    \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
-                    and ${teaUid}.trackedentityattributeid = ${teaId}""",
+                        \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
+                        and ${teaUid}.trackedentityattributeid = ${teaId}""",
                         Map.of(
                             "teaUid", quote(tea.getUid()),
                             "teaId", String.valueOf(tea.getId())))));
     sql.append(
         replaceQualify(
             """
-            \s where te.trackedentitytypeid = ${tetId} \
+            \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
             and exists (select 1 from ${enrollment} en \
-            where en.trackedentityid = te.trackedentityid \
-            and exists (select 1 from ${event} ev \
-            where ev.enrollmentid = en.enrollmentid \
-            and ev.status in (${statuses}) \
-            and ev.deleted = false)) \
+                where en.trackedentityid = te.trackedentityid \
+                and exists (select 1 from ${event} ev \
+                where ev.enrollmentid = en.enrollmentid \
+                and ev.status in (${statuses}) \
+                and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
             Map.of(

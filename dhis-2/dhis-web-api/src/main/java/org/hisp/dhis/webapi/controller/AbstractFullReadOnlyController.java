@@ -50,7 +50,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -71,6 +70,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
@@ -158,16 +158,15 @@ public abstract class AbstractFullReadOnlyController<
   // GET Full
   // --------------------------------------------------------------------------
 
-  @Value
   @OpenApi.Shared(value = false)
-  protected static class ObjectListResponse {
+  protected static class GetObjectListResponse {
     @OpenApi.Property Pager pager;
 
     @OpenApi.Property(name = "path$", value = OpenApi.EntityType[].class)
     List<Object> entries;
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
       P params, HttpServletResponse response, @CurrentUser UserDetails currentUser)
@@ -200,7 +199,11 @@ public abstract class AbstractFullReadOnlyController<
 
     addProgrammaticModifiers(params);
 
-    boolean isAlwaysEmpty = additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
+    // a top level restriction combined with AND that is always false always results in an empty
+    // list
+    boolean isAlwaysEmpty =
+        params.getRootJunction() == Junction.Type.AND
+            && additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
     List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
     postProcessResponseEntities(entities, params);
 
@@ -502,7 +505,7 @@ public abstract class AbstractFullReadOnlyController<
     // by default: nothing special to do
   }
 
-  protected void getEntityListPostProcess(P params, List<T> entities) {}
+  protected void getEntityListPostProcess(P params, List<T> entities) throws BadRequestException {}
 
   private long countGetObjectList(P params, List<Criterion> additionalFilters)
       throws BadRequestException {

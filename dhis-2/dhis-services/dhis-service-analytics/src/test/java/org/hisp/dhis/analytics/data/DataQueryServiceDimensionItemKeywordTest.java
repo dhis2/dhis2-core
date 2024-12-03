@@ -122,7 +122,7 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private I18n i18n;
 
-  @InjectMocks private DimensionalObjectProducer dimensionalObjectProducer;
+  @InjectMocks private DimensionalObjectProvider dimensionalObjectProducer;
 
   private DefaultDataQueryService target;
 

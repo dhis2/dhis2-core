@@ -25,29 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.analytics.util;
 
-import org.hisp.dhis.analytics.table.init.AnalyticsDatabaseInit;
-import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilderProvider;
+public class SqlComparisonUtils {
 
-/**
- * Enumeration of database platforms.
- *
- * <p>To add support for a new analytics database engine, add the following:
- *
- * <ul>
- *   <li>Value to this {@link Database}.
- *   <li>Implementation class of {@link SqlBuilder}.
- *   <li>Register {@link SqlBuilder} implementation in {@link SqlBuilderProvider}.
- *   <li>Method to {@link AnalyticsDatabaseInit} (optional).
- *   <li>JDBC driver in <code>pom.xml</code>.
- * </ul>
- *
- * @author Lars Helge Overland
- */
-public enum Database {
-  POSTGRESQL,
-  DORIS,
-  CLICKHOUSE
+  /**
+   * Normalizes a SQL string by removing excess whitespace and standardizing formatting. This
+   * method:
+   *
+   * <ul>
+   *   <li>Replaces multiple spaces with a single space
+   *   <li>Removes spaces around commas, equals signs, and parentheses
+   *   <li>Converts the string to lowercase
+   *   <li>Trims leading and trailing whitespace
+   * </ul>
+   *
+   * @param sql the SQL string to normalize
+   * @return the normalized SQL string
+   */
+  public static String normalizeSql(String sql) {
+    return sql.replaceAll("\\s+", " ") // Replace multiple spaces with single space
+        .replaceAll("\\s*,\\s*", ",") // Remove spaces around commas
+        .replaceAll("\\s*=\\s*", "=") // Remove spaces around equals
+        .replaceAll("\\s*\\(\\s*", "(") // Remove spaces around parentheses
+        .replaceAll("\\s*\\)\\s*", ")")
+        .trim()
+        .toLowerCase(); // Convert to lowercase if case-insensitive comparison is desired
+  }
 }

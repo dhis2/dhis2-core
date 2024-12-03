@@ -28,8 +28,14 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.HashSet;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -47,8 +53,6 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegrityIntegrationTest {
 
   private final String check = "category_option_combos_have_duplicates";
-
-  private String cocWithOptionsA;
 
   private String categoryOptionRed;
 
@@ -80,44 +84,40 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
                     + categoryColor
                     + "'}]} "));
 
-    cocWithOptionsA =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categoryOptionCombos",
-                """
-                { "name": "Reddish",
-                "categoryOptions" : [{"id" : "%s"}],
-                "categoryCombo" : {"id" : "%s"} }
-                """
-                    .formatted(categoryOptionRed, testCatCombo)));
+    HttpResponse response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red");
+    assertStatus(HttpStatus.OK, response);
+    JsonObject responseContent = response.content();
 
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/categoryOptionCombos",
-            """
-                { "name": "Not Red",
-                "categoryOptions" : [{"id" : "%s"}]},
-                 "categoryCombo" : {"id" : "%s"} }
-                """
-                .formatted(categoryOptionRed, testCatCombo)));
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        responseContent.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    assertEquals(1, catOptionCombos.size());
+    String redCategoryOptionComboId = catOptionCombos.get(0).getId();
+
+    /*We must resort to the service layer as the API will not allow us to create a duplicate*/
+    CategoryCombo categoryCombo = categoryService.getCategoryCombo(testCatCombo);
+    CategoryOptionCombo existingCategoryOptionCombo =
+        categoryService.getCategoryOptionCombo(redCategoryOptionComboId);
+    CategoryOptionCombo categoryOptionComboDuplicate = new CategoryOptionCombo();
+    categoryOptionComboDuplicate.setAutoFields();
+    categoryOptionComboDuplicate.setCategoryCombo(categoryCombo);
+    Set<CategoryOption> newCategoryOptions =
+        new HashSet<>(existingCategoryOptionCombo.getCategoryOptions());
+    categoryOptionComboDuplicate.setCategoryOptions(newCategoryOptions);
+    categoryOptionComboDuplicate.setName("Reddish");
+    manager.persist(categoryOptionComboDuplicate);
+    dbmsManager.clearSession();
+    String categoryOptionComboDuplicatedID = categoryOptionComboDuplicate.getUid();
+    assertNotNull(categoryOptionComboDuplicatedID);
 
     assertNamedMetadataObjectExists("categoryOptionCombos", "default");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Reddish");
-    assertNamedMetadataObjectExists("categoryOptionCombos", "Not Red");
 
-    /*We need to get the Red category option combo to be able to check the data integrity issues*/
+    /* There are three total category option combos, so we expect 33% */
+    checkDataIntegritySummary(check, 1, 33, true);
 
-    JsonObject response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red").content();
-    JsonList<JsonCategoryOptionCombo> catOptionCombos =
-        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
-    String redCategoryOptionComboId = catOptionCombos.get(0).getId();
-    /* There are four total category option combos, so we expect 25% */
-    checkDataIntegritySummary(check, 1, 25, true);
-
-    Set<String> expectedCategoryOptCombos = Set.of(cocWithOptionsA, redCategoryOptionComboId);
+    Set<String> expectedCategoryOptCombos =
+        Set.of(categoryOptionComboDuplicatedID, redCategoryOptionComboId);
     Set<String> expectedMessages = Set.of("Red", "Reddish");
     checkDataIntegrityDetailsIssues(
         check, expectedCategoryOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
@@ -135,27 +135,27 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
             HttpStatus.CREATED,
             POST("/categoryOptions", "{ 'name': 'Blue', 'shortName': 'Blue' }"));
 
-    cocWithOptionsA =
+    String categoryColor =
         assertStatus(
             HttpStatus.CREATED,
             POST(
-                "/categoryOptionCombos",
-                """
-                { "name": "Color",
-                "categoryOptions" : [{"id" : "%s"} ] }
-                """
-                    .formatted(categoryOptionRed)));
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'}, {'id' : '"
+                    + categoryOptionBlue
+                    + "'} ] }"));
 
     assertStatus(
         HttpStatus.CREATED,
         POST(
-            "/categoryOptionCombos",
-            """
-                { "name": "Colour",
-                "categoryOptions" : [{"id" : "%s"} ] }
-                """
-                .formatted(categoryOptionBlue)));
-
+            "/categoryCombos",
+            "{ 'name' : 'Color', "
+                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                + "{'id' : '"
+                + categoryColor
+                + "'}]} "));
     assertHasNoDataIntegrityIssues("categoryOptionCombos", check, true);
   }
 

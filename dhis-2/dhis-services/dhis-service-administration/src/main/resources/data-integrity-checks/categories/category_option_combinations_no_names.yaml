@@ -31,13 +31,18 @@ section: Categories
 section_order: 8
 summary_sql: >-
   WITH coc_no_names as (
-  SELECT uid,name FROM categoryoptioncombo WHERE name IS NULL OR name = ''
+  SELECT uid FROM categoryoptioncombo WHERE name IS NULL OR name = ''
   )
   SELECT COUNT(*) as value,
-  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categoryoptioncombo), 0)  as percent
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categoryoptioncombo), 0)  as percent
   FROM coc_no_names;
 details_sql: >-
-  SELECT uid,name FROM categoryoptioncombo WHERE name IS NULL OR name = '';
+  SELECT coc.uid,
+  array_to_string(array_agg(co.name),';') as name FROM categoryoptioncombo coc
+  INNER JOIN categoryoptioncombos_categoryoptions cocs_co on cocs_co.categoryoptioncomboid = coc.categoryoptioncomboid
+  INNER JOIN categoryoption co on co.categoryoptionid = cocs_co.categoryoptionid
+  WHERE coc.name IS NULL OR coc.name = ''
+  GROUP BY coc.uid;
 details_id_type: categoryOptionCombos
 severity: SEVERE
 introduction: >

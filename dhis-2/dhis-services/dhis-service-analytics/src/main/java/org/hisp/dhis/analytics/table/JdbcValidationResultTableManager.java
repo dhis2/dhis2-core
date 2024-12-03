@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -213,9 +212,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String fromDateClause =
         params.getFromDate() == null
             ? ""
-            : replace(
-                "and ps.startdate >= '${fromDate}'",
-                Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+            : String.format(
+                " and ps.startdate >= '%s'", DateUtils.toMediumDate(params.getFromDate()));
+
     String sql =
         replaceQualify(
             """
@@ -223,8 +222,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             from ${validationresult} vrs \
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
             where ps.startdate is not null \
-            and vrs.created < '${startTime}'
-            ${fromDateClause}""",
+            and vrs.created < '${startTime}'${fromDateClause}""",
             Map.of(
                 "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 
