@@ -51,6 +51,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -115,9 +116,11 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.util.Assert;
 
 /**
@@ -1154,16 +1157,8 @@ public final class AnalyticsUtils {
       Supplier<T> supplier, boolean isMultipleQueries) {
     try {
       return Optional.ofNullable(supplier.get());
-    } catch (BadSqlGrammarException ex) {
-      if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-        throw ex;
-      }
-      if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
-      }
-      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (UncategorizedSQLException | BadSqlGrammarException usq) {
+      handleDataAccessException(usq, isMultipleQueries);
     } catch (QueryRuntimeException ex) {
       log.error("Internal runtime exception", ex);
       throw ex;
@@ -1176,6 +1171,22 @@ public final class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
+    if (ex.getCause() instanceof SQLException sqlexception) {
+      if (relationDoesNotExist(sqlexception)) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!isMultipleQueries) {
+        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } else {
+      throw ex;
+    }
   }
 
   /**

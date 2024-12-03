@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -86,4 +87,13 @@ public interface TrackedEntityChangeLogService {
    * PageParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)} can filter attribute change logs by. Filtering by fields other than these, is
+   * considered a programmer error. Validation of user provided field names should occur before
+   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)}.
+   */
+  Set<Pair<String, Class<?>>> getFilterableFields();
 }

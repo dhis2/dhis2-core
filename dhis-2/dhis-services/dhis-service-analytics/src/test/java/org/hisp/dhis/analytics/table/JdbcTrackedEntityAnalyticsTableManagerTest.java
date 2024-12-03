@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -144,13 +143,13 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     AnalyticsTable analyticsTable = analyticsTables.get(0);
 
     assertContainsNonConfidentialTeaColumns(analyticsTable);
-    assertDoesntContainConfidentialTeaColumns(analyticsTable);
+    assertContainsConfidentialTeaColumns(analyticsTable);
   }
 
-  private void assertDoesntContainConfidentialTeaColumns(AnalyticsTable analyticsTable) {
+  private void assertContainsConfidentialTeaColumns(AnalyticsTable analyticsTable) {
     List<Column> columns = analyticsTable.getColumns();
 
-    assertFalse(columns.stream().map(Column::getName).anyMatch("confidentialTeaUid"::equals));
+    assertTrue(columns.stream().map(Column::getName).anyMatch("confidentialTeaUid"::equals));
   }
 
   private void assertContainsNonConfidentialTeaColumns(AnalyticsTable analyticsTable) {
