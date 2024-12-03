@@ -101,16 +101,14 @@ public class HibernateTrackedEntityChangeLogStore {
           """
               join tecl.programAttribute pa
               join pa.program p
-              where tecl.changeLogType in ('CREATE', 'UPDATE', 'DELETE')
-              and t.uid = :trackedEntity
+              where t.uid = :trackedEntity
               and p.uid = :program
           """;
 
     } else {
       hql +=
           """
-              where tecl.changeLogType in ('CREATE', 'UPDATE', 'DELETE')
-              and t.uid = :trackedEntity
+              where t.uid = :trackedEntity
           """;
     }
 

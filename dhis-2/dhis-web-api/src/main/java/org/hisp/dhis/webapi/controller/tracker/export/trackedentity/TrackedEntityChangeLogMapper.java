@@ -33,7 +33,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 @Mapper(uses = {UIDMapper.class})
 public interface TrackedEntityChangeLogMapper {
@@ -41,10 +40,7 @@ public interface TrackedEntityChangeLogMapper {
   @Mapping(target = "createdBy", source = "trackedEntityChangeLog")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
-  @Mapping(
-      target = "change.attributeValue",
-      source = "trackedEntityChangeLog",
-      qualifiedByName = "mapIfTrackedEntityChangeExists")
+  @Mapping(target = "change.attributeValue", source = "trackedEntityChangeLog")
   TrackedEntityChangeLog map(
       org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
@@ -60,13 +56,4 @@ public interface TrackedEntityChangeLogMapper {
   @Mapping(target = "currentValue", source = "currentValue")
   TrackedEntityAttributeChange mapAttributeChange(
       org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
-
-  @Named("mapIfTrackedEntityChangeExists")
-  default TrackedEntityAttributeChange mapIfTrackedEntityChangeExists(
-      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog) {
-    if (trackedEntityChangeLog.getTrackedEntityAttribute() == null) {
-      return null;
-    }
-    return mapAttributeChange(trackedEntityChangeLog);
-  }
 }
