@@ -53,7 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class ChangeLogControllerTest extends H2ControllerIntegrationTestBase {
+class AuditControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -139,36 +139,6 @@ class ChangeLogControllerTest extends H2ControllerIntegrationTestBase {
     event2 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit());
     event2.setAttributeOptionCombo(coc);
     manager.save(event2);
-  }
-
-  @Test
-  void shouldFailGetDataValueAuditsWhenGivenPsiAndEventsParameters() {
-    assertEquals(
-        "Only one parameter of 'psi' (deprecated; semicolon separated UIDs) and 'events' (comma separated UIDs) must be specified. Prefer 'events' as 'psi' will be removed.",
-        GET(
-                "/audits/trackedEntityDataValue?psi={deprecatedEvents}&events={events}",
-                event1.getUid() + ";" + event2.getUid(),
-                event1.getUid() + "," + event2.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldSuccessToGetDataValueAuditsWhenPassingOnlyPsiParameter() {
-    assertStatus(
-        HttpStatus.OK,
-        GET(
-            "/audits/trackedEntityDataValue?psi={events}",
-            event1.getUid() + ";" + event2.getUid()));
-  }
-
-  @Test
-  void shouldSuccessToGetDataValueAuditsWhenPassingOnlyEventsParameter() {
-    assertStatus(
-        HttpStatus.OK,
-        GET(
-            "/audits/trackedEntityDataValue?events={events}",
-            event1.getUid() + "," + event2.getUid()));
   }
 
   @Test

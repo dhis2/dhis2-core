@@ -25,27 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getServletPath;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+public record TrackedEntityChangeLog(
+    @JsonProperty User createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-@Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class FieldFilterRequestHandler {
+  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
 
-  public static String getRequestURL(HttpServletRequest request) {
-    StringBuilder requestURL = new StringBuilder(getServletPath(request));
-    requestURL.append(request.getPathInfo());
-    String queryString = request.getQueryString();
-    if (queryString == null) {
-      return requestURL.toString();
-    }
-
-    return requestURL.append('?').append(queryString).toString();
-  }
+  public record TrackedEntityAttributeChange(
+      @JsonProperty UID attribute,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

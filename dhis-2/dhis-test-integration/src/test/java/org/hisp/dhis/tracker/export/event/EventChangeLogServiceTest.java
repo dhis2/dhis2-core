@@ -446,18 +446,23 @@ class EventChangeLogServiceTest extends TrackerTest {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().getValue().equalsIgnoreCase(event))
         .findFirst()
-        .flatMap(
-            e ->
-                e.getDataValues().stream()
-                    .filter(
-                        dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
-                    .findFirst())
-        .ifPresent(dv -> dv.setValue(newValue));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+        .ifPresent(
+            e -> {
+              e.getDataValues().stream()
+                  .filter(
+                      dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
+                  .findFirst()
+                  .ifPresent(dv -> dv.setValue(newValue));
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
         .findFirst()
@@ -465,32 +470,53 @@ class EventChangeLogServiceTest extends TrackerTest {
             e -> {
               e.setOccurredAt(newDate);
               e.setScheduledAt(newDate);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
             });
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
   private void deleteScheduledAtDate(UID event) {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
         .findFirst()
-        .ifPresent(e -> e.setScheduledAt(null));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+        .ifPresent(
+            e -> {
+              e.setScheduledAt(null);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
   }
 
   private void updateEventGeometry(UID event, Geometry newGeometry) {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
         .findFirst()
-        .ifPresent(e -> e.setGeometry(newGeometry));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+        .ifPresent(
+            e -> {
+              e.setGeometry(newGeometry);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
   }
 
   private void deleteEventGeometry(UID event) {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
         .findFirst()
-        .ifPresent(e -> e.setGeometry(null));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+        .ifPresent(
+            e -> {
+              e.setGeometry(null);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
   }
 
   private String getDataElement(String uid) {

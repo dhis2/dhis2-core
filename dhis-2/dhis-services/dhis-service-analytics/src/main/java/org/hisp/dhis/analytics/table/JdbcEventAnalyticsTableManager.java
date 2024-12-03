@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -385,7 +386,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
-    return program.getNonConfidentialTrackedEntityAttributes().stream()
+    // TO DO non confidential?
+    return program.getTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
         .collect(Collectors.joining());
   }
@@ -498,12 +500,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        program.getDataElements().stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getAnalyticsDataElementsWithLegendSet().stream()
+        program.getDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
@@ -527,7 +529,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
+    String sql = String.format("%s as %s", selectExpression, quote(dataElement.getUid()));
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
@@ -568,7 +570,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
+      String geoSql = getOrgUnitSelectExpression(dataElement, fromType, dataFilterClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -581,7 +583,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataFilterClause);
+    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -604,12 +606,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributes().stream()
+        program.getTrackedEntityAttributes().stream()
             .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+        program.getTrackedEntityAttributesWithLegendSet().stream()
             .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());
@@ -659,27 +661,24 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Returns a select statement for the given select expression.
+   * <<<<<<< HEAD Returns a select statement for the given select expression. ======= Returns a
+   * select statement for the given data element with value type org unit. >>>>>>> master
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
    * @return a select expression.
    */
-  private String getSelectForInsert(
+  private String getOrgUnitSelectExpression(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
-    String parentheses = getClosingParentheses(selectExpression);
-    String sqlTemplate =
-        dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "${selectExpression}${closingParentheses} as ${uid}";
-
+    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
+    String prts = getClosingParentheses(selectExpression);
     return replaceQualify(
-        sqlTemplate,
+        "(select ${selectExpression} ${dataFilterClause})${closingParentheses} as ${uid}",
         Map.of(
             "selectExpression", selectExpression,
-            "dataClause", dataFilterClause,
-            "closingParentheses", parentheses,
+            "dataFilterClause", dataFilterClause,
+            "closingParentheses", prts,
             "uid", quote(dataElement.getUid())));
   }
 

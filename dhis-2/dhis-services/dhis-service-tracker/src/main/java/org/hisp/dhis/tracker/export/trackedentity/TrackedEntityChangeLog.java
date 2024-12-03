@@ -27,20 +27,80 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-public record TrackedEntityChangeLog(
-    @JsonProperty UserInfoSnapshot createdBy,
-    @JsonProperty Date createdAt,
-    @JsonProperty String type,
-    @JsonProperty Change change) {
+@NoArgsConstructor
+@Getter
+@Setter
+public class TrackedEntityChangeLog {
+  private long id;
 
-  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
+  private TrackedEntity trackedEntity;
 
-  public record TrackedEntityAttributeChange(
-      @JsonProperty String attribute,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
+  private TrackedEntityAttribute trackedEntityAttribute;
+
+  private String previousValue;
+
+  private String currentValue;
+
+  private ChangeLogType changeLogType;
+
+  private Date created;
+
+  private String createdByUsername;
+
+  private UserInfoSnapshot createdBy;
+
+  @Getter(AccessLevel.NONE)
+  private ProgramTrackedEntityAttribute programAttribute;
+
+  public TrackedEntityChangeLog(
+      TrackedEntity trackedEntity,
+      TrackedEntityAttribute trackedEntityAttribute,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      String createdByUsername) {
+    this(
+        trackedEntity, trackedEntityAttribute, previousValue, currentValue, changeLogType, created);
+    this.createdByUsername = createdByUsername;
+  }
+
+  public TrackedEntityChangeLog(
+      TrackedEntity trackedEntity,
+      TrackedEntityAttribute trackedEntityAttribute,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      UserInfoSnapshot createdBy) {
+    this(
+        trackedEntity, trackedEntityAttribute, previousValue, currentValue, changeLogType, created);
+    this.createdBy = createdBy;
+  }
+
+  private TrackedEntityChangeLog(
+      TrackedEntity trackedEntity,
+      TrackedEntityAttribute trackedEntityAttribute,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created) {
+    this.trackedEntity = trackedEntity;
+    this.trackedEntityAttribute = trackedEntityAttribute;
+    this.previousValue = previousValue;
+    this.currentValue = currentValue;
+    this.changeLogType = changeLogType;
+    this.created = created;
+  }
 }
