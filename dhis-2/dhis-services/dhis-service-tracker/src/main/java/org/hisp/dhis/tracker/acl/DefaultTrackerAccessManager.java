@@ -86,7 +86,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private List<String> canRead(
       UserDetails user, TrackedEntity trackedEntity, List<Program> programs) {
 
-    if (null == trackedEntity) {
+    if (trackedEntity == null) {
       return List.of();
     }
 

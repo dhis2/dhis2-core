@@ -25,35 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.tracker.export.Order;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
-@Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class TrackedEntityChangeLogOperationParams {
-  private Order order;
+public record TrackedEntityChangeLog(
+    @JsonProperty User createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-  public static class TrackedEntityChangeLogOperationParamsBuilder {
+  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
 
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private TrackedEntityChangeLogOperationParamsBuilder order(Order order) {
-      return this;
-    }
-
-    public TrackedEntityChangeLogOperationParamsBuilder orderBy(
-        String field, SortDirection direction) {
-      this.order = new Order(field, direction);
-      return this;
-    }
-  }
+  public record TrackedEntityAttributeChange(
+      @JsonProperty UID attribute,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }
