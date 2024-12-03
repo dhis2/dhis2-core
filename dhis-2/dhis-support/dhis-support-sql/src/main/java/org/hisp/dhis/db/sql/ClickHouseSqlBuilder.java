@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
@@ -226,6 +227,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   public String jsonExtractNested(String json, String... expression) {
     String path = String.join(".", expression);
     return String.format("JSONExtractString(%s, '%s')", json, path);
+  }
+
+  @Override
+  public String cast(String column, DataType dataType) {
+    return switch (dataType) {
+      case NUMERIC -> String.format("toDecimal64(%s, 8)", column); // 8 decimal places precision
+      case BOOLEAN ->
+          String.format("toUInt8(%s) != 0", column); // ClickHouse uses UInt8 for boolean
+      case TEXT -> String.format("toString(%s)", column);
+    };
   }
 
   // Statements
