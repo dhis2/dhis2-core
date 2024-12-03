@@ -82,8 +82,6 @@ public class LoginTest {
   private static Wiser wiser;
   private static String orgUnitUID;
 
-  private static String cookie;
-
   private static void startSMTPServer() {
     smtpPort = findAvailablePort();
     wiser = new Wiser();
@@ -104,8 +102,12 @@ public class LoginTest {
   @AfterEach
   void tearDown() {
     wiser.getMessages().clear();
-    logoutWithCookie(cookie);
-    cookie = null;
+    invalidateAllSession();
+  }
+
+  private void invalidateAllSession() {
+    ResponseEntity<String> response = postWithAdminBasicAuth("/sessions/invalidateAll", null);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 
   @Test
@@ -118,7 +120,7 @@ public class LoginTest {
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
 
-    cookie = extractSessionCookie(loginResponse);
+    String cookie = extractSessionCookie(loginResponse);
 
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
@@ -142,7 +144,7 @@ public class LoginTest {
 
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
-    cookie = extractSessionCookie(loginResponse);
+    String cookie = extractSessionCookie(loginResponse);
 
     // Verify session
     ResponseEntity<String> getResponse = getWithCookie("/me", cookie);
@@ -214,7 +216,7 @@ public class LoginTest {
 
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
-    cookie = extractSessionCookie(loginResponse);
+    String cookie = extractSessionCookie(loginResponse);
 
     // Verify session
     ResponseEntity<String> meResponse = getWithCookie("/me", cookie);
@@ -378,7 +380,7 @@ public class LoginTest {
     ResponseEntity<LoginResponse> firstResponse =
         restTemplate.postForEntity(dhis2Server + url, null, LoginResponse.class);
     HttpHeaders headersFirstResponse = firstResponse.getHeaders();
-    cookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
+    String cookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
 
     // Do a valid login request with the first cookie, check that we get redirected to the first
     // cached URL
@@ -420,7 +422,7 @@ public class LoginTest {
     HttpEntity<LoginRequest> frequestEntity = new HttpEntity<>(floginRequest, fheaders);
     ResponseEntity<LoginResponse> firstResponse =
         restTemplate.postForEntity(dhis2Server + url, frequestEntity, LoginResponse.class);
-    cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
+    String cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
 
     HttpHeaders getHeaders = new HttpHeaders();
     getHeaders.set("Cookie", cookie);

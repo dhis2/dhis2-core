@@ -60,6 +60,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
@@ -560,12 +561,15 @@ public class UserController
   }
 
   @PostMapping("/{uid}/listSessions")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseBody
   public Map<String, String> listSessions(@PathVariable("uid") String uid) {
     List<SessionInformation> sessionInformation = userService.listSessions(uid);
     return sessionInformation.stream()
         .collect(
-            Collectors.toMap(SessionInformation::getSessionId, s -> String.valueOf(s.isExpired())));
+            Collectors.toMap(
+                s -> HashUtils.hashSHA1(s.getSessionId().getBytes()),
+                s -> String.valueOf(s.isExpired())));
   }
 
   /**

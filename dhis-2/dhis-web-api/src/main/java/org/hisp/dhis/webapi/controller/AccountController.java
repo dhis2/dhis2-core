@@ -52,6 +52,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -580,7 +581,9 @@ public class AccountController {
     List<SessionInformation> sessionInformation = userService.listSessions(userDetails);
     return sessionInformation.stream()
         .collect(
-            Collectors.toMap(SessionInformation::getSessionId, s -> String.valueOf(s.isExpired())));
+            Collectors.toMap(
+                s -> HashUtils.hashSHA1(s.getSessionId().getBytes()),
+                s -> String.valueOf(s.isExpired())));
   }
 
   // ---------------------------------------------------------------------
