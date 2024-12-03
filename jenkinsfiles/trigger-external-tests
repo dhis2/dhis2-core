@@ -137,7 +137,7 @@ pipeline {
                     def repos = ['dhis2/line-listing-app', 'dhis2/aggregate-data-entry-app']
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
-                        instance_url: "$INSTANCE_URL"
+                        instance_url: "https://test.e2e.dhis2.org/analytics-2.41/"
                     ]
                     
                     repos.each { repo ->
