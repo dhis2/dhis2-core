@@ -34,6 +34,9 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SqlExceptionUtils {
+
+  private static final String PG_TABLE_NOT_EXISTING = "42P01";
+
   public static final String ERR_MSG_TABLE_NOT_EXISTING =
       "Query failed, likely because the requested analytics table does not exist: ";
 
@@ -52,7 +55,14 @@ public class SqlExceptionUtils {
    */
   public static boolean relationDoesNotExist(SQLException ex) {
     if (ex != null) {
-      return Optional.of(ex).map(SQLException::getSQLState).filter("42P01"::equals).isPresent();
+      return Optional.of(ex)
+              .map(SQLException::getSQLState)
+              .filter(PG_TABLE_NOT_EXISTING::equals)
+              .isPresent()
+          || Optional.of(ex)
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("Table") && m.contains("does not exist in database"))
+              .isPresent();
     }
 
     return false;
