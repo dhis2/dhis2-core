@@ -75,7 +75,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -105,7 +104,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -121,7 +119,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
@@ -216,7 +213,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 tea ->
                     AnalyticsTableColumn.builder()
                         .name(tea.getUid())
-                        .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
+                        .dataType(getColumnType(tea.getValueType(), spatialSupport))
                         .selectExpression(
                             castBasedOnType(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
@@ -270,7 +267,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           " cast(${columnName} as ${type})",
           Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
     }
-    if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
+    if (valueType.isGeo() && spatialSupport && sqlBuilder.supportsGeospatialData()) {
       return replace(
           """
           \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',

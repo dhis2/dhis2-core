@@ -81,7 +81,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -99,7 +98,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  protected final List<AnalyticsTableColumn> fixedColumns;
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -110,7 +109,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider,
@@ -124,7 +122,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider,
@@ -141,9 +138,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     log.info(
-        "Get tables using earliest: {}, spatial support: {}",
-        params.getFromDate(),
-        isSpatialSupport());
+        "Get tables using earliest: {}, spatial support: {}", params.getFromDate(), spatialSupport);
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
@@ -487,7 +482,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
+    DataType dataType = getColumnType(dataElement.getValueType(), spatialSupport);
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
@@ -531,7 +526,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
 
-    if (isSpatialSupport()) {
+    if (spatialSupport) {
       String fromType = "ou.geometry " + fromClause;
       String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
 

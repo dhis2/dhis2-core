@@ -57,7 +57,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -74,7 +73,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider,
@@ -88,7 +86,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsExportSettings,
         periodDataProvider,
@@ -164,7 +161,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           columnExpression);
     } else if (valueType.isDate()) {
       return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
-    } else if (valueType.isGeo() && isSpatialSupport()) {
+    } else if (valueType.isGeo() && spatialSupport) {
       return String.format(
           """
           ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
@@ -254,7 +251,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+    DataType dataType = getColumnType(attribute.getValueType(), spatialSupport);
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
     String dataFilterClause = getDataFilterClause(attribute);
     String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
@@ -290,7 +287,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     String fromClause =
         qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
 
-    if (isSpatialSupport()) {
+    if (spatialSupport) {
       String selectExpression = "ou.geometry " + fromClause;
       String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
       columns.add(

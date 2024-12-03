@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -83,7 +82,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
@@ -94,7 +92,6 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Slf4j
-@RequiredArgsConstructor
 public abstract class AbstractJdbcTableManager implements AnalyticsTableManager {
   /**
    * Matches the following patterns:
@@ -139,8 +136,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  protected final DatabaseInfoProvider databaseInfoProvider;
-
   protected final JdbcTemplate jdbcTemplate;
 
   protected final AnalyticsTableSettings analyticsTableSettings;
@@ -149,14 +144,34 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final SqlBuilder sqlBuilder;
 
-  protected Boolean spatialSupport;
+  protected final boolean spatialSupport;
 
-  protected boolean isSpatialSupport() {
-    if (spatialSupport == null) {
-      spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    }
-
-    return spatialSupport && sqlBuilder.supportsGeospatialData();
+  protected AbstractJdbcTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingsProvider settingsProvider,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsTableSettings analyticsTableSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder) {
+    this.idObjectManager = idObjectManager;
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
+    this.settingsProvider = settingsProvider;
+    this.dataApprovalLevelService = dataApprovalLevelService;
+    this.resourceTableService = resourceTableService;
+    this.tableHookService = tableHookService;
+    this.partitionManager = partitionManager;
+    this.jdbcTemplate = jdbcTemplate;
+    this.analyticsTableSettings = analyticsTableSettings;
+    this.periodDataProvider = periodDataProvider;
+    this.sqlBuilder = sqlBuilder;
+    this.spatialSupport = isSpatialSupport(analyticsTableSettings, sqlBuilder);
   }
 
   /**
@@ -741,6 +756,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Indicates whether spatial support is available.
+   *
+   * @param settings the {@link AnalyticsTableSettings}.
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return true if spatial support is available.
+   */
+  protected boolean isSpatialSupport(AnalyticsTableSettings settings, SqlBuilder sqlBuilder) {
+    return settings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  }
 
   /**
    * Executes a SQL statement silently without throwing any exceptions. Instead exceptions are

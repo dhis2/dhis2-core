@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.ValueType;
@@ -49,7 +50,7 @@ class AbstractEventJdbcTableManagerTest {
 
   @BeforeEach
   public void beforeEach() {
-    manager.spatialSupport = true;
+    when(manager.isSpatialSupport(any(), any())).thenReturn(true);
   }
 
   @Test
@@ -124,8 +125,6 @@ class AbstractEventJdbcTableManagerTest {
 
   @Test
   void testGetSelectExpressionGeometry() {
-    when(manager.isSpatialSupport()).thenReturn(Boolean.TRUE);
-
     String expected =
         """
         ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (eventdatavalues #>> '{C6bh7GevJfH, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""";
