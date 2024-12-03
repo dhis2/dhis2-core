@@ -110,7 +110,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -123,7 +123,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         tableHookService,
         partitionManager,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);

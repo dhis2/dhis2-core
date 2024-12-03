@@ -74,7 +74,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
       JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -87,7 +87,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         tableHookService,
         partitionManager,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }

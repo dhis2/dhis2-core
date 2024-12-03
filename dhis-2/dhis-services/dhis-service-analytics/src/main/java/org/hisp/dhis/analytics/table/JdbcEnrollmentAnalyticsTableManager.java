@@ -76,7 +76,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -89,7 +89,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         tableHookService,
         partitionManager,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);

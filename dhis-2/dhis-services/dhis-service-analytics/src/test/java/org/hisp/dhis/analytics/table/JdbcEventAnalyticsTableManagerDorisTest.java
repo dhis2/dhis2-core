@@ -71,8 +71,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,15 +96,13 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Mock private SystemSettings settings;
 
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
-
   @Mock private JdbcTemplate jdbcTemplate;
+
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private ResourceTableService resourceTableService;
 
   @Mock private PeriodDataProvider periodDataProvider;
-
-  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
 
@@ -141,7 +137,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   void setUp() {
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
     when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
@@ -149,8 +144,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     DataElement deA = createDataElement('A', ValueType.TEXT, AggregationType.SUM);
