@@ -34,7 +34,6 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -50,12 +49,6 @@ class AbstractEventJdbcTableManagerTest {
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @InjectMocks private JdbcEventAnalyticsTableManager manager;
-
-  @BeforeEach
-  public void beforeEach() {
-    when(settings.isSpatialSupport()).thenReturn(true);
-    when(manager.isSpatialSupport()).thenReturn(true);
-  }
 
   @Test
   void testGetCastExpression() {
@@ -129,6 +122,8 @@ class AbstractEventJdbcTableManagerTest {
 
   @Test
   void testGetSelectExpressionGeometry() {
+    when(manager.isSpatialSupport()).thenReturn(true);
+
     String expected =
         """
         ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (eventdatavalues #>> '{C6bh7GevJfH, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""";
