@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -492,7 +493,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
+    String sql = String.format("%s as %s", selectExpression, quote(dataElement.getUid()));
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
@@ -533,7 +534,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
+      String geoSql = getOrgUnitSelectExpression(dataElement, fromType, dataFilterClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -546,7 +547,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataFilterClause);
+    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -624,31 +625,24 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Retyrns a select statement for the given select expression.
+   * Returns a select statement for the given data element with value type org unit.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
    * @return a select expression.
    */
-  private String getSelectForInsert(
+  private String getOrgUnitSelectExpression(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
-    String sqlTemplate =
-        dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "${selectExpression}${closingParentheses} as ${uid}";
-
+    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
+    String prts = getClosingParentheses(selectExpression);
     return replaceQualify(
-        sqlTemplate,
+        "(select ${selectExpression} ${dataFilterClause})${closingParentheses} as ${uid}",
         Map.of(
-            "selectExpression",
-            selectExpression,
-            "dataClause",
-            dataFilterClause,
-            "closingParentheses",
-            getClosingParentheses(selectExpression),
-            "uid",
-            quote(dataElement.getUid())));
+            "selectExpression", selectExpression,
+            "dataFilterClause", dataFilterClause,
+            "closingParentheses", prts,
+            "uid", quote(dataElement.getUid())));
   }
 
   /**
