@@ -162,7 +162,7 @@ public class CategoryOptionCombo extends BaseDimensionalItemObject
 
   @Override
   public boolean isDefault() {
-    return categoryCombo != null && DEFAULT_NAME.equals(categoryCombo.getName());
+    return DEFAULT_NAME.equals(name);
   }
 
   /**
