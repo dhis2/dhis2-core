@@ -188,11 +188,15 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataWrite(user, trackedEntity.getTrackedEntityType())) {
       errors.add(
-              "User has no data write access to tracked entity type: " + trackedEntity.getTrackedEntityType().getUid());
+          "User has no data write access to tracked entity type: "
+              + trackedEntity.getTrackedEntityType().getUid());
     }
 
-    if ( trackedEntity.getOrganisationUnit() != null && !organisationUnitService.isInUserHierarchy(user,  trackedEntity.getOrganisationUnit())) {
-      errors.add("User has no write access to organisation unit: " +  trackedEntity.getOrganisationUnit().getUid());
+    if (trackedEntity.getOrganisationUnit() != null
+        && !organisationUnitService.isInUserHierarchy(user, trackedEntity.getOrganisationUnit())) {
+      errors.add(
+          "User has no write access to organisation unit: "
+              + trackedEntity.getOrganisationUnit().getUid());
     }
 
     return errors;

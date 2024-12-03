@@ -618,13 +618,13 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
     ImportSummary importSummary =
-            trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+        trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
     assertEquals(ImportStatus.ERROR, importSummary.getStatus());
     assertEquals(1, importSummary.getImportCount().getIgnored());
     assertEquals(
-            String.format("[User has no write access to organisation unit: %s]",
-                    organisationUnitA.getUid()),
-            importSummary.getDescription());
+        String.format(
+            "[User has no write access to organisation unit: %s]", organisationUnitA.getUid()),
+        importSummary.getDescription());
   }
 
   @Test
@@ -636,13 +636,14 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
     ImportSummary importSummary =
-            trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+        trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
     assertEquals(ImportStatus.ERROR, importSummary.getStatus());
     assertEquals(1, importSummary.getImportCount().getIgnored());
     assertEquals(
-            String.format("[User has no data write access to tracked entity type: %s]",
-                    trackedEntityType.getUid()),
-            importSummary.getDescription());
+        String.format(
+            "[User has no data write access to tracked entity type: %s]",
+            trackedEntityType.getUid()),
+        importSummary.getDescription());
   }
 
   @Test
