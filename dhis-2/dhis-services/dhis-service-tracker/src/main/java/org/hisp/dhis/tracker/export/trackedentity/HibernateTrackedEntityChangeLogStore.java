@@ -92,8 +92,6 @@ public class HibernateTrackedEntityChangeLogStore {
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
 
-    Pair<String, QueryFilter> filter = operationParams.getFilter();
-
     String hql =
         """
                 select tecl.trackedEntity,
@@ -135,6 +133,7 @@ public class HibernateTrackedEntityChangeLogStore {
           """;
     }
 
+    Pair<String, QueryFilter> filter = operationParams.getFilter();
     if (filter != null) {
       String filterField =
           FILTERABLE_FIELDS.entrySet().stream()
