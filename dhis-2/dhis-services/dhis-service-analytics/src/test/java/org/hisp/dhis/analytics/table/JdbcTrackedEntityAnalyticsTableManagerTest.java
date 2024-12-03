@@ -45,7 +45,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Column;
-import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -135,10 +134,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
     when(trackedEntityAttributeService.getProgramTrackedEntityAttributes(List.of(program)))
         .thenReturn(List.of());
-
-    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.LOGGED);
-
-    when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
     when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
