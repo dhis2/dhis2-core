@@ -29,17 +29,29 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityChangeLogService {
   void addTrackedEntityAttributeValueChangeLog(
       TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+
+  void addTrackedEntityChangeLog(
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull TrackedEntityAttribute trackedEntityAttribute,
+      @Nullable String previousValue,
+      @Nullable String currentValue,
+      @Nonnull ChangeLogType changeLogType,
+      @Nonnull String username);
 
   /**
    * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
@@ -52,7 +64,7 @@ public interface TrackedEntityChangeLogService {
   int countTrackedEntityAttributeValueChangeLogs(
       TrackedEntityAttributeValueChangeLogQueryParams params);
 
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity);
 
   /**
    * Retrieves the change log data for a particular tracked entity.
@@ -60,10 +72,10 @@ public interface TrackedEntityChangeLogService {
    * @return the paged change logs of the supplied tracked entity, if any
    */
   Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
+      @Nonnull UID trackedEntityUid,
+      @Nullable UID programUid,
+      @Nonnull TrackedEntityChangeLogOperationParams operationParams,
+      @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**

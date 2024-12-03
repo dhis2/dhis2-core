@@ -27,40 +27,33 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog.TrackedEntityAttributeChange;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams.TrackedEntityChangeLogOperationParamsBuilder;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
+@Mapper(uses = {UIDMapper.class})
+public interface TrackedEntityChangeLogMapper {
 
-class ChangeLogRequestParamsMapper {
-  private ChangeLogRequestParamsMapper() {
-    throw new IllegalStateException("Utility class");
-  }
+  @Mapping(target = "createdBy", source = "trackedEntityChangeLog")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "type", source = "changeLogType")
+  @Mapping(target = "change.attributeValue", source = "trackedEntityChangeLog")
+  TrackedEntityChangeLog map(
+      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
-  static TrackedEntityChangeLogOperationParams map(
-      Set<String> orderableFields, ChangeLogRequestParams requestParams)
-      throws BadRequestException {
-    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
-    validateOrderParams(requestParams.getOrder(), orderableFields);
+  @Mapping(target = "uid", source = "createdBy.uid")
+  @Mapping(target = "username", source = "createdBy.username")
+  @Mapping(target = "firstName", source = "createdBy.firstName")
+  @Mapping(target = "surname", source = "createdBy.surname")
+  User mapUser(
+      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
-    TrackedEntityChangeLogOperationParamsBuilder builder =
-        TrackedEntityChangeLogOperationParams.builder();
-    mapOrderParam(builder, requestParams.getOrder());
-    return builder.build();
-  }
-
-  private static void mapOrderParam(
-      TrackedEntityChangeLogOperationParamsBuilder builder, List<OrderCriteria> orders) {
-    if (orders == null || orders.isEmpty()) {
-      return;
-    }
-
-    orders.forEach(order -> builder.orderBy(order.getField(), order.getDirection()));
-  }
+  @Mapping(target = "attribute", source = "trackedEntityAttribute.uid")
+  @Mapping(target = "previousValue", source = "previousValue")
+  @Mapping(target = "currentValue", source = "currentValue")
+  TrackedEntityAttributeChange mapAttributeChange(
+      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 }
