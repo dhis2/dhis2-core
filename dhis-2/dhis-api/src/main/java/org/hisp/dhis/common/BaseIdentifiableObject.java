@@ -360,7 +360,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
+  @OpenApi.Ignore
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
