@@ -82,7 +82,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -100,7 +99,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  protected final List<AnalyticsTableColumn> fixedColumns;
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -111,9 +110,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -125,9 +123,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
@@ -464,12 +461,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        program.getDataElements().stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getAnalyticsDataElementsWithLegendSet().stream()
+        program.getDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
@@ -570,12 +567,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributes().stream()
+        program.getTrackedEntityAttributes().stream()
             .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+        program.getTrackedEntityAttributesWithLegendSet().stream()
             .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());

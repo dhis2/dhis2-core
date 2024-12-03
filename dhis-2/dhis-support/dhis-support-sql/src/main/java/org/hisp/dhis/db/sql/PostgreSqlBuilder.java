@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -247,6 +248,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String jsonExtractNested(String column, String... expression) {
     return String.format("%s #>> '{%s}'", column, String.join(", ", expression));
+  }
+
+  @Override
+  public String cast(String column, DataType dataType) {
+    return column
+        + switch (dataType) {
+          case NUMERIC -> "::numeric";
+          case BOOLEAN -> "::numeric!=0";
+          case TEXT -> "::text";
+        };
   }
 
   // Statements
