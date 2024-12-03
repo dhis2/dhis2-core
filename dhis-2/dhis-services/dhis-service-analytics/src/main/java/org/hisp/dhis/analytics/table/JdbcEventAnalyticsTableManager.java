@@ -138,7 +138,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     log.info(
-        "Get tables using earliest: {}, spatial support: {}", params.getFromDate(), spatialSupport);
+        "Get tables using earliest: {}, spatial support: {}",
+        params.getFromDate(),
+        isSpatialSupport());
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
@@ -482,7 +484,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    DataType dataType = getColumnType(dataElement.getValueType(), spatialSupport);
+    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
@@ -526,7 +528,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
 
-    if (spatialSupport) {
+    if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
       String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
 

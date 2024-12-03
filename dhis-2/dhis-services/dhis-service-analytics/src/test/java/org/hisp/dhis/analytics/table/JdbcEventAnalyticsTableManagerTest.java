@@ -99,8 +99,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
@@ -129,8 +127,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private SystemSettings settings;
-
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -174,7 +170,6 @@ class JdbcEventAnalyticsTableManagerTest {
   public void setUp() {
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
@@ -357,8 +352,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program program = createProgram('A');
 
     DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
@@ -487,8 +481,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithTrackedEntityAttribute() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program program = createProgram('A');
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
@@ -565,8 +558,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
@@ -614,8 +606,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -663,8 +654,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -881,8 +871,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);

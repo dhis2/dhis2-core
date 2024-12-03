@@ -52,8 +52,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -69,20 +67,34 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @ExtendWith(MockitoExtension.class)
 class JdbcTrackedEntityAnalyticsTableManagerTest {
   @Mock private JdbcTemplate jdbcTemplate;
+
   @Mock private AnalyticsTableSettings analyticsTableSettings;
+
   @Mock private PeriodDataProvider periodDataProvider;
+
   @Mock private SqlBuilder sqlBuilder;
+
   @Mock private PartitionManager partitionManager;
+
   @Mock private SystemSettingsProvider systemSettingsProvider;
+
   @Mock private IdentifiableObjectManager identifiableObjectManager;
+
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Mock private CategoryService categoryService;
+
+  @Mock private AnalyticsTableSettings settings;
+
   @Mock private DataApprovalLevelService dataApprovalLevelService;
+
   @Mock private OrganisationUnitService organisationUnitService;
+
   @Mock private ResourceTableService resourceTableService;
+
   @Mock private AnalyticsTableHookService analyticsTableHookService;
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @InjectMocks private JdbcTrackedEntityAnalyticsTableManager tableManager;
 
@@ -131,10 +143,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.LOGGED);
 
     when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
-
-    DatabaseInfo databaseInfo = mock(DatabaseInfo.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(false);
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(databaseInfo);
 
     List<AnalyticsTable> analyticsTables = tableManager.getAnalyticsTables(params);
 

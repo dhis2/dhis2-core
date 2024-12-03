@@ -141,7 +141,7 @@ public class AnalyticsTableSettings {
    */
   public boolean isSpatialSupport() {
     DatabaseInfo info = databaseInfoProvider.getDatabaseInfo();
-    return info != null ? info.isSpatialSupport() : false;
+    return info != null && info.isSpatialSupport();
   }
 
   /**

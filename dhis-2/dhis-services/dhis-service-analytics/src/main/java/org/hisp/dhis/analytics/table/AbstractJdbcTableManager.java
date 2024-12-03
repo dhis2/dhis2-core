@@ -144,8 +144,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final SqlBuilder sqlBuilder;
 
-  protected final boolean spatialSupport;
-
   protected AbstractJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -171,7 +169,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     this.analyticsTableSettings = analyticsTableSettings;
     this.periodDataProvider = periodDataProvider;
     this.sqlBuilder = sqlBuilder;
-    this.spatialSupport = isSpatialSupport(analyticsTableSettings, sqlBuilder);
   }
 
   /**
@@ -358,6 +355,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Protected supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Indicates whether spatial support is available.
+   *
+   * @return true if spatial support is available.
+   */
+  protected boolean isSpatialSupport() {
+    return analyticsTableSettings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  }
 
   /** Returns the analytics table name. */
   protected String getTableName() {
@@ -756,17 +762,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------
-
-  /**
-   * Indicates whether spatial support is available.
-   *
-   * @param settings the {@link AnalyticsTableSettings}.
-   * @param sqlBuilder the {@link SqlBuilder}.
-   * @return true if spatial support is available.
-   */
-  protected boolean isSpatialSupport(AnalyticsTableSettings settings, SqlBuilder sqlBuilder) {
-    return settings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
-  }
 
   /**
    * Executes a SQL statement silently without throwing any exceptions. Instead exceptions are

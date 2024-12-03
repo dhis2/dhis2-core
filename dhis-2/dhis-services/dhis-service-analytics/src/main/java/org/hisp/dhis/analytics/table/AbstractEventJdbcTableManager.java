@@ -161,7 +161,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           columnExpression);
     } else if (valueType.isDate()) {
       return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
-    } else if (valueType.isGeo() && spatialSupport) {
+    } else if (valueType.isGeo() && isSpatialSupport()) {
       return String.format(
           """
           ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
@@ -251,7 +251,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    DataType dataType = getColumnType(attribute.getValueType(), spatialSupport);
+    DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
     String dataFilterClause = getDataFilterClause(attribute);
     String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
@@ -287,7 +287,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     String fromClause =
         qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
 
-    if (spatialSupport) {
+    if (isSpatialSupport()) {
       String selectExpression = "ou.geometry " + fromClause;
       String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
       columns.add(

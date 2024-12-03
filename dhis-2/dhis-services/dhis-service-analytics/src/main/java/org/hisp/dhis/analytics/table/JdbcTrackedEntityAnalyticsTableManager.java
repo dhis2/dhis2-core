@@ -213,7 +213,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 tea ->
                     AnalyticsTableColumn.builder()
                         .name(tea.getUid())
-                        .dataType(getColumnType(tea.getValueType(), spatialSupport))
+                        .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
                         .selectExpression(
                             castBasedOnType(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
@@ -267,7 +267,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           " cast(${columnName} as ${type})",
           Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
     }
-    if (valueType.isGeo() && spatialSupport && sqlBuilder.supportsGeospatialData()) {
+    if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
       return replace(
           """
           \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
