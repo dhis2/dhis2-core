@@ -1174,8 +1174,8 @@ public final class AnalyticsUtils {
   }
 
   private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
-    if (ex.getCause() != null && ex.getCause() instanceof SQLException) {
-      if (relationDoesNotExist((SQLException) ex.getCause())) {
+    if (ex.getCause() instanceof SQLException sqlexception) {
+      if (relationDoesNotExist(sqlexception)) {
         log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
         throw ex;
       }
