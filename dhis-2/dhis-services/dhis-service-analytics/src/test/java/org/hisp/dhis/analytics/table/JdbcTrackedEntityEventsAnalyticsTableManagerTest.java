@@ -58,7 +58,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -76,21 +75,34 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
+
   @Mock private AnalyticsTableSettings analyticsTableSettings;
+
   @Mock private PeriodDataProvider periodDataProvider;
+
   @Spy private PostgreSqlBuilder sqlBuilder;
+
   @Spy private PostgresAnalyticsSqlBuilder analyticsSqlBuilder;
+
   @Mock private PartitionManager partitionManager;
+
   @Mock private SystemSettingsProvider systemSettingsProvider;
+
   @Mock private IdentifiableObjectManager identifiableObjectManager;
+
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Mock private CategoryService categoryService;
+
   @Mock private DataApprovalLevelService dataApprovalLevelService;
+
   @Mock private OrganisationUnitService organisationUnitService;
+
   @Mock private ResourceTableService resourceTableService;
+
   @Mock private AnalyticsTableHookService analyticsTableHookService;
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @InjectMocks private JdbcTrackedEntityEventsAnalyticsTableManager tableManager;
 
@@ -103,7 +115,6 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
 
   @Test
   void testPopulate() {
-
     TrackedEntityType tet = mock(TrackedEntityType.class);
     when(tet.getUid()).thenReturn("tetUid");
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(tet));

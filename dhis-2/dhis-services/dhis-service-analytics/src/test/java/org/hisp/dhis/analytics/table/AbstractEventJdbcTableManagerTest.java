@@ -30,27 +30,25 @@ package org.hisp.dhis.analytics.table;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class AbstractEventJdbcTableManagerTest {
 
+  @Mock private AnalyticsTableSettings settings;
+
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @InjectMocks private JdbcEventAnalyticsTableManager manager;
-
-  @BeforeEach
-  public void beforeEach() {
-    manager.spatialSupport = true;
-  }
 
   @Test
   void testGetCastExpression() {
@@ -124,7 +122,7 @@ class AbstractEventJdbcTableManagerTest {
 
   @Test
   void testGetSelectExpressionGeometry() {
-    when(manager.isSpatialSupport()).thenReturn(Boolean.TRUE);
+    when(manager.isSpatialSupport()).thenReturn(true);
 
     String expected =
         """

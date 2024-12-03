@@ -83,7 +83,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
@@ -139,8 +138,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  protected final DatabaseInfoProvider databaseInfoProvider;
-
   protected final JdbcTemplate jdbcTemplate;
 
   protected final AnalyticsTableSettings analyticsTableSettings;
@@ -148,16 +145,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   protected final SqlBuilder sqlBuilder;
-
-  protected Boolean spatialSupport;
-
-  protected boolean isSpatialSupport() {
-    if (spatialSupport == null) {
-      spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    }
-
-    return spatialSupport && sqlBuilder.supportsGeospatialData();
-  }
 
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
@@ -343,6 +330,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Protected supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Indicates whether spatial support is available.
+   *
+   * @return true if spatial support is available.
+   */
+  protected boolean isSpatialSupport() {
+    return analyticsTableSettings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  }
 
   /** Returns the analytics table name. */
   protected String getTableName() {
