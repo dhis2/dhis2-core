@@ -688,7 +688,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       return importSummary;
     }
 
-    List<String> errors = trackerAccessManager.canWrite(importOptions.getUser(), daoEntityInstance);
+    List<String> errors = trackerAccessManager.canCreate(importOptions.getUser(), daoEntityInstance);
 
     if (!errors.isEmpty()) {
       return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();

@@ -90,6 +90,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -593,7 +594,10 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testSavePerson() {
+  void shouldPassWhenRegisteringPerson() {
+    trackedEntityType.setSharing(Sharing.builder().publicAccess("rwrw----").build());
+    regularUser.setOrganisationUnits(Set.of(organisationUnitA));
+    injectSecurityContext(regularUser);
     TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
     trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
     trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
@@ -601,6 +605,44 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     ImportSummary importSummary =
         trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+  }
+
+  @Test
+  void shouldFailWhenRegisteringPersonOutsideCaptureScope() {
+
+    trackedEntityType.setSharing(Sharing.builder().publicAccess("rwrw----").build());
+    regularUser.setOrganisationUnits(Set.of(organisationUnitB));
+    injectSecurityContext(regularUser);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
+    trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
+    ImportSummary importSummary =
+            trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+    assertEquals(ImportStatus.ERROR, importSummary.getStatus());
+    assertEquals(1, importSummary.getImportCount().getIgnored());
+    assertEquals(
+            String.format("[User has no write access to organisation unit: %s]",
+                    organisationUnitA.getUid()),
+            importSummary.getDescription());
+  }
+
+  @Test
+  void shouldFailWhenRegisteringPersonWithoutTETypeAccess() {
+    regularUser.setOrganisationUnits(Set.of(organisationUnitB));
+    injectSecurityContext(regularUser);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
+    trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
+    ImportSummary importSummary =
+            trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+    assertEquals(ImportStatus.ERROR, importSummary.getStatus());
+    assertEquals(1, importSummary.getImportCount().getIgnored());
+    assertEquals(
+            String.format("[User has no data write access to tracked entity type: %s]",
+                    trackedEntityType.getUid()),
+            importSummary.getDescription());
   }
 
   @Test

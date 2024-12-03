@@ -173,6 +173,31 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return canWrite(user, trackedEntity, programService.getAllPrograms());
   }
 
+  /**
+   * Check if the user can create the TE. For a regular user, they must have data write permissions
+   * to tracked entity type metadata as well as Capture Access to the Org Unit.
+   *
+   * @return No errors if a user has write access to the TrackedEntityType and to the OrgUnit
+   */
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> canCreate(User user, TrackedEntityInstance trackedEntity) {
+    if (user == null || user.isSuper() || trackedEntity == null) {
+      return List.of();
+    }
+    List<String> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, trackedEntity.getTrackedEntityType())) {
+      errors.add(
+              "User has no data write access to tracked entity type: " + trackedEntity.getTrackedEntityType().getUid());
+    }
+
+    if ( trackedEntity.getOrganisationUnit() != null && !organisationUnitService.isInUserHierarchy(user,  trackedEntity.getOrganisationUnit())) {
+      errors.add("User has no write access to organisation unit: " +  trackedEntity.getOrganisationUnit().getUid());
+    }
+
+    return errors;
+  }
+
   private List<String> canWrite(
       User user, TrackedEntityInstance trackedEntity, List<Program> programs) {
 
