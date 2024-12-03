@@ -602,14 +602,15 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
     trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
+
     ImportSummary importSummary =
         trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
   }
 
   @Test
   void shouldFailWhenRegisteringPersonOutsideCaptureScope() {
-
     trackedEntityType.setSharing(Sharing.builder().publicAccess("rwrw----").build());
     regularUser.setOrganisationUnits(Set.of(organisationUnitB));
     injectSecurityContext(regularUser);
@@ -617,8 +618,10 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
     trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
+
     ImportSummary importSummary =
         trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+
     assertEquals(ImportStatus.ERROR, importSummary.getStatus());
     assertEquals(1, importSummary.getImportCount().getIgnored());
     assertEquals(
@@ -635,8 +638,10 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
     trackedEntityInstance.setOrgUnit(organisationUnitB.getUid());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
+
     ImportSummary importSummary =
         trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
+
     assertEquals(ImportStatus.ERROR, importSummary.getStatus());
     assertEquals(1, importSummary.getImportCount().getIgnored());
     assertEquals(
