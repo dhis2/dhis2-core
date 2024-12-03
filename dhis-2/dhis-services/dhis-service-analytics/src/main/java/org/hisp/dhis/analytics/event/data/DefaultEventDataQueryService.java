@@ -233,7 +233,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return eventQueryParams;
   }
 
-  private void validateQueryParamsForConfidentialAndSkipAnalytics(
+  static void validateQueryParamsForConfidentialAndSkipAnalytics(
       EventQueryParams eventQueryParams) {
     if (eventQueryParams.includeConfidentialOrSkipAnalyticsItems()) {
       return;
@@ -261,7 +261,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         Stream.concat(
                 eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
             .filter(item -> item.getItem().isOfType(DATA_ELEMENT))
-            .filter(this::isSkipAnalytics)
+            .filter(DefaultEventDataQueryService::isSkipAnalytics)
             .map(item -> (DataElement) item.getItem())
             .collect(Collectors.toSet());
 
@@ -283,7 +283,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * @param item the query item
    * @return true if the data element is marked as skip analytics, false otherwise
    */
-  private boolean isSkipAnalytics(QueryItem item) {
+  static boolean isSkipAnalytics(QueryItem item) {
     return Optional.of(item)
         .map(QueryItem::getProgramStage)
         .map(ProgramStage::getProgramStageDataElements)
