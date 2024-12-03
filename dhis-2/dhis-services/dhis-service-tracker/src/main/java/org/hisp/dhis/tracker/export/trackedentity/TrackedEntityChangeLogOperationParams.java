@@ -53,6 +53,11 @@ public class TrackedEntityChangeLogOperationParams {
       return this;
     }
 
+    // Do not remove this unused method. This hides the filter field from the builder which Lombok
+    // does not support. The repeated filter field and private filter method prevent access to
+    // filter
+    // via the builder.
+    // Filter should be added via the filterBy builder methods.
     private TrackedEntityChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
       return this;
     }
