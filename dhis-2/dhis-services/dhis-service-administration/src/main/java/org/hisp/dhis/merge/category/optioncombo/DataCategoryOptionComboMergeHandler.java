@@ -49,6 +49,8 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.CommonDataMergeHandler;
 import org.hisp.dhis.merge.CommonDataMergeHandler.DataValueMergeParams;
 import org.hisp.dhis.merge.MergeRequest;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,6 +66,7 @@ public class DataCategoryOptionComboMergeHandler {
   private final DataValueStore dataValueStore;
   private final DataValueAuditStore dataValueAuditStore;
   private final DataApprovalAuditStore dataApprovalAuditStore;
+  private final EventStore eventStore;
   private final CommonDataMergeHandler commonDataMergeHandler;
 
   public void handleDataValues(
@@ -164,8 +167,15 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   /** */
-  public void handleEvents(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+  public void handleEvents(
+      @Nonnull List<CategoryOptionCombo> sources,
+      @Nonnull CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
+    List<Event> sourceEvents =
+        eventStore.getAllByAttributeOptionCombo(
+            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+    sourceEvents.forEach(e -> e.setAttributeOptionCombo(target));
   }
 
   /** */

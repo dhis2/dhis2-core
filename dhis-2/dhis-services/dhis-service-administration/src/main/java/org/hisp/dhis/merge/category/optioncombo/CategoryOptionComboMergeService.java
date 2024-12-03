@@ -123,7 +123,8 @@ public class CategoryOptionComboMergeService implements MergeService {
         List.of(
             dataMergeHandler::handleDataValues,
             dataMergeHandler::handleDataValueAudits,
-            dataMergeHandler::handleDataApprovalAudits);
+            dataMergeHandler::handleDataApprovalAudits,
+            dataMergeHandler::handleEvents);
   }
 
   /**

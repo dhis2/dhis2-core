@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Abyot Asalefew
@@ -36,4 +38,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface EventStore extends IdentifiableObjectStore<Event> {
 
   List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
+
+  List<Event> getAllByAttributeOptionCombo(Collection<UID> uids);
 }

@@ -79,10 +79,16 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -116,6 +122,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
+  @Autowired private EventStore eventStore;
   private Category cat1;
   private Category cat2;
   private Category cat3;
@@ -141,6 +148,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private DataElement de1;
   private DataElement de2;
   private DataElement de3;
+  private Program program;
 
   @BeforeEach
   public void setUp() {
@@ -194,6 +202,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     de2 = createDataElement('2');
     de3 = createDataElement('3');
     manager.save(List.of(de1, de2, de3));
+
+    program = createProgram('q');
+    manager.save(program);
   }
 
   // -----------------------------
@@ -1198,6 +1209,98 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceAudits.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+  }
+
+  // -----------------------------
+  // -- Event eventDataValues --
+  // -----------------------------
+  @Test
+  @DisplayName(
+      "Event attributeOptionCombo references to source COCs are replaced with target COC, source COCs are not deleted")
+  void eventMergeTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    manager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    manager.save(enrollment);
+    ProgramStage stage = createProgramStage('s', 2);
+    manager.save(stage);
+
+    Event e1 = createEvent(stage, enrollment, ou1);
+    e1.setAttributeOptionCombo(cocSource1);
+    Event e2 = createEvent(stage, enrollment, ou1);
+    e2.setAttributeOptionCombo(cocSource2);
+    Event e3 = createEvent(stage, enrollment, ou1);
+    e3.setAttributeOptionCombo(cocTarget);
+    Event e4 = createEvent(stage, enrollment, ou1);
+    e4.setAttributeOptionCombo(cocRandom);
+
+    manager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(false);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<Event> eventSources =
+        eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocSource1), UID.of(cocSource2)));
+    List<Event> targetEvents = eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocTarget)));
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source COC refs");
+    assertEquals(3, targetEvents.size(), "Expect 3 entries with target COC ref");
+    assertEquals(9, allCategoryOptionCombos.size(), "Expect 9 COCs present");
+    assertTrue(allCategoryOptionCombos.containsAll(List.of(cocSource1, cocSource2, cocTarget)));
+  }
+
+  @Test
+  @DisplayName(
+      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
+  void eventMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    manager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    manager.save(enrollment);
+    ProgramStage stage = createProgramStage('s', 2);
+    manager.save(stage);
+
+    Event e1 = createEvent(stage, enrollment, ou1);
+    e1.setAttributeOptionCombo(cocSource1);
+    Event e2 = createEvent(stage, enrollment, ou1);
+    e2.setAttributeOptionCombo(cocSource2);
+    Event e3 = createEvent(stage, enrollment, ou1);
+    e3.setAttributeOptionCombo(cocTarget);
+    Event e4 = createEvent(stage, enrollment, ou1);
+    e4.setAttributeOptionCombo(cocRandom);
+
+    manager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<Event> eventSources =
+        eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocSource1), UID.of(cocSource2)));
+    List<Event> targetEvents = eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocTarget)));
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source COC refs");
+    assertEquals(3, targetEvents.size(), "Expect 3 entries with target COC ref");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 9 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "source COC should not be present");
   }
 
   private MergeParams getMergeParams() {

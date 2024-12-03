@@ -801,13 +801,14 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   @Override
   public List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
     return getQuery(
             """
             select da from DataApproval da
             join da.attributeOptionCombo coc
             where coc.uid in :uids
             """)
-        .setParameter("uids", uids)
+        .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }
 
