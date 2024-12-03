@@ -96,7 +96,7 @@ public class LoginTest {
     dhis2ServerApi = TestConfiguration.get().baseUrl();
     dhis2Server = TestConfiguration.get().baseUrl().replace("/api", "/");
     // Create a new org unit for the new users
-    orgUnitUID = createOrgUnit(objectMapper);
+    orgUnitUID = createOrgUnit();
   }
 
   @AfterEach
@@ -119,11 +119,8 @@ public class LoginTest {
 
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-
-    String cookie = extractSessionCookie(loginResponse);
-
-    // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
+    String cookie = extractSessionCookie(loginResponse);
 
     // Verify session cookie works
     ResponseEntity<String> meResponse = getWithCookie("/me", cookie);
@@ -141,8 +138,6 @@ public class LoginTest {
     // First Login
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-
-    // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
     String cookie = extractSessionCookie(loginResponse);
 
@@ -207,14 +202,11 @@ public class LoginTest {
   private static void testLoginWithEmail2FA() throws IOException, MessagingException {
     String username = CodeGenerator.generateCode(8).toLowerCase();
     String password = "Test123###...";
-    // Create a new user with the superuser role
     String newUserUID = createSuperuser(username, password, orgUnitUID);
 
     // First Login
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-
-    // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
     String cookie = extractSessionCookie(loginResponse);
 
@@ -223,7 +215,6 @@ public class LoginTest {
     assertEquals(HttpStatus.OK, meResponse.getStatusCode());
     JsonNode jsonResponse = new ObjectMapper().readTree(meResponse.getBody());
     String userUID = jsonResponse.get("id").asText();
-
     assertEquals(newUserUID, userUID);
 
     // Enable Email 2FA in system settings, set up SMTP server
@@ -261,8 +252,8 @@ public class LoginTest {
         "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
 
     // Enable 2FA with enrollment 2FA code sent via email
-    String enrollCode = extract2FACodeFromLatestEmail();
-    Map<String, String> enable2FAReqBody = Map.of("code", enrollCode);
+    String enroll2FACode = extract2FACodeFromLatestEmail();
+    Map<String, String> enable2FAReqBody = Map.of("code", enroll2FACode);
     ResponseEntity<String> enable2FAResp = postWithCookie("/2fa/enable", enable2FAReqBody, cookie);
     assertMessage(enable2FAResp, "Two factor authentication was enabled successfully");
 
@@ -416,32 +407,35 @@ public class LoginTest {
 
     RestTemplate restTemplate = new RestTemplate(requestFactory);
 
-    HttpHeaders fheaders = new HttpHeaders();
-    LoginRequest floginRequest =
-        LoginRequest.builder().username("username").password("password").build();
-    HttpEntity<LoginRequest> frequestEntity = new HttpEntity<>(floginRequest, fheaders);
+    // Do an invalid login and capture response cookie
     ResponseEntity<LoginResponse> firstResponse =
-        restTemplate.postForEntity(dhis2Server + url, frequestEntity, LoginResponse.class);
+        restTemplate.postForEntity(
+            dhis2Server + url,
+            new HttpEntity<>(
+                LoginRequest.builder().username("username").password("password").build(),
+                new HttpHeaders()),
+            LoginResponse.class);
     String cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
 
-    HttpHeaders getHeaders = new HttpHeaders();
-    getHeaders.set("Cookie", cookie);
-    LoginRequest loginRequest =
-        LoginRequest.builder().username("admin").password("district").build();
-    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
-
-    ResponseEntity<LoginResponse> loginResponseResponseEntity =
+    // Do a valid login request with the first cookie, so we keep the session
+    HttpHeaders cookieHeaders = new HttpHeaders();
+    cookieHeaders.set("Cookie", cookie);
+    ResponseEntity<LoginResponse> secondResponse =
         restTemplate.postForEntity(
-            dhis2ServerApi + "/auth/login", requestEntity, LoginResponse.class);
-    cookie = extractSessionCookie(loginResponseResponseEntity);
+            dhis2ServerApi + "/auth/login",
+            new HttpEntity<>(
+                LoginRequest.builder().username("admin").password("district").build(),
+                cookieHeaders),
+            LoginResponse.class);
+    cookie = extractSessionCookie(secondResponse);
 
+    // Do a GET request to the URL we want to test
     HttpHeaders headers = new HttpHeaders();
     headers.set("Cookie", cookie);
     HttpEntity<String> entity = new HttpEntity<>(headers);
     ResponseEntity<String> redirResp =
         restTemplate.exchange(
             dhis2Server + "/dhis-web-dashboard", HttpMethod.GET, entity, String.class);
-
     HttpHeaders respHeaders = redirResp.getHeaders();
     List<String> location = respHeaders.get("Location");
     assertNotNull(location);
@@ -546,21 +540,6 @@ public class LoginTest {
     }
   }
 
-  private static ResponseEntity<String> logoutWithCookie(String cookie) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Cookie", cookie);
-    HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
-    try {
-      return restTemplate.exchange(
-          dhis2Server + "/dhis-web-commons-security/logout.action",
-          HttpMethod.GET,
-          requestEntity,
-          String.class);
-    } catch (HttpClientErrorException e) {
-      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
-    }
-  }
-
   private static void assertLoginSuccess(
       ResponseEntity<LoginResponse> response, String expectedRedirectUrl) {
     assertNotNull(response);
@@ -578,7 +557,7 @@ public class LoginTest {
     return cookies.get(0);
   }
 
-  private static String createOrgUnit(ObjectMapper objectMapper) throws JsonProcessingException {
+  private static String createOrgUnit() throws JsonProcessingException {
     ResponseEntity<String> jsonStringResponse =
         postWithAdminBasicAuth(
             "/organisationUnits",
@@ -633,17 +612,13 @@ public class LoginTest {
 
   private static String getTextFromMessage(Message message) throws MessagingException, IOException {
     if (message.isMimeType("text/plain")) {
-      // Simple text message
       return message.getContent().toString();
     } else if (message.isMimeType("multipart/*")) {
-      // Multipart message
       MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
       return getTextFromMimeMultipart(mimeMultipart);
     } else if (message.isMimeType("message/rfc822")) {
-      // Nested message (forwarded email)
       return getTextFromMessage((Message) message.getContent());
     } else {
-      // Other content types (e.g., text/html)
       Object content = message.getContent();
       if (content instanceof String) {
         return (String) content;
@@ -656,23 +631,17 @@ public class LoginTest {
       throws MessagingException, IOException {
     StringBuilder result = new StringBuilder();
     int count = mimeMultipart.getCount();
-
     for (int i = 0; i < count; i++) {
       BodyPart bodyPart = mimeMultipart.getBodyPart(i);
       if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
-        // Skip attachments
         continue;
       }
       if (bodyPart.isMimeType("text/plain")) {
-        // Plain text part
         result.append(bodyPart.getContent().toString());
       } else if (bodyPart.isMimeType("text/html")) {
-        // HTML part (optional: strip HTML tags if needed)
         String html = (String) bodyPart.getContent();
-        // Use a library like JSoup to convert HTML to plain text if necessary
         result.append(html);
       } else if (bodyPart.getContent() instanceof MimeMultipart) {
-        // Nested multipart
         result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
       }
     }

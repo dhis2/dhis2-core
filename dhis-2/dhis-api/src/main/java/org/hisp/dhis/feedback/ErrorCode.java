@@ -205,7 +205,7 @@ public enum ErrorCode {
   E3029("User must start 2FA enrollment first"),
   E3030(
       "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API"),
-  E3031("Two factor authentication is not enabled"),
+  E3031("User has not enabled 2FA"),
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
@@ -215,7 +215,9 @@ public enum ErrorCode {
   E3045("Email based 2FA is not enabled in the system settings"),
   E3046("TOTP 2FA is not enabled in the system settings"),
   E3047("User is not in TOTP 2FA enrollment mode"),
-  E3048("User's two factor can only be set via dedicated endpoints"),
+  E3048("User has not email 2FA enabled"),
+  E3049("Sending 2FA code with email failed"),
+  E3050("2FA code can not be null or empty"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

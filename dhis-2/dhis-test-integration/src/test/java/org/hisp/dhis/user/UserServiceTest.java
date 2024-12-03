@@ -54,8 +54,10 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.PasswordManager;
@@ -635,7 +637,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDisableTwoFaWithAdminUser() throws ForbiddenException {
+  void testDisableTwoFaWithAdminUser()
+      throws ForbiddenException, NotFoundException, ConflictException {
     User userToModify = createAndAddUser("A");
     twoFactorAuthService.enrollTOTP2FA(userToModify);
     userService.updateUser(userToModify);
@@ -646,7 +649,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDisableTwoFaWithManageUser() throws ForbiddenException {
+  void testDisableTwoFaWithManageUser()
+      throws ForbiddenException, ConflictException, NotFoundException {
     User userToModify = createAndAddUser("A");
     twoFactorAuthService.enrollTOTP2FA(userToModify);
 

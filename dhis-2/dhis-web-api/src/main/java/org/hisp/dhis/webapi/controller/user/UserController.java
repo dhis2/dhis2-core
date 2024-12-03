@@ -573,18 +573,16 @@ public class UserController
   }
 
   /**
-   * "Disable two-factor authentication for the user with the given uid."
+   * Disable 2FA for the user with the given uid.
    *
-   * <p>
-   *
-   * @param uid The uid of the user to disable two-factor authentication for.
-   * @param currentUser This is the user that is currently logged in.
+   * @param uid The uid of the user to disable 2FA for.
+   * @param currentUser This is the user currently logged in.
    * @return A WebMessage object.
    */
   @PostMapping("/{uid}/twoFA/disabled")
   @ResponseBody
   public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
     List<ErrorReport> errors = new ArrayList<>();
     twoFactorAuthService.privileged2FADisable(currentUser, uid, errors::add);
 

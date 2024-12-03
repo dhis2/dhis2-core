@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.twofa.TwoFactorAuthUtils.isValid2FACode;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
@@ -133,12 +134,13 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
   }
 
   private void validateTwoFactor(
-      UserDetails userDetails, TwoFactorWebAuthenticationDetails authDetails) {
+      UserDetails userDetails, TwoFactorWebAuthenticationDetails authDetails)
+      throws ConflictException {
     String code = StringUtils.deleteWhitespace(authDetails.getCode());
     validate2FACode(code, userDetails);
   }
 
-  private void validate2FACode(String code, UserDetails userDetails) {
+  private void validate2FACode(String code, UserDetails userDetails) throws ConflictException {
     TwoFactorType type = userDetails.getTwoFactorType();
 
     // Send 2FA code via Email if the user has email 2FA enabled and the code is empty.
@@ -148,7 +150,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     }
 
     try {
-      if (!isValid2FACode(code, type, userDetails.getSecret())) {
+      if (!isValid2FACode(type, code, userDetails.getSecret())) {
         throw new TwoFactorAuthenticationException("Invalid 2FA code");
       }
     } catch (Exception e) {

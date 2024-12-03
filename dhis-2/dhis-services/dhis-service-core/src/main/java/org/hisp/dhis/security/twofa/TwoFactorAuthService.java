@@ -28,9 +28,10 @@
 package org.hisp.dhis.security.twofa;
 
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
-import static org.hisp.dhis.user.UserService.DEFAULT_APPLICATION_TITLE;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -39,14 +40,15 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -70,34 +72,35 @@ public class TwoFactorAuthService {
   public static final String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
   public static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 3600000;
 
-  private final UserService userService;
   private final SystemSettingsProvider settingsProvider;
+  private final UserService userService;
   private final MessageSender emailMessageSender;
   private final UserSettingsService userSettingsService;
   private final I18nManager i18nManager;
-  private final AclService aclService;
 
   /**
    * Verify the 2FA code for the user.
    *
-   * @param user The user that is being verified.
-   * @param code The 2FA code that is being verified.
-   * @return A boolean value.
+   * @param user The user
+   * @param code The 2FA code
+   * @return true if the code is invalid, false if the code is valid.
    */
-  public boolean isInvalid2FACode(User user, String code) {
-    return !TwoFactorAuthUtils.isValid2FACode(code, user.getTwoFactorType(), user.getSecret());
+  public boolean isInvalid2FACode(@Nonnull User user, @Nonnull String code) {
+    return !TwoFactorAuthUtils.isValid2FACode(user.getTwoFactorType(), code, user.getSecret());
   }
 
   /**
-   * Enroll user in time-based one-time password (TOTP) based two-factor authentication.
+   * Enroll user in time-based one-time password (TOTP) 2FA authentication.
    *
-   * @param user The user object that is being enrolled.
+   * @param user The user that is being enrolled.
    */
   @Transactional
-  public void enrollTOTP2FA(User user) {
+  public void enrollTOTP2FA(@Nonnull User user) throws ConflictException {
+    if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
+      throw new ConflictException(ErrorCode.E3046);
+    }
     if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll again");
+      throw new ConflictException(ErrorCode.E3022);
     }
     user.setTwoFactorType(TwoFactorType.ENROLLING_TOTP);
     String totpSeed = Base32.encode(generateSecureRandomBytes(20));
@@ -106,22 +109,24 @@ public class TwoFactorAuthService {
   }
 
   /**
-   * Enroll user in email-based two-factor authentication.
+   * Enroll user in email-based 2FA authentication.
    *
-   * @param user The user object that is being enrolled.
+   * @param user The user that is being enrolled.
    */
   @Transactional
-  public void enrollEmail2FA(User user) {
+  public void enrollEmail2FA(@Nonnull User user) throws ConflictException {
+    if (!settingsProvider.getCurrentSettings().getEmail2FAEnabled()) {
+      throw new ConflictException(ErrorCode.E3045);
+    }
     if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll again");
+      throw new ConflictException(ErrorCode.E3022);
     }
     if (!userService.isEmailVerified(user)) {
-      throw new IllegalStateException("User's email is not verified, verify email first");
+      throw new ConflictException(ErrorCode.E3043);
     }
-    user.setTwoFactorType(TwoFactorType.ENROLLING_EMAIL);
     Email2FACode email2FACode = generateEmail2FACode();
     user.setSecret(email2FACode.encodedCode());
+    user.setTwoFactorType(TwoFactorType.ENROLLING_EMAIL);
 
     send2FACodeWithEmailSender(user, email2FACode.code());
 
@@ -129,30 +134,30 @@ public class TwoFactorAuthService {
   }
 
   /**
-   * Enable 2FA authentication for the user, if the user is in the 2FA enrolling state.
+   * Enable 2FA authentication for the user if the user is in the 2FA enrolling state. The user must
+   * provide the correct 2FA code to enable 2FA. This proves that the user has access to the 2FA
+   * secret (TOTP) or has access to the verified email (Email-based 2FA).
    *
-   * @param user The user to enable 2FA authentication.
-   * @param code The TOTP code that the user generated with the authenticator app, or the email code
-   *     sent to the user.
+   * @param user The user to enable 2FA authentication for.
+   * @param code The 2FA code that the user generated with the authenticator app (TOTP), or the
+   *     email based 2FA code sent to the user's email address.
    */
   @Transactional
-  public void enable2FA(User user, String code) {
+  public void enable2FA(@Nonnull User user, @Nonnull String code)
+      throws ConflictException, ForbiddenException {
     if (user.getTwoFactorType().isEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll and enable again");
+      throw new ConflictException(ErrorCode.E3022);
     }
     if (!user.getTwoFactorType().isEnrolling()) {
-      throw new IllegalStateException("User has not enrolled in 2FA, call enrollment first");
+      throw new ConflictException(ErrorCode.E3029);
     }
-
     if (isInvalid2FACode(user, code)) {
-      throw new IllegalStateException("Invalid 2FA code");
+      throw new ForbiddenException(ErrorCode.E3023);
     }
-
     setEnabled2FA(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
-  public void setEnabled2FA(User user, UserDetails actingUser) {
+  public void setEnabled2FA(@Nonnull User user, @Nonnull UserDetails actingUser) {
     user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
     userService.updateUser(user, actingUser);
   }
@@ -165,16 +170,17 @@ public class TwoFactorAuthService {
    * @param code The 2FA code
    */
   @Transactional
-  public void disable2FA(User user, String code) {
+  public void disable2FA(@Nonnull User user, @Nonnull String code)
+      throws ConflictException, ForbiddenException {
     if (!user.isTwoFactorEnabled()) {
-      throw new IllegalStateException("Two factor is not enabled, enable first");
+      throw new ConflictException(ErrorCode.E3031);
     }
     if (userService.is2FADisableEndpointLocked(user.getUsername())) {
-      throw new IllegalStateException("Too many failed disable attempts, try again later");
+      throw new ConflictException(ErrorCode.E3042);
     }
-
     if (isInvalid2FACode(user, code)) {
-      throw new IllegalStateException("Invalid 2FA code");
+      userService.registerFailed2FADisableAttempt(CurrentUserUtil.getCurrentUsername());
+      throw new ForbiddenException(ErrorCode.E3023);
     }
 
     reset2FA(user, CurrentUserUtil.getCurrentUserDetails());
@@ -182,21 +188,7 @@ public class TwoFactorAuthService {
     userService.registerSuccess2FADisable(user.getUsername());
   }
 
-  /**
-   * Disable 2FA authentication for the user.
-   *
-   * @param user The user that you want to reset.
-   */
-  @Transactional
-  public void reset2FA(User user, UserDetails actingUser) {
-    user.setSecret(null);
-    user.setTwoFactorType(null);
-    userService.updateUser(user, actingUser);
-  }
-
-  @Transactional
-  public void reset2FA(UserDetails userDetails, UserDetails actingUser) {
-    User user = userService.getUserByUsername(userDetails.getUsername());
+  private void reset2FA(@Nonnull User user, @Nonnull UserDetails actingUser) {
     user.setSecret(null);
     user.setTwoFactorType(null);
     userService.updateUser(user, actingUser);
@@ -211,41 +203,43 @@ public class TwoFactorAuthService {
    * @param errors A Consumer<ErrorReport> object that will be called if there is an error.
    */
   @Transactional
-  public void privileged2FADisable(User currentUser, String userUid, Consumer<ErrorReport> errors)
-      throws ForbiddenException {
+  public void privileged2FADisable(
+      @Nonnull User currentUser, @Nonnull String userUid, @Nonnull Consumer<ErrorReport> errors)
+      throws ForbiddenException, NotFoundException {
     User user = userService.getUser(userUid);
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      throw new NotFoundException(ErrorCode.E6201);
     }
-
     if (currentUser.getUid().equals(user.getUid())
         || !userService.canCurrentUserCanModify(currentUser, user, errors)) {
-      throw new ForbiddenException(ErrorCode.E3021.getMessage());
+      throw new ForbiddenException(ErrorCode.E3021);
     }
-
-    reset2FA(user, UserDetails.fromUser(currentUser));
+    UserDetails actingUser = UserDetails.fromUser(currentUser);
+    if (actingUser == null) {
+      throw new NotFoundException(ErrorCode.E6201);
+    }
+    reset2FA(user, actingUser);
   }
 
   /**
    * Email the user with a new 2FA code.
    *
-   * @param userDetails The user that is being sent the 2FA code.
+   * @param userDetails The user to send the 2FA code.
    */
   @Transactional
-  public void sendEmail2FACode(UserDetails userDetails) {
+  public void sendEmail2FACode(@Nonnull UserDetails userDetails) throws ConflictException {
     User user = userService.getUserByUsername(userDetails.getUsername());
     if (user == null) {
-      throw new IllegalArgumentException("User not found");
+      return;
     }
     if (!user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has not enabled 2FA , enable before trying to send code");
+      throw new ConflictException(ErrorCode.E3031);
     }
     if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL)) {
-      throw new IllegalStateException("User has not email 2FA enabled");
+      throw new ConflictException(ErrorCode.E3048);
     }
     if (!userService.isEmailVerified(user)) {
-      throw new IllegalStateException("User's email is not verified");
+      throw new ConflictException(ErrorCode.E3043);
     }
 
     Email2FACode email2FACode = generateEmail2FACode();
@@ -265,14 +259,13 @@ public class TwoFactorAuthService {
     return new Email2FACode(code, encodedCode);
   }
 
-  private void send2FACodeWithEmailSender(User user, String code) {
-    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
-    if (applicationTitle == null || applicationTitle.isEmpty()) {
-      applicationTitle = DEFAULT_APPLICATION_TITLE;
-    }
+  private void send2FACodeWithEmailSender(@Nonnull User user, @Nonnull String code)
+      throws ConflictException {
     I18n i18n =
         i18nManager.getI18n(
             userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
+
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
 
     Map<String, Object> vars = new HashMap<>();
     vars.put("applicationTitle", applicationTitle);
@@ -290,7 +283,30 @@ public class TwoFactorAuthService {
         emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
 
     if (EmailResponse.SENT != status.getResponseObject()) {
-      throw new IllegalStateException("Sending 2FA code with email failed");
+      throw new ConflictException(ErrorCode.E3049);
     }
+  }
+
+  public @Nonnull byte[] generateQRCode(@Nonnull User currentUser) throws ConflictException {
+    if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
+      throw new ConflictException(ErrorCode.E3046);
+    }
+    if (!currentUser.getTwoFactorType().equals(TwoFactorType.ENROLLING_TOTP)) {
+      throw new ConflictException(ErrorCode.E3047);
+    }
+
+    String totpURL =
+        TwoFactorAuthUtils.generateTOTP2FAURL(
+            settingsProvider.getCurrentSettings().getApplicationTitle(),
+            currentUser.getSecret(),
+            currentUser.getUsername());
+
+    List<ErrorCode> errorCodes = new ArrayList<>();
+    byte[] qrCode = TwoFactorAuthUtils.generateQRCode(totpURL, 200, 200, errorCodes::add);
+    // Check for errors in the QR code generation
+    if (!errorCodes.isEmpty()) {
+      throw new ConflictException(errorCodes.get(0));
+    }
+    return qrCode;
   }
 }

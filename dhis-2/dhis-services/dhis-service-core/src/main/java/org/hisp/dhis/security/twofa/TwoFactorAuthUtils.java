@@ -28,9 +28,7 @@
 package org.hisp.dhis.security.twofa;
 
 import static org.hisp.dhis.feedback.ErrorCode.E3026;
-import static org.hisp.dhis.feedback.ErrorCode.E3028;
 
-import com.google.common.base.Strings;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
@@ -41,6 +39,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +70,7 @@ public class TwoFactorAuthUtils {
    * @return PNG image as a byte array.
    */
   public static byte[] generateQRCode(
-      String qrContent, int width, int height, Consumer<ErrorCode> errorCode) {
+      @Nonnull String qrContent, int width, int height, @Nonnull Consumer<ErrorCode> errorCode) {
     try {
       BitMatrix bitMatrix =
           new MultiFormatWriter()
@@ -95,15 +94,21 @@ public class TwoFactorAuthUtils {
    * Generate TOTP URL-based appName and {@link User}, this is used as input to the TOTP generator.
    */
   public static String generateTOTP2FAURL(
-      String appName, String secret, String username, Consumer<ErrorCode> errorCode) {
-    if (Strings.isNullOrEmpty(secret)) {
-      errorCode.accept(E3028);
-    }
+      @Nonnull String appName, @Nonnull String secret, @Nonnull String username) {
     String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty(appName)).replace(" ", "%20");
     return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", app, username, secret, app);
   }
 
-  public static boolean isValid2FACode(String code, TwoFactorType type, String secret) {
+  /**
+   * Validate the 2FA code based on the given type.
+   *
+   * @param type {@link TwoFactorType}
+   * @param code 2FA code
+   * @param secret 2FA secret
+   * @return true if the code is valid, false otherwise.
+   */
+  public static boolean isValid2FACode(
+      @Nonnull TwoFactorType type, @Nonnull String code, @Nonnull String secret) {
     if (TwoFactorType.TOTP == type || TwoFactorType.ENROLLING_TOTP == type) {
       return TwoFactorAuthUtils.verifyTOTP2FACode(code, secret);
     } else if (TwoFactorType.EMAIL == type || TwoFactorType.ENROLLING_EMAIL == type) {
@@ -112,37 +117,34 @@ public class TwoFactorAuthUtils {
     return false;
   }
 
-  public static boolean verifyEmail2FACode(String code, String secret) {
-    if (Strings.isNullOrEmpty(code)) {
-      throw new IllegalArgumentException("Code can not be null or empty");
-    }
-    if (Strings.isNullOrEmpty(secret)) {
-      throw new IllegalArgumentException("Secret can not be null or empty");
-    }
-
-    String[] codeAndTTL = PIPE_SPLIT_PATTERN.split(secret);
-    secret = codeAndTTL[0];
-    long ttl = Long.parseLong(codeAndTTL[1]);
-
+  /**
+   * Verify the email based2FA code.
+   *
+   * @param code 2FA code
+   * @param secretAndTTL secret and TTL string separated by a pipe character.
+   * @return true if the code is valid, false otherwise.
+   */
+  public static boolean verifyEmail2FACode(@Nonnull String code, @Nonnull String secretAndTTL) {
+    String[] parts = PIPE_SPLIT_PATTERN.split(secretAndTTL);
+    String secret = parts[0];
+    long ttl = Long.parseLong(parts[1]);
     if (ttl < System.currentTimeMillis()) {
       return false;
     }
-
     return code.equals(secret);
   }
 
-  public static boolean verifyTOTP2FACode(String code, String secret) {
-    if (Strings.isNullOrEmpty(code)) {
-      throw new IllegalArgumentException("Code can not be null or empty");
-    }
-    if (Strings.isNullOrEmpty(secret)) {
-      throw new IllegalArgumentException("Secret can not be null or empty");
-    }
-
+  /**
+   * Verify the TOTP 2FA code.
+   *
+   * @param code 2FA code
+   * @param secret 2FA secret
+   * @return true if the code is valid, false otherwise.
+   */
+  public static boolean verifyTOTP2FACode(@Nonnull String code, @Nonnull String secret) {
     if (!LongValidator.getInstance().isValid(code)) {
       return false;
     }
-
     Totp totp = new Totp(secret);
     return totp.verify(code);
   }

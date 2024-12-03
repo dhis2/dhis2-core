@@ -52,6 +52,7 @@ import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.message.MessageSender;
@@ -98,11 +99,9 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-
     switchToNewUser(user);
 
     assertStatus(HttpStatus.OK, POST("/2fa/enrollTOTP2FA"));
-
     User enrolledUser = userService.getUserByUsername(user.getUsername());
     assertNotNull(enrolledUser.getSecret());
     assertTrue(enrolledUser.getSecret().matches("^[a-zA-Z0-9]{32}$"));
@@ -111,13 +110,10 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     HttpResponse res = GET("/2fa/showQRCodeAsJson");
     assertStatus(HttpStatus.OK, res);
     assertNotNull(res.content());
-
     JsonMixed content = res.content();
     String base32Secret = content.getString("base32Secret").string();
     String base64QRImage = content.getString("base64QRImage").string();
-
     String codeFromQR = decodeBase64QRAndExtractBase32Secret(base64QRImage);
-
     assertEquals(base32Secret, codeFromQR);
 
     String code = new Totp(base32Secret).now();
@@ -126,22 +122,21 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   private String decodeBase64QRAndExtractBase32Secret(String base64QRCode)
       throws IOException, NotFoundException, ChecksumException, FormatException, DecodingException {
-
+    // Decode the base64 encoded QR code (PNG image)
     byte[] imageBytes = Base64.getDecoder().decode(base64QRCode);
-
-    // Read the image from the decoded bytes
+    // Create the image object from the byte array
     BufferedImage qrImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
     assertNotNull(qrImage, "QR image could not be loaded");
 
-    // Decode QR code
+    // Decode QR code URL from the image
     String qrCodeContent = decodeQRCode(qrImage);
     assertNotNull(qrCodeContent, "QR code content could not be decoded");
 
-    // content look like this: otpauth://totp/username?secret=base32secret&issuer=issuer
+    // content looks like this: otpauth://totp/username?secret=base32secret&issuer=issuer
     String secret =
         qrCodeContent.substring(qrCodeContent.indexOf("?") + 8, qrCodeContent.indexOf("&"));
 
-    // Extract the Base32-encoded secret bytes, check that it is 20 bytes long, which is in 160 bits
+    // Extract the Base32-encoded secret bytes, check that it is 20 bytes long, which is 160 bits
     // of entropy, which is the RFC 4226 recommendation.
     byte[] decodedSecretBytes = Base32.decode(secret);
     assertEquals(20, decodedSecretBytes.length);
@@ -154,12 +149,9 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     // Convert the BufferedImage to a ZXing binary bitmap source
     LuminanceSource source = new BufferedImageLuminanceSource(qrImage);
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
-    // Use the QRCodeReader to decode the QR code
-    QRCodeReader qrCodeReader = new QRCodeReader();
-    Result result = qrCodeReader.decode(bitmap);
-
-    return result.getText();
+    // Use the ZXing's QRCodeReader to decode the QR code image
+    Result code = new QRCodeReader().decode(bitmap);
+    return code.getText();
   }
 
   @Test
@@ -171,41 +163,29 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     user.setEmail(emailAddress);
     user.setVerifiedEmail(emailAddress);
     userService.addUser(user);
-
     switchToNewUser(user);
 
     assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
-
     User enrolledUser = userService.getUserByUsername(user.getUsername());
     assertNotNull(enrolledUser.getSecret());
     assertTrue(enrolledUser.getSecret().matches("^[0-9]{6}\\|\\d+$"));
     assertSame(TwoFactorType.ENROLLING_EMAIL, enrolledUser.getTwoFactorType());
 
     List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(emailAddress);
-    for (OutboundMessage message : messagesByEmail) {
-      log.error("message: " + message.getText());
-    }
     assertFalse(messagesByEmail.isEmpty());
     String email = messagesByEmail.get(0).getText();
+
+    // Extract the 6-digit code from the email
     String code = email.substring(email.indexOf("code:\n") + 6, email.indexOf("code:\n") + 12);
-
-    log.error("email: " + email);
-
-    List<User> allUsers = userService.getAllUsers();
-    for (User allUser : allUsers) {
-      log.error("User: " + allUser.getUsername() + " - " + allUser.getSecret());
-    }
-
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
   }
 
   @Test
-  void testEnableTOTP2FA() {
+  void testEnableTOTP2FA() throws ConflictException {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
     twoFactorAuthService.enrollTOTP2FA(user);
-
     switchToNewUser(user);
 
     String code = new Totp(user.getSecret()).now();
@@ -213,31 +193,32 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testEnableEmail2FA() {
+  void testEnableEmail2FA() throws ConflictException {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     user.setVerifiedEmail("valid.x@email.com");
     userService.addUser(user);
     twoFactorAuthService.enrollEmail2FA(user);
-
     switchToNewUser(user);
 
     User enrolledUser = userService.getUserByUsername(user.getUsername());
     String secret = enrolledUser.getSecret();
     assertNotNull(secret);
     String[] codeAndTTL = secret.split("\\|");
-    String code = codeAndTTL[0];
+    // Check that the secret is a 6-digit code followed by a TTL in milliseconds
+    assertTrue(codeAndTTL[0].matches("^[0-9]{6}$"));
+    assertTrue(codeAndTTL[1].matches("^\\d+$"));
 
+    String code = codeAndTTL[0];
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
   }
 
   @Test
-  void testEnableTOTP2FAWrongCode() {
+  void testEnableTOTP2FAWrongCode() throws ConflictException {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
     twoFactorAuthService.enrollTOTP2FA(user);
-
     switchToNewUser(user);
 
     assertEquals(
@@ -248,17 +229,15 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testQr2FAConflictMustDisableFirst() {
+  void testQr2FAConflictMustDisableFirst() throws ConflictException {
     assertNull(getCurrentUser().getSecret());
 
     User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     twoFactorAuthService.enrollTOTP2FA(user);
-
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     assertNotNull(user.getSecret());
 
     String code = new Totp(user.getSecret()).now();
-
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
 
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
@@ -273,37 +252,31 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testDisableTOTP2FA() {
+  void testDisableTOTP2FA() throws ConflictException {
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
-
     userService.addUser(newUser);
     twoFactorAuthService.enrollTOTP2FA(newUser);
     twoFactorAuthService.setEnabled2FA(newUser, new SystemUser());
-
     switchToNewUser(newUser);
 
     String code = new Totp(newUser.getSecret()).now();
-
     assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
   }
 
   @Test
-  void testDisableEmail2FA() {
+  void testDisableEmail2FA() throws ConflictException {
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
     newUser.setVerifiedEmail("valid.y@email.com");
-
     userService.addUser(newUser);
     twoFactorAuthService.enrollEmail2FA(newUser);
     twoFactorAuthService.setEnabled2FA(newUser, new SystemUser());
-
     switchToNewUser(newUser);
 
     User enabledUser = userService.getUserByUsername(newUser.getUsername());
     String secretAndTTL = enabledUser.getSecret();
     String code = secretAndTTL.split("\\|")[0];
-
     assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
 
     User disabledUser = userService.getUserByUsername(newUser.getUsername());
@@ -320,17 +293,15 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testDisable2FATooManyTimes() {
+  void testDisable2FATooManyTimes() throws ConflictException {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
     twoFactorAuthService.enrollTOTP2FA(user);
-
     switchToNewUser(user);
 
     String code = new Totp(user.getSecret()).now();
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
-
     assertStatus(HttpStatus.FORBIDDEN, POST("/2fa/disable", "{'code':'333333'}"));
 
     for (int i = 0; i < 3; i++) {
