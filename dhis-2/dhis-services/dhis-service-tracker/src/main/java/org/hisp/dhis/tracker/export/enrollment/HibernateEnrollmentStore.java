@@ -193,7 +193,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql += hlp.whereAnd() + "en.program.uid = '" + params.getProgram().getUid() + "'";
     }
 
-    // TODO(DHIS2-17961) This will be removed when placeholder enrollments will not exist anymore
+    // TODO(DHIS2-17961) This will be removed when dummy enrollments will not exist anymore
     hql += hlp.whereAnd() + "en.program.programType = '" + ProgramType.WITH_REGISTRATION + "'";
 
     if (params.hasEnrollmentStatus()) {
