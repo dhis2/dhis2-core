@@ -133,7 +133,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   }
 
   private <T> void logIfChanged(
-      String fieldName,
+      String field,
       Function<Event, T> valueExtractor,
       Function<T, String> formatter,
       Event currentEvent,
@@ -148,27 +148,27 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
       EventChangeLog eventChangeLog =
           new EventChangeLog(
-              event, null, fieldName, currentValue, newValue, changeLogType, new Date(), userName);
+              event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
 
       hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
     }
   }
 
   private ChangeLogType getChangeLogType(String oldValue, String newValue) {
-    if (isNewField(oldValue, newValue)) {
+    if (isFieldCreated(oldValue, newValue)) {
       return ChangeLogType.CREATE;
-    } else if (isUpdateField(oldValue, newValue)) {
+    } else if (isFieldUpdated(oldValue, newValue)) {
       return ChangeLogType.UPDATE;
     } else {
       return ChangeLogType.DELETE;
     }
   }
 
-  private boolean isNewField(String originalValue, String payloadValue) {
+  private boolean isFieldCreated(String originalValue, String payloadValue) {
     return originalValue == null && payloadValue != null;
   }
 
-  private boolean isUpdateField(String originalValue, String payloadValue) {
+  private boolean isFieldUpdated(String originalValue, String payloadValue) {
     return originalValue != null && payloadValue != null;
   }
 
