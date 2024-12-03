@@ -140,8 +140,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
     when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.LOGGED);
-
     when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
     List<AnalyticsTable> analyticsTables = tableManager.getAnalyticsTables(params);
