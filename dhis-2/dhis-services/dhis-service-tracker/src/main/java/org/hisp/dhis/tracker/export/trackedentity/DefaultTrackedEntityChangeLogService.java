@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -171,6 +172,11 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return hibernateTrackedEntityChangeLogStore.getOrderableFields();
+  }
+
+  @Override
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return hibernateTrackedEntityChangeLogStore.getFilterableFields();
   }
 
   private Program validateProgram(String programUid) throws NotFoundException {

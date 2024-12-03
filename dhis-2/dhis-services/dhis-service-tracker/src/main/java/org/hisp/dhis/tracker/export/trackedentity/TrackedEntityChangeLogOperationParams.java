@@ -31,6 +31,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -39,6 +41,7 @@ import org.hisp.dhis.tracker.export.Order;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TrackedEntityChangeLogOperationParams {
   private Order order;
+  private Pair<String, QueryFilter> filter;
 
   public static class TrackedEntityChangeLogOperationParamsBuilder {
 
@@ -50,9 +53,22 @@ public class TrackedEntityChangeLogOperationParams {
       return this;
     }
 
+    // Do not remove this unused method. This hides the filter field from the builder which Lombok
+    // does not support. The repeated filter field and private filter method prevent access to
+    // filter via the builder.
+    // Filter should be added via the filterBy builder methods.
+    private TrackedEntityChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
+      return this;
+    }
+
     public TrackedEntityChangeLogOperationParamsBuilder orderBy(
         String field, SortDirection direction) {
       this.order = new Order(field, direction);
+      return this;
+    }
+
+    public TrackedEntityChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
+      this.filter = Pair.of(field, filter);
       return this;
     }
   }
