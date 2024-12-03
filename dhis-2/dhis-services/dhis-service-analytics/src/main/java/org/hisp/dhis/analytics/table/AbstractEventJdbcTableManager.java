@@ -57,7 +57,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -74,9 +73,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -88,9 +86,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }

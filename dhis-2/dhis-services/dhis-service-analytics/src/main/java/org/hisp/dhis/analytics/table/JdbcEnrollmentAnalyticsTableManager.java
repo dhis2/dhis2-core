@@ -53,7 +53,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -76,9 +75,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -90,9 +88,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
