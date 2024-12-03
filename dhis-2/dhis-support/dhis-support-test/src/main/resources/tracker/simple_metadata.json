@@ -2000,6 +2000,21 @@
             "id": "ja8NY4PW7Xm"
           },
           "valueType": "TEXT"
+        },
+        {
+          "displayInList": true,
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "id": "EIVt4l5vIOa",
+          "name": "Person Given name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "toUpdate000"
+          },
+          "trackedEntityType": {
+            "id": "ja8NY4PW7Xm"
+          },
+          "valueType": "TEXT"
         }
       ],
       "user": {
