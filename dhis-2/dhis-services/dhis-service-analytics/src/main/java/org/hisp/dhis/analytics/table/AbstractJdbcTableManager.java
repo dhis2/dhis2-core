@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -92,6 +93,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractJdbcTableManager implements AnalyticsTableManager {
   /**
    * Matches the following patterns:
@@ -143,33 +145,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   protected final SqlBuilder sqlBuilder;
-
-  protected AbstractJdbcTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingsProvider settingsProvider,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      PartitionManager partitionManager,
-      JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsTableSettings,
-      PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
-    this.idObjectManager = idObjectManager;
-    this.organisationUnitService = organisationUnitService;
-    this.categoryService = categoryService;
-    this.settingsProvider = settingsProvider;
-    this.dataApprovalLevelService = dataApprovalLevelService;
-    this.resourceTableService = resourceTableService;
-    this.tableHookService = tableHookService;
-    this.partitionManager = partitionManager;
-    this.jdbcTemplate = jdbcTemplate;
-    this.analyticsTableSettings = analyticsTableSettings;
-    this.periodDataProvider = periodDataProvider;
-    this.sqlBuilder = sqlBuilder;
-  }
 
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
