@@ -37,11 +37,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
@@ -263,25 +261,11 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   }
 
   /**
-   * Returns all data elements which are part of the stages of this program and is not skipped in
-   * analytics.
-   */
-  public Set<DataElement> getAnalyticsDataElements() {
-    return programStages.stream()
-        .map(ProgramStage::getProgramStageDataElements)
-        .flatMap(Collection::stream)
-        .filter(Objects::nonNull)
-        .filter(psde -> !psde.getSkipAnalytics())
-        .map(ProgramStageDataElement::getDataElement)
-        .collect(toSet());
-  }
-
-  /**
    * Returns data elements which are part of the stages of this program which have a legend set and
    * is of numeric value type.
    */
-  public Set<DataElement> getAnalyticsDataElementsWithLegendSet() {
-    return getAnalyticsDataElements().stream()
+  public Set<DataElement> getDataElementsWithLegendSet() {
+    return getDataElements().stream()
         .filter(de -> de.hasLegendSet() && de.isNumericType())
         .collect(toSet());
   }
@@ -297,22 +281,12 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   }
 
   /**
-   * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-   * getAttributes() to access the persisted attribute list.
-   */
-  public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes() {
-    return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool())
-        .collect(Collectors.toList());
-  }
-
-  /**
    * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and
    * is of numeric value type.
    */
-  public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet() {
+  public List<TrackedEntityAttribute> getTrackedEntityAttributesWithLegendSet() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType())
+        .filter(a -> a.hasLegendSet() && a.isNumericType())
         .collect(Collectors.toList());
   }
 

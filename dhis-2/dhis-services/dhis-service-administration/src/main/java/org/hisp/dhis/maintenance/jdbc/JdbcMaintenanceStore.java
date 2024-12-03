@@ -299,6 +299,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from relationshipitem where trackedentityid in " + teSelect,
           "delete from trackedentityattributevalue where trackedentityid in " + teSelect,
           "delete from trackedentityattributevalueaudit where trackedentityid in " + teSelect,
+          "delete from trackedentitychangelog where trackedentityid in " + teSelect,
           "delete from trackedentityprogramowner where trackedentityid in " + teSelect,
           "delete from programtempowner where trackedentityid in " + teSelect,
           "delete from programtempownershipaudit where trackedentityid in " + teSelect,

@@ -89,6 +89,7 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -107,6 +108,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -125,6 +127,8 @@ class ExpressionServiceTest extends TestBase {
   @Mock private I18nManager i18nManager;
 
   @Mock private CacheProvider cacheProvider;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   private DefaultExpressionService target;
 
@@ -248,7 +252,8 @@ class ExpressionServiceTest extends TestBase {
             dimensionService,
             idObjectManager,
             i18nManager,
-            cacheProvider);
+            cacheProvider,
+            sqlBuilder);
 
     categoryOptionA = new CategoryOption("Under 5");
     categoryOptionB = new CategoryOption("Over 5");

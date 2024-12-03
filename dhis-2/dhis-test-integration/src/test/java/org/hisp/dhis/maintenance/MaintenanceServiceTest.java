@@ -28,6 +28,7 @@
 package org.hisp.dhis.maintenance;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -81,7 +82,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -327,7 +327,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedEnrollmentLinkedToATrackedEntityDataValueAudit()
+  void testDeleteSoftDeletedEnrollmentLinkedToAnEventDataValueChangeLog()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
@@ -337,10 +337,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setAttributeOptionCombo(coA);
     eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
-    TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
-        new TrackedEntityDataValueChangeLog(
-            dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(trackedEntityDataValueChangeLog);
+    eventChangeLogService.addDataValueChangeLog(
+        eventA, dataElement, "", "value", ChangeLogType.UPDATE, getCurrentUsername());
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
     manager.delete(enrollment);

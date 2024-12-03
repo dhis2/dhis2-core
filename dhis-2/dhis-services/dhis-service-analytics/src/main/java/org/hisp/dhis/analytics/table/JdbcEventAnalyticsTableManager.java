@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -81,7 +82,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -99,7 +99,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  protected final List<AnalyticsTableColumn> fixedColumns;
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -110,9 +110,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -124,9 +123,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
@@ -463,12 +461,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        program.getDataElements().stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getAnalyticsDataElementsWithLegendSet().stream()
+        program.getDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
@@ -492,7 +490,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
+    String sql = String.format("%s as %s", selectExpression, quote(dataElement.getUid()));
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
@@ -533,7 +531,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
+      String geoSql = getOrgUnitSelectExpression(dataElement, fromType, dataFilterClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -546,7 +544,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataFilterClause);
+    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -569,12 +567,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributes().stream()
+        program.getTrackedEntityAttributes().stream()
             .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+        program.getTrackedEntityAttributesWithLegendSet().stream()
             .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());
@@ -624,31 +622,24 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Retyrns a select statement for the given select expression.
+   * Returns a select statement for the given data element with value type org unit.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
    * @return a select expression.
    */
-  private String getSelectForInsert(
+  private String getOrgUnitSelectExpression(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
-    String sqlTemplate =
-        dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "${selectExpression}${closingParentheses} as ${uid}";
-
+    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
+    String prts = getClosingParentheses(selectExpression);
     return replaceQualify(
-        sqlTemplate,
+        "(select ${selectExpression} ${dataFilterClause})${closingParentheses} as ${uid}",
         Map.of(
-            "selectExpression",
-            selectExpression,
-            "dataClause",
-            dataFilterClause,
-            "closingParentheses",
-            getClosingParentheses(selectExpression),
-            "uid",
-            quote(dataElement.getUid())));
+            "selectExpression", selectExpression,
+            "dataFilterClause", dataFilterClause,
+            "closingParentheses", prts,
+            "uid", quote(dataElement.getUid())));
   }
 
   /**

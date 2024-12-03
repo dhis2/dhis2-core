@@ -330,18 +330,23 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().getValue().equalsIgnoreCase(event))
         .findFirst()
-        .flatMap(
-            e ->
-                e.getDataValues().stream()
-                    .filter(
-                        dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
-                    .findFirst())
-        .ifPresent(dv -> dv.setValue(newValue));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+        .ifPresent(
+            e -> {
+              e.getDataValues().stream()
+                  .filter(
+                      dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
+                  .findFirst()
+                  .ifPresent(dataValue -> dataValue.setValue(newValue));
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
         .findFirst()
@@ -349,8 +354,11 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
             e -> {
               e.setOccurredAt(newDate);
               e.setScheduledAt(newDate);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
             });
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
   private Event getEvent(String uid) {
