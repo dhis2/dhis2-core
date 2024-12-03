@@ -633,7 +633,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     injectSecurityContext(regularUser);
     TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
     trackedEntityInstance.setTrackedEntityInstance(CodeGenerator.generateUid());
-    trackedEntityInstance.setOrgUnit(organisationUnitA.getUid());
+    trackedEntityInstance.setOrgUnit(organisationUnitB.getUid());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType.getUid());
     ImportSummary importSummary =
         trackedEntityInstanceService.addTrackedEntityInstance(trackedEntityInstance, null);
