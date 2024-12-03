@@ -193,13 +193,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userA);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), UID.of(programA), defaultParams));
-    assertEquals("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
   @Test
@@ -248,16 +246,9 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityA1, programA, organisationUnitB, false, true);
 
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), null, defaultParams));
-
-    assertEquals(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA1.getUid()),
-        exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1), null, defaultParams));
   }
 
   @Test
@@ -295,13 +286,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             programA));
 
     injectSecurityContextUser(userB);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), UID.of(programA), defaultParams));
-    assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
   @Test
@@ -318,13 +307,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             programA));
 
     injectSecurityContextUser(userB);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), UID.of(programA), defaultParams));
-    assertEquals(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED, exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
   @Test
@@ -351,13 +338,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             programB));
 
     injectSecurityContextUser(userB);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), UID.of(programB), defaultParams));
-    assertEquals(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED, exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA1), UID.of(programB), defaultParams));
   }
 
   @Test
@@ -382,13 +367,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userA);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), UID.of(programA), defaultParams));
-    assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
   @Test
@@ -408,15 +391,9 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotHaveAccessWhenProgramNotProvidedAndTEEnrolledAndNoAccessToTEOwner() {
     injectSecurityContextUser(userB);
 
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), null, defaultParams));
-    assertEquals(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA1.getUid()),
-        exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1), null, defaultParams));
   }
 
   @Test
@@ -433,15 +410,9 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotHaveAccessWhenProgramNotProvidedAndTENotEnrolledAndNoAccessToTeRegistrationUnit() {
     injectSecurityContextUser(userA);
 
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityB1), null, defaultParams));
-    assertEquals(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityB1.getUid()),
-        exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB1), null, defaultParams));
   }
 
   @Test

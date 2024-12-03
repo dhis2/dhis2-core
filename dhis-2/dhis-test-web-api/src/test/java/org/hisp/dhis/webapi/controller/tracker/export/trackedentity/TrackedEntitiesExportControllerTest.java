@@ -29,6 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
@@ -41,68 +45,129 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import java.util.function.Supplier;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
-import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBase {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final String EVENT_OCCURRED_AT = "2023-03-23T12:23:00.000";
+
+  @Autowired private RenderService renderService;
+
+  @Autowired private ObjectBundleService objectBundleService;
+
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
+
+  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private User importUser;
+
+  protected ObjectBundle setUpMetadata(String path) throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertNoErrors(objectBundleValidationService.validate(bundle));
+    objectBundleService.commit(bundle);
+    return bundle;
+  }
+
+  protected TrackerObjects fromJson(String path) throws IOException {
+    return renderService.fromJson(
+        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
+  }
+
+  @BeforeAll
+  void setUp() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+
+    manager.flush();
+    manager.clear();
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    switchContextToUser(importUser);
+  }
+
   @Autowired private FileResourceService fileResourceService;
-
-  @Autowired private CategoryService categoryService;
-
-  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -114,8 +179,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   private TrackedEntityType trackedEntityType;
 
-  private DataElement dataElement;
-
   private User owner;
 
   private User user;
@@ -126,10 +189,8 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
   private int uniqueAttributeCharCounter = 0;
 
   @BeforeEach
-  void setUp() {
+  void setUpToBeMigrated() {
     owner = makeUser("owner");
-
-    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -166,8 +227,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void getTrackedEntitiesNeedsProgramOrType() {
-    injectSecurityContextUser(user);
-
     assertEquals(
         "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
         GET("/tracker/trackedEntities").error(HttpStatus.BAD_REQUEST).getMessage());
@@ -175,8 +234,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void getTrackedEntitiesNeedsProgramOrTrackedEntityType() {
-    this.switchContextToUser(user);
-
     assertEquals(
         "Either `program`, `trackedEntityType` or `trackedEntities` should be specified",
         GET("/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid())
@@ -187,7 +244,7 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
   @Test
   void shouldReturnEmptyListWhenGettingTrackedEntitiesWithNoMatchingParams() {
     LocalDate futureDate = LocalDate.now().plusYears(1);
-    JsonList<JsonTrackedEntity> instances =
+    JsonList<JsonTrackedEntity> trackedEntities =
         GET("/tracker/trackedEntities?trackedEntityType="
                 + trackedEntityType.getUid()
                 + "&ouMode=ALL"
@@ -197,13 +254,12 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
             .content(HttpStatus.OK)
             .getList("trackedEntities", JsonTrackedEntity.class);
 
-    assertEquals(0, instances.size());
+    assertEquals(0, trackedEntities.size());
   }
 
   @Test
   void getTrackedEntityById() {
-    TrackedEntity te = trackedEntity();
-    this.switchContextToUser(user);
+    TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
 
     JsonTrackedEntity json =
         GET("/tracker/trackedEntities/{id}", te.getUid())
@@ -225,8 +281,7 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void getTrackedEntityByIdWithFields() {
-    TrackedEntity te = trackedEntity();
-    this.switchContextToUser(user);
+    TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
 
     JsonTrackedEntity json =
         GET("/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit", te.getUid())
@@ -240,95 +295,75 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly() {
-    TrackedEntity trackedEntity = trackedEntity();
-    enroll(trackedEntity, program, orgUnit);
-
-    TrackedEntityAttribute tea =
-        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.NUMBER, "12");
-    addProgramAttributeValue(trackedEntity, program, ValueType.NUMBER, "24");
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+    // TETA
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
 
     JsonList<JsonAttribute> attributes =
-        GET(
-                "/tracker/trackedEntities/{id}?fields=attributes[attribute,value]",
-                trackedEntity.getUid())
-            .content(HttpStatus.OK)
-            .getList("attributes", JsonAttribute.class);
-
-    assertAll(
-        "include tracked entity type attributes only if no program query param is given",
-        () ->
-            assertEquals(
-                1,
-                attributes.size(),
-                () -> String.format("expected 1 attribute instead got %s", attributes)),
-        () -> assertEquals(tea.getUid(), attributes.get(0).getAttribute()),
-        () -> assertEquals("12", attributes.get(0).getValue()));
-  }
-
-  @Test
-  void getTrackedEntityByIdWithAttributesReturnsAllAttributes() {
-    TrackedEntity trackedEntity = trackedEntity();
-    enroll(trackedEntity, program, orgUnit);
-
-    TrackedEntityAttribute tea =
-        addTrackedEntityTypeAttributeValue(trackedEntity, ValueType.NUMBER, "12");
-    TrackedEntityAttribute tea2 =
-        addProgramAttributeValue(trackedEntity, program, ValueType.NUMBER, "24");
-
-    JsonList<JsonAttribute> attributes =
-        GET(
-                "/tracker/trackedEntities/{id}?program={id}&fields=attributes[attribute,value]",
-                trackedEntity.getUid(),
-                program.getUid())
+        GET("/tracker/trackedEntities/{id}?fields=attributes[attribute,value]", te.getUid())
             .content(HttpStatus.OK)
             .getList("attributes", JsonAttribute.class);
 
     assertContainsAll(
-        List.of(tea.getUid(), tea2.getUid()), attributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("12", "24"), attributes, JsonAttribute::getValue);
+        List.of(tea1.getUid(), tea2.getUid()), attributes, JsonAttribute::getAttribute);
+    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::getValue);
+  }
+
+  @Test
+  void getTrackedEntityByIdWithAttributesReturnsAllAttributes() {
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+    assertNotEmpty(te.getEnrollments(), "test expects a tracked entity with an enrollment");
+    String program = te.getEnrollments().iterator().next().getProgram().getUid();
+    // TETA
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
+    // PTEA
+    TrackedEntityAttribute tea3 = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
+
+    JsonList<JsonAttribute> attributes =
+        GET(
+                "/tracker/trackedEntities/{id}?program={id}&fields=attributes[attribute,value]",
+                te.getUid(),
+                program)
+            .content(HttpStatus.OK)
+            .getList("attributes", JsonAttribute.class);
+
+    assertContainsAll(
+        List.of(tea1.getUid(), tea2.getUid(), tea3.getUid()),
+        attributes,
+        JsonAttribute::getAttribute);
+    assertContainsAll(
+        List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::getValue);
   }
 
   @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
-    TrackedEntity from = trackedEntity();
-    TrackedEntity to = trackedEntity();
-    Relationship r = relationship(from, to);
-    this.switchContextToUser(user);
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    Event to = r.getTo().getEvent();
 
     JsonList<JsonRelationship> rels =
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
-    assertEquals(1, rels.size());
     JsonRelationship relationship = assertFirstRelationship(r, rels);
     assertTrackedEntityWithinRelationship(from, relationship.getFrom());
     assertTrackedEntityWithinRelationship(to, relationship.getTo());
   }
 
   @Test
-  void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToRelationshipType() {
-    TrackedEntity from = trackedEntity();
-    TrackedEntity to = trackedEntity();
-    relationship(relationshipTypeNotAccessible(), fromTrackedEntity(from), toTrackedEntity(to));
-    this.switchContextToUser(user);
-
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    assertEquals(
-        0,
-        relationships.size(),
-        "user needs access to relationship type to access the relationship");
-  }
-
-  @Test
   void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToRelationshipItemTo() {
-    TrackedEntity from = trackedEntity();
-    TrackedEntity to = trackedEntityNotInSearchScope();
-    relationship(from, to);
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertNotEmpty(
+        from.getRelationshipItems(),
+        "test expects a tracked entity with at least one relationship");
+
+    User user = userService.getUser("Z7870757a75");
     this.switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
@@ -343,31 +378,23 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
   }
 
   @Test
-  void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToBothRelationshipItems() {
-    TrackedEntity from = trackedEntityNotInSearchScope();
-    TrackedEntity to = trackedEntityNotInSearchScope();
-    relationship(from, to);
-    this.switchContextToUser(user);
-
-    assertTrue(
-        GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
-            .getMessage()
-            .contains("User has no access to TrackedEntity"));
-  }
-
-  @Test
   void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToRelationshipItemFrom() {
-    TrackedEntity from = trackedEntityNotInSearchScope();
-    TrackedEntity to = trackedEntity();
-    relationship(from, to);
+    TrackedEntity to = get(TrackedEntity.class, "QesgJkTyTCk");
+    assertNotEmpty(
+        to.getRelationshipItems(), "test expects a tracked entity with at least one relationship");
+
+    User user = userService.getUser("Z7870757a75");
     this.switchContextToUser(user);
 
-    assertTrue(
-        GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
-            .getMessage()
-            .contains("User has no access to TrackedEntity"));
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/trackedEntities/{id}?fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    assertEquals(
+        0,
+        relationships.size(),
+        "user needs access to from and to items to access the relationship");
   }
 
   @Test
@@ -378,11 +405,8 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     relationship(from, to);
     this.switchContextToUser(user);
 
-    assertTrue(
-        GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
-            .getMessage()
-            .contains("User has no access to TrackedEntity"));
+    GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
+        .error(HttpStatus.NOT_FOUND);
   }
 
   @Test
@@ -401,7 +425,7 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void getTrackedEntityReturnsCsvFormat() {
-    injectSecurityContextUser(user);
+    Program program = get(Program.class, "BFcipDERJnf");
 
     HttpResponse response =
         GET(
@@ -422,8 +446,15 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void getTrackedEntityCsvById() {
-    TrackedEntity te = trackedEntity();
-    this.switchContextToUser(user);
+    TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
+    List<TrackedEntityAttributeValue> trackedEntityTypeAttributeValues =
+        te.getTrackedEntityAttributeValues().stream()
+            .filter(teav -> !"toDelete000".equals(teav.getAttribute().getUid()))
+            .toList();
+    assertHasSize(
+        2,
+        trackedEntityTypeAttributeValues,
+        "test expects the tracked entity to have 2 tracked entity type attribute values");
 
     HttpResponse response =
         GET("/tracker/trackedEntities/{id}", te.getUid(), Accept(ContextUtils.CONTENT_TYPE_CSV));
@@ -432,27 +463,45 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
     assertTrue(response.header("content-type").contains(ContextUtils.CONTENT_TYPE_CSV));
     assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
-    assertEquals(trackedEntityToCsv(te), csvResponse);
+    assertStartsWith(
+        """
+trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+""",
+        csvResponse);
+    // TEAV order is not deterministic
+    assertContains(trackedEntityToCsv(te, trackedEntityTypeAttributeValues.get(0)), csvResponse);
+    assertContains(trackedEntityToCsv(te, trackedEntityTypeAttributeValues.get(1)), csvResponse);
   }
 
-  String trackedEntityToCsv(TrackedEntity te) {
-    return """
-       trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
-       """
-        .concat(
-            String.join(
-                ",",
-                te.getUid(),
-                te.getTrackedEntityType().getUid(),
-                DateUtils.instantFromDate(te.getCreated()).toString(),
-                DateUtils.instantFromDate(te.getCreatedAtClient()).toString(),
-                DateUtils.instantFromDate(te.getLastUpdated()).toString(),
-                DateUtils.instantFromDate(te.getLastUpdatedAtClient()).toString(),
-                te.getOrganisationUnit().getUid(),
-                Boolean.toString(te.isInactive()),
-                Boolean.toString(te.isDeleted()),
-                Boolean.toString(te.isPotentialDuplicate()),
-                ",,,,,,,,,,," + "\n"));
+  String trackedEntityToCsv(TrackedEntity te, TrackedEntityAttributeValue attributeValue) {
+    String value = attributeValue.getValue();
+    if (attributeValue.getAttribute().getValueType() == ValueType.TEXT) {
+      value = "\"" + value + "\"";
+    }
+    return String.join(
+            ",",
+            te.getUid(),
+            te.getTrackedEntityType().getUid(),
+            DateUtils.instantFromDate(te.getCreated()).toString(),
+            DateUtils.instantFromDate(te.getCreatedAtClient()).toString(),
+            DateUtils.instantFromDate(te.getLastUpdated()).toString(),
+            DateUtils.instantFromDate(te.getLastUpdatedAtClient()).toString(),
+            te.getOrganisationUnit().getUid(),
+            Boolean.toString(te.isInactive()),
+            Boolean.toString(te.isDeleted()),
+            Boolean.toString(te.isPotentialDuplicate()),
+            ",,,",
+            importUser.getUsername(),
+            importUser.getUsername())
+        + ","
+        + String.join(
+            ",",
+            DateUtils.instantFromDate(attributeValue.getCreated()).toString(),
+            DateUtils.instantFromDate(attributeValue.getLastUpdated()).toString(),
+            attributeValue.getAttribute().getUid(),
+            attributeValue.getAttribute().getDisplayName(),
+            value,
+            attributeValue.getAttribute().getValueType().name());
   }
 
   @Test
@@ -502,34 +551,29 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   @Test
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
-    TrackedEntity trackedEntity = trackedEntity();
-    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
+    TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
+    assertHasSize(1, te.getEnrollments(), "test expects a tracked entity with one enrollment");
+    Enrollment enrollment = te.getEnrollments().iterator().next();
 
     JsonList<JsonEnrollment> json =
-        GET("/tracker/trackedEntities/{id}?fields=enrollments", trackedEntity.getUid())
+        GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
-    JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse(json, enrollment);
-
-    assertTrue(jsonEnrollment.getArray("relationships").isEmpty());
-    assertTrue(jsonEnrollment.getAttributes().isEmpty());
-    assertTrue(jsonEnrollment.getEvents().isEmpty());
+    assertDefaultEnrollmentResponse(json, enrollment);
   }
 
   @Test
   void shouldGetNoEventRelationshipsWhenEventsHasNoRelationshipsAndFieldsIncludeAll() {
-    TrackedEntity trackedEntity = trackedEntity();
-
-    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
-
-    Event event = eventWithDataValue(enrollment);
-
-    enrollment.getEvents().add(event);
-    manager.update(enrollment);
+    TrackedEntity te = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(1, te.getEnrollments(), "test expects a tracked entity with one enrollment");
+    Enrollment enrollment = te.getEnrollments().iterator().next();
+    assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
+    Event event = enrollment.getEvents().iterator().next();
+    assertIsEmpty(event.getRelationshipItems(), "test expects an event with no relationships");
 
     JsonList<JsonEnrollment> json =
-        GET("/tracker/trackedEntities/{id}?fields=enrollments", trackedEntity.getUid())
+        GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
@@ -538,67 +582,69 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     assertTrue(jsonEnrollment.getAttributes().isEmpty());
 
     JsonEvent jsonEvent = assertDefaultEventResponse(jsonEnrollment, event);
-
     assertTrue(jsonEvent.getRelationships().isEmpty());
   }
 
   @Test
   void shouldGetEventRelationshipsWhenEventHasRelationshipsAndFieldsIncludeEventRelationships() {
-    TrackedEntity trackedEntity = trackedEntity();
-
-    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
-
-    Event event = eventWithDataValue(enrollment);
-    enrollment.getEvents().add(event);
-    manager.update(enrollment);
-
-    Relationship teToEventRelationship = relationship(trackedEntity, event);
+    TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
+    Enrollment enrollment = get(Enrollment.class, "nxP7UnKhomJ");
+    assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
+    Event event = enrollment.getEvents().iterator().next();
+    assertNotEmpty(
+        event.getRelationshipItems(), "test expects an event with at least one relationship");
+    RelationshipItem relItem = te.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
 
     JsonList<JsonEnrollment> json =
-        GET("/tracker/trackedEntities/{id}?fields=enrollments", trackedEntity.getUid())
+        GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
-    JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse(json, enrollment);
-    assertTrue(jsonEnrollment.getAttributes().isEmpty());
-    assertTrue(jsonEnrollment.getArray("relationships").isEmpty());
+    List<JsonEnrollment> enrollments =
+        json.stream().filter(en -> "nxP7UnKhomJ".equals(en.getEnrollment())).toList();
+    assertNotEmpty(
+        enrollments,
+        () -> String.format("Expected enrollment \"nxP7UnKhomJ\" instead got %s", enrollments));
+    JsonEnrollment jsonEnrollment = enrollments.get(0);
+    assertDefaultEnrollmentResponse(enrollment, jsonEnrollment);
 
     JsonEvent jsonEvent = assertDefaultEventResponse(jsonEnrollment, event);
-
-    JsonRelationship relationship = jsonEvent.getRelationships().get(0);
-
-    assertEquals(teToEventRelationship.getUid(), relationship.getRelationship());
-    assertEquals(
-        trackedEntity.getUid(), relationship.getFrom().getTrackedEntity().getTrackedEntity());
-    assertEquals(event.getUid(), relationship.getTo().getEvent().getEvent());
+    assertTrue(
+        jsonEvent
+            .getRelationships()
+            .contains(JsonRelationship::getRelationship, actual -> r.getUid().equals(actual)),
+        () ->
+            String.format(
+                "Expected event to have relationship to TE instead got %s",
+                jsonEvent.getRelationships().toJson()));
   }
 
   @Test
   void shouldGetNoEventRelationshipsWhenEventHasRelationshipsAndFieldsExcludeEventRelationships() {
-    TrackedEntity trackedEntity = trackedEntity();
-
-    Enrollment enrollment = enroll(trackedEntity, program, orgUnit);
-
-    Event event = eventWithDataValue(enrollment);
-
-    enrollment.getEvents().add(event);
-    manager.update(enrollment);
-
-    relationship(trackedEntity, event);
+    TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
+    Enrollment enrollment = get(Enrollment.class, "nxP7UnKhomJ");
+    assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
+    Event event = enrollment.getEvents().iterator().next();
+    assertNotEmpty(
+        event.getRelationshipItems(), "test expects an event with at least one relationship");
 
     JsonList<JsonEnrollment> json =
         GET(
                 "/tracker/trackedEntities/{id}?fields=enrollments[*,events[!relationships]]",
-                trackedEntity.getUid())
+                te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
-    JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse(json, enrollment);
-    assertTrue(jsonEnrollment.getAttributes().isEmpty());
-    assertTrue(jsonEnrollment.getArray("relationships").isEmpty());
+    List<JsonEnrollment> enrollments =
+        json.stream().filter(en -> "nxP7UnKhomJ".equals(en.getEnrollment())).toList();
+    assertNotEmpty(
+        enrollments,
+        () -> String.format("Expected enrollment \"nxP7UnKhomJ\" instead got %s", enrollments));
+    JsonEnrollment jsonEnrollment = enrollments.get(0);
+    assertDefaultEnrollmentResponse(enrollment, jsonEnrollment);
 
     JsonEvent jsonEvent = assertDefaultEventResponse(jsonEnrollment, event);
-
     assertHasNoMember(jsonEvent, "relationships");
   }
 
@@ -943,39 +989,24 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     assertEquals("file content", response.content("image/png"));
   }
 
-  private Event eventWithDataValue(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
-    event.setAutoFields();
-    event.setOccurredDate(DateUtils.parseDate(EVENT_OCCURRED_AT));
-
-    dataElement = createDataElement('A');
-    dataElement.setValueType(ValueType.TEXT);
-    manager.save(dataElement);
-
-    EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setValue("value");
-    eventDataValue.setDataElement(dataElement.getUid());
-    eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    event.setEventDataValues(eventDataValues);
-
-    manager.save(event);
-    return event;
-  }
-
   private JsonEnrollment assertDefaultEnrollmentResponse(
       JsonList<JsonEnrollment> enrollments, Enrollment enrollment) {
     assertFalse(enrollments.isEmpty());
     JsonEnrollment jsonEnrollment = enrollments.get(0);
 
-    assertHasMember(jsonEnrollment, "enrollment");
+    assertDefaultEnrollmentResponse(enrollment, jsonEnrollment);
 
+    return jsonEnrollment;
+  }
+
+  private static void assertDefaultEnrollmentResponse(
+      Enrollment enrollment, JsonEnrollment jsonEnrollment) {
+    assertHasMember(jsonEnrollment, "enrollment");
     assertEquals(enrollment.getUid(), jsonEnrollment.getEnrollment());
     assertEquals(enrollment.getTrackedEntity().getUid(), jsonEnrollment.getTrackedEntity());
-    assertEquals(program.getUid(), jsonEnrollment.getProgram());
-    assertEquals("ACTIVE", jsonEnrollment.getStatus());
-    assertEquals(orgUnit.getUid(), jsonEnrollment.getOrgUnit());
+    assertEquals(enrollment.getProgram().getUid(), jsonEnrollment.getProgram());
+    assertEquals(enrollment.getStatus().name(), jsonEnrollment.getStatus());
+    assertEquals(enrollment.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit());
     assertFalse(jsonEnrollment.getBoolean("deleted").booleanValue());
     assertHasMember(jsonEnrollment, "enrolledAt");
     assertHasMember(jsonEnrollment, "occurredAt");
@@ -984,8 +1015,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     assertHasMember(jsonEnrollment, "updatedAt");
     assertHasMember(jsonEnrollment, "notes");
     assertHasMember(jsonEnrollment, "followUp");
-
-    return jsonEnrollment;
   }
 
   private JsonEvent assertDefaultEventResponse(JsonEnrollment enrollment, Event event) {
@@ -997,27 +1026,15 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     assertEquals(event.getUid(), jsonEvent.getEvent());
     assertEquals(event.getProgramStage().getUid(), jsonEvent.getProgramStage());
     assertEquals(event.getEnrollment().getUid(), jsonEvent.getEnrollment());
-    assertEquals(program.getUid(), jsonEvent.getProgram());
-    assertEquals("ACTIVE", jsonEvent.getStatus());
-    assertEquals(orgUnit.getUid(), jsonEvent.getOrgUnit());
+    assertEquals(event.getProgramStage().getProgram().getUid(), jsonEvent.getProgram());
+    assertEquals(event.getStatus().name(), jsonEvent.getStatus());
+    assertEquals(event.getOrganisationUnit().getUid(), jsonEvent.getOrgUnit());
     assertFalse(jsonEvent.getDeleted());
     assertHasMember(jsonEvent, "createdAt");
     assertHasMember(jsonEvent, "occurredAt");
-    assertEquals(EVENT_OCCURRED_AT, jsonEvent.getString("occurredAt").string());
-    assertHasMember(jsonEvent, "createdAtClient");
     assertHasMember(jsonEvent, "updatedAt");
     assertHasMember(jsonEvent, "notes");
     assertHasMember(jsonEvent, "followUp");
-    assertHasMember(jsonEvent, "followup");
-
-    JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
-
-    assertEquals(dataElement.getUid(), dataValue.getDataElement());
-    assertEquals(event.getEventDataValues().iterator().next().getValue(), dataValue.getValue());
-    assertHasMember(dataValue, "createdAt");
-    assertHasMember(dataValue, "updatedAt");
-    assertHasMember(dataValue, "createdBy");
-    assertHasMember(dataValue, "updatedBy");
 
     return jsonEvent;
   }
@@ -1046,12 +1063,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   private TrackedEntity trackedEntity() {
     TrackedEntity te = trackedEntity(orgUnit);
-    manager.save(te, false);
-    return te;
-  }
-
-  private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity te = trackedEntity(anotherOrgUnit);
     manager.save(te, false);
     return te;
   }
@@ -1100,11 +1111,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     return type;
   }
 
-  private RelationshipType relationshipTypeNotAccessible() {
-    return relationshipType(
-        RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-  }
-
   private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
     RelationshipType type = createRelationshipType('A');
     type.getFromConstraint().setRelationshipEntity(from);
@@ -1120,21 +1126,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
         relationshipTypeAccessible(
             RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     return relationship(type, fromTrackedEntity(from), toTrackedEntity(to));
-  }
-
-  private Relationship relationship(TrackedEntity from, Event to) {
-    RelationshipType type =
-        relationshipTypeAccessible(
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.PROGRAM_STAGE_INSTANCE);
-    RelationshipItem fromItem = fromTrackedEntity(from);
-    RelationshipItem toItem = toEvent(to);
-    Relationship relationship = relationship(type, fromItem, toItem);
-    fromItem.setRelationship(relationship);
-    toItem.setRelationship(relationship);
-    to.getRelationshipItems().add(toItem);
-    manager.save(to, false);
-    manager.save(relationship, false);
-    return relationship;
   }
 
   private Relationship relationship(
@@ -1170,13 +1161,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     return toItem;
   }
 
-  private RelationshipItem toEvent(Event to) {
-    RelationshipItem toItem = new RelationshipItem();
-    toItem.setEvent(to);
-    to.getRelationshipItems().add(toItem);
-    return toItem;
-  }
-
   private void assertTrackedEntityWithinRelationship(
       TrackedEntity expected, JsonRelationshipItem json) {
     JsonRelationshipItem.JsonTrackedEntity jsonTe = json.getTrackedEntity();
@@ -1187,7 +1171,20 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     assertHasNoMember(json, "relationships"); // relationships are not
     // returned within
     // relationships
-    assertTrue(jsonTe.getArray("attributes").isEmpty());
+    assertEquals(
+        expected.getTrackedEntityAttributeValues().isEmpty(),
+        jsonTe.getArray("attributes").isEmpty());
+  }
+
+  private void assertTrackedEntityWithinRelationship(Event expected, JsonRelationshipItem json) {
+    JsonRelationshipItem.JsonEvent jsonEvent = json.getEvent();
+    assertFalse(jsonEvent.isEmpty(), "event should not be empty");
+    assertEquals(expected.getUid(), jsonEvent.getEvent());
+    assertHasNoMember(json, "trackedEntityType");
+    assertHasNoMember(json, "orgUnit");
+    assertHasNoMember(json, "relationships"); // relationships are not
+    // returned within
+    // relationships
   }
 
   private TrackedEntityAttribute addTrackedEntityTypeAttributeValue(
@@ -1249,5 +1246,48 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     fileResourceService.syncSaveFileResource(fr, data);
     fr.setStorageStatus(FileResourceStorageStatus.STORED);
     return fr;
+  }
+
+  private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
+    T t = manager.get(type, uid);
+    assertNotNull(
+        t,
+        () ->
+            String.format(
+                "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
+    return t;
+  }
+
+  public static void assertNoErrors(ImportReport report) {
+    assertNotNull(report);
+    assertEquals(
+        Status.OK,
+        report.getStatus(),
+        errorMessage(
+            "Expected import with status OK, instead got:%n", report.getValidationReport()));
+  }
+
+  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
+    return () -> {
+      StringBuilder msg = new StringBuilder(errorTitle);
+      report
+          .getErrors()
+          .forEach(
+              e -> {
+                msg.append(e.getErrorCode());
+                msg.append(": ");
+                msg.append(e.getMessage());
+                msg.append('\n');
+              });
+      return msg.toString();
+    };
+  }
+
+  public static void assertNoErrors(ObjectBundleValidationReport report) {
+    assertNotNull(report);
+    List<String> errors = new ArrayList<>();
+    report.forEachErrorReport(err -> errors.add(err.toString()));
+    assertFalse(
+        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }
