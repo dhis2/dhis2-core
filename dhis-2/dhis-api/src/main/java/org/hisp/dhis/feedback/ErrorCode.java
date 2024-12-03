@@ -69,6 +69,10 @@ public enum ErrorCode {
 
   E1122("Category option combo {0} cannot be associated with the default category combo"),
   E1125("Category option combo {0} contains options not associated with category combo {1}"),
+  E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
+  E1127("Category {0} cannot have more than {1} options, but had: {2} "),
+  E1128("Category combo {0} cannot have more than {1} combinations, bud requires: {2}"),
+
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
   E1501("Target org unit must be specified"),

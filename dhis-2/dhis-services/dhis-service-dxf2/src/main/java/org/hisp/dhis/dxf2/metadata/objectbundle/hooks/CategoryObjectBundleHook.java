@@ -29,53 +29,30 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CategoryOptionComboObjectBundleHook
-    extends AbstractObjectBundleHook<CategoryOptionCombo> {
+public class CategoryObjectBundleHook extends AbstractObjectBundleHook<Category> {
 
   private final CategoryService categoryService;
 
   @Override
-  public void validate(
-      CategoryOptionCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-
-    checkNonStandardDefaultCatOptionCombo(combo, addReports);
-    checkIsValid(combo, addReports);
+  public void validate(Category category, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    checkIsValid(category, addReports);
   }
 
-  private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {
+  private void checkIsValid(Category category, Consumer<ErrorReport> addReports) {
     try {
-      categoryService.validate(combo);
+      categoryService.validate(category);
     } catch (ConflictException ex) {
       addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
-    }
-  }
-
-  private void checkNonStandardDefaultCatOptionCombo(
-      CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
-
-    CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
-    CategoryCombo defaultCombo = categoryService.getDefaultCategoryCombo();
-    if (!categoryCombo.getUid().equals(defaultCombo.getUid())) {
-      return;
-    }
-
-    CategoryOptionCombo defaultCatOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
-    if (!categoryOptionCombo.getUid().equals(defaultCatOptionCombo.getUid())) {
-      addReports.accept(
-          new ErrorReport(
-              CategoryOptionCombo.class, ErrorCode.E1122, categoryOptionCombo.getName()));
     }
   }
 }

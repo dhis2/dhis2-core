@@ -34,48 +34,25 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CategoryOptionComboObjectBundleHook
-    extends AbstractObjectBundleHook<CategoryOptionCombo> {
+public class CategoryComboObjectBundleHook extends AbstractObjectBundleHook<CategoryCombo> {
 
   private final CategoryService categoryService;
 
   @Override
-  public void validate(
-      CategoryOptionCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-
-    checkNonStandardDefaultCatOptionCombo(combo, addReports);
+  public void validate(CategoryCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     checkIsValid(combo, addReports);
   }
 
-  private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {
+  private void checkIsValid(CategoryCombo combo, Consumer<ErrorReport> addReports) {
     try {
       categoryService.validate(combo);
     } catch (ConflictException ex) {
       addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
-    }
-  }
-
-  private void checkNonStandardDefaultCatOptionCombo(
-      CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
-
-    CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
-    CategoryCombo defaultCombo = categoryService.getDefaultCategoryCombo();
-    if (!categoryCombo.getUid().equals(defaultCombo.getUid())) {
-      return;
-    }
-
-    CategoryOptionCombo defaultCatOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
-    if (!categoryOptionCombo.getUid().equals(defaultCatOptionCombo.getUid())) {
-      addReports.accept(
-          new ErrorReport(
-              CategoryOptionCombo.class, ErrorCode.E1122, categoryOptionCombo.getName()));
     }
   }
 }

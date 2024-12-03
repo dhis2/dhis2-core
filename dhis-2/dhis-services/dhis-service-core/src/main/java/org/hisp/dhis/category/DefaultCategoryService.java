@@ -43,11 +43,16 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -64,25 +69,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.category.CategoryService")
 @RequiredArgsConstructor
 public class DefaultCategoryService implements CategoryService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CategoryStore categoryStore;
-
   private final CategoryOptionStore categoryOptionStore;
-
   private final CategoryComboStore categoryComboStore;
-
   private final CategoryOptionComboStore categoryOptionComboStore;
-
   private final CategoryOptionGroupStore categoryOptionGroupStore;
-
   private final CategoryOptionGroupSetStore categoryOptionGroupSetStore;
-
   private final IdentifiableObjectManager idObjectManager;
-
   private final AclService aclService;
+  private final DhisConfigurationProvider configuration;
 
   @Qualifier("jdbcCategoryOptionOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
@@ -90,6 +86,15 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
   // Category
   // -------------------------------------------------------------------------
+
+  @Override
+  @NonTransactional
+  public void validate(Category category) throws ConflictException {
+    int maxOptions = configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_OPTIONS);
+    int actualOptions = category.getCategoryOptions().size();
+    if (actualOptions > maxOptions)
+      throw new ConflictException(ErrorCode.E1127, category.getUid(), maxOptions, actualOptions);
+  }
 
   @Override
   @Transactional
@@ -315,6 +320,26 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
 
   @Override
+  @NonTransactional
+  public void validate(CategoryCombo combo) throws ConflictException {
+    int maxCategories =
+        configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_PER_COMBO);
+    int actualCategories = combo.getCategories().size();
+    if (actualCategories > maxCategories)
+      throw new ConflictException(ErrorCode.E1126, combo.getUid(), maxCategories, actualCategories);
+    for (Category c : combo.getCategories()) validate(c);
+    int maxCombinations =
+        configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_COMBINATIONS);
+    int actualCombinations =
+        combo.getCategories().stream()
+            .map(c -> c.getCategoryOptions().size())
+            .reduce(1, (a, b) -> a * b);
+    if (actualCombinations > maxCombinations)
+      throw new ConflictException(
+          ErrorCode.E1128, combo.getUid(), maxCombinations, actualCombinations);
+  }
+
+  @Override
   @Transactional
   public long addCategoryCombo(CategoryCombo dataElementCategoryCombo) {
     categoryComboStore.save(dataElementCategoryCombo);
@@ -425,6 +450,12 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
   // CategoryOptionCombo
   // -------------------------------------------------------------------------
+
+  @Override
+  @NonTransactional
+  public void validate(CategoryOptionCombo combo) throws ConflictException {
+    validate(combo.getCategoryCombo());
+  }
 
   @Override
   @Transactional
