@@ -535,27 +535,27 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = getOrgUnitSelectExpression(dataElement, fromType);
+      String ouGeoExpression = getOrgUnitSelectExpression(dataElement, fromType);
 
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(geoSql)
+              .selectExpression(ouGeoExpression)
               .indexType(IndexType.GIST)
               .build());
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql);
+    String ouNameExpression = getOrgUnitSelectExpression(dataElement, fromTypeSql);
 
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(ouNameSql)
+            .selectExpression(ouNameExpression)
             .skipIndex(SKIP)
             .build());
 
