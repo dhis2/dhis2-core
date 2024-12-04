@@ -75,6 +75,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -129,7 +130,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Spy
-  private DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+  private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
       new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
@@ -161,7 +162,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @BeforeEach
   public void setUp() {
     programA = createProgram('A');
-
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
   }
