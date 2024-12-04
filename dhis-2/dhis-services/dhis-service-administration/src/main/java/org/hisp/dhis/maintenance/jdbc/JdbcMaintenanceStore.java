@@ -210,6 +210,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete other entries linked to enrollments
           "delete from relationshipitem where enrollmentid in " + enrollmentSelect,
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
+          "delete from programnotificationinstance where enrollmentid in " + enrollmentSelect,
           "delete from event where enrollmentid in " + enrollmentSelect,
           // finally delete the enrollments themselves
           "delete from enrollment where deleted is true"
