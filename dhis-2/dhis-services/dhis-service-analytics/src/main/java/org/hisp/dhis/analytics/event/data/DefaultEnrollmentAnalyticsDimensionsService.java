@@ -31,26 +31,22 @@ import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationTy
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
-import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDimensionsService.getTeasIfRegistration;
 import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
 import static org.hisp.dhis.common.PrefixedDimensions.ofProgramStageDataElements;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
-import org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -81,7 +77,9 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                                 .collect(Collectors.toSet())),
                         getProgramStageDataElements(QUERY, program),
                         filterByValueType(
-                            QUERY, ofItemsWithProgram(program, getTeasIfRegistration(program))))))
+                            QUERY,
+                            ofItemsWithProgram(
+                                program, getTeasIfRegistrationAndNotConfidential(program))))))
         .orElse(List.of());
   }
 
@@ -89,20 +87,12 @@ public class DefaultEnrollmentAnalyticsDimensionsService
       DimensionsServiceCommon.OperationType operationType, Program program) {
     return program.getProgramStages().stream()
         .map(ProgramStage::getProgramStageDataElements)
-        .map(psdes -> excludeIfSkipAnalytics(operationType, psdes))
-        .map(psdes -> filterByValueType(operationType, ofProgramStageDataElements(psdes)))
+        .map(
+            programStageDataElements ->
+                filterByValueType(
+                    operationType, ofProgramStageDataElements(programStageDataElements)))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
-  }
-
-  private Set<ProgramStageDataElement> excludeIfSkipAnalytics(
-      OperationType operationType, Set<ProgramStageDataElement> programStageDataElements) {
-    if (operationType == QUERY) {
-      return programStageDataElements.stream()
-          .filter(Predicate.not(ProgramStageDataElement::getSkipAnalytics))
-          .collect(Collectors.toSet());
-    }
-    return programStageDataElements;
   }
 
   @Override
@@ -118,5 +108,20 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                             AGGREGATE,
                             ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
         .orElse(List.of());
+  }
+
+  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
+      Program program) {
+    return Optional.of(program)
+        .filter(Program::isRegistration)
+        .map(Program::getTrackedEntityAttributes)
+        .orElse(List.of())
+        .stream()
+        .filter(this::isNotConfidential)
+        .collect(Collectors.toList());
+  }
+
+  private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
+    return !trackedEntityAttribute.isConfidentialBool();
   }
 }

@@ -461,12 +461,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getDataElements().stream()
+        program.getAnalyticsDataElements().stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getDataElementsWithLegendSet().stream()
+        program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
@@ -567,12 +567,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getAttributeColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(
-        program.getTrackedEntityAttributes().stream()
+        program.getNonConfidentialTrackedEntityAttributes().stream()
             .map(this::getColumnForAttribute)
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getTrackedEntityAttributesWithLegendSet().stream()
+        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
             .map(this::getColumnForAttributeWithLegendSet)
             .flatMap(Collection::stream)
             .toList());
