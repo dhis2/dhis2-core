@@ -537,6 +537,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
+        // Org unit UID column
         .addColumn(
             d1.getUid(),
             TEXT,
@@ -939,12 +940,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouUidQuery =
-        String.format(
-            """
-            select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
-            and trackedentityattributeid=9999) as %s""",
-            quote(tea.getUid()));
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
     String ouNameQuery =
         String.format(
