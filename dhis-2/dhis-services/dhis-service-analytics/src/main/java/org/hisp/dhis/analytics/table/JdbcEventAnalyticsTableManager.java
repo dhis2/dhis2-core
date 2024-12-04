@@ -383,8 +383,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
-    // TO DO non confidential?
-    return program.getTrackedEntityAttributes().stream()
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
         .collect(Collectors.joining());
   }
