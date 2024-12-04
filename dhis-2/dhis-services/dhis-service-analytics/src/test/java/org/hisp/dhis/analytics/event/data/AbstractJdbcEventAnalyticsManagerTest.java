@@ -234,8 +234,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
                 + colName
                 + ")::numeric, 6) || ']' as "
                 + colName));
-
-    return;
   }
 
   @Test
