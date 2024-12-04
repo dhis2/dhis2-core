@@ -38,15 +38,19 @@ import org.flywaydb.core.api.output.MigrateResult;
  * @author Ameen Mohamed
  */
 public class DhisFlyway extends Flyway {
-  private boolean repairBeforeMigrate;
+  private final boolean repairBeforeMigrate;
+  private final boolean skipMigrate;
 
-  public DhisFlyway(Configuration configuration, boolean repairBeforeMigrate) {
+  public DhisFlyway(Configuration configuration, boolean repairBeforeMigrate, boolean skipMgrate) {
     super(configuration);
     this.repairBeforeMigrate = repairBeforeMigrate;
+    this.skipMigrate = skipMgrate;
   }
 
   @Override
   public MigrateResult migrate() throws FlywayException {
+    if (skipMigrate) return new MigrateResult(); // empty migration
+
     if (repairBeforeMigrate) {
       super.repair();
     }
