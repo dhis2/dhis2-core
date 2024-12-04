@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -640,20 +639,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .build();
             })
         .toList();
-  }
-
-  /**
-   * Returns a select statement for the given select expression.
-   *
-   * @param dataElement the data element to create the select statement for.
-   * @param selectExpression the select expression.
-   * @return a select expression.
-   */
-  private String getOrgUnitSelectExpression(DataElement dataElement, String selectExpression) {
-    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
-    return replaceQualify(
-        "(select ${selectExpression}) as ${uid}",
-        Map.of("selectExpression", selectExpression, "uid", quote(dataElement.getUid())));
   }
 
   /**
