@@ -800,7 +800,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(new ExpressionMapBuilder(sqlBuilder).getExpressionItemMap())
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)

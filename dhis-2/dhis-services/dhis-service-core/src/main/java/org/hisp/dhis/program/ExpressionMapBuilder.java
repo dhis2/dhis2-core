@@ -72,7 +72,7 @@ public class ExpressionMapBuilder {
 
   private final ImmutableMap<Integer, ExpressionItem> expressionItemMap;
 
-  public ExpressionMapBuilder(SqlBuilder sqlBuilder) {
+  public ExpressionMapBuilder() {
     expressionItemMap =
         ImmutableMap.<Integer, ExpressionItem>builder()
 
