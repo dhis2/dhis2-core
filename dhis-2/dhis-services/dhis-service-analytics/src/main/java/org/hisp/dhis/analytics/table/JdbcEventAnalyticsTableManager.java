@@ -567,7 +567,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return replaceQualify(
         format,
         Map.of(
-            "column", "name",
+            "column", column,
             "columnExpression", columnExpression,
             "uid", alias));
   }
