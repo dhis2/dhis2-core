@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.db.sql.SqlBuilder.DatePart.MINUTES;
+
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+
 /**
  * Program indicator function: d2 minutes between
  *
@@ -34,11 +38,8 @@ package org.hisp.dhis.program.function;
  */
 public class D2MinutesBetween extends ProgramBetweenFunction {
   @Override
-  public Object getSqlBetweenDates(String startDate, String endDate) {
-    return "(extract(epoch from (cast("
-        + endDate
-        + " as timestamp) - cast("
-        + startDate
-        + " as timestamp))) / 60)";
+  public Object getSqlBetweenDates(
+      String startDate, String endDate, CommonExpressionVisitor visitor) {
+    return visitor.getSqlBuilder().dateDifference(startDate, endDate, MINUTES);
   }
 }

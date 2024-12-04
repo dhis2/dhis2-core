@@ -260,6 +260,33 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         };
   }
 
+  @Override
+  public String age(String endDate, String startDate) {
+    return String.format("age(cast(%s as date), cast(%s as date))", endDate, startDate);
+  }
+
+  @Override
+  public String dateDifference(String startDate, String endDate, DatePart datePart) {
+    return switch (datePart) {
+      case DAYS -> String.format("(cast(%s as date) - cast(%s as date))", endDate, startDate);
+      case MINUTES ->
+          String.format(
+              "(extract(epoch from (cast(%s as timestamp) - cast(%s as timestamp))) / 60)",
+              endDate, startDate);
+      case MONTHS ->
+          String.format(
+              "((date_part('year', age(cast(%s as date), cast(%s as date)))) * 12 + "
+                  + "date_part('month', age(cast(%s as date), cast(%s as date))))",
+              endDate, startDate, endDate, startDate);
+      case YEARS ->
+          String.format(
+              "extract(years from age(cast(%s as timestamp), cast(%s as timestamp)))",
+              endDate, startDate);
+      case WEEKS ->
+          String.format("((cast(%s as date) - cast(%s as date)) / 7)", endDate, startDate);
+    };
+  }
+
   // Statements
 
   @Override

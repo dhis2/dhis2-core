@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program.function;
 
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+
 /**
  * Program indicator function: d2 days between
  *
@@ -34,7 +37,8 @@ package org.hisp.dhis.program.function;
  */
 public class D2DaysBetween extends ProgramBetweenFunction {
   @Override
-  public Object getSqlBetweenDates(String startDate, String endDate) {
-    return "(cast(" + endDate + " as date) - cast(" + startDate + " as date))";
+  public Object getSqlBetweenDates(
+      String startDate, String endDate, CommonExpressionVisitor visitor) {
+    return visitor.getSqlBuilder().dateDifference(startDate, endDate, SqlBuilder.DatePart.DAYS);
   }
 }
