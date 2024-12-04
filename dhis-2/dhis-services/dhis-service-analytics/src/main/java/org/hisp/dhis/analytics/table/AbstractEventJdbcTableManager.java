@@ -118,7 +118,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
   /**
    * Returns a select expression, potentially with a cast statement, based on the given value type.
-   * Handles data element and tracked entity attribute select expressions.
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
@@ -138,7 +137,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return String.format(
           """
-          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || \
+          ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
           columnExpression);
     } else {
       return columnExpression;
