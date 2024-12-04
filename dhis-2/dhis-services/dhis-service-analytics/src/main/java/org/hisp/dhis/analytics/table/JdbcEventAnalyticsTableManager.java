@@ -560,16 +560,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String format =
         """
         (select ou.${column} from ${organisationunit} ou \
-        where ou.uid = ${columnExpression}) as ${uid}""";
+        where ou.uid = ${columnExpression}) as ${alias}""";
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String alias = quote(dataElement.getUid());
+
     return replaceQualify(
         format,
         Map.of(
             "column", column,
             "columnExpression", columnExpression,
-            "uid", alias));
+            "alias", alias));
   }
 
   /**
