@@ -657,8 +657,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * <<<<<<< HEAD Returns a select statement for the given select expression. ======= Returns a
-   * select statement for the given data element with value type org unit. >>>>>>> master
+   * Returns a select statement for the given select expression.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
