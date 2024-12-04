@@ -41,10 +41,10 @@ public class DhisFlyway extends Flyway {
   private final boolean repairBeforeMigrate;
   private final boolean skipMigrate;
 
-  public DhisFlyway(Configuration configuration, boolean repairBeforeMigrate, boolean skipMgrate) {
+  public DhisFlyway(Configuration configuration, boolean repairBeforeMigrate, boolean skipMigrate) {
     super(configuration);
     this.repairBeforeMigrate = repairBeforeMigrate;
-    this.skipMigrate = skipMgrate;
+    this.skipMigrate = skipMigrate;
   }
 
   @Override
