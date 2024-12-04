@@ -32,7 +32,6 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.function.RepeatableProgramStageOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;

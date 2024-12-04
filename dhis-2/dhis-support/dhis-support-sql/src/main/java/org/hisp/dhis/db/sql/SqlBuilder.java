@@ -312,12 +312,12 @@ public interface SqlBuilder {
    *
    * @param startDate the start date expression (can be a date literal or a column reference)
    * @param endDate the end date expression (can be a date literal or a column reference)
-   * @param datePart the unit of time to calculate the difference in (e.g., DAYS, MONTHS, YEARS)
+   * @param dateUnit the unit of time to calculate the difference in (e.g., DAYS, MONTHS, YEARS)
    * @return a String containing the database-specific SQL expression for calculating the date
    *     difference
-   * @see DatePart
+   * @see DateUnit
    */
-  String dateDifference(String startDate, String endDate, DatePart datePart);
+  String dateDifference(String startDate, String endDate, DateUnit dateUnit);
 
   // Statements
 
@@ -444,7 +444,7 @@ public interface SqlBuilder {
    */
   String dropCatalogIfExists();
 
-  enum DatePart {
+  enum DateUnit {
     DAYS,
     MONTHS,
     MINUTES,

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.db.sql.SqlBuilder.DatePart.MINUTES;
+import static org.hisp.dhis.db.sql.SqlBuilder.DateUnit.MINUTES;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 

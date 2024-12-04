@@ -248,8 +248,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dateDifference(String startDate, String endDate, DatePart datePart) {
-    return switch (datePart) {
+  public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    return switch (dateUnit) {
       case DAYS -> String.format("DATEDIFF(%s, %s)", endDate, startDate);
       case MINUTES -> String.format("TIMESTAMPDIFF(MINUTE, %s, %s)", startDate, endDate);
       case MONTHS -> String.format("TIMESTAMPDIFF(MONTH, %s, %s)", startDate, endDate);

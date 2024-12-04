@@ -557,7 +557,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         sql,
         is(
             "((cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date) - "
-                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date))/7)"));
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date)) / 7)"));
   }
 
   @Test

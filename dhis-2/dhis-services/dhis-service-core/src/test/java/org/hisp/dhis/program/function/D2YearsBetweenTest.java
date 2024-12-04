@@ -119,7 +119,7 @@ class D2YearsBetweenTest {
 
       // Assert
       assertEquals(
-          "extract(years from age(cast('2023-01-01' as timestamp), cast('2020-01-01' as timestamp)))",
+          "(date_part('year',age(cast('2023-01-01' as date), cast('2020-01-01' as date))))",
           result);
     }
 
@@ -134,7 +134,7 @@ class D2YearsBetweenTest {
 
       // Assert
       assertEquals(
-          "extract(years from age(cast(incident_date as timestamp), cast(enrollment_date as timestamp)))",
+          "(date_part('year',age(cast(incident_date as date), cast(enrollment_date as date))))",
           result);
     }
 
@@ -149,7 +149,7 @@ class D2YearsBetweenTest {
 
       // Assert
       assertEquals(
-          "extract(years from age(cast('2023-03-01' as timestamp), cast('2020-06-15' as timestamp)))",
+          "(date_part('year',age(cast('2023-03-01' as date), cast('2020-06-15' as date))))",
           result);
     }
   }
@@ -165,38 +165,32 @@ class D2YearsBetweenTest {
 
     @Test
     void shouldHandleLeapYears() {
-      // Arrange
       SqlBuilder sqlBuilder = new PostgreSqlBuilder();
       when(visitor.getSqlBuilder()).thenReturn(sqlBuilder);
 
       String startDate = "'2020-02-29'"; // Leap year
       String endDate = "'2023-02-28'"; // Non-leap year
 
-      // Act
       String result = (String) function.getSqlBetweenDates(startDate, endDate, visitor);
 
-      // Assert
       assertEquals(
-          "extract(years from age(cast('2023-02-28' as timestamp), cast('2020-02-29' as timestamp)))",
+          "(date_part('year',age(cast('2023-02-28' as date), cast('2020-02-29' as date))))",
           result,
           "Should correctly handle leap year dates");
     }
 
     @Test
     void shouldHandleCenturyBoundary() {
-      // Arrange
       SqlBuilder sqlBuilder = new PostgreSqlBuilder();
       when(visitor.getSqlBuilder()).thenReturn(sqlBuilder);
 
       String startDate = "'1999-12-31'";
       String endDate = "'2000-01-01'";
 
-      // Act
       String result = (String) function.getSqlBetweenDates(startDate, endDate, visitor);
 
-      // Assert
       assertEquals(
-          "extract(years from age(cast('2000-01-01' as timestamp), cast('1999-12-31' as timestamp)))",
+          "(date_part('year',age(cast('2000-01-01' as date), cast('1999-12-31' as date))))",
           result,
           "Should correctly handle century boundary");
     }

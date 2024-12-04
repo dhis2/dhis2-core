@@ -65,8 +65,8 @@ class D2MonthsBetweenTest {
       String result = (String) function.getSqlBetweenDates(startDate, endDate, visitor);
 
       assertEquals(
-          "((date_part('year', age(cast('2023-03-01' as date), cast('2023-01-01' as date)))) * 12 + "
-              + "date_part('month', age(cast('2023-03-01' as date), cast('2023-01-01' as date))))",
+          "((date_part('year',age(cast('2023-03-01' as date), cast('2023-01-01' as date)))) * 12 + "
+              + "date_part('month',age(cast('2023-03-01' as date), cast('2023-01-01' as date))))",
           result);
     }
 
@@ -78,8 +78,8 @@ class D2MonthsBetweenTest {
       String result = (String) function.getSqlBetweenDates(startDate, endDate, visitor);
 
       assertEquals(
-          "((date_part('year', age(cast(incident_date as date), cast(enrollment_date as date)))) * 12 + "
-              + "date_part('month', age(cast(incident_date as date), cast(enrollment_date as date))))",
+          "((date_part('year',age(cast(incident_date as date), cast(enrollment_date as date)))) * 12 + "
+              + "date_part('month',age(cast(incident_date as date), cast(enrollment_date as date))))",
           result);
     }
 
@@ -91,8 +91,8 @@ class D2MonthsBetweenTest {
       String result = (String) function.getSqlBetweenDates(startDate, endDate, visitor);
 
       assertEquals(
-          "((date_part('year', age(cast('2023-03-15' as date), cast('2022-12-15' as date)))) * 12 + "
-              + "date_part('month', age(cast('2023-03-15' as date), cast('2022-12-15' as date))))",
+          "((date_part('year',age(cast('2023-03-15' as date), cast('2022-12-15' as date)))) * 12 + "
+              + "date_part('month',age(cast('2023-03-15' as date), cast('2022-12-15' as date))))",
           result);
     }
   }

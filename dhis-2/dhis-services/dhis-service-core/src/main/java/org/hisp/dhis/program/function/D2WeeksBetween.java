@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.db.sql.SqlBuilder.DatePart.WEEKS;
+import static org.hisp.dhis.db.sql.SqlBuilder.DateUnit.WEEKS;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 

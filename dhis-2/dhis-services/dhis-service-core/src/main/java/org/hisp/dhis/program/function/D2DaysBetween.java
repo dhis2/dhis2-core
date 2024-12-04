@@ -39,6 +39,6 @@ public class D2DaysBetween extends ProgramBetweenFunction {
   @Override
   public Object getSqlBetweenDates(
       String startDate, String endDate, CommonExpressionVisitor visitor) {
-    return visitor.getSqlBuilder().dateDifference(startDate, endDate, SqlBuilder.DatePart.DAYS);
+    return visitor.getSqlBuilder().dateDifference(startDate, endDate, SqlBuilder.DateUnit.DAYS);
   }
 }

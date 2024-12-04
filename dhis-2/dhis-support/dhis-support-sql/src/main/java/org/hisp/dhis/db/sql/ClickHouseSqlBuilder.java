@@ -245,7 +245,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dateDifference(String startDate, String endDate, DatePart datePart) {
+  public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
     throw new UnsupportedOperationException();
   }
 
