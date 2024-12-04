@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -173,6 +174,11 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     return hibernateTrackedEntityChangeLogStore.getOrderableFields();
   }
 
+  @Override
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return hibernateTrackedEntityChangeLogStore.getFilterableFields();
+  }
+
   private Program validateProgram(String programUid) throws NotFoundException {
     Program program = programService.getProgram(programUid);
     if (program == null) {
@@ -209,6 +215,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
 
-    return attributes.stream().map(a -> UID.of(a.getUid())).collect(Collectors.toSet());
+    return attributes.stream().map(UID::of).collect(Collectors.toSet());
   }
 }

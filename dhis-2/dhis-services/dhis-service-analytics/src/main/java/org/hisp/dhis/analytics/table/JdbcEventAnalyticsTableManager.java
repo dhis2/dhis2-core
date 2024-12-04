@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -81,7 +82,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -99,7 +99,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  protected final List<AnalyticsTableColumn> fixedColumns;
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -110,9 +110,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -124,9 +123,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
@@ -330,6 +328,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
+    String attributeJoinClause = getAttributeValueJoinClause(program);
 
     String fromClause =
         replaceQualify(
@@ -346,6 +345,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
             left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+            ${attributeJoinClause}\
             where ev.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and ev.organisationunitid is not null \
@@ -358,6 +358,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
+                "attributeJoinClause", attributeJoinClause,
                 "startTime", toLongDate(params.getStartTime()),
                 "programId", String.valueOf(program.getId()),
                 "firstDataYear", String.valueOf(firstDataYear),
@@ -488,15 +489,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String columnExpression =
+    String jsonExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
+    String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
+    String selectExpression =
+        String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
-      return getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause);
+      return getColumnFromDataElementWithLegendSet(dataElement, columnExpression, dataFilterClause);
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -508,7 +510,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .name(dataElement.getUid())
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
-            .selectExpression(sql)
+            .selectExpression(selectExpression)
             .skipIndex(skipIndex)
             .build());
 
@@ -533,7 +535,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
+      String geoSql = getOrgUnitSelectExpression(dataElement, fromType, dataFilterClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -546,7 +548,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataFilterClause);
+    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -589,7 +591,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
       TrackedEntityAttribute attribute) {
-    String selectClause = getSelectExpression(attribute.getValueType(), "value");
+    String columnExpression = getColumnExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause();
     String query =
         """
@@ -604,11 +606,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .map(
             ls -> {
               String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
-              String sql =
+              String selectExpression =
                   replaceQualify(
                       query,
                       Map.of(
-                          "selectClause", selectClause,
+                          "selectClause", columnExpression,
                           "legendSetId", String.valueOf(ls.getId()),
                           "column", column,
                           "attributeId", String.valueOf(attribute.getId()),
@@ -617,38 +619,31 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               return AnalyticsTableColumn.builder()
                   .name(column)
                   .dataType(CHARACTER_11)
-                  .selectExpression(sql)
+                  .selectExpression(selectExpression)
                   .build();
             })
         .toList();
   }
 
   /**
-   * Retyrns a select statement for the given select expression.
+   * Returns a select statement for the given select expression.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
    * @return a select expression.
    */
-  private String getSelectForInsert(
+  private String getOrgUnitSelectExpression(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
-    String sqlTemplate =
-        dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "${selectExpression}${closingParentheses} as ${uid}";
-
+    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
+    String prts = getClosingParentheses(selectExpression);
     return replaceQualify(
-        sqlTemplate,
+        "(select ${selectExpression} ${dataFilterClause})${closingParentheses} as ${uid}",
         Map.of(
-            "selectExpression",
-            selectExpression,
-            "dataClause",
-            dataFilterClause,
-            "closingParentheses",
-            getClosingParentheses(selectExpression),
-            "uid",
-            quote(dataElement.getUid())));
+            "selectExpression", selectExpression,
+            "dataFilterClause", dataFilterClause,
+            "closingParentheses", prts,
+            "uid", quote(dataElement.getUid())));
   }
 
   /**
@@ -726,15 +721,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Program program,
       Integer firstDataYear,
       Integer lastDataYear) {
+    String fromDate = toMediumDate(params.getFromDate());
     String fromDateClause =
         params.getFromDate() != null
             ? replace(
                 "and (${eventDateExpression}) >= '${fromDate}'",
                 Map.of(
-                    "eventDateExpression",
-                    eventDateExpression,
-                    "fromDate",
-                    toMediumDate(params.getFromDate())))
+                    "eventDateExpression", eventDateExpression,
+                    "fromDate", fromDate))
             : EMPTY;
 
     String sql =

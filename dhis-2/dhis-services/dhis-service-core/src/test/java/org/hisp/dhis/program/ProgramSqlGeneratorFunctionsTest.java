@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,6 +57,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -72,6 +72,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -114,6 +115,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   @Mock private ProgramStageService programStageService;
 
   @Mock private DimensionService dimensionService;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   @BeforeEach
   public void setUp() {
@@ -797,10 +800,11 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMap(new ExpressionMapBuilder(sqlBuilder).getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(new PostgreSqlBuilder())
             .build();
 
     visitor.setExpressionLiteral(exprLiteral);

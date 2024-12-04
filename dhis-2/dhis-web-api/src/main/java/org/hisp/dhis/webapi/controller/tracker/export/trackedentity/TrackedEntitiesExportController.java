@@ -362,7 +362,9 @@ class TrackedEntitiesExportController {
 
     TrackedEntityChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(
-            trackedEntityChangeLogService.getOrderableFields(), requestParams);
+            trackedEntityChangeLogService.getOrderableFields(),
+            trackedEntityChangeLogService.getFilterableFields(),
+            requestParams);
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 

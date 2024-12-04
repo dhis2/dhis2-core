@@ -162,12 +162,15 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreated()
       throws NotFoundException, ForbiddenException, BadRequestException {
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of("QS6w44flWAf"), null, defaultOperationParams, defaultPageParams);
+    String trackedEntityAttribute = "numericAttr";
+    List<TrackedEntityChangeLog> changeLogs =
+        filterTrackedEntityAttribute(
+            trackedEntityChangeLogService.getTrackedEntityChangeLog(
+                UID.of("QS6w44flWAf"), null, defaultOperationParams, defaultPageParams),
+            trackedEntityAttribute);
 
-    assertNumberOfChanges(1, changeLogs.getItems());
-    assertAll(() -> assertCreate("numericAttr", "88", changeLogs.getItems().get(0)));
+    assertNumberOfChanges(1, changeLogs);
+    assertAll(() -> assertCreate("numericAttr", "88", changeLogs.get(0)));
   }
 
   @Test
@@ -177,14 +180,16 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
     String trackedEntityAttribute = "numericAttr";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, "");
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams);
+    List<TrackedEntityChangeLog> changeLogs =
+        filterTrackedEntityAttribute(
+            trackedEntityChangeLogService.getTrackedEntityChangeLog(
+                UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams),
+            trackedEntityAttribute);
 
-    assertNumberOfChanges(2, changeLogs.getItems());
+    assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDelete(trackedEntityAttribute, "88", changeLogs.getItems().get(0)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(1)));
+        () -> assertDelete(trackedEntityAttribute, "88", changeLogs.get(0)),
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.get(1)));
   }
 
   @Test
@@ -195,15 +200,16 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
     String updatedValue = "100";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams);
+    List<TrackedEntityChangeLog> changeLogs =
+        filterTrackedEntityAttribute(
+            trackedEntityChangeLogService.getTrackedEntityChangeLog(
+                UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams),
+            trackedEntityAttribute);
 
-    assertNumberOfChanges(2, changeLogs.getItems());
+    assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(0)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(1)));
+        () -> assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.get(0)),
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.get(1)));
   }
 
   @Test
@@ -216,21 +222,19 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
     updateAttributeValue(trackedEntity, trackedEntityAttribute, secondUpdatedValue);
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams);
+    List<TrackedEntityChangeLog> changeLogs =
+        filterTrackedEntityAttribute(
+            trackedEntityChangeLogService.getTrackedEntityChangeLog(
+                UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams),
+            trackedEntityAttribute);
 
-    assertNumberOfChanges(3, changeLogs.getItems());
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
         () ->
             assertUpdate(
-                trackedEntityAttribute,
-                updatedValue,
-                secondUpdatedValue,
-                changeLogs.getItems().get(0)),
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(1)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(2)));
+                trackedEntityAttribute, updatedValue, secondUpdatedValue, changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.get(1)),
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.get(2)));
   }
 
   @Test
@@ -242,16 +246,17 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
     updateAttributeValue(trackedEntity, trackedEntityAttribute, "");
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams);
+    List<TrackedEntityChangeLog> changeLogs =
+        filterTrackedEntityAttribute(
+            trackedEntityChangeLogService.getTrackedEntityChangeLog(
+                UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams),
+            trackedEntityAttribute);
 
-    assertNumberOfChanges(3, changeLogs.getItems());
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> assertDelete(trackedEntityAttribute, updatedValue, changeLogs.getItems().get(0)),
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(1)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(2)));
+        () -> assertDelete(trackedEntityAttribute, updatedValue, changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.get(1)),
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.get(2)));
   }
 
   @Test
@@ -343,5 +348,12 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
                   trackerImportService.importTracker(
                       importParams, TrackerObjects.builder().trackedEntities(List.of(t)).build()));
             });
+  }
+
+  private static List<TrackedEntityChangeLog> filterTrackedEntityAttribute(
+      Page<TrackedEntityChangeLog> changeLogs, String attribute) {
+    return changeLogs.getItems().stream()
+        .filter(cl -> cl.getTrackedEntityAttribute().getUid().equalsIgnoreCase(attribute))
+        .toList();
   }
 }

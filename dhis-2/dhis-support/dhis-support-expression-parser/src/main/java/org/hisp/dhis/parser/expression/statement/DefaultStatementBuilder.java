@@ -38,8 +38,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Matcher;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsConstants;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
@@ -49,11 +50,11 @@ import org.springframework.util.Assert;
 /**
  * @author Lars Helge Overland
  */
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class DefaultStatementBuilder implements StatementBuilder {
   protected static final String QUOTE = "\"";
 
-  protected static final String SINGLE_QUOTE = "'";
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public String getProgramIndicatorDataValueSelectSql(
@@ -109,7 +110,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
 
   private String getProgramIndicatorDataElementInEventSelectSql(
       String columnName, String programStageUid) {
-    return format("case when ax.\"ps\" = '%s' then %s else null end", programStageUid, columnName);
+    String col = sqlBuilder.quote("ps");
+    return format("case when ax.%s = '%s' then %s else null end", col, programStageUid, columnName);
   }
 
   private String getProgramIndicatorEventInEnrollmentSelectSql(
@@ -283,19 +285,13 @@ public class DefaultStatementBuilder implements StatementBuilder {
 
   protected String columnQuote(String column) {
     column = column.replace(QUOTE, (QUOTE + QUOTE));
-
-    return QUOTE + column + QUOTE;
+    return sqlBuilder.quote(column);
   }
 
   /**
    * Based on the given arguments, this method returns the column associated to the boundary object.
    * This column should be used as part of the boundary SQL statement.
    *
-   * @param boundary
-   * @param programIndicator
-   * @param timeField
-   * @param reportingStartDate
-   * @param reportingEndDate
    * @return the respective boundary column
    */
   private String getBoundaryColumn(
@@ -331,7 +327,6 @@ public class DefaultStatementBuilder implements StatementBuilder {
    * SCHEDULE (which makes it backward compatible). In this case the logic will remain based on
    * "occurreddate".
    *
-   * @param column
    * @return the backwards compatible column
    */
   private String keepOrderCompatibilityColumn(final String column) {
