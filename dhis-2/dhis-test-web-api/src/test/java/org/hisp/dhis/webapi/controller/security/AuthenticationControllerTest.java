@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -117,7 +118,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   @Test
   void testLoginWithTOTP2FA() {
     User admin = userService.getUserByUsername("admin");
-    String secret = Base32.random();
+    String secret = Base32.encode(generateSecureRandomBytes(20));
     admin.setSecret(secret);
     admin.setTwoFactorType(TwoFactorType.TOTP);
     userService.updateUser(admin);

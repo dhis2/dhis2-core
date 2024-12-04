@@ -162,7 +162,7 @@ public class LoginTest {
     String enable2FACode = new Totp(base32Secret).now();
     Map<String, String> enable2FAReqBody = Map.of("code", enable2FACode);
     ResponseEntity<String> enable2FAResp = postWithCookie("/2fa/enable", enable2FAReqBody, cookie);
-    assertMessage(enable2FAResp, "Two factor authentication was enabled successfully");
+    assertMessage(enable2FAResp, "2FA was enabled successfully");
 
     // Attempt to log in without 2FA code
     ResponseEntity<LoginResponse> failedLoginResp =
