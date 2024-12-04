@@ -91,8 +91,9 @@ public class DefaultCategoryService implements CategoryService {
   public void validate(Category category) throws ConflictException {
     int maxOptions = configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_OPTIONS);
     int actualOptions = category.getCategoryOptions().size();
-    if (actualOptions == 0) // assume a transient object that does not have options set
-    actualOptions = categoryOptionStore.getCategoryOptionsCount(UID.of(category.getUid()));
+    if (actualOptions == 0)
+      // assume a transient object that does not have options set
+      actualOptions = categoryOptionStore.getCategoryOptionsCount(UID.of(category.getUid()));
     if (actualOptions > maxOptions)
       throw new ConflictException(ErrorCode.E1127, category.getUid(), maxOptions, actualOptions);
   }
@@ -334,8 +335,9 @@ public class DefaultCategoryService implements CategoryService {
     int actualCombinations = 1;
     for (Category c : combo.getCategories()) {
       int options = c.getCategoryOptions().size();
-      if (options == 0) // assume c is a transient object that has no options set
-      options = categoryOptionStore.getCategoryOptionsCount(UID.of(c.getUid()));
+      if (options == 0)
+        // assume c is a transient object that has no options set
+        options = categoryOptionStore.getCategoryOptionsCount(UID.of(c.getUid()));
       actualCombinations *= options;
     }
     if (actualCombinations > maxCombinations)

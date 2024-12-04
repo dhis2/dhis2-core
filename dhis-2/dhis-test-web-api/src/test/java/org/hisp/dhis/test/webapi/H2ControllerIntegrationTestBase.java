@@ -28,7 +28,6 @@
 package org.hisp.dhis.test.webapi;
 
 import static java.util.stream.Collectors.joining;
-import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
 
@@ -77,10 +76,10 @@ public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrat
 
   protected final HttpResponse postCategoryCombo(
       String name, DataDimensionType type, List<String> categories) {
-    String catIdsArray = categories.stream().map("{'id': '%s'}"::formatted).collect(joining(","));
+    String catObjects = categories.stream().map("{'id': '%s'}"::formatted).collect(joining(","));
     String body =
         "{'name': '%s', 'dataDimensionType': '%s', 'categories': [%s]}"
-            .formatted("maxCat", DISAGGREGATION, catIdsArray);
+            .formatted(name, type, catObjects);
     return POST("/categoryCombos", body);
   }
 }
