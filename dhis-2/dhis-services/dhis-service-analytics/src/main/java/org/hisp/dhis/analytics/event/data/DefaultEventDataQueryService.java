@@ -36,8 +36,6 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.So
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
@@ -54,7 +52,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +67,6 @@ import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -94,7 +90,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -228,71 +223,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       eventQueryParams = builder.build();
     }
 
-    validateQueryParamsForConfidentialAndSkipAnalytics(eventQueryParams);
-
     return eventQueryParams;
-  }
-
-  static void validateQueryParamsForConfidentialAndSkipAnalytics(
-      EventQueryParams eventQueryParams) {
-    if (eventQueryParams.includeConfidentialOrSkipAnalyticsItems()) {
-      return;
-    }
-    Set<TrackedEntityAttribute> confidentialAttributes =
-        Stream.concat(
-                eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
-            .map(QueryItem::getItem)
-            .filter(Objects::nonNull)
-            .filter(dimObj -> dimObj.isOfType(PROGRAM_ATTRIBUTE))
-            .map(TrackedEntityAttribute.class::cast)
-            .filter(TrackedEntityAttribute::isConfidentialBool)
-            .collect(Collectors.toSet());
-
-    if (!confidentialAttributes.isEmpty()) {
-      throw new IllegalQueryException(
-          new ErrorMessage(
-              ErrorCode.E7239,
-              confidentialAttributes.stream()
-                  .map(TrackedEntityAttribute::getUid)
-                  .collect(Collectors.joining(", "))));
-    }
-
-    Set<DataElement> skipAnalyticsDataElements =
-        Stream.concat(
-                eventQueryParams.getItems().stream(), eventQueryParams.getItemFilters().stream())
-            .filter(item -> item.getItem().isOfType(DATA_ELEMENT))
-            .filter(DefaultEventDataQueryService::isSkipAnalytics)
-            .map(item -> (DataElement) item.getItem())
-            .collect(Collectors.toSet());
-
-    if (!skipAnalyticsDataElements.isEmpty()) {
-      throw new IllegalQueryException(
-          new ErrorMessage(
-              ErrorCode.E7240,
-              skipAnalyticsDataElements.stream()
-                  .map(DataElement::getUid)
-                  .collect(Collectors.joining(", "))));
-    }
-  }
-
-  /**
-   * Checks if the data element is marked as skip analytics by looking at the program stage data
-   * elements associated with the program stage. If any of the program stage data elements has the
-   * skip analytics flag set to true, the data element in it is considered to be skipAnalytics.
-   *
-   * @param item the query item
-   * @return true if the data element is marked as skip analytics, false otherwise
-   */
-  static boolean isSkipAnalytics(QueryItem item) {
-    return Optional.of(item)
-        .map(QueryItem::getProgramStage)
-        .map(ProgramStage::getProgramStageDataElements)
-        .orElse(Set.of())
-        .stream()
-        .filter(ProgramStageDataElement::getSkipAnalytics)
-        .map(ProgramStageDataElement::getDataElement)
-        .map(BaseIdentifiableObject::getUid)
-        .anyMatch(uid -> uid.equals(item.getItem().getUid()));
   }
 
   private boolean hasPeriodDimension(EventQueryParams eventQueryParams) {
