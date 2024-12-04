@@ -399,15 +399,13 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD5_geo =
         "(select ou.geometry from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + ") as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     String aliasD5_name =
         "(select ou.name from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + ") as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     AnalyticsTableUpdateParams params =
