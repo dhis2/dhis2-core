@@ -120,13 +120,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * Returns a select expression, potentially with a cast statement, based on the given value type.
+   * Returns a column expression, potentially with a cast statement, based on the given value type.
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
    * @return a select expression appropriate for the given value type and context.
    */
-  protected String getSelectExpression(ValueType valueType, String columnExpression) {
+  protected String getColumnExpression(ValueType valueType, String columnExpression) {
     if (valueType.isDecimal()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
@@ -224,7 +224,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpression(attribute.getValueType(), valueColumn);
+    String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     String dataFilterClause = getDataFilterClause(attribute);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 

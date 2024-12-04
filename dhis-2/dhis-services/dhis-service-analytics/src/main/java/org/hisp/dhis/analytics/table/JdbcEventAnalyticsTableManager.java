@@ -489,15 +489,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String columnExpression =
+    String jsonExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
+    String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String sql = String.format("%s as %s", selectExpression, quote(dataElement.getUid()));
+    String selectExpression =
+        String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
-      return getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause);
+      return getColumnFromDataElementWithLegendSet(dataElement, columnExpression, dataFilterClause);
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -509,7 +510,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .name(dataElement.getUid())
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
-            .selectExpression(sql)
+            .selectExpression(selectExpression)
             .skipIndex(skipIndex)
             .build());
 
@@ -590,7 +591,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
       TrackedEntityAttribute attribute) {
-    String selectClause = getSelectExpression(attribute.getValueType(), "value");
+    String columnExpression = getColumnExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause();
     String query =
         """
@@ -605,11 +606,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .map(
             ls -> {
               String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
-              String sql =
+              String selectExpression =
                   replaceQualify(
                       query,
                       Map.of(
-                          "selectClause", selectClause,
+                          "selectClause", columnExpression,
                           "legendSetId", String.valueOf(ls.getId()),
                           "column", column,
                           "attributeId", String.valueOf(attribute.getId()),
@@ -618,7 +619,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               return AnalyticsTableColumn.builder()
                   .name(column)
                   .dataType(CHARACTER_11)
-                  .selectExpression(sql)
+                  .selectExpression(selectExpression)
                   .build();
             })
         .toList();
