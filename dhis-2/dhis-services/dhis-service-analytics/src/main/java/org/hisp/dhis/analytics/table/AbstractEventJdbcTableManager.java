@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

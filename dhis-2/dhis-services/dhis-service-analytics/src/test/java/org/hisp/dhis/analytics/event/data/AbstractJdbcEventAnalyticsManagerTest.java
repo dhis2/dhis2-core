@@ -106,6 +106,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -125,19 +126,24 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ExecutionPlanStore executionPlanStore;
 
   @Mock private OrganisationUnitService organisationUnitService;
-  
-  @Spy private DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+
+  @Spy
+  private DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
       new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
-  
+
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @Spy private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer = new EventTimeFieldSqlRenderer(sqlBuilder);
+  @Spy
+  private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer =
+      new EventTimeFieldSqlRenderer(sqlBuilder);
 
-  @Spy private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
-  
-  private JdbcEventAnalyticsManager eventSubject;
+  @Spy
+  private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
+      new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
-  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
+  @InjectMocks private JdbcEventAnalyticsManager eventSubject;
+
+  @InjectMocks private JdbcEnrollmentAnalyticsManager enrollmentSubject;
 
   private Program programA;
 
@@ -153,24 +159,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @BeforeEach
   public void setUp() {
-    eventSubject =
-        new JdbcEventAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            eventTimeFieldSqlRenderer,
-            executionPlanStore,
-            sqlBuilder);
-
-    enrollmentSubject =
-        new JdbcEnrollmentAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            enrollmentTimeFieldSqlRenderer,
-            executionPlanStore,
-            sqlBuilder);
-
     programA = createProgram('A');
 
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);

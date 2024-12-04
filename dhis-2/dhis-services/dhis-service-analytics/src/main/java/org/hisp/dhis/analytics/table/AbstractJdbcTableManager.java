@@ -34,6 +34,7 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -43,6 +44,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -86,8 +89,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -673,19 +674,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Converts the given list of items to a comma-separated string, using the given mapping function to map the object to string.
-   * 
+   * Converts the given list of items to a comma-separated string, using the given mapping function
+   * to map the object to string.
+   *
    * @param <T> the type.
    * @param list the list.
    * @param mapper the mapping function.
    * @return a comma-separated string.
    */
   protected <T> String toCommaSeparated(List<T> list, Function<T, String> mapper) {
-    return list.stream()
-        .map(mapper)
-        .collect(Collectors.joining(","));
+    return list.stream().map(mapper).collect(Collectors.joining(","));
   }
-  
+
   /**
    * Quotes the given relation.
    *
