@@ -50,7 +50,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -367,24 +366,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
 
     populateTableInternal(partition, fromClause);
-  }
-
-  /**
-   * Returns a join clause for attribute value for every attribute of the given program.
-   *
-   * @param program the {@link Program}.
-   * @return a join clause.
-   */
-  private String getAttributeValueJoinClause(Program program) {
-    String template =
-        """
-        left join ${trackedentityattributevalue} as ${uid} \
-        on en.trackedentityid=${uid}.trackedentityid \
-        and ${uid}.trackedentityattributeid = ${id}\s""";
-
-    return program.getNonConfidentialTrackedEntityAttributes().stream()
-        .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
-        .collect(Collectors.joining());
   }
 
   /**
