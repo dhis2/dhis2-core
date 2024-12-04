@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -634,13 +633,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private String getOrgUnitSelectExpression(DataElement dataElement, String selectExpression) {
     Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
-    String prts = getClosingParentheses(selectExpression);
     return replaceQualify(
-        "(select ${selectExpression})${closingParentheses} as ${uid}",
-        Map.of(
-            "selectExpression", selectExpression,
-            "closingParentheses", prts,
-            "uid", quote(dataElement.getUid())));
+        "(select ${selectExpression}) as ${uid}",
+        Map.of("selectExpression", selectExpression, "uid", quote(dataElement.getUid())));
   }
 
   /**
