@@ -46,6 +46,8 @@ public interface TrackerAccessManager {
 
   List<String> canWrite(User user, TrackedEntityInstance trackedEntityInstance);
 
+  List<String> canCreate(User user, TrackedEntityInstance trackedEntity);
+
   List<String> canRead(
       User user,
       TrackedEntityInstance trackedEntityInstance,
