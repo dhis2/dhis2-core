@@ -124,6 +124,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from eventchangelog where eventid in " + eventSelect,
           "delete from programmessage where eventid in " + eventSelect,
+          "delete from programnotificationinstance where eventid in " + eventSelect,
           // finally delete the events
           "delete from event where deleted is true"
         };
@@ -205,6 +206,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from eventchangelog where eventid in " + eventSelect,
           "delete from programmessage where eventid in " + eventSelect,
+          "delete from programnotificationinstance where eventid in " + eventSelect,
           // delete other entries linked to enrollments
           "delete from relationshipitem where enrollmentid in " + enrollmentSelect,
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
