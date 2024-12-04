@@ -140,7 +140,7 @@ public class TwoFactorAuthUtils {
    * @return true if the code is valid, false otherwise.
    */
   public static boolean verifyEmail2FACode(@Nonnull String code, @Nonnull String secretAndTTL) {
-    if (SECRET_AND_TTL.matcher(secretAndTTL).matches()) {
+    if (!SECRET_AND_TTL.matcher(secretAndTTL).matches()) {
       return false;
     }
     String[] parts = PIPE_SPLIT.split(secretAndTTL);

@@ -156,7 +156,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testEnrollEmail2FA() {
-    systemSettingsService.put("email2FAEnabled", "true");
+    assertStatus(HttpStatus.OK, POST("/systemSettings/email2FAEnabled?value=true"));
 
     User user = makeUser("X", List.of("TEST"));
     String emailAddress = "valid.x@email.com";
@@ -194,6 +194,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testEnableEmail2FA() throws ConflictException {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/email2FAEnabled?value=true"));
+
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     user.setVerifiedEmail("valid.x@email.com");
@@ -266,6 +268,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testDisableEmail2FA() throws ConflictException {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/email2FAEnabled?value=true"));
+
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
     newUser.setVerifiedEmail("valid.y@email.com");
@@ -286,7 +290,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testDisable2FANotEnabled() {
     assertEquals(
-        "Two factor authentication is not enabled",
+        "User has not enabled 2FA",
         POST("/2fa/disable", "{'code':'wrong'}")
             .error(HttpStatus.Series.CLIENT_ERROR)
             .getMessage());

@@ -255,7 +255,7 @@ public class LoginTest {
     String enroll2FACode = extract2FACodeFromLatestEmail();
     Map<String, String> enable2FAReqBody = Map.of("code", enroll2FACode);
     ResponseEntity<String> enable2FAResp = postWithCookie("/2fa/enable", enable2FAReqBody, cookie);
-    assertMessage(enable2FAResp, "Two factor authentication was enabled successfully");
+    assertMessage(enable2FAResp, "2FA was enabled successfully");
 
     // Attempt to log in without 2FA code, should send email with a new code
     ResponseEntity<LoginResponse> failedLoginResp =
