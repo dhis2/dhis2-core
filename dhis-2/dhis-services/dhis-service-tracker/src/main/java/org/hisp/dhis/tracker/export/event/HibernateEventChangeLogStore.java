@@ -56,7 +56,7 @@ public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
-  private static final String COLUMN_CHANGELOG_PROPERTY = "ecl.eventProperty";
+  private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
 
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
@@ -73,13 +73,13 @@ public class HibernateEventChangeLogStore {
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
           entry("dataElement", COLUMN_CHANGELOG_DATA_ELEMENT),
-          entry("property", COLUMN_CHANGELOG_PROPERTY));
+          entry("field", COLUMN_CHANGELOG_FIELD));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
           entry(Pair.of("username", String.class), COLUMN_CHANGELOG_USER),
           entry(Pair.of("dataElement", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT),
-          entry(Pair.of("property", String.class), COLUMN_CHANGELOG_PROPERTY));
+          entry(Pair.of("field", String.class), COLUMN_CHANGELOG_FIELD));
 
   private final EntityManager entityManager;
 
@@ -102,7 +102,7 @@ public class HibernateEventChangeLogStore {
         """
           select ecl.event,
                  ecl.dataElement,
-                 ecl.eventProperty,
+                 ecl.eventField,
                  ecl.previousValue,
                  ecl.currentValue,
                  ecl.changeLogType,
@@ -147,7 +147,7 @@ public class HibernateEventChangeLogStore {
                 row -> {
                   Event e = (Event) row[0];
                   DataElement dataElement = (DataElement) row[1];
-                  String eventProperty = (String) row[2];
+                  String eventField = (String) row[2];
                   String previousValue = (String) row[3];
                   String currentValue = (String) row[4];
                   ChangeLogType changeLogType = (ChangeLogType) row[5];
@@ -160,7 +160,7 @@ public class HibernateEventChangeLogStore {
                   return new EventChangeLog(
                       e,
                       dataElement,
-                      eventProperty,
+                      eventField,
                       previousValue,
                       currentValue,
                       changeLogType,
