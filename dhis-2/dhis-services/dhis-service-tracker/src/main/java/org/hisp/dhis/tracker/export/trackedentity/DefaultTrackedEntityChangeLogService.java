@@ -215,6 +215,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
 
-    return attributes.stream().map(a -> UID.of(a.getUid())).collect(Collectors.toSet());
+    return attributes.stream().map(UID::of).collect(Collectors.toSet());
   }
 }

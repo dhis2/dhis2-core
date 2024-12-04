@@ -58,7 +58,7 @@ public interface EventChangeLogService {
       ChangeLogType changeLogType,
       String userName);
 
-  void addPropertyChangeLog(
+  void addFieldChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
 
   void deleteTrackedEntityDataValueChangeLog(Event event);
