@@ -597,7 +597,7 @@ class JdbcEventAnalyticsTableManagerTest {
         String.format(
             """
             (select ou.name from "organisationunit" ou where ou.uid = \
-            eventdatavalues #>> '{%s, value}' ) as %s""",
+            eventdatavalues #>> '{%s, value}') as %s""",
             d5.getUid(), quote(d5.getUid()));
 
     assertThat(sql.getValue(), containsString(ouUidQuery));
