@@ -38,6 +38,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -56,6 +57,7 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -306,6 +308,24 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             "attributeId", String.valueOf(attribute.getId()),
             "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
+  }
+
+  /**
+   * Returns a join clause for attribute value for every attribute of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a join clause.
+   */
+  protected String getAttributeValueJoinClause(Program program) {
+    String template =
+        """
+        left join ${trackedentityattributevalue} as ${uid} \
+        on en.trackedentityid=${uid}.trackedentityid \
+        and ${uid}.trackedentityattributeid = ${id}\s""";
+
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
+        .collect(Collectors.joining());
   }
 
   /**
