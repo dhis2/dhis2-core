@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.test.webapi;
 
+import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.test.IntegrationH2Test;
 import org.hisp.dhis.test.config.H2TestConfig;
 import org.springframework.test.context.ActiveProfiles;
@@ -40,4 +48,39 @@ import org.springframework.test.context.ContextConfiguration;
 @IntegrationH2Test
 @ActiveProfiles("test-h2")
 @ContextConfiguration(classes = H2TestConfig.class)
-public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrationTestBase {}
+public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrationTestBase {
+
+  protected final HttpResponse postCategory(
+      String name, DataDimensionType type, List<String> options) {
+    List<String> optionIds = postCategoryOptions(options);
+    String optionsArray = optionIds.stream().map("{'id':'%s'}"::formatted).collect(joining(","));
+    String body =
+        """
+        {
+          'name': '%s',
+          'shortName': '%s',
+          'dataDimensionType': '%s',
+          'categoryOptions': [%s]}
+        }"""
+            .formatted(name, name, type, optionsArray);
+    return POST("/categories", body);
+  }
+
+  protected final List<String> postCategoryOptions(List<String> names) {
+    List<String> ids = new ArrayList<>(names.size());
+    for (String option : names) {
+      String body = "{'name': '%s', 'shortName': '%s'}".formatted(option, option);
+      ids.add(assertStatus(CREATED, POST("/categoryOptions", body)));
+    }
+    return ids;
+  }
+
+  protected final HttpResponse postCategoryCombo(
+      String name, DataDimensionType type, List<String> categories) {
+    String catIdsArray = categories.stream().map("{'id': '%s'}"::formatted).collect(joining(","));
+    String body =
+        "{'name': '%s', 'dataDimensionType': '%s', 'categories': [%s]}"
+            .formatted("maxCat", DISAGGREGATION, catIdsArray);
+    return POST("/categoryCombos", body);
+  }
+}

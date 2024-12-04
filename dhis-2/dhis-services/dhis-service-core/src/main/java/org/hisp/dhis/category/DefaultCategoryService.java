@@ -43,7 +43,6 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -88,10 +87,12 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
 
   @Override
-  @NonTransactional
+  @Transactional(readOnly = true)
   public void validate(Category category) throws ConflictException {
     int maxOptions = configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_OPTIONS);
     int actualOptions = category.getCategoryOptions().size();
+    if (actualOptions == 0) // assume a transient object that does not have options set
+    actualOptions = categoryOptionStore.getCategoryOptionsCount(UID.of(category.getUid()));
     if (actualOptions > maxOptions)
       throw new ConflictException(ErrorCode.E1127, category.getUid(), maxOptions, actualOptions);
   }
@@ -320,7 +321,7 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
 
   @Override
-  @NonTransactional
+  @Transactional(readOnly = true)
   public void validate(CategoryCombo combo) throws ConflictException {
     int maxCategories =
         configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_PER_COMBO);
@@ -330,10 +331,13 @@ public class DefaultCategoryService implements CategoryService {
     for (Category c : combo.getCategories()) validate(c);
     int maxCombinations =
         configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_COMBINATIONS);
-    int actualCombinations =
-        combo.getCategories().stream()
-            .map(c -> c.getCategoryOptions().size())
-            .reduce(1, (a, b) -> a * b);
+    int actualCombinations = 1;
+    for (Category c : combo.getCategories()) {
+      int options = c.getCategoryOptions().size();
+      if (options == 0) // assume c is a transient object that has no options set
+      options = categoryOptionStore.getCategoryOptionsCount(UID.of(c.getUid()));
+      actualCombinations *= options;
+    }
     if (actualCombinations > maxCombinations)
       throw new ConflictException(
           ErrorCode.E1128, combo.getUid(), maxCombinations, actualCombinations);
@@ -452,7 +456,7 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
 
   @Override
-  @NonTransactional
+  @Transactional(readOnly = true)
   public void validate(CategoryOptionCombo combo) throws ConflictException {
     validate(combo.getCategoryCombo());
   }
