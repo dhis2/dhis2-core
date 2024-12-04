@@ -283,13 +283,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return columns;
   }
 
-  private String getSelectForInsert(
-      TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
-    return String.format(
-        """
-        %s.%s as %s, """);
-  }
-
   /**
    * The select subquery statement.
    *
