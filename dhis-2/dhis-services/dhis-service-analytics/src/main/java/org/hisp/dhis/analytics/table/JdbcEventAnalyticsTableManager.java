@@ -526,51 +526,50 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String format =
-        """
-        (select ou.${field} from ${organisationunit} ou \
-        where ou.uid = ${columnExpression}) as ${uid}""";
-    String columnExpression =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String alias = quote(dataElement.getUid());
-
     if (isSpatialSupport()) {
-      String geoSelectExpression =
-          replaceQualify(
-              format,
-              Map.of(
-                  "field", "geometry",
-                  "columnExpression", columnExpression,
-                  "uid", alias));
-
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(geoSelectExpression)
+              .selectExpression(getOrgUnitSelectSubquery("geometry", dataElement))
               .indexType(IndexType.GIST)
               .build());
     }
-
-    String nameSelectExpression =
-        replaceQualify(
-            format,
-            Map.of(
-                "field", "name",
-                "columnExpression", columnExpression,
-                "uid", alias));
 
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(nameSelectExpression)
+            .selectExpression(getOrgUnitSelectSubquery("name", dataElement))
             .skipIndex(SKIP)
             .build());
 
     return columns;
+  }
+
+  /**
+   * Returns a org unit select query.
+   *
+   * @param column the column name.
+   * @param dataElement the {@link DataElement}.
+   * @return an org unit select query.
+   */
+  private String getOrgUnitSelectSubquery(String column, DataElement dataElement) {
+    String format =
+        """
+        (select ou.${column} from ${organisationunit} ou \
+        where ou.uid = ${columnExpression}) as ${uid}""";
+    String columnExpression =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String alias = quote(dataElement.getUid());
+    return replaceQualify(
+        format,
+        Map.of(
+            "column", "name",
+            "columnExpression", columnExpression,
+            "uid", alias));
   }
 
   /**
