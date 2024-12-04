@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -99,14 +98,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
-  protected final String getNumericClause() {
-    return " and " + sqlBuilder.regexpMatch("value", "'" + NUMERIC_LENIENT_REGEXP + "'");
-  }
-
-  protected final String getDateClause() {
-    return " and " + sqlBuilder.regexpMatch("value", DATE_REGEXP);
-  }
-
   /**
    * Indicates whether creating an index should be skipped.
    *
@@ -146,22 +137,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else {
       return columnExpression;
     }
-  }
-
-  /**
-   * For numeric and date value types, returns a data filter clause for checking whether the value
-   * is valid according to the value type. For other value types, returns the empty string.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a data filter clause.
-   */
-  protected String getDataFilterClause(TrackedEntityAttribute attribute) {
-    if (attribute.isNumericType()) {
-      return getNumericClause();
-    } else if (attribute.isDateType()) {
-      return getDateClause();
-    }
-    return EMPTY;
   }
 
   /**
@@ -225,11 +200,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
-    String dataFilterClause = getDataFilterClause(attribute);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitAttribute(attribute, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitAttribute(attribute));
     }
 
     columns.add(
@@ -248,11 +222,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param dataFilterClause the data filter clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
-      TrackedEntityAttribute attribute, String dataFilterClause) {
+      TrackedEntityAttribute attribute) {
+    Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String fromClause =
@@ -260,7 +234,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     if (isSpatialSupport()) {
       String selectExpression = "ou.geometry " + fromClause;
-      String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+      String ouGeoSql = getSelectSubquery(attribute, selectExpression);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -272,7 +246,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     }
 
     String selectExpression = "ou.name " + fromClause;
-    String ouNameSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+    String ouNameSql = getSelectSubquery(attribute, selectExpression);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -291,20 +265,17 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *
    * @param attribute the {@link TrackedEntityAttribute}.
    * @param selectExpression the select expression.
-   * @param dataFilterClause the data filter clause.
    * @return a select statement.
    */
-  private String getSelectSubquery(
-      TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
+  private String getSelectSubquery(TrackedEntityAttribute attribute, String selectExpression) {
     return replaceQualify(
         """
         (select ${selectExpression} from ${trackedentityattributevalue} \
         where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId}${dataFilterClause})\
+        and trackedentityattributeid=${attributeId})\
         ${closingParentheses} as ${attributeUid}""",
         Map.of(
             "selectExpression", selectExpression,
-            "dataFilterClause", dataFilterClause,
             "attributeId", String.valueOf(attribute.getId()),
             "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
