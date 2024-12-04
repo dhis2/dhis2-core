@@ -532,18 +532,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         where ou.uid = ${columnExpression}) as ${uid}""";
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String alias = quote(dataElement.getUid());
 
     if (isSpatialSupport()) {
       String geoSelectExpression =
           replaceQualify(
               format,
               Map.of(
-                  "field",
-                  "geometry",
-                  "columnExpression",
-                  columnExpression,
-                  "uid",
-                  quote(dataElement.getUid())));
+                  "field", "geometry",
+                  "columnExpression", columnExpression,
+                  "uid", alias));
 
       columns.add(
           AnalyticsTableColumn.builder()
