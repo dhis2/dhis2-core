@@ -557,12 +557,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         replaceQualify(
             format,
             Map.of(
-                "field",
-                "name",
-                "columnExpression",
-                columnExpression,
-                "uid",
-                quote(dataElement.getUid())));
+                "field", "name",
+                "columnExpression", columnExpression,
+                "uid", alias));
 
     columns.add(
         AnalyticsTableColumn.builder()
