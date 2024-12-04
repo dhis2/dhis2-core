@@ -527,34 +527,52 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
+    String format =
+        """
+        (select ou.${field} from ${organisationunit} ou \
+        where ou.uid = ${columnExpression}) as ${uid}""";
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
 
     if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoExpression = getOrgUnitSelectExpression(dataElement, fromType);
+      String geoSelectExpression =
+          replaceQualify(
+              format,
+              Map.of(
+                  "field",
+                  "geometry",
+                  "columnExpression",
+                  columnExpression,
+                  "uid",
+                  quote(dataElement.getUid())));
 
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(geoExpression)
+              .selectExpression(geoSelectExpression)
               .indexType(IndexType.GIST)
               .build());
     }
 
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql);
+    String nameSelectExpression =
+        replaceQualify(
+            format,
+            Map.of(
+                "field",
+                "name",
+                "columnExpression",
+                columnExpression,
+                "uid",
+                quote(dataElement.getUid())));
 
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(ouNameSql)
+            .selectExpression(nameSelectExpression)
             .skipIndex(SKIP)
             .build());
 
