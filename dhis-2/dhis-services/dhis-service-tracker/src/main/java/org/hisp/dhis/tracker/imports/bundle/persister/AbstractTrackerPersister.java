@@ -356,6 +356,10 @@ public abstract class AbstractTrackerPersister<
               isUpdated = !trackedEntityAttributeValue.getPlainValue().equals(attribute.getValue());
             }
 
+            String previousValue =
+                trackedEntityAttributeValue == null
+                    ? null
+                    : trackedEntityAttributeValue.getPlainValue();
             trackedEntityAttributeValue =
                 Optional.ofNullable(trackedEntityAttributeValue)
                     .orElseGet(
@@ -374,6 +378,7 @@ public abstract class AbstractTrackerPersister<
                 isNew,
                 trackedEntity,
                 trackedEntityAttributeValue,
+                previousValue,
                 isUpdated,
                 user);
           }
@@ -398,8 +403,13 @@ public abstract class AbstractTrackerPersister<
             ? trackedEntityAttributeValue
             : entityManager.merge(trackedEntityAttributeValue));
 
-    logTrackedEntityAttributeValueHistory(
-        user.getUsername(), trackedEntityAttributeValue, trackedEntity, ChangeLogType.DELETE);
+    addTrackedEntityChangeLog(
+        user.getUsername(),
+        trackedEntityAttributeValue,
+        trackedEntityAttributeValue.getValue(),
+        null,
+        trackedEntity,
+        ChangeLogType.DELETE);
   }
 
   private void saveOrUpdate(
@@ -408,6 +418,7 @@ public abstract class AbstractTrackerPersister<
       boolean isNew,
       TrackedEntity trackedEntity,
       TrackedEntityAttributeValue trackedEntityAttributeValue,
+      String previousValue,
       boolean isUpdated,
       UserDetails user) {
     if (isFileResource(trackedEntityAttributeValue)) {
@@ -431,8 +442,13 @@ public abstract class AbstractTrackerPersister<
       }
     }
 
-    logTrackedEntityAttributeValueHistory(
-        user.getUsername(), trackedEntityAttributeValue, trackedEntity, changeLogType);
+    addTrackedEntityChangeLog(
+        user.getUsername(),
+        trackedEntityAttributeValue,
+        previousValue,
+        trackedEntityAttributeValue.getValue(),
+        trackedEntity,
+        changeLogType);
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {
@@ -460,20 +476,28 @@ public abstract class AbstractTrackerPersister<
     }
   }
 
-  private void logTrackedEntityAttributeValueHistory(
+  private void addTrackedEntityChangeLog(
       String userName,
       TrackedEntityAttributeValue attributeValue,
+      String previousValue,
+      String currentValue,
       TrackedEntity trackedEntity,
       ChangeLogType changeLogType) {
     boolean allowAuditLog = trackedEntity.getTrackedEntityType().isAllowAuditLog();
 
-    // create log entry only for updated, created and deleted attributes
     if (allowAuditLog && changeLogType != null) {
       TrackedEntityAttributeValueChangeLog valueAudit =
           new TrackedEntityAttributeValueChangeLog(
               attributeValue, attributeValue.getValue(), userName, changeLogType);
       valueAudit.setTrackedEntity(trackedEntity);
-      trackedEntityChangeLogService.addTrackedEntityAttributeValueChangeLog(valueAudit);
+
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(
+          trackedEntity,
+          attributeValue.getAttribute(),
+          previousValue,
+          currentValue,
+          changeLogType,
+          userName);
     }
   }
 }

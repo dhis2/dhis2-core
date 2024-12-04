@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,60 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
-/** Representation of {@link EventChangeLog}. */
-public interface JsonEventChangeLog extends JsonObject {
-  default JsonUser getCreatedBy() {
-    return get("createdBy").as(JsonUser.class);
-  }
+public record TrackedEntityChangeLog(
+    @JsonProperty User createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-  default String getType() {
-    return getString("type").string();
-  }
+  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
 
-  default JsonChange getChange() {
-    return get("change").as(JsonChange.class);
-  }
-
-  interface JsonChange extends JsonObject {
-    default JsonDataValue getDataValue() {
-      return get("dataValue").as(JsonDataValue.class);
-    }
-
-    default JsonEventField getEventField() {
-      return get("eventField").as(JsonEventField.class);
-    }
-  }
-
-  interface JsonDataValue extends JsonObject {
-    default String getDataElement() {
-      return getString("dataElement").string();
-    }
-
-    default String getPreviousValue() {
-      return getString("previousValue").string();
-    }
-
-    default String getCurrentValue() {
-      return getString("currentValue").string();
-    }
-  }
-
-  interface JsonEventField extends JsonObject {
-    default String getField() {
-      return getString("field").string();
-    }
-
-    default String getPreviousValue() {
-      return getString("previousValue").string();
-    }
-
-    default String getCurrentValue() {
-      return getString("currentValue").string();
-    }
-  }
+  public record TrackedEntityAttributeChange(
+      @JsonProperty UID attribute,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

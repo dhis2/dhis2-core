@@ -580,7 +580,7 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public CategoryOptionCombo getDefaultCategoryOptionCombo() {
-    return categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    return categoryOptionComboStore.getByName(CategoryOptionCombo.DEFAULT_NAME);
   }
 
   @Override

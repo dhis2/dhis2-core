@@ -43,11 +43,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.apache.commons.lang3.EnumUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
@@ -64,6 +67,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -87,12 +91,17 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.UncategorizedSQLException;
 
 /**
  * @author Lars Helge Overland
  */
 class AnalyticsUtilsTest extends TestBase {
+
+  private static final String DUMMY_SQL = "SELECT * FROM dummy";
+
   @Test
   void testGetByDataDimensionType() {
     Program prA = createProgram('A');
@@ -182,7 +191,7 @@ class AnalyticsUtilsTest extends TestBase {
   void testGetRoundedValueObject() {
     DataQueryParams paramsA = DataQueryParams.newBuilder().build();
     DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding(true).build();
-    assertEquals(null, AnalyticsUtils.getRoundedValueObject(paramsA, null), "Should be null");
+    assertNull(AnalyticsUtils.getRoundedValueObject(paramsA, null), "Should be null");
     assertEquals(
         "Car", AnalyticsUtils.getRoundedValueObject(paramsA, "Car"), "Should be a String: Car");
     assertEquals(
@@ -229,15 +238,15 @@ class AnalyticsUtilsTest extends TestBase {
   void testGetRoundedValueDouble() {
     DataQueryParams paramsA = DataQueryParams.newBuilder().build();
     DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding(true).build();
-    assertEquals(null, AnalyticsUtils.getRoundedValue(paramsA, null, (Double) null));
+    assertNull(AnalyticsUtils.getRoundedValue(paramsA, null, (Double) null));
     assertEquals(3d, AnalyticsUtils.getRoundedValue(paramsA, null, 3d).doubleValue(), 0.01);
     assertEquals(3.12, AnalyticsUtils.getRoundedValue(paramsA, null, 3.123).doubleValue(), 0.01);
     assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, 1, 3.123).doubleValue(), 0.01);
     assertEquals(3.12, AnalyticsUtils.getRoundedValue(paramsA, 2, 3.123).doubleValue(), 0.01);
     assertEquals(3.123, AnalyticsUtils.getRoundedValue(paramsB, 3, 3.123).doubleValue(), 0.01);
-    assertEquals(3l, AnalyticsUtils.getRoundedValue(paramsB, 0, 3.123).longValue());
-    assertEquals(12l, AnalyticsUtils.getRoundedValue(paramsB, 0, 12.34).longValue());
-    assertEquals(13l, AnalyticsUtils.getRoundedValue(paramsB, 0, 13.999).longValue());
+    assertEquals(3L, AnalyticsUtils.getRoundedValue(paramsB, 0, 3.123).longValue());
+    assertEquals(12L, AnalyticsUtils.getRoundedValue(paramsB, 0, 12.34).longValue());
+    assertEquals(13L, AnalyticsUtils.getRoundedValue(paramsB, 0, 13.999).longValue());
   }
 
   @Test
@@ -403,7 +412,7 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals("deabcdefghB", grid.getRow(1).get(0));
     assertNull(grid.getRow(1).get(3));
     assertNull(grid.getRow(1).get(4));
-    assertEquals((Double) grid.getRow(1).get(5), 0.01, 2d);
+    assertEquals(0.01, (Double) grid.getRow(1).get(5), 2d);
     assertEquals("deabcdefghC", grid.getRow(2).get(0));
     assertNull(grid.getRow(2).get(3));
     assertEquals("ceabcdefghA", grid.getRow(2).get(4));
@@ -411,7 +420,7 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals("deabcdefghD", grid.getRow(3).get(0));
     assertEquals("ceabcdefghB", grid.getRow(3).get(3));
     assertNull(grid.getRow(3).get(4));
-    assertEquals((Double) grid.getRow(3).get(5), 0.01, 4d);
+    assertEquals(0.01, (Double) grid.getRow(3).get(5), 4d);
     assertEquals("deabcdefghA", grid.getRow(4).get(0));
     assertEquals("ceabcdefghA", grid.getRow(4).get(3));
     assertNull(grid.getRow(4).get(4));
@@ -419,7 +428,7 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals("deabcdefghB", grid.getRow(5).get(0));
     assertEquals("ceabcdefghA", grid.getRow(5).get(3));
     assertNull(grid.getRow(5).get(4));
-    assertEquals((Double) grid.getRow(5).get(5), 0.01, 6d);
+    assertEquals(0.01, (Double) grid.getRow(5).get(5), 6d);
   }
 
   @Test
@@ -613,20 +622,20 @@ class AnalyticsUtilsTest extends TestBase {
     Integer twoYearsAgo = currentYear - 2;
     Integer threeYearsAgo = currentYear - 3;
     // maxYears = 0 should always return false
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 0));
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 0));
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 0));
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 0));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 0));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 0));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 0));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 0));
     // maxYears = 1 should only return true for years other than thisYear
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 1));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 1));
     assertTrue(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 1));
     assertTrue(AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 1));
     assertTrue(AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 1));
     // maxYears = 4 should only return false for all three years defined
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 5));
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 5));
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 5));
-    assertTrue(!AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 5));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 5));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 5));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 5));
+    assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 5));
   }
 
   @Test
@@ -654,18 +663,18 @@ class AnalyticsUtilsTest extends TestBase {
   @Test
   void testCalculateYearlyWeightedAverage() {
     double avg = AnalyticsUtils.calculateYearlyWeightedAverage(10D, 20D, 9D);
-    assertEquals(avg, 0, 17.5);
+    assertEquals(0, avg, 17.5);
     avg = AnalyticsUtils.calculateYearlyWeightedAverage(10D, -20D, 9D);
-    assertEquals(avg, 0, 12.5);
+    assertEquals(0, avg, 12.5);
   }
 
   @Test
   void testGetBaseMonth() {
-    assertEquals(AnalyticsUtils.getBaseMonth(new FinancialAprilPeriodType()), 0, 3);
-    assertEquals(AnalyticsUtils.getBaseMonth(new FinancialJulyPeriodType()), 0, 6);
-    assertEquals(AnalyticsUtils.getBaseMonth(new FinancialOctoberPeriodType()), 0, 9);
-    assertEquals(AnalyticsUtils.getBaseMonth(new FinancialNovemberPeriodType()), 0, 10);
-    assertEquals(AnalyticsUtils.getBaseMonth(new DailyPeriodType()), 0, 0);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialAprilPeriodType()), 3);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialJulyPeriodType()), 6);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialOctoberPeriodType()), 9);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialNovemberPeriodType()), 10);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new DailyPeriodType()), 0);
   }
 
   @Test
@@ -690,7 +699,7 @@ class AnalyticsUtilsTest extends TestBase {
     pi4.setUid(pi1.getUid());
     List<DimensionalItemObject> dimensionalItems =
         AnalyticsUtils.findDimensionalItems(pi1.getUid(), List.of(pi1, pi2, pi3, pi4));
-    assertEquals(dimensionalItems.size(), 2);
+    assertEquals(2, dimensionalItems.size());
   }
 
   @Test
@@ -717,7 +726,7 @@ class AnalyticsUtilsTest extends TestBase {
 
   /** {@link EnumUtils} is case sensitive, not specified in the documentation. */
   @Test
-  void testgetEnumCaseSensitivity() {
+  void testGetEnumCaseSensitivity() {
     assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "POSTGRESQL"));
     assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "PostgreSQL".toUpperCase()));
     assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "postgresql".toUpperCase()));
@@ -736,5 +745,52 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals("", AnalyticsUtils.getClosingParentheses(""));
     assertEquals(")", AnalyticsUtils.getClosingParentheses("from(select(select (*))"));
     assertEquals("))", AnalyticsUtils.getClosingParentheses("(("));
+  }
+
+  @Test
+  void whenUncategorizedSQLException_withTableNotExisting_thenThrowException() {
+    SQLException sqlException = new SQLException("relation does not exist", "42P01");
+    UncategorizedSQLException uncategorizedSQLException =
+        new UncategorizedSQLException("task", DUMMY_SQL, sqlException);
+    Supplier<String> supplier =
+        () -> {
+          throw uncategorizedSQLException;
+        };
+
+    assertThrows(
+        UncategorizedSQLException.class,
+        () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+  }
+
+  @Test
+  void whenQueryRuntimeException_thenRethrow() {
+    QueryRuntimeException queryException = new QueryRuntimeException("Test error");
+    Supplier<String> supplier =
+        () -> {
+          throw queryException;
+        };
+
+    QueryRuntimeException thrown =
+        assertThrows(
+            QueryRuntimeException.class,
+            () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+    assertEquals("Test error", thrown.getMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "When an UncategorizedSQLException is thrown with a column not existing and multiple queries, then return empty")
+  void whenUncategorizedSQLException_withColumnNotExisting_thenReturnEmpty() {
+    SQLException sqlException =
+        new SQLException("Unknown column 'cX5k9anHEHd' in 'ax' in FILTER clause", "HY000");
+    UncategorizedSQLException uncategorizedSQLException =
+        new UncategorizedSQLException("task", DUMMY_SQL, sqlException);
+    Supplier<String> supplier =
+        () -> {
+          throw uncategorizedSQLException;
+        };
+
+    Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
+    assertFalse(result.isPresent());
   }
 }

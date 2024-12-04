@@ -38,7 +38,8 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
 /**
- * Provider of DHIS 2 configuration properties specified in the {@code dhis.conf} file.
+ * Provider of DHIS 2 configuration properties specified in the {@code dhis.conf} file. The property
+ * values are loaded on application startup and can be assumed to not change during runtime.
  *
  * @author Lars Helge Overland
  */

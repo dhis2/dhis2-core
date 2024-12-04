@@ -30,13 +30,13 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
@@ -57,6 +57,8 @@ import org.hisp.dhis.system.util.ValidationUtils;
  * @author Jim Grace
  */
 public abstract class ProgramExpressionItem implements ExpressionItem {
+
+  private SqlBuilder sqlBuilder;
 
   @Override
   public final Object getExpressionInfo(ExprContext ctx, CommonExpressionVisitor visitor) {
@@ -122,6 +124,11 @@ public abstract class ProgramExpressionItem implements ExpressionItem {
     if (dataType == NUMERIC || dataType == BOOLEAN) {
       dataType = visitor.getParams().getDataType() == BOOLEAN ? BOOLEAN : NUMERIC;
     }
-    return replaceSqlNull(castSql(column, dataType), dataType);
+    return replaceSqlNull(sqlBuilder.cast(column, dataType), dataType);
+  }
+
+  protected ExpressionItem withSqlBuilder(SqlBuilder sqlBuilder) {
+    this.sqlBuilder = sqlBuilder;
+    return this;
   }
 }

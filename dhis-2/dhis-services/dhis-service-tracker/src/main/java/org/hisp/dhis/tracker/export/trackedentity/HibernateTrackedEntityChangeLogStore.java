@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.util.Map.entry;
 
@@ -36,88 +36,104 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore")
-public class HibernateEventChangeLogStore {
-  private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
-  private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
-  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
-  private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
+@Repository("org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore")
+public class HibernateTrackedEntityChangeLogStore {
+  private static final String COLUMN_CHANGELOG_CREATED = "tecl.created";
+  private static final String COLUMN_CHANGELOG_USER = "tecl.createdByUsername";
+  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "tea.uid";
 
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
-  /**
-   * Event change logs can be ordered by given fields which correspond to fields on {@link
-   * EventChangeLog}. Maps fields to DB columns. The order implementation for change logs is
-   * different from other tracker exporters {@link EventChangeLog} is the view which is already
-   * returned from the service/store. Tracker exporter services return a representation we have to
-   * map to a view model. This mapping is not necessary for change logs.
-   */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
-          entry("dataElement", COLUMN_CHANGELOG_DATA_ELEMENT),
-          entry("field", COLUMN_CHANGELOG_FIELD));
+          entry("attribute", COLUMN_CHANGELOG_DATA_ELEMENT));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
           entry(Pair.of("username", String.class), COLUMN_CHANGELOG_USER),
-          entry(Pair.of("dataElement", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT),
-          entry(Pair.of("field", String.class), COLUMN_CHANGELOG_FIELD));
+          entry(Pair.of("attribute", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT));
 
   private final EntityManager entityManager;
+  private final Session session;
 
-  public HibernateEventChangeLogStore(EntityManager entityManager) {
+  public HibernateTrackedEntityChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
+    this.session = entityManager.unwrap(Session.class);
   }
 
-  public void addEventChangeLog(EventChangeLog eventChangeLog) {
-    entityManager.unwrap(Session.class).save(eventChangeLog);
+  public void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog) {
+    session.save(trackedEntityChangeLog);
   }
 
-  public Page<EventChangeLog> getEventChangeLogs(
-      @Nonnull UID event,
-      @Nonnull EventChangeLogOperationParams operationParams,
+  public Page<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
+      @Nonnull UID trackedEntity,
+      @Nullable UID program,
+      @Nonnull Set<UID> attributes,
+      @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
-
-    Pair<String, QueryFilter> filter = operationParams.getFilter();
 
     String hql =
         """
-          select ecl.event,
-                 ecl.dataElement,
-                 ecl.eventField,
-                 ecl.previousValue,
-                 ecl.currentValue,
-                 ecl.changeLogType,
-                 ecl.created,
-                 ecl.createdByUsername,
-                 u.firstName,
-                 u.surname,
-                 u.uid
-          from EventChangeLog ecl
-          join ecl.event e
-          left join ecl.dataElement d
-          left join ecl.createdBy u
-          where e.uid = :eventUid
-      """;
+                select tecl.trackedEntity,
+                       tecl.trackedEntityAttribute,
+                       tecl.previousValue,
+                       tecl.currentValue,
+                       tecl.changeLogType,
+                       tecl.created,
+                       tecl.createdByUsername,
+                       u.firstName,
+                       u.surname,
+                       u.uid
+                from TrackedEntityChangeLog tecl
+                join tecl.trackedEntity t
+                join tecl.trackedEntityAttribute tea
+                left join tecl.createdBy u
+            """;
 
+    if (program != null) {
+      hql +=
+          """
+              join tecl.programAttribute pa
+              join pa.program p
+              where t.uid = :trackedEntity
+              and p.uid = :program
+          """;
+
+    } else {
+      hql +=
+          """
+              where t.uid = :trackedEntity
+          """;
+    }
+
+    if (!attributes.isEmpty()) {
+      hql +=
+          """
+              and tea.uid in (:attributes)
+          """;
+    }
+
+    Pair<String, QueryFilter> filter = operationParams.getFilter();
     if (filter != null) {
       String filterField =
           FILTERABLE_FIELDS.entrySet().stream()
@@ -132,7 +148,17 @@ public class HibernateEventChangeLogStore {
     hql += String.format("order by %s".formatted(sortExpressions(operationParams.getOrder())));
 
     Query query = entityManager.createQuery(hql);
-    query.setParameter("eventUid", event.getValue());
+    query.setParameter("trackedEntity", trackedEntity.getValue());
+
+    if (program != null) {
+      query.setParameter("program", program.getValue());
+    }
+
+    if (!attributes.isEmpty()) {
+      query.setParameter(
+          "attributes", attributes.stream().map(UID::getValue).collect(Collectors.toSet()));
+    }
+
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize() + 1);
 
@@ -141,26 +167,24 @@ public class HibernateEventChangeLogStore {
     }
 
     List<Object[]> results = query.getResultList();
-    List<EventChangeLog> eventChangeLogs =
+    List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         results.stream()
             .map(
                 row -> {
-                  Event e = (Event) row[0];
-                  DataElement dataElement = (DataElement) row[1];
-                  String eventField = (String) row[2];
-                  String previousValue = (String) row[3];
-                  String currentValue = (String) row[4];
-                  ChangeLogType changeLogType = (ChangeLogType) row[5];
-                  Date created = (Date) row[6];
+                  TrackedEntity t = (TrackedEntity) row[0];
+                  TrackedEntityAttribute trackedEntityAttribute = (TrackedEntityAttribute) row[1];
+                  String previousValue = (String) row[2];
+                  String currentValue = (String) row[3];
+                  ChangeLogType changeLogType = (ChangeLogType) row[4];
+                  Date created = (Date) row[5];
 
                   UserInfoSnapshot createdBy =
-                      new UserInfoSnapshot((String) row[7], (String) row[8], (String) row[9]);
-                  createdBy.setUid((String) row[10]);
+                      new UserInfoSnapshot((String) row[6], (String) row[7], (String) row[8]);
+                  createdBy.setUid((String) row[9]);
 
-                  return new EventChangeLog(
-                      e,
-                      dataElement,
-                      eventField,
+                  return new TrackedEntityChangeLog(
+                      t,
+                      trackedEntityAttribute,
                       previousValue,
                       currentValue,
                       changeLogType,
@@ -170,9 +194,9 @@ public class HibernateEventChangeLogStore {
             .toList();
 
     Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
-    if (eventChangeLogs.size() > pageParams.getPageSize()) {
+    if (trackedEntityChangeLogs.size() > pageParams.getPageSize()) {
       return Page.withPrevAndNext(
-          eventChangeLogs.subList(0, pageParams.getPageSize()),
+          trackedEntityChangeLogs.subList(0, pageParams.getPageSize()),
           pageParams.getPage(),
           pageParams.getPageSize(),
           prevPage,
@@ -180,19 +204,22 @@ public class HibernateEventChangeLogStore {
     }
 
     return Page.withPrevAndNext(
-        eventChangeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+        trackedEntityChangeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
   }
 
-  public void deleteEventChangeLog(DataElement dataElement) {
-    String hql = "delete from EventChangeLog where dataElement = :dataElement";
-
-    entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+  public void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity) {
+    org.hibernate.query.Query<?> query =
+        session.createQuery("delete TrackedEntityChangeLog where trackedEntity = :trackedEntity");
+    query.setParameter("trackedEntity", trackedEntity);
+    query.executeUpdate();
   }
 
-  public void deleteEventChangeLog(Event event) {
-    String hql = "delete from EventChangeLog where event = :event";
+  public Set<String> getOrderableFields() {
+    return ORDERABLE_FIELDS.keySet();
+  }
 
-    entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return FILTERABLE_FIELDS.keySet();
   }
 
   private static String sortExpressions(Order order) {
@@ -210,13 +237,5 @@ public class HibernateEventChangeLogStore {
     }
 
     return orderBuilder.toString();
-  }
-
-  public Set<String> getOrderableFields() {
-    return ORDERABLE_FIELDS.keySet();
-  }
-
-  public Set<Pair<String, Class<?>>> getFilterableFields() {
-    return FILTERABLE_FIELDS.keySet();
   }
 }

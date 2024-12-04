@@ -918,6 +918,7 @@ class DataRelationsValidatorTest extends TestBase {
     assertTrue(cc.isDefault(), "tests rely on this CC being the default one");
     cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     CategoryOptionCombo aoc = createCategoryOptionCombo(cc, co);
+    aoc.setName(CategoryOptionCombo.DEFAULT_NAME);
     assertTrue(aoc.isDefault(), "tests rely on this AOC being the default one");
     cc.setOptionCombos(Sets.newHashSet(aoc));
     return cc;

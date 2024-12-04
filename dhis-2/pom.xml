@@ -98,7 +98,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.46</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.47</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -112,10 +112,10 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.0.RELEASE</lettuce.version>
+    <lettuce.version>6.5.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.21.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.0.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -137,7 +137,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.18.1</jackson.version>
+    <jackson.version>2.18.2</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 

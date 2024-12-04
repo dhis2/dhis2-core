@@ -25,65 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.FieldChange;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog.TrackedEntityAttributeChange;
 import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 @Mapper(uses = {UIDMapper.class})
-public interface EventChangeLogMapper {
+public interface TrackedEntityChangeLogMapper {
 
-  @Mapping(target = "createdBy", source = "eventChangeLog")
+  @Mapping(target = "createdBy", source = "trackedEntityChangeLog")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
-  @Mapping(
-      target = "change.dataValue",
-      source = "eventChangeLog",
-      qualifiedByName = "mapIfDataValueChangeExists")
-  @Mapping(
-      target = "change.eventField",
-      source = "eventChangeLog",
-      qualifiedByName = "mapIfEventFieldChangeExists")
-  EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+  @Mapping(target = "change.attributeValue", source = "trackedEntityChangeLog")
+  TrackedEntityChangeLog map(
+      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
   @Mapping(target = "uid", source = "createdBy.uid")
   @Mapping(target = "username", source = "createdBy.username")
   @Mapping(target = "firstName", source = "createdBy.firstName")
   @Mapping(target = "surname", source = "createdBy.surname")
-  User mapUser(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+  User mapUser(
+      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 
-  @Mapping(target = "dataElement", source = "dataElement.uid")
+  @Mapping(target = "attribute", source = "trackedEntityAttribute.uid")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  DataValueChange mapDataValueChange(
-      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
-
-  @Named("mapIfDataValueChangeExists")
-  default DataValueChange mapIfDataValueChangeExists(
-      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
-    if (eventChangeLog.getDataElement() == null) {
-      return null;
-    }
-    return mapDataValueChange(eventChangeLog);
-  }
-
-  @Mapping(target = "field", source = "eventField")
-  @Mapping(target = "previousValue", source = "previousValue")
-  @Mapping(target = "currentValue", source = "currentValue")
-  FieldChange mapEventFieldChange(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
-
-  @Named("mapIfEventFieldChangeExists")
-  default FieldChange mapIfEventFieldExists(
-      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
-    if (eventChangeLog.getEventField() == null) {
-      return null;
-    }
-    return mapEventFieldChange(eventChangeLog);
-  }
+  TrackedEntityAttributeChange mapAttributeChange(
+      org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog trackedEntityChangeLog);
 }
