@@ -219,10 +219,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
+    String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpression(attribute.getValueType(), "value");
+    String selectExpression = getSelectExpression(attribute.getValueType(), valueColumn);
     String dataFilterClause = getDataFilterClause(attribute);
-    String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
@@ -234,7 +234,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             .name(attribute.getUid())
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
-            .selectExpression(sql)
+            .selectExpression(selectExpression)
             .skipIndex(skipIndex)
             .build());
 
