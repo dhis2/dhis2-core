@@ -60,7 +60,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
@@ -108,6 +107,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
@@ -125,9 +125,16 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ExecutionPlanStore executionPlanStore;
 
   @Mock private OrganisationUnitService organisationUnitService;
+  
+  @Spy private DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+  
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer = new EventTimeFieldSqlRenderer(sqlBuilder);
 
+  @Spy private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
+  
   private JdbcEventAnalyticsManager eventSubject;
 
   private JdbcEnrollmentAnalyticsManager enrollmentSubject;
@@ -146,15 +153,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @BeforeEach
   public void setUp() {
-    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
-
     eventSubject =
         new JdbcEventAnalyticsManager(
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EventTimeFieldSqlRenderer(sqlBuilder),
+            eventTimeFieldSqlRenderer,
             executionPlanStore,
             sqlBuilder);
 
@@ -163,7 +167,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
+            enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             sqlBuilder);
 
