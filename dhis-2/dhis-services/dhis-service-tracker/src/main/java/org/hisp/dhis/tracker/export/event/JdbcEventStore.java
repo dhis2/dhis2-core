@@ -1083,15 +1083,17 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
-      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startDate ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", params.getOccurredEndDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
-      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endDate ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
     if (params.getProgramType() != null) {
