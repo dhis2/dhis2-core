@@ -38,6 +38,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -46,6 +47,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -55,6 +57,7 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -117,14 +120,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * Returns a select expression, potentially with a cast statement, based on the given value type.
-   * Handles data element and tracked entity attribute select expressions.
+   * Returns a column expression, potentially with a cast statement, based on the given value type.
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
    * @return a select expression appropriate for the given value type and context.
    */
-  protected String getSelectExpression(ValueType valueType, String columnExpression) {
+  protected String getColumnExpression(ValueType valueType, String columnExpression) {
     if (valueType.isDecimal()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
@@ -138,7 +140,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return String.format(
           """
-          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || \
+          ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
           columnExpression);
     } else {
       return columnExpression;
@@ -219,14 +222,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
+    String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpression(attribute.getValueType(), "value");
+    String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     String dataFilterClause = getDataFilterClause(attribute);
-    String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitAttribute(attribute, dataFilterClause));
     }
 
     columns.add(
@@ -234,7 +237,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             .name(attribute.getUid())
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
-            .selectExpression(sql)
+            .selectExpression(selectExpression)
             .skipIndex(skipIndex)
             .build());
 
@@ -248,7 +251,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param dataFilterClause the data filter clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getColumnForOrgUnitTrackedEntityAttribute(
+  private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
       TrackedEntityAttribute attribute, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -305,5 +308,35 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             "attributeId", String.valueOf(attribute.getId()),
             "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
+  }
+
+  /**
+   * Returns a join clause for attribute value for every attribute of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a join clause.
+   */
+  protected String getAttributeValueJoinClause(Program program) {
+    String template =
+        """
+        left join ${trackedentityattributevalue} as ${uid} \
+        on en.trackedentityid=${uid}.trackedentityid \
+        and ${uid}.trackedentityattributeid = ${id}\s""";
+
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
+        .collect(Collectors.joining());
+  }
+
+  /**
+   * Returns a map of identifiable properties and values.
+   *
+   * @param object the {@link IdentifiableObject}.
+   * @return a {@link Map}.
+   */
+  protected Map<String, String> toVariableMap(IdentifiableObject object) {
+    return Map.of(
+        "id", String.valueOf(object.getId()),
+        "uid", quote(object.getUid()));
   }
 }
