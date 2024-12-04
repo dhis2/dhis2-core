@@ -29,6 +29,7 @@ package org.hisp.dhis.security.twofa;
 
 import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 
+import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +86,11 @@ public class TwoFactorAuthService {
    * @param code The 2FA code
    * @return true if the code is invalid, false if the code is valid.
    */
-  public boolean isInvalid2FACode(@Nonnull User user, @Nonnull String code) {
+  public boolean isInvalid2FACode(@Nonnull User user, @Nonnull String code)
+      throws ConflictException {
+    if (Strings.isNullOrEmpty(user.getSecret())) {
+      throw new ConflictException(ErrorCode.E3028);
+    }
     return !TwoFactorAuthUtils.isValid2FACode(user.getTwoFactorType(), code, user.getSecret());
   }
 
@@ -102,9 +107,9 @@ public class TwoFactorAuthService {
     if (user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
     }
-    user.setTwoFactorType(TwoFactorType.ENROLLING_TOTP);
     String totpSeed = Base32.encode(generateSecureRandomBytes(20));
     user.setSecret(totpSeed);
+    user.setTwoFactorType(TwoFactorType.ENROLLING_TOTP);
     userService.updateUser(user);
   }
 
@@ -230,7 +235,7 @@ public class TwoFactorAuthService {
   public void sendEmail2FACode(@Nonnull UserDetails userDetails) throws ConflictException {
     User user = userService.getUserByUsername(userDetails.getUsername());
     if (user == null) {
-      return;
+      throw new ConflictException(ErrorCode.E6201);
     }
     if (!user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3031);

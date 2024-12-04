@@ -43,10 +43,11 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.jboss.aerogear.security.otp.api.Base32.DecodingException;
 
 /**
  * @author Henning Håkonsen
@@ -58,8 +59,9 @@ public class TwoFactorAuthUtils {
     throw new IllegalStateException("Utility class");
   }
 
-  private static final String APP_NAME_PREFIX = "DHIS 2 ";
-  private static final Pattern PIPE_SPLIT_PATTERN = Pattern.compile("\\|");
+  private static final Pattern PIPE_SPLIT = Pattern.compile("\\|");
+  private static final Pattern SECRET_AND_TTL = Pattern.compile("^[0-9]{6}\\|\\d+$");
+  private static final Pattern TWO_FACTOR_CODE = Pattern.compile("^[0-9]{6}$");
 
   /**
    * Generate QR code in PNG format based on given qrContent.
@@ -67,7 +69,7 @@ public class TwoFactorAuthUtils {
    * @param qrContent content to be used for generating the QR code.
    * @param width width of the generated PNG image.
    * @param height height of the generated PNG image.
-   * @return PNG image as a byte array.
+   * @return PNG image as a byte array or an empty byte array if the generation fails.
    */
   public static byte[] generateQRCode(
       @Nonnull String qrContent, int width, int height, @Nonnull Consumer<ErrorCode> errorCode) {
@@ -84,7 +86,7 @@ public class TwoFactorAuthUtils {
       MatrixToImageWriter.writeToStream(bitMatrix, "PNG", byteArrayOutputStream);
       return byteArrayOutputStream.toByteArray();
     } catch (WriterException | IOException e) {
-      log.warn(e.getMessage(), e);
+      log.warn("Failed to create QR PNG", e);
       errorCode.accept(E3026);
       return ArrayUtils.EMPTY_BYTE_ARRAY;
     }
@@ -92,10 +94,19 @@ public class TwoFactorAuthUtils {
 
   /**
    * Generate TOTP URL-based appName and {@link User}, this is used as input to the TOTP generator.
+   *
+   * <p>The URL format is otpauth://totp/Service%20Name:test@example.com?
+   * secret=CLAH6OEOV52XVYTKHGKBERP42IUZHY4D&issuer=Example%20Service
+   *
+   * <p>The format was invented and defined by Google, see:
+   * https://github.com/google/google-authenticator/wiki/Key-Uri-Format
    */
   public static String generateTOTP2FAURL(
       @Nonnull String appName, @Nonnull String secret, @Nonnull String username) {
-    String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty(appName)).replace(" ", "%20");
+    String normalizedAppname = StringUtils.stripToEmpty(appName);
+    // replace possible non-ASCII characters into 'X's
+    normalizedAppname = normalizedAppname.replaceAll("[^\\p{ASCII}]", "X");
+    String app = ("DHIS2_" + normalizedAppname).replace(" ", "%20");
     return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", app, username, secret, app);
   }
 
@@ -109,6 +120,10 @@ public class TwoFactorAuthUtils {
    */
   public static boolean isValid2FACode(
       @Nonnull TwoFactorType type, @Nonnull String code, @Nonnull String secret) {
+    code = StringUtils.deleteWhitespace(code);
+    if (code.isEmpty()) {
+      return false;
+    }
     if (TwoFactorType.TOTP == type || TwoFactorType.ENROLLING_TOTP == type) {
       return TwoFactorAuthUtils.verifyTOTP2FACode(code, secret);
     } else if (TwoFactorType.EMAIL == type || TwoFactorType.ENROLLING_EMAIL == type) {
@@ -125,7 +140,10 @@ public class TwoFactorAuthUtils {
    * @return true if the code is valid, false otherwise.
    */
   public static boolean verifyEmail2FACode(@Nonnull String code, @Nonnull String secretAndTTL) {
-    String[] parts = PIPE_SPLIT_PATTERN.split(secretAndTTL);
+    if (SECRET_AND_TTL.matcher(secretAndTTL).matches()) {
+      return false;
+    }
+    String[] parts = PIPE_SPLIT.split(secretAndTTL);
     String secret = parts[0];
     long ttl = Long.parseLong(parts[1]);
     if (ttl < System.currentTimeMillis()) {
@@ -142,10 +160,27 @@ public class TwoFactorAuthUtils {
    * @return true if the code is valid, false otherwise.
    */
   public static boolean verifyTOTP2FACode(@Nonnull String code, @Nonnull String secret) {
-    if (!LongValidator.getInstance().isValid(code)) {
+    if (!TWO_FACTOR_CODE.matcher(code).matches()) {
       return false;
     }
-    Totp totp = new Totp(secret);
-    return totp.verify(code);
+
+    try {
+      byte[] decodedSecretBytes = Base32.decode(secret);
+      if (decodedSecretBytes == null || decodedSecretBytes.length != 20) {
+        log.warn("TOTP secret decoding failed, is null or invalid length");
+        return false;
+      }
+    } catch (DecodingException e) {
+      log.warn("TOTP secret decoding failed", e);
+      return false;
+    }
+
+    try {
+      Totp totp = new Totp(secret);
+      return totp.verify(code);
+    } catch (Exception e) {
+      log.warn("TOTP secret decoding or verification failed", e);
+      return false;
+    }
   }
 }

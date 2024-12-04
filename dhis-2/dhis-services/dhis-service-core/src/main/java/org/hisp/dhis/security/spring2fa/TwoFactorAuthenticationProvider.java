@@ -30,10 +30,14 @@ package org.hisp.dhis.security.spring2fa;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthUtils.isValid2FACode;
 
+import com.google.common.base.Strings;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
@@ -89,7 +93,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     // If enabled, temporarily block user with too many failed attempts
     if (userService.isLocked(username)) {
-      log.warn("Temporary lockout for user: '{}' and IP: {}", username, ip);
+      log.warn("Temporary lockout for user: '{}'", username);
       throw new LockedException(String.format("IP is temporarily locked: %s", ip));
     }
 
@@ -102,7 +106,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     // to use password login.
     if (userDetails.isExternalAuth()) {
       log.info(
-          "User is using external authentication, password login attempt aborted: '{}'", username);
+          "User has external authentication enabled, password login attempt aborted: '{}'",
+          username);
       throw new BadCredentialsException(
           "Invalid login method, user is using external authentication");
     }
@@ -126,39 +131,32 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     if (userDetails.isTwoFactorEnabled()
         && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails authDetails) {
-      validateTwoFactor(userDetails, authDetails);
+      validate2FACode(authDetails.getCode(), userDetails);
     }
 
     return new UsernamePasswordAuthenticationToken(
         userDetails, result.getCredentials(), result.getAuthorities());
   }
 
-  private void validateTwoFactor(
-      UserDetails userDetails, TwoFactorWebAuthenticationDetails authDetails)
-      throws ConflictException {
-    String code = StringUtils.deleteWhitespace(authDetails.getCode());
-    validate2FACode(code, userDetails);
-  }
-
-  private void validate2FACode(String code, UserDetails userDetails) throws ConflictException {
+  private void validate2FACode(@CheckForNull String code, @Nonnull UserDetails userDetails) {
     TwoFactorType type = userDetails.getTwoFactorType();
 
     // Send 2FA code via Email if the user has email 2FA enabled and the code is empty.
-    if (TwoFactorType.EMAIL == type && (code == null || code.isEmpty())) {
-      twoFactorAuthService.sendEmail2FACode(userDetails);
-      throw new TwoFactorAuthenticationException("No 2FA code provided, code sent via email");
+    if (TwoFactorType.EMAIL == type && Strings.isNullOrEmpty(code)) {
+      try {
+        twoFactorAuthService.sendEmail2FACode(userDetails);
+      } catch (ConflictException e) {
+        throw new TwoFactorAuthenticationException(ErrorCode.E3049.getMessage());
+      }
+      throw new TwoFactorAuthenticationException(ErrorCode.E3051.getMessage());
     }
 
-    try {
-      if (!isValid2FACode(type, code, userDetails.getSecret())) {
-        throw new TwoFactorAuthenticationException("Invalid 2FA code");
-      }
-    } catch (Exception e) {
-      log.warn(
-          "Failed to validate 2FA code for user: '{}', an exception occurred",
-          userDetails.getUsername(),
-          e);
-      throw new TwoFactorAuthenticationException("Invalid 2FA code");
+    if (Strings.isNullOrEmpty(code) || StringUtils.deleteWhitespace(code).isEmpty()) {
+      throw new TwoFactorAuthenticationException(ErrorCode.E3023.getMessage());
+    }
+
+    if (!isValid2FACode(type, code, userDetails.getSecret())) {
+      throw new TwoFactorAuthenticationException(ErrorCode.E3023.getMessage());
     }
     // All good, 2FA code is valid!
   }
