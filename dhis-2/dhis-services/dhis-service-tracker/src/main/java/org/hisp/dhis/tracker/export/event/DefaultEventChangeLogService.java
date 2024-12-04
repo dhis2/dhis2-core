@@ -99,7 +99,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   @Override
   @Transactional
-  public void addPropertyChangeLog(
+  public void addFieldChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
     logIfChanged(
         "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
@@ -133,7 +133,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   }
 
   private <T> void logIfChanged(
-      String propertyName,
+      String field,
       Function<Event, T> valueExtractor,
       Function<T, String> formatter,
       Event currentEvent,
@@ -148,34 +148,27 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
       EventChangeLog eventChangeLog =
           new EventChangeLog(
-              event,
-              null,
-              propertyName,
-              currentValue,
-              newValue,
-              changeLogType,
-              new Date(),
-              userName);
+              event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
 
       hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
     }
   }
 
   private ChangeLogType getChangeLogType(String oldValue, String newValue) {
-    if (isNewProperty(oldValue, newValue)) {
+    if (isFieldCreated(oldValue, newValue)) {
       return ChangeLogType.CREATE;
-    } else if (isUpdateProperty(oldValue, newValue)) {
+    } else if (isFieldUpdated(oldValue, newValue)) {
       return ChangeLogType.UPDATE;
     } else {
       return ChangeLogType.DELETE;
     }
   }
 
-  private boolean isNewProperty(String originalValue, String payloadValue) {
+  private boolean isFieldCreated(String originalValue, String payloadValue) {
     return originalValue == null && payloadValue != null;
   }
 
-  private boolean isUpdateProperty(String originalValue, String payloadValue) {
+  private boolean isFieldUpdated(String originalValue, String payloadValue) {
     return originalValue != null && payloadValue != null;
   }
 

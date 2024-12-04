@@ -174,24 +174,23 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         changeLogs.stream()
             .filter(log -> log.getChange().getDataValue().getDataElement() != null)
             .toList();
-    List<JsonEventChangeLog> eventPropertyChangeLogs =
+    List<JsonEventChangeLog> eventFieldChangeLogs =
         changeLogs.stream()
-            .filter(log -> log.getChange().getEventProperty().getProperty() != null)
+            .filter(log -> log.getChange().getEventField().getField() != null)
             .toList();
 
     assertHasSize(3, dataValueChangeLogs);
-    assertHasSize(2, eventPropertyChangeLogs);
+    assertHasSize(2, eventFieldChangeLogs);
 
     assertAll(
         () -> assertDelete(dataElement, "value 3", dataValueChangeLogs.get(0)),
         () -> assertUpdate(dataElement, "value 2", "value 3", dataValueChangeLogs.get(1)),
         () -> assertUpdate(dataElement, "value 1", "value 2", dataValueChangeLogs.get(2)),
         () ->
-            assertPropertyCreateExists(
-                "occurredAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
+            assertFieldCreateExists("occurredAt", "2023-01-10 00:00:00.000", eventFieldChangeLogs),
         () ->
-            assertPropertyCreateExists(
-                "scheduledAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
+            assertFieldCreateExists(
+                "scheduledAt", "2023-01-10 00:00:00.000", eventFieldChangeLogs));
   }
 
   @Test
@@ -204,41 +203,39 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         changeLogs.stream()
             .filter(log -> log.getChange().getDataValue().getDataElement() != null)
             .toList();
-    List<JsonEventChangeLog> eventPropertyChangeLogs =
+    List<JsonEventChangeLog> eventFieldChangeLogs =
         changeLogs.stream()
-            .filter(log -> log.getChange().getEventProperty().getProperty() != null)
+            .filter(log -> log.getChange().getEventField().getField() != null)
             .toList();
 
     assertHasSize(3, dataValueChangeLogs);
-    assertHasSize(2, eventPropertyChangeLogs);
+    assertHasSize(2, eventFieldChangeLogs);
     assertAll(
         () -> assertUpdate(dataElement, "value 1", "value 2", dataValueChangeLogs.get(0)),
         () -> assertUpdate(dataElement, "value 2", "value 3", dataValueChangeLogs.get(1)),
         () -> assertDelete(dataElement, "value 3", dataValueChangeLogs.get(2)),
         () ->
-            assertPropertyCreateExists(
-                "occurredAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
+            assertFieldCreateExists("occurredAt", "2023-01-10 00:00:00.000", eventFieldChangeLogs),
         () ->
-            assertPropertyCreateExists(
-                "scheduledAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
+            assertFieldCreateExists(
+                "scheduledAt", "2023-01-10 00:00:00.000", eventFieldChangeLogs));
   }
 
   @Test
-  void shouldGetEventChangeLogsWhenFilteringByProperty() {
+  void shouldGetEventChangeLogsWhenFilteringByField() {
     JsonList<JsonEventChangeLog> changeLogs =
-        GET("/tracker/events/{id}/changeLogs?filter=property:eq:occurredAt", event.getUid())
+        GET("/tracker/events/{id}/changeLogs?filter=field:eq:occurredAt", event.getUid())
             .content(HttpStatus.OK)
             .getList("changeLogs", JsonEventChangeLog.class);
-    List<JsonEventChangeLog> eventPropertyChangeLogs =
+    List<JsonEventChangeLog> eventFieldChangeLogs =
         changeLogs.stream()
-            .filter(log -> log.getChange().getEventProperty().getProperty() != null)
+            .filter(log -> log.getChange().getEventField().getField() != null)
             .toList();
 
     assertAll(
-        () -> assertHasSize(1, eventPropertyChangeLogs),
+        () -> assertHasSize(1, eventFieldChangeLogs),
         () ->
-            assertPropertyCreateExists(
-                "occurredAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
+            assertFieldCreateExists("occurredAt", "2023-01-10 00:00:00.000", eventFieldChangeLogs));
   }
 
   @Test
@@ -479,7 +476,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             assertEquals(dataElement.getUid(), actual.getChange().getDataValue().getDataElement()),
         () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
         () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()),
-        () -> JsonAssertions.assertHasNoMember(actual.getChange(), "eventProperty"));
+        () -> JsonAssertions.assertHasNoMember(actual.getChange(), "eventField"));
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {
@@ -490,12 +487,12 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertContains("pageSize=" + pageSize, actual));
   }
 
-  private static void assertPropertyCreateExists(
-      String property, String currentValue, List<JsonEventChangeLog> changeLogs) {
+  private static void assertFieldCreateExists(
+      String field, String currentValue, List<JsonEventChangeLog> changeLogs) {
     assertTrue(
-        changeLogs.stream().anyMatch(cl -> isEventPropertyCreate(cl, property, currentValue)),
+        changeLogs.stream().anyMatch(cl -> isEventFieldCreate(cl, field, currentValue)),
         "Expected a "
-            + property
+            + field
             + " change with value "
             + currentValue
             + " among the change log entries.");
@@ -504,11 +501,11 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         "Data value change not expected to be present, but it was");
   }
 
-  private static boolean isEventPropertyCreate(
-      JsonEventChangeLog actual, String property, String currentValue) {
+  private static boolean isEventFieldCreate(
+      JsonEventChangeLog actual, String field, String currentValue) {
     return actual.getType().equals(ChangeLogType.CREATE.name())
-        && actual.getChange().getEventProperty().getProperty().equals(property)
-        && actual.getChange().getEventProperty().getCurrentValue().equals(currentValue)
-        && actual.getChange().getEventProperty().getPreviousValue() == null;
+        && actual.getChange().getEventField().getField().equals(field)
+        && actual.getChange().getEventField().getCurrentValue().equals(currentValue)
+        && actual.getChange().getEventField().getPreviousValue() == null;
   }
 }

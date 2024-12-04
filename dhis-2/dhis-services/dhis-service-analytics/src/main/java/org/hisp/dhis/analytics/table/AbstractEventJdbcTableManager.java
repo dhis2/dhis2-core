@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -55,9 +56,9 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -74,9 +75,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -88,9 +88,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }
@@ -98,14 +97,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
   public static final String OU_NAME_COL_SUFFIX = "_name";
-
-  protected final String getNumericClause() {
-    return " and " + sqlBuilder.regexpMatch("value", "'" + NUMERIC_LENIENT_REGEXP + "'");
-  }
-
-  protected final String getDateClause() {
-    return " and " + sqlBuilder.regexpMatch("value", DATE_REGEXP);
-  }
 
   /**
    * Indicates whether creating an index should be skipped.
@@ -120,14 +111,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * Returns a select expression, potentially with a cast statement, based on the given value type.
-   * Handles data element and tracked entity attribute select expressions.
+   * Returns a column expression, potentially with a cast statement, based on the given value type.
    *
    * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnExpression the expression or name of the column to be selected.
    * @return a select expression appropriate for the given value type and context.
    */
-  protected String getSelectExpression(ValueType valueType, String columnExpression) {
+  protected String getColumnExpression(ValueType valueType, String columnExpression) {
     if (valueType.isDecimal()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
@@ -141,27 +131,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return String.format(
           """
-          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || \
+          ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
           columnExpression);
     } else {
       return columnExpression;
     }
-  }
-
-  /**
-   * For numeric and date value types, returns a data filter clause for checking whether the value
-   * is valid according to the value type. For other value types, returns the empty string.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a data filter clause.
-   */
-  protected String getDataFilterClause(TrackedEntityAttribute attribute) {
-    if (attribute.isNumericType()) {
-      return getNumericClause();
-    } else if (attribute.isDateType()) {
-      return getDateClause();
-    }
-    return EMPTY;
   }
 
   /**
@@ -217,19 +192,18 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a list of {@link AnalyticsTableColumn}.
+   * @return a list of {@link AnaylyticsTableColumn}.
    */
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
+    String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpression(attribute.getValueType(), "value");
-    String dataFilterClause = getDataFilterClause(attribute);
-    String sql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+    String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitTrackedEntityAttribute(attribute, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitAttribute(attribute));
     }
 
     columns.add(
@@ -237,7 +211,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             .name(attribute.getUid())
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(dataType)
-            .selectExpression(sql)
+            .selectExpression(selectExpression)
             .skipIndex(skipIndex)
             .build());
 
@@ -248,11 +222,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param dataFilterClause the data filter clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getColumnForOrgUnitTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, String dataFilterClause) {
+  private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
+      TrackedEntityAttribute attribute) {
+    Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String fromClause =
@@ -260,7 +234,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     if (isSpatialSupport()) {
       String selectExpression = "ou.geometry " + fromClause;
-      String ouGeoSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+      String ouGeoSql = getSelectSubquery(attribute, selectExpression);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -272,7 +246,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     }
 
     String selectExpression = "ou.name " + fromClause;
-    String ouNameSql = getSelectSubquery(attribute, selectExpression, dataFilterClause);
+    String ouNameSql = getSelectSubquery(attribute, selectExpression);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -291,22 +265,49 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *
    * @param attribute the {@link TrackedEntityAttribute}.
    * @param selectExpression the select expression.
-   * @param dataFilterClause the data filter clause.
    * @return a select statement.
    */
-  private String getSelectSubquery(
-      TrackedEntityAttribute attribute, String selectExpression, String dataFilterClause) {
+  private String getSelectSubquery(TrackedEntityAttribute attribute, String selectExpression) {
     return replaceQualify(
         """
         (select ${selectExpression} from ${trackedentityattributevalue} \
         where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId}${dataFilterClause})\
+        and trackedentityattributeid=${attributeId})\
         ${closingParentheses} as ${attributeUid}""",
         Map.of(
             "selectExpression", selectExpression,
-            "dataFilterClause", dataFilterClause,
             "attributeId", String.valueOf(attribute.getId()),
             "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
+  }
+
+  /**
+   * Returns a join clause for attribute value for every attribute of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a join clause.
+   */
+  protected String getAttributeValueJoinClause(Program program) {
+    String template =
+        """
+        left join ${trackedentityattributevalue} as ${uid} \
+        on en.trackedentityid=${uid}.trackedentityid \
+        and ${uid}.trackedentityattributeid = ${id}\s""";
+
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
+        .collect(Collectors.joining());
+  }
+
+  /**
+   * Returns a map of identifiable properties and values.
+   *
+   * @param object the {@link IdentifiableObject}.
+   * @return a {@link Map}.
+   */
+  protected Map<String, String> toVariableMap(IdentifiableObject object) {
+    return Map.of(
+        "id", String.valueOf(object.getId()),
+        "uid", quote(object.getUid()));
   }
 }

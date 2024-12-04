@@ -62,8 +62,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,8 +79,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class JdbcEnrollmentAnalyticsTableManagerTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
-
   @Mock private JdbcTemplate jdbcTemplate;
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
@@ -97,7 +93,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
+    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     subject =
@@ -110,7 +106,6 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
             mock(PartitionManager.class),
-            databaseInfoProvider,
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,
@@ -120,8 +115,6 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   @Test
   void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program p1 = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -144,13 +137,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        format(
-            """
-            (select value from "trackedentityattributevalue" \
-            where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999) as %s""",
-            quote(tea.getUid()));
+    String ouQuery = format("%s.value", quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouQuery));
   }

@@ -292,26 +292,25 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenNewDatePropertyValueAdded()
+  void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded()
       throws ForbiddenException, NotFoundException {
     String event = "QRYjLTiJTrA";
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> scheduledAtLogs = getChangeLogsByProperty(changeLogs, "scheduledAt");
-    List<EventChangeLog> occurredAtLogs = getChangeLogsByProperty(changeLogs, "occurredAt");
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
     assertNumberOfChanges(1, scheduledAtLogs);
     assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () ->
-            assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
-        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenExistingDatePropertyUpdated()
+  void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
       throws IOException, ForbiddenException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
     LocalDateTime currentTime = LocalDateTime.now();
@@ -320,31 +319,30 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> scheduledAtLogs = getChangeLogsByProperty(changeLogs, "scheduledAt");
-    List<EventChangeLog> occurredAtLogs = getChangeLogsByProperty(changeLogs, "occurredAt");
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
     assertNumberOfChanges(2, scheduledAtLogs);
     assertNumberOfChanges(2, occurredAtLogs);
     assertAll(
         () ->
-            assertPropertyUpdate(
+            assertFieldUpdate(
                 "scheduledAt",
                 "2022-04-22 06:00:38.343",
                 currentTime.toString(formatter),
                 scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
         () ->
-            assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
-        () ->
-            assertPropertyUpdate(
+            assertFieldUpdate(
                 "occurredAt",
                 "2022-04-20 06:00:38.343",
                 currentTime.toString(formatter),
                 occurredAtLogs.get(0)),
-        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(1)));
+        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(1)));
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenExistingDatePropertyDeleted()
+  void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted()
       throws ForbiddenException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
@@ -352,56 +350,53 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> scheduledAtLogs = getChangeLogsByProperty(changeLogs, "scheduledAt");
-    List<EventChangeLog> occurredAtLogs = getChangeLogsByProperty(changeLogs, "occurredAt");
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
     assertNumberOfChanges(2, scheduledAtLogs);
     assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () ->
-            assertPropertyDelete("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
-        () ->
-            assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
-        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
+        () -> assertFieldDelete("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
+        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenNewGeometryPointPropertyValueAdded()
+  void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
       throws ForbiddenException, NotFoundException {
     String event = "QRYjLTiJTrA";
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(1, geometryChangeLogs);
     assertAll(
-        () ->
-            assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)));
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)));
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenNewGeometryPolygonPropertyValueAdded()
+  void shouldReturnEventFieldChangeLogWhenNewGeometryPolygonFieldValueAdded()
       throws ForbiddenException, NotFoundException {
     String event = "YKmfzHdjUDL";
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(1, geometryChangeLogs);
     assertAll(
         () ->
-            assertPropertyCreate(
+            assertFieldCreate(
                 "geometry",
                 "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
                 geometryChangeLogs.get(0)));
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPointPropertyUpdated()
+  void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldUpdated()
       throws ForbiddenException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
@@ -410,22 +405,21 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(2, geometryChangeLogs);
     assertAll(
         () ->
-            assertPropertyUpdate(
+            assertFieldUpdate(
                 "geometry",
                 "(-11.419700, 8.103900)",
                 "(16.435547, 49.264220)",
                 geometryChangeLogs.get(0)),
-        () ->
-            assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPointPropertyDeleted()
+  void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldDeleted()
       throws ForbiddenException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
@@ -433,13 +427,12 @@ class EventChangeLogServiceTest extends TrackerTest {
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(2, geometryChangeLogs);
     assertAll(
-        () -> assertPropertyDelete("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)),
-        () ->
-            assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
+        () -> assertFieldDelete("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
   }
 
   private void updateDataValue(String event, String dataElementUid, String newValue) {
@@ -554,12 +547,11 @@ class EventChangeLogServiceTest extends TrackerTest {
         () -> assertDataElementChange(dataElement, null, currentValue, changeLog));
   }
 
-  private void assertPropertyCreate(
-      String property, String currentValue, EventChangeLog changeLog) {
+  private void assertFieldCreate(String field, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
-        () -> assertPropertyChange(property, null, currentValue, changeLog));
+        () -> assertFieldChange(field, null, currentValue, changeLog));
   }
 
   private void assertDataElementUpdate(
@@ -567,14 +559,14 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertUpdate(dataElement, null, previousValue, currentValue, changeLog, importUser);
   }
 
-  private void assertPropertyUpdate(
-      String property, String previousValue, String currentValue, EventChangeLog changeLog) {
-    assertUpdate(null, property, previousValue, currentValue, changeLog, importUser);
+  private void assertFieldUpdate(
+      String field, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertUpdate(null, field, previousValue, currentValue, changeLog, importUser);
   }
 
   private void assertUpdate(
       String dataElement,
-      String property,
+      String field,
       String previousValue,
       String currentValue,
       EventChangeLog changeLog,
@@ -586,7 +578,7 @@ class EventChangeLogServiceTest extends TrackerTest {
           if (dataElement != null) {
             assertDataElementChange(dataElement, previousValue, currentValue, changeLog);
           } else {
-            assertPropertyChange(property, previousValue, currentValue, changeLog);
+            assertFieldChange(field, previousValue, currentValue, changeLog);
           }
         });
   }
@@ -596,13 +588,12 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertDelete(dataElement, null, previousValue, changeLog);
   }
 
-  private void assertPropertyDelete(
-      String property, String previousValue, EventChangeLog changeLog) {
-    assertDelete(null, property, previousValue, changeLog);
+  private void assertFieldDelete(String field, String previousValue, EventChangeLog changeLog) {
+    assertDelete(null, field, previousValue, changeLog);
   }
 
   private void assertDelete(
-      String dataElement, String property, String previousValue, EventChangeLog changeLog) {
+      String dataElement, String field, String previousValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
@@ -610,7 +601,7 @@ class EventChangeLogServiceTest extends TrackerTest {
           if (dataElement != null) {
             assertDataElementChange(dataElement, previousValue, null, changeLog);
           } else {
-            assertPropertyChange(property, previousValue, null, changeLog);
+            assertFieldChange(field, previousValue, null, changeLog);
           }
         });
   }
@@ -624,9 +615,9 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertEquals(currentValue, changeLog.getCurrentValue());
   }
 
-  private static void assertPropertyChange(
-      String property, String previousValue, String currentValue, EventChangeLog changeLog) {
-    assertEquals(property, changeLog.getEventProperty());
+  private static void assertFieldChange(
+      String field, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertEquals(field, changeLog.getEventField());
     assertEquals(previousValue, changeLog.getPreviousValue());
     assertEquals(currentValue, changeLog.getCurrentValue());
   }
@@ -652,10 +643,10 @@ class EventChangeLogServiceTest extends TrackerTest {
     return changeLogs.getItems().stream().filter(cl -> cl.getDataElement() != null).toList();
   }
 
-  private List<EventChangeLog> getChangeLogsByProperty(
-      Page<EventChangeLog> changeLogs, String propertyName) {
+  private List<EventChangeLog> getChangeLogsByField(
+      Page<EventChangeLog> changeLogs, String fieldName) {
     return changeLogs.getItems().stream()
-        .filter(cl -> cl.getEventProperty() != null && cl.getEventProperty().equals(propertyName))
+        .filter(cl -> cl.getEventField() != null && cl.getEventField().equals(fieldName))
         .toList();
   }
 

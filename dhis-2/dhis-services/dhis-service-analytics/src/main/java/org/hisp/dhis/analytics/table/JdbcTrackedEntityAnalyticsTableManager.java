@@ -75,7 +75,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -89,7 +88,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final String PROGRAMS_BY_TET_KEY = "programsByTetUid";
 
-  private static final String ALL_TET_ATTRIBUTES = "allTetAttributes";
+  private static final String ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES =
+      "allNonConfidentialTetAttributes";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -104,7 +104,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -120,7 +119,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
@@ -202,9 +200,12 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .build()));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
-        getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid).toList();
+        getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
+            .filter(tea -> !tea.isConfidentialBool())
+            .toList();
 
-    params.addExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES, trackedEntityAttributes);
+    params.addExtraParam(
+        trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES, trackedEntityAttributes);
 
     columns.addAll(
         trackedEntityAttributes.stream()
@@ -354,7 +355,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 Map.of()));
 
     ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
+            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
         .forEach(
             tea ->
                 sql.append(

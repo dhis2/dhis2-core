@@ -53,7 +53,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -76,9 +75,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -90,9 +88,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
@@ -139,6 +136,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     Program program = partition.getMasterTable().getProgram();
+    String attributeJoinClause = getAttributeValueJoinClause(program);
 
     String fromClause =
         replaceQualify(
@@ -151,6 +149,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
+            ${attributeJoinClause}\
             where pr.programid=${programId} \
             and en.organisationunitid is not null \
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
@@ -158,6 +157,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and en.occurreddate is not null \
             and en.deleted = false\s""",
             Map.of(
+                "attributeJoinClause", attributeJoinClause,
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
 
@@ -190,7 +190,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
-    return program.getTrackedEntityAttributes().stream()
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
         .map(this::getColumnForAttribute)
         .flatMap(Collection::stream)
         .toList();
