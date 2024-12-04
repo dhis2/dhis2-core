@@ -1,7 +1,7 @@
 DO $$
 BEGIN
 
-ALTER TABLE trackedentity ALTER COLUMN trackedentitytypeid SET NOT NULL;
+ALTER TABLE IF EXISTS trackedentity ALTER COLUMN trackedentitytypeid SET NOT NULL;
 EXCEPTION
      WHEN not_null_violation THEN
          RAISE EXCEPTION 'Database contains inconsistent data. For more information about this issue and steps to resolve it, please refer to the migration notes:
