@@ -67,7 +67,6 @@ import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -386,18 +385,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return program.getNonConfidentialTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
         .collect(Collectors.joining());
-  }
-
-  /**
-   * Returns a variable map.
-   *
-   * @param object the object.
-   * @return a {@link Map}.
-   */
-  private Map<String, String> toVariableMap(IdentifiableObject object) {
-    return Map.of(
-        "id", String.valueOf(object.getId()),
-        "uid", quote(object.getUid()));
   }
 
   /**

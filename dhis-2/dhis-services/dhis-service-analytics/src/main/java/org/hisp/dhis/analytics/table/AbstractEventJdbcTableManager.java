@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -305,5 +306,17 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             "attributeId", String.valueOf(attribute.getId()),
             "closingParentheses", getClosingParentheses(selectExpression),
             "attributeUid", quote(attribute.getUid())));
+  }
+
+  /**
+   * Returns a map of identifiable properties and values.
+   *
+   * @param object the {@link IdentifiableObject}.
+   * @return a {@link Map}.
+   */
+  protected Map<String, String> toVariableMap(IdentifiableObject object) {
+    return Map.of(
+        "id", String.valueOf(object.getId()),
+        "uid", quote(object.getUid()));
   }
 }
