@@ -35,17 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link DimensionIdentifierHelper} */
 class DimensionIdentifierHelperTest {
   @Test
   void testFromFullDimensionId() {
-    // Given
     String fullDimensionId = "lxAQ7Zs9VYR[0].RaMbOrTys0n[4].bh1Edk21e2n";
 
-    // When
     StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(fullDimensionId);
 
-    // Then
     assertEquals(
         "bh1Edk21e2n",
         dimensionIdentifier.getDimension().getUid(),
@@ -64,12 +60,9 @@ class DimensionIdentifierHelperTest {
 
   @Test
   void testFromDimensionIdWithUnsupportedOffset() {
-    // Given
     String dimensionIdWithDashOffset = "lxAQ7Zs9VYR[-].bh1Edk21e2n";
     String dimensionIdWithStringOffset = "lxAQ7Zs9VYR[X].bh1Edk21e2n";
 
-    // When
-    // Then
     assertThrows(IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithDashOffset));
     assertThrows(
         IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithStringOffset));
@@ -77,13 +70,10 @@ class DimensionIdentifierHelperTest {
 
   @Test
   void testFromFullDimensionIdWithSingleDimension() {
-    // Given
     String singleDimensionId = "bh1Edk21e2n";
 
-    // When
     StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(singleDimensionId);
 
-    // Then
     assertEquals(
         "bh1Edk21e2n",
         dimensionIdentifier.getDimension().getUid(),
@@ -96,13 +86,10 @@ class DimensionIdentifierHelperTest {
 
   @Test
   void testFromFullDimensionIdWithProgramAndDimension() {
-    // Given
     String singleDimensionId = "lxAQ7Zs9VYR.bh1Edk21e2n";
 
-    // When
     StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(singleDimensionId);
 
-    // Then
     assertEquals(
         "bh1Edk21e2n",
         dimensionIdentifier.getDimension().getUid(),
@@ -117,15 +104,12 @@ class DimensionIdentifierHelperTest {
 
   @Test
   void testFromFullDimensionIdWhenSingleDimensionHasOffset() {
-    // Given
     String singleDimensionWithOffset = "bh1Edk21e2n[2]";
 
-    // When
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class, () -> fromFullDimensionId(singleDimensionWithOffset));
 
-    // Then
     assertEquals(
         "Only program and program stage can have offset",
         thrown.getMessage(),
@@ -134,15 +118,12 @@ class DimensionIdentifierHelperTest {
 
   @Test
   void testFromFullDimensionIdWhenDimensionHasInvalidFormat() {
-    // Given
     String invalidFullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n.invalid-id";
 
-    // When
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class, () -> fromFullDimensionId(invalidFullDimensionId));
 
-    // Then
     assertEquals(
         "Invalid dimension identifier: " + invalidFullDimensionId,
         thrown.getMessage(),

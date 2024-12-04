@@ -78,8 +78,6 @@ import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,12 +124,11 @@ class DataElementOperandControllerTest {
   public void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
 
-    ContextService contextService = new DefaultContextService();
-
     QueryService _queryService =
         new DefaultQueryService(
             new DefaultJpaQueryParser(schemaService),
             new DefaultQueryPlanner(schemaService, settingsService),
+            schemaService,
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine<>(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
@@ -142,13 +139,7 @@ class DataElementOperandControllerTest {
     // Controller under test
     final DataElementOperandController controller =
         new DataElementOperandController(
-            manager,
-            queryService,
-            fieldFilterService,
-            linkService,
-            contextService,
-            schemaService,
-            dataElementCategoryService);
+            manager, queryService, fieldFilterService, linkService, dataElementCategoryService);
 
     // Set custom Node Message converter //
     Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer(staticJsonMapper());

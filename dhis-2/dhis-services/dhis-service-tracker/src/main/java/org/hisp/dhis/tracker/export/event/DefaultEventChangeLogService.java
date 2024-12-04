@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -39,13 +36,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.locationtech.jts.geom.Geometry;
@@ -59,7 +56,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final EventService eventService;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
   private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
-  private final TrackerAccessManager trackerAccessManager;
 
   @Override
   @Transactional(readOnly = true)
@@ -69,8 +65,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
     // check existence and access
     eventService.getEvent(event);
 
-    return hibernateEventChangeLogStore.getEventChangeLogs(
-        event, operationParams.getOrder(), pageParams);
+    return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
   }
 
   @Transactional
@@ -83,32 +78,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Override
   public void deleteEventChangeLog(DataElement dataElement) {
     hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params) {
-
-    return trackedEntityDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(params).stream()
-        .filter(
-            changeLog ->
-                trackerAccessManager
-                    .canRead(
-                        getCurrentUserDetails(),
-                        changeLog.getEvent(),
-                        changeLog.getDataElement(),
-                        false)
-                    .isEmpty())
-        .toList();
-  }
-
-  @Override
-  @Transactional
-  public void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
-    trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
-        trackedEntityDataValueChangeLog);
   }
 
   @Override
@@ -130,21 +99,14 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   @Override
   @Transactional
-  public void addPropertyChangeLog(
+  public void addFieldChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
     logIfChanged(
-        "occurredDate", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
+        "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
-        "scheduledDate", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
+        "scheduledAt", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
         "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params) {
-    return trackedEntityDataValueChangeLogStore.countTrackedEntityDataValueChangeLogs(params);
   }
 
   @Override
@@ -165,8 +127,13 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
     return hibernateEventChangeLogStore.getOrderableFields();
   }
 
+  @Override
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return hibernateEventChangeLogStore.getFilterableFields();
+  }
+
   private <T> void logIfChanged(
-      String propertyName,
+      String field,
       Function<Event, T> valueExtractor,
       Function<T, String> formatter,
       Event currentEvent,
@@ -181,34 +148,27 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
       EventChangeLog eventChangeLog =
           new EventChangeLog(
-              event,
-              null,
-              propertyName,
-              currentValue,
-              newValue,
-              changeLogType,
-              new Date(),
-              userName);
+              event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
 
       hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
     }
   }
 
   private ChangeLogType getChangeLogType(String oldValue, String newValue) {
-    if (isNewProperty(oldValue, newValue)) {
+    if (isFieldCreated(oldValue, newValue)) {
       return ChangeLogType.CREATE;
-    } else if (isUpdateProperty(oldValue, newValue)) {
+    } else if (isFieldUpdated(oldValue, newValue)) {
       return ChangeLogType.UPDATE;
     } else {
       return ChangeLogType.DELETE;
     }
   }
 
-  private boolean isNewProperty(String originalValue, String payloadValue) {
+  private boolean isFieldCreated(String originalValue, String payloadValue) {
     return originalValue == null && payloadValue != null;
   }
 
-  private boolean isUpdateProperty(String originalValue, String payloadValue) {
+  private boolean isFieldUpdated(String originalValue, String payloadValue) {
     return originalValue != null && payloadValue != null;
   }
 

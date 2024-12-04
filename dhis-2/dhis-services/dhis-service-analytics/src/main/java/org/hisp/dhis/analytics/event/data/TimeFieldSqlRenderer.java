@@ -51,18 +51,19 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.parser.expression.statement.DefaultStatementBuilder;
+import org.hisp.dhis.parser.expression.statement.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /** Provides methods targeting the generation of SQL statements for periods and time fields. */
 public abstract class TimeFieldSqlRenderer {
   protected final SqlBuilder sqlBuilder;
-  protected final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
+  protected final StatementBuilder statementBuilder;
 
   protected TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
     this.sqlBuilder = sqlBuilder;
+    this.statementBuilder = new DefaultStatementBuilder(sqlBuilder);
   }
 
   /**
@@ -173,7 +174,7 @@ public abstract class TimeFieldSqlRenderer {
   /**
    * Returns a string representing the SQL condition for the given {@link ColumnWithDateRange}.
    *
-   * @param dateRangeColumn
+   * @param dateRangeColumn the {@link ColumnWithDateRange}
    * @return the SQL statement
    */
   private String getDateRangeCondition(ColumnWithDateRange dateRangeColumn) {

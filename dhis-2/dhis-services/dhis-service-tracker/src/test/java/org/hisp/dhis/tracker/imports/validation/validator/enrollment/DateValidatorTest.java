@@ -41,6 +41,8 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -101,7 +103,7 @@ class DateValidatorTest {
 
   @Test
   void testDatesMustNotBeInTheFuture() {
-    final Instant dateInTheFuture = now().plus(Duration.ofDays(2));
+    final Instant dateInTheFuture = now().plus(Duration.ofDays(1));
     Enrollment enrollment =
         Enrollment.builder()
             .enrollment(UID.generate())
@@ -117,6 +119,33 @@ class DateValidatorTest {
     assertAll(
         () -> assertHasError(reporter, enrollment, E1020),
         () -> assertHasError(reporter, enrollment, E1021));
+  }
+
+  @Test
+  void testDatesWithNoTimeZoneMustNotBeInTheFuture() {
+    ZoneId systemZone = ZoneId.systemDefault();
+    LocalDate tomorrow = LocalDate.now(systemZone).plusDays(1);
+    Instant dateTomorrow = tomorrow.atStartOfDay(systemZone).toInstant();
+
+    // Create enrollment with dates set to tomorrow
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(UID.generate())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(dateTomorrow)
+            .enrolledAt(dateTomorrow)
+            .build();
+
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
+
+    // Run validation
+    validator.validate(reporter, bundle, enrollment);
+
+    // Assert that the future dates are detected as errors
+    assertAll(
+        () -> assertHasError(reporter, enrollment, E1020), // enrolledAt in the future
+        () -> assertHasError(reporter, enrollment, E1021) // occurredAt in the future
+        );
   }
 
   @Test

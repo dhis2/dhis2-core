@@ -123,6 +123,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ProgramIndicatorService programIndicatorService;
 
   @Mock private ExecutionPlanStore executionPlanStore;
+
   @Mock private OrganisationUnitService organisationUnitService;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();

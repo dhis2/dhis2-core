@@ -32,11 +32,11 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import com.google.common.collect.Lists;
@@ -50,8 +50,11 @@ import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,6 +69,8 @@ public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
   private final SystemSettingsProvider settingsProvider;
+
+  private final DatabaseInfoProvider databaseInfoProvider;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -93,41 +98,21 @@ public class AnalyticsTableSettings {
   }
 
   /**
+   * Returns the {@link PeriodSource} based on the max years offset.
+   *
+   * @return the {@link PeriodSource}.
+   */
+  public PeriodSource getPeriodSource() {
+    return getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE;
+  }
+
+  /**
    * Indicates whether an analytics database instance is configured.
    *
    * @return true if an analytics database instance is configured.
    */
   public boolean isAnalyticsDatabaseConfigured() {
     return config.isAnalyticsDatabaseConfigured();
-  }
-
-  /**
-   * Returns the configured analytics {@link Database}. The default is {@link Database#POSTGRESQL}.
-   *
-   * @return the analytics {@link Database}.
-   */
-  public Database getAnalyticsDatabase() {
-    String value = config.getProperty(ANALYTICS_DATABASE);
-    String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
-    return getAndValidateDatabase(valueUpperCase);
-  }
-
-  /**
-   * Returns the analytics database JDBC catalog name.
-   *
-   * @return the analytics database JDBC catalog name.
-   */
-  public String getAnalyticsDatabaseCatalog() {
-    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
-  }
-
-  /**
-   * Returns the analytics database JDBC driver filename.
-   *
-   * @return the analytics database JDBC driver filename.
-   */
-  public String getAnalyticsDatabaseDriverFilename() {
-    return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
   }
 
   /**
@@ -147,6 +132,16 @@ public class AnalyticsTableSettings {
    */
   public Set<String> getSkipColumnDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
+  }
+
+  /**
+   * Indicates whether spatial database support is available.
+   *
+   * @return true if spatial database support is available.
+   */
+  public boolean isSpatialSupport() {
+    DatabaseInfo info = databaseInfoProvider.getDatabaseInfo();
+    return info != null && info.isSpatialSupport();
   }
 
   /**

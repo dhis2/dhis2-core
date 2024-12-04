@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
@@ -53,6 +54,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -71,12 +73,14 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -153,20 +157,24 @@ class EventsExportController {
       )
   ResponseEntity<Page<ObjectNode>> getEvents(
       EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
-    EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
 
     if (requestParams.isPaged()) {
       PageParams pageParams =
           new PageParams(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
+      EventOperationParams eventOperationParams =
+          eventParamsMapper.map(requestParams, idSchemeParams);
       org.hisp.dhis.tracker.export.Page<Event> eventsPage =
           eventService.getEvents(eventOperationParams, pageParams);
+      MappingErrors errors = new MappingErrors(idSchemeParams);
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-          eventsPage.getItems().stream().map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams)).toList();
+          eventsPage.getItems().stream()
+              .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
+              .toList();
+      ensureNoMappingErrors(errors);
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(events, requestParams.getFields());
 
@@ -176,9 +184,7 @@ class EventsExportController {
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
-            .toList();
+        getEventsList(requestParams, idSchemeParams);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(events, requestParams.getFields());
 
@@ -192,16 +198,11 @@ class EventsExportController {
       EventRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response)
-      throws BadRequestException, IOException, ForbiddenException, NotFoundException {
+      throws BadRequestException, IOException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
-    EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
-
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
-            .toList();
+        getEventsList(requestParams, idSchemeParams);
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -219,16 +220,11 @@ class EventsExportController {
       EventRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response)
-      throws BadRequestException, ForbiddenException, IOException, NotFoundException {
+      throws BadRequestException, ForbiddenException, IOException, WebMessageException {
     validatePaginationParameters(requestParams);
 
-    EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
-
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
-            .toList();
+        getEventsList(requestParams, idSchemeParams);
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -250,14 +246,9 @@ class EventsExportController {
       TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
-
+      throws IOException, BadRequestException, ForbiddenException, WebMessageException {
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
-            .toList();
+        getEventsList(requestParams, idSchemeParams);
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE);
     response.setContentType(CONTENT_TYPE_CSV);
@@ -271,14 +262,9 @@ class EventsExportController {
       TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
-
+      throws IOException, BadRequestException, ForbiddenException, WebMessageException {
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
-            .toList();
+        getEventsList(requestParams, idSchemeParams);
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -293,14 +279,9 @@ class EventsExportController {
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       TrackerIdSchemeParams idSchemeParams)
-      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
-
+      throws IOException, BadRequestException, ForbiddenException, WebMessageException {
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
-            .toList();
+        getEventsList(requestParams, idSchemeParams);
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -316,12 +297,43 @@ class EventsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, WebMessageException {
     EventParams eventParams = eventsMapper.map(fields);
+
+    MappingErrors errors = new MappingErrors(idSchemeParams);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
-        EVENTS_MAPPER.map(eventService.getEvent(uid, idSchemeParams, eventParams), idSchemeParams);
+        EVENTS_MAPPER.map(
+            idSchemeParams, errors, eventService.getEvent(uid, idSchemeParams, eventParams));
+    ensureNoMappingErrors(errors);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
+  }
+
+  private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsList(
+      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
+      throws BadRequestException, ForbiddenException, WebMessageException {
+    EventOperationParams eventOperationParams =
+        eventParamsMapper.map(requestParams, idSchemeParams);
+
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
+        eventService.getEvents(eventOperationParams).stream()
+            .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
+            .toList();
+    ensureNoMappingErrors(errors);
+    return events;
+  }
+
+  private static void ensureNoMappingErrors(MappingErrors errors) throws WebMessageException {
+    if (errors.hasErrors()) {
+      throw new WebMessageException(
+          createWebMessage(
+              "Not all metadata has an identifier for the requested idScheme. Either change the"
+                  + " requested idScheme or add the missing identifiers to the metadata.",
+              errors.toString(),
+              org.hisp.dhis.feedback.Status.ERROR,
+              HttpStatus.UNPROCESSABLE_ENTITY));
+    }
   }
 
   @GetMapping("/{event}/dataValues/{dataElement}/file")
@@ -358,7 +370,10 @@ class EventsExportController {
       HttpServletRequest request)
       throws NotFoundException, BadRequestException, ForbiddenException {
     EventChangeLogOperationParams operationParams =
-        ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
+        ChangeLogRequestParamsMapper.map(
+            eventChangeLogService.getOrderableFields(),
+            eventChangeLogService.getFilterableFields(),
+            requestParams);
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 

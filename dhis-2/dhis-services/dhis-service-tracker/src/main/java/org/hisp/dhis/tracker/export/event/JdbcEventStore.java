@@ -288,7 +288,8 @@ class JdbcEventStore {
         mapSqlParameterSource,
         resultSet -> {
           Set<String> notes = new HashSet<>();
-          Set<String> dataElementUids = new HashSet<>();
+          // data elements per event
+          Map<String, Set<String>> dataElementUids = new HashMap<>();
 
           while (resultSet.next()) {
             if (resultSet.getString(COLUMN_EVENT_UID) == null) {
@@ -305,6 +306,7 @@ class JdbcEventStore {
               event.setId(resultSet.getLong(COLUMN_EVENT_ID));
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
+              dataElementUids.put(eventUid, new HashSet<>());
 
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
@@ -437,11 +439,11 @@ class JdbcEventStore {
               // data value per data element. The same data element can be in the result set
               // multiple times if the event also has notes.
               String dataElementUid = resultSet.getString("de_uid");
-              if (!dataElementUids.contains(dataElementUid)) {
+              if (!dataElementUids.get(eventUid).contains(dataElementUid)) {
                 EventDataValue eventDataValue = parseEventDataValue(dataElementIdScheme, resultSet);
                 if (eventDataValue != null) {
                   event.getEventDataValues().add(eventDataValue);
-                  dataElementUids.add(dataElementUid);
+                  dataElementUids.get(eventUid).add(dataElementUid);
                 }
               }
             }
@@ -499,14 +501,18 @@ class JdbcEventStore {
     if (StringUtils.isEmpty(dataValueResult)) {
       return null;
     }
+    String dataElement = getDataElementIdentifier(dataElementIdScheme, resultSet);
+    if (StringUtils.isEmpty(dataElement)) {
+      return null;
+    }
 
     EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setDataElement(getDataElementIdentifier(dataElementIdScheme, resultSet));
+    eventDataValue.setDataElement(dataElement);
     JsonObject dataValueJson = JsonMixed.of(dataValueResult).asObject();
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(""));
+    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {
@@ -536,7 +542,7 @@ class JdbcEventStore {
       case ATTRIBUTE:
         String attributeValuesString = resultSet.getString("de_attributevalues");
         if (StringUtils.isEmpty(attributeValuesString)) {
-          return "";
+          return null;
         }
         JsonObject attributeValuesJson = JsonMixed.of(attributeValuesString).asObject();
         String attributeUid = dataElementIdScheme.getAttributeUid();
@@ -603,14 +609,12 @@ class JdbcEventStore {
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       User user) {
-    StringBuilder sqlBuilder = new StringBuilder("select ");
+    StringBuilder sqlBuilder = new StringBuilder("select *");
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
-          "event.*, cm.*,eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
+          ", eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
               + " de_code, de.name as de_name, de.attributevalues as de_attributevalues");
-    } else {
-      sqlBuilder.append("*");
     }
     sqlBuilder.append(" from (");
 
@@ -646,7 +650,6 @@ left join
     ) as eventdatavalue(dataelement_uid, value)
     on true
 left join dataelement de on de.uid = eventdatavalue.dataelement_uid
-where eventdatavalue.dataelement_uid is not null
 """);
     }
 

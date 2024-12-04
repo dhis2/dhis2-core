@@ -34,9 +34,13 @@ import jakarta.persistence.Query;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,6 +54,10 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore")
 public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
+  private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
+  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
+  private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
+
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
@@ -61,7 +69,17 @@ public class HibernateEventChangeLogStore {
    * map to a view model. This mapping is not necessary for change logs.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
-      Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
+      Map.ofEntries(
+          entry("createdAt", COLUMN_CHANGELOG_CREATED),
+          entry("username", COLUMN_CHANGELOG_USER),
+          entry("dataElement", COLUMN_CHANGELOG_DATA_ELEMENT),
+          entry("field", COLUMN_CHANGELOG_FIELD));
+
+  private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
+      Map.ofEntries(
+          entry(Pair.of("username", String.class), COLUMN_CHANGELOG_USER),
+          entry(Pair.of("dataElement", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT),
+          entry(Pair.of("field", String.class), COLUMN_CHANGELOG_FIELD));
 
   private final EntityManager entityManager;
 
@@ -74,14 +92,17 @@ public class HibernateEventChangeLogStore {
   }
 
   public Page<EventChangeLog> getEventChangeLogs(
-      UID event, List<Order> order, PageParams pageParams) {
+      @Nonnull UID event,
+      @Nonnull EventChangeLogOperationParams operationParams,
+      @Nonnull PageParams pageParams) {
+
+    Pair<String, QueryFilter> filter = operationParams.getFilter();
 
     String hql =
-        String.format(
-            """
+        """
           select ecl.event,
                  ecl.dataElement,
-                 ecl.eventProperty,
+                 ecl.eventField,
                  ecl.previousValue,
                  ecl.currentValue,
                  ecl.changeLogType,
@@ -95,14 +116,29 @@ public class HibernateEventChangeLogStore {
           left join ecl.dataElement d
           left join ecl.createdBy u
           where e.uid = :eventUid
-          order by %s
-      """
-                .formatted(sortExpressions(order)));
+      """;
+
+    if (filter != null) {
+      String filterField =
+          FILTERABLE_FIELDS.entrySet().stream()
+              .filter(entry -> entry.getKey().getLeft().equals(filter.getKey()))
+              .findFirst()
+              .map(Entry::getValue)
+              .get();
+
+      hql += String.format(" and %s = :filterValue ", filterField);
+    }
+
+    hql += String.format("order by %s".formatted(sortExpressions(operationParams.getOrder())));
 
     Query query = entityManager.createQuery(hql);
     query.setParameter("eventUid", event.getValue());
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize() + 1);
+
+    if (filter != null) {
+      query.setParameter("filterValue", filter.getValue().getFilter());
+    }
 
     List<Object[]> results = query.getResultList();
     List<EventChangeLog> eventChangeLogs =
@@ -111,7 +147,7 @@ public class HibernateEventChangeLogStore {
                 row -> {
                   Event e = (Event) row[0];
                   DataElement dataElement = (DataElement) row[1];
-                  String eventProperty = (String) row[2];
+                  String eventField = (String) row[2];
                   String previousValue = (String) row[3];
                   String currentValue = (String) row[4];
                   ChangeLogType changeLogType = (ChangeLogType) row[5];
@@ -124,7 +160,7 @@ public class HibernateEventChangeLogStore {
                   return new EventChangeLog(
                       e,
                       dataElement,
-                      eventProperty,
+                      eventField,
                       previousValue,
                       currentValue,
                       changeLogType,
@@ -159,17 +195,28 @@ public class HibernateEventChangeLogStore {
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
-  private static String sortExpressions(List<Order> order) {
-    if (order.isEmpty()) {
+  private static String sortExpressions(Order order) {
+    if (order == null) {
       return DEFAULT_ORDER;
     }
 
-    return ORDERABLE_FIELDS.get(order.get(0).getField())
-        + " "
-        + order.get(0).getDirection().getValue();
+    StringBuilder orderBuilder = new StringBuilder();
+    orderBuilder.append(ORDERABLE_FIELDS.get(order.getField()));
+    orderBuilder.append(" ");
+    orderBuilder.append(order.getDirection().getValue());
+
+    if (!order.getField().equals("createdAt")) {
+      orderBuilder.append(", ").append(DEFAULT_ORDER);
+    }
+
+    return orderBuilder.toString();
   }
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS.keySet();
+  }
+
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return FILTERABLE_FIELDS.keySet();
   }
 }

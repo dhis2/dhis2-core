@@ -111,6 +111,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.expression.dataitem.DimItemDataElementAndOperand;
 import org.hisp.dhis.expression.dataitem.DimItemIndicator;
 import org.hisp.dhis.expression.dataitem.DimItemProgramAttribute;
@@ -178,6 +179,8 @@ public class DefaultExpressionService implements ExpressionService {
   private final IdentifiableObjectManager idObjectManager;
 
   private final I18nManager i18nManager;
+
+  private final SqlBuilder sqlBuilder;
 
   // -------------------------------------------------------------------------
   // Static data
@@ -279,13 +282,15 @@ public class DefaultExpressionService implements ExpressionService {
       DimensionService dimensionService,
       IdentifiableObjectManager idObjectManager,
       I18nManager i18nManager,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      SqlBuilder sqlBuilder) {
     checkNotNull(expressionStore);
     checkNotNull(constantService);
     checkNotNull(dimensionService);
     checkNotNull(idObjectManager);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
+    checkNotNull(sqlBuilder);
 
     this.expressionStore = expressionStore;
     this.constantService = constantService;
@@ -293,6 +298,7 @@ public class DefaultExpressionService implements ExpressionService {
     this.idObjectManager = idObjectManager;
     this.i18nManager = i18nManager;
     this.constantMapCache = cacheProvider.createAllConstantsCache();
+    this.sqlBuilder = sqlBuilder;
   }
 
   // -------------------------------------------------------------------------
@@ -726,6 +732,7 @@ public class DefaultExpressionService implements ExpressionService {
         .params(params)
         .info(params.getExpressionInfo())
         .state(initialParsingState)
+        .sqlBuilder(sqlBuilder)
         .build();
   }
 

@@ -39,41 +39,40 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link DataQueryService}. */
 @ExtendWith(MockitoExtension.class)
 class DataQueryServiceTest {
 
+  @Mock private DimensionalObjectProvider dimensionalObjectProducer;
+
+  @Mock private IdentifiableObjectManager idObjectManager;
+
+  @Mock private AnalyticsSecurityManager analyticsSecurityManager;
+
+  @InjectMocks private DefaultDataQueryService dataQueryService;
+
   @Test
   void testGetUserOrgUnitsWithExplicitlyDefinedAnalyticsOrganisationUnits() {
-    // given
     OrganisationUnit ouB = createOrganisationUnit('B');
     OrganisationUnit ouC = createOrganisationUnit('C');
     OrganisationUnit ouD = createOrganisationUnit('D');
     DataQueryParams dataQueryParams =
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
-    AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of(ouB, ouC, ouD));
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
-    DataQueryService dataQueryService =
-        new DefaultDataQueryService(
-            mock(DimensionalObjectProducer.class),
-            mock(IdentifiableObjectManager.class),
-            analyticsSecurityManager);
 
-    // when
     List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
 
-    // then
     assertEquals(3, userOrgUnits.size());
     assertThat(
         userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
@@ -82,25 +81,16 @@ class DataQueryServiceTest {
 
   @Test
   void testGetUserOrgUnitsWithNoAnalyticsOrganisationUnitsDefined() {
-    // given
     OrganisationUnit ouA = createOrganisationUnit('A');
     DataQueryParams dataQueryParams =
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
-    AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
     when(currentUser.getOrganisationUnits()).thenReturn(Set.of(ouA));
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
-    DataQueryService dataQueryService =
-        new DefaultDataQueryService(
-            mock(DimensionalObjectProducer.class),
-            mock(IdentifiableObjectManager.class),
-            analyticsSecurityManager);
 
-    // when
     List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
 
-    // then
     assertEquals(1, userOrgUnits.size());
     assertThat(
         userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
@@ -109,24 +99,11 @@ class DataQueryServiceTest {
 
   @Test
   void testGetUserOrgUnitsWithNoneOrganisationUnitDefined() {
-    // given
     DataQueryParams dataQueryParams =
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
-    User currentUser = mock(User.class);
-    AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
-    when(currentUser.getOrganisationUnits()).thenReturn(Set.of());
-    when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
-    when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
-    DataQueryService dataQueryService =
-        new DefaultDataQueryService(
-            mock(DimensionalObjectProducer.class),
-            mock(IdentifiableObjectManager.class),
-            analyticsSecurityManager);
 
-    // when
     List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
 
-    // then
     assertEquals(0, userOrgUnits.size());
   }
 }

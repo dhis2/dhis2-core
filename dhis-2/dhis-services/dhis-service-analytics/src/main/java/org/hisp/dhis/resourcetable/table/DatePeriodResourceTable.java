@@ -49,6 +49,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Lars Helge Overland
@@ -75,7 +76,8 @@ public class DatePeriodResourceTable implements ResourceTable {
     List<Column> columns =
         Lists.newArrayList(
             new Column("dateperiod", DataType.DATE, Nullable.NOT_NULL),
-            new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
+            new Column("year", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("monthstartdate", DataType.DATE, Nullable.NOT_NULL));
 
     for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
       columns.add(new Column(periodType.getName().toLowerCase(), DataType.VARCHAR_50));
@@ -119,12 +121,14 @@ public class DatePeriodResourceTable implements ResourceTable {
     Calendar calendar = PeriodType.getCalendar();
 
     for (Date day : days) {
-      List<Object> values = new ArrayList<>();
+      final int year = PeriodType.getCalendar().fromIso(day).getYear();
+      final Date monthStartDate = DateUtils.dateTruncMonth(day);
 
-      int year = PeriodType.getCalendar().fromIso(day).getYear();
+      List<Object> values = new ArrayList<>();
 
       values.add(day);
       values.add(year);
+      values.add(monthStartDate);
 
       for (PeriodType periodType : periodTypes) {
         values.add(periodType.createPeriod(day, calendar).getIsoDate());

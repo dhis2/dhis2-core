@@ -37,9 +37,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,12 +51,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/identifiableObjects")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
+public class IdentifiableObjectController
+    extends AbstractCrudController<IdentifiableObject, GetObjectListParams> {
 
   @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public IdentifiableObject getEntity(String uid, WebOptions options) throws NotFoundException {
+  public IdentifiableObject getEntity(String uid) throws NotFoundException {
     Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find(uid);
     if (object.isEmpty()) {
       throw new NotFoundException(format("No identifiable object with id `%s` exists", uid));
