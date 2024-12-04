@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -52,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -528,38 +526,51 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String columnExpression =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
-
     if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoExpression = getOrgUnitSelectExpression(dataElement, fromType);
-
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(geoExpression)
+              .selectExpression(getOrgUnitSelectSubquery("geometry", dataElement))
               .indexType(IndexType.GIST)
               .build());
     }
-
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql);
 
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(ouNameSql)
+            .selectExpression(getOrgUnitSelectSubquery("name", dataElement))
             .skipIndex(SKIP)
             .build());
 
     return columns;
+  }
+
+  /**
+   * Returns a org unit select query.
+   *
+   * @param column the column name.
+   * @param dataElement the {@link DataElement}.
+   * @return an org unit select query.
+   */
+  private String getOrgUnitSelectSubquery(String column, DataElement dataElement) {
+    String format =
+        """
+        (select ou.${column} from ${organisationunit} ou \
+        where ou.uid = ${columnExpression}) as ${alias}""";
+    String columnExpression =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String alias = quote(dataElement.getUid());
+
+    return replaceQualify(
+        format,
+        Map.of(
+            "column", column,
+            "columnExpression", columnExpression,
+            "alias", alias));
   }
 
   /**
@@ -623,24 +634,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .build();
             })
         .toList();
-  }
-
-  /**
-   * Returns a select statement for the given select expression.
-   *
-   * @param dataElement the data element to create the select statement for.
-   * @param selectExpression the select expression.
-   * @return a select expression.
-   */
-  private String getOrgUnitSelectExpression(DataElement dataElement, String selectExpression) {
-    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
-    String prts = getClosingParentheses(selectExpression);
-    return replaceQualify(
-        "(select ${selectExpression})${closingParentheses} as ${uid}",
-        Map.of(
-            "selectExpression", selectExpression,
-            "closingParentheses", prts,
-            "uid", quote(dataElement.getUid())));
   }
 
   /**
