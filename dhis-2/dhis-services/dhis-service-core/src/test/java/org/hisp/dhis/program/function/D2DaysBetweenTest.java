@@ -59,7 +59,7 @@ class D2DaysBetweenTest {
     }
 
     @Test
-    void shouldGeneratePostgresSqlForLiteralDates() {
+    void shouldGenerateSqlForLiteralDates() {
       String startDate = "'2023-01-01'";
       String endDate = "'2023-01-02'";
 
@@ -69,7 +69,7 @@ class D2DaysBetweenTest {
     }
 
     @Test
-    void shouldGeneratePostgresSqlForColumnReferences() {
+    void shouldGenerateSqlForColumnReferences() {
       String startDate = "enrollment_date";
       String endDate = "incident_date";
 
@@ -92,7 +92,7 @@ class D2DaysBetweenTest {
     }
 
     @Test
-    void shouldGenerateMySqlForLiteralDates() {
+    void shouldGenerateSqlForLiteralDates() {
       String startDate = "'2023-01-01'";
       String endDate = "'2023-01-02'";
 
@@ -102,7 +102,7 @@ class D2DaysBetweenTest {
     }
 
     @Test
-    void shouldGenerateMySqlForColumnReferences() {
+    void shouldGenerateSqlForColumnReferences() {
       String startDate = "enrollment_date";
       String endDate = "incident_date";
 

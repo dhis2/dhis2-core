@@ -58,7 +58,7 @@ class D2MinutesBetweenTest {
     }
 
     @Test
-    void shouldGeneratePostgresSqlForLiteralTimestamps() {
+    void shouldGenerateSqlForLiteralTimestamps() {
       // Arrange
       String startDate = "'2023-01-01 10:00:00'";
       String endDate = "'2023-01-01 10:30:00'";
@@ -74,7 +74,7 @@ class D2MinutesBetweenTest {
     }
 
     @Test
-    void shouldGeneratePostgresSqlForColumnReferences() {
+    void shouldGenerateSqlForColumnReferences() {
       // Arrange
       String startDate = "enrollment_date";
       String endDate = "incident_date";
@@ -90,7 +90,7 @@ class D2MinutesBetweenTest {
     }
 
     @Test
-    void shouldGeneratePostgresSqlForDifferentDays() {
+    void shouldGenerateSqlForDifferentDays() {
       // Arrange
       String startDate = "'2023-01-01 23:30:00'";
       String endDate = "'2023-01-02 00:30:00'";
@@ -118,7 +118,7 @@ class D2MinutesBetweenTest {
     }
 
     @Test
-    void shouldGenerateMySqlForLiteralTimestamps() {
+    void shouldGenerateSqlForLiteralTimestamps() {
       // Arrange
       String startDate = "'2023-01-01 10:00:00'";
       String endDate = "'2023-01-01 10:30:00'";
@@ -131,7 +131,7 @@ class D2MinutesBetweenTest {
     }
 
     @Test
-    void shouldGenerateMySqlForColumnReferences() {
+    void shouldGenerateSqlForColumnReferences() {
       // Arrange
       String startDate = "enrollment_date";
       String endDate = "incident_date";
@@ -144,7 +144,7 @@ class D2MinutesBetweenTest {
     }
 
     @Test
-    void shouldGenerateMySqlForDifferentDays() {
+    void shouldGenerateSqlForDifferentDays() {
       // Arrange
       String startDate = "'2023-01-01 23:30:00'";
       String endDate = "'2023-01-02 00:30:00'";
