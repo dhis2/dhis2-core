@@ -275,7 +275,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
-    eventChangeLogService.addDataValueChangeLog(
+    eventChangeLogService.addEventChangeLog(
         event, dataElement, "previous", "current", UPDATE, deletedUser.getUsername());
 
     List<EventChangeLog> changeLogs =

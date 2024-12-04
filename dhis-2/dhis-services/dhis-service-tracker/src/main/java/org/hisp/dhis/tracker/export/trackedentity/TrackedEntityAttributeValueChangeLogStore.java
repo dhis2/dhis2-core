@@ -27,21 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackedEntityAttributeValueChangeLogStore {
-  void addTrackedEntityAttributeValueChangeLog(
-      TrackedEntityAttributeValueChangeLog attributeValueChangeLog);
-
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
 
   void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
 }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,8 +42,6 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityChangeLogService {
-  void addTrackedEntityAttributeValueChangeLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
 
   void addTrackedEntityChangeLog(
       @Nonnull TrackedEntity trackedEntity,
@@ -54,18 +51,9 @@ public interface TrackedEntityChangeLogService {
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username);
 
-  /**
-   * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
-  @Deprecated(since = "2.42")
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
   void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity);
+
+  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
 
   /**
    * Retrieves the change log data for a particular tracked entity.

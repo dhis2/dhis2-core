@@ -82,7 +82,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   @Override
   @Transactional
-  public void addDataValueChangeLog(
+  public void addEventChangeLog(
       Event event,
       DataElement dataElement,
       String previousValue,

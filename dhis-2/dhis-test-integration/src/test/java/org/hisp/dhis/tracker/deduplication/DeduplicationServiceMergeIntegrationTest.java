@@ -28,6 +28,10 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import static java.util.Objects.requireNonNull;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,9 +39,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,17 +55,27 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,7 +88,58 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
   @Autowired private ProgramService programService;
 
+  @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
+
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
   @Autowired private IdentifiableObjectManager manager;
+
+  private OrganisationUnit orgUnit;
+
+  private PotentialDuplicate potentialDuplicate;
+
+  private TrackedEntity original;
+
+  private TrackedEntity duplicate;
+
+  private TrackedEntityType trackedEntityType;
+
+  private Program program;
+
+  private Program program1;
+
+  @BeforeEach
+  void setUp() throws PotentialDuplicateConflictException {
+    orgUnit = createOrganisationUnit("OU_A");
+    organisationUnitService.addOrganisationUnit(orgUnit);
+    trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    original = createTrackedEntity(orgUnit);
+    duplicate = createTrackedEntity(orgUnit);
+    original.setTrackedEntityType(trackedEntityType);
+    duplicate.setTrackedEntityType(trackedEntityType);
+    manager.save(original);
+    manager.save(duplicate);
+    program = createProgram('A');
+    program1 = createProgram('B');
+    programService.addProgram(program);
+    programService.addProgram(program1);
+    Enrollment enrollment1 = createEnrollment(program, original, orgUnit);
+    Enrollment enrollment2 = createEnrollment(program1, duplicate, orgUnit);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
+    original.getEnrollments().add(enrollment1);
+    duplicate.getEnrollments().add(enrollment2);
+    manager.update(original);
+    manager.update(duplicate);
+    potentialDuplicate = new PotentialDuplicate(UID.of(original), UID.of(duplicate));
+    deduplicationService.addPotentialDuplicate(potentialDuplicate);
+
+    User user = createUser(new HashSet<>(Collections.singletonList(orgUnit)), ALL.toString());
+    injectSecurityContextUser(user);
+  }
 
   @Test
   void shouldManualMergeWithAuthorityAll()
@@ -76,35 +147,6 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException {
-    OrganisationUnit ou = createOrganisationUnit("OU_A");
-    organisationUnitService.addOrganisationUnit(ou);
-    User user =
-        createUser(new HashSet<>(Collections.singletonList(ou)), Authorities.ALL.toString());
-    injectSecurityContextUser(user);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
-    TrackedEntity original = createTrackedEntity(ou);
-    TrackedEntity duplicate = createTrackedEntity(ou);
-    original.setTrackedEntityType(trackedEntityType);
-    duplicate.setTrackedEntityType(trackedEntityType);
-    manager.save(original);
-    manager.save(duplicate);
-    Program program = createProgram('A');
-    Program program1 = createProgram('B');
-    programService.addProgram(program);
-    programService.addProgram(program1);
-    Enrollment enrollment1 = createEnrollment(program, original, ou);
-    Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
-    manager.save(enrollment1);
-    manager.save(enrollment2);
-    original.getEnrollments().add(enrollment1);
-    duplicate.getEnrollments().add(enrollment2);
-    manager.update(original);
-    manager.update(duplicate);
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(UID.of(original), UID.of(duplicate));
-    deduplicationService.addPotentialDuplicate(potentialDuplicate);
     DeduplicationMergeParams deduplicationMergeParams =
         DeduplicationMergeParams.builder()
             .potentialDuplicate(potentialDuplicate)
@@ -113,7 +155,9 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
             .build();
     Date lastUpdatedOriginal =
         requireNonNull(manager.get(TrackedEntity.class, original.getUid())).getLastUpdated();
+
     deduplicationService.autoMerge(deduplicationMergeParams);
+
     assertEquals(
         DeduplicationStatus.MERGED,
         deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
@@ -130,40 +174,15 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException {
-    OrganisationUnit ou = createOrganisationUnit("OU_A");
-    organisationUnitService.addOrganisationUnit(ou);
-    User user = createAndAddUser(true, "userB", ou, "F_TRACKED_ENTITY_MERGE");
+    User user = createAndAddUser(true, "userB", orgUnit, "F_TRACKED_ENTITY_MERGE");
     injectSecurityContextUser(user);
     Sharing sharing = getUserSharing(user, AccessStringHelper.FULL);
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntityType.setSharing(sharing);
     trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
-    TrackedEntity original = createTrackedEntity(ou);
-    TrackedEntity duplicate = createTrackedEntity(ou);
-    original.setTrackedEntityType(trackedEntityType);
-    duplicate.setTrackedEntityType(trackedEntityType);
-    manager.save(original);
-    manager.save(duplicate);
-    Program program = createProgram('A');
-    Program program1 = createProgram('B');
-    programService.addProgram(program);
-    programService.addProgram(program1);
     program.setSharing(sharing);
     program1.setSharing(sharing);
-    Enrollment enrollment1 = createEnrollment(program, original, ou);
-    Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
-    manager.save(enrollment1);
-    manager.save(enrollment2);
-    manager.update(enrollment1);
-    manager.update(enrollment2);
-    original.getEnrollments().add(enrollment1);
-    duplicate.getEnrollments().add(enrollment2);
-    manager.update(original);
-    manager.update(duplicate);
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(UID.of(original), UID.of(duplicate));
-    deduplicationService.addPotentialDuplicate(potentialDuplicate);
+    programService.updateProgram(program);
+    programService.updateProgram(program1);
     DeduplicationMergeParams deduplicationMergeParams =
         DeduplicationMergeParams.builder()
             .potentialDuplicate(potentialDuplicate)
@@ -172,7 +191,9 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
             .build();
     Date lastUpdatedOriginal =
         requireNonNull(manager.get(TrackedEntity.class, original.getUid())).getLastUpdated();
+
     deduplicationService.autoMerge(deduplicationMergeParams);
+
     assertEquals(
         DeduplicationStatus.MERGED,
         deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
@@ -181,6 +202,110 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
                 .getLastUpdated()
                 .getTime()
             > lastUpdatedOriginal.getTime());
+  }
+
+  @Test
+  void shouldAddCreateChangeLogWhenAttributeDoesNotExistInOriginalTrackedEntity()
+      throws PotentialDuplicateConflictException,
+          ForbiddenException,
+          PotentialDuplicateForbiddenException,
+          NotFoundException,
+          BadRequestException {
+    TrackedEntityAttribute trackedEntityAttribute = createAndPersistTrackedEntityAttribute();
+    TrackedEntityAttributeValue trackedEntityAttributeValue =
+        createAndPersistTrackedEntityAttributeValue("value", duplicate, trackedEntityAttribute);
+    addTrackedEntityAttributeValue(trackedEntityAttributeValue, duplicate);
+    MergeObject mergeObject = createMergeObject(trackedEntityAttribute);
+    DeduplicationMergeParams deduplicationParams =
+        createDeduplicationParams(original, duplicate, mergeObject, potentialDuplicate);
+    deduplicationService.manualMerge(deduplicationParams);
+
+    assertEquals(
+        DeduplicationStatus.MERGED,
+        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+
+    List<TrackedEntityChangeLog> trackedEntityChangeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(
+                UID.of(original.getUid()),
+                null,
+                TrackedEntityChangeLogOperationParams.builder().build(),
+                new PageParams(1, 50, false))
+            .getItems();
+    assertChangeLogCreate(trackedEntityChangeLogs);
+  }
+
+  @Test
+  void shouldAddUpdateChangeLogWhenAttributeExistsInBothEntities()
+      throws PotentialDuplicateConflictException,
+          ForbiddenException,
+          PotentialDuplicateForbiddenException,
+          NotFoundException,
+          BadRequestException {
+    TrackedEntityAttribute trackedEntityAttribute = createAndPersistTrackedEntityAttribute();
+    TrackedEntityAttributeValue trackedEntityAttributeValue =
+        createAndPersistTrackedEntityAttributeValue("value", original, trackedEntityAttribute);
+    addTrackedEntityAttributeValue(trackedEntityAttributeValue, original);
+    addTrackedEntityAttributeValue(trackedEntityAttributeValue, duplicate);
+    MergeObject mergeObject = createMergeObject(trackedEntityAttribute);
+    DeduplicationMergeParams deduplicationParams =
+        createDeduplicationParams(original, duplicate, mergeObject, potentialDuplicate);
+    deduplicationService.manualMerge(deduplicationParams);
+
+    assertEquals(
+        DeduplicationStatus.MERGED,
+        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+    List<TrackedEntityChangeLog> trackedEntityChangeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(
+                UID.of(original.getUid()),
+                null,
+                TrackedEntityChangeLogOperationParams.builder().build(),
+                new PageParams(1, 50, false))
+            .getItems();
+    assertChangeLogUpdate(trackedEntityChangeLogs, "value");
+  }
+
+  @Test
+  void shouldDeleteDuplicatedTrackedEntityChangeLogsWhenMerged()
+      throws PotentialDuplicateConflictException,
+          ForbiddenException,
+          PotentialDuplicateForbiddenException,
+          NotFoundException,
+          BadRequestException {
+    TrackedEntityAttribute trackedEntityAttribute = createAndPersistTrackedEntityAttribute();
+    TrackedEntityAttributeValue trackedEntityAttributeValue =
+        createAndPersistTrackedEntityAttributeValue("value", original, trackedEntityAttribute);
+    addTrackedEntityAttributeValue(trackedEntityAttributeValue, original);
+    addTrackedEntityAttributeValue(trackedEntityAttributeValue, duplicate);
+    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+        duplicate,
+        trackedEntityAttribute,
+        "previous value",
+        "current value",
+        UPDATE,
+        getCurrentUser().getUsername());
+    MergeObject mergeObject = createMergeObject(trackedEntityAttribute);
+    DeduplicationMergeParams deduplicationParams =
+        createDeduplicationParams(original, duplicate, mergeObject, potentialDuplicate);
+    deduplicationService.manualMerge(deduplicationParams);
+
+    assertEquals(
+        DeduplicationStatus.MERGED,
+        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+
+    List<TrackedEntityChangeLog> trackedEntityChangeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(
+                UID.of(original.getUid()),
+                null,
+                TrackedEntityChangeLogOperationParams.builder().build(),
+                new PageParams(1, 50, false))
+            .getItems()
+            .stream()
+            .filter(cl -> cl.getTrackedEntity().getUid().equals(duplicate.getUid()))
+            .toList();
+    assertIsEmpty(trackedEntityChangeLogs);
   }
 
   private Sharing getUserSharing(User user, String accessStringHelper) {
@@ -204,5 +329,73 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     User user = createUserWithAuth("testUser", authorities);
     user.setOrganisationUnits(ou);
     return user;
+  }
+
+  private TrackedEntityAttribute createAndPersistTrackedEntityAttribute() {
+    TrackedEntityAttribute trackedEntityAttribute =
+        new TrackedEntityAttribute("TEA", "", ValueType.TEXT, false, false);
+    trackedEntityAttribute.setShortName("TEA");
+    trackedEntityAttribute.setAggregationType(AggregationType.AVERAGE);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
+
+    return trackedEntityAttribute;
+  }
+
+  private TrackedEntityAttributeValue createAndPersistTrackedEntityAttributeValue(
+      String value, TrackedEntity trackedEntity, TrackedEntityAttribute trackedEntityAttribute) {
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute =
+        new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute);
+    trackedEntityType.getTrackedEntityTypeAttributes().add(trackedEntityTypeAttribute);
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+    TrackedEntityAttributeValue trackedEntityAttributeValue =
+        new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity);
+    trackedEntityAttributeValue.setValue(value);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
+
+    return trackedEntityAttributeValue;
+  }
+
+  private DeduplicationMergeParams createDeduplicationParams(
+      TrackedEntity original,
+      TrackedEntity duplicate,
+      MergeObject mergeObject,
+      PotentialDuplicate potentialDuplicate) {
+    return DeduplicationMergeParams.builder()
+        .original(original)
+        .duplicate(duplicate)
+        .mergeObject(mergeObject)
+        .potentialDuplicate(potentialDuplicate)
+        .build();
+  }
+
+  private MergeObject createMergeObject(TrackedEntityAttribute trackedEntityAttribute) {
+    return MergeObject.builder()
+        .trackedEntityAttributes(Set.of(UID.of(trackedEntityAttribute.getUid())))
+        .build();
+  }
+
+  private void addTrackedEntityAttributeValue(
+      TrackedEntityAttributeValue trackedEntityAttributeValue, TrackedEntity trackedEntity) {
+    trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
+    manager.update(trackedEntity);
+  }
+
+  private void assertChangeLogCreate(List<TrackedEntityChangeLog> trackedEntityChangeLogs) {
+    assertNotEmpty(trackedEntityChangeLogs);
+    assertEquals(original.getUid(), trackedEntityChangeLogs.get(0).getTrackedEntity().getUid());
+    assertEquals("value", trackedEntityChangeLogs.get(0).getCurrentValue());
+    assertEquals(ChangeLogType.CREATE, trackedEntityChangeLogs.get(0).getChangeLogType());
+  }
+
+  private void assertChangeLogUpdate(
+      List<TrackedEntityChangeLog> trackedEntityChangeLogs, String expectedValue) {
+    Assertions.assertAll(
+        () -> assertNotEmpty(trackedEntityChangeLogs),
+        () ->
+            assertEquals(
+                original.getUid(), trackedEntityChangeLogs.get(0).getTrackedEntity().getUid()),
+        () -> assertEquals(expectedValue, trackedEntityChangeLogs.get(0).getCurrentValue()),
+        () -> assertEquals(expectedValue, trackedEntityChangeLogs.get(0).getPreviousValue()),
+        () -> assertEquals(UPDATE, trackedEntityChangeLogs.get(0).getChangeLogType()));
   }
 }

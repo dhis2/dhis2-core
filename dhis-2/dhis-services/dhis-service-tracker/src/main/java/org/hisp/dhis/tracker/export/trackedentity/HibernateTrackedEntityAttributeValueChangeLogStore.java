@@ -28,13 +28,6 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -54,56 +47,6 @@ public class HibernateTrackedEntityAttributeValueChangeLogStore
   // -------------------------------------------------------------------------
   // Implementation methods
   // -------------------------------------------------------------------------
-
-  @Override
-  public void addTrackedEntityAttributeValueChangeLog(
-      TrackedEntityAttributeValueChangeLog attributeValueChangeLog) {
-    session.save(attributeValueChangeLog);
-  }
-
-  @Override
-  public List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params) {
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-
-    CriteriaQuery<TrackedEntityAttributeValueChangeLog> criteria =
-        builder.createQuery(TrackedEntityAttributeValueChangeLog.class);
-
-    Root<TrackedEntityAttributeValueChangeLog> root =
-        criteria.from(TrackedEntityAttributeValueChangeLog.class);
-
-    List<Predicate> predicates = getTrackedEntityAttributeValueCriteria(root, params);
-
-    criteria.where(predicates.toArray(new Predicate[0])).orderBy(builder.desc(root.get("created")));
-
-    TypedQuery<TrackedEntityAttributeValueChangeLog> query = entityManager.createQuery(criteria);
-
-    if (params.hasPager()) {
-      query
-          .setFirstResult(params.getPager().getOffset())
-          .setMaxResults(params.getPager().getPageSize());
-    }
-
-    return query.getResultList();
-  }
-
-  @Override
-  public int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params) {
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-
-    CriteriaQuery<Long> query = builder.createQuery(Long.class);
-
-    Root<TrackedEntityAttributeValueChangeLog> root =
-        query.from(TrackedEntityAttributeValueChangeLog.class);
-
-    List<Predicate> predicates = getTrackedEntityAttributeValueCriteria(root, params);
-
-    query.select(builder.countDistinct(root.get("id"))).where(predicates.toArray(new Predicate[0]));
-
-    return (entityManager.createQuery(query).getSingleResult()).intValue();
-  }
-
   @Override
   public void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity) {
     Query<?> query =
@@ -111,25 +54,5 @@ public class HibernateTrackedEntityAttributeValueChangeLogStore
             "delete TrackedEntityAttributeValueChangeLog where trackedEntity = :trackedEntity");
     query.setParameter("trackedEntity", trackedEntity);
     query.executeUpdate();
-  }
-
-  private List<Predicate> getTrackedEntityAttributeValueCriteria(
-      Root<TrackedEntityAttributeValueChangeLog> root,
-      TrackedEntityAttributeValueChangeLogQueryParams params) {
-    List<Predicate> predicates = new ArrayList<>();
-
-    if (!params.getTrackedEntityAttributes().isEmpty()) {
-      predicates.add(root.get("attribute").in(params.getTrackedEntityAttributes()));
-    }
-
-    if (!params.getTrackedEntities().isEmpty()) {
-      predicates.add(root.get("trackedEntity").in(params.getTrackedEntities()));
-    }
-
-    if (!params.getAuditTypes().isEmpty()) {
-      predicates.add(root.get("auditType").in(params.getAuditTypes()));
-    }
-
-    return predicates;
   }
 }

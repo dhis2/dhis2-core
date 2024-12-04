@@ -406,7 +406,7 @@ public abstract class AbstractTrackerPersister<
     addTrackedEntityChangeLog(
         user.getUsername(),
         trackedEntityAttributeValue,
-        trackedEntityAttributeValue.getValue(),
+        trackedEntityAttributeValue.getPlainValue(),
         null,
         trackedEntity,
         ChangeLogType.DELETE);
@@ -446,7 +446,7 @@ public abstract class AbstractTrackerPersister<
         user.getUsername(),
         trackedEntityAttributeValue,
         previousValue,
-        trackedEntityAttributeValue.getValue(),
+        trackedEntityAttributeValue.getPlainValue(),
         trackedEntity,
         changeLogType);
   }
@@ -488,7 +488,7 @@ public abstract class AbstractTrackerPersister<
     if (allowAuditLog && changeLogType != null) {
       TrackedEntityAttributeValueChangeLog valueAudit =
           new TrackedEntityAttributeValueChangeLog(
-              attributeValue, attributeValue.getValue(), userName, changeLogType);
+              attributeValue, attributeValue.getPlainValue(), userName, changeLogType);
       valueAudit.setTrackedEntity(trackedEntity);
 
       trackedEntityChangeLogService.addTrackedEntityChangeLog(

@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -73,6 +74,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final EventChangeLogService eventChangeLogService;
+
+  private final TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore;
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
@@ -208,6 +211,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       }
 
       trackedEntityChangeLogService.deleteTrackedEntityChangeLogs(entity);
+      trackedEntityChangeLogService.deleteTrackedEntityAttributeValueChangeLogs(entity);
 
       manager.delete(entity);
 

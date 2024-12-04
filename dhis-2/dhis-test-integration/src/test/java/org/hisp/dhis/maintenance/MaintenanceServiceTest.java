@@ -336,7 +336,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
-    eventChangeLogService.addDataValueChangeLog(
+    eventChangeLogService.addEventChangeLog(
         eventA, dataElement, "", "value", ChangeLogType.UPDATE, getCurrentUsername());
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
