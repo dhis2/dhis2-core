@@ -1012,27 +1012,17 @@ class JdbcEventStore implements EventStore {
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.occurreddate >= ")
-          .append(":startDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate >= ")
-          .append(":startDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", params.getOccurredEndDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.occurreddate <= ")
-          .append(":endDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate <=")
-          .append(":endDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
     if (params.getProgramType() != null) {
