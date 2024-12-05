@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -670,6 +671,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected boolean tableIsNotEmpty(String name) {
     String sql = format("select 1 from {} limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
+  }
+
+  /**
+   * Converts the given list of items to a comma-separated string, using the given mapping function
+   * to map the object to string.
+   *
+   * @param <T> the type.
+   * @param list the list.
+   * @param mapper the mapping function.
+   * @return a comma-separated string.
+   */
+  protected <T> String toCommaSeparated(List<T> list, Function<T, String> mapper) {
+    return list.stream().map(mapper).collect(Collectors.joining(","));
   }
 
   /**

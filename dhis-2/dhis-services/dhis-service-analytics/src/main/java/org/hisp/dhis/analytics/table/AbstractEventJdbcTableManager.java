@@ -49,7 +49,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
@@ -171,19 +170,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     String sql = "insert into " + tableName + " (";
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
 
-    sql = TextUtils.removeLastComma(sql) + ") select ";
+    sql += ") select ";
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
 
-    sql = TextUtils.removeLastComma(sql) + " ";
-
-    sql += fromClause;
+    sql += " " + fromClause;
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
