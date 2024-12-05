@@ -230,7 +230,7 @@ public class LoginTest {
     assertEquals(HttpStatus.CONFLICT, twoFAResp.getStatusCode());
     assertMessage(
         twoFAResp,
-        "User has not a verified email, please verify your email first before you enable 2FA");
+        "User does not have a verified email, please verify your email before you try to enable 2FA");
 
     // Send verification email to user
     ResponseEntity<String> sendVerificationEmailResp =
