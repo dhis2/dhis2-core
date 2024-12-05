@@ -174,26 +174,28 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     Date enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidenDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-PIA");
+    enrollmentA.setOrganisationUnit(organisationUnitA);
     manager.save(enrollmentA);
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
+    enrollmentB.setOrganisationUnit(organisationUnitB);
     manager.save(enrollmentB);
-    Event eventA = new Event(enrollmentA, stageA);
+    Event eventA = new Event(enrollmentA, stageA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
-    Event eventB = new Event(enrollmentA, stageB);
+    Event eventB = new Event(enrollmentA, stageB, organisationUnitA);
     eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
     eventB.setAttributeOptionCombo(coA);
-    Event eventC = new Event(enrollmentB, stageC);
+    Event eventC = new Event(enrollmentB, stageC, organisationUnitA);
     eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
     eventC.setAttributeOptionCombo(coA);
-    Event eventD1 = new Event(enrollmentB, stageD);
+    Event eventD1 = new Event(enrollmentB, stageD, organisationUnitA);
     eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
     eventD1.setAttributeOptionCombo(coA);
-    Event eventD2 = new Event(enrollmentB, stageD);
+    Event eventD2 = new Event(enrollmentB, stageD, organisationUnitA);
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
     eventD2.setAttributeOptionCombo(coA);
@@ -284,15 +286,15 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     cal.add(Calendar.DATE, -2);
     Date yesterday = cal.getTime();
     // Events
-    Event eventA = new Event(enrollmentA, stageA);
+    Event eventA = new Event(enrollmentA, stageA, organisationUnitA);
     eventA.setScheduledDate(tomorrow);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
-    Event eventB = new Event(enrollmentB, stageB);
+    Event eventB = new Event(enrollmentB, stageB, organisationUnitA);
     eventB.setScheduledDate(today);
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB);
-    Event eventC = new Event(enrollmentB, stageC);
+    Event eventC = new Event(enrollmentB, stageC, organisationUnitA);
     eventC.setScheduledDate(yesterday);
     eventC.setAttributeOptionCombo(coA);
     manager.save(eventC);
@@ -421,8 +423,10 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     Date aWeekAgo = cal.getTime();
     // Enrollments
     Enrollment enrollmentC = new Enrollment(today, tomorrow, trackedEntityX, programA);
+    enrollmentC.setOrganisationUnit(organisationUnitA);
     manager.save(enrollmentC);
     Enrollment enrollmentD = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
+    enrollmentD.setOrganisationUnit(organisationUnitA);
     manager.save(enrollmentD);
     // Queries
     List<Enrollment> results;

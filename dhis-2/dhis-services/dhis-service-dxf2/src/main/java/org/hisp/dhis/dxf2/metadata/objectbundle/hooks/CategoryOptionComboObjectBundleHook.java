@@ -28,20 +28,38 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
+
   private final CategoryService categoryService;
+
+  @Override
+  public void validate(
+      CategoryOptionCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+
+    checkNonStandardDefaultCatOptionCombo(combo, addReports);
+    checkIsValid(combo, addReports);
+  }
+
+  private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {
+    try {
+      categoryService.validate(combo);
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
+    }
+  }
 
   private void checkNonStandardDefaultCatOptionCombo(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
@@ -59,14 +77,5 @@ public class CategoryOptionComboObjectBundleHook
           new ErrorReport(
               CategoryOptionCombo.class, ErrorCode.E1122, categoryOptionCombo.getName()));
     }
-  }
-
-  @Override
-  public void validate(
-      CategoryOptionCombo categoryOptionCombo,
-      ObjectBundle bundle,
-      Consumer<ErrorReport> addReports) {
-
-    checkNonStandardDefaultCatOptionCombo(categoryOptionCombo, addReports);
   }
 }

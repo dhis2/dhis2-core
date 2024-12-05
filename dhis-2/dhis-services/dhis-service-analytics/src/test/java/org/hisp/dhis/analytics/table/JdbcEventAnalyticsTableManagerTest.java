@@ -399,15 +399,13 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD5_geo =
         "(select ou.geometry from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + ") as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     String aliasD5_name =
         "(select ou.name from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + ") as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     AnalyticsTableUpdateParams params =
@@ -501,10 +499,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 =
         """
         eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
-    String aliasTeaUid =
-        """
-        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=%d) as "%s\"""";
+    String aliasTeaUid = "%s.value";
 
     String aliasTea1 =
         """
@@ -537,12 +532,8 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(
-            d1.getUid(),
-            TEXT,
-            toSelectExpression(aliasD1, d1.getUid()),
-            Skip.SKIP) // ValueType.TEXT
-        .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, tea1.getId(), tea1.getUid()))
+        .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
+        .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, quote(tea1.getUid())))
         // Org unit geometry column
         .addColumn(
             tea1.getUid() + "_geom",
@@ -606,7 +597,7 @@ class JdbcEventAnalyticsTableManagerTest {
         String.format(
             """
             (select ou.name from "organisationunit" ou where ou.uid = \
-            eventdatavalues #>> '{%s, value}' ) as %s""",
+            eventdatavalues #>> '{%s, value}') as %s""",
             d5.getUid(), quote(d5.getUid()));
 
     assertThat(sql.getValue(), containsString(ouUidQuery));
@@ -650,12 +641,7 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouUidQuery =
-        String.format(
-            """
-            (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999) as %s""",
-            quote(tea.getUid()));
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
     String ouNameQuery =
         String.format(
@@ -944,12 +930,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouUidQuery =
-        String.format(
-            """
-            select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
-            and trackedentityattributeid=9999) as %s""",
-            quote(tea.getUid()));
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
     String ouNameQuery =
         String.format(

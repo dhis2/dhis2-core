@@ -29,6 +29,7 @@ package org.hisp.dhis.category;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -58,8 +59,10 @@ public class CategoryComboDeletionHandler extends IdObjectDeletionHandler<Catego
   }
 
   private void deleteCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
-    for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
-      categoryCombo.getOptionCombos().remove(categoryOptionCombo);
+    CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
+    Set<CategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
+    if (optionCombos.contains(categoryOptionCombo)) {
+      optionCombos.remove(categoryOptionCombo);
       idObjectManager.updateNoAcl(categoryCombo);
     }
   }

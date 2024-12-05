@@ -137,13 +137,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        format(
-            """
-            (select value from "trackedentityattributevalue" \
-            where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999) as %s""",
-            quote(tea.getUid()));
+    String ouQuery = format("%s.value", quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouQuery));
   }
