@@ -25,32 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.db.model.constraint.Nullable;
-import org.junit.jupiter.api.Test;
+@Component
+@RequiredArgsConstructor
+public class CategoryObjectBundleHook extends AbstractObjectBundleHook<Category> {
 
-class ColumnTest {
-  @Test
-  void testIsNotNull() {
-    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL);
-    Column colB = new Column("value", DataType.DOUBLE, Nullable.NULL);
+  private final CategoryService categoryService;
 
-    assertTrue(colA.isNotNull());
-    assertFalse(colB.isNotNull());
+  @Override
+  public void validate(Category category, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    checkIsValid(category, addReports);
   }
 
-  @Test
-  void testHasCollation() {
-    Column colA = new Column("dx", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.DEFAULT);
-    Column colB = new Column("ou", DataType.CHARACTER_11, Nullable.NOT_NULL, Collation.C);
-    Column colC = new Column("value", DataType.DOUBLE, Nullable.NULL);
-
-    assertFalse(colA.hasCollation());
-    assertTrue(colB.hasCollation());
-    assertFalse(colC.hasCollation());
+  private void checkIsValid(Category category, Consumer<ErrorReport> addReports) {
+    try {
+      categoryService.validate(category);
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
+    }
   }
 }

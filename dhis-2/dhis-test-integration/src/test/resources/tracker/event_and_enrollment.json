@@ -70,6 +70,14 @@
             "identifier": "numericAttr"
           },
           "value": "88"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "Value"
         }
       ],
       "enrollments": []
@@ -308,6 +316,20 @@
       "potentialDuplicate": false,
       "relationships": [],
       "enrollments": []
+    },
+    {
+      "trackedEntity": "XUitxQbWYNq",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "Fa7NY4PW6DL"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "DiszpKrYNg8"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false
     }
   ],
   "enrollments": [

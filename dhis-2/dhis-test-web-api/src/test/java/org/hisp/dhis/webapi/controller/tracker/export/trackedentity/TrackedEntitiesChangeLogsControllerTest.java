@@ -77,7 +77,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
+class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
 
@@ -108,19 +108,19 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
 
     JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(2))
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("numericAttr", 2))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
 
     importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(3))
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("numericAttr", 3))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
 
     importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(4))
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("numericAttr", 4))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
@@ -137,9 +137,9 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> assertUpdate(trackedEntityAttribute, "3", "4", changeLogs.get(0)),
-        () -> assertUpdate(trackedEntityAttribute, "2", "3", changeLogs.get(1)),
-        () -> assertCreate(trackedEntityAttribute, "2", changeLogs.get(2)));
+        () -> assertUpdate(trackedEntityAttribute.getUid(), "3", "4", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute.getUid(), "2", "3", changeLogs.get(1)),
+        () -> assertCreate(trackedEntityAttribute.getUid(), "2", changeLogs.get(2)));
   }
 
   @Test
@@ -151,9 +151,28 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> assertCreate(trackedEntityAttribute, "2", changeLogs.get(0)),
-        () -> assertUpdate(trackedEntityAttribute, "2", "3", changeLogs.get(1)),
-        () -> assertUpdate(trackedEntityAttribute, "3", "4", changeLogs.get(2)));
+        () -> assertCreate(trackedEntityAttribute.getUid(), "2", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute.getUid(), "2", "3", changeLogs.get(1)),
+        () -> assertUpdate(trackedEntityAttribute.getUid(), "3", "4", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldGetEventChangeLogsWhenFilteringByAttribute() {
+    JsonWebMessage importResponse =
+        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("toUpdate000", 10))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+
+    JsonList<JsonTrackedEntityChangeLog> changeLogs =
+        GET(
+                "/tracker/trackedEntities/{id}/changeLogs?filter=attribute:eq:toUpdate000",
+                trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonTrackedEntityChangeLog.class);
+
+    assertNumberOfChanges(1, changeLogs);
+    assertAll(() -> assertCreate("toUpdate000", "10", changeLogs.get(0)));
   }
 
   @Test
@@ -318,14 +337,14 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     };
   }
 
-  private String createJsonPayload(int value) {
+  private String createJsonPayload(String attribute, int value) {
     return """
            {
              "trackedEntities": [
                {
                  "attributes": [
                    {
-                     "attribute": "numericAttr",
+                     "attribute": "%s",
                      "value": %d
                    }
                  ],
@@ -336,7 +355,7 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
              ]
            }
            """
-        .formatted(value);
+        .formatted(attribute, value);
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {
@@ -369,7 +388,7 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
   }
 
   private static void assertCreate(
-      TrackedEntityAttribute attribute, String currentValue, JsonTrackedEntityChangeLog actual) {
+      String attribute, String currentValue, JsonTrackedEntityChangeLog actual) {
     assertAll(
         () -> assertUser(actual),
         () -> assertEquals("CREATE", actual.getType()),
@@ -377,7 +396,7 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
   }
 
   private static void assertUpdate(
-      TrackedEntityAttribute attribute,
+      String attribute,
       String previousValue,
       String currentValue,
       JsonTrackedEntityChangeLog actual) {
@@ -388,13 +407,12 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
   }
 
   private static void assertChange(
-      TrackedEntityAttribute attribute,
+      String attribute,
       String previousValue,
       String currentValue,
       JsonTrackedEntityChangeLog actual) {
     assertAll(
-        () ->
-            assertEquals(attribute.getUid(), actual.getChange().getAttributeValue().getAttribute()),
+        () -> assertEquals(attribute, actual.getChange().getAttributeValue().getAttribute()),
         () ->
             assertEquals(previousValue, actual.getChange().getAttributeValue().getPreviousValue()),
         () -> assertEquals(currentValue, actual.getChange().getAttributeValue().getCurrentValue()));

@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -287,6 +288,37 @@ public interface SqlBuilder {
    */
   String jsonExtractNested(String json, String... expression);
 
+  /**
+   * Generates a SQL casting expression for the given column or expression.
+   *
+   * @param column The column or expression to be cast. Must not be null.
+   * @param dataType The target data type for the cast operation. Must not be null.
+   * @return A String containing the database-specific SQL casting expression.
+   * @see DataType
+   */
+  String cast(String column, DataType dataType);
+
+  /**
+   * Generates a SQL expression that calculates the time interval between two dates in years.
+   *
+   * @param endDate The end date expression in the calculation
+   * @param startDate The start date expression in the calculation.
+   * @return A SQL string that calculates the age between the two dates
+   */
+  String age(String endDate, String startDate);
+
+  /**
+   * Generates SQL to calculate the difference between two dates based on the specified date part.
+   *
+   * @param startDate the start date expression (can be a date literal or a column reference)
+   * @param endDate the end date expression (can be a date literal or a column reference)
+   * @param dateUnit the unit of time to calculate the difference in (e.g., DAYS, MONTHS, YEARS)
+   * @return a String containing the database-specific SQL expression for calculating the date
+   *     difference
+   * @see DateUnit
+   */
+  String dateDifference(String startDate, String endDate, DateUnit dateUnit);
+
   // Statements
 
   /**
@@ -411,4 +443,12 @@ public interface SqlBuilder {
    * @return a drop catalog if exists statement.
    */
   String dropCatalogIfExists();
+
+  enum DateUnit {
+    DAYS,
+    MONTHS,
+    MINUTES,
+    YEARS,
+    WEEKS
+  }
 }

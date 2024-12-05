@@ -53,6 +53,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,6 +69,8 @@ public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
   private final SystemSettingsProvider settingsProvider;
+
+  private final DatabaseInfoProvider databaseInfoProvider;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -128,6 +132,16 @@ public class AnalyticsTableSettings {
    */
   public Set<String> getSkipColumnDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
+  }
+
+  /**
+   * Indicates whether spatial database support is available.
+   *
+   * @return true if spatial database support is available.
+   */
+  public boolean isSpatialSupport() {
+    DatabaseInfo info = databaseInfoProvider.getDatabaseInfo();
+    return info != null && info.isSpatialSupport();
   }
 
   /**

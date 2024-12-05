@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.PropertyChange;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.FieldChange;
 import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
@@ -47,9 +47,9 @@ public interface EventChangeLogMapper {
       source = "eventChangeLog",
       qualifiedByName = "mapIfDataValueChangeExists")
   @Mapping(
-      target = "change.eventProperty",
+      target = "change.eventField",
       source = "eventChangeLog",
-      qualifiedByName = "mapIfEventPropertyChangeExists")
+      qualifiedByName = "mapIfEventFieldChangeExists")
   EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
   @Mapping(target = "uid", source = "createdBy.uid")
@@ -73,18 +73,17 @@ public interface EventChangeLogMapper {
     return mapDataValueChange(eventChangeLog);
   }
 
-  @Mapping(target = "property", source = "eventProperty")
+  @Mapping(target = "field", source = "eventField")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  PropertyChange mapEventPropertyChange(
-      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+  FieldChange mapEventFieldChange(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  @Named("mapIfEventPropertyChangeExists")
-  default PropertyChange mapIfEventPropertyExists(
+  @Named("mapIfEventFieldChangeExists")
+  default FieldChange mapIfEventFieldExists(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
-    if (eventChangeLog.getEventProperty() == null) {
+    if (eventChangeLog.getEventField() == null) {
       return null;
     }
-    return mapEventPropertyChange(eventChangeLog);
+    return mapEventFieldChange(eventChangeLog);
   }
 }

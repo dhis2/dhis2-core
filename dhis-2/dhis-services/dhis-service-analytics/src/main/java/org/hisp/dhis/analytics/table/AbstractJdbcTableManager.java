@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
@@ -139,8 +139,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  protected final DatabaseInfoProvider databaseInfoProvider;
-
   protected final JdbcTemplate jdbcTemplate;
 
   protected final AnalyticsTableSettings analyticsTableSettings;
@@ -148,16 +146,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   protected final SqlBuilder sqlBuilder;
-
-  protected Boolean spatialSupport;
-
-  protected boolean isSpatialSupport() {
-    if (spatialSupport == null) {
-      spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    }
-
-    return spatialSupport && sqlBuilder.supportsGeospatialData();
-  }
 
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
@@ -343,6 +331,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
   // Protected supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Indicates whether spatial support is available.
+   *
+   * @return true if spatial support is available.
+   */
+  protected boolean isSpatialSupport() {
+    return analyticsTableSettings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  }
 
   /** Returns the analytics table name. */
   protected String getTableName() {
@@ -674,6 +671,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected boolean tableIsNotEmpty(String name) {
     String sql = format("select 1 from {} limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
+  }
+
+  /**
+   * Converts the given list of items to a comma-separated string, using the given mapping function
+   * to map the object to string.
+   *
+   * @param <T> the type.
+   * @param list the list.
+   * @param mapper the mapping function.
+   * @return a comma-separated string.
+   */
+  protected <T> String toCommaSeparated(List<T> list, Function<T, String> mapper) {
+    return list.stream().map(mapper).collect(Collectors.joining(","));
   }
 
   /**

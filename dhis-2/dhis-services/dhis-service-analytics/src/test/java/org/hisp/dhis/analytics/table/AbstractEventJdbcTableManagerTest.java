@@ -28,22 +28,45 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
+import java.util.List;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class AbstractEventJdbcTableManagerTest {
 
+  @Mock private AnalyticsTableSettings settings;
+
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @InjectMocks private JdbcEventAnalyticsTableManager manager;
+
+  @Test
+  void testToCommaSeparated() {
+    List<Column> columns =
+        List.of(
+            new Column("dx", DataType.VARCHAR_255),
+            new Column("pe", DataType.VARCHAR_255),
+            new Column("value", DataType.DOUBLE));
+
+    String expected =
+        """
+        "dx","pe","value\"""";
+
+    assertEquals(expected, manager.toCommaSeparated(columns, col -> manager.quote(col.getName())));
+  }
 
   @Test
   void testGetCastExpression() {
@@ -71,7 +94,20 @@ class AbstractEventJdbcTableManagerTest {
         else null end""";
 
     String actual =
-        manager.getSelectExpression(ValueType.NUMBER, "eventdatavalues #>> '{GieVkTxp4HH, value}'");
+        manager.getColumnExpression(ValueType.NUMBER, "eventdatavalues #>> '{GieVkTxp4HH, value}'");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetSelectExpressionBoolean() {
+    String expected =
+        """
+        case when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'true' then 1 when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'false' then 0 else null end""";
+
+    String actual =
+        manager.getColumnExpression(
+            ValueType.BOOLEAN, "eventdatavalues #>> '{Xl3voRRcmpo, value}'");
 
     assertEquals(expected, actual);
   }
@@ -85,7 +121,7 @@ class AbstractEventJdbcTableManagerTest {
         else null end""";
 
     String actual =
-        manager.getSelectExpression(ValueType.DATE, "eventdatavalues #>> '{AL04Wbutskk, value}'");
+        manager.getColumnExpression(ValueType.DATE, "eventdatavalues #>> '{AL04Wbutskk, value}'");
 
     assertEquals(expected, actual);
   }
@@ -97,7 +133,22 @@ class AbstractEventJdbcTableManagerTest {
         eventdatavalues #>> '{FwUzmc49Pcr, value}'""";
 
     String actual =
-        manager.getSelectExpression(ValueType.TEXT, "eventdatavalues #>> '{FwUzmc49Pcr, value}'");
+        manager.getColumnExpression(ValueType.TEXT, "eventdatavalues #>> '{FwUzmc49Pcr, value}'");
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void testGetSelectExpressionGeometry() {
+    when(manager.isSpatialSupport()).thenReturn(true);
+
+    String expected =
+        """
+        ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (eventdatavalues #>> '{C6bh7GevJfH, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""";
+
+    String actual =
+        manager.getColumnExpression(
+            ValueType.GEOJSON, "eventdatavalues #>> '{C6bh7GevJfH, value}'");
 
     assertEquals(expected, actual);
   }

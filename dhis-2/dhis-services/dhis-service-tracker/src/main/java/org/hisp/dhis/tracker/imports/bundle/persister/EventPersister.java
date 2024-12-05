@@ -170,7 +170,7 @@ public class EventPersister
       Event currentEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    eventChangeLogService.addPropertyChangeLog(currentEntity, payloadEntity, user.getUsername());
+    eventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
   }
 
   private void handleDataValues(

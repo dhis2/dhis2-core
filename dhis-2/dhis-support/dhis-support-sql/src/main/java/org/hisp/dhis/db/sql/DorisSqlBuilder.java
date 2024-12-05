@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
@@ -229,6 +230,32 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String jsonExtractNested(String column, String... expression) {
     String path = "$." + String.join(".", expression);
     return String.format("json_unquote(json_extract(%s, '%s'))", column, path);
+  }
+
+  @Override
+  public String cast(String column, DataType dataType) {
+    return switch (dataType) {
+      case NUMERIC -> String.format("CAST(%s AS DECIMAL)", column);
+      case BOOLEAN -> String.format("CAST(%s AS DECIMAL) != 0", column);
+      case TEXT -> String.format("CAST(%s AS CHAR)", column);
+    };
+  }
+
+  @Override
+  public String age(String endDate, String startDate) {
+    return String.format(
+        "TIMESTAMPDIFF(YEAR, cast(%s as date), cast(%s as date))", startDate, endDate);
+  }
+
+  @Override
+  public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    return switch (dateUnit) {
+      case DAYS -> String.format("DATEDIFF(%s, %s)", endDate, startDate);
+      case MINUTES -> String.format("TIMESTAMPDIFF(MINUTE, %s, %s)", startDate, endDate);
+      case MONTHS -> String.format("TIMESTAMPDIFF(MONTH, %s, %s)", startDate, endDate);
+      case YEARS -> String.format("TIMESTAMPDIFF(YEAR, %s, %s)", startDate, endDate);
+      case WEEKS -> String.format("TIMESTAMPDIFF(WEEK, %s, %s)", startDate, endDate);
+    };
   }
 
   // Statements

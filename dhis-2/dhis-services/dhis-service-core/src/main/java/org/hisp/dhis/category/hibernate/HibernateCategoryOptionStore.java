@@ -58,6 +58,19 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
   }
 
   @Override
+  public int getCategoryOptionsCount(UID category) {
+    if (category == null) return 0;
+    String sql =
+        """
+      select count(*) from categories_categoryoptions co
+        left join category c on c.categoryid = co.categoryid
+        where c.uid = :id""";
+    Object count =
+        nativeSynchronizedQuery(sql).setParameter("id", category.getValue()).getSingleResult();
+    return count instanceof Number n ? n.intValue() : 0;
+  }
+
+  @Override
   public List<CategoryOption> getCategoryOptions(Category category) {
     CriteriaBuilder builder = getCriteriaBuilder();
 

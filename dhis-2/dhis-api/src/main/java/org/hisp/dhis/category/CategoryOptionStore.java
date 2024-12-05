@@ -29,6 +29,7 @@ package org.hisp.dhis.category;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.user.UserDetails;
@@ -37,6 +38,13 @@ import org.hisp.dhis.user.UserDetails;
  * @author Lars Helge Overland
  */
 public interface CategoryOptionStore extends IdentifiableObjectStore<CategoryOption> {
+
+  /**
+   * @param category the UID of the category
+   * @return the number of category options in a category
+   */
+  int getCategoryOptionsCount(@CheckForNull UID category);
+
   List<CategoryOption> getCategoryOptions(Category category);
 
   List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails userDetails);

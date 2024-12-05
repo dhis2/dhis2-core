@@ -25,52 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
-import java.util.List;
-import org.hisp.dhis.db.model.constraint.Unique;
-import org.junit.jupiter.api.Test;
+public record TrackedEntityChangeLog(
+    @JsonProperty User createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-class IndexTest {
-  @Test
-  void testIsUnique() {
-    Index indexA =
-        Index.builder()
-            .name("in_analytics_id")
-            .tableName("analytics")
-            .unique(Unique.UNIQUE)
-            .columns(List.of("id"))
-            .build();
+  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
 
-    Index indexB =
-        Index.builder()
-            .name("in_analytics_dx")
-            .tableName("analytics")
-            .columns(List.of("dx"))
-            .build();
-
-    assertTrue(indexA.isUnique());
-    assertFalse(indexB.isUnique());
-  }
-
-  @Test
-  void testDefaults() {
-    Index.IndexBuilder builder = Index.builder();
-
-    Index index = builder.build();
-
-    assertNull(index.getName());
-    assertNull(index.getTableName());
-    assertNull(index.getCondition());
-    assertNull(index.getFunction());
-    assertNull(index.getColumns());
-    assertNull(index.getSortOrder());
-    assertSame(IndexType.BTREE, index.getIndexType());
-    assertFalse(index.isUnique());
-  }
+  public record TrackedEntityAttributeChange(
+      @JsonProperty UID attribute,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

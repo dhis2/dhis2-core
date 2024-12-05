@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -247,6 +248,42 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String jsonExtractNested(String column, String... expression) {
     return String.format("%s #>> '{%s}'", column, String.join(", ", expression));
+  }
+
+  @Override
+  public String cast(String column, DataType dataType) {
+    return column
+        + switch (dataType) {
+          case NUMERIC -> "::numeric";
+          case BOOLEAN -> "::numeric!=0";
+          case TEXT -> "::text";
+        };
+  }
+
+  @Override
+  public String age(String endDate, String startDate) {
+    return String.format("age(cast(%s as date), cast(%s as date))", endDate, startDate);
+  }
+
+  @Override
+  public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    return switch (dateUnit) {
+      case DAYS -> String.format("(cast(%s as date) - cast(%s as date))", endDate, startDate);
+      case MINUTES ->
+          String.format(
+              "(extract(epoch from (cast(%s as timestamp) - cast(%s as timestamp))) / 60)",
+              endDate, startDate);
+      case MONTHS ->
+          String.format(
+              "((date_part('year',age(cast(%s as date), cast(%s as date)))) * 12 + "
+                  + "date_part('month',age(cast(%s as date), cast(%s as date))))",
+              endDate, startDate, endDate, startDate);
+      case YEARS ->
+          String.format(
+              "(date_part('year',age(cast(%s as date), cast(%s as date))))", endDate, startDate);
+      case WEEKS ->
+          String.format("((cast(%s as date) - cast(%s as date)) / 7)", endDate, startDate);
+    };
   }
 
   // Statements

@@ -25,29 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.model;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.springframework.stereotype.Component;
 
-import org.junit.jupiter.api.Test;
+@Component
+@RequiredArgsConstructor
+public class CategoryComboObjectBundleHook extends AbstractObjectBundleHook<CategoryCombo> {
 
-class DataTypeTest {
-  @Test
-  void testIsNumeric() {
-    assertTrue(DataType.BIGINT.isNumeric());
-    assertFalse(DataType.CHARACTER_11.isNumeric());
+  private final CategoryService categoryService;
+
+  @Override
+  public void validate(CategoryCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    checkIsValid(combo, addReports);
   }
 
-  @Test
-  void testIsBoolean() {
-    assertTrue(DataType.BOOLEAN.isBoolean());
-    assertFalse(DataType.DOUBLE.isBoolean());
-  }
-
-  @Test
-  void testIsCharacter() {
-    assertTrue(DataType.VARCHAR_255.isCharacter());
-    assertFalse(DataType.DECIMAL.isCharacter());
+  private void checkIsValid(CategoryCombo combo, Consumer<ErrorReport> addReports) {
+    try {
+      categoryService.validate(combo);
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
+    }
   }
 }

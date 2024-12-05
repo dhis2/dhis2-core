@@ -62,7 +62,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -111,7 +110,6 @@ class JdbcAnalyticsTableManagerTest {
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
             mock(PartitionManager.class),
-            mock(DatabaseInfoProvider.class),
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,

@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
 
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams.TrackedEntityChangeLogOperationParamsBuilder;
@@ -43,22 +47,19 @@ class ChangeLogRequestParamsMapper {
     throw new IllegalStateException("Utility class");
   }
 
-  /**
-   * This mapper is different from other tracker exporter mappers as it takes in the orderable
-   * fields. This difference comes from {@link
-   * org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog} being the view which is
-   * already returned from the service/store. Tracker exporter services return a representation we
-   * have to map to a view model.
-   */
   static TrackedEntityChangeLogOperationParams map(
-      Set<String> orderableFields, ChangeLogRequestParams requestParams)
+      Set<String> orderableFields,
+      Set<Pair<String, Class<?>>> filterableFields,
+      ChangeLogRequestParams requestParams)
       throws BadRequestException {
     validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
     validateOrderParams(requestParams.getOrder(), orderableFields);
+    validateFilter(requestParams.getFilter(), filterableFields);
 
     TrackedEntityChangeLogOperationParamsBuilder builder =
         TrackedEntityChangeLogOperationParams.builder();
     mapOrderParam(builder, requestParams.getOrder());
+    mapFilterParam(builder, requestParams.getFilter());
     return builder.build();
   }
 
@@ -69,5 +70,13 @@ class ChangeLogRequestParamsMapper {
     }
 
     orders.forEach(order -> builder.orderBy(order.getField(), order.getDirection()));
+  }
+
+  private static void mapFilterParam(
+      TrackedEntityChangeLogOperationParamsBuilder builder, String filter) {
+    if (filter != null) {
+      String[] split = filter.split(":");
+      builder.filterBy(split[0], new QueryFilter(QueryOperator.EQ, split[2]));
+    }
   }
 }
