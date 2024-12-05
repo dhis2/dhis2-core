@@ -49,7 +49,7 @@
     <property name="occurredDate" column="occurreddate" type="timestamp" index="programstageinstance_executiondate" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
-      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
+      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" not-null="true"/>
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 

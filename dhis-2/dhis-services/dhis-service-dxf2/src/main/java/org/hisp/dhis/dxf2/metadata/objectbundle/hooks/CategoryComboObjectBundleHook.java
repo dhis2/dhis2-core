@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.function;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.db.sql.SqlBuilder.DateUnit.MINUTES;
+import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+@Component
+@RequiredArgsConstructor
+public class CategoryComboObjectBundleHook extends AbstractObjectBundleHook<CategoryCombo> {
 
-/**
- * Program indicator function: d2 minutes between
- *
- * @author Jim Grace
- */
-public class D2MinutesBetween extends ProgramBetweenFunction {
+  private final CategoryService categoryService;
+
   @Override
-  public Object getSqlBetweenDates(
-      String startDate, String endDate, CommonExpressionVisitor visitor) {
-    return visitor.getSqlBuilder().dateDifference(startDate, endDate, MINUTES);
+  public void validate(CategoryCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    checkIsValid(combo, addReports);
+  }
+
+  private void checkIsValid(CategoryCombo combo, Consumer<ErrorReport> addReports) {
+    try {
+      categoryService.validate(combo);
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
+    }
   }
 }

@@ -323,11 +323,11 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
   @Test
   void testD2WeeksBetween() {
     assertEquals(
-        "((cast(occurreddate as date) - cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end as date))/7)",
+        "((cast(occurreddate as date) - cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end as date)) / 7)",
         getSql("d2:weeksBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)"));
     assertEquals(
         "((cast((select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date) "
-            + "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date))/7)",
+            + "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date)) / 7)",
         getSqlEnrollment("d2:weeksBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
   }
 

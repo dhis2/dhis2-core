@@ -45,6 +45,8 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
@@ -71,6 +73,8 @@ class ProgramObjectBundleHookTest {
 
   @Mock private ProgramStageService programStageService;
 
+  @Mock private OrganisationUnitService organisationUnitService;
+
   @Mock private AclService aclService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
@@ -83,6 +87,7 @@ class ProgramObjectBundleHookTest {
         new ProgramObjectBundleHook(
             eventProgramEnrollmentService,
             programStageService,
+            organisationUnitService,
             aclService,
             identifiableObjectManager);
 
@@ -106,6 +111,8 @@ class ProgramObjectBundleHookTest {
 
   @Test
   void verifyProgramInstanceIsSavedForEventProgram() {
+    when(organisationUnitService.getRootOrganisationUnits())
+        .thenReturn(List.of(new OrganisationUnit()));
     ArgumentCaptor<Enrollment> argument = ArgumentCaptor.forClass(Enrollment.class);
 
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);

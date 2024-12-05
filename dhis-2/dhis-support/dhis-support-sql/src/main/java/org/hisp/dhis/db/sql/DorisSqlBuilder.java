@@ -241,6 +241,23 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     };
   }
 
+  @Override
+  public String age(String endDate, String startDate) {
+    return String.format(
+        "TIMESTAMPDIFF(YEAR, cast(%s as date), cast(%s as date))", startDate, endDate);
+  }
+
+  @Override
+  public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    return switch (dateUnit) {
+      case DAYS -> String.format("DATEDIFF(%s, %s)", endDate, startDate);
+      case MINUTES -> String.format("TIMESTAMPDIFF(MINUTE, %s, %s)", startDate, endDate);
+      case MONTHS -> String.format("TIMESTAMPDIFF(MONTH, %s, %s)", startDate, endDate);
+      case YEARS -> String.format("TIMESTAMPDIFF(YEAR, %s, %s)", startDate, endDate);
+      case WEEKS -> String.format("TIMESTAMPDIFF(WEEK, %s, %s)", startDate, endDate);
+    };
+  }
+
   // Statements
 
   @Override

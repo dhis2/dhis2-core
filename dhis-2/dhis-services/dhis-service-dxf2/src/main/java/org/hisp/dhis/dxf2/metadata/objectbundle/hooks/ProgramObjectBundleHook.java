@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -57,6 +58,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   private final EventProgramEnrollmentService eventProgramEnrollmentService;
 
   private final ProgramStageService programStageService;
+
+  private final OrganisationUnitService organisationUnitService;
 
   private final AclService aclService;
 
@@ -133,6 +136,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
       enrollment.setProgram(program);
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
       enrollment.setStoredBy("system-process");
+      enrollment.setOrganisationUnit(
+          organisationUnitService.getRootOrganisationUnits().iterator().next());
 
       identifiableObjectManager.save(enrollment);
     }
