@@ -61,11 +61,7 @@ public interface EventChangeLogService {
   void addFieldChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
 
-  void deleteTrackedEntityDataValueChangeLog(Event event);
-
   void deleteEventChangeLog(Event event);
-
-  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
 
   void deleteEventChangeLog(DataElement dataElement);
 

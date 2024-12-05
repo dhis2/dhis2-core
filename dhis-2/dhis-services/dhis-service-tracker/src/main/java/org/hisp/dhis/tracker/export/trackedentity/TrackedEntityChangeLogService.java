@@ -53,8 +53,6 @@ public interface TrackedEntityChangeLogService {
 
   void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity);
 
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
-
   /**
    * Retrieves the change log data for a particular tracked entity.
    *

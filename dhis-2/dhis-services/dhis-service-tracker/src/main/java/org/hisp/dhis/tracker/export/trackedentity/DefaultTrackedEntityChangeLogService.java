@@ -67,8 +67,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
 
-  private final TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore;
-
   @Transactional
   @Override
   public void addTrackedEntityChangeLog(
@@ -96,13 +94,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Transactional
   public void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity) {
     hibernateTrackedEntityChangeLogStore.deleteTrackedEntityChangeLogs(trackedEntity);
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity) {
-    trackedEntityAttributeValueChangeLogStore.deleteTrackedEntityAttributeValueChangeLogs(
-        trackedEntity);
   }
 
   @Override
