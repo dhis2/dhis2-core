@@ -46,6 +46,8 @@ public interface TrackerAccessManager {
 
   List<String> canWrite(User user, TrackedEntity trackedEntity);
 
+  List<String> canCreate(User user, TrackedEntity trackedEntity);
+
   /**
    * Check if a user has data access to the supplied program and tracked entity type. It also
    * validates user ownership to the TE/program pair.
