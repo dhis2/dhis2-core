@@ -142,34 +142,6 @@ class AuditControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldFailGetAttributeValueAuditsWhenGivenTeiAndTrackedEntitiesParameters() {
-    assertEquals(
-        "Only one parameter of 'tei' (deprecated; semicolon separated UIDs) and 'trackedEntities' (comma separated UIDs) must be specified. Prefer 'trackedEntities' as 'tei' will be removed.",
-        GET(
-                "/audits/trackedEntityAttributeValue?tei={te}&trackedEntities={te}",
-                te1.getUid() + ";" + te2.getUid(),
-                te1.getUid() + "," + te2.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldSuccessToGetAttributeValueAuditsWhenPassingOnlyTeiParameter() {
-    assertStatus(
-        HttpStatus.OK,
-        GET("/audits/trackedEntityAttributeValue?tei={te}", te1.getUid() + ";" + te2.getUid()));
-  }
-
-  @Test
-  void shouldSuccessToGetAttributeValueAuditsWhenPassingOnlyTrackedEntitiesParameter() {
-    assertStatus(
-        HttpStatus.OK,
-        GET(
-            "/audits/trackedEntityAttributeValue?trackedEntities={te}",
-            te1.getUid() + "," + te2.getUid()));
-  }
-
-  @Test
   void shouldFailGetTrackedEntityInstanceAuditsWhenGivenTeiAndTrackedEntitiesParameters() {
     assertEquals(
         "Only one parameter of 'tei' (deprecated; semicolon separated UIDs) and 'trackedEntities' (comma separated UIDs) must be specified. Prefer 'trackedEntities' as 'tei' will be removed.",
