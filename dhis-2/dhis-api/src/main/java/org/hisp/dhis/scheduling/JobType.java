@@ -241,7 +241,8 @@ public enum JobType {
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
         || this == DATA_INTEGRITY_DETAILS
-        || this == SMS_INBOUND_PROCESSING;
+        || this == SMS_INBOUND_PROCESSING
+        || this == GEOJSON_IMPORT;
   }
 
   public boolean hasJobParameters() {
