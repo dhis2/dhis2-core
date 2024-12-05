@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.List;
-import javax.annotation.CheckForNull;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.user.UserDetails;
+import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Lars Helge Overland
- */
-public interface CategoryOptionStore extends IdentifiableObjectStore<CategoryOption> {
+@Component
+@RequiredArgsConstructor
+public class CategoryObjectBundleHook extends AbstractObjectBundleHook<Category> {
 
-  /**
-   * @param category the UID of the category
-   * @return the number of category options in a category
-   */
-  int getCategoryOptionsCount(@CheckForNull UID category);
+  private final CategoryService categoryService;
 
-  List<CategoryOption> getCategoryOptions(Category category);
+  @Override
+  public void validate(Category category, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    checkIsValid(category, addReports);
+  }
 
-  List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails userDetails);
+  private void checkIsValid(Category category, Consumer<ErrorReport> addReports) {
+    try {
+      categoryService.validate(category);
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
+    }
+  }
 }
