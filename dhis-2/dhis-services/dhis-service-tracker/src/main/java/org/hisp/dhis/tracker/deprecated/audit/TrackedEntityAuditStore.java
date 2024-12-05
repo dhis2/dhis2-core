@@ -34,7 +34,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Deprecated(since = "2.42", forRemoval = true)
 public interface TrackedEntityAuditStore {
   String ID = TrackedEntityAuditStore.class.getName();
 
