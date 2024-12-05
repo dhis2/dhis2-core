@@ -40,6 +40,7 @@ import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -85,6 +86,7 @@ public class TwoFactorAuthService {
    * @param code The 2FA code
    * @return true if the code is invalid, false if the code is valid.
    */
+  @NonTransactional
   public boolean isInvalid2FACode(@Nonnull User user, @Nonnull String code)
       throws ConflictException {
     if (Strings.isNullOrEmpty(user.getSecret())) {
@@ -291,6 +293,7 @@ public class TwoFactorAuthService {
     }
   }
 
+  @NonTransactional
   public @Nonnull byte[] generateQRCode(@Nonnull User currentUser) throws ConflictException {
     if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
       throw new ConflictException(ErrorCode.E3046);

@@ -103,10 +103,6 @@ public class SessionController {
   @PostMapping(value = "/invalidateAll", produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = ALL)
   public void invalidateAllSessions() {
-    invalidateAllUserSessions();
-  }
-
-  private void invalidateAllUserSessions() {
     List<User> allUsers = userService.getAllUsers();
     for (User user : allUsers) {
       UserDetails userDetails = userService.createUserDetails(user);

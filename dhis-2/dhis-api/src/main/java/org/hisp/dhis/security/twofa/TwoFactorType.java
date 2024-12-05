@@ -32,10 +32,10 @@ import lombok.Getter;
 @Getter
 public enum TwoFactorType {
   NONE,
-  TOTP,
-  EMAIL,
-  ENROLLING_TOTP,
-  ENROLLING_EMAIL;
+  TOTP, // Enabled state, using TOTP
+  EMAIL, // Enabled state, using email
+  ENROLLING_TOTP, // Enrolling state, using TOTP
+  ENROLLING_EMAIL; // Enrolling state, using email
 
   public boolean isEnrolling() {
     return this == ENROLLING_TOTP || this == ENROLLING_EMAIL;
