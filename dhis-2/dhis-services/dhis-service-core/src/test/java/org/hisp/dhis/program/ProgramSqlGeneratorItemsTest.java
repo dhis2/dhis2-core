@@ -237,7 +237,7 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
             .constantMap(constantMap)
-            .itemMap(new ExpressionMapBuilder(sqlBuilder).getExpressionItemMap())
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)

@@ -685,7 +685,17 @@ public enum ConfigurationKey {
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. */
-  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true);
+  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
+
+  /** The maximum number of category options in a single category */
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  /** The maximum number of categories per category combo */
+  METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
+  /**
+   * The maximum number of possible category combination. This is computed by multiplying the number
+   * of options in each category in a category combo with each other.
+   */
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false);
 
   private final String key;
 
