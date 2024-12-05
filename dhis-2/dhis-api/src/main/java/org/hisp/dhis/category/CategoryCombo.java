@@ -51,7 +51,7 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
 public class CategoryCombo extends BaseIdentifiableObject implements SystemDefaultMetadataObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
-  /** A set with categories. */
+  /** The categories combined in this combo in the order they are used as a category combination */
   private List<Category> categories = new ArrayList<>();
 
   /**

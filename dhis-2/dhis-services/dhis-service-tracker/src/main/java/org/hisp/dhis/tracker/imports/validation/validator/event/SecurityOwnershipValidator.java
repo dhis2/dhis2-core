@@ -96,11 +96,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     // If event is newly created, or going to be deleted, capture scope
     // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
-      if (organisationUnit == null) {
-        log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
-      } else {
-        checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
-      }
+      checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
     }
 
     UID teUid = getTeUidFromEvent(bundle, event, program);
@@ -304,9 +300,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       boolean isCreatableInSearchScope,
       UserDetails user) {
-    if (eventOrgUnit == null) {
-      log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
-    } else if (isCreatableInSearchScope
+    if (isCreatableInSearchScope
         ? !user.isInUserEffectiveSearchOrgUnitHierarchy(eventOrgUnit.getPath())
         : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);

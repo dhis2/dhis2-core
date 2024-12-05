@@ -239,6 +239,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     };
   }
 
+  @Override
+  public String age(String endDate, String startDate) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    throw new UnsupportedOperationException();
+  }
+
   // Statements
 
   @Override

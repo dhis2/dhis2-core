@@ -307,7 +307,7 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(new ExpressionMapBuilder(sqlBuilder).getExpressionItemMap())
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(ITEM_GET_SQL)
             .params(params)
             .progParams(progParams)
