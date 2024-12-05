@@ -408,6 +408,9 @@ public enum ConfigurationKey {
    */
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
 
+  /** Whether to skip Flyway migration on startup. (default: false). */
+  FLYWAY_SKIP_MIGRATION("flyway.skip_migration", Constants.OFF, false),
+
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
   /** Use unlogged tables during analytics export. (default: ON) */
