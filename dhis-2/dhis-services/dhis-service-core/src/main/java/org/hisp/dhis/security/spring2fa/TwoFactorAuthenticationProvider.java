@@ -144,7 +144,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     // Send 2FA code via Email if the user has email 2FA enabled and the code is empty.
     if (TwoFactorType.EMAIL == type && Strings.isNullOrEmpty(code)) {
       try {
-        twoFactorAuthService.sendEmail2FACode(userDetails);
+        twoFactorAuthService.sendEmail2FACode(userDetails.getUsername());
       } catch (ConflictException e) {
         throw new TwoFactorAuthenticationException(ErrorCode.E3049.getMessage());
       }

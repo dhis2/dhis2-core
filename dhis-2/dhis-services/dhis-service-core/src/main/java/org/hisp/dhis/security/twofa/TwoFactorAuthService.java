@@ -73,6 +73,7 @@ public class TwoFactorAuthService {
 
   public static final String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
   public static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 900_000; // 15 minutes
+
   private final SystemSettingsProvider settingsProvider;
   private final UserService userService;
   private final MessageSender emailMessageSender;
@@ -80,33 +81,21 @@ public class TwoFactorAuthService {
   private final I18nManager i18nManager;
 
   /**
-   * Verify the 2FA code for the user.
-   *
-   * @param user The user
-   * @param code The 2FA code
-   * @return true if the code is invalid, false if the code is valid.
-   */
-  @NonTransactional
-  public boolean isInvalid2FACode(@Nonnull User user, @Nonnull String code)
-      throws ConflictException {
-    if (Strings.isNullOrEmpty(user.getSecret())) {
-      throw new ConflictException(ErrorCode.E3028);
-    }
-    return !TwoFactorAuthUtils.isValid2FACode(user.getTwoFactorType(), code, user.getSecret());
-  }
-
-  /**
    * Enroll user in time-based one-time password (TOTP) 2FA authentication.
    *
-   * @param user The user that is being enrolled.
+   * @param username The user that is being enrolled.
    */
   @Transactional
-  public void enrollTOTP2FA(@Nonnull User user) throws ConflictException {
-    if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
-      throw new ConflictException(ErrorCode.E3046);
+  public void enrollTOTP2FA(@Nonnull String username) throws ConflictException {
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      throw new ConflictException(ErrorCode.E6201);
     }
     if (user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
+    }
+    if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
+      throw new ConflictException(ErrorCode.E3046);
     }
     String totpSeed = Base32.encode(generateSecureRandomBytes(20));
     user.setSecret(totpSeed);
@@ -117,15 +106,19 @@ public class TwoFactorAuthService {
   /**
    * Enroll user in email-based 2FA authentication.
    *
-   * @param user The user that is being enrolled.
+   * @param username The user that is being enrolled.
    */
   @Transactional
-  public void enrollEmail2FA(@Nonnull User user) throws ConflictException {
-    if (!settingsProvider.getCurrentSettings().getEmail2FAEnabled()) {
-      throw new ConflictException(ErrorCode.E3045);
+  public void enrollEmail2FA(@Nonnull String username) throws ConflictException {
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      throw new ConflictException(ErrorCode.E6201);
     }
     if (user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
+    }
+    if (!settingsProvider.getCurrentSettings().getEmail2FAEnabled()) {
+      throw new ConflictException(ErrorCode.E3045);
     }
     if (!userService.isEmailVerified(user)) {
       throw new ConflictException(ErrorCode.E3043);
@@ -144,26 +137,33 @@ public class TwoFactorAuthService {
    * provide the correct 2FA code to enable 2FA. This proves that the user has access to the 2FA
    * secret (TOTP) or has access to the verified email (Email-based 2FA).
    *
-   * @param user The user to enable 2FA authentication for.
+   * @param username The user to enable 2FA authentication for.
    * @param code The 2FA code that the user generated with the authenticator app (TOTP), or the
    *     email based 2FA code sent to the user's email address.
    */
   @Transactional
-  public void enable2FA(@Nonnull User user, @Nonnull String code)
+  public void enable2FA(@Nonnull String username, @Nonnull String code)
       throws ConflictException, ForbiddenException {
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      throw new ConflictException(ErrorCode.E6201);
+    }
     if (user.getTwoFactorType().isEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
     }
     if (!user.getTwoFactorType().isEnrolling()) {
       throw new ConflictException(ErrorCode.E3029);
     }
+
     if (isInvalid2FACode(user, code)) {
       throw new ForbiddenException(ErrorCode.E3023);
     }
-    setEnabled2FA(user, CurrentUserUtil.getCurrentUserDetails());
+
+    setEnabled2FA(user.getUsername(), CurrentUserUtil.getCurrentUserDetails());
   }
 
-  public void setEnabled2FA(@Nonnull User user, @Nonnull UserDetails actingUser) {
+  public void setEnabled2FA(@Nonnull String username, @Nonnull UserDetails actingUser) {
+    User user = userService.getUserByUsername(username);
     user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
     userService.updateUser(user, actingUser);
   }
@@ -172,29 +172,42 @@ public class TwoFactorAuthService {
    * If the user has 2FA authentication enabled, and the code is valid, then disable 2FA
    * authentication.
    *
-   * @param user The user that you want to disable 2FA authentication
-   * @param code The 2FA code
+   * @param username The user to disable 2FA authentication
+   * @param code The 2FA code, (If no code i supplied and user has email 2FA, a code will be sent to
+   *     the verified email address)
    */
   @Transactional
-  public void disable2FA(@Nonnull User user, @Nonnull String code)
+  public void disable2FA(@Nonnull String username, @Nonnull String code)
       throws ConflictException, ForbiddenException {
+    if (userService.is2FADisableEndpointLocked(username)) {
+      throw new ConflictException(ErrorCode.E3042);
+    }
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      throw new ConflictException(ErrorCode.E6201);
+    }
     if (!user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3031);
     }
-    if (userService.is2FADisableEndpointLocked(user.getUsername())) {
-      throw new ConflictException(ErrorCode.E3042);
+    if (TwoFactorType.EMAIL.equals(user.getTwoFactorType()) && Strings.isNullOrEmpty(code)) {
+      sendEmail2FACode(user.getUsername());
+      throw new ConflictException(ErrorCode.E3051);
     }
+    if (Strings.isNullOrEmpty(code)) {
+      throw new ConflictException(ErrorCode.E3050);
+    }
+
     if (isInvalid2FACode(user, code)) {
       userService.registerFailed2FADisableAttempt(CurrentUserUtil.getCurrentUsername());
       throw new ForbiddenException(ErrorCode.E3023);
     }
 
-    reset2FA(user, CurrentUserUtil.getCurrentUserDetails());
-
+    reset2FA(user.getUsername(), CurrentUserUtil.getCurrentUserDetails());
     userService.registerSuccess2FADisable(user.getUsername());
   }
 
-  private void reset2FA(@Nonnull User user, @Nonnull UserDetails actingUser) {
+  private void reset2FA(@Nonnull String username, @Nonnull UserDetails actingUser) {
+    User user = userService.getUserByUsername(username);
     user.setSecret(null);
     user.setTwoFactorType(null);
     userService.updateUser(user, actingUser);
@@ -224,17 +237,17 @@ public class TwoFactorAuthService {
     if (actingUser == null) {
       throw new NotFoundException(ErrorCode.E6201);
     }
-    reset2FA(user, actingUser);
+    reset2FA(user.getUsername(), actingUser);
   }
 
   /**
    * Email the user with a new 2FA code.
    *
-   * @param userDetails The user to send the 2FA code.
+   * @param username The user to send the 2FA code.
    */
   @Transactional
-  public void sendEmail2FACode(@Nonnull UserDetails userDetails) throws ConflictException {
-    User user = userService.getUserByUsername(userDetails.getUsername());
+  public void sendEmail2FACode(@Nonnull String username) throws ConflictException {
+    User user = userService.getUserByUsername(username);
     if (user == null) {
       throw new ConflictException(ErrorCode.E6201);
     }
@@ -298,7 +311,7 @@ public class TwoFactorAuthService {
     if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
       throw new ConflictException(ErrorCode.E3046);
     }
-    if (!currentUser.getTwoFactorType().equals(TwoFactorType.ENROLLING_TOTP)) {
+    if (!TwoFactorType.ENROLLING_TOTP.equals(currentUser.getTwoFactorType())) {
       throw new ConflictException(ErrorCode.E3047);
     }
 
@@ -315,5 +328,20 @@ public class TwoFactorAuthService {
       throw new ConflictException(errorCodes.get(0));
     }
     return qrCode;
+  }
+
+  /**
+   * Verify the 2FA code for the user.
+   *
+   * @param user The user
+   * @param code The 2FA code
+   * @return true if the code is invalid, false if the code is valid.
+   */
+  private boolean isInvalid2FACode(@Nonnull User user, @Nonnull String code)
+      throws ConflictException {
+    if (Strings.isNullOrEmpty(user.getSecret())) {
+      throw new ConflictException(ErrorCode.E3028);
+    }
+    return !TwoFactorAuthUtils.isValid2FACode(user.getTwoFactorType(), code, user.getSecret());
   }
 }

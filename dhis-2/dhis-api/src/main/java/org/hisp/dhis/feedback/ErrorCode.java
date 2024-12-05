@@ -205,10 +205,10 @@ public enum ErrorCode {
   E3025("No current user"),
   E3026("Could not generate QR code"),
   E3027("No currentUser available"),
-  E3028("User must have a secret"),
+  E3028("User must have a 2FA secret"),
   E3029("User must start 2FA enrollment first"),
   E3030(
-      "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API"),
+      "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or /2fa/disable API"),
   E3031("User has not enabled 2FA"),
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),

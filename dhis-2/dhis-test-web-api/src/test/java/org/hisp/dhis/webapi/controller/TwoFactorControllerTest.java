@@ -107,7 +107,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(enrolledUser.getSecret().matches("^[a-zA-Z0-9]{32}$"));
     assertSame(TwoFactorType.ENROLLING_TOTP, enrolledUser.getTwoFactorType());
 
-    HttpResponse res = GET("/2fa/showQRCodeAsJson");
+    HttpResponse res = GET("/2fa/qrCodeJson");
     assertStatus(HttpStatus.OK, res);
     assertNotNull(res.content());
     JsonMixed content = res.content();
@@ -185,7 +185,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    twoFactorAuthService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user.getUsername());
     switchToNewUser(user);
 
     String code = new Totp(user.getSecret()).now();
@@ -200,7 +200,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     user.setEmail("valid.x@email.com");
     user.setVerifiedEmail("valid.x@email.com");
     userService.addUser(user);
-    twoFactorAuthService.enrollEmail2FA(user);
+    twoFactorAuthService.enrollEmail2FA(user.getUsername());
     switchToNewUser(user);
 
     User enrolledUser = userService.getUserByUsername(user.getUsername());
@@ -220,7 +220,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    twoFactorAuthService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user.getUsername());
     switchToNewUser(user);
 
     assertEquals(
@@ -235,7 +235,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertNull(getCurrentUser().getSecret());
 
     User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
-    twoFactorAuthService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user.getUsername());
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     assertNotNull(user.getSecret());
 
@@ -258,8 +258,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
     userService.addUser(newUser);
-    twoFactorAuthService.enrollTOTP2FA(newUser);
-    twoFactorAuthService.setEnabled2FA(newUser, new SystemUser());
+    twoFactorAuthService.enrollTOTP2FA(newUser.getUsername());
+    twoFactorAuthService.setEnabled2FA(newUser.getUsername(), new SystemUser());
     switchToNewUser(newUser);
 
     String code = new Totp(newUser.getSecret()).now();
@@ -274,8 +274,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     newUser.setEmail("valid.y@email.com");
     newUser.setVerifiedEmail("valid.y@email.com");
     userService.addUser(newUser);
-    twoFactorAuthService.enrollEmail2FA(newUser);
-    twoFactorAuthService.setEnabled2FA(newUser, new SystemUser());
+    twoFactorAuthService.enrollEmail2FA(newUser.getUsername());
+    twoFactorAuthService.setEnabled2FA(newUser.getUsername(), new SystemUser());
     switchToNewUser(newUser);
 
     User enabledUser = userService.getUserByUsername(newUser.getUsername());
@@ -301,7 +301,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    twoFactorAuthService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user.getUsername());
     switchToNewUser(user);
 
     String code = new Totp(user.getSecret()).now();

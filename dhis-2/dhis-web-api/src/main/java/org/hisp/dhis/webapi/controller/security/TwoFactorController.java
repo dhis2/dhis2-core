@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,7 +76,7 @@ public class TwoFactorController {
   @PostMapping(value = "/enrollTOTP2FA")
   @ResponseStatus(HttpStatus.OK)
   public WebMessage enrollTOTP2FA(@CurrentUser User currentUser) throws ConflictException {
-    twoFactorAuthService.enrollTOTP2FA(currentUser);
+    twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
     return ok(
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
   }
@@ -83,7 +84,7 @@ public class TwoFactorController {
   @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
   public WebMessage enrollEmail2FA(@CurrentUser User currentUser) throws ConflictException {
-    twoFactorAuthService.enrollEmail2FA(currentUser);
+    twoFactorAuthService.enrollEmail2FA(currentUser.getUsername());
     return ok(
         "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
   }
@@ -96,10 +97,10 @@ public class TwoFactorController {
    */
   @OpenApi.Response(byte[].class)
   @GetMapping(
-      value = {"/showQRCodeAsImage"},
+      value = {"/qrCodePng"},
       produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void showQRCodeAsImage(@CurrentUser User currentUser, HttpServletResponse response)
+  public void qrCodePng(@CurrentUser User currentUser, HttpServletResponse response)
       throws IOException, ConflictException {
     byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
     response.getOutputStream().write(qrCode);
@@ -112,10 +113,10 @@ public class TwoFactorController {
    * @throws ConflictException
    */
   @GetMapping(
-      value = {"/showQRCodeAsJson"},
+      value = {"/qrCodeJson"},
       produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public QRCode showQRCodeAsText(@CurrentUser User currentUser) throws ConflictException {
+  public QRCode qrCodeJson(@CurrentUser User currentUser) throws ConflictException {
     byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
     return new QRCode(currentUser.getSecret(), Base64.getEncoder().encodeToString(qrCode));
   }
@@ -136,7 +137,7 @@ public class TwoFactorController {
   @Deprecated(forRemoval = true, since = "2.42")
   public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
       throws IOException, ConflictException {
-    twoFactorAuthService.enrollTOTP2FA(currentUser);
+    twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
     byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
     response.getOutputStream().write(qrCode);
   }
@@ -161,13 +162,13 @@ public class TwoFactorController {
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
   public WebMessage enable(
-      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) UserDetails currentUser)
       throws ForbiddenException, ConflictException {
     String code = body.get("code");
     if (Strings.isNullOrEmpty(code)) {
       throw new ConflictException(ErrorCode.E3050);
     }
-    twoFactorAuthService.enable2FA(currentUser, code);
+    twoFactorAuthService.enable2FA(currentUser.getUsername(), code);
     return ok("2FA was enabled successfully");
   }
 
@@ -182,13 +183,10 @@ public class TwoFactorController {
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
   public WebMessage disable(
-      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) UserDetails currentUser)
       throws ForbiddenException, ConflictException {
     String code = body.get("code");
-    if (Strings.isNullOrEmpty(code)) {
-      throw new ConflictException(ErrorCode.E3050);
-    }
-    twoFactorAuthService.disable2FA(currentUser, code);
+    twoFactorAuthService.disable2FA(currentUser.getUsername(), code);
     return ok("2FA was disabled successfully");
   }
 }

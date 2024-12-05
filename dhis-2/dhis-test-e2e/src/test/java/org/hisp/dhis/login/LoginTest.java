@@ -48,6 +48,7 @@ import javax.mail.Part;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.login.LoginResponse.STATUS;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jetbrains.annotations.NotNull;
@@ -132,6 +133,13 @@ public class LoginTest {
   void testLoginWithTOTP2FA() throws JsonProcessingException {
     String username = CodeGenerator.generateCode(8);
     String password = "Test123###...";
+    enrollAndLoginTOTP2FA(username, password);
+  }
+
+  public record QrSecretAndCookie(String secret, String cookie) {}
+
+  private QrSecretAndCookie enrollAndLoginTOTP2FA(String username, String password)
+      throws JsonProcessingException {
     // Create a new user with the superuser role
     createSuperuser(username, password, orgUnitUID);
 
@@ -153,7 +161,7 @@ public class LoginTest {
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
 
     // Get QR code and Base32 secret
-    ResponseEntity<String> showQRResp = getWithCookie("/2fa/showQRCodeAsJson", cookie);
+    ResponseEntity<String> showQRResp = getWithCookie("/2fa/qrCodeJson", cookie);
     JsonNode showQrRespJson = objectMapper.readTree(showQRResp.getBody());
     String base32Secret = showQrRespJson.get("base32Secret").asText();
     assertNotNull(base32Secret);
@@ -182,12 +190,102 @@ public class LoginTest {
     ResponseEntity<String> apiMeResp = getWithCookie("/me", cookie);
     assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
     assertNotNull(apiMeResp.getBody());
+
+    return new QrSecretAndCookie(base32Secret, cookie);
+  }
+
+  @Test
+  void testShowQrCodeAfterEnabledFails() throws JsonProcessingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    QrSecretAndCookie qrSecretAndCookie = enrollAndLoginTOTP2FA(username, password);
+
+    // Should fail since 2FA is already enabled
+    ResponseEntity<String> getQrJsonResp =
+        getWithCookie("/2fa/qrCodeJson", qrSecretAndCookie.cookie);
+    assertEquals(HttpStatus.CONFLICT, getQrJsonResp.getStatusCode());
+    assertMessage(getQrJsonResp, "User is not in TOTP 2FA enrollment mode");
+
+    // Should fail since 2FA is already enabled
+    ResponseEntity<String> getQrPngResp = getWithCookie("/2fa/qrCodePng", qrSecretAndCookie.cookie);
+    assertEquals(HttpStatus.CONFLICT, getQrPngResp.getStatusCode());
+    assertMessage(getQrPngResp, "User is not in TOTP 2FA enrollment mode");
+  }
+
+  @Test
+  void testReEnrollFails() throws JsonProcessingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    QrSecretAndCookie qrSecretAndCookie = enrollAndLoginTOTP2FA(username, password);
+
+    // Enroll in TOTP 2FA
+    ResponseEntity<String> enrollTOTPResp =
+        postWithCookie("/2fa/enrollTOTP2FA", null, qrSecretAndCookie.cookie);
+    assertEquals(HttpStatus.CONFLICT, enrollTOTPResp.getStatusCode());
+    assertMessage(
+        enrollTOTPResp, "User has 2FA enabled already, disable 2FA before you try to enroll again");
+
+    // Enroll in Email 2FA
+    ResponseEntity<String> enrollEmailResp =
+        postWithCookie("/2fa/enrollEmail2FA", null, qrSecretAndCookie.cookie);
+    assertEquals(HttpStatus.CONFLICT, enrollEmailResp.getStatusCode());
+    assertMessage(
+        enrollEmailResp,
+        "User has 2FA enabled already, disable 2FA before you try to enroll again");
+  }
+
+  @Test
+  void testDisableTOTP2FA() throws JsonProcessingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    QrSecretAndCookie qrSecretAndCookie = enrollAndLoginTOTP2FA(username, password);
+
+    // Test Login don't work without 2FA code
+    ResponseEntity<LoginResponse> failedLoginResp =
+        loginWithUsernameAndPassword(username, password, null);
+    assertLoginStatus(failedLoginResp, STATUS.INCORRECT_TWO_FACTOR_CODE);
+
+    // Generate TOTP code
+    String enable2FACode = new Totp(qrSecretAndCookie.secret).now();
+    Map<String, String> code = Map.of("code", enable2FACode);
+
+    // Disable TOTP 2FA
+    ResponseEntity<String> disableResp =
+        postWithCookie("/2fa/disable", code, qrSecretAndCookie.cookie);
+    assertEquals(HttpStatus.OK, disableResp.getStatusCode());
+    assertMessage(disableResp, "2FA was disabled successfully");
+
+    // Test Login works without 2FA code
+    ResponseEntity<LoginResponse> successfulLoginResp =
+        loginWithUsernameAndPassword(username, password, null);
+    assertLoginSuccess(successfulLoginResp, "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testDisableEmail2FA() throws IOException, MessagingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    String cookie = enrollEmail2FA(username, password);
+
+    // Disable Email 2FA
+    Map<String, String> emptyCode = Map.of("code", "");
+    ResponseEntity<String> disableFailResp = postWithCookie("/2fa/disable", emptyCode, cookie);
+    assertEquals(HttpStatus.CONFLICT, disableFailResp.getStatusCode());
+    assertMessage(disableFailResp, "2FA code was sent to the users email");
+    String disable2FACode = extract2FACodeFromLatestEmail();
+
+    Map<String, String> realCode = Map.of("code", disable2FACode);
+    ResponseEntity<String> disableOkResp = postWithCookie("/2fa/disable", realCode, cookie);
+    assertEquals(HttpStatus.OK, disableOkResp.getStatusCode());
+    assertMessage(disableOkResp, "2FA was disabled successfully");
   }
 
   @Test
   void testLoginWithEmail2FAWrapper() throws IOException, MessagingException {
     try {
-      testLoginWithEmail2FA();
+      String username = CodeGenerator.generateCode(8).toLowerCase();
+      String password = "Test123###...";
+      enrollEmail2FA(username, password);
     } finally {
       // Reset system settings
       setSystemProperty("email2FAEnabled", "false");
@@ -199,9 +297,8 @@ public class LoginTest {
     }
   }
 
-  private static void testLoginWithEmail2FA() throws IOException, MessagingException {
-    String username = CodeGenerator.generateCode(8).toLowerCase();
-    String password = "Test123###...";
+  private static String enrollEmail2FA(String username, String password)
+      throws IOException, MessagingException {
     String newUserUID = createSuperuser(username, password, orgUnitUID);
 
     // First Login
@@ -275,6 +372,8 @@ public class LoginTest {
     ResponseEntity<String> apiMeResp = getWithCookie("/me", cookie);
     assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
     assertNotNull(apiMeResp.getBody());
+
+    return cookie;
   }
 
   @Test
@@ -309,12 +408,12 @@ public class LoginTest {
 
   @Test
   void testRedirectToHtmlResource() {
-    assertRedirectUrl("/users/resource.html", "/users/resource.html");
+    assertRedirectToSameUrl("/users/resource.html");
   }
 
   @Test
   void testRedirectToSlashEnding() {
-    assertRedirectUrl("/users/", "/users/");
+    assertRedirectToSameUrl("/users/");
   }
 
   @Test
@@ -337,23 +436,9 @@ public class LoginTest {
     }
   }
 
-  private static void changeSystemSetting(String key, String value) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.TEXT_PLAIN);
-    RestTemplate restTemplate = createRestTemplateWithAdminBasicAuthHeader();
-    HttpEntity<String> requestEntity = new HttpEntity<>(value, headers);
-    ResponseEntity<String> response =
-        restTemplate.exchange(
-            dhis2ServerApi + "/systemSettings/" + key,
-            HttpMethod.POST,
-            requestEntity,
-            String.class);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-  }
-
   @Test
   void testRedirectEndingSlash() {
-    testRedirectWhenLoggedIn("/dhis-web-dashboard/", "/dhis-web-dashboard/");
+    assertRedirectToSameUrl("/dhis-web-dashboard/");
   }
 
   @Test
@@ -367,14 +452,14 @@ public class LoginTest {
 
   private static void assertRedirectUrl(String url, String redirectUrl) {
     // Do an invalid login and capture response cookie, we need to do this first
-    // so that unauthorized URL is cached in the session
+    // so that the original unauthorized URL request attempt is saved in the session
     ResponseEntity<LoginResponse> firstResponse =
         restTemplate.postForEntity(dhis2Server + url, null, LoginResponse.class);
     HttpHeaders headersFirstResponse = firstResponse.getHeaders();
     String cookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
 
     // Do a valid login request with the first cookie, check that we get redirected to the first
-    // cached URL
+    // URL request that got saved in the session during to the first invalid login
     HttpHeaders getHeaders = new HttpHeaders();
     getHeaders.set("Cookie", cookie);
     LoginRequest loginRequest =
@@ -543,11 +628,18 @@ public class LoginTest {
   private static void assertLoginSuccess(
       ResponseEntity<LoginResponse> response, String expectedRedirectUrl) {
     assertNotNull(response);
+    assertLoginStatus(response, STATUS.SUCCESS);
+    LoginResponse body = response.getBody();
+    assertNotNull(body);
+    assertEquals(expectedRedirectUrl, body.getRedirectUrl());
+  }
+
+  private static void assertLoginStatus(ResponseEntity<LoginResponse> response, STATUS status) {
+    assertNotNull(response);
     assertEquals(HttpStatus.OK, response.getStatusCode());
     LoginResponse body = response.getBody();
     assertNotNull(body);
-    assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
-    assertEquals(expectedRedirectUrl, body.getRedirectUrl());
+    assertEquals(status, body.getLoginStatus());
   }
 
   private static String extractSessionCookie(ResponseEntity<?> response) {
@@ -568,6 +660,20 @@ public class LoginTest {
     String uid = response.get("uid").asText();
     assertNotNull(uid);
     return uid;
+  }
+
+  private static void changeSystemSetting(String key, String value) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.TEXT_PLAIN);
+    RestTemplate restTemplate = createRestTemplateWithAdminBasicAuthHeader();
+    HttpEntity<String> requestEntity = new HttpEntity<>(value, headers);
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            dhis2ServerApi + "/systemSettings/" + key,
+            HttpMethod.POST,
+            requestEntity,
+            String.class);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 
   private static ResponseEntity<String> postWithAdminBasicAuth(
