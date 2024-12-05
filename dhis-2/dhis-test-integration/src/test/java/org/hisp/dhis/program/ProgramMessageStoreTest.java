@@ -111,6 +111,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
     enrollmentA = new Enrollment(new Date(), new Date(), trackedEntityB, programA);
     enrollmentA.setUid(CodeGenerator.generateUid());
+    enrollmentA.setOrganisationUnit(orgUnitA);
 
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
     eventA.setScheduledDate(new Date());
