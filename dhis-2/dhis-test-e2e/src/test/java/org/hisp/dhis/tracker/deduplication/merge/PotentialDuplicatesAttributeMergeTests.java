@@ -28,14 +28,12 @@
 package org.hisp.dhis.tracker.deduplication.merge;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.test.e2e.Constants;
-import org.hisp.dhis.test.e2e.actions.AuditActions;
 import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
