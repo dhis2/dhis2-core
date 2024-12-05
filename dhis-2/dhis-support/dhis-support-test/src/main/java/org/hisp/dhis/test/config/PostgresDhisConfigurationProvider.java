@@ -70,6 +70,9 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
    * <pre>
    * pg_dump --schema-only --no-owner dhis2 > /Users/user/code/dhis2-core/dhis-2/dhis-support/dhis-support-test/src/main/resources/db/init-db.sql
    * </pre>
+   *
+   * When using the init-db.sql script, the test property `flyway.skip_migration=true` needs to be
+   * used. They must be used in conjunction with each other.
    */
   private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
