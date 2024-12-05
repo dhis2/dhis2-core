@@ -190,7 +190,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
+    String valueColumn = getValueColumn(attribute);
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
@@ -251,6 +251,16 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             .build());
 
     return columns;
+  }
+
+  /**
+   * Returns the value column with alias.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return the vlaue column with alias.
+   */
+  private String getValueColumn(TrackedEntityAttribute attribute) {
+    return String.format("%s.%s", quote(attribute.getUid()), "value");
   }
 
   /**
