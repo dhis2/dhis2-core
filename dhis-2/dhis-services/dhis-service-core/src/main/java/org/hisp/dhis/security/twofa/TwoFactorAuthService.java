@@ -71,8 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TwoFactorAuthService {
 
   public static final String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
-  public static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 3600000;
-
+  public static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 900_000; // 15 minutes
   private final SystemSettingsProvider settingsProvider;
   private final UserService userService;
   private final MessageSender emailMessageSender;

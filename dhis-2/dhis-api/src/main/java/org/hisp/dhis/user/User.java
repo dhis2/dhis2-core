@@ -73,7 +73,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 @JacksonXmlRootElement(localName = "user", namespace = DxfNamespaces.DXF_2_0)
 public class User extends BaseIdentifiableObject implements MetadataObject {
-  public static final int USERNAME_MAX_LENGTH = 255;
 
   /** Globally unique identifier for User. */
   private UUID uuid;
@@ -96,7 +95,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Required. Will be stored as a hash. */
   private String password;
 
-  /** Required. Automatically set in constructor */
   private String secret;
 
   private TwoFactorType twoFactorType;

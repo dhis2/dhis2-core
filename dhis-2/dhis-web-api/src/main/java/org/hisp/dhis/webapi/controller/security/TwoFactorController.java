@@ -109,7 +109,6 @@ public class TwoFactorController {
    * Shows the generated QR code for the user to scan as a JSON object. Where the QR code (PNG
    * image) is represented as a base64 encoded string. And the secret encoded in Base32.
    *
-   * @throws IOException
    * @throws ConflictException
    */
   @GetMapping(
