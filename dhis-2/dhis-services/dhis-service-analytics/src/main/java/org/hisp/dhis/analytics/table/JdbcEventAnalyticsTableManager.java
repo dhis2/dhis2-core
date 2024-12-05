@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -39,6 +38,7 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -502,7 +501,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitDataElement(dataElement, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitDataElement(dataElement));
     }
 
     columns.add(
@@ -524,42 +523,54 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param dataFilterClause the data filter SQL clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(
-      DataElement dataElement, String dataFilterClause) {
+  private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String columnExpression =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
-
     if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoSql = getOrgUnitSelectExpression(dataElement, fromType, dataFilterClause);
-
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(geoSql)
+              .selectExpression(getOrgUnitSelectSubquery("geometry", dataElement))
               .indexType(IndexType.GIST)
               .build());
     }
-
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getOrgUnitSelectExpression(dataElement, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(ouNameSql)
+            .selectExpression(getOrgUnitSelectSubquery("name", dataElement))
             .skipIndex(SKIP)
             .build());
 
     return columns;
+  }
+
+  /**
+   * Returns a org unit select query.
+   *
+   * @param column the column name.
+   * @param dataElement the {@link DataElement}.
+   * @return an org unit select query.
+   */
+  private String getOrgUnitSelectSubquery(String column, DataElement dataElement) {
+    String format =
+        """
+        (select ou.${column} from ${organisationunit} ou \
+        where ou.uid = ${columnExpression}) as ${alias}""";
+    String columnExpression =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String alias = quote(dataElement.getUid());
+
+    return replaceQualify(
+        format,
+        Map.of(
+            "column", column,
+            "columnExpression", columnExpression,
+            "alias", alias));
   }
 
   /**
@@ -592,7 +603,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
       TrackedEntityAttribute attribute) {
     String columnExpression = getColumnExpression(attribute.getValueType(), "value");
-    String numericClause = getNumericClause();
+    String numericClause = getNumericClause("value");
     String query =
         """
         \s(select l.uid from ${maplegend} l \
@@ -623,27 +634,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .build();
             })
         .toList();
-  }
-
-  /**
-   * Returns a select statement for the given select expression.
-   *
-   * @param dataElement the data element to create the select statement for.
-   * @param selectExpression the select expression.
-   * @param dataFilterClause the data filter clause.
-   * @return a select expression.
-   */
-  private String getOrgUnitSelectExpression(
-      DataElement dataElement, String selectExpression, String dataFilterClause) {
-    Validate.isTrue(dataElement.getValueType().isOrganisationUnit());
-    String prts = getClosingParentheses(selectExpression);
-    return replaceQualify(
-        "(select ${selectExpression} ${dataFilterClause})${closingParentheses} as ${uid}",
-        Map.of(
-            "selectExpression", selectExpression,
-            "dataFilterClause", dataFilterClause,
-            "closingParentheses", prts,
-            "uid", quote(dataElement.getUid())));
   }
 
   /**
@@ -754,6 +744,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "latestDataYear", String.valueOf(lastDataYear)));
 
     return jdbcTemplate.queryForList(sql, Integer.class);
+  }
+
+  /**
+   * Returns a numeric regexp match expression for the given value.
+   *
+   * @param value the value.
+   * @return a numeric regexp match expression.
+   */
+  private final String getNumericClause(String value) {
+    return " and " + sqlBuilder.regexpMatch(value, "'" + NUMERIC_LENIENT_REGEXP + "'");
   }
 
   /**
