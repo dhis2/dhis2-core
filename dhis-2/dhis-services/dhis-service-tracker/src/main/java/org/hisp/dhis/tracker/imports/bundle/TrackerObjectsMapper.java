@@ -202,11 +202,6 @@ public class TrackerObjectsMapper {
 
     dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
     dbEvent.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
-    if (program.isRegistration()
-        && dbEvent.getScheduledDate() == null
-        && dbEvent.getOccurredDate() != null) {
-      dbEvent.setScheduledDate(dbEvent.getOccurredDate());
-    }
 
     dbEvent.setGeometry(event.getGeometry());
 

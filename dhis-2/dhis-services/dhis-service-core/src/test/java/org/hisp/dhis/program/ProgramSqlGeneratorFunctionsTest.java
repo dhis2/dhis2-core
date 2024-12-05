@@ -557,7 +557,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         sql,
         is(
             "((cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date) - "
-                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date))/7)"));
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date)) / 7)"));
   }
 
   @Test
@@ -800,7 +800,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(new ExpressionMapBuilder(sqlBuilder).getExpressionItemMap())
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)

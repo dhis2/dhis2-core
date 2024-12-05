@@ -36,6 +36,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -563,4 +564,10 @@ public interface CategoryService {
   Category getDefaultCategory();
 
   List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids);
+
+  void validate(Category category) throws ConflictException;
+
+  void validate(CategoryCombo combo) throws ConflictException;
+
+  void validate(CategoryOptionCombo combo) throws ConflictException;
 }
