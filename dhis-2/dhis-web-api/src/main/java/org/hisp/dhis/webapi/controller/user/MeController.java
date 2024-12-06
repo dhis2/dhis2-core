@@ -315,7 +315,7 @@ public class MeController {
     updatePassword(currentUser, newPassword);
     manager.update(currentUser);
 
-    userService.invalidateUserSessions(currentUser.getUid());
+    userService.invalidateUserSessions(currentUser.getUsername());
   }
 
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)

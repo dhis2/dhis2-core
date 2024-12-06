@@ -95,6 +95,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
+    context
+        .addFilter(
+            "SpringSessionRepositoryFilter",
+            new DelegatingFilterProxy("springSessionRepositoryFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);

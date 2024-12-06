@@ -143,6 +143,28 @@ public class CodeGenerator {
     return generateRandomAlphanumericCode(codeSize, sr);
   }
 
+  public static byte[] generateSecureRandomBytes(int length) {
+    SecureRandom sr = SecureRandomHolder.GENERATOR;
+    byte[] bytes = new byte[length];
+    sr.nextBytes(bytes);
+    return bytes;
+  }
+
+  /**
+   * Generates a string of random numeric characters.
+   *
+   * @param length the number of characters in the code.
+   * @return the code.
+   */
+  public static char[] generateSecureRandomNumber(int length) {
+    char[] digits = new char[length];
+    SecureRandom sr = SecureRandomHolder.GENERATOR;
+    for (int i = 0; i < length; i++) {
+      digits[i] = (char) ('0' + sr.nextInt(10));
+    }
+    return digits;
+  }
+
   /**
    * Generates a random secure token.
    *

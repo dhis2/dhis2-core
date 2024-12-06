@@ -90,6 +90,7 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -144,6 +145,8 @@ public class UserController
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PasswordValidationService passwordValidationService;
+
+  @Autowired private TwoFactorAuthService twoFactorAuthService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -546,20 +549,18 @@ public class UserController
   }
 
   /**
-   * "Disable two-factor authentication for the user with the given uid."
+   * Disable 2FA for the user with the given uid.
    *
-   * <p>
-   *
-   * @param uid The uid of the user to disable two-factor authentication for.
-   * @param currentUser This is the user that is currently logged in.
+   * @param uid The uid of the user to disable 2FA for.
+   * @param currentUser This is the user currently logged in.
    * @return A WebMessage object.
    */
   @PostMapping("/{uid}/twoFA/disabled")
   @ResponseBody
   public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(currentUser, uid, errors::add);
+    twoFactorAuthService.privileged2FADisable(currentUser, uid, errors::add);
 
     if (errors.isEmpty()) {
       return WebMessageUtils.ok();
@@ -633,7 +634,7 @@ public class UserController
       // We chose to expire the special case if password is set to the
       // same. i.e. no before & after equals pw check
       if (isPasswordChangeAttempt) {
-        userService.invalidateUserSessions(inputUser.getUid());
+        userService.invalidateUserSessions(inputUser.getUsername());
       }
     }
 
@@ -665,7 +666,7 @@ public class UserController
     // Make sure we always expire all the user's active sessions if we
     // have disabled the user.
     if (entityAfter != null && entityAfter.isDisabled()) {
-      userService.invalidateUserSessions(entityAfter.getUid());
+      userService.invalidateUserSessions(entityAfter.getUsername());
     }
 
     updateUserGroups(patch, entityAfter);
@@ -835,7 +836,7 @@ public class UserController
     }
 
     if (disable) {
-      userService.invalidateUserSessions(userToModify.getUid());
+      userService.invalidateUserSessions(userToModify.getUsername());
     }
   }
 
@@ -865,7 +866,7 @@ public class UserController
     userService.updateUser(userToModify);
 
     if (!userToModify.isAccountNonExpired()) {
-      userService.invalidateUserSessions(userToModify.getUid());
+      userService.invalidateUserSessions(userToModify.getUsername());
     }
   }
 

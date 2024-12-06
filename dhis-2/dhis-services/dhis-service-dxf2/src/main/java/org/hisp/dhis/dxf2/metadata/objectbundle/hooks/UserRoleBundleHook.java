@@ -68,7 +68,7 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
       for (User user : updatedUserRole.getUsers()) {
-        userService.invalidateUserSessions(user.getUid());
+        userService.invalidateUserSessions(user.getUsername());
       }
     }
 
