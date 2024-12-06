@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -37,7 +36,6 @@ import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -67,16 +65,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final TrackedEntityAttributeValueChangeLogStore attributeValueChangeLogStore;
-
   private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
-
-  @Override
-  @Transactional
-  public void addTrackedEntityAttributeValueChangeLog(
-      TrackedEntityAttributeValueChangeLog attributeValueChangeLog) {
-    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(attributeValueChangeLog);
-  }
 
   @Transactional
   @Override
@@ -99,40 +88,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
             username);
 
     hibernateTrackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params) {
-    return aclFilter(attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
-  }
-
-  private List<TrackedEntityAttributeValueChangeLog> aclFilter(
-      List<TrackedEntityAttributeValueChangeLog> attributeValueChangeLogs) {
-    // Fetch all the Tracked Entity Attributes this user has access
-    // to (only store UIDs). Not a very efficient solution, but at the
-    // moment
-    // we do not have ACL API to check TE attributes.
-
-    Set<String> allUserReadableTrackedEntityAttributes =
-        trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails())
-            .stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-
-    return attributeValueChangeLogs.stream()
-        .filter(
-            audit -> allUserReadableTrackedEntityAttributes.contains(audit.getAttribute().getUid()))
-        .toList();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params) {
-    return attributeValueChangeLogStore.countTrackedEntityAttributeValueChangeLogs(params);
   }
 
   @Override
