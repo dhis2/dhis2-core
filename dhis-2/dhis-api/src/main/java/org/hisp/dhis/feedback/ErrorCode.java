@@ -69,6 +69,10 @@ public enum ErrorCode {
 
   E1122("Category option combo {0} cannot be associated with the default category combo"),
   E1125("Category option combo {0} contains options not associated with category combo {1}"),
+  E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
+  E1127("Category {0} cannot have more than {1} options, but had: {2} "),
+  E1128("Category combo {0} cannot have more than {1} combinations, bud requires: {2}"),
+
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
   E1501("Target org unit must be specified"),
@@ -505,9 +509,6 @@ public enum ErrorCode {
   E7236("Program stage '{0}' is not associated to program '{0}'"),
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
-  E7239(
-      "Tracked Entity Attributes marked as 'confidential' can only be used in aggregate analytics: `{0}`"),
-  E7240("Data Elements marked as 'skipAnalytics' can only be used in aggregate analytics: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

@@ -88,7 +88,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final String PROGRAMS_BY_TET_KEY = "programsByTetUid";
 
-  private static final String ALL_TET_ATTRIBUTES = "allTetAttributes";
+  private static final String ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES =
+      "allNonConfidentialTetAttributes";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -199,9 +200,12 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .build()));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
-        getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid).toList();
+        getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
+            .filter(tea -> !tea.isConfidentialBool())
+            .toList();
 
-    params.addExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES, trackedEntityAttributes);
+    params.addExtraParam(
+        trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES, trackedEntityAttributes);
 
     columns.addAll(
         trackedEntityAttributes.stream()
@@ -351,7 +355,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 Map.of()));
 
     ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
+            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
         .forEach(
             tea ->
                 sql.append(

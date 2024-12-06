@@ -126,7 +126,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
     this.sqlBuilder = sqlBuilder;
 
-    this.programIndicatorItems = new ExpressionMapBuilder(sqlBuilder).getExpressionItemMap();
+    this.programIndicatorItems = new ExpressionMapBuilder().getExpressionItemMap();
   }
 
   // -------------------------------------------------------------------------

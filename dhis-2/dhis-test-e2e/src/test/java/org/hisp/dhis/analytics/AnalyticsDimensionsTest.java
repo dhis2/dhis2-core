@@ -183,7 +183,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
         .query()
         .getDimensionsByDimensionType(trackerProgram.getUid(), "PROGRAM_ATTRIBUTE")
         .validate()
-        .body("dimensions.uid", CoreMatchers.hasItem(confidentialAttribute));
+        .body("dimensions.uid", not(CoreMatchers.hasItem(confidentialAttribute)));
 
     analyticsEnrollmentsActions
         .aggregate()

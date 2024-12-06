@@ -93,7 +93,6 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 
 /**
@@ -764,30 +763,13 @@ class AnalyticsUtilsTest extends TestBase {
   }
 
   @Test
-  void whenBadSqlGrammarException_withMultipleQueries_thenReturnEmpty() {
-    SQLException sqlException = new SQLException("syntax error");
-    BadSqlGrammarException badSqlException =
-        new BadSqlGrammarException("task", DUMMY_SQL, sqlException);
-    Supplier<String> supplier =
-        () -> {
-          throw badSqlException;
-        };
-
-    Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
-
-    assertFalse(result.isPresent());
-  }
-
-  @Test
   void whenQueryRuntimeException_thenRethrow() {
-    // Arrange
     QueryRuntimeException queryException = new QueryRuntimeException("Test error");
     Supplier<String> supplier =
         () -> {
           throw queryException;
         };
 
-    // Act & Assert
     QueryRuntimeException thrown =
         assertThrows(
             QueryRuntimeException.class,

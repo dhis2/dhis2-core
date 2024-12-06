@@ -238,7 +238,7 @@ class DataIntegrityEmptyCustomDataEntryFormsControllerTest
                        "id": "%s",
                        "name": "Test",
                        "shortName": "Test",
-                       "programType": "WITHOUT_REGISTRATION",
+                       "programType": "WITH_REGISTRATION",
                        "categoryCombo": {"id": "%s"},
                        "programStages": [{"id": "%s"}]
                        }

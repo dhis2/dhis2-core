@@ -94,7 +94,7 @@ public class DataIntegrityController {
       @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
