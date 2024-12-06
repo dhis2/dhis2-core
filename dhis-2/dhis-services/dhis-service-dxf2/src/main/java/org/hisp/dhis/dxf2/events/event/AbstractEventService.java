@@ -671,7 +671,7 @@ public abstract class AbstractEventService implements EventService {
     if (eventParams.isIncludeRelationships()) {
       event.setRelationships(
           programStageInstance.getRelationshipItems().stream()
-              .filter(Objects::nonNull)
+              .filter(ri -> Objects.nonNull(ri) && !ri.getRelationship().isDeleted())
               .map(
                   r ->
                       relationshipService.findRelationship(
