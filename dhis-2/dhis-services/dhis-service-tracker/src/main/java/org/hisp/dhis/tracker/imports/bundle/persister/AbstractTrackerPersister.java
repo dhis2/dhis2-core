@@ -28,6 +28,9 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
@@ -53,7 +56,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -409,7 +411,7 @@ public abstract class AbstractTrackerPersister<
         trackedEntityAttributeValue.getPlainValue(),
         null,
         trackedEntity,
-        ChangeLogType.DELETE);
+        DELETE);
   }
 
   private void saveOrUpdate(
@@ -433,12 +435,12 @@ public abstract class AbstractTrackerPersister<
       // In case it's a newly created attribute we'll add it back to TE,
       // so it can end up in preheat
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
-      changeLogType = ChangeLogType.CREATE;
+      changeLogType = CREATE;
     } else {
       entityManager.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
-        changeLogType = ChangeLogType.UPDATE;
+        changeLogType = UPDATE;
       }
     }
 
@@ -486,11 +488,6 @@ public abstract class AbstractTrackerPersister<
     boolean allowAuditLog = trackedEntity.getTrackedEntityType().isAllowAuditLog();
 
     if (allowAuditLog && changeLogType != null) {
-      TrackedEntityAttributeValueChangeLog valueAudit =
-          new TrackedEntityAttributeValueChangeLog(
-              attributeValue, attributeValue.getPlainValue(), userName, changeLogType);
-      valueAudit.setTrackedEntity(trackedEntity);
-
       trackedEntityChangeLogService.addTrackedEntityChangeLog(
           trackedEntity,
           attributeValue.getAttribute(),

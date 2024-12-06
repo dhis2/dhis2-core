@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
@@ -143,11 +147,11 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private ChangeLogType getChangeLogType(String oldValue, String newValue) {
     if (isFieldCreated(oldValue, newValue)) {
-      return ChangeLogType.CREATE;
+      return CREATE;
     } else if (isFieldUpdated(oldValue, newValue)) {
-      return ChangeLogType.UPDATE;
+      return UPDATE;
     } else {
-      return ChangeLogType.DELETE;
+      return DELETE;
     }
   }
 
