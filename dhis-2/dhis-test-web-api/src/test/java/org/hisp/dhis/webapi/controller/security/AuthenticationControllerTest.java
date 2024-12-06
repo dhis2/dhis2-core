@@ -120,7 +120,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     User admin = userService.getUserByUsername("admin");
     String secret = Base32.encode(generateSecureRandomBytes(20));
     admin.setSecret(secret);
-    admin.setTwoFactorType(TwoFactorType.TOTP);
+    admin.setTwoFactorType(TwoFactorType.TOTP_ENABLED);
     userService.updateUser(admin);
 
     JsonLoginResponse wrong2FaCodeResponse =
@@ -145,7 +145,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     Email2FACode email2FACode = TwoFactorAuthService.generateEmail2FACode();
     String secret = email2FACode.encodedCode();
     admin.setSecret(secret);
-    admin.setTwoFactorType(TwoFactorType.EMAIL);
+    admin.setTwoFactorType(TwoFactorType.EMAIL_ENABLED);
     userService.updateUser(admin);
 
     loginWith2FACode(email2FACode.code());

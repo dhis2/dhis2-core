@@ -124,9 +124,9 @@ public class TwoFactorAuthUtils {
     if (code.isEmpty()) {
       return false;
     }
-    if (TwoFactorType.TOTP == type || TwoFactorType.ENROLLING_TOTP == type) {
+    if (TwoFactorType.TOTP_ENABLED == type || TwoFactorType.ENROLLING_TOTP == type) {
       return TwoFactorAuthUtils.verifyTOTP2FACode(code, secret);
-    } else if (TwoFactorType.EMAIL == type || TwoFactorType.ENROLLING_EMAIL == type) {
+    } else if (TwoFactorType.EMAIL_ENABLED == type || TwoFactorType.ENROLLING_EMAIL == type) {
       return TwoFactorAuthUtils.verifyEmail2FACode(code, secret);
     }
     return false;

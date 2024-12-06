@@ -457,7 +457,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonIgnore
   public TwoFactorType getTwoFactorType() {
-    return this.twoFactorType == null ? TwoFactorType.NONE : this.twoFactorType;
+    return this.twoFactorType == null ? TwoFactorType.NOT_ENABLED : this.twoFactorType;
   }
 
   public void setTwoFactorType(TwoFactorType twoFactorType) {

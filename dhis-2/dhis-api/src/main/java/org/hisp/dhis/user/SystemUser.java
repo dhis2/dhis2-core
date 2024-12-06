@@ -192,7 +192,7 @@ public class SystemUser implements UserDetails {
 
   @Override
   public TwoFactorType getTwoFactorType() {
-    return TwoFactorType.NONE;
+    return TwoFactorType.NOT_ENABLED;
   }
 
   @Override

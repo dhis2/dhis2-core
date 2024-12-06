@@ -640,7 +640,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   void testDisableTwoFaWithAdminUser()
       throws ForbiddenException, NotFoundException, ConflictException {
     User userToModify = createAndAddUser("A");
-    twoFactorAuthService.enrollTOTP2FA(userToModify);
+    twoFactorAuthService.enrollTOTP2FA(userToModify.getUsername());
     userService.updateUser(userToModify);
 
     List<ErrorReport> errors = new ArrayList<>();
@@ -652,7 +652,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   void testDisableTwoFaWithManageUser()
       throws ForbiddenException, ConflictException, NotFoundException {
     User userToModify = createAndAddUser("A");
-    twoFactorAuthService.enrollTOTP2FA(userToModify);
+    twoFactorAuthService.enrollTOTP2FA(userToModify.getUsername());
 
     UserGroup userGroupA = createUserGroup('A', Sets.newHashSet(userToModify));
     userGroupService.addUserGroup(userGroupA);

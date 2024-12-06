@@ -189,7 +189,8 @@ public class TwoFactorAuthService {
     if (!user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3031);
     }
-    if (TwoFactorType.EMAIL.equals(user.getTwoFactorType()) && Strings.isNullOrEmpty(code)) {
+    if (TwoFactorType.EMAIL_ENABLED.equals(user.getTwoFactorType())
+        && Strings.isNullOrEmpty(code)) {
       sendEmail2FACode(user.getUsername());
       throw new ConflictException(ErrorCode.E3051);
     }
@@ -254,7 +255,7 @@ public class TwoFactorAuthService {
     if (!user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3031);
     }
-    if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL)) {
+    if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)) {
       throw new ConflictException(ErrorCode.E3048);
     }
     if (!userService.isEmailVerified(user)) {
