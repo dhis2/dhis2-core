@@ -152,7 +152,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject audits = GET("/openapi/openapi.json?scope=path./api/audits").content();
     JsonObject pageSize =
         audits
-            .getArray("paths./api/audits/trackedEntityAttributeValue.get.parameters")
+            .getArray("paths./api/audits/trackedEntity.get.parameters")
             .asList(JsonObject.class)
             .stream()
             .filter(p -> "pageSize".equals(p.getString("name").string()))

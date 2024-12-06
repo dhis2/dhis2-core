@@ -285,13 +285,11 @@ public class TrackerDataElementMergeHandler {
   public void handleTrackedEntityDataValueChangelog(
       @Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
-      log.info(
-          "Deleting source tracked entity data value change log records as source DataElements are being deleted");
-      sources.forEach(eventChangeLogService::deleteTrackedEntityDataValueChangeLog);
+      log.info("Deleting source event change log records as source DataElements are being deleted");
       sources.forEach(eventChangeLogService::deleteEventChangeLog);
     } else {
       log.info(
-          "Leaving source tracked entity data value change log records as is, source DataElements are not being deleted");
+          "Leaving source event change log records as is, source DataElements are not being deleted");
     }
   }
 }
