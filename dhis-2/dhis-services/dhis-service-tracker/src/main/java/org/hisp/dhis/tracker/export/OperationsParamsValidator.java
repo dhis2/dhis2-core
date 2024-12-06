@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.audit.TrackerAuditType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.HashSet;

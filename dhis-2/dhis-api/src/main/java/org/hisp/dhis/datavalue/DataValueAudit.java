@@ -32,8 +32,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.Objects;
+import org.hisp.dhis.audit.TrackerAuditType;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,7 +62,7 @@ public class DataValueAudit {
 
   private Date created;
 
-  private ChangeLogType auditType;
+  private TrackerAuditType auditType;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -71,7 +71,7 @@ public class DataValueAudit {
   public DataValueAudit() {}
 
   public DataValueAudit(
-      DataValue dataValue, String value, String modifiedBy, ChangeLogType auditType) {
+      DataValue dataValue, String value, String modifiedBy, TrackerAuditType auditType) {
     this.dataElement = dataValue.getDataElement();
     this.period = dataValue.getPeriod();
     this.organisationUnit = dataValue.getSource();
@@ -91,7 +91,7 @@ public class DataValueAudit {
       CategoryOptionCombo attributeOptionCombo,
       String value,
       String modifiedBy,
-      ChangeLogType auditType) {
+      TrackerAuditType auditType) {
     this.dataElement = dataElement;
     this.period = period;
     this.organisationUnit = organisationUnit;
@@ -277,11 +277,11 @@ public class DataValueAudit {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ChangeLogType getAuditType() {
+  public TrackerAuditType getAuditType() {
     return auditType;
   }
 
-  public void setAuditType(ChangeLogType auditType) {
+  public void setAuditType(TrackerAuditType auditType) {
     this.auditType = auditType;
   }
 }
