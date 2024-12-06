@@ -94,9 +94,13 @@ public interface DataValueStore {
    */
   void deleteDataValues(DataElement dataElement);
 
-  void deleteDataValuesByCategoryOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo);
+  void deleteDataValues(@Nonnull Collection<DataElement> dataElement);
 
-  void deleteDataValuesByAttributeOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo);
+  void deleteDataValuesByCategoryOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos);
+
+  void deleteDataValuesByAttributeOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
   void deleteDataValue(DataValue dataValue);
 

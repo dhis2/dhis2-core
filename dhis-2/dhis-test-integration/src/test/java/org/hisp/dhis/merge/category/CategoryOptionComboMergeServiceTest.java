@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
@@ -50,10 +51,12 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
+import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -101,7 +104,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>- Create metadata which have source CategoryOptionCombo references
  *
- * <p>- Perform a CategoryOption merge, passing a target CategoryOptionCombo
+ * <p>- Perform a CategoryOptionCombo merge, passing a target CategoryOptionCombo
  *
  * <p>- Check that source CategoryOptionCombos have had their references removed/replaced with the
  * target CategoryOptionCombo
@@ -122,6 +125,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
+  @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private EventStore eventStore;
   private Category cat1;
   private Category cat2;
@@ -1000,7 +1004,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
+      "DataValueAudits with references to source COCs are not changed or deleted when sources not deleted")
   void dataValueAuditMergeTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -1046,7 +1050,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are deleted when sources are deleted")
+      "DataValueAudits with references to source COCs are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -1094,7 +1098,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "DataApprovalAudits with references to source DataElements are not changed or deleted when sources not deleted")
+      "DataApprovalAudits with references to source COCs are not changed or deleted when sources not deleted")
   void dataApprovalAuditMergeTest() throws ConflictException {
     // given
     DataApprovalLevel level1 = new DataApprovalLevel();
@@ -1157,7 +1161,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataApprovalAudits with references to source DataElements are deleted when sources are deleted")
+      "DataApprovalAudits with references to source COCs are deleted when sources are deleted")
   void dataApprovalAuditMergeDeleteTest() throws ConflictException {
     // given
     DataApprovalLevel dataApprovalLevel = new DataApprovalLevel();
@@ -1211,6 +1215,337 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
   }
 
+  // -----------------------
+  // ---- DataApproval ----
+  // -----------------------
+  @Test
+  @DisplayName(
+      "Non-duplicate DataApprovals with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
+  void dataApprovalMergeCocLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataApprovalLevel level1 = new DataApprovalLevel();
+    level1.setLevel(1);
+    level1.setName("DAL1");
+    manager.save(level1);
+
+    DataApprovalLevel level2 = new DataApprovalLevel();
+    level2.setLevel(2);
+    level2.setName("DAL2");
+    manager.save(level2);
+
+    DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
+    daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw1.setName("DAW1");
+    daw1.setCategoryCombo(cc1);
+    manager.save(daw1);
+
+    DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
+    daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw2.setName("DAW2");
+    daw2.setCategoryCombo(cc1);
+    manager.save(daw2);
+
+    DataApproval da1 = createDataApproval(cocSource1, level1, daw1, p1, ou1);
+    DataApproval da2 = createDataApproval(cocSource2, level2, daw1, p2, ou1);
+    DataApproval da3 = createDataApproval(cocTarget, level2, daw2, p2, ou2);
+    DataApproval da4 = createDataApproval(cocRandom, level2, daw2, p3, ou3);
+
+    dataApprovalStore.addDataApproval(da1);
+    dataApprovalStore.addDataApproval(da2);
+    dataApprovalStore.addDataApproval(da3);
+    dataApprovalStore.addDataApproval(da4);
+
+    // pre-merge state
+    List<DataApproval> sourcesPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+    assertEquals(2, sourcesPreMerge.size(), "Expect 2 entries with source COC refs");
+    assertEquals(1, targetPreMerge.size(), "Expect 1 entries with target COC refs");
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataApproval> sourceItems =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetItems =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy, target has latest lastUpdated value")
+  void duplicateDataApprovalMergeCocLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataApprovalLevel level1 = new DataApprovalLevel();
+    level1.setLevel(1);
+    level1.setName("DAL1");
+    manager.save(level1);
+
+    DataApprovalLevel level2 = new DataApprovalLevel();
+    level2.setLevel(2);
+    level2.setName("DAL2");
+    manager.save(level2);
+
+    DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
+    daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw1.setName("DAW1");
+    daw1.setCategoryCombo(cc1);
+    manager.save(daw1);
+
+    DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
+    daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw2.setName("DAW2");
+    daw2.setCategoryCombo(cc1);
+    manager.save(daw2);
+
+    DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
+    da1a.setLastUpdated(DateUtils.parseDate("2024-6-8"));
+    DataApproval da1b = createDataApproval(cocSource1, level1, daw1, p2, ou1);
+    da1b.setLastUpdated(DateUtils.parseDate("2024-10-8"));
+    DataApproval da2a = createDataApproval(cocSource2, level1, daw1, p1, ou1);
+    da2a.setLastUpdated(DateUtils.parseDate("2024-6-8"));
+    DataApproval da2b = createDataApproval(cocSource2, level1, daw1, p2, ou1);
+    da2b.setLastUpdated(DateUtils.parseDate("2024-10-8"));
+    DataApproval da3a = createDataApproval(cocTarget, level1, daw1, p1, ou1);
+    da3a.setLastUpdated(DateUtils.parseDate("2024-12-8"));
+    DataApproval da3b = createDataApproval(cocTarget, level1, daw1, p2, ou1);
+    da3b.setLastUpdated(DateUtils.parseDate("2024-12-9"));
+    DataApproval da4a = createDataApproval(cocRandom, level1, daw1, p1, ou1);
+    DataApproval da4b = createDataApproval(cocRandom, level1, daw1, p2, ou1);
+
+    dataApprovalStore.addDataApproval(da1a);
+    dataApprovalStore.addDataApproval(da1b);
+    dataApprovalStore.addDataApproval(da2a);
+    dataApprovalStore.addDataApproval(da2b);
+    dataApprovalStore.addDataApproval(da3a);
+    dataApprovalStore.addDataApproval(da3b);
+    dataApprovalStore.addDataApproval(da4a);
+    dataApprovalStore.addDataApproval(da4b);
+
+    // pre-merge state
+    List<DataApproval> sourcesPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+    assertEquals(4, sourcesPreMerge.size(), "Expect 4 entries with source COC refs");
+    assertEquals(2, targetPreMerge.size(), "Expect 2 entries with target COC refs");
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataApproval> sourceItems =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetItems =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC refs");
+    assertEquals(
+        Set.of("2024-12-08", "2024-12-09"),
+        targetItems.stream()
+            .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
+            .collect(Collectors.toSet()),
+        "target items should contain the original target Data Approvals lastUpdated dates");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy, sources have latest lastUpdated value")
+  void duplicateDataApprovalSourceLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataApprovalLevel level1 = new DataApprovalLevel();
+    level1.setLevel(1);
+    level1.setName("DAL1");
+    manager.save(level1);
+
+    DataApprovalLevel level2 = new DataApprovalLevel();
+    level2.setLevel(2);
+    level2.setName("DAL2");
+    manager.save(level2);
+
+    DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
+    daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw1.setName("DAW1");
+    daw1.setCategoryCombo(cc1);
+    manager.save(daw1);
+
+    DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
+    daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw2.setName("DAW2");
+    daw2.setCategoryCombo(cc1);
+    manager.save(daw2);
+
+    DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
+    da1a.setLastUpdated(DateUtils.parseDate("2024-12-03"));
+    DataApproval da1b = createDataApproval(cocSource1, level1, daw1, p2, ou1);
+    da1b.setLastUpdated(DateUtils.parseDate("2024-12-01"));
+    DataApproval da2a = createDataApproval(cocSource2, level1, daw1, p1, ou1);
+    da2a.setLastUpdated(DateUtils.parseDate("2024-11-01"));
+    DataApproval da2b = createDataApproval(cocSource2, level1, daw1, p2, ou1);
+    da2b.setLastUpdated(DateUtils.parseDate("2024-12-08"));
+    DataApproval da3a = createDataApproval(cocTarget, level1, daw1, p1, ou1);
+    da3a.setLastUpdated(DateUtils.parseDate("2024-06-08"));
+    DataApproval da3b = createDataApproval(cocTarget, level1, daw1, p2, ou1);
+    da3b.setLastUpdated(DateUtils.parseDate("2024-06-14"));
+    DataApproval da4a = createDataApproval(cocRandom, level1, daw1, p1, ou1);
+    DataApproval da4b = createDataApproval(cocRandom, level1, daw1, p2, ou1);
+
+    dataApprovalStore.addDataApproval(da1a);
+    dataApprovalStore.addDataApproval(da1b);
+    dataApprovalStore.addDataApproval(da2a);
+    dataApprovalStore.addDataApproval(da2b);
+    dataApprovalStore.addDataApproval(da3a);
+    dataApprovalStore.addDataApproval(da3b);
+    dataApprovalStore.addDataApproval(da4a);
+    dataApprovalStore.addDataApproval(da4b);
+
+    // pre-merge state
+    List<DataApproval> sourcesPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+    assertEquals(4, sourcesPreMerge.size(), "Expect 4 entries with source COC refs");
+    assertEquals(2, targetPreMerge.size(), "Expect 2 entries with target COC refs");
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataApproval> sourceItems =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetItems =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC refs");
+    assertEquals(
+        Set.of("2024-12-03", "2024-12-08"),
+        targetItems.stream()
+            .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
+            .collect(Collectors.toSet()),
+        "target items should contain the original source Data Approvals lastUpdated dates");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "DataApprovals with references to source COCs are deleted when using DISCARD strategy")
+  void dataApprovalMergeCocDiscardTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
+    DataValue dv2 = createDataValue(de2, p2, ou1, cocSource2, cocRandom, "value2");
+    DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2));
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
   // -----------------------------
   // -- Event eventDataValues --
   // -----------------------------
@@ -1260,7 +1595,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
+      "Event eventDataValues references to source COCs are replaced with target COC, source COCs are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1352,6 +1687,18 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     daa.setCreated(new Date());
     daa.setCreator(getCurrentUser());
     return daa;
+  }
+
+  private DataApproval createDataApproval(
+      CategoryOptionCombo coc,
+      DataApprovalLevel level,
+      DataApprovalWorkflow workflow,
+      Period p,
+      OrganisationUnit org) {
+    DataApproval da = new DataApproval(level, workflow, p, org, coc);
+    da.setCreated(new Date());
+    da.setCreator(getCurrentUser());
+    return da;
   }
 
   private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {

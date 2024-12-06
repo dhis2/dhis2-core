@@ -124,6 +124,7 @@ public class CategoryOptionComboMergeService implements MergeService {
             dataMergeHandler::handleDataValues,
             dataMergeHandler::handleDataValueAudits,
             dataMergeHandler::handleDataApprovalAudits,
+            dataMergeHandler::handleDataApprovals,
             dataMergeHandler::handleEvents);
   }
 

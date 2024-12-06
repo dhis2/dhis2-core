@@ -812,6 +812,22 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
         .getResultList();
   }
 
+  @Override
+  public void deleteByCategoryOptionCombo(@Nonnull Collection<UID> attrOptionCombos) {
+    String hql =
+        """
+        delete from DataApproval da
+        where da.attributeOptionCombo in
+          (select coc from CategoryOptionCombo coc
+          where coc.uid in :attrOptionCombos)
+        """;
+
+    entityManager
+        .createQuery(hql)
+        .setParameter("attrOptionCombos", UID.toValueList(attrOptionCombos))
+        .executeUpdate();
+  }
+
   /**
    * Get the id for the workflow period that spans the given end date. The workflow period may or
    * may not be the same as the period for which we are checking data validity. The workflow period

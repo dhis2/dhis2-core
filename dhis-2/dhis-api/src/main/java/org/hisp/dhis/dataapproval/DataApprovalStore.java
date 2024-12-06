@@ -166,4 +166,6 @@ public interface DataApprovalStore {
       Map<Integer, DataApprovalLevel> levelMap);
 
   List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uid);
+
+  void deleteByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

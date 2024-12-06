@@ -75,27 +75,34 @@ public class DataDataElementMergeHandler {
       @Nonnull List<DataElement> sources,
       @Nonnull DataElement target,
       @Nonnull MergeRequest mergeRequest) {
-    // get DVs from sources
-    List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
-    log.info("{} data values retrieved for source DataElements", sourceDataValues.size());
+    if (DataMergeStrategy.DISCARD == mergeRequest.getDataMergeStrategy()) {
+      log.info(
+          mergeRequest.getDataMergeStrategy()
+              + " dataMergeStrategy being used, deleting source data values");
+      dataValueStore.deleteDataValues(sources);
+    } else {
+      // get DVs from sources
+      List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
+      log.info("{} data values retrieved for source DataElements", sourceDataValues.size());
 
-    // get map of target data values, using the duplicate key constraints as the key
-    Map<String, DataValue> targetDataValues =
-        dataValueStore.getAllDataValuesByDataElement(List.of(target)).stream()
-            .collect(Collectors.toMap(getDataValueKey, dv -> dv));
-    log.info("{} data values retrieved for target DataElement", targetDataValues.size());
+      // get map of target data values, using the duplicate key constraints as the key
+      Map<String, DataValue> targetDataValues =
+          dataValueStore.getAllDataValuesByDataElement(List.of(target)).stream()
+              .collect(Collectors.toMap(getDataValueKey, dv -> dv));
+      log.info("{} data values retrieved for target DataElement", targetDataValues.size());
 
-    commonDataMergeHandler.handleDataValues(
-        new DataValueMergeParams<>(
-            mergeRequest,
-            sources,
-            target,
-            sourceDataValues,
-            targetDataValues,
-            dataValueStore::deleteDataValues,
-            dataValueDuplicates,
-            dataValueWithNewDataElement,
-            getDataValueKey));
+      commonDataMergeHandler.handleDataValues(
+          new DataValueMergeParams<>(
+              mergeRequest,
+              sources,
+              target,
+              sourceDataValues,
+              targetDataValues,
+              dataValueStore::deleteDataValues,
+              dataValueDuplicates,
+              dataValueWithNewDataElement,
+              getDataValueKey));
+    }
   }
 
   /**

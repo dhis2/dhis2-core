@@ -132,24 +132,31 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
+  public void deleteDataValues(@Nonnull Collection<DataElement> dataElements) {
+    String hql = "delete from DataValue d where d.dataElement in :dataElements";
+
+    entityManager.createQuery(hql).setParameter("dataElements", dataElements).executeUpdate();
+  }
+
+  @Override
   public void deleteDataValuesByCategoryOptionCombo(
-      @Nonnull CategoryOptionCombo categoryOptionCombo) {
-    String hql = "delete from DataValue d where d.categoryOptionCombo = :categoryOptionCombo";
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos) {
+    String hql = "delete from DataValue d where d.categoryOptionCombo in :categoryOptionCombos";
 
     entityManager
         .createQuery(hql)
-        .setParameter("categoryOptionCombo", categoryOptionCombo)
+        .setParameter("categoryOptionCombos", categoryOptionCombos)
         .executeUpdate();
   }
 
   @Override
   public void deleteDataValuesByAttributeOptionCombo(
-      @Nonnull CategoryOptionCombo attributeOptionCombo) {
-    String hql = "delete from DataValue d where d.attributeOptionCombo = :attributeOptionCombo";
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos) {
+    String hql = "delete from DataValue d where d.attributeOptionCombo in :attributeOptionCombos";
 
     entityManager
         .createQuery(hql)
-        .setParameter("attributeOptionCombo", attributeOptionCombo)
+        .setParameter("attributeOptionCombos", attributeOptionCombos)
         .executeUpdate();
   }
 

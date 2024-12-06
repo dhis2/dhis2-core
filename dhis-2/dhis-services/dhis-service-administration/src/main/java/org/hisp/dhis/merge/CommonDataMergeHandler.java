@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
@@ -65,24 +66,16 @@ public class CommonDataMergeHandler {
 
   public <T extends BaseIdentifiableObject> void handleDataValues(
       @Nonnull DataValueMergeParams<T> merge) {
-    // merge based on chosen strategy
-    DataMergeStrategy dataMergeStrategy = merge.mergeRequest.getDataMergeStrategy();
-    if (dataMergeStrategy == DataMergeStrategy.DISCARD) {
-      log.info(dataMergeStrategy + " dataMergeStrategy being used, deleting source data values");
-      merge.sources.forEach(merge.dvStoreDelete);
-    } else if (dataMergeStrategy == DataMergeStrategy.LAST_UPDATED) {
-      log.info(dataMergeStrategy + " dataMergeStrategy being used");
-      Map<Boolean, List<DataValue>> sourceDuplicateList =
-          merge.sourceDataValues.stream()
-              .collect(
-                  Collectors.partitioningBy(
-                      dv -> merge.dvDuplicates.test(dv, merge.targetDataValues)));
+    Map<Boolean, List<DataValue>> sourceDuplicateList =
+        merge.sourceDataValues.stream()
+            .collect(
+                Collectors.partitioningBy(
+                    dv -> merge.dvDuplicatePredicate.test(dv, merge.targetDataValues)));
 
-      if (!sourceDuplicateList.get(false).isEmpty())
-        handleNonDuplicates(sourceDuplicateList.get(false), merge);
-      if (!sourceDuplicateList.get(true).isEmpty())
-        handleDuplicates(sourceDuplicateList.get(true), merge);
-    }
+    if (!sourceDuplicateList.get(false).isEmpty())
+      handleNonDuplicates(sourceDuplicateList.get(false), merge);
+    if (!sourceDuplicateList.get(true).isEmpty())
+      handleDuplicates(sourceDuplicateList.get(true), merge);
   }
 
   /**
@@ -133,13 +126,14 @@ public class CommonDataMergeHandler {
         // the same composite primary key - Throws `NonUniqueObjectException: A different object
         // with the same identifier value was already associated with the session`
         entityManager.detach(matchingTargetDataValue);
-        DataValue copyWithNewRef = dvMergeParams.newDataValue.apply(source, dvMergeParams.target);
+        DataValue copyWithNewRef =
+            dvMergeParams.newDataValueFromOld.apply(source, dvMergeParams.target);
         dataValueStore.addDataValue(copyWithNewRef);
       }
     }
 
     // delete the rest of the source data values after handling the last update duplicate
-    dvMergeParams.sources.forEach(dvMergeParams.dvStoreDelete);
+    dvMergeParams.dvStoreDelete.accept(dvMergeParams.sources);
   }
 
   /**
@@ -164,12 +158,12 @@ public class CommonDataMergeHandler {
     dataValues.forEach(
         sourceDataValue -> {
           DataValue copyWithNewCocRef =
-              dvMergeParams.newDataValue.apply(sourceDataValue, dvMergeParams.target);
+              dvMergeParams.newDataValueFromOld.apply(sourceDataValue, dvMergeParams.target);
           dataValueStore.addDataValue(copyWithNewCocRef);
         });
 
     log.info("Deleting all data values referencing source CategoryOptionCombos");
-    dvMergeParams.sources.forEach(dvMergeParams.dvStoreDelete);
+    dvMergeParams.dvStoreDelete.accept(dvMergeParams.sources);
   }
 
   public record DataValueMergeParams<T extends BaseIdentifiableObject>(
@@ -178,8 +172,20 @@ public class CommonDataMergeHandler {
       @Nonnull T target,
       @Nonnull List<DataValue> sourceDataValues,
       @Nonnull Map<String, DataValue> targetDataValues,
-      @Nonnull Consumer<T> dvStoreDelete,
-      @Nonnull BiPredicate<DataValue, Map<String, DataValue>> dvDuplicates,
-      @Nonnull BiFunction<DataValue, BaseIdentifiableObject, DataValue> newDataValue,
+      @Nonnull Consumer<Collection<T>> dvStoreDelete,
+      @Nonnull BiPredicate<DataValue, Map<String, DataValue>> dvDuplicatePredicate,
+      @Nonnull BiFunction<DataValue, BaseIdentifiableObject, DataValue> newDataValueFromOld,
       @Nonnull Function<DataValue, String> dataValueKey) {}
+
+  public record DataApprovalMergeParams<T extends BaseIdentifiableObject>(
+      @Nonnull MergeRequest mergeRequest,
+      @Nonnull List<T> sources,
+      @Nonnull T target,
+      @Nonnull List<DataApproval> sourceDataApprovals,
+      @Nonnull Map<String, DataApproval> targetDataApprovals,
+      @Nonnull Consumer<Collection<T>> daStoreDelete,
+      @Nonnull BiPredicate<DataApproval, Map<String, DataApproval>> daDuplicatePredicate,
+      @Nonnull
+          BiFunction<DataApproval, BaseIdentifiableObject, DataApproval> newDataApprovalFromOld,
+      @Nonnull Function<DataApproval, String> dataApprovalKey) {}
 }
