@@ -75,6 +75,7 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DataDimensionItem.Attributes;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -103,7 +104,6 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -539,7 +539,15 @@ public class DefaultDimensionService implements DimensionService {
 
             if (dimItemObject != null) {
               DataDimensionItem dataItem = DataDimensionItem.create(dimItemObject);
-              addOptionSetToDataItem(dataItem, item.getOptionSet());
+
+              // Adds dependencies to the current data item object.
+              Attributes attributes =
+                  new Attributes(
+                      item.getOptionSetItem(),
+                      item.getOptions(),
+                      item.getAggregation(),
+                      item.getOptionItem());
+              dataItem.setAttributes(attributes);
 
               object.getDataDimensionItems().add(dataItem);
             }
@@ -677,12 +685,6 @@ public class DefaultDimensionService implements DimensionService {
           object.getProgramIndicatorDimensions().add(programIndicatorDimension);
         }
       }
-    }
-  }
-
-  private void addOptionSetToDataItem(DataDimensionItem dataItem, OptionSet optionSet) {
-    if (dataItem.getProgramAttribute() != null) {
-      dataItem.getProgramAttribute().setOptionSet(optionSet);
     }
   }
 }

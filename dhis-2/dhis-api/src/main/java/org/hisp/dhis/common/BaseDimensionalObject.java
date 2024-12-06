@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Triple;
+import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.eventvisualization.EventRepetition;
@@ -85,6 +86,12 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
   /** The option set associated with the dimension, if any. */
   private transient OptionSet optionSet;
+
+  /** The option set saved by the client, if any. */
+  private transient OptionSet optionSetItem;
+
+  /** The client's aggregation type. */
+  private transient Aggregation aggregation;
 
   /** The dimensional items for this dimension. */
   private List<DimensionalItemObject> items = new ArrayList<>();
@@ -414,6 +421,20 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OptionSet getOptionSet() {
     return optionSet;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OptionSet getOptionSetItem() {
+    return optionSetItem;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Aggregation getAggregation() {
+    return aggregation;
   }
 
   @Override

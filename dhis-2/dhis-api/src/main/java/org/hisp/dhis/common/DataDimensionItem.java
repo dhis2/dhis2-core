@@ -33,14 +33,20 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
+import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -104,6 +110,63 @@ public class DataDimensionItem {
 
   private SubexpressionDimensionItem subexpressionDimensionItem;
 
+  private Attributes attributes;
+
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class Attributes implements Serializable {
+    /** The client's option set for this dimension item. */
+    private OptionSet optionSetItem;
+
+    private Set<String> options = new LinkedHashSet<>();
+
+    /** The aggregation for this dimension item. */
+    private Aggregation aggregation;
+
+    /** Third option. The option item for this dimension item. * */
+    private OptionItem optionItem;
+
+    @JsonProperty
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public OptionSet getOptionSetItem() {
+      return optionSetItem;
+    }
+
+    public void setOptionSetItem(OptionSet optionSetItem) {
+      this.optionSetItem = optionSetItem;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public Aggregation getAggregation() {
+      return aggregation;
+    }
+
+    public void setAggregation(Aggregation aggregation) {
+      this.aggregation = aggregation;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public Set<String> getOptions() {
+      return options;
+    }
+
+    public void setOptions(Set<String> options) {
+      this.options = options;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public OptionItem getOptionItem() {
+      return optionItem;
+    }
+
+    public void setOptionItem(OptionItem optionItem) {
+      this.optionItem = optionItem;
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
@@ -112,7 +175,6 @@ public class DataDimensionItem {
 
   public static List<DataDimensionItem> createWithDependencies(
       DimensionalItemObject object, List<DataDimensionItem> items) {
-
     if (DataElement.class.isAssignableFrom(object.getClass())) {
       DataDimensionItem dimension = new DataDimensionItem();
       DataElement dataElement = (DataElement) object;
@@ -187,6 +249,7 @@ public class DataDimensionItem {
     if (indicator != null) {
       return indicator;
     } else if (dataElement != null) {
+      setAttributes(dataElement);
       return dataElement;
     } else if (dataElementOperand != null) {
       return dataElementOperand;
@@ -195,8 +258,10 @@ public class DataDimensionItem {
     } else if (programIndicator != null) {
       return programIndicator;
     } else if (programDataElement != null) {
+      setAttributes(programDataElement);
       return programDataElement;
     } else if (programAttribute != null) {
+      setAttributes(programAttribute);
       return programAttribute;
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
@@ -205,6 +270,20 @@ public class DataDimensionItem {
     }
 
     return null;
+  }
+
+  /**
+   * Simply sets the internal attributes into the given item object.
+   *
+   * @param itemObject the {@link BaseDimensionalItemObject}.
+   */
+  private void setAttributes(BaseDimensionalItemObject itemObject) {
+    if (attributes != null) {
+      itemObject.setAggregation(attributes.getAggregation());
+      itemObject.setOptionSetItem(attributes.getOptionSetItem());
+      itemObject.setOptions(attributes.getOptions());
+      itemObject.setOptionItem(attributes.getOptionItem());
+    }
   }
 
   @JsonProperty
@@ -287,6 +366,18 @@ public class DataDimensionItem {
     this.id = id;
   }
 
+  public Attributes getAttributes() {
+    if (attributes == null) {
+      attributes = new Attributes();
+    }
+
+    return attributes;
+  }
+
+  public void setAttributes(Attributes attributes) {
+    this.attributes = attributes;
+  }
+
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -298,9 +389,6 @@ public class DataDimensionItem {
     this.indicator = indicator;
   }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
   }
