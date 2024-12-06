@@ -51,7 +51,7 @@ public class EventFileResourcePostProcessor implements Processor {
       if (dataElement.isFileType()) {
         FileResource fileResource = fileResourceService.getFileResource(dataValue.getValue());
 
-        if (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null) {
+        if (fileResource != null && (!fileResource.isAssigned() || fileResource.getFileResourceOwner() == null)) {
           fileResource.setAssigned(true);
           fileResource.setFileResourceOwner(event.getEvent());
           fileResourceService.updateFileResource(fileResource);
