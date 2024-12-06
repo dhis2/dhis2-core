@@ -76,7 +76,7 @@ public class LoginTest {
   public static final String SUPER_USER_ROLE_UID = "yrB6vc5Ip3r";
 
   // Change this to "localhost" if you want to run the tests locally
-  public static final String SMTP_HOSTNAME = "localhost";
+  public static final String SMTP_HOSTNAME = "test";
 
   private static int smtpPort;
   private static Wiser wiser;
