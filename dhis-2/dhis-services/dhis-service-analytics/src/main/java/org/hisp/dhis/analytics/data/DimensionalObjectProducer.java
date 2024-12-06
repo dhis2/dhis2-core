@@ -98,7 +98,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -193,15 +192,11 @@ public class DimensionalObjectProducer {
         systemSettingManager.getSystemSetting(
             ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class);
 
-    boolean containsRelativePeriods = false;
-
     for (String isoPeriod : items) {
       // Contains isoPeriod and timeField
       IsoPeriodHolder isoPeriodHolder = IsoPeriodHolder.of(isoPeriod);
 
       if (RelativePeriodEnum.contains(isoPeriodHolder.getIsoPeriod())) {
-        containsRelativePeriods = true;
-
         addRelativePeriods(
             relativePeriodDate, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
       } else {
@@ -217,10 +212,6 @@ public class DimensionalObjectProducer {
 
     // Remove duplicates
     periods = periods.stream().distinct().collect(toList());
-
-    if (containsRelativePeriods) {
-      periods.sort(new AscendingPeriodComparator());
-    }
 
     overridePeriodAttributes(periods, getCalendar());
 
