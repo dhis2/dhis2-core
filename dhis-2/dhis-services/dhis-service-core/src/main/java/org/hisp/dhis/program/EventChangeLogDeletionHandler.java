@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-<<<<<<<< HEAD:dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/program/EventChangeLogDeletionHandler.java
 package org.hisp.dhis.program;
 
 import java.util.Map;
@@ -49,36 +48,5 @@ public class EventChangeLogDeletionHandler extends JdbcDeletionHandler {
   private void deleteDataElement(DataElement dataElement) {
     delete(
         "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
-========
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
-import java.util.function.Consumer;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.springframework.stereotype.Component;
-
-@Component
-@RequiredArgsConstructor
-public class CategoryObjectBundleHook extends AbstractObjectBundleHook<Category> {
-
-  private final CategoryService categoryService;
-
-  @Override
-  public void validate(Category category, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    checkIsValid(category, addReports);
-  }
-
-  private void checkIsValid(Category category, Consumer<ErrorReport> addReports) {
-    try {
-      categoryService.validate(category);
-    } catch (ConflictException ex) {
-      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
-    }
->>>>>>>> origin/master:dhis-2/dhis-services/dhis-service-dxf2/src/main/java/org/hisp/dhis/dxf2/metadata/objectbundle/hooks/CategoryObjectBundleHook.java
   }
 }

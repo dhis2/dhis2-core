@@ -25,31 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-<<<<<<<< HEAD:dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/program/EventChangeLogDeletionHandler.java
-package org.hisp.dhis.program;
-
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Zubair Asghar
- */
-@Component
-@RequiredArgsConstructor
-public class EventChangeLogDeletionHandler extends JdbcDeletionHandler {
-
-  @Override
-  protected void register() {
-    whenDeleting(DataElement.class, this::deleteDataElement);
-  }
-
-  private void deleteDataElement(DataElement dataElement) {
-    delete(
-        "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
-========
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
@@ -79,6 +54,5 @@ public class CategoryObjectBundleHook extends AbstractObjectBundleHook<Category>
     } catch (ConflictException ex) {
       addReports.accept(new ErrorReport(CategoryOptionCombo.class, ex.getCode(), ex.getArgs()));
     }
->>>>>>>> origin/master:dhis-2/dhis-services/dhis-service-dxf2/src/main/java/org/hisp/dhis/dxf2/metadata/objectbundle/hooks/CategoryObjectBundleHook.java
   }
 }
