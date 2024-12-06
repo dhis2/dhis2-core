@@ -316,8 +316,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
         createTrackedEntity(organisationUnit, createTrackedEntityType('B'));
     trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet(enrollment));
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
     return trackedEntity;
   }
 
