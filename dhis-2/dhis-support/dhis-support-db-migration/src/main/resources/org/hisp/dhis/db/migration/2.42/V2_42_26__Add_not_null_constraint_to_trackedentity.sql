@@ -28,10 +28,10 @@ IF inconsistent_records_count > 0 THEN
 
     RAISE NOTICE 'Updated trackedentity: programid = %, trackedentityid = %', results.programid, results.trackedentityid;
     END LOOP;
-    ALTER TABLE trackedentity ALTER COLUMN trackedentitytypeid SET NOT NULL;
+    ALTER TABLE IF EXISTS trackedentity ALTER COLUMN trackedentitytypeid SET NOT NULL;
 ELSE
         RAISE NOTICE 'No inconsistencies found, trackedentitytypeid is already populated.';
-        ALTER TABLE trackedentity ALTER COLUMN trackedentitytypeid SET NOT NULL;
+        ALTER TABLE IF EXISTS trackedentity ALTER COLUMN trackedentitytypeid SET NOT NULL;
 END IF;
 
 EXCEPTION
