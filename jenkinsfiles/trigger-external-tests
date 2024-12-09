@@ -32,7 +32,7 @@ pipeline {
         DATABASE_GROUP_NAME = 'test-dbs'
         INSTANCE_NAME = "core-${env.GIT_BRANCH.replaceAll("\\P{Alnum}", "").toLowerCase()}-$BUILD_NUMBER"
         INSTANCE_DOMAIN = "https://${INSTANCE_GROUP_NAME}.$IM_ENVIRONMENT"
-        INSTANCE_URL = "$INSTANCE_DOMAIN/$INSTANCE_NAME"
+        INSTANCE_URL = "https://qa.im.dhis2.org/core-triggerexternalappstest-107"
         LIVENESS_PROBE_TIMEOUT_SECONDS = 3
         READINESS_PROBE_TIMEOUT_SECONDS = 3
         STARTUP_PROBE_FAILURE_THRESHOLD = 50
