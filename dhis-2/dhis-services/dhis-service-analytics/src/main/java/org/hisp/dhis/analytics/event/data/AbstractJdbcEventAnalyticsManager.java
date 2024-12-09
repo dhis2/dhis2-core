@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -91,9 +92,12 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -169,7 +173,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams}.
    * @param maxLimit the configurable max limit of records.
    */
-  private String getPagingClause(EventQueryParams params, int maxLimit) {
+  protected String getPagingClause(EventQueryParams params, int maxLimit) {
     String sql = "";
 
     if (params.isPaging()) {
@@ -191,7 +195,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param params the {@link EventQueryParams}.
    */
-  private String getSortClause(EventQueryParams params) {
+  protected String getSortClause(EventQueryParams params) {
     String sql = "";
 
     if (params.isSorting()) {
@@ -413,7 +417,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param queryItem
    * @return true when eligible for row context
    */
-  private boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
+  protected boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
     return params.getEndpointItem() == ENROLLMENT
         && params.isRowContext()
         && queryItem.hasProgramStage()
@@ -944,7 +948,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+    sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
     String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
@@ -1079,13 +1085,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
+  protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper helper) {
+    return getQueryItemsAndFiltersWhereClause(params, Set.of(), helper);
+  }
+
   /**
    * Returns a SQL where clause string for query items and query item filters.
    *
    * @param params the {@link EventQueryParams}.
    * @param helper the {@link SqlHelper}.
    */
-  protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper helper) {
+  protected String getQueryItemsAndFiltersWhereClause(
+      EventQueryParams params, Set<QueryItem> exclude, SqlHelper helper) {
     if (params.isEnhancedCondition()) {
       return getItemsSqlForEnhancedConditions(params, helper);
     }
@@ -1096,6 +1107,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
+            .filter(queryItem -> !exclude.contains(queryItem))
             .collect(
                 groupingBy(
                     queryItem ->
@@ -1113,13 +1125,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     List<String> orConditions =
         repeatableConditionsByIdentifier.values().stream()
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
-            .collect(toList());
+            .toList();
 
     // Non-repeatable conditions
     List<String> andConditions =
         asSqlCollection(itemsByRepeatableFlag.get(false), params)
             .map(IdentifiableSql::getSql)
-            .collect(toList());
+            .toList();
 
     if (orConditions.isEmpty() && andConditions.isEmpty()) {
       return StringUtils.EMPTY;
@@ -1173,7 +1185,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return joinSql(conditions.collect(toList()), joiner);
   }
 
-  private String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+  protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1237,7 +1249,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   @Getter
   @Builder
-  private static class IdentifiableSql {
+  public static class IdentifiableSql {
     private final String identifier;
 
     private final String sql;
@@ -1250,7 +1262,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param filter the {@link QueryFilter}.
    * @param params the {@link EventQueryParams}.
    */
-  private String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
+  protected String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
     String field =
         item.hasAggregationType()
             ? getSelectSql(filter, item, params)
@@ -1393,12 +1405,57 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return args.isEmpty() ? defaultColumnName : sql;
   }
 
+  protected List<String> getSelectColumnsWithCTE(EventQueryParams params, CteContext cteContext) {
+    List<String> columns = new ArrayList<>();
+
+    // Mirror the logic of addDimensionSelectColumns
+    addDimensionSelectColumns(columns, params, false);
+
+    // Mirror the logic of addItemSelectColumns but with CTE references
+    for (QueryItem queryItem : params.getItems()) {
+      if (queryItem.isProgramIndicator()) {
+        // For program indicators, use CTE reference
+        String piUid = queryItem.getItem().getUid();
+        CteDefinition cteDef = cteContext.getDefinitionByItemUid(piUid);
+        // COALESCE(fbyta.value, 0) as CH6wamtY9kK
+        String col =
+            cteDef.isRequiresCoalesce()
+                ? "coalesce(%s.value, 0) as %s".formatted(cteDef.getAlias(), piUid)
+                : "%s.value as %s".formatted(cteDef.getAlias(), piUid);
+        columns.add(col);
+      } else if (ValueType.COORDINATE == queryItem.getValueType()) {
+        // Handle coordinates
+        columns.add(getCoordinateColumn(queryItem).asSql());
+      } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
+        // Handle org units
+        if (params.getCoordinateFields().stream()
+            .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
+          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
+        } else {
+          columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
+        }
+      } else if (queryItem.hasProgramStage()) {
+        // Handle program stage items with CTE
+        columns.add(getColumnWithCte(queryItem, "", cteContext));
+      } else {
+        // Handle other types as before
+        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
+        columns.add(columnAndAlias.asSql());
+      }
+    }
+    // remove duplicates
+    var ded = columns.stream().distinct().toList();
+    return ded;
+  }
+
   /**
    * Returns a select SQL clause for the given query.
    *
    * @param params the {@link EventQueryParams}.
    */
   protected abstract String getSelectClause(EventQueryParams params);
+
+  protected abstract String getColumnWithCte(QueryItem item, String suffix, CteContext cteContext);
 
   /**
    * Generates the SQL for the from-clause. Generally this means which analytics table to get data

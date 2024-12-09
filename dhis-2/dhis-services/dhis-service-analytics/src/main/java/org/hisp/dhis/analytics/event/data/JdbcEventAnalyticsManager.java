@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -389,6 +390,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
+  }
+
+  @Override
+  protected String getColumnWithCte(QueryItem item, String suffix, CteContext cteContext) {
+    // TODO: Implement
+    return "";
   }
 
   /**
