@@ -304,7 +304,7 @@ public class LoginTest {
   }
 
   private static void invalidateAllSession() {
-    ResponseEntity<String> response = postWithAdminBasicAuth("/sessions/invalidateAll", null);
+    ResponseEntity<String> response = deleteWithAdminBasicAuth("/sessions", null);
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 
@@ -641,6 +641,16 @@ public class LoginTest {
     RestTemplate rt = createRestTemplateWithAdminBasicAuthHeader();
     return rt.exchange(
         dhis2ServerApi + path, HttpMethod.POST, new HttpEntity<>(map, jsonHeaders()), String.class);
+  }
+
+  private static ResponseEntity<String> deleteWithAdminBasicAuth(
+      String path, Map<String, Object> map) {
+    RestTemplate rt = createRestTemplateWithAdminBasicAuthHeader();
+    return rt.exchange(
+        dhis2ServerApi + path,
+        HttpMethod.DELETE,
+        new HttpEntity<>(map, jsonHeaders()),
+        String.class);
   }
 
   private static ResponseEntity<String> exchangeWithHeaders(

@@ -46,9 +46,9 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -89,7 +89,7 @@ public class SessionController {
     return allSessions;
   }
 
-  @PostMapping(value = "/{username}/invalidate", produces = APPLICATION_JSON_VALUE)
+  @DeleteMapping(value = "/{username}")
   @RequiresAuthority(anyOf = ALL)
   public void invalidateSessions(@PathVariable("username") String username) {
     User user = userService.getUserByUsername(username);
@@ -100,7 +100,7 @@ public class SessionController {
     }
   }
 
-  @PostMapping(value = "/invalidateAll", produces = APPLICATION_JSON_VALUE)
+  @DeleteMapping
   @RequiresAuthority(anyOf = ALL)
   public void invalidateAllSessions() {
     List<User> allUsers = userService.getAllUsers();
