@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.message;
 
-import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.audit.TrackerAuditType.READ;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
