@@ -66,8 +66,6 @@ pipeline {
             }
         }
 
-        // Commented out "Deploy DHIS2 Instance" stage to save resources during debugging
-        /*
         stage('Deploy DHIS2 Instance') {
             steps {
                 script {
@@ -131,7 +129,6 @@ pipeline {
                 }
             }
         }
-        */
 
         stage('Trigger Cypress Tests') {
             steps {
@@ -140,7 +137,7 @@ pipeline {
                     def repos = ['dhis2/line-listing-app', 'dhis2/aggregate-data-entry-app']
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
-                        instance_url: "https://test.e2e.dhis2.org/analytics-2.41"
+                        instance_url: "$INSTANCE_URL"
                     ]
                     
                     repos.each { repo ->
@@ -151,7 +148,7 @@ pipeline {
                                     -H "Accept: application/vnd.github.v3+json" \
                                     -H "Authorization: token \$GITHUB_TOKEN" \
                                     https://api.github.com/repos/${repo}/actions/workflows/e2e-test-dispatch.yml/dispatches \
-                                    -d '{ "ref": "workflow-dispatch-cypress", "inputs": {"dhis2_version":"${env.DOCKER_IMAGE_TAG}", "instance_url":"https://test.e2e.dhis2.org/analytics-2.41"} }'
+                                    -d '{ "ref": "workflow-dispatch-cypress", "inputs": {"dhis2_version":"${env.DOCKER_IMAGE_TAG}", "instance_url":"$INSTANCE_URL"} }'
                                 """,
                                 returnStdout: true
                             ).trim()
