@@ -66,6 +66,8 @@ pipeline {
             }
         }
 
+        // Commented out "Deploy DHIS2 Instance" stage to save resources during debugging
+        /*
         stage('Deploy DHIS2 Instance') {
             steps {
                 script {
@@ -129,6 +131,8 @@ pipeline {
                 }
             }
         }
+        */
+
 
         stage('Trigger Cypress Tests') {
             steps {
