@@ -288,7 +288,7 @@ public class DataCategoryOptionComboMergeHandler {
    * @param dataApprovals {@link DataApproval}s to merge
    * @param target target {@link CategoryOptionCombo}
    */
-  private <T extends BaseIdentifiableObject> void handleDaNonDuplicates(
+  private void handleDaNonDuplicates(
       @Nonnull List<DataApproval> dataApprovals, @Nonnull CategoryOptionCombo target) {
     log.info(
         "Handling "

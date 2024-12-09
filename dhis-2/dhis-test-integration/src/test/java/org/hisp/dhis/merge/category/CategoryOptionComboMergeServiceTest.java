@@ -1400,6 +1400,106 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
+      "Duplicate & non-duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy")
+  void duplicateAndNonDuplicateDataApprovalMergeTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
+
+    DataApprovalLevel level1 = new DataApprovalLevel();
+    level1.setLevel(1);
+    level1.setName("DAL1");
+    manager.save(level1);
+
+    DataApprovalLevel level2 = new DataApprovalLevel();
+    level2.setLevel(2);
+    level2.setName("DAL2");
+    manager.save(level2);
+
+    DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
+    daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw1.setName("DAW1");
+    daw1.setCategoryCombo(cc1);
+    manager.save(daw1);
+
+    DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
+    daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw2.setName("DAW2");
+    daw2.setCategoryCombo(cc1);
+    manager.save(daw2);
+
+    DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
+    da1a.setLastUpdated(DateUtils.parseDate("2024-12-8"));
+    DataApproval da1b = createDataApproval(cocSource1, level1, daw1, p2, ou1);
+    da1b.setLastUpdated(DateUtils.parseDate("2024-10-8"));
+    DataApproval da2a = createDataApproval(cocSource2, level1, daw1, p1, ou1);
+    da2a.setLastUpdated(DateUtils.parseDate("2024-6-8"));
+    DataApproval da2b = createDataApproval(cocSource2, level1, daw1, p2, ou1);
+    da2b.setLastUpdated(DateUtils.parseDate("2024-10-8"));
+    DataApproval da3a = createDataApproval(cocTarget, level1, daw1, p1, ou1);
+    da3a.setLastUpdated(DateUtils.parseDate("2024-12-1"));
+    DataApproval da3b = createDataApproval(cocTarget, level1, daw1, p2, ou1);
+    da3b.setLastUpdated(DateUtils.parseDate("2024-12-9"));
+    DataApproval da4a = createDataApproval(cocRandom, level1, daw1, p1, ou1);
+    DataApproval da4b = createDataApproval(cocRandom, level1, daw1, p2, ou1);
+
+    dataApprovalStore.addDataApproval(da1a);
+    dataApprovalStore.addDataApproval(da1b);
+    dataApprovalStore.addDataApproval(da2a);
+    dataApprovalStore.addDataApproval(da2b);
+    dataApprovalStore.addDataApproval(da3a);
+    dataApprovalStore.addDataApproval(da3b);
+    dataApprovalStore.addDataApproval(da4a);
+    dataApprovalStore.addDataApproval(da4b);
+
+    // pre-merge state
+    List<DataApproval> sourcesPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetPreMerge =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+    assertEquals(4, sourcesPreMerge.size(), "Expect 4 entries with source COC refs");
+    assertEquals(2, targetPreMerge.size(), "Expect 2 entries with target COC refs");
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<DataApproval> sourceItems =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetItems =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC refs");
+    assertEquals(
+        Set.of("2024-12-08", "2024-12-09"),
+        targetItems.stream()
+            .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
+            .collect(Collectors.toSet()),
+        "target items should contain the original target Data Approvals lastUpdated dates");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
       "Duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy, sources have latest lastUpdated value")
   void duplicateDataApprovalSourceLastUpdatedTest() throws ConflictException {
     // given
@@ -1632,7 +1732,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, eventSources.size(), "Expect 0 entries with source COC refs");
     assertEquals(3, targetEvents.size(), "Expect 3 entries with target COC ref");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 9 COCs present");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "source COC should not be present");
