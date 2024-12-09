@@ -45,12 +45,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -74,6 +76,7 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -87,6 +90,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -536,13 +540,17 @@ public class AccountController {
   public void sendEmailVerification(@CurrentUser User currentUser, HttpServletRequest request)
       throws ConflictException {
     if (Strings.isNullOrEmpty(currentUser.getEmail())) {
-      throw new ConflictException("Email is not set");
+      throw new ConflictException("User has no email set");
     }
     if (userService.isEmailVerified(currentUser)) {
-      throw new ConflictException("Email is already verified");
+      throw new ConflictException("User has already verified the email address");
     }
     if (userService.getUserByVerifiedEmail(currentUser.getEmail()) != null) {
-      throw new ConflictException("Email is already in use by another account");
+      throw new ConflictException(
+          "The email the user is trying to verify is already verified by another account");
+    }
+    if (!settingsProvider.getCurrentSettings().isEmailConfigured()) {
+      throw new ConflictException("System has no SMTP server configured");
     }
 
     // Generate a new email verification token and send it, we do this in two steps:
@@ -566,6 +574,16 @@ public class AccountController {
     if (!userService.verifyEmail(token)) {
       throw new ConflictException("Verification token is invalid");
     }
+  }
+
+  @GetMapping("/listSessions")
+  public @ResponseBody Map<String, String> listSessions(@CurrentUser UserDetails userDetails) {
+    List<SessionInformation> sessionInformation = userService.listSessions(userDetails);
+    return sessionInformation.stream()
+        .collect(
+            Collectors.toMap(
+                s -> HashUtils.hashSHA1(s.getSessionId().getBytes()),
+                s -> String.valueOf(s.isExpired())));
   }
 
   // ---------------------------------------------------------------------

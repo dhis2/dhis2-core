@@ -27,38 +27,34 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Strings;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Base64;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
-import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -66,6 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
+@Slf4j
 @OpenApi.Document(
     entity = User.class,
     classifiers = {"team:platform", "purpose:support"})
@@ -74,142 +71,122 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class TwoFactorController {
-  private final UserService defaultUserService;
+  private final TwoFactorAuthService twoFactorAuthService;
 
-  /**
-   * @deprecated Use {@link #generateQRCode}.
-   */
-  @Deprecated(since = "2.39")
-  @GetMapping(value = "/qr", produces = APPLICATION_JSON_VALUE)
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  @ResponseBody
-  public Map<String, String> getQrCode(@CurrentUser UserDetails currentUser)
-      throws WebMessageException {
-    if (currentUser == null) {
-      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
-    }
-
-    return Map.of("url", "url");
+  @PostMapping(value = "/enrollTOTP2FA")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage enrollTOTP2FA(@CurrentUser User currentUser) throws ConflictException {
+    twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
+    return ok(
+        "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
   }
 
+  @PostMapping(value = "/enrollEmail2FA")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage enrollEmail2FA(@CurrentUser User currentUser) throws ConflictException {
+    twoFactorAuthService.enrollEmail2FA(currentUser.getUsername());
+    return ok(
+        "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
+  }
+
+  /**
+   * Returns generated QR code for the user to scan.
+   *
+   * @throws IOException
+   * @throws ConflictException
+   */
   @OpenApi.Response(byte[].class)
-  @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM_VALUE)
+  @GetMapping(
+      value = {"/qrCodePng"},
+      produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void generateQRCode(
-      @CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
-      throws IOException, WebMessageException {
-    if (currentUser == null) {
-      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
-    }
+  public void qrCodePng(@CurrentUser User currentUser, HttpServletResponse response)
+      throws IOException, ConflictException {
+    byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
+    response.getOutputStream().write(qrCode);
+  }
 
-    if (currentUser.isTwoFactorEnabled()
-        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
-      throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
-    }
+  /**
+   * Shows the generated QR code for the user to scan as a JSON object. Where the QR code (PNG
+   * image) is represented as a base64 encoded string. And the secret encoded in Base32.
+   *
+   * @throws ConflictException
+   */
+  @GetMapping(
+      value = {"/qrCodeJson"},
+      produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  public QRCode qrCodeJson(@CurrentUser User currentUser) throws ConflictException {
+    byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
+    return new QRCode(currentUser.getSecret(), Base64.getEncoder().encodeToString(qrCode));
+  }
 
-    defaultUserService.generateTwoFactorOtpSecretForApproval(currentUser);
+  public record QRCode(@JsonProperty String base32Secret, @JsonProperty String base64QRImage) {}
 
-    String appName = settings.getApplicationTitle();
-
-    List<ErrorCode> errorCodes = new ArrayList<>();
-
-    String qrContent =
-        TwoFactoryAuthenticationUtils.generateQrContent(appName, currentUser, errorCodes::add);
-
-    if (!errorCodes.isEmpty()) {
-      throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
-    }
-
-    byte[] qrCode =
-        TwoFactoryAuthenticationUtils.generateQRCode(qrContent, 200, 200, errorCodes::add);
-
-    if (!errorCodes.isEmpty()) {
-      throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
-    }
-
-    OutputStream outputStream = response.getOutputStream();
-    outputStream.write(qrCode);
+  /**
+   * Enrolls the user in TOTP 2FA and generates a QR code for the user to scan.
+   *
+   * @throws IOException The QR code could not be generated.
+   * @throws ConflictException The user is already enrolled in 2FA.
+   */
+  @OpenApi.Response(byte[].class)
+  @GetMapping(
+      value = {"/qrCode"},
+      produces = APPLICATION_OCTET_STREAM_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @Deprecated(forRemoval = true, since = "2.42")
+  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
+      throws IOException, ConflictException {
+    twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
+    byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
+    response.getOutputStream().write(qrCode);
   }
 
   @GetMapping(
       value = "/enabled",
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
   public boolean isEnabled(@CurrentUser(required = true) User currentUser) {
-    return currentUser.isTwoFactorEnabled()
-        && !UserService.hasTwoFactorSecretForApproval(currentUser);
+    return currentUser.isTwoFactorEnabled();
   }
 
   /**
-   * Enable 2FA authentication for the current user.
+   * Enable 2FA authentication for the current user if the user is the enrollment mode and the code
+   * is valid.
    *
    * @param body The body of the request.
-   * @param currentUser This is the user that is currently logged in.
+   * @param currentUser The user currently logged in.
    */
   @PostMapping(
-      value = "/enabled",
+      value = {"/enabled", "/enable"},
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
   public WebMessage enable(
-      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
-      throws WebMessageException {
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) UserDetails currentUser)
+      throws ForbiddenException, ConflictException {
     String code = body.get("code");
-
-    if (!currentUser.isTwoFactorEnabled()
-        || !UserService.hasTwoFactorSecretForApproval(currentUser)) {
-      throw new WebMessageException(conflict(ErrorCode.E3029.getMessage(), ErrorCode.E3029));
+    if (Strings.isNullOrEmpty(code)) {
+      throw new ConflictException(ErrorCode.E3050);
     }
-
-    if (!verifyCode(code, currentUser)) {
-      return unauthorized(ErrorCode.E3023.getMessage());
-    }
-
-    defaultUserService.enableTwoFa(currentUser, code);
-
-    return ok("Two factor authentication was enabled successfully");
+    twoFactorAuthService.enable2FA(currentUser.getUsername(), code, currentUser);
+    return ok("2FA was enabled successfully");
   }
 
   /**
    * Disable 2FA authentication for the current user.
    *
    * @param body The body of the request.
-   * @param currentUser This is the user that is currently logged in.
+   * @param currentUser The user currently logged in.
    */
   @PostMapping(
-      value = "/disabled",
+      value = {"/disabled", "/disable"},
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
   public WebMessage disable(
-      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
-      throws WebMessageException {
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) UserDetails currentUser)
+      throws ForbiddenException, ConflictException {
     String code = body.get("code");
-
-    if (!currentUser.isTwoFactorEnabled()) {
-      throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
-    }
-
-    if (defaultUserService.twoFaDisableIsLocked(currentUser.getUsername())) {
-      throw new WebMessageException(conflict(ErrorCode.E3042.getMessage(), ErrorCode.E3042));
-    }
-
-    if (!verifyCode(code, currentUser)) {
-      defaultUserService.registerFailed2FADisableAttempt(currentUser.getUsername());
-      return unauthorized(ErrorCode.E3023.getMessage());
-    }
-
-    defaultUserService.disableTwoFa(currentUser, code);
-
-    return ok("Two factor authentication was disabled successfully");
-  }
-
-  private static boolean verifyCode(String code, User currentUser) {
-    if (currentUser == null) {
-      throw new BadCredentialsException(ErrorCode.E3025.getMessage());
-    }
-
-    return TwoFactoryAuthenticationUtils.verify(code, currentUser.getSecret());
+    twoFactorAuthService.disable2FA(currentUser.getUsername(), code);
+    return ok("2FA was disabled successfully");
   }
 }
