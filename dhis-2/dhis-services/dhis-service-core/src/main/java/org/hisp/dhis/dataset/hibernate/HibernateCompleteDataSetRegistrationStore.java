@@ -33,9 +33,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -77,6 +80,12 @@ public class HibernateCompleteDataSetRegistrationStore
     registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     registration.setLastUpdated(new Date());
 
+    getSession().save(registration);
+  }
+
+  @Override
+  public void saveWithoutUpdatingLastUpdated(@Nonnull CompleteDataSetRegistration registration) {
+    registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     getSession().save(registration);
   }
 
@@ -153,5 +162,32 @@ public class HibernateCompleteDataSetRegistrationStore
     query.where(builder.greaterThanOrEqualTo(root.get("lastUpdated"), lastUpdated));
 
     return Math.toIntExact(entityManager.createQuery(query).getSingleResult());
+  }
+
+  @Override
+  public List<CompleteDataSetRegistration> getAllByCategoryOptionCombo(
+      @Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select cdsr from CompleteDataSetRegistration cdsr
+            join cdsr.attributeOptionCombo aoc
+            where aoc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
+  }
+
+  @Override
+  public void deleteByCategoryOptionCombo(@Nonnull Collection<CategoryOptionCombo> cocs) {
+    String hql =
+        """
+        delete from CompleteDataSetRegistration cdsr
+        where cdsr.attributeOptionCombo in
+          (select coc from CategoryOptionCombo coc
+          where coc in :cocs)
+        """;
+
+    entityManager.createQuery(hql).setParameter("cocs", cocs).executeUpdate();
   }
 }

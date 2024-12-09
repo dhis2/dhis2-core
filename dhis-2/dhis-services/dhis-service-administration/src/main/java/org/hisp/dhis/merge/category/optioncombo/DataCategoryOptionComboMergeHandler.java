@@ -29,6 +29,8 @@ package org.hisp.dhis.merge.category.optioncombo;
 
 import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewAttrOptionCombo;
 import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewCatOptionCombo;
+import static org.hisp.dhis.merge.DataMergeStrategy.DISCARD;
+import static org.hisp.dhis.merge.DataMergeStrategy.LAST_UPDATED;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
@@ -48,13 +50,14 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.CommonDataMergeHandler;
 import org.hisp.dhis.merge.CommonDataMergeHandler.DataValueMergeParams;
-import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
@@ -75,6 +78,7 @@ public class DataCategoryOptionComboMergeHandler {
   private final DataApprovalAuditStore dataApprovalAuditStore;
   private final DataApprovalStore dataApprovalStore;
   private final EventStore eventStore;
+  private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   private final CommonDataMergeHandler commonDataMergeHandler;
   private final EntityManager entityManager;
 
@@ -83,7 +87,7 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
 
-    if (DataMergeStrategy.DISCARD == mergeRequest.getDataMergeStrategy()) {
+    if (DISCARD == mergeRequest.getDataMergeStrategy()) {
       log.info(
           mergeRequest.getDataMergeStrategy()
               + " dataMergeStrategy being used, deleting source data values");
@@ -168,7 +172,7 @@ public class DataCategoryOptionComboMergeHandler {
 
   public void handleDataApprovals(
       List<CategoryOptionCombo> sources, CategoryOptionCombo target, MergeRequest mergeRequest) {
-    if (DataMergeStrategy.DISCARD == mergeRequest.getDataMergeStrategy()) {
+    if (DISCARD == mergeRequest.getDataMergeStrategy()) {
       dataApprovalStore.deleteByCategoryOptionCombo(
           UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
     } else {
@@ -221,8 +225,90 @@ public class DataCategoryOptionComboMergeHandler {
 
   /** */
   public void handleCompleteDataSetRegistrations(
-      List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+      List<CategoryOptionCombo> sources,
+      CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
+    if (DISCARD == mergeRequest.getDataMergeStrategy()) {
+      completeDataSetRegistrationStore.deleteByCategoryOptionCombo(sources);
+    } else if (LAST_UPDATED == mergeRequest.getDataMergeStrategy()) {
+      // get DVs from sources
+      List<CompleteDataSetRegistration> sourceCdsr =
+          completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
+              UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+
+      // get map of target cdsr, using the duplicate key constraints as the key
+      Map<String, CompleteDataSetRegistration> targetcdsr =
+          completeDataSetRegistrationStore
+              .getAllByCategoryOptionCombo(UID.of(List.of(target.getUid())))
+              .stream()
+              .collect(Collectors.toMap(getCdsrKey, cdsr -> cdsr));
+
+      Map<Boolean, List<CompleteDataSetRegistration>> sourceDuplicateList =
+          sourceCdsr.stream()
+              .collect(Collectors.partitioningBy(cdsr -> cdsrDuplicates.test(cdsr, targetcdsr)));
+
+      if (!sourceDuplicateList.get(false).isEmpty()) {
+        handleCdsrNonDuplicates(sourceDuplicateList.get(false), target);
+      }
+      if (!sourceDuplicateList.get(true).isEmpty()) {
+        handleCdsrDuplicates(sourceDuplicateList.get(true), targetcdsr, target, sources);
+      }
+    }
+  }
+
+  private void handleCdsrDuplicates(
+      List<CompleteDataSetRegistration> sourceCdsrDuplicates,
+      Map<String, CompleteDataSetRegistration> targetCdsr,
+      CategoryOptionCombo target,
+      List<CategoryOptionCombo> sources) {
+    // group CompleteDataSetRegistration by key, so we can deal with each duplicate correctly
+    Map<String, List<CompleteDataSetRegistration>> sourceCdsrGroupedByKey =
+        sourceCdsrDuplicates.stream().collect(Collectors.groupingBy(getCdsrKey));
+
+    // filter groups down to single CDSR with latest date
+    List<CompleteDataSetRegistration> filtered =
+        sourceCdsrGroupedByKey.values().stream()
+            .map(
+                ls ->
+                    Collections.max(
+                        ls, Comparator.comparing(CompleteDataSetRegistration::getLastUpdated)))
+            .toList();
+
+    for (CompleteDataSetRegistration source : filtered) {
+      CompleteDataSetRegistration matchingTargetCdsr = targetCdsr.get(getCdsrKey.apply(source));
+
+      if (matchingTargetCdsr.getLastUpdated().before(source.getLastUpdated())) {
+        completeDataSetRegistrationStore.deleteCompleteDataSetRegistration(matchingTargetCdsr);
+
+        CompleteDataSetRegistration copyWithNewRef =
+            CompleteDataSetRegistration.copyWithNewAttributeOptionCombo(source, target);
+        completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(copyWithNewRef);
+      }
+    }
+
+    // delete the rest of the source CDSRs after handling the last update duplicate
+    completeDataSetRegistrationStore.deleteByCategoryOptionCombo(sources);
+  }
+
+  /**
+   * Handles non duplicate CompleteDataSetRegistrations. As CompleteDataSetRegistration has a
+   * composite primary key which includes CategoryOptionCombo, this cannot be updated. A new copy of
+   * the CompleteDataSetRegistration is required, which uses the target CompleteDataSetRegistration
+   * as the new ref.
+   *
+   * @param sourceCdsr sources to handle
+   * @param target target to use as new ref in copy
+   */
+  private void handleCdsrNonDuplicates(
+      List<CompleteDataSetRegistration> sourceCdsr, CategoryOptionCombo target) {
+    sourceCdsr.forEach(
+        cdsr -> {
+          CompleteDataSetRegistration copyWithNewAoc =
+              CompleteDataSetRegistration.copyWithNewAttributeOptionCombo(cdsr, target);
+          completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(copyWithNewAoc);
+        });
+
+    sourceCdsr.forEach(completeDataSetRegistrationStore::deleteCompleteDataSetRegistration);
   }
 
   /**
@@ -327,4 +413,15 @@ public class DataCategoryOptionComboMergeHandler {
 
   private static final BiPredicate<DataValue, Map<String, DataValue>> aocDataValueDuplicates =
       (sourceDv, targetDvs) -> targetDvs.containsKey(getAocDataValueKey.apply(sourceDv));
+
+  private static final Function<CompleteDataSetRegistration, String> getCdsrKey =
+      cdsr ->
+          String.valueOf(cdsr.getPeriod().getId())
+              + cdsr.getSource().getId()
+              + cdsr.getDataSet().getId();
+
+  private static final BiPredicate<
+          CompleteDataSetRegistration, Map<String, CompleteDataSetRegistration>>
+      cdsrDuplicates =
+          (sourceCdsr, targetCdsr) -> targetCdsr.containsKey(getCdsrKey.apply(sourceCdsr));
 }

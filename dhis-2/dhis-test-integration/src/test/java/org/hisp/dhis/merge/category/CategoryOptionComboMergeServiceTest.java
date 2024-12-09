@@ -61,6 +61,9 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -123,6 +126,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
   @Autowired private DataValueStore dataValueStore;
+  @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
@@ -153,6 +157,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private DataElement de2;
   private DataElement de3;
   private Program program;
+  private Period p1;
+  private Period p2;
+  private Period p3;
 
   @BeforeEach
   public void setUp() {
@@ -209,6 +216,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     program = createProgram('q');
     manager.save(program);
+
+    p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
   }
 
   // -----------------------------
@@ -549,11 +566,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("SMSCode refs to source CategoryOptionCombos are replaced, sources deleted")
   void smsCodeRefsReplacedSourcesDeletedTest() throws ConflictException {
-    //    DataElement de1 = createDataElement('1');
-    //    DataElement de2 = createDataElement('2');
-    //    DataElement de3 = createDataElement('3');
-    //    manager.save(List.of(de1, de2, de3));
-
     SMSCode smsCode1 = new SMSCode();
     smsCode1.setDataElement(de1);
     smsCode1.setOptionId(cocSource1);
@@ -613,16 +625,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Non-duplicate DataValues with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
   void dataValueMergeCocLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocSource2, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
@@ -661,10 +663,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Duplicate DataValues with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
   void duplicateDataValueMergeCocLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
     // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
     DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
     dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
@@ -712,16 +710,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source COCs are replaced with target COC using DISCARD strategy")
   void dataValueMergeCocDiscardTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocSource2, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
@@ -760,16 +748,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source COCs are replaced with target COC, source COCs are deleted")
   void dataValueMergeCocSourcesDeletedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocSource2, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
@@ -810,16 +788,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Non-duplicate DataValues with references to source AOCs are replaced with target AOC using LAST_UPDATED strategy")
   void dataValueMergeAocLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocSource2, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
@@ -858,10 +826,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Duplicate DataValues with references to source AOCs are replaced with target AOC using LAST_UPDATED strategy")
   void duplicateDataValueAocMergeLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
     // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
     DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
     dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
@@ -909,16 +873,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source AOCs are replaced with target AOC using DISCARD strategy")
   void dataValueMergeAocDiscardTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocSource2, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
@@ -957,16 +911,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source AOCs are replaced with target AOC, source AOCs are deleted")
   void dataValueMergeAocSourcesDeletedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocSource1, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocSource2, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
@@ -1007,10 +951,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValueAudits with references to source COCs are not changed or deleted when sources not deleted")
   void dataValueAuditMergeTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
     DataValueAudit dva1 = createDataValueAudit(cocSource1, "1", p1);
     DataValueAudit dva2 = createDataValueAudit(cocSource1, "2", p1);
     DataValueAudit dva3 = createDataValueAudit(cocSource2, "1", p1);
@@ -1053,10 +993,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValueAudits with references to source COCs are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
     DataValueAudit dva1 = createDataValueAudit(cocSource1, "1", p1);
     DataValueAudit dva2 = createDataValueAudit(cocSource1, "2", p1);
     DataValueAudit dva3 = createDataValueAudit(cocSource2, "1", p1);
@@ -1111,14 +1047,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     level2.setName("DAL2");
     manager.save(level2);
 
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
-    Period p2 = createPeriod(DateUtils.parseDate("2023-1-4"), DateUtils.parseDate("2023-1-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p2);
-
     DataApprovalWorkflow daw = new DataApprovalWorkflow();
     daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw.setName("DAW");
@@ -1168,10 +1096,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dataApprovalLevel.setLevel(1);
     dataApprovalLevel.setName("DAL");
     manager.save(dataApprovalLevel);
-
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
 
     DataApprovalWorkflow daw = new DataApprovalWorkflow();
     daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
@@ -1223,16 +1147,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Non-duplicate DataApprovals with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
   void dataApprovalMergeCocLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataApprovalLevel level1 = new DataApprovalLevel();
     level1.setLevel(1);
     level1.setName("DAL1");
@@ -1303,16 +1217,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy, target has latest lastUpdated value")
   void duplicateDataApprovalMergeCocLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataApprovalLevel level1 = new DataApprovalLevel();
     level1.setLevel(1);
     level1.setName("DAL1");
@@ -1403,16 +1307,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Duplicate & non-duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy")
   void duplicateAndNonDuplicateDataApprovalMergeTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataApprovalLevel level1 = new DataApprovalLevel();
     level1.setLevel(1);
     level1.setName("DAL1");
@@ -1503,16 +1397,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Duplicate DataApprovals are replaced with target COC using LAST_UPDATED strategy, sources have latest lastUpdated value")
   void duplicateDataApprovalSourceLastUpdatedTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataApprovalLevel level1 = new DataApprovalLevel();
     level1.setLevel(1);
     level1.setName("DAL1");
@@ -1603,16 +1487,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataApprovals with references to source COCs are deleted when using DISCARD strategy")
   void dataApprovalMergeCocDiscardTest() throws ConflictException {
     // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
     DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
     DataValue dv2 = createDataValue(de2, p2, ou1, cocSource2, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
@@ -1736,6 +1610,283 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "source COC should not be present");
+  }
+
+  // --------------------------------
+  // --CompleteDataSetRegistration--
+  // --------------------------------
+  @Test
+  @DisplayName(
+      "CompleteDataSetRegistration with references to source COCs are deleted when using DISCARD strategy")
+  void cdsrMergeCocDiscardTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1');
+    ds1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds1);
+
+    CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocSource1);
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p1, cocSource2);
+    CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
+    CompleteDataSetRegistration cdsr4 = createCdsr(ds1, ou1, p1, cocRandom);
+    completeDataSetRegistrationStore.saveCompleteDataSetRegistration(cdsr1);
+    completeDataSetRegistrationStore.saveCompleteDataSetRegistration(cdsr2);
+    completeDataSetRegistrationStore.saveCompleteDataSetRegistration(cdsr3);
+    completeDataSetRegistrationStore.saveCompleteDataSetRegistration(cdsr4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<CompleteDataSetRegistration> sourceItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
+            UID.of(cocSource1, cocSource2));
+    List<CompleteDataSetRegistration> targetItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "CompleteDataSetRegistration with references to source COCs are merged when using LAST_UPDATED strategy, no duplicates")
+  void cdsrMergeNoDuplicatesTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1');
+    ds1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds1);
+
+    DataSet ds2 = createDataSet('2');
+    ds2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds2);
+
+    CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocSource1);
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds2, ou1, p3, cocSource2);
+    CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou3, p2, cocTarget);
+    CompleteDataSetRegistration cdsr4 = createCdsr(ds2, ou2, p1, cocRandom);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr1);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr2);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr3);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<CompleteDataSetRegistration> sourceItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
+            UID.of(cocSource1, cocSource2));
+    List<CompleteDataSetRegistration> targetItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(3, targetItems.size(), "Expect 3 entries with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Merge CompleteDataSetRegistration with references to source COCs, using LAST_UPDATED strategy, with duplicates, target has latest lastUpdated")
+  void cdsrMergeDuplicatesTargetLastUpdatedTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1');
+    ds1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds1);
+
+    DataSet ds2 = createDataSet('2');
+    ds2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds2);
+
+    CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocSource1);
+    cdsr1.setLastUpdated(DateUtils.parseDate("2024-11-01"));
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p1, cocSource2);
+    cdsr2.setLastUpdated(DateUtils.parseDate("2024-10-01"));
+    CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
+    cdsr3.setLastUpdated(DateUtils.parseDate("2024-12-05"));
+    CompleteDataSetRegistration cdsr4 = createCdsr(ds2, ou2, p1, cocRandom);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr1);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr2);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr3);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<CompleteDataSetRegistration> sourceItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
+            UID.of(cocSource1, cocSource2));
+    List<CompleteDataSetRegistration> targetItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entries with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(
+        Set.of("2024-12-05"),
+        targetItems.stream()
+            .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
+            .collect(Collectors.toSet()),
+        "target items should contain target Data Approvals lastUpdated dates");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Merge CompleteDataSetRegistration with references to source COCs, using LAST_UPDATED strategy, with duplicates, sources have latest lastUpdated")
+  void cdsrMergeDuplicatesSourcesLastUpdatedTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1');
+    ds1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds1);
+
+    DataSet ds2 = createDataSet('2');
+    ds2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds2);
+
+    CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocSource1);
+    cdsr1.setLastUpdated(DateUtils.parseDate("2024-10-01"));
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p1, cocSource2);
+    cdsr2.setLastUpdated(DateUtils.parseDate("2024-11-01"));
+    CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
+    cdsr3.setLastUpdated(DateUtils.parseDate("2024-05-05"));
+    CompleteDataSetRegistration cdsr4 = createCdsr(ds2, ou2, p1, cocRandom);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr1);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr2);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr3);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<CompleteDataSetRegistration> sourceItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
+            UID.of(cocSource1, cocSource2));
+    List<CompleteDataSetRegistration> targetItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entries with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(
+        Set.of("2024-11-01"),
+        targetItems.stream()
+            .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
+            .collect(Collectors.toSet()),
+        "target items should contain source registration lastUpdated dates");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Merge CompleteDataSetRegistration with references to source COCs, using LAST_UPDATED strategy, with duplicates & non-duplicates")
+  void cdsrMergeDuplicatesNonDuplicatesTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1');
+    ds1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds1);
+
+    DataSet ds2 = createDataSet('2');
+    ds2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    manager.save(ds2);
+
+    CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocSource1);
+    cdsr1.setLastUpdated(DateUtils.parseDate("2024-10-01"));
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds2, ou2, p1, cocSource2);
+    cdsr2.setLastUpdated(DateUtils.parseDate("2024-11-11"));
+    CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
+    cdsr3.setLastUpdated(DateUtils.parseDate("2024-12-05"));
+    CompleteDataSetRegistration cdsr4 = createCdsr(ds2, ou2, p1, cocRandom);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr1);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr2);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr3);
+    completeDataSetRegistrationStore.saveWithoutUpdatingLastUpdated(cdsr4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then
+    List<CompleteDataSetRegistration> sourceItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
+            UID.of(cocSource1, cocSource2));
+    List<CompleteDataSetRegistration> targetItems =
+        completeDataSetRegistrationStore.getAllByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC ref only");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(
+        Set.of("2024-12-05", "2024-11-11"),
+        targetItems.stream()
+            .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
+            .collect(Collectors.toSet()),
+        "target items should contain target & source registration lastUpdated dates");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  private CompleteDataSetRegistration createCdsr(
+      DataSet ds, OrganisationUnit ou, Period p, CategoryOptionCombo coc) {
+    CompleteDataSetRegistration cdsr = new CompleteDataSetRegistration();
+    cdsr.setSource(ou);
+    cdsr.setAttributeOptionCombo(coc);
+    cdsr.setPeriod(p);
+    cdsr.setDataSet(ds);
+    cdsr.setCompleted(true);
+    return cdsr;
   }
 
   private MergeParams getMergeParams() {

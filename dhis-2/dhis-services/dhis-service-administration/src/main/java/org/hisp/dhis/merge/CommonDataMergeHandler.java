@@ -43,7 +43,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
@@ -176,16 +175,4 @@ public class CommonDataMergeHandler {
       @Nonnull BiPredicate<DataValue, Map<String, DataValue>> dvDuplicatePredicate,
       @Nonnull BiFunction<DataValue, BaseIdentifiableObject, DataValue> newDataValueFromOld,
       @Nonnull Function<DataValue, String> dataValueKey) {}
-
-  public record DataApprovalMergeParams<T extends BaseIdentifiableObject>(
-      @Nonnull MergeRequest mergeRequest,
-      @Nonnull List<T> sources,
-      @Nonnull T target,
-      @Nonnull List<DataApproval> sourceDataApprovals,
-      @Nonnull Map<String, DataApproval> targetDataApprovals,
-      @Nonnull Consumer<Collection<T>> daStoreDelete,
-      @Nonnull BiPredicate<DataApproval, Map<String, DataApproval>> daDuplicatePredicate,
-      @Nonnull
-          BiFunction<DataApproval, BaseIdentifiableObject, DataApproval> newDataApprovalFromOld,
-      @Nonnull Function<DataApproval, String> dataApprovalKey) {}
 }
