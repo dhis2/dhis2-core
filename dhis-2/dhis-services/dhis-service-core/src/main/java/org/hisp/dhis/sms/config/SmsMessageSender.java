@@ -57,6 +57,7 @@ import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -97,12 +98,15 @@ public class SmsMessageSender implements MessageSender {
 
   private final SystemSettingManager systemSettingManager;
 
+  private final AuthenticationService authenticationService;
+
   public SmsMessageSender(
       GatewayAdministrationService gatewayAdminService,
       List<SmsGateway> smsGateways,
       UserSettingService userSettingService,
       OutboundSmsService outboundSmsService,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingManager systemSettingManager,
+      AuthenticationService authenticationService) {
 
     Preconditions.checkNotNull(gatewayAdminService);
     Preconditions.checkNotNull(smsGateways);
@@ -110,12 +114,14 @@ public class SmsMessageSender implements MessageSender {
     Preconditions.checkNotNull(userSettingService);
     Preconditions.checkState(!smsGateways.isEmpty());
     Preconditions.checkNotNull(systemSettingManager);
+    Preconditions.checkNotNull(authenticationService);
 
     this.gatewayAdminService = gatewayAdminService;
     this.smsGateways = smsGateways;
     this.userSettingService = userSettingService;
     this.outboundSmsService = outboundSmsService;
     this.systemSettingManager = systemSettingManager;
+    this.authenticationService = authenticationService;
   }
 
   // -------------------------------------------------------------------------
@@ -330,8 +336,12 @@ public class SmsMessageSender implements MessageSender {
       status.setOk(false);
       sms.setStatus(OutboundSmsStatus.FAILED);
     }
-
-    outboundSmsService.save(sms);
+    try {
+      authenticationService.obtainSystemAuthentication();
+      outboundSmsService.save(sms);
+    } finally {
+      authenticationService.clearAuthentication();
+    }
     status.setDescription(gatewayResponse.getResponseMessage());
     status.setResponseObject(gatewayResponse);
   }
