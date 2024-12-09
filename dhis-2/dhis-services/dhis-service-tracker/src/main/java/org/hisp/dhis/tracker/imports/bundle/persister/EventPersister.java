@@ -194,11 +194,11 @@ public class EventPersister
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            eventChangeLogService.addDataValueChangeLog(
+            eventChangeLogService.addEventChangeLog(
                 event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            eventChangeLogService.addDataValueChangeLog(
+            eventChangeLogService.addEventChangeLog(
                 event,
                 dataElement,
                 dbDataValue.getValue(),
@@ -208,7 +208,7 @@ public class EventPersister
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            eventChangeLogService.addDataValueChangeLog(
+            eventChangeLogService.addEventChangeLog(
                 event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }

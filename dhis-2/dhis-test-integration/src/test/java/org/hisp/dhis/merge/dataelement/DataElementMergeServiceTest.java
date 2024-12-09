@@ -2663,7 +2663,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addEventChangeLog(Event event, DataElement dataElement, String currentValue) {
-    eventChangeLogService.addDataValueChangeLog(
+    eventChangeLogService.addEventChangeLog(
         event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
