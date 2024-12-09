@@ -31,7 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +42,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -113,8 +116,9 @@ class SystemSettingsTest {
     assertFalse(booleanValue.as(JsonBoolean.class).booleanValue());
     JsonString dateValue = asJson.get("keyLastMetaDataSyncSuccess");
     assertTrue(dateValue.isString());
-    assertEquals("1970-01-01T", dateValue.string().substring(0, 11));
-    assertEquals(":00:00.000", dateValue.string().substring(13));
+    assertEquals(
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneId.systemDefault()),
+        dateValue.as(JsonDate.class).date());
     JsonString enumValue = asJson.get("keyCacheStrategy");
     assertTrue(enumValue.isString());
     assertEquals(CacheStrategy.CACHE_1_MINUTE, enumValue.parsed(CacheStrategy::valueOf));
