@@ -169,7 +169,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams}.
    * @param maxLimit the configurable max limit of records.
    */
-  private String getPagingClause(EventQueryParams params, int maxLimit) {
+  protected String getPagingClause(EventQueryParams params, int maxLimit) {
     String sql = "";
 
     if (params.isPaging()) {

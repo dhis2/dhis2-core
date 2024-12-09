@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -42,6 +43,8 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,6 +67,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
@@ -76,6 +80,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -139,17 +144,22 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql =
-        params.isAggregatedEnrollments()
-            ? getAggregatedEnrollmentsSql(grid.getHeaders(), params)
-            : getAggregatedEnrollmentsSql(params, maxLimit);
+    String sql;
+    if (params.isAggregatedEnrollments()) {
+      sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
+    } else if (true) {  // We need to add this method to EventQueryParams
+      sql = buildEnrollmentQueryWithCTE(params, params.getItems().get(0));  // Handle first item like original
+    } else {
+      sql = getAggregatedEnrollmentsSql(params, maxLimit);
+    }
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
-          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
+              () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
     } else {
       withExceptionHandling(
-          () -> getEnrollments(params, grid, sql, maxLimit == 0), params.isMultipleQueries());
+              () -> getEnrollments(params, grid, sql, maxLimit == 0),
+              params.isMultipleQueries());
     }
   }
 
@@ -787,5 +797,113 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "asc");
     }
+  }
+
+  // New methods //
+
+  private String getLatestEventsCTE(EventQueryParams params, QueryItem item) {
+    String eventTableName = "analytics_event_" + params.getProgram().getUid().toLowerCase();
+    String excludingScheduledCondition = "eventstatus != 'SCHEDULE'";
+
+    return String.format(
+            "with LatestEvents as ( " +
+                    "select enrollment, " +
+                    "%s as value, " +  // will contain the data element column
+                    "eventstatus, " +
+                    "row_number() over (partition by enrollment order by occurreddate desc, created desc) as rn " +
+                    "from %s " +
+                    "where %s " +
+                    "and ps = '%s' " +
+                    ") ",
+            getColumnName(item),
+            eventTableName,
+            excludingScheduledCondition,
+            item.getProgramStage().getUid()
+    );
+  }
+
+  private String getEventDataClauseWithCTE(QueryItem item) {
+    String column = item.getItem().getUid();
+    String programStage = item.getProgramStage().getUid();
+
+    return String.format(
+            "le.value as \"%s.%s\", " +
+                    "(le.value is not null) as \"%s.%s.exists\", " +
+                    "le.eventstatus as \"%s.%s.status\"",
+            programStage, column,
+            programStage, column,
+            programStage, column
+    );
+  }
+
+  private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
+    String enrollmentTable = "analytics_enrollment_" + params.getProgram().getUid().toLowerCase();
+    
+    String sql = getLatestEventsCTE(params, item) +
+            "select ax.enrollment, " +
+            "ax.trackedentity, " +
+            "ax.enrollmentdate, " +
+            "ax.occurreddate, " +
+            "ax.storedby, " +
+            "ax.createdbydisplayname, " +
+            "ax.lastupdatedbydisplayname, " +
+            "ax.lastupdated, " +
+            "ax.enrollmentgeometry, " +
+            "ax.longitude, " +
+            "ax.latitude, " +
+            "ax.ouname, " +
+            "ax.ounamehierarchy, " +
+            "ax.oucode, " +
+            "ax.enrollmentstatus, " +
+            "ax.ou, " +
+            getEventDataClauseWithCTE(item) + " " +
+            String.format("from %s as ax ", enrollmentTable) +
+            "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = 1 " +
+            "where " + getWhereClauseWithCTE(params, item);
+
+    // Add paging
+    sql += getPagingClause(params, 5000); //maxlimit
+
+    return sql;
+  }
+
+  private String getColumnName(QueryItem item) {
+    if (item.getItem() == null) {
+      throw new IllegalQueryException("Item cannot be null");
+    }
+
+    // For data elements, we use the UID directly
+    if (item.getItem().getDimensionItemType() == DATA_ELEMENT) {
+      return sqlBuilder.quote(item.getItem().getUid());
+    }
+
+
+    throw new IllegalQueryException(
+            String.format("Item type '%s' not supported for CTE queries",
+                    item.getItem().getDimensionItemType()));
+  }
+
+  private String getWhereClauseWithCTE(EventQueryParams params, QueryItem item) {
+    List<String> conditions = new ArrayList<>();
+
+    // Date range conditions
+    if (params.getStartDate() != null && params.getEndDate() != null) {
+      conditions.add(String.format(
+              "ax.enrollmentdate >= '%s' and ax.enrollmentdate < '%s'",
+              DateUtils.toMediumDate(params.getStartDate()),
+              DateUtils.toMediumDate(params.getEndDate())
+      ));
+    }
+
+    // Organization unit conditions
+    if (!params.getOrganisationUnits().isEmpty()) {
+      String orgUnit = params.getOrganisationUnits().get(0).getUid();
+      conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
+    }
+
+    // Value conditions - similar to your example
+    conditions.add("le.value is null and (le.enrollment is not null)");
+
+    return String.join(" and ", conditions);
   }
 }
