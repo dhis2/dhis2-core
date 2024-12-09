@@ -142,7 +142,7 @@ public class TwoFactorAuthService {
    *     email based 2FA code sent to the user's email address.
    */
   @Transactional
-  public void enable2FA(@Nonnull String username, @Nonnull String code)
+  public void enable2FA(@Nonnull String username, @Nonnull String code, UserDetails currentUser)
       throws ConflictException, ForbiddenException {
     User user = userService.getUserByUsername(username);
     if (user == null) {
@@ -154,18 +154,12 @@ public class TwoFactorAuthService {
     if (!user.getTwoFactorType().isEnrolling()) {
       throw new ConflictException(ErrorCode.E3029);
     }
-
     if (isInvalid2FACode(user, code)) {
       throw new ForbiddenException(ErrorCode.E3023);
     }
 
-    setEnabled2FA(user.getUsername(), CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  public void setEnabled2FA(@Nonnull String username, @Nonnull UserDetails actingUser) {
-    User user = userService.getUserByUsername(username);
     user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
-    userService.updateUser(user, actingUser);
+    userService.updateUser(user, currentUser);
   }
 
   /**
@@ -273,6 +267,7 @@ public class TwoFactorAuthService {
   public record Email2FACode(String code, String encodedCode) {}
 
   @Nonnull
+  @NonTransactional
   public static Email2FACode generateEmail2FACode() {
     String code = new String(CodeGenerator.generateSecureRandomNumber(6));
     String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);

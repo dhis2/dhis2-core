@@ -259,7 +259,11 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     newUser.setEmail("valid.y@email.com");
     userService.addUser(newUser);
     twoFactorAuthService.enrollTOTP2FA(newUser.getUsername());
-    twoFactorAuthService.setEnabled2FA(newUser.getUsername(), new SystemUser());
+
+    User user = userService.getUserByUsername(newUser.getUsername());
+    user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
+    userService.updateUser(user, new SystemUser());
+
     switchToNewUser(newUser);
 
     String code = new Totp(newUser.getSecret()).now();
@@ -275,7 +279,11 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     newUser.setVerifiedEmail("valid.y@email.com");
     userService.addUser(newUser);
     twoFactorAuthService.enrollEmail2FA(newUser.getUsername());
-    twoFactorAuthService.setEnabled2FA(newUser.getUsername(), new SystemUser());
+
+    User user = userService.getUserByUsername(newUser.getUsername());
+    user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
+    userService.updateUser(user, new SystemUser());
+
     switchToNewUser(newUser);
 
     User enabledUser = userService.getUserByUsername(newUser.getUsername());

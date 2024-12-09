@@ -168,7 +168,7 @@ public class TwoFactorController {
     if (Strings.isNullOrEmpty(code)) {
       throw new ConflictException(ErrorCode.E3050);
     }
-    twoFactorAuthService.enable2FA(currentUser.getUsername(), code);
+    twoFactorAuthService.enable2FA(currentUser.getUsername(), code, currentUser);
     return ok("2FA was enabled successfully");
   }
 

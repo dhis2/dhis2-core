@@ -4,5 +4,5 @@ ALTER TABLE userinfo
 
 -- Set all existing users to have the default twofactortype TOTP, if the secret column is not empty.
 UPDATE userinfo
-SET twofactortype = 'TOTP'
+SET twofactortype = 'TOTP_ENABLED'
 WHERE secret IS NOT NULL;
