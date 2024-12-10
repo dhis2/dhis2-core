@@ -646,13 +646,18 @@ class JdbcEventAnalyticsTableManagerTest {
     String ouNameQuery =
         String.format(
             """
-            (select ou.name from "organisationunit" ou where ou.uid = \
-            (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999)) as %s""",
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
             quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouUidQuery));
     assertThat(sql.getValue(), containsString(ouNameQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
   }
 
   @Test
