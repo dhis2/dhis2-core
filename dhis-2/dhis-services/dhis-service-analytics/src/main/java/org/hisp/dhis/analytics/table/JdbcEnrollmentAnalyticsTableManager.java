@@ -150,7 +150,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
             ${attributeJoinClause}\
-            where pr.programid=${programId} \
+            where pr.programid = ${programId} \
             and en.organisationunitid is not null \
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and en.lastupdated <= '${startTime}' \
