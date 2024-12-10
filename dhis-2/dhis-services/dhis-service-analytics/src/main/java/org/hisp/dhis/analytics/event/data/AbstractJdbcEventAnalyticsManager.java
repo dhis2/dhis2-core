@@ -1173,7 +1173,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return joinSql(conditions.collect(toList()), joiner);
   }
 
-  private String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+  protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
