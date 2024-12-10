@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.audit.TrackerAuditType.READ;
-import static org.hisp.dhis.audit.TrackerAuditType.SEARCH;
+import static org.hisp.dhis.audit.AuditOperationType.READ;
+import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 

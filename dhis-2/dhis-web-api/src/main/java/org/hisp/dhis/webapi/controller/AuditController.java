@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.Audit;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -174,7 +174,7 @@ public class AuditController {
           String co,
       @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
           String cc,
-      @RequestParam(required = false) List<TrackerAuditType> auditType,
+      @RequestParam(required = false) List<AuditOperationType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -194,7 +194,7 @@ public class AuditController {
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
     CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
     CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
-    List<TrackerAuditType> trackerAuditTypes = emptyIfNull(auditType);
+    List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
 
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
@@ -203,7 +203,7 @@ public class AuditController {
             .setOrgUnits(organisationUnits)
             .setCategoryOptionCombo(categoryOptionCombo)
             .setAttributeOptionCombo(attributeOptionCombo)
-            .setAuditTypes(trackerAuditTypes);
+            .setAuditTypes(auditOperationTypes);
 
     List<DataValueAudit> dataValueAudits;
     Pager pager = null;
@@ -223,7 +223,7 @@ public class AuditController {
                   .setOrgUnits(organisationUnits)
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
-                  .setAuditTypes(trackerAuditTypes)
+                  .setAuditTypes(auditOperationTypes)
                   .setPager(pager));
     }
 
@@ -314,7 +314,7 @@ public class AuditController {
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<TrackerAuditType> auditType,
+      @RequestParam(required = false) List<AuditOperationType> auditType,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) Boolean skipPaging,
@@ -328,7 +328,7 @@ public class AuditController {
       fields.addAll(FieldPreset.ALL.getFields());
     }
 
-    List<TrackerAuditType> trackerAuditTypes = emptyIfNull(auditType);
+    List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
 
     Set<UID> teUids =
         validateDeprecatedUidsParameter(
@@ -338,7 +338,7 @@ public class AuditController {
         new TrackedEntityAuditQueryParams()
             .setTrackedEntities(UID.toValueList(teUids))
             .setUsers(user)
-            .setAuditTypes(trackerAuditTypes)
+            .setAuditTypes(auditOperationTypes)
             .setStartDate(startDate)
             .setEndDate(endDate);
 
@@ -377,7 +377,7 @@ public class AuditController {
           @RequestParam(required = false, defaultValue = "")
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<TrackerAuditType> auditType,
+      @RequestParam(required = false) List<AuditOperationType> auditType,
       @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) Date endDate,
       @RequestParam(required = false) Boolean skipPaging,
@@ -390,13 +390,13 @@ public class AuditController {
       fields.addAll(FieldPreset.ALL.getFields());
     }
 
-    List<TrackerAuditType> trackerAuditTypes = emptyIfNull(auditType);
+    List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
 
     TrackedEntityAuditQueryParams params =
         new TrackedEntityAuditQueryParams()
             .setTrackedEntities(UID.toValueList(trackedEntities))
             .setUsers(user)
-            .setAuditTypes(trackerAuditTypes)
+            .setAuditTypes(auditOperationTypes)
             .setStartDate(startDate)
             .setEndDate(endDate);
 

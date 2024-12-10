@@ -30,7 +30,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
@@ -134,7 +134,8 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
     }
 
     // case if the audit trail started out with DELETE
-    if (dataValueAudits.get(dataValueAudits.size() - 1).getAuditType() == TrackerAuditType.DELETE) {
+    if (dataValueAudits.get(dataValueAudits.size() - 1).getAuditType()
+        == AuditOperationType.DELETE) {
       DataValueAudit valueAudit = createDataValueAudit(dataValue);
       valueAudit.setValue(dataValueAudits.get(dataValueAudits.size() - 1).getValue());
       dataValueAudits.add(valueAudit);
@@ -142,14 +143,14 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
 
     // unless top is CREATE, inject current DV as audit on top
     if (!dataValue.isDeleted()
-        && dataValueAudits.get(0).getAuditType() != TrackerAuditType.CREATE) {
+        && dataValueAudits.get(0).getAuditType() != AuditOperationType.CREATE) {
       DataValueAudit dataValueAudit = createDataValueAudit(dataValue);
-      dataValueAudit.setAuditType(TrackerAuditType.UPDATE);
+      dataValueAudit.setAuditType(AuditOperationType.UPDATE);
       dataValueAudit.setCreated(dataValue.getLastUpdated());
       dataValueAudits.add(0, dataValueAudit);
     }
 
-    dataValueAudits.get(dataValueAudits.size() - 1).setAuditType(TrackerAuditType.CREATE);
+    dataValueAudits.get(dataValueAudits.size() - 1).setAuditType(AuditOperationType.CREATE);
 
     return dataValueAudits;
   }
@@ -157,7 +158,7 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
   private static DataValueAudit createDataValueAudit(DataValue dataValue) {
     DataValueAudit dataValueAudit =
         new DataValueAudit(
-            dataValue, dataValue.getValue(), dataValue.getStoredBy(), TrackerAuditType.CREATE);
+            dataValue, dataValue.getValue(), dataValue.getStoredBy(), AuditOperationType.CREATE);
     dataValueAudit.setCreated(dataValue.getCreated());
 
     return dataValueAudit;

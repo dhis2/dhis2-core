@@ -31,7 +31,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -141,10 +141,10 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   void testAddGetDataValueAuditFromDataValue() {
     DataValueAudit dataValueAuditA =
         new DataValueAudit(
-            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
     DataValueAudit dataValueAuditB =
         new DataValueAudit(
-            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditOperationType.UPDATE);
     dataValueAuditService.addDataValueAudit(dataValueAuditA);
     dataValueAuditService.addDataValueAudit(dataValueAuditB);
 
@@ -156,10 +156,10 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   void testAddGetDataValueAuditSingleRecord() {
     DataValueAudit dataValueAuditA =
         new DataValueAudit(
-            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
     DataValueAudit dataValueAuditB =
         new DataValueAudit(
-            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditOperationType.UPDATE);
     dataValueAuditService.addDataValueAudit(dataValueAuditA);
     dataValueAuditService.addDataValueAudit(dataValueAuditB);
 
@@ -179,16 +179,16 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   void testGetDataValueAudit() {
     DataValueAudit dvaA =
         new DataValueAudit(
-            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
     DataValueAudit dvaB =
         new DataValueAudit(
-            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditOperationType.UPDATE);
     DataValueAudit dvaC =
         new DataValueAudit(
-            dataValueC, dataValueC.getValue(), dataValueC.getStoredBy(), TrackerAuditType.CREATE);
+            dataValueC, dataValueC.getValue(), dataValueC.getStoredBy(), AuditOperationType.CREATE);
     DataValueAudit dvaD =
         new DataValueAudit(
-            dataValueD, dataValueD.getValue(), dataValueD.getStoredBy(), TrackerAuditType.DELETE);
+            dataValueD, dataValueD.getValue(), dataValueD.getStoredBy(), AuditOperationType.DELETE);
     dataValueAuditService.addDataValueAudit(dvaA);
     dataValueAuditService.addDataValueAudit(dvaB);
     dataValueAuditService.addDataValueAudit(dvaC);
@@ -200,7 +200,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             .setPeriods(List.of(periodA))
             .setOrgUnits(List.of(orgUnitA))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(TrackerAuditType.UPDATE));
+            .setAuditTypes(List.of(AuditOperationType.UPDATE));
 
     assertContainsOnly(List.of(dvaA), dataValueAuditService.getDataValueAudits(params));
 
@@ -210,17 +210,17 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             .setPeriods(List.of(periodA, periodB))
             .setOrgUnits(List.of(orgUnitA, orgUnitB))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(TrackerAuditType.UPDATE));
+            .setAuditTypes(List.of(AuditOperationType.UPDATE));
 
     assertContainsOnly(List.of(dvaA, dvaB), dataValueAuditService.getDataValueAudits(params));
 
-    params = new DataValueAuditQueryParams().setAuditTypes(List.of(TrackerAuditType.CREATE));
+    params = new DataValueAuditQueryParams().setAuditTypes(List.of(AuditOperationType.CREATE));
 
     assertContainsOnly(List.of(dvaC), dataValueAuditService.getDataValueAudits(params));
 
     params =
         new DataValueAuditQueryParams()
-            .setAuditTypes(List.of(TrackerAuditType.CREATE, TrackerAuditType.DELETE));
+            .setAuditTypes(List.of(AuditOperationType.CREATE, AuditOperationType.DELETE));
 
     assertContainsOnly(List.of(dvaC, dvaD), dataValueAuditService.getDataValueAudits(params));
   }
@@ -229,16 +229,16 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   void testGetDataValueAuditNoResult() {
     DataValueAudit dvaA =
         new DataValueAudit(
-            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditOperationType.UPDATE);
     DataValueAudit dvaB =
         new DataValueAudit(
-            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), TrackerAuditType.UPDATE);
+            dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditOperationType.UPDATE);
     DataValueAudit dvaC =
         new DataValueAudit(
-            dataValueC, dataValueC.getValue(), dataValueC.getStoredBy(), TrackerAuditType.CREATE);
+            dataValueC, dataValueC.getValue(), dataValueC.getStoredBy(), AuditOperationType.CREATE);
     DataValueAudit dvaD =
         new DataValueAudit(
-            dataValueD, dataValueD.getValue(), dataValueD.getStoredBy(), TrackerAuditType.DELETE);
+            dataValueD, dataValueD.getValue(), dataValueD.getStoredBy(), AuditOperationType.DELETE);
     dataValueAuditService.addDataValueAudit(dvaA);
     dataValueAuditService.addDataValueAudit(dvaB);
     dataValueAuditService.addDataValueAudit(dvaC);
@@ -250,7 +250,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             .setPeriods(List.of(periodD))
             .setOrgUnits(List.of(orgUnitA))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(TrackerAuditType.UPDATE));
+            .setAuditTypes(List.of(AuditOperationType.UPDATE));
 
     assertEquals(0, dataValueAuditService.getDataValueAudits(params).size());
   }
@@ -263,7 +263,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             .setPeriods(List.of(periodD))
             .setOrgUnits(List.of(orgUnitA))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(TrackerAuditType.UPDATE));
+            .setAuditTypes(List.of(AuditOperationType.UPDATE));
 
     assertEquals(0, dataValueAuditService.getDataValueAudits(params).size());
 
@@ -272,7 +272,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             dataElementA, periodA, orgUnitA, optionCombo, optionCombo);
 
     assertEquals(1, audits.size());
-    assertEquals(TrackerAuditType.CREATE, audits.get(0).getAuditType());
+    assertEquals(AuditOperationType.CREATE, audits.get(0).getAuditType());
   }
 
   @Test
@@ -285,43 +285,43 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             dataElementA, periodA, orgUnitA, optionCombo, optionCombo);
 
     assertEquals(2, audits.size());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(0).getAuditType());
-    assertEquals(TrackerAuditType.CREATE, audits.get(1).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
+    assertEquals(AuditOperationType.CREATE, audits.get(1).getAuditType());
   }
 
   @Test
   void testGetDataValueAuditWithFakeCreateDeleteAndCreate() {
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValueA, "20", dataValueA.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValueA, "20", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValueA, "30", dataValueA.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValueA, "30", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
             dataElementA, periodA, orgUnitA, optionCombo, optionCombo);
 
     assertEquals(4, audits.size());
-    assertEquals(TrackerAuditType.CREATE, audits.get(3).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(2).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(1).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(0).getAuditType());
+    assertEquals(AuditOperationType.CREATE, audits.get(3).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(2).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(1).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
   }
 
   @Test
   @Disabled
   void testGetDataValueAuditWithFakeCreateDelete2() {
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValueA, "20", dataValueA.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValueA, "20", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValueA, "30", dataValueA.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValueA, "30", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueService.deleteDataValue(dataValueA);
 
@@ -330,10 +330,10 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             dataElementA, periodA, orgUnitA, optionCombo, optionCombo);
 
     assertEquals(4, audits.size());
-    assertEquals(TrackerAuditType.CREATE, audits.get(3).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(2).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(1).getAuditType());
-    assertEquals(TrackerAuditType.DELETE, audits.get(0).getAuditType());
+    assertEquals(AuditOperationType.CREATE, audits.get(3).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(2).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(1).getAuditType());
+    assertEquals(AuditOperationType.DELETE, audits.get(0).getAuditType());
   }
 
   @Test
@@ -347,13 +347,13 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueService.addDataValue(dataValue);
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValue, "10", dataValue.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValue, "10", dataValue.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValue, "20", dataValue.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValue, "20", dataValue.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueAuditService.addDataValueAudit(
-        new DataValueAudit(dataValue, "30", dataValue.getStoredBy(), TrackerAuditType.UPDATE));
+        new DataValueAudit(dataValue, "30", dataValue.getStoredBy(), AuditOperationType.UPDATE));
 
     dataValueService.deleteDataValue(dataValue);
 
@@ -370,11 +370,11 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
             dataElement, periodA, orgUnitA, optionCombo, optionCombo);
 
     assertEquals(6, audits.size());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(0).getAuditType());
-    assertEquals(TrackerAuditType.CREATE, audits.get(1).getAuditType());
-    assertEquals(TrackerAuditType.DELETE, audits.get(2).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(3).getAuditType());
-    assertEquals(TrackerAuditType.UPDATE, audits.get(4).getAuditType());
-    assertEquals(TrackerAuditType.CREATE, audits.get(5).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
+    assertEquals(AuditOperationType.CREATE, audits.get(1).getAuditType());
+    assertEquals(AuditOperationType.DELETE, audits.get(2).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(3).getAuditType());
+    assertEquals(AuditOperationType.UPDATE, audits.get(4).getAuditType());
+    assertEquals(AuditOperationType.CREATE, audits.get(5).getAuditType());
   }
 }

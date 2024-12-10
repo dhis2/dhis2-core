@@ -54,7 +54,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -1314,7 +1314,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(TrackerAuditType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
                         })
             .collect(Collectors.toList()));
   }

@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
@@ -57,13 +57,13 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Async
   @Transactional
   public void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, TrackerAuditType trackerAuditType) {
+      TrackedEntity trackedEntity, String username, AuditOperationType auditOperationType) {
     if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), username, trackerAuditType);
+          new TrackedEntityAudit(trackedEntity.getUid(), username, auditOperationType);
       trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
     }
   }

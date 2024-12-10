@@ -31,7 +31,7 @@ package org.hisp.dhis.audit;
  * @author Halvdan Hoem Grelland
  * @author Luca Cambi split Changelog from Audit
  */
-public enum TrackerAuditType {
+public enum AuditOperationType {
   CREATE,
   UPDATE,
   DELETE,

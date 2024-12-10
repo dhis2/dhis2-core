@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,7 +56,7 @@ public class DataValueAuditQueryParams {
 
   private CategoryOptionCombo attributeOptionCombo;
 
-  private List<TrackerAuditType> auditTypes = new ArrayList<>();
+  private List<AuditOperationType> auditTypes = new ArrayList<>();
 
   private Pager pager;
 

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -128,10 +128,10 @@ class DataValueAuditBatchHandlerTest extends PostgresIntegrationTestBase {
             dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "10");
     dataValueService.addDataValue(dataValueA);
     dataValueService.addDataValue(dataValueB);
-    auditA = new DataValueAudit(dataValueA, "11", storedBy, TrackerAuditType.UPDATE);
-    auditB = new DataValueAudit(dataValueA, "12", storedBy, TrackerAuditType.UPDATE);
-    auditC = new DataValueAudit(dataValueB, "21", storedBy, TrackerAuditType.UPDATE);
-    auditD = new DataValueAudit(dataValueB, "22", storedBy, TrackerAuditType.UPDATE);
+    auditA = new DataValueAudit(dataValueA, "11", storedBy, AuditOperationType.UPDATE);
+    auditB = new DataValueAudit(dataValueA, "12", storedBy, AuditOperationType.UPDATE);
+    auditC = new DataValueAudit(dataValueB, "21", storedBy, AuditOperationType.UPDATE);
+    auditD = new DataValueAudit(dataValueB, "22", storedBy, AuditOperationType.UPDATE);
   }
 
   @Test

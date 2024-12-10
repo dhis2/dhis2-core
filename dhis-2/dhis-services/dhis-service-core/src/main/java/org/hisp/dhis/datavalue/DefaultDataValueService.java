@@ -38,7 +38,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.audit.TrackerAuditType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -143,7 +143,10 @@ public class DefaultDataValueService implements DataValueService {
       if (config.isEnabled(CHANGELOG_AGGREGATE)) {
         DataValueAudit dataValueAudit =
             new DataValueAudit(
-                dataValue, dataValue.getValue(), dataValue.getStoredBy(), TrackerAuditType.CREATE);
+                dataValue,
+                dataValue.getValue(),
+                dataValue.getStoredBy(),
+                AuditOperationType.CREATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -168,7 +171,7 @@ public class DefaultDataValueService implements DataValueService {
                 dataValue,
                 dataValue.getAuditValue(),
                 dataValue.getStoredBy(),
-                TrackerAuditType.UPDATE);
+                AuditOperationType.UPDATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -196,7 +199,7 @@ public class DefaultDataValueService implements DataValueService {
               dataValue,
               dataValue.getAuditValue(),
               CurrentUserUtil.getCurrentUsername(),
-              TrackerAuditType.DELETE);
+              AuditOperationType.DELETE);
 
       dataValueAuditService.addDataValueAudit(dataValueAudit);
     }
