@@ -859,7 +859,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     String selectWithCTE = String.format(
             "%s, " +
                     "le.value as \"%s.%s\", " +
-                    // Changed how we calculate exists to match original behavior
                     "(le.enrollment is not null) as \"%s.%s.exists\", " +
                     "le.eventstatus as \"%s.%s.status\"",
             selectBase,
@@ -868,30 +867,28 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             columnPrefix, item.getItem().getUid()
     );
 
-    // 3. Build the main query
-    String sql = String.format(
-            "%s select %s " +
-                    "from %s as ax " +
-                    "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = %d ",
-            cteClause,
-            selectWithCTE,
-            params.getTableName(),
-            Math.abs(offset) + 1
-    );
+    StringBuilder sql = new StringBuilder();
 
-    // 4. Add where clause
+    // 3. Build the main query
+    sql.append(cteClause)
+            .append(" select ").append(selectWithCTE)
+            .append(" from ").append(params.getTableName()).append(" as ax")
+            .append(" left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = ")
+            .append(Math.abs(offset) + 1);
+
+    // 4. Add where clause - ensure only one WHERE keyword
     String whereClause = getWhereClauseWithCTE(params, item);
     if (!whereClause.isEmpty()) {
-      sql += "where " + whereClause;
+      sql.append(" where ").append(whereClause);
     }
 
     // 5. Add order by
-    sql += getSortClause(params);
+    sql.append(getSortClause(params));
 
     // 6. Add paging
-    sql += " " + getPagingClause(params, 5000);
+    sql.append(" ").append(getPagingClause(params, 5000));
 
-    return sql;
+    return sql.toString();
   }
 
   private String getBasicSelectColumns() {
@@ -956,12 +953,20 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ));
     }
 
-    // Add item filters from the original params
-    String itemFilters = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+    // Replace subquery conditions with CTE equivalents
+    conditions.add("(le.value is null and le.enrollment is not null)");
+
+    // Add any additional filters without the WHERE keyword
+    SqlHelper hlp = new SqlHelper();
+    String itemFilters = getQueryItemsAndFiltersWhereClause(params, hlp)
+            .replaceAll("(?i)\\s*where\\s+and\\s+", "") // Remove "where and"
+            .replaceAll("(?i)\\s*where\\s+", "");       // Remove "where"
+
     if (!itemFilters.isEmpty()) {
       conditions.add(itemFilters);
     }
 
+    // Join all conditions with AND
     return String.join(" and ", conditions);
   }
 
@@ -970,5 +975,32 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return super.getSortClause(params);
     }
     return "";
+  }
+
+  protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper hlp) {
+    if (params.isEnhancedCondition()) {
+      return getItemsSqlForEnhancedConditions(params, hlp);
+    }
+
+    List<String> conditions = new ArrayList<>();
+
+    // Add conditions based on the CTE instead of subqueries
+    for (QueryItem item : params.getItems()) {
+      if (item.hasFilter()) {
+        conditions.add("(le.value is null and le.enrollment is not null)");
+      }
+    }
+
+    for (QueryItem item : params.getItemFilters()) {
+      if (item.hasFilter()) {
+        conditions.add("(le.value is null and le.enrollment is not null)");
+      }
+    }
+
+    if (conditions.isEmpty()) {
+      return "";
+    }
+
+    return conditions.stream().collect(joining(" and "));
   }
 }
