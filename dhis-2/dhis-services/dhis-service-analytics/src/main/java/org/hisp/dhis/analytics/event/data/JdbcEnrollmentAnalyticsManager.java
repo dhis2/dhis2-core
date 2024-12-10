@@ -146,12 +146,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     String sql;
     if (params.isAggregatedEnrollments()) {
       sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
-    } else if (true) {  // We need to add this method to EventQueryParams
-      sql = params.getItems().isEmpty()
-          ? buildEnrollmentQueryWithoutCTE(params)
-          : buildEnrollmentQueryWithCTE(params, params.getItems().get(0));
+    } else if (!params.getItems().isEmpty() && shouldUseCTE(params)) {
+      sql = buildEnrollmentQueryWithCTE(params, params.getItems().get(0));
     } else {
-      sql = getAggregatedEnrollmentsSql(params, maxLimit);
+      sql = buildEnrollmentQueryWithoutCTE(params);
     }
 
     if (params.analyzeOnly()) {
@@ -162,6 +160,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               () -> getEnrollments(params, grid, sql, maxLimit == 0),
               params.isMultipleQueries());
     }
+  }
+
+  private boolean shouldUseCTE(EventQueryParams params) {
+    if (params.getItems().isEmpty()) {
+      return false;
+    }
+    QueryItem item = params.getItems().get(0);
+    return item.hasProgram() && item.hasProgramStage();
   }
 
   /**
@@ -803,104 +809,107 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   // New methods //
 
   private String getLatestEventsCTE(EventQueryParams params, QueryItem item) {
-    String eventTableName = "analytics_event_" + params.getProgram().getUid().toLowerCase();
-    String excludingScheduledCondition = "eventstatus != 'SCHEDULE'";
+    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
+    String columnName = quote(item.getItem().getUid());
 
     return String.format(
             "with LatestEvents as ( " +
-                    "select enrollment, " +
-                    "%s as value, " +  // will contain the data element column
-                    "eventstatus, " +
-                    "row_number() over (partition by enrollment order by occurreddate desc, created desc) as rn " +
+                    "select " +
+                    "  enrollment, " +
+                    "  %s as value, " +
+                    "  eventstatus, " +
+                    "  row_number() over (partition by enrollment " +
+                    "    order by occurreddate desc, created desc) as rn " +
                     "from %s " +
-                    "where %s " +
-                    "and ps = '%s' " +
+                    "where eventstatus != 'SCHEDULE' " +
+                    "  and ps = '%s' " +
                     ") ",
-            getColumnName(item),
+            columnName,
             eventTableName,
-            excludingScheduledCondition,
             item.getProgramStage().getUid()
     );
   }
 
-
   private String buildEnrollmentQueryWithoutCTE(EventQueryParams params) {
-    String enrollmentTable = String.format("analytics_enrollment_%s", params.getProgram().getUid().toLowerCase());
+    String selectClause = getSelectClause(params);
 
-    String selectClause = getSelectClause(params); // Reuse to dynamically generate SELECT columns
-    String whereClause = getWhereClauseWithoutCTE(params); // Filters on time range, organization, etc.
-    String pagingClause = getPagingClause(params, 5000); // Add pagination
-
-    // Compose the SQL query
     return String.format(
-            "%s from %s as ax where %s %s",
-            selectClause,       // Dynamic SELECT clause
-            enrollmentTable,    // Main enrollment table
-            whereClause,        // Filters/conditions
-            pagingClause        // Pagination
+            "%s " +
+                    "from %s as ax " +
+                    "where %s %s",
+            selectClause,
+            params.getTableName(),
+            getWhereClauseWithoutCTE(params),
+            getPagingClause(params, 5000)
     );
   }
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
-    // Enrollment table name
-    String enrollmentTable = String.format("analytics_enrollment_%s", params.getProgram().getUid().toLowerCase());
-    boolean useCTE = params.hasProgramStage(); // Toggle on CTE usage
+    // 1. Build CTE
+    String cteClause = getLatestEventsCTE(params, item);
 
-    String cteClause = "";
-    String joinClause = "";
-    String whereClause = "";
+    // 2. Get select columns using existing mechanism but override the item columns
+    String selectBase = getBasicSelectColumns(); // New method for enrollment, trackedentity, etc.
+    String selectWithCTE = String.format(
+            "%s, " +
+                    "le.value as \"%s.%s\", " +
+                    "(le.value is not null) as \"%s.%s.exists\", " +
+                    "le.eventstatus as \"%s.%s.status\"",
+            selectBase,
+            item.getProgramStage().getUid(), item.getItem().getUid(),
+            item.getProgramStage().getUid(), item.getItem().getUid(),
+            item.getProgramStage().getUid(), item.getItem().getUid()
+    );
 
-    if (useCTE) {
-      // Build the CTE for event queries if programStage filtering is required
-      cteClause = getLatestEventsCTE(params, item);
+    // 3. Build the main query
+    String sql = String.format(
+            "%s select %s " +
+                    "from %s as ax " +
+                    "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = 1 ",
+            cteClause,
+            selectWithCTE,
+            params.getTableName()
+    );
 
-      // Event data join clause for CTE
-      joinClause = "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = 1";
-
-      // WHERE clause specific to CTE
-      whereClause = getWhereClauseWithCTE(params, item);
-    } else {
-      // WHERE clause for non-CTE logic
-      whereClause = getWhereClauseWithoutCTE(params);
+    // 4. Add where clause
+    String whereClause = getWhereClauseWithCTE(params, item);
+    if (!whereClause.isEmpty()) {
+      sql += "where " + whereClause;
     }
 
-    // Use the original getSelectClause to ensure consistent SELECT clause generation
-    String selectClause = getSelectClause(params);
-
-    // Construct the final SQL query
-    String sql = String.format(
-            "%s %s from %s as ax %s where %s %s",
-            cteClause,           // Optional: CTE declaration
-            selectClause,        // The SELECT clause (dynamic columns handled)
-            enrollmentTable,     // Main enrollment table
-            joinClause,          // Optional: CTE join clause
-            whereClause,         // WHERE clause (dynamic filtering logic)
-            getPagingClause(params, 5000) // Pagination logic
-    );
+    // 5. Add paging
+    sql += " " + getPagingClause(params, 5000);
 
     return sql;
   }
 
-  private String getColumnName(QueryItem item) {
-    if (item.getItem() == null) {
-      throw new IllegalQueryException("Item cannot be null");
-    }
-
-    // For data elements, we use the UID directly
-    if (item.getItem().getDimensionItemType() == DATA_ELEMENT) {
-      return sqlBuilder.quote(item.getItem().getUid());
-    }
-
-
-    throw new IllegalQueryException(
-            String.format("Item type '%s' not supported for CTE queries",
-                    item.getItem().getDimensionItemType()));
+  private String getBasicSelectColumns() {
+    return String.join(",",
+            "ax.enrollment",
+            "trackedentity",
+            "enrollmentdate",
+            "occurreddate",
+            "storedby",
+            "createdbydisplayname",
+            "lastupdatedbydisplayname",
+            "lastupdated",
+            "ST_AsGeoJSON(enrollmentgeometry)",
+            "longitude",
+            "latitude",
+            "ouname",
+            "ounamehierarchy",
+            "oucode",
+            "enrollmentstatus",
+            "ax.\"ou\""
+    );
   }
+
+
 
   private String getWhereClauseWithoutCTE(EventQueryParams params) {
     List<String> conditions = new ArrayList<>();
 
-    // Date range conditions
+    // Add date range conditions
     if (params.getStartDate() != null && params.getEndDate() != null) {
       conditions.add(String.format(
               "enrollmentdate >= '%s' and enrollmentdate < '%s'",
@@ -909,13 +918,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ));
     }
 
-    // Organization unit conditions
+    // Add organization unit conditions
     if (!params.getOrganisationUnits().isEmpty()) {
       String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("uidlevel1 = '%s'", orgUnit));
+      conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
     }
-
-    // Add more conditions as necessary
 
     return String.join(" and ", conditions);
   }
@@ -923,7 +930,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private String getWhereClauseWithCTE(EventQueryParams params, QueryItem item) {
     List<String> conditions = new ArrayList<>();
 
-    // Date range conditions
+    // Add organization unit conditions
+    if (!params.getOrganisationUnits().isEmpty()) {
+      String orgUnit = params.getOrganisationUnits().get(0).getUid();
+      conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
+    }
+
+    // Add date range conditions
     if (params.getStartDate() != null && params.getEndDate() != null) {
       conditions.add(String.format(
               "ax.enrollmentdate >= '%s' and ax.enrollmentdate < '%s'",
@@ -932,13 +945,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ));
     }
 
-    // Organization unit conditions
-    if (!params.getOrganisationUnits().isEmpty()) {
-      String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
-    }
-
-    // Value conditions - similar to your example
+    // Add value conditions using CTE
     conditions.add("le.value is null and (le.enrollment is not null)");
 
     return String.join(" and ", conditions);
