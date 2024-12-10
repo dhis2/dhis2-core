@@ -31,6 +31,11 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Iterables;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -47,6 +52,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.Getter;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
@@ -63,14 +72,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.collect.Iterables;
-import lombok.AccessLevel;
-import lombok.Getter;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRField;
 
 /**
  * @author Lars Helge Overland
@@ -501,9 +502,10 @@ public class ListGrid implements Grid, Serializable {
     int currentColumnIndex = 0;
 
     if (grid.size() != columnValues.size()) {
-      throw new IllegalStateException(String.format(
-          "Number of column values (%d) is not equal to number of rows (%d)", 
-          columnValues.size(), grid.size()));
+      throw new IllegalStateException(
+          String.format(
+              "Number of column values (%d) is not equal to number of rows (%d)",
+              columnValues.size(), grid.size()));
     }
 
     for (int i = 0; i < grid.size(); i++) {
@@ -521,9 +523,10 @@ public class ListGrid implements Grid, Serializable {
     int currentColumnIndex = 0;
 
     if (grid.size() != columnValues.size()) {
-      throw new IllegalStateException(String.format(
-          "Number of column values (%d) is not equal to number of rows (%d)", 
-          columnValues.size(), grid.size()));
+      throw new IllegalStateException(
+          String.format(
+              "Number of column values (%d) is not equal to number of rows (%d)",
+              columnValues.size(), grid.size()));
     }
 
     for (int i = 0; i < grid.size(); i++) {
@@ -799,7 +802,7 @@ public class ListGrid implements Grid, Serializable {
       GridHeader header = headers.get(colIndex);
 
       // Header
-      
+
       Object headerMetaName = metaDataMap.get(header.getName());
 
       if (headerMetaName != null) {
@@ -1094,7 +1097,7 @@ public class ListGrid implements Grid, Serializable {
     }
 
     // Reposition columns in the row context structure
-    
+
     Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
 
     for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
@@ -1107,7 +1110,7 @@ public class ListGrid implements Grid, Serializable {
               key -> {
                 if (numberRegex.matcher(key).matches()) {
                   // Reindexing of columns
-                  
+
                   orderedRowContextItems.put(
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
@@ -1144,9 +1147,10 @@ public class ListGrid implements Grid, Serializable {
 
     for (List<Object> row : grid) {
       if (rowLength != null && rowLength != row.size()) {
-        throw new IllegalStateException(String.format(
-            "Grid rows do not have the same number of cells, previous: %d, this: %d, at row: %d",
-            rowLength, row.size(), rowPos));
+        throw new IllegalStateException(
+            String.format(
+                "Grid rows do not have the same number of cells, previous: %d, this: %d, at row: %d",
+                rowLength, row.size(), rowPos));
       }
 
       rowPos++;
