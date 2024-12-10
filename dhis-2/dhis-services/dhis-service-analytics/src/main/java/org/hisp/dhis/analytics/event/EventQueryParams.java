@@ -678,6 +678,16 @@ public class EventQueryParams extends DataQueryParams {
     return hasProgramIndicatorDimension() && getProgramIndicator().hasAnalyticsVariables();
   }
 
+  public boolean hasEnrollmentDateCriteria() {
+    // Check if enrollmentDate parameter exists in the query
+    return !getDimensionOrFilterItems("enrollmentDate").isEmpty();
+  }
+
+  public String getEnrollmentDateCriteria() {
+    // Get the enrollment date value (year)
+    return getDimensionOrFilterItems("enrollmentDate").get(0).getDimensionItem();
+  }
+
   public boolean useIndividualQuery() {
     return this.hasAnalyticsVariables() || this.hasNonDefaultBoundaries();
   }

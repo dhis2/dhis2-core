@@ -46,6 +46,7 @@ import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
@@ -944,8 +945,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
     }
 
-    // Add date range conditions
-    if (params.getStartDate() != null && params.getEndDate() != null) {
+    // Add enrollment date conditions
+    if (params.hasEnrollmentDateCriteria()) {  // We might need to add this method to EventQueryParams
+      String year = params.getEnrollmentDateCriteria();  // We might need to add this method
+      conditions.add(String.format(
+              "ax.enrollmentdate >= '%s-01-01' and ax.enrollmentdate < '%s-01-01'",
+              year, (Integer.parseInt(year) + 1)
+      ));
+    } else if (params.getStartDate() != null && params.getEndDate() != null) {
       conditions.add(String.format(
               "ax.enrollmentdate >= '%s' and ax.enrollmentdate < '%s'",
               DateUtils.toMediumDate(params.getStartDate()),
@@ -953,21 +960,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ));
     }
 
-    // Replace subquery conditions with CTE equivalents
-    conditions.add("(le.value is null and le.enrollment is not null)");
+    // Handle NV (null value) filter
+    if (hasNullValueFilter(params)) {
+      conditions.add("le.value is null");
+      conditions.add("le.enrollment is not null");
+    }
 
-    // Add any additional filters without the WHERE keyword
+    // Add any additional filters
     SqlHelper hlp = new SqlHelper();
     String itemFilters = getQueryItemsAndFiltersWhereClause(params, hlp)
-            .replaceAll("(?i)\\s*where\\s+and\\s+", "") // Remove "where and"
-            .replaceAll("(?i)\\s*where\\s+", "");       // Remove "where"
+            .replaceAll("(?i)\\s*where\\s+and\\s+", "")
+            .replaceAll("(?i)\\s*where\\s+", "");
 
     if (!itemFilters.isEmpty()) {
       conditions.add(itemFilters);
     }
 
-    // Join all conditions with AND
     return String.join(" and ", conditions);
+  }
+
+
+  private boolean hasNullValueFilter(EventQueryParams params) {
+    return params.getItems().stream()
+            .anyMatch(item -> item.hasFilter() &&
+                    item.getFilters().stream()
+                            .anyMatch(filter -> "NV".equals(filter.getFilter())));
   }
 
   protected String getSortClause(EventQueryParams params) {
@@ -984,23 +1001,64 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     List<String> conditions = new ArrayList<>();
 
-    // Add conditions based on the CTE instead of subqueries
+    // Handle item filters using CTE
     for (QueryItem item : params.getItems()) {
       if (item.hasFilter()) {
-        conditions.add("(le.value is null and le.enrollment is not null)");
+        conditions.addAll(getItemConditions(item));
       }
     }
 
+    // Handle item filters
     for (QueryItem item : params.getItemFilters()) {
       if (item.hasFilter()) {
-        conditions.add("(le.value is null and le.enrollment is not null)");
+        conditions.addAll(getItemConditions(item));
       }
     }
 
-    if (conditions.isEmpty()) {
-      return "";
+    return conditions.isEmpty() ? "" : String.join(" and ", conditions);
+  }
+
+  private List<String> getItemConditions(QueryItem item) {
+    List<String> conditions = new ArrayList<>();
+
+    for (QueryFilter filter : item.getFilters()) {
+      if ("NV".equals(filter.getFilter())) {
+        // Special handling for null values
+        conditions.add("le.value is null");
+      } else {
+        String operator = filter.getSqlOperator();
+        if (operator.equals("in")) {
+          // Handle IN clause differently based on value type
+          String value = getSqlFilter(filter, item);
+          if (item.isNumeric()) {
+            conditions.add("le.value in (" + value + ")");
+          } else {
+            // For text values, keep the quotes
+            conditions.add("le.value in (" + value + ")");
+          }
+        } else {
+          String value = getSqlFilter(filter, item);
+          conditions.add(String.format("le.value %s %s",
+                  operator,
+                  value));
+        }
+      }
     }
 
-    return conditions.stream().collect(joining(" and "));
+    return conditions;
+  }
+
+  protected String getSqlFilter(QueryFilter filter, QueryItem item) {
+    String value = filter.getFilter();
+
+    if ("NV".equals(value)) {
+      return "null";
+    }
+
+    if (item.isNumeric()) {
+      return value; // Don't quote numeric values
+    } else {
+      return sqlBuilder.singleQuote(value); // Quote text values
+    }
   }
 }
