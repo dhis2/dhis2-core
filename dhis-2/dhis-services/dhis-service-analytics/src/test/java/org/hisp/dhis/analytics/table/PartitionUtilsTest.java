@@ -47,13 +47,11 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class PartitionUtilsTest {
-  private PeriodType quarterly = new QuarterlyPeriodType();
+  private final PeriodType quarterly = new QuarterlyPeriodType();
 
-  private Period q1 = quarterly.createPeriod(new DateTime(2018, 7, 1, 0, 0).toDate());
-
-  private Period q2 = quarterly.createPeriod(new DateTime(2018, 10, 1, 0, 0).toDate());
-
-  private Period q3 = quarterly.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate());
+  private final Period q1 = quarterly.createPeriod(new DateTime(2018, 7, 1, 0, 0).toDate());
+  private final Period q2 = quarterly.createPeriod(new DateTime(2018, 10, 1, 0, 0).toDate());
+  private final Period q3 = quarterly.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate());
 
   @Test
   void testGetPartitions() {
