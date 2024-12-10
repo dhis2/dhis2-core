@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.deprecated.audit;
+package org.hisp.dhis.login;
 
-import java.util.List;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Deprecated(since = "2.42", forRemoval = true)
-public interface TrackedEntityAuditService {
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginResponse {
+  @Getter
+  public enum STATUS {
+    SUCCESS("loginSuccess"),
+    ACCOUNT_DISABLED("accountDisabled"),
+    ACCOUNT_LOCKED("accountLocked"),
+    ACCOUNT_EXPIRED("accountExpired"),
+    PASSWORD_EXPIRED("passwordExpired"),
+    INCORRECT_TWO_FACTOR_CODE("incorrectTwoFactorCode"),
+    REQUIRES_TWO_FACTOR_ENROLMENT("requiresTwoFactorEnrolment");
 
-  String ID = TrackedEntityAuditService.class.getName();
+    private final String keyName;
+    private final String defaultValue;
 
-  void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
+    STATUS(String keyName) {
+      this.keyName = keyName;
+      this.defaultValue = null;
+    }
+  }
 
-  /** Adds multiple tracked entity audit */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
-
-  /**
-   * Returns tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return matching TrackedEntityAudits
-   */
-  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
-
-  /**
-   * Returns count of tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return count of TrackedEntityAudits
-   */
-  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
+  @JsonProperty private STATUS loginStatus;
+  @JsonProperty private String redirectUrl;
 }

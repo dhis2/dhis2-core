@@ -55,7 +55,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
-  private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
 
   @Override
   @Transactional(readOnly = true)
@@ -82,7 +81,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   @Override
   @Transactional
-  public void addDataValueChangeLog(
+  public void addEventChangeLog(
       Event event,
       DataElement dataElement,
       String previousValue,
@@ -107,18 +106,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
         "scheduledAt", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
         "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityDataValueChangeLog(Event event) {
-    trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(event);
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityDataValueChangeLog(DataElement dataElement) {
-    trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(dataElement);
   }
 
   @Override

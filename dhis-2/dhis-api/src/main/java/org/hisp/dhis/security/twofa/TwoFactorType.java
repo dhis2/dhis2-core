@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.session;
+package org.hisp.dhis.security.twofa;
 
-import org.hisp.dhis.webapi.filter.DefaultSessionConfig;
-import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
+import lombok.Getter;
 
-/**
- * This is used for adding springSessionRepositoryFilter into the filter chain. The actual filter
- * bean used will be either backed by redis from the {@link RedisSpringSessionConfig} or a dummy
- * filter from {@link DefaultSessionConfig}.
- *
- * @author Ameen Mohamed
- */
-public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {}
+@Getter
+public enum TwoFactorType {
+  NOT_ENABLED,
+  TOTP_ENABLED,
+  EMAIL_ENABLED,
+  ENROLLING_TOTP, // User is in the process of enrolling in TOTP 2FA
+  ENROLLING_EMAIL; // User is in the process of enrolling in email-based 2FA
+
+  public boolean isEnrolling() {
+    return this == ENROLLING_TOTP || this == ENROLLING_EMAIL;
+  }
+
+  public TwoFactorType getEnabledType() {
+    if (this == ENROLLING_TOTP) {
+      return TOTP_ENABLED;
+    } else if (this == ENROLLING_EMAIL) {
+      return EMAIL_ENABLED;
+    } else {
+      return this;
+    }
+  }
+
+  public boolean isEnabled() {
+    return this == TOTP_ENABLED || this == EMAIL_ENABLED;
+  }
+}

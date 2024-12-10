@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.deprecated.audit;
+package org.hisp.dhis.login;
 
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Random;
 
-/**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
- */
-@Deprecated(since = "2.42", forRemoval = true)
-public interface TrackedEntityAuditStore {
-  String ID = TrackedEntityAuditStore.class.getName();
+public class PortUtil {
+  private static final int MIN_PORT = 49152;
+  private static final int MAX_PORT = 65535;
+  private static final Random random = new Random();
 
-  /**
-   * Adds the given tracked entity audit.
-   *
-   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
-   */
-  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
+  public static int findAvailablePort() {
+    int port;
+    do {
+      port = pickRandomPort();
+    } while (!isPortAvailable(port));
+    return port;
+  }
 
-  /**
-   * Adds the given {@link TrackedEntityAudit}s.
-   *
-   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
-   */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
+  private static int pickRandomPort() {
+    return random.nextInt(MAX_PORT - MIN_PORT + 1) + MIN_PORT;
+  }
 
-  /**
-   * Returns tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return a list of {@link TrackedEntityAudit}.
-   */
-  List<TrackedEntityAudit> getTrackedEntityAudit(TrackedEntityAuditQueryParams params);
-
-  /**
-   * Returns count of tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return count of audits.
-   */
-  int getTrackedEntityAuditCount(TrackedEntityAuditQueryParams params);
+  private static boolean isPortAvailable(int port) {
+    try (ServerSocket serverSocket = new ServerSocket(port)) {
+      serverSocket.setReuseAddress(true);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
 }
