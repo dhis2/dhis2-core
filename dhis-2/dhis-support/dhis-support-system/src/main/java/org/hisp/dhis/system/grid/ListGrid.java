@@ -810,7 +810,9 @@ public class ListGrid implements Grid, Serializable {
       }
 
       // Column cells
+
       if (header.isMeta()) {
+
         substituteMetaData(colIndex, colIndex, metaDataMap);
       }
     }
