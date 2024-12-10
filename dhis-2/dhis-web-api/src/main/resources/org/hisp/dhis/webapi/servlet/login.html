@@ -325,26 +325,10 @@
     </div>
 
     <script>
-      // This function will dynamically determine the base URL of the current page
-      function getBaseUrl() {
-        const url = window.location.origin;
-        let path = window.location.pathname.split("/");
-
-        // If the last part of the path is 'login.html', remove it
-        if (path[path.length - 1] === "login.html") {
-          path = path.slice(0, path.length - 1);
-        }
-
-        // Check if there's a version or environment path (like 'dev', 'dev-2-41', etc.)
-        const versionPath = path[1] ? path[1] : "";
-        return versionPath ? `${url}/${versionPath}` : url;
-      }
-
       // Fetch the login configuration dynamically
       async function fetchLoginConfig() {
         try {
-          const baseUrl = getBaseUrl();
-          const response = await fetch(`${baseUrl}/api/loginConfig`);
+          const response = await fetch("../api/loginConfig");
 
           if (!response.ok) {
             let errorMessage = "Login failed: " + response.status;
@@ -367,7 +351,7 @@
             config.applicationDescription || "Welcome to the DHIS2 application";
           if (config.countryFlag) {
             const flag = document.getElementById("flag");
-            flag.src = `${baseUrl}/dhis-web-commons/flags/${config.countryFlag}.png`;
+            flag.src = `/dhis-web-commons/flags/${config.countryFlag}.png`;
             flag.style.display = "block";
           }
         } catch (error) {
@@ -404,8 +388,6 @@
           const errorMessage = document.getElementById("errorMessage");
           const twoFA = document.getElementById("twoFA").value.trim();
 
-          const baseUrl = getBaseUrl(); // Get dynamic base URL
-
           spinner.style.display = "block";
           errorMessage.innerText = "";
           submitButton.disabled = true;
@@ -418,7 +400,7 @@
           }
 
           try {
-            const response = await fetch(`${baseUrl}/api/auth/login`, {
+            const response = await fetch("../api/auth/login", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
