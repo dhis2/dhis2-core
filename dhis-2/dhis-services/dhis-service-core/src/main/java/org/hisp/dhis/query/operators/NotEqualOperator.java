@@ -28,7 +28,6 @@
 package org.hisp.dhis.query.operators;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.criterion.Criterion;
@@ -64,13 +63,6 @@ public class NotEqualOperator<T extends Comparable<? super T>> extends EqualOper
       }
 
       return builder.notEqual(builder.size(root.get(queryPath.getPath())), value);
-    }
-    if (queryPath.haveAlias()) {
-      for (Join<Y, ?> join : root.getJoins()) {
-        if (join.getAlias().equals(queryPath.getAlias()[0])) {
-          return builder.equal(join.get(queryPath.getProperty().getFieldName()), args.get(0));
-        }
-      }
     }
     return builder.notEqual(root.get(queryPath.getPath()), args.get(0));
   }
