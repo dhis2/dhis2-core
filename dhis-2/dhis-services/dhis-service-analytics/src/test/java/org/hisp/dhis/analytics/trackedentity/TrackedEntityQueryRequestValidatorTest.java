@@ -54,7 +54,7 @@ class TrackedEntityQueryRequestValidatorTest {
             () -> trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams));
 
     assertEquals(
-        "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage());
+        "Invalid UID '" + teiUid + "' for property 'trackedEntityType'", exception.getMessage());
   }
 
   @Test
@@ -69,6 +69,6 @@ class TrackedEntityQueryRequestValidatorTest {
             IllegalQueryException.class,
             () -> trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams));
 
-    assertEquals("Invalid UID `null` for property `trackedEntityType`", exception.getMessage());
+    assertEquals("Invalid UID 'null' for property 'trackedEntityType'", exception.getMessage());
   }
 }
