@@ -103,6 +103,7 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Disabled;
@@ -164,13 +165,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private Enrollment enrollmentB;
 
-  private Enrollment enrollmentC;
+  private ProgramStage programStageA1;
 
   private Event eventA;
 
   private Event eventB;
-
-  private Event eventC;
 
   private TrackedEntity trackedEntityA;
 
@@ -179,8 +178,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private TrackedEntity trackedEntityChildA;
 
   private TrackedEntity trackedEntityGrandchildA;
-
-  private Note note;
 
   private CategoryOptionCombo defaultCategoryOptionCombo;
 
@@ -193,6 +190,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Relationship relationshipD;
 
   private Relationship relationshipE;
+
+  private Note note;
 
   private static List<String> uids(
       Collection<? extends BaseIdentifiableObject> identifiableObjects) {
@@ -282,7 +281,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.setCategoryCombo(defaultCategoryCombo);
     programA.setMinAttributesRequiredToSearch(0);
     manager.save(programA, false);
-    ProgramStage programStageA1 = createProgramStage(programA);
+    programStageA1 = createProgramStage(programA);
     programStageA1.setPublicAccess(AccessStringHelper.FULL);
     manager.save(programStageA1, false);
     ProgramStage programStageA2 = createProgramStage(programA);
@@ -399,10 +398,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    enrollmentC =
+    Enrollment enrollmentC =
         enrollmentService.enrollTrackedEntity(
             trackedEntityB, programB, new Date(), new Date(), orgUnitB);
-    eventC = new Event();
+    Event eventC = new Event();
     eventC.setEnrollment(enrollmentC);
     eventC.setProgramStage(programStageB1);
     eventC.setOrganisationUnit(orgUnitB);
@@ -2069,6 +2068,55 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertContainsOnly(
         Set.of(trackedEntityAttributeValueA, trackedEntityAttributeValueB),
         trackedEntity.getTrackedEntityAttributeValues());
+  }
+
+  @Test
+  void shouldFindTrackedEntityWithEventsWhenEventRequestedAndAccessible()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    injectSecurityContextUser(getAdminUser());
+    User testUser = createAndAddUser(false, "testUser", emptySet(), emptySet(), "F_EXPORT_DATA");
+    testUser.setOrganisationUnits(Set.of(orgUnitA));
+    manager.update(testUser);
+    injectSecurityContext(UserDetails.fromUser(testUser));
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false);
+
+    assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
+    List<Enrollment> enrollments = new ArrayList<>(trackedEntity.getEnrollments());
+    Optional<Enrollment> enrollmentA =
+        enrollments.stream()
+            .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
+            .findFirst();
+    Set<Event> events = enrollmentA.get().getEvents();
+    assertContainsOnly(Set.of(eventA.getUid()), uids(events));
+  }
+
+  @Test
+  void shouldFindTrackedEntityWithoutEventsWhenEventRequestedButNotAccessible()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    injectSecurityContextUser(getAdminUser());
+    programStageA1.setSharing(Sharing.builder().publicAccess("--------").build());
+    manager.update(programStageA1);
+    User testUser = createAndAddUser(false, "testUser", emptySet(), emptySet(), "F_EXPORT_DATA");
+    testUser.setOrganisationUnits(Set.of(orgUnitA));
+    manager.update(testUser);
+    injectSecurityContext(UserDetails.fromUser(testUser));
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false);
+
+    assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
+    List<Enrollment> enrollments = new ArrayList<>(trackedEntity.getEnrollments());
+    Optional<Enrollment> enrollmentA =
+        enrollments.stream()
+            .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
+            .findFirst();
+    assertIsEmpty(enrollmentA.get().getEvents());
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
