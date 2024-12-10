@@ -346,7 +346,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
             ${attributeJoinClause}\
             where ev.lastupdated < '${startTime}' ${partitionClause} \
-            and pr.programid=${programId} \
+            and pr.programid = ${programId} \
             and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
