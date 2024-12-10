@@ -27,30 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -87,6 +64,28 @@ import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 /**
  * @author Markus Bekken
@@ -148,7 +147,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (params.isAggregatedEnrollments()) {
       sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
     } else if (true) {  // We need to add this method to EventQueryParams
-      sql = buildEnrollmentQueryWithCTE(params, params.getItems().get(0));  // Handle first item like original
+      sql = params.getItems().isEmpty()
+          ? buildEnrollmentQueryWithoutCTE(params)
+          : buildEnrollmentQueryWithCTE(params, params.getItems().get(0));
     } else {
       sql = getAggregatedEnrollmentsSql(params, maxLimit);
     }
@@ -822,71 +823,62 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     );
   }
 
-  private String getEventDataClauseWithCTE(QueryItem item) {
-    String column = item.getItem().getUid();
-    String programStage = item.getProgramStage().getUid();
 
+  private String buildEnrollmentQueryWithoutCTE(EventQueryParams params) {
+    String enrollmentTable = String.format("analytics_enrollment_%s", params.getProgram().getUid().toLowerCase());
+
+    String selectClause = getSelectClause(params); // Reuse to dynamically generate SELECT columns
+    String whereClause = getWhereClauseWithoutCTE(params); // Filters on time range, organization, etc.
+    String pagingClause = getPagingClause(params, 5000); // Add pagination
+
+    // Compose the SQL query
     return String.format(
-            "le.value as \"%s.%s\", " +
-                    "(le.value is not null) as \"%s.%s.exists\", " +
-                    "le.eventstatus as \"%s.%s.status\"",
-            programStage, column,
-            programStage, column,
-            programStage, column
+            "%s from %s as ax where %s %s",
+            selectClause,       // Dynamic SELECT clause
+            enrollmentTable,    // Main enrollment table
+            whereClause,        // Filters/conditions
+            pagingClause        // Pagination
     );
   }
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
-    String enrollmentTable = "analytics_enrollment_" + params.getProgram().getUid().toLowerCase();
-    boolean useCTE = params.hasProgramStage(); // Decides whether we use the CTE logic.
+    // Enrollment table name
+    String enrollmentTable = String.format("analytics_enrollment_%s", params.getProgram().getUid().toLowerCase());
+    boolean useCTE = params.hasProgramStage(); // Toggle on CTE usage
 
     String cteClause = "";
     String joinClause = "";
     String whereClause = "";
 
     if (useCTE) {
-      // Generate the CTE if `params.hasProgramStage()` is true
+      // Build the CTE for event queries if programStage filtering is required
       cteClause = getLatestEventsCTE(params, item);
 
-      // Add the join logic for CTE results
+      // Event data join clause for CTE
       joinClause = "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = 1";
 
-      // Use the corresponding WHERE clause for CTE logic
+      // WHERE clause specific to CTE
       whereClause = getWhereClauseWithCTE(params, item);
     } else {
-      // Use the WHERE clause for non-CTE queries
+      // WHERE clause for non-CTE logic
       whereClause = getWhereClauseWithoutCTE(params);
     }
 
-    String selectClause = String.format(
-            "select ax.enrollment, " +
-                    "ax.trackedentity, " +
-                    "ax.enrollmentdate, " +
-                    "ax.occurreddate, " +
-                    "ax.storedby, " +
-                    "ax.createdbydisplayname, " +
-                    "ax.lastupdatedbydisplayname, " +
-                    "ax.lastupdated, " +
-                    "ax.enrollmentgeometry, " +
-                    "ax.longitude, " +
-                    "ax.latitude, " +
-                    "ax.ouname, " +
-                    "ax.ounamehierarchy, " +
-                    "ax.oucode, " +
-                    "ax.enrollmentstatus, " +
-                    "ax.ou" +
-                    (useCTE ? ", " + getEventDataClauseWithCTE(item) : "")
+    // Use the original getSelectClause to ensure consistent SELECT clause generation
+    String selectClause = getSelectClause(params);
+
+    // Construct the final SQL query
+    String sql = String.format(
+            "%s %s from %s as ax %s where %s %s",
+            cteClause,           // Optional: CTE declaration
+            selectClause,        // The SELECT clause (dynamic columns handled)
+            enrollmentTable,     // Main enrollment table
+            joinClause,          // Optional: CTE join clause
+            whereClause,         // WHERE clause (dynamic filtering logic)
+            getPagingClause(params, 5000) // Pagination logic
     );
 
-    return String.format(
-            "%s %s from %s as ax %s where %s %s",
-            cteClause,     // Optional: The CTE declaration
-            selectClause,  // The SELECT clause with/without CTE data
-            enrollmentTable, // The main enrollment table
-            joinClause,    // Optional: Join clause for CTE
-            whereClause,   // WHERE clause for filters
-            getPagingClause(params, 5000) // Add the paging clause
-    );
+    return sql;
   }
 
   private String getColumnName(QueryItem item) {
