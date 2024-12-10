@@ -30,7 +30,6 @@ package org.hisp.dhis.query.operators;
 import java.util.Collection;
 import java.util.Date;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.criterion.Criterion;
@@ -80,13 +79,6 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
                   getCollectionArgs().get(0)));
     }
 
-    if (queryPath.haveAlias()) {
-      for (Join<Y, ?> join : root.getJoins()) {
-        if (join.getAlias().equals(queryPath.getAlias()[0])) {
-          return join.get(queryPath.getProperty().getFieldName()).in(getCollectionArgs().get(0));
-        }
-      }
-    }
     return root.get(queryPath.getPath()).in(getCollectionArgs().get(0));
   }
 

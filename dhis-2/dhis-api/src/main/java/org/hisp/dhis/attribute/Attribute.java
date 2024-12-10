@@ -173,10 +173,6 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
       return stream(values()).filter(t -> t.type == type).findFirst().orElse(null);
     }
 
-    public static boolean isValidType(String type) {
-      return stream(values()).anyMatch(t -> t.getPropertyName().equals(type));
-    }
-
     public String getPropertyName() {
       return CaseFormat.UPPER_UNDERSCORE.converterTo(CaseFormat.LOWER_CAMEL).convert(name())
           + "Attribute";
