@@ -2086,11 +2086,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
     assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
     List<Enrollment> enrollments = new ArrayList<>(trackedEntity.getEnrollments());
-    Optional<Enrollment> enrollmentA =
-        enrollments.stream()
-            .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
-            .findFirst();
-    Set<Event> events = enrollmentA.get().getEvents();
+    Optional<Enrollment> enrollment =
+        enrollments.stream().filter(e -> e.getUid().equals(this.enrollmentA.getUid())).findFirst();
+    Set<Event> events = enrollment.get().getEvents();
     assertContainsOnly(Set.of(eventA.getUid()), uids(events));
   }
 
@@ -2112,11 +2110,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
     assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
     List<Enrollment> enrollments = new ArrayList<>(trackedEntity.getEnrollments());
-    Optional<Enrollment> enrollmentA =
-        enrollments.stream()
-            .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
-            .findFirst();
-    assertIsEmpty(enrollmentA.get().getEvents());
+    Optional<Enrollment> enrollment =
+        enrollments.stream().filter(e -> e.getUid().equals(this.enrollmentA.getUid())).findFirst();
+    assertIsEmpty(enrollment.get().getEvents());
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
