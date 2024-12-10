@@ -848,27 +848,35 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 1. Build CTE
     String cteClause = getLatestEventsCTE(params, item);
 
-    // 2. Get select columns using existing mechanism but override the item columns
-    String selectBase = getBasicSelectColumns(); // New method for enrollment, trackedentity, etc.
+    // 2. Get select columns
+    String selectBase = getBasicSelectColumns();
+
+    // Get the offset from the program stage params
+    int offset = item.getProgramStageOffset();
+    String offsetSuffix = offset != 0 ? "[" + offset + "]" : "";
+    String columnPrefix = item.getProgramStage().getUid() + offsetSuffix;
+
     String selectWithCTE = String.format(
             "%s, " +
                     "le.value as \"%s.%s\", " +
-                    "(le.value is not null) as \"%s.%s.exists\", " +
+                    // Changed how we calculate exists to match original behavior
+                    "(le.enrollment is not null) as \"%s.%s.exists\", " +
                     "le.eventstatus as \"%s.%s.status\"",
             selectBase,
-            item.getProgramStage().getUid(), item.getItem().getUid(),
-            item.getProgramStage().getUid(), item.getItem().getUid(),
-            item.getProgramStage().getUid(), item.getItem().getUid()
+            columnPrefix, item.getItem().getUid(),
+            columnPrefix, item.getItem().getUid(),
+            columnPrefix, item.getItem().getUid()
     );
 
     // 3. Build the main query
     String sql = String.format(
             "%s select %s " +
                     "from %s as ax " +
-                    "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = 1 ",
+                    "left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = %d ",
             cteClause,
             selectWithCTE,
-            params.getTableName()
+            params.getTableName(),
+            Math.abs(offset) + 1
     );
 
     // 4. Add where clause
@@ -877,7 +885,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       sql += "where " + whereClause;
     }
 
-    // 5. Add paging
+    // 5. Add order by
+    sql += getSortClause(params);
+
+    // 6. Add paging
     sql += " " + getPagingClause(params, 5000);
 
     return sql;
@@ -945,9 +956,19 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ));
     }
 
-    // Add value conditions using CTE
-    conditions.add("le.value is null and (le.enrollment is not null)");
+    // Add item filters from the original params
+    String itemFilters = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+    if (!itemFilters.isEmpty()) {
+      conditions.add(itemFilters);
+    }
 
     return String.join(" and ", conditions);
+  }
+
+  protected String getSortClause(EventQueryParams params) {
+    if (params.isSorting()) {
+      return super.getSortClause(params);
+    }
+    return "";
   }
 }
