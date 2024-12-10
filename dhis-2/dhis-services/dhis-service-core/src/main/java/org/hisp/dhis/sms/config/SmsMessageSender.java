@@ -55,6 +55,7 @@ import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.scheduling.annotation.Async;
@@ -87,6 +88,7 @@ public class SmsMessageSender implements MessageSender {
   private final UserSettingsService userSettingsService;
   private final OutboundSmsService outboundSmsService;
   private final SystemSettingsProvider settingsProvider;
+  private final AuthenticationService authenticationService;
 
   @Override
   public OutboundMessageResponse sendMessage(
@@ -293,6 +295,12 @@ public class SmsMessageSender implements MessageSender {
     }
 
     outboundSmsService.save(sms);
+    try {
+      authenticationService.obtainSystemAuthentication();
+      outboundSmsService.save(sms);
+    } finally {
+      authenticationService.clearAuthentication();
+    }
     status.setDescription(gatewayResponse.getResponseMessage());
     status.setResponseObject(gatewayResponse);
   }
