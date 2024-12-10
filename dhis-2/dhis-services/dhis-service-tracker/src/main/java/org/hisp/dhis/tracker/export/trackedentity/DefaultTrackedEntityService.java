@@ -399,8 +399,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                   e.getEvents().stream()
                       .filter(
                           event ->
-                              trackerAccessManager.canRead(user, event, false).isEmpty()
-                                  && (includeDeleted || !event.isDeleted()))
+                              (includeDeleted || !event.isDeleted())
+                                  && trackerAccessManager.canRead(user, event, false).isEmpty())
                       .collect(Collectors.toSet());
               e.setEvents(filteredEvents);
               return e;
