@@ -1531,25 +1531,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response,
         0,
         List.of(
-            "PQfMcpmXeFE",
-            "2016-08-03 23:49:43.309",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "Ngelehun CHC",
-            "OU_559",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "John",
-            "Kelly",
-            "Male",
-            ""));
-
-    validateRow(
-        response,
-        1,
-        List.of(
             "EaOyKGOIGRp",
             "2016-08-03 23:47:14.517",
             "",
@@ -1567,7 +1548,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     validateRow(
         response,
-        2,
+        1,
         List.of(
             "lSxhGlVaTvy",
             "2016-04-21 16:01:20.435",
@@ -1582,6 +1563,25 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Diane",
             "Bryant",
             "Female",
+            ""));
+
+    validateRow(
+        response,
+        2,
+        List.of(
+            "jdQTFA9gpvc",
+            "2015-08-06 21:20:52.781",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Kunsho CHP",
+            "OU_193254",
+            "Sierra Leone / Bombali / Makari Gbanti / Kunsho CHP",
+            "Chris",
+            "Mendoza",
+            "Male",
             ""));
   }
 
@@ -1778,11 +1778,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
     // Validate the first three rows, as samples.
-    validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
-
-    validateRow(response, 1, List.of("Ngelehun CHC", "Anna", "Jones"));
-
-    validateRow(response, 2, List.of("Masoko MCHP", "Diane", "Bryant"));
+    validateRow(response, 0, List.of("Ngelehun CHC", "Anna", "Jones"));
+    validateRow(response, 1, List.of("Masoko MCHP", "Diane", "Bryant"));
+    validateRow(response, 2, List.of("Kunsho CHP", "Chris", "Mendoza"));
   }
 
   @Test
