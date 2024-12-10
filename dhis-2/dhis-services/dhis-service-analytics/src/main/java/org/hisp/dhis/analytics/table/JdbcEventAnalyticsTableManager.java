@@ -50,7 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -88,6 +88,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -532,7 +534,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(getOrgUnitSelectSubquery("geometry", dataElement))
+              .selectExpression(getOrgUnitSelectSubquery(dataElement, "geometry"))
               .indexType(IndexType.GIST)
               .build());
     }
@@ -542,7 +544,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(getOrgUnitSelectSubquery("name", dataElement))
+            .selectExpression(getOrgUnitSelectSubquery(dataElement, "name"))
             .skipIndex(SKIP)
             .build());
 
@@ -552,11 +554,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   /**
    * Returns a org unit select query.
    *
-   * @param column the column name.
    * @param dataElement the {@link DataElement}.
+   * @param column the column name.
    * @return an org unit select query.
    */
-  private String getOrgUnitSelectSubquery(String column, DataElement dataElement) {
+  private String getOrgUnitSelectSubquery(DataElement dataElement, String column) {
     String format =
         """
         (select ou.${column} from ${organisationunit} ou \
