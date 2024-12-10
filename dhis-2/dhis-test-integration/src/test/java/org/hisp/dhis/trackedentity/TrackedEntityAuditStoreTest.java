@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditStore;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;

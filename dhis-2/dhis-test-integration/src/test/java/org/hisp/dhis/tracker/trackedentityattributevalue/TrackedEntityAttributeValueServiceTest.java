@@ -117,19 +117,6 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testUpdateTrackedEntityAttributeValue() {
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
-    attributeValueA.setValue("B");
-    attributeValueService.updateTrackedEntityAttributeValue(attributeValueA);
-    assertEquals(
-        "B",
-        attributeValueService
-            .getTrackedEntityAttributeValue(trackedEntityA, attributeA)
-            .getValue());
-  }
-
-  @Test
   void testDeleteTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
@@ -212,21 +199,5 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
     attributeValueService.deleteTrackedEntityAttributeValue(attributeValueB);
     assertTrue(fileResourceA.isAssigned());
     assertTrue(fileResourceB.isAssigned());
-  }
-
-  @Test
-  void testAttributeValueWithNullValue() {
-    attributeService.updateTrackedEntityAttribute(attributeA);
-    attributeValueA = createTrackedEntityAttributeValue('A', trackedEntityA, attributeA);
-    attributeValueA.setValue("any value");
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    TrackedEntityAttributeValue retrievedValue =
-        attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA);
-    assertEquals("any value", retrievedValue.getValue());
-    attributeValueA.setValue(null);
-    attributeValueService.updateTrackedEntityAttributeValue(attributeValueA);
-    retrievedValue =
-        attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA);
-    assertNull(retrievedValue);
   }
 }

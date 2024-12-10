@@ -80,12 +80,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -241,76 +238,6 @@ public class AuditController {
     trackedEntityAttributeValueAudits.addChildren(
         fieldFilterService
             .toCollectionNode(DataValueAudit.class, new FieldFilterParams(dataValueAudits, fields))
-            .getChildren());
-
-    return rootNode;
-  }
-
-  /**
-   * @deprecated use TrackedEntitiesExportController#getTrackedEntityAttributeChangeLog instead
-   */
-  @Deprecated(forRemoval = true, since = "2.42")
-  @GetMapping("trackedEntityAttributeValue")
-  public RootNode getTrackedEntityAttributeValueChangeLog(
-      @OpenApi.Param({UID[].class, TrackedEntityAttribute.class}) @RequestParam(required = false)
-          List<String> tea,
-      @Deprecated(since = "2.41")
-          @OpenApi.Param({UID[].class, TrackedEntity.class})
-          @RequestParam(required = false, defaultValue = "")
-          List<String> tei,
-      @OpenApi.Param({UID[].class, TrackedEntity.class})
-          @RequestParam(required = false, defaultValue = "")
-          Set<UID> trackedEntities,
-      @RequestParam(required = false) List<ChangeLogType> auditType,
-      @RequestParam(required = false) Boolean skipPaging,
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws BadRequestException {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-
-    List<TrackedEntityAttribute> trackedEntityAttributes =
-        manager.loadByUid(TrackedEntityAttribute.class, tea);
-    Set<UID> teUids =
-        validateDeprecatedUidsParameter(
-            "tei", String.join(";", tei), "trackedEntities", trackedEntities);
-    List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
-
-    List<TrackedEntityAttributeValueChangeLog> attributeValueChangeLogs;
-    Pager pager = null;
-
-    TrackedEntityAttributeValueChangeLogQueryParams params =
-        new TrackedEntityAttributeValueChangeLogQueryParams()
-            .setTrackedEntityAttributes(trackedEntityAttributes)
-            .setTrackedEntities(manager.loadByUid(TrackedEntity.class, UID.toValueList(teUids)))
-            .setAuditTypes(changeLogTypes);
-
-    if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      attributeValueChangeLogs =
-          attributeValueChangeLogService.getTrackedEntityAttributeValueChangeLogs(params);
-    } else {
-      int total = attributeValueChangeLogService.countTrackedEntityAttributeValueChangeLogs(params);
-
-      pager = new Pager(page, total, pageSize);
-
-      attributeValueChangeLogs =
-          attributeValueChangeLogService.getTrackedEntityAttributeValueChangeLogs(
-              params.setPager(pager));
-    }
-
-    RootNode rootNode = NodeUtils.createMetadata();
-
-    if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
-    }
-
-    CollectionNode changeLogs =
-        rootNode.addChild(new CollectionNode("trackedEntityAttributeValueAudits", true));
-    changeLogs.addChildren(
-        fieldFilterService
-            .toCollectionNode(
-                TrackedEntityAttributeValueChangeLog.class,
-                new FieldFilterParams(attributeValueChangeLogs, fields))
             .getChildren());
 
     return rootNode;

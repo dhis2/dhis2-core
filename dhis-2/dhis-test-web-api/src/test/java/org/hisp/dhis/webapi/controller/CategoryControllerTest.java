@@ -202,7 +202,7 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
             .content(CONFLICT)
             .as(JsonWebMessage.class);
     assertContains(
-        " cannot have more than 500 combinations, bud requires: 512",
+        " cannot have more than 500 combinations, but requires: 512",
         msg.getResponse().getArray("errorReports").getObject(0).getString("message").string());
   }
 }

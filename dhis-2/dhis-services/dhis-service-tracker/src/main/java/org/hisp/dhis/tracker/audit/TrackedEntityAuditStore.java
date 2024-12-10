@@ -25,35 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.tracker.audit;
 
-import jakarta.servlet.Filter;
-import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import java.util.List;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
- * Configuration registered if {@link RedisDisabledCondition} matches to true. This serves as a
- * fallback to spring-session if redis is disabled. Since web.xml has a
- * "springSessionRepositoryFilter" mapped to all urls, the container will expect a filter bean with
- * that name. Therefore we define a dummy {@link Filter} named springSessionRepositoryFilter. Here
- * we define a {@link CharacterEncodingFilter} without setting any encoding so that requests will
- * simply pass through the filter.
- *
- * @author Ameen Mohamed
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Configuration
-@Conditional(RedisDisabledCondition.class)
-public class DefaultSessionConfig {
+public interface TrackedEntityAuditStore {
+  String ID = TrackedEntityAuditStore.class.getName();
+
   /**
-   * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
+   * Adds the given tracked entity audit.
    *
-   * @return a {@link CharacterEncodingFilter} without specifying encoding.
+   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
    */
-  @Bean
-  public Filter springSessionRepositoryFilter() {
-    return new CharacterEncodingFilter();
-  }
+  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
+
+  /**
+   * Adds the given {@link TrackedEntityAudit}s.
+   *
+   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
+   */
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
+
+  /**
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return a list of {@link TrackedEntityAudit}.
+   */
+  List<TrackedEntityAudit> getTrackedEntityAudit(TrackedEntityAuditQueryParams params);
+
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of audits.
+   */
+  int getTrackedEntityAuditCount(TrackedEntityAuditQueryParams params);
 }
