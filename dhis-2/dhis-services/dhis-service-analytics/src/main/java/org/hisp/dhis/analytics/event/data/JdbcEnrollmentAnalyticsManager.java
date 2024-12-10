@@ -73,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -110,7 +111,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final List<String> COLUMNS =
       List.of(
-          EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
+          "ax." + EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
           EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
           EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
           EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
@@ -846,73 +847,44 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
-    // 1. Build CTE
-    String cteClause = getLatestEventsCTE(params, item);
-
-    // 2. Get select columns
-    String selectBase = getBasicSelectColumns();
-
-    // Get the offset from the program stage params
-    int offset = item.getProgramStageOffset();
-    String offsetSuffix = offset != 0 ? "[" + offset + "]" : "";
-    String columnPrefix = item.getProgramStage().getUid() + offsetSuffix;
-
-    String selectWithCTE = String.format(
-            "%s, " +
-                    "le.value as \"%s.%s\", " +
-                    "(le.enrollment is not null) as \"%s.%s.exists\", " +
-                    "le.eventstatus as \"%s.%s.status\"",
-            selectBase,
-            columnPrefix, item.getItem().getUid(),
-            columnPrefix, item.getItem().getUid(),
-            columnPrefix, item.getItem().getUid()
-    );
-
     StringBuilder sql = new StringBuilder();
 
-    // 3. Build the main query
-    sql.append(cteClause)
-            .append(" select ").append(selectWithCTE)
-            .append(" from ").append(params.getTableName()).append(" as ax")
-            .append(" left join LatestEvents le on ax.enrollment = le.enrollment and le.rn = ")
-            .append(Math.abs(offset) + 1);
+    // 1. Build CTE if needed
+    if (item != null && item.hasProgramStage()) {
+      sql.append(getLatestEventsCTE(params, item));
+    }
 
-    // 4. Add where clause - ensure only one WHERE keyword
+    // 2. Get select columns
+    String selectClause = getSelectClause(params);
+    sql.append(selectClause);
+
+    // 3. From clause
+    sql.append(" from ").append(params.getTableName()).append(" as ax");
+
+    // 4. Join clause if needed
+    if (item != null && item.hasProgramStage()) {
+      int offset = item.getProgramStageOffset();
+      sql.append(" left join LatestEvents le on ax.enrollment = le.enrollment")
+              .append(" and le.rn = ").append(Math.abs(offset) + 1);
+    }
+
+    // 5. Where clause
     String whereClause = getWhereClauseWithCTE(params, item);
     if (!whereClause.isEmpty()) {
       sql.append(" where ").append(whereClause);
     }
 
-    // 5. Add order by
-    sql.append(getSortClause(params));
+    // 6. Order by - ensure proper spacing
+    String sortClause = getSortClause(params);
+    if (!sortClause.isEmpty()) {
+      sql.append(" ").append(sortClause);
+    }
 
-    // 6. Add paging
+    // 7. Limit clause
     sql.append(" ").append(getPagingClause(params, 5000));
 
     return sql.toString();
   }
-
-  private String getBasicSelectColumns() {
-    return String.join(",",
-            "ax.enrollment",
-            "trackedentity",
-            "enrollmentdate",
-            "occurreddate",
-            "storedby",
-            "createdbydisplayname",
-            "lastupdatedbydisplayname",
-            "lastupdated",
-            "ST_AsGeoJSON(enrollmentgeometry)",
-            "longitude",
-            "latitude",
-            "ouname",
-            "ounamehierarchy",
-            "oucode",
-            "enrollmentstatus",
-            "ax.\"ou\""
-    );
-  }
-
 
 
   private String getWhereClauseWithoutCTE(EventQueryParams params) {
@@ -945,9 +917,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
     }
 
-    // Add enrollment date conditions
-    if (params.hasEnrollmentDateCriteria()) {  // We might need to add this method to EventQueryParams
-      String year = params.getEnrollmentDateCriteria();  // We might need to add this method
+    // Add date range conditions
+    if (params.hasEnrollmentDateCriteria()) {
+      String year = params.getEnrollmentDateCriteria();
       conditions.add(String.format(
               "ax.enrollmentdate >= '%s-01-01' and ax.enrollmentdate < '%s-01-01'",
               year, (Integer.parseInt(year) + 1)
@@ -966,17 +938,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       conditions.add("le.enrollment is not null");
     }
 
-    // Add any additional filters
-    SqlHelper hlp = new SqlHelper();
-    String itemFilters = getQueryItemsAndFiltersWhereClause(params, hlp)
-            .replaceAll("(?i)\\s*where\\s+and\\s+", "")
-            .replaceAll("(?i)\\s*where\\s+", "");
-
-    if (!itemFilters.isEmpty()) {
-      conditions.add(itemFilters);
-    }
-
-    return String.join(" and ", conditions);
+    // Join conditions with AND, but don't add extra spaces or concatenate with order by
+    return conditions.isEmpty() ? "" : conditions.stream()
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.joining(" and "));
   }
 
 
