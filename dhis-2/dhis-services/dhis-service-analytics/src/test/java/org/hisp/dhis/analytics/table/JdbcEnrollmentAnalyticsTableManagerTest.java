@@ -36,7 +36,6 @@ import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -112,7 +111,6 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   @BeforeEach
   public void setUp() {
     when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
-    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
   }
 
