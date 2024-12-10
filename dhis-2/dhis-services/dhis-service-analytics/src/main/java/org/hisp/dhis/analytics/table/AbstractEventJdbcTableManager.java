@@ -49,7 +49,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -258,8 +257,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   /**
    * Returns a org unit select query.
    *
+   * @param attribute the {@link TrackedEntityAttribute}.
    * @param column the column name.
-   * @param dataElement the {@link DataElement}.
    * @return an org unit select query.
    */
   private String getOrgUnitSelectSubquery(TrackedEntityAttribute attribute, String column) {
