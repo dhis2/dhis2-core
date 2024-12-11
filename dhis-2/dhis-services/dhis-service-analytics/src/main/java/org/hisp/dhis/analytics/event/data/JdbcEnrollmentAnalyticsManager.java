@@ -996,6 +996,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private String getWhereClauseWithCTE(EventQueryParams params, QueryItem item) {
     List<String> conditions = new ArrayList<>();
 
+    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    if (StringUtils.isNotBlank(timeFieldSql)) {
+      conditions.add(timeFieldSql);
+    }
+
     // Add organization unit conditions
     if (!params.getOrganisationUnits().isEmpty()) {
       String orgUnit = params.getOrganisationUnits().get(0).getUid();
