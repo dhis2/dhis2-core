@@ -177,24 +177,26 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
 
-    String enrolledInProgramExpression =
-        """
-        \s exists(select 1 from ${enrollment} en_0 \
-        where en_0.trackedentityid = te.trackedentityid \
-        and en_0.programid = ${programId})""";
+    if (sqlBuilder.supportsCorrelatedSubquery()) {
+      String enrolledInProgramExpression =
+          """
+          \s exists(select 1 from ${enrollment} en_0 \
+          where en_0.trackedentityid = te.trackedentityid \
+          and en_0.programid = ${programId})""";
 
-    emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
-        .forEach(
-            program ->
-                columns.add(
-                    AnalyticsTableColumn.builder()
-                        .name(program.getUid())
-                        .dataType(BOOLEAN)
-                        .selectExpression(
-                            replaceQualify(
-                                enrolledInProgramExpression,
-                                Map.of("programId", String.valueOf(program.getId()))))
-                        .build()));
+      emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
+          .forEach(
+              program ->
+                  columns.add(
+                      AnalyticsTableColumn.builder()
+                          .name(program.getUid())
+                          .dataType(BOOLEAN)
+                          .selectExpression(
+                              replaceQualify(
+                                  enrolledInProgramExpression,
+                                  Map.of("programId", String.valueOf(program.getId()))))
+                          .build()));
+    }
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
