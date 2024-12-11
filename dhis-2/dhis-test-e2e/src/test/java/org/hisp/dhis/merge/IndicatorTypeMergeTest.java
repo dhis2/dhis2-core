@@ -37,6 +37,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,7 @@ class IndicatorTypeMergeTest extends ApiTest {
 
   private RestApiActions indicatorTypeApiActions;
   private RestApiActions indicatorApiActions;
+  private MetadataActions metadataActions;
   private LoginActions loginActions;
   private UserActions userActions;
 
@@ -56,6 +58,7 @@ class IndicatorTypeMergeTest extends ApiTest {
     indicatorApiActions = new RestApiActions("indicators");
     userActions = new UserActions();
     loginActions.loginAsSuperUser();
+    metadataActions = new MetadataActions();
   }
 
   @Test
@@ -107,36 +110,37 @@ class IndicatorTypeMergeTest extends ApiTest {
     // given 3 indicators and 3 indicator types exist
     // indicator types
     String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("A", 98, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("A", 98, true))
+            .validateStatus(200)
             .extractUid();
+
     String indTypeUid2 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("B", 99, false))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("B", 99, false))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid3 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("C", 100, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("C", 100, true))
+            .validateStatus(200)
             .extractUid();
 
     // indicators referencing the indicator types
     String i1 =
-        indicatorApiActions
-            .post(createIndicator("Ind1", indTypeUid1))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind1", indTypeUid1))
+            .validateStatus(200)
             .extractUid();
     String i2 =
-        indicatorApiActions
-            .post(createIndicator("Ind2", indTypeUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind2", indTypeUid2))
+            .validateStatus(200)
             .extractUid();
     String i3 =
-        indicatorApiActions
-            .post(createIndicator("Ind3", indTypeUid3))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind3", indTypeUid3))
+            .validateStatus(200)
             .extractUid();
 
     // when an indicator type merge request is submitted, keeping sources
@@ -187,36 +191,36 @@ class IndicatorTypeMergeTest extends ApiTest {
     // given 3 indicators and 3 indicator types exist
     // indicator types
     String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("D", 98, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("D", 98, true))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid2 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("E", 99, false))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("E", 99, false))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid3 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("F", 100, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("F", 100, true))
+            .validateStatus(200)
             .extractUid();
 
     // indicators
     String i1 =
-        indicatorApiActions
-            .post(createIndicator("Ind4", indTypeUid1))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind4", indTypeUid1))
+            .validateStatus(200)
             .extractUid();
     String i2 =
-        indicatorApiActions
-            .post(createIndicator("Ind5", indTypeUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind5", indTypeUid2))
+            .validateStatus(200)
             .extractUid();
     String i3 =
-        indicatorApiActions
-            .post(createIndicator("Ind6", indTypeUid3))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind6", indTypeUid3))
+            .validateStatus(200)
             .extractUid();
 
     // when an indicator type merge request is submitted, deleting sources
@@ -265,9 +269,9 @@ class IndicatorTypeMergeTest extends ApiTest {
   void testInvalidMergeNoSources() {
     // given a target indicator type exists
     String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("G", 98, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("G", 98, true))
+            .validateStatus(200)
             .extractUid();
 
     // when a merge request with no sources is sent
@@ -296,9 +300,9 @@ class IndicatorTypeMergeTest extends ApiTest {
   void testInvalidMergeNoTarget() {
     // given a valid source indicator type exists
     String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("H", 98, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("H", 98, true))
+            .validateStatus(200)
             .extractUid();
 
     // when a merge request with no target is sent
@@ -327,19 +331,19 @@ class IndicatorTypeMergeTest extends ApiTest {
   void testInvalidMergeTargetInSources() {
     // given indicator types exist
     String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("J", 98, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("J", 98, true))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid2 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("K", 99, false))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("K", 99, false))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid3 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("L", 100, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("L", 100, true))
+            .validateStatus(200)
             .extractUid();
 
     // when a merge request has the target contained in the sources
@@ -445,9 +449,13 @@ class IndicatorTypeMergeTest extends ApiTest {
   static String createIndicatorType(String name, int factor, boolean isNumber) {
     return """
      {
-        "name": "test indicator type %s",
-        "factor": "%d",
-        "number": "%b"
+        "indicatorTypes":[
+           {
+              "name": "test indicator type %s",
+              "factor": "%d",
+              "number": "%b"
+           }
+        ]
      }
     """
         .formatted(name, factor, isNumber);
@@ -456,14 +464,18 @@ class IndicatorTypeMergeTest extends ApiTest {
   static String createIndicator(String name, String indicatorType) {
     return """
      {
-        "name": "test indicator %s",
-        "shortName": "test short %s",
-        "dimensionItemType": "INDICATOR",
-        "numerator": "#{fbfJHSPpUQD}",
-        "denominator": "#{h0xKKjijTdI}",
-        "indicatorType": {
-            "id": "%s"
-        }
+      "indicators": [
+         {
+            "name": "test indicator %s",
+            "shortName": "test short %s",
+            "dimensionItemType": "INDICATOR",
+            "numerator": "#{fbfJHSPpUQD}",
+            "denominator": "#{h0xKKjijTdI}",
+            "indicatorType": {
+                "id": "%s"
+            }
+         }
+      ]
      }
     """
         .formatted(name, name, indicatorType);

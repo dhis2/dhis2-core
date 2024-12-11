@@ -44,6 +44,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -53,6 +54,7 @@ import org.junit.jupiter.api.Test;
 
 class IndicatorMergeTest extends ApiTest {
 
+  private MetadataActions metadataActions;
   private RestApiActions indicatorApiActions;
   private RestApiActions indicatorTypeApiActions;
   private RestApiActions formsActions;
@@ -81,6 +83,7 @@ class IndicatorMergeTest extends ApiTest {
 
   @BeforeAll
   public void before() {
+    metadataActions = new MetadataActions();
     userActions = new UserActions();
     loginActions = new LoginActions();
     indicatorApiActions = new RestApiActions("indicators");
@@ -332,111 +335,112 @@ class IndicatorMergeTest extends ApiTest {
   private void setupIndicatorData() {
     // indicator types
     String indTypeUid1 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("D", 98, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("D", 98, true))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid2 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("E", 99, false))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("E", 99, false))
+            .validateStatus(200)
             .extractUid();
     String indTypeUid3 =
-        indicatorTypeApiActions
-            .post(createIndicatorType("F", 100, true))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorType("F", 100, true))
+            .validateStatus(200)
             .extractUid();
 
     // indicators (2 x source & 1 target)
     sourceUid1 =
-        indicatorApiActions
-            .post(createIndicator("Ind source 1", indTypeUid1))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind source 1", indTypeUid1))
+            .validateStatus(200)
             .extractUid();
     sourceUid2 =
-        indicatorApiActions
-            .post(createIndicator("Ind source 2", indTypeUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind source 2", indTypeUid2))
+            .validateStatus(200)
             .extractUid();
     targetUid =
-        indicatorApiActions
-            .post(createIndicator("Ind target 3", indTypeUid3))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicator("Ind target 3", indTypeUid3))
+            .validateStatus(200)
             .extractUid();
 
     // indicators containing refs to other indicators in numerator/denominator
     // indicator with numerator and denominator x 2
     ind4WithIndRef =
-        indicatorApiActions
-            .post(createIndicatorWithRefs("Ind 4", indTypeUid2, sourceUid1, sourceUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorWithRefs("Ind 4", indTypeUid2, sourceUid1, sourceUid2))
+            .validateStatus(200)
             .extractUid();
     ind5WithIndRef =
-        indicatorApiActions
-            .post(createIndicatorWithRefs("Ind 5", indTypeUid3, targetUid, sourceUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorWithRefs("Ind 5", indTypeUid3, targetUid, sourceUid2))
+            .validateStatus(200)
             .extractUid();
 
     indWithoutSourceRef =
-        indicatorApiActions
-            .post(createIndicatorWithRefs("Ind 6", indTypeUid3, targetUid, "Uid45678901"))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorWithRefs("Ind 6", indTypeUid3, targetUid, "Uid45678901"))
+            .validateStatus(200)
             .extractUid();
 
     // 2 data entry forms containing indicator refs in html code
     formWithSources =
-        formsActions
-            .post(createDataEntryForm("custom form 1", sourceUid2, sourceUid1))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createDataEntryForm("custom form 1", sourceUid2, sourceUid1))
+            .validateStatus(200)
             .extractUid();
 
     formWithoutSources =
-        formsActions
-            .post(createDataEntryForm("custom form 2", targetUid, "Uid45678901"))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createDataEntryForm("custom form 2", targetUid, "Uid45678901"))
+            .validateStatus(200)
             .extractUid();
 
     // datasets (have 1 part of a source and 1 not)
     datasetWithSources =
-        dataSetActions
-            .post(createDataSet("Data set 1", sourceUid1, sourceUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createDataSet("Data set 1", sourceUid1, sourceUid2))
+            .validateStatus(200)
             .extractUid();
     datasetWithoutSources =
-        dataSetActions
-            .post(createDataSet("Data set 2", ind4WithIndRef, ind5WithIndRef))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createDataSet("Data set 2", ind4WithIndRef, ind5WithIndRef))
+            .validateStatus(200)
             .extractUid();
 
     // indicator groups (have 1 part of a source and 1 not)
     indGroupWithSources =
-        indicatorGroupActions
-            .post(createIndicatorGroup("Group 1", sourceUid1, sourceUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorGroup("Group 1", sourceUid1, sourceUid2))
+            .validateStatus(200)
             .extractUid();
     indGroupWithNoSources =
-        indicatorGroupActions
-            .post(createIndicatorGroup("Group 2", ind4WithIndRef, ind5WithIndRef))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createIndicatorGroup("Group 2", ind4WithIndRef, ind5WithIndRef))
+            .validateStatus(200)
             .extractUid();
 
     // sections (have 1 reference a source and 1 not)
     sectionWithSources =
-        sectionActions
-            .post(createSection("Group 1", datasetWithSources, sourceUid1, sourceUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(createSection("Group 1", datasetWithSources, sourceUid1, sourceUid2))
+            .validateStatus(200)
             .extractUid();
     sectionWithoutSources =
-        sectionActions
-            .post(createSection("Group 2", datasetWithoutSources, ind4WithIndRef, ind5WithIndRef))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(
+                createSection("Group 2", datasetWithoutSources, ind4WithIndRef, ind5WithIndRef))
+            .validateStatus(200)
             .extractUid();
 
     // and a visualization exists with data dimension items (indicators)
     visUid =
-        visualizationActions
-            .post(getVisualization(sourceUid1, sourceUid2))
-            .validateStatus(201)
+        metadataActions
+            .importMetadata(getVisualization(sourceUid1, sourceUid2))
+            .validateStatus(200)
             .extractUid();
 
     // set config indicators
@@ -446,55 +450,59 @@ class IndicatorMergeTest extends ApiTest {
   private String getVisualization(String sourceUid1, String sourceUid2) {
     return """
       {
-        "name": "vis test 1",
-        "dataDimensionItems": [
+        "visualizations": [
           {
-            "indicator": {
-              "id": "%s"
-            },
-            "dataDimensionItemType": "INDICATOR"
-          },
-          {
-            "indicator": {
-              "id": "%s"
-            },
-            "dataDimensionItemType": "INDICATOR"
-          }
-        ],
-        "type": "COLUMN",
-        "numberType": "VALUE",
-        "columns": [
-          {
-            "items": [
+            "name": "vis test 1",
+            "dataDimensionItems": [
               {
-                "id": "%s"
+                "indicator": {
+                  "id": "%s"
+                },
+                "dataDimensionItemType": "INDICATOR"
               },
               {
-                "id": "%s"
+                "indicator": {
+                  "id": "%s"
+                },
+                "dataDimensionItemType": "INDICATOR"
               }
             ],
-            "dimension": "dx"
-          },
-          {
-            "items": [
+            "type": "COLUMN",
+            "numberType": "VALUE",
+            "columns": [
               {
-                 "name": "CHP",
-                 "id": "uYxK4wmcPqA",
-                 "displayName": "CHP",
-                 "displayShortName": "CHP",
-                 "dimensionItemType": "ORGANISATION_UNIT_GROUP"
-               }
+                "items": [
+                  {
+                    "id": "%s"
+                  },
+                  {
+                    "id": "%s"
+                  }
+                ],
+                "dimension": "dx"
+              },
+              {
+                "items": [
+                  {
+                     "name": "CHP",
+                     "id": "uYxK4wmcPqA",
+                     "displayName": "CHP",
+                     "displayShortName": "CHP",
+                     "dimensionItemType": "ORGANISATION_UNIT_GROUP"
+                   }
+                ],
+                "dimension": "%s"
+              }
             ],
-            "dimension": "%s"
+            "sorting": [
+              {
+                  "dimension": "%s",
+                  "direction": "ASC"
+              }
+            ],
+            "displayName": "vis test 1"
           }
-        ],
-        "sorting": [
-          {
-              "dimension": "%s",
-              "direction": "ASC"
-          }
-        ],
-        "displayName": "vis test 1"
+         ]
       }
     """
         .formatted(sourceUid1, sourceUid2, sourceUid1, sourceUid2, sourceUid1, sourceUid1);
@@ -504,8 +512,12 @@ class IndicatorMergeTest extends ApiTest {
     // language json
     return """
       {
-        "name": "%s",
-        "htmlCode": "<table id=\\"registration-form\\" style=\\"width: 300px; padding: 10px;\\">\\r\\n\\t<thead>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<th colspan=\\"2\\" scope=\\"col\\">Child registration form</th>\\r\\n\\t\\t</tr>\\r\\n\\t</thead>\\r\\n\\t<tbody>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<td style=\\"text-align: right; width: 100px;\\">First name</td>\\r\\n\\t\\t\\t<td><input attributeid=\\"%s\\" title=\\"First name \\" value=\\"[First name ]\\" /></td>\\r\\n\\t\\t</tr>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<td style=\\"text-align: right;\\">Last name</td>\\r\\n\\t\\t\\t<td><input attributeid=\\"%s\\" title=\\"Last name \\" value=\\"[Last name ]\\" /></td>\\r\\n\\t\\t</tr>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<td style=\\"text-align: right;\\">Gender</td>\\r\\n\\t\\t</tr>\\r\\n\\t</tbody>\\r\\n</table>\\r\\n\\r\\n<p>&nbsp;</p>"
+        "dataEntryForms":[
+          {
+            "name": "%s",
+            "htmlCode": "<table id=\\"registration-form\\" style=\\"width: 300px; padding: 10px;\\">\\r\\n\\t<thead>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<th colspan=\\"2\\" scope=\\"col\\">Child registration form</th>\\r\\n\\t\\t</tr>\\r\\n\\t</thead>\\r\\n\\t<tbody>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<td style=\\"text-align: right; width: 100px;\\">First name</td>\\r\\n\\t\\t\\t<td><input attributeid=\\"%s\\" title=\\"First name \\" value=\\"[First name ]\\" /></td>\\r\\n\\t\\t</tr>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<td style=\\"text-align: right;\\">Last name</td>\\r\\n\\t\\t\\t<td><input attributeid=\\"%s\\" title=\\"Last name \\" value=\\"[Last name ]\\" /></td>\\r\\n\\t\\t</tr>\\r\\n\\t\\t<tr>\\r\\n\\t\\t\\t<td style=\\"text-align: right;\\">Gender</td>\\r\\n\\t\\t</tr>\\r\\n\\t</tbody>\\r\\n</table>\\r\\n\\r\\n<p>&nbsp;</p>"
+          }
+        ]
       }
     """
         .formatted(name, indUid1, indUid2);
@@ -527,14 +539,18 @@ class IndicatorMergeTest extends ApiTest {
       String name, String indicatorType, String indicatorRef1, String indicatorRef2) {
     return """
      {
-        "name": "test indicator %s",
-        "shortName": "test short %s",
-        "dimensionItemType": "INDICATOR",
-        "numerator": "#{%s}",
-        "denominator": "#{%s}",
-        "indicatorType": {
-            "id": "%s"
-        }
+      "indicators":[
+         {
+            "name": "test indicator %s",
+            "shortName": "test short %s",
+            "dimensionItemType": "INDICATOR",
+            "numerator": "#{%s}",
+            "denominator": "#{%s}",
+            "indicatorType": {
+                "id": "%s"
+            }
+         }
+      ]
      }
     """
         .formatted(name, name, indicatorRef1, indicatorRef2, indicatorType);
@@ -543,16 +559,20 @@ class IndicatorMergeTest extends ApiTest {
   private String createDataSet(String name, String indicatorUid1, String indicatorUid2) {
     return """
       {
-        "name": "%s",
-        "shortName": "%s",
-        "periodType": "Daily",
-        "indicators":[
-            {
-                "id": "%s"
-            },
-            {
-                "id": "%s"
-            }
+        "dataSets":[
+          {
+            "name": "%s",
+            "shortName": "%s",
+            "periodType": "Daily",
+            "indicators":[
+                {
+                    "id": "%s"
+                },
+                {
+                    "id": "%s"
+                }
+            ]
+          }
         ]
       }
     """
@@ -562,15 +582,19 @@ class IndicatorMergeTest extends ApiTest {
   private String createIndicatorGroup(String name, String indicatorUid1, String indicatorUid2) {
     return """
       {
-        "name": "%s",
-        "shortName": "%s",
-        "indicators":[
-            {
-                "id": "%s"
-            },
-            {
-                "id": "%s"
-            }
+        "indicatorGroups":[
+          {
+            "name": "%s",
+            "shortName": "%s",
+            "indicators":[
+                {
+                    "id": "%s"
+                },
+                {
+                    "id": "%s"
+                }
+            ]
+          }
         ]
       }
     """
@@ -581,18 +605,22 @@ class IndicatorMergeTest extends ApiTest {
       String name, String dataSet, String indicatorUid1, String indicatorUid2) {
     return """
       {
-        "name": "%s",
-        "shortName": "%s",
-        "dataSet": {
-            "id": "%s"
-        },
-        "indicators":[
-            {
+        "sections": [
+          {
+            "name": "%s",
+            "shortName": "%s",
+            "dataSet": {
                 "id": "%s"
             },
-            {
-                "id": "%s"
-            }
+            "indicators":[
+                {
+                    "id": "%s"
+                },
+                {
+                    "id": "%s"
+                }
+            ]
+          }
         ]
       }
     """

@@ -45,7 +45,6 @@ import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -85,7 +84,6 @@ class CategoryOptionMergeTest extends ApiTest {
   }
 
   @Test
-  @Disabled("Started failing in GitHub (Not Jenkins) for no obvious reason")
   @DisplayName(
       "Valid CategoryOption merge completes successfully with all source CategoryOption refs replaced with target CategoryOption")
   void validDataElementMergeTest() {
@@ -153,11 +151,10 @@ class CategoryOptionMergeTest extends ApiTest {
   }
 
   private void setupMetadata() {
-    metadataActions.post(metadata()).validateStatus(200);
+    metadataActions.importMetadata(metadata()).validateStatus(200);
   }
 
   @Test
-  @Disabled("Started failing in GitHub (Not Jenkins) for no obvious reason")
   @DisplayName("CategoryOption merge fails when user has not got the required authority")
   void testDataElementMergeNoRequiredAuth() {
     userActions.addUserFull("basic", "User", "basicUser", "Test1234!", "NO_AUTH");

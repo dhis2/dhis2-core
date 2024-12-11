@@ -44,7 +44,6 @@ import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +51,7 @@ class DataElementMergeTest extends ApiTest {
 
   private RestApiActions dataElementApiActions;
   private RestApiActions datasetApiActions;
-  private MetadataActions metadataApiActions;
+  private MetadataActions metadataActions;
   private RestApiActions minMaxActions;
   private UserActions userActions;
   private LoginActions loginActions;
@@ -66,7 +65,7 @@ class DataElementMergeTest extends ApiTest {
     loginActions = new LoginActions();
     dataElementApiActions = new RestApiActions("dataElements");
     datasetApiActions = new RestApiActions("dataSets");
-    metadataApiActions = new MetadataActions();
+    metadataActions = new MetadataActions();
     minMaxActions = new RestApiActions("minMaxDataElements");
     loginActions.loginAsSuperUser();
 
@@ -124,8 +123,6 @@ class DataElementMergeTest extends ApiTest {
   }
 
   @Test
-  @Disabled(
-      "setup started failing on GitHub only 409 response, reason not known, e2e all passing locally")
   @DisplayName("DataElement merge fails when min max DE DB unique key constraint met")
   void dbConstraintMinMaxTest() {
     // given
@@ -295,14 +292,14 @@ class DataElementMergeTest extends ApiTest {
   }
 
   private String setupDataElement(String uniqueChar, String valueType, String domainType) {
-    return dataElementApiActions
-        .post(createDataElement("source 1" + uniqueChar, valueType, domainType))
-        .validateStatus(201)
+    return metadataActions
+        .importMetadata(createDataElement("source 1" + uniqueChar, valueType, domainType))
+        .validateStatus(200)
         .extractUid();
   }
 
   private void setupDataSet(String sourceUid1, String sourceUid2, String targetUid) {
-    datasetApiActions.post(createDataset(sourceUid1, sourceUid2, targetUid)).extractUid();
+    metadataActions.importMetadata(createDataset(sourceUid1, sourceUid2, targetUid)).extractUid();
   }
 
   private JsonObject getMergeBody(
@@ -320,16 +317,25 @@ class DataElementMergeTest extends ApiTest {
 
   private void setupProgramStageDataElements(
       String sourceUid1, String sourceUid2, String targetUid) {
-    metadataApiActions
+    metadataActions
         .importMetadata(programWithStageAndDataElements(sourceUid1, sourceUid2, targetUid))
         .validateStatus(200);
   }
 
   private void setupMinMaxDataElements(String sourceUid1, String sourceUid2, String targetUid) {
-    metadataApiActions.importMetadata(metadata()).validateStatus(200);
-    minMaxActions.post(minMaxDataElements("OrgUnit0Z91", sourceUid1, "CatOptComZ3"));
-    minMaxActions.post(minMaxDataElements("OrgUnit0Z91", sourceUid2, "CatOptComZ3"));
-    minMaxActions.post(minMaxDataElements("OrgUnit0Z91", targetUid, "CatOptComZ3"));
+    metadataActions.importMetadata(metadata()).validateStatus(200);
+    String mmde1 =
+        minMaxActions
+            .post(minMaxDataElements("OrgUnit0Z91", sourceUid1, "CatOptComZ3"))
+            .getAsString();
+    String mmde2 =
+        minMaxActions
+            .post(minMaxDataElements("OrgUnit0Z91", sourceUid2, "CatOptComZ3"))
+            .getAsString();
+    String mmde3 =
+        minMaxActions
+            .post(minMaxDataElements("OrgUnit0Z91", targetUid, "CatOptComZ3"))
+            .getAsString();
   }
 
   private String programWithStageAndDataElements(
@@ -485,13 +491,17 @@ class DataElementMergeTest extends ApiTest {
   private String createDataElement(String name, String valueType, String domainType) {
     return """
       {
-           "aggregationType": "DEFAULT",
-           "domainType": "%s",
-           "name": "%s",
-           "shortName": "%s",
-           "displayName": "%s",
-           "valueType": "%s"
-       }
+        "dataElements":[
+        {
+             "aggregationType": "DEFAULT",
+             "domainType": "%s",
+             "name": "%s",
+             "shortName": "%s",
+             "displayName": "%s",
+             "valueType": "%s"
+         }
+       ]
+      }
     """
         .formatted(domainType, name, name, name, valueType);
   }
@@ -499,24 +509,28 @@ class DataElementMergeTest extends ApiTest {
   private String createDataset(String dataEl1, String dataEl2, String dataEl3) {
     return """
       {
-        "name": "ds1",
-        "shortName": "ds1",
-        "periodType": "Daily",
-        "dataSetElements": [
+        "dataSets": [
           {
-              "dataElement": {
-                  "id": "%s"
+            "name": "ds1",
+            "shortName": "ds1",
+            "periodType": "Daily",
+            "dataSetElements": [
+              {
+                  "dataElement": {
+                      "id": "%s"
+                  }
+              },
+              {
+                  "dataElement": {
+                      "id": "%s"
+                  }
+              },
+              {
+                  "dataElement": {
+                      "id": "%s"
+                  }
               }
-          },
-          {
-              "dataElement": {
-                  "id": "%s"
-              }
-          },
-          {
-              "dataElement": {
-                  "id": "%s"
-              }
+            ]
           }
         ]
       }

@@ -66,7 +66,12 @@ public class ApiResponse {
       return uid;
     }
 
-    return extractString("response.importSummaries.reference[0]");
+    uid = extractString("response.importSummaries.reference[0]");
+    if (!StringUtils.isEmpty(uid)) {
+      return uid;
+    }
+
+    return extractString("response.typeReports[0].objectReports[0].uid");
   }
 
   /** Extracts uids from import summaries. Use when more than one object was created. */
