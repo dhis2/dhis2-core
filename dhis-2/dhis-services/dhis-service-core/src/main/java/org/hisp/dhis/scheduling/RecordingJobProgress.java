@@ -214,7 +214,7 @@ public class RecordingJobProgress implements JobProgress {
     if (skipRecording && cause instanceof RuntimeException rex) throw rex;
     CancellationException ex =
         failedPostCondition
-            ? new CancellationException("Non-null post-condition failed")
+            ? new CancellationException("Non-null post-condition failed: " + cause.getMessage())
             : new CancellationException();
     ex.initCause(cause);
     return ex;

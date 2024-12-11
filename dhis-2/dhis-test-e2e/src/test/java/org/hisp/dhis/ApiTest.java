@@ -34,6 +34,7 @@ import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
 import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -49,6 +50,11 @@ public abstract class ApiTest {
   @AfterAll
   public void afterAll() {
     new LoginActions().loginAsDefaultUser();
+    new TestCleanUp().deleteCreatedEntities();
+  }
+
+  @AfterEach
+  public void cleanup() {
     new TestCleanUp().deleteCreatedEntities();
   }
 }

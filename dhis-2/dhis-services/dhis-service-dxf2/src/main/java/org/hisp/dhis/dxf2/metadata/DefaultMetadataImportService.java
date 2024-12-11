@@ -98,10 +98,12 @@ public class DefaultMetadataImportService implements MetadataImportService {
     handleDeprecationIfEventReport(bundleParams);
 
     progress.startingStage("Creating bundle");
+    log.info("OBP: " + bundleParams);
     ObjectBundle bundle =
         progress.nonNullStagePostCondition(
             progress.runStage(() -> objectBundleService.create(bundleParams)));
 
+    log.info("OB after nonnull stage: " + (bundle != null));
     progress.startingStage("Running postCreateBundle");
     progress.runStage(() -> postCreateBundle(bundle, bundleParams));
 
