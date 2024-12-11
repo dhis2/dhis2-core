@@ -259,6 +259,7 @@ public interface JobProgress {
       if (obr instanceof ObjectBundle) {
         return value;
       } else if (obr instanceof ObjectBundleFail obf) {
+        obf.e().printStackTrace();
         throw new CancellationException("Post-condition was null: " + obf.e().getMessage());
       }
     }
