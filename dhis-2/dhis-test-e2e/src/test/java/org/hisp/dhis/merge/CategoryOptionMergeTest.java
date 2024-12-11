@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -151,7 +152,8 @@ class CategoryOptionMergeTest extends ApiTest {
   }
 
   private void setupMetadata() {
-    metadataActions.post(metadata()).validateStatus(200);
+    ApiResponse apiResponse = metadataActions.post(metadata()).validateStatus(200);
+    assertEquals("test", apiResponse.getAsString());
   }
 
   @Test
