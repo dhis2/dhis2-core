@@ -144,30 +144,6 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .selectExpression("ev.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("uidlevel1")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel1")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel2")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel2")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel3")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel3")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel4")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel4")
-              .build(),
-          AnalyticsTableColumn.builder()
               .name("ou")
               .dataType(CHARACTER_11)
               .nullable(NULL)
