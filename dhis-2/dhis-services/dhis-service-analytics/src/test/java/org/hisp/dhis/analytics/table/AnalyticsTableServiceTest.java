@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -43,7 +42,6 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -62,11 +60,6 @@ class AnalyticsTableServiceTest {
   @Mock private SqlBuilder sqlBuilder;
 
   @InjectMocks private DefaultAnalyticsTableService tableService;
-
-  @BeforeEach
-  void setUp() {
-    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
-  }
 
   @Test
   void testGetTablePartitions() {
@@ -104,6 +97,7 @@ class AnalyticsTableServiceTest {
 
   @Test
   void testGetParallelJobsA() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getParallelJobsInAnalyticsTableExport()).thenReturn(1);
 
     assertEquals(1, tableService.getParallelJobs());
@@ -111,6 +105,7 @@ class AnalyticsTableServiceTest {
 
   @Test
   void testGetParallelJobsB() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getParallelJobsInAnalyticsTableExport()).thenReturn(-1);
     when(settings.getDatabaseServerCpus()).thenReturn(8);
 

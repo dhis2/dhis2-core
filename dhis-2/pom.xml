@@ -232,7 +232,7 @@
     <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
@@ -1880,7 +1880,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>4.0.0.4121</version>
+          <version>5.0.0.4389</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -2068,6 +2068,7 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-cql</ignoredUnusedDeclaredDependency>
@@ -2086,7 +2087,9 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.hibernate:hibernate-micrometer</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-spring-legacy</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
               <!-- Needed by dhis-web-server modules -->
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.velocity.tools:velocity-tools-generic</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
@@ -2120,6 +2123,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
@@ -2135,11 +2139,13 @@ jasperreports.version=${jasperreports.version}
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
+              <ignoredNonTestScopedDependency>org.springframework.data:spring-data-redis:jar</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-databind</ignoredNonTestScopedDependency>
               <!-- Needed by dhis-web-server module -->
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-system</ignoredUnusedDeclaredDependency>
             </ignoredNonTestScopedDependencies>

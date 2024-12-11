@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.session;
+package org.hisp.dhis.login;
 
-import org.hisp.dhis.webapi.filter.DefaultSessionConfig;
-import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * This is used for adding springSessionRepositoryFilter into the filter chain. The actual filter
- * bean used will be either backed by redis from the {@link RedisSpringSessionConfig} or a dummy
- * filter from {@link DefaultSessionConfig}.
- *
- * @author Ameen Mohamed
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {}
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginRequest {
+
+  @JsonProperty private String username;
+  @JsonProperty private String password;
+  @JsonProperty private String twoFactorCode;
+}

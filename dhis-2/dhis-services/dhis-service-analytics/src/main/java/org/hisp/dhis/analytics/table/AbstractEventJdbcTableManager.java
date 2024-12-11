@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -190,7 +189,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String valueColumn = String.format("%s.%s", quote(attribute.getUid()), "value");
+    String valueColumn = getValueColumn(attribute);
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
@@ -222,31 +221,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
-
     if (isSpatialSupport()) {
-      String selectExpression = "ou.geometry " + fromClause;
-      String ouGeoSql = getSelectSubquery(attribute, selectExpression);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(ouGeoSql)
+              .selectExpression(getOrgUnitSelectSubquery(attribute, "geometry"))
               .indexType(IndexType.GIST)
               .build());
     }
-
-    String selectExpression = "ou.name " + fromClause;
-    String ouNameSql = getSelectSubquery(attribute, selectExpression);
 
     columns.add(
         AnalyticsTableColumn.builder()
             .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(ouNameSql)
+            .selectExpression(getOrgUnitSelectSubquery(attribute, "name"))
             .skipIndex(SKIP)
             .build());
 
@@ -254,24 +245,37 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * The select subquery statement.
+   * Returns the value column with alias.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param selectExpression the select expression.
-   * @return a select statement.
+   * @return the vlaue column with alias.
    */
-  private String getSelectSubquery(TrackedEntityAttribute attribute, String selectExpression) {
-    return replaceQualify(
+  private String getValueColumn(TrackedEntityAttribute attribute) {
+    return String.format("%s.%s", quote(attribute.getUid()), "value");
+  }
+
+  /**
+   * Returns a org unit select query.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param column the column name.
+   * @return an org unit select query.
+   */
+  private String getOrgUnitSelectSubquery(TrackedEntityAttribute attribute, String column) {
+    String format =
         """
-        (select ${selectExpression} from ${trackedentityattributevalue} \
-        where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId})\
-        ${closingParentheses} as ${attributeUid}""",
+        (select ou.${column} from ${organisationunit} ou \
+        where ou.uid = ${columnExpression}) as ${alias}""";
+    String valueColumn = getValueColumn(attribute);
+    String columnExpression = getColumnExpression(attribute.getValueType(), valueColumn);
+    String alias = quote(attribute.getUid());
+
+    return replaceQualify(
+        format,
         Map.of(
-            "selectExpression", selectExpression,
-            "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(selectExpression),
-            "attributeUid", quote(attribute.getUid())));
+            "column", column,
+            "columnExpression", columnExpression,
+            "alias", alias));
   }
 
   /**
