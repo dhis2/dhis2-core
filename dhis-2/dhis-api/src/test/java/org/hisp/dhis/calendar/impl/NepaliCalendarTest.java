@@ -104,8 +104,8 @@ class NepaliCalendarTest {
     assertEquals(endDate.toDate(), period.getEndDate());
 
     dateTimeUnit = new DateTimeUnit(2080, 12, 26, false);
-    startDate = new DateTime(2024,4,8,0,0);
-    endDate = new DateTime(2024,4,14,0,0);
+    startDate = new DateTime(2024, 4, 8, 0, 0);
+    endDate = new DateTime(2024, 4, 14, 0, 0);
 
     period = periodType.createPeriod(dateTimeUnit, calendar);
     assertEquals("2080W52", period.getIsoDate());
