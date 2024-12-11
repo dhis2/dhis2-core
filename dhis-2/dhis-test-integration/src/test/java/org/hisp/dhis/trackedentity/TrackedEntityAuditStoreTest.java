@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditStore;
 import org.junit.jupiter.api.Test;
@@ -53,13 +53,13 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAuditStore store;
 
   private final TrackedEntityAudit auditA =
-      new TrackedEntityAudit("WGW7UnVcIIb", "Access", created, "userA", ChangeLogType.CREATE);
+      new TrackedEntityAudit("WGW7UnVcIIb", "Access", created, "userA", AuditOperationType.CREATE);
   private final TrackedEntityAudit auditB =
-      new TrackedEntityAudit("WGW7UnVcIIb", "Access", created, "userB", ChangeLogType.UPDATE);
+      new TrackedEntityAudit("WGW7UnVcIIb", "Access", created, "userB", AuditOperationType.UPDATE);
   private final TrackedEntityAudit auditC =
-      new TrackedEntityAudit("zIAwTY3Drrn", "Access", created, "userA", ChangeLogType.UPDATE);
+      new TrackedEntityAudit("zIAwTY3Drrn", "Access", created, "userA", AuditOperationType.UPDATE);
   private final TrackedEntityAudit auditD =
-      new TrackedEntityAudit("zIAwTY3Drrn", "Access", created, "userB", ChangeLogType.DELETE);
+      new TrackedEntityAudit("zIAwTY3Drrn", "Access", created, "userB", AuditOperationType.DELETE);
 
   @Test
   void shouldAuditTrackedEntity_whenAddAuditList() {
@@ -73,13 +73,14 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAudit> trackedEntityAudits = store.getTrackedEntityAudit(params);
 
     assertEquals(trackedEntityAuditInput.size(), trackedEntityAudits.size());
-    TrackedEntityAudit entityAudit = filterByAuditType(trackedEntityAudits, ChangeLogType.CREATE);
+    TrackedEntityAudit entityAudit =
+        filterByAuditType(trackedEntityAudits, AuditOperationType.CREATE);
 
     assertNotNull(entityAudit);
     assertEquals("userA", entityAudit.getAccessedBy());
     assertEquals("WGW7UnVcIIb", entityAudit.getTrackedEntity());
 
-    entityAudit = filterByAuditType(trackedEntityAudits, ChangeLogType.UPDATE);
+    entityAudit = filterByAuditType(trackedEntityAudits, AuditOperationType.UPDATE);
 
     assertNotNull(entityAudit);
     assertEquals("userB", entityAudit.getAccessedBy());
@@ -87,9 +88,9 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   }
 
   private static TrackedEntityAudit filterByAuditType(
-      List<TrackedEntityAudit> trackedEntityAuditsStore, ChangeLogType changeLogType) {
+      List<TrackedEntityAudit> trackedEntityAuditsStore, AuditOperationType auditOperationType) {
     return trackedEntityAuditsStore.stream()
-        .filter(a -> a.getAuditType() == changeLogType)
+        .filter(a -> a.getAuditType() == auditOperationType)
         .findFirst()
         .orElse(null);
   }
@@ -111,13 +112,13 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(List.of(auditA, auditC), store.getTrackedEntityAudit(params));
 
-    params = new TrackedEntityAuditQueryParams().setAuditTypes(List.of(ChangeLogType.UPDATE));
+    params = new TrackedEntityAuditQueryParams().setAuditTypes(List.of(AuditOperationType.UPDATE));
 
     assertContainsOnly(List.of(auditB, auditC), store.getTrackedEntityAudit(params));
 
     params =
         new TrackedEntityAuditQueryParams()
-            .setAuditTypes(List.of(ChangeLogType.CREATE, ChangeLogType.DELETE));
+            .setAuditTypes(List.of(AuditOperationType.CREATE, AuditOperationType.DELETE));
 
     assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityAudit(params));
 

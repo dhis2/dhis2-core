@@ -239,15 +239,12 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a SQL select query.
    */
   private String getInputSql(Program program) {
-    StringBuilder sb = new StringBuilder("select ");
+    List<AnalyticsTableColumn> columns = getColumns();
 
-    for (AnalyticsTableColumn col : getColumns()) {
-      sb.append(col.getSelectExpression()).append(",");
-    }
+    StringBuilder sql = new StringBuilder("select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
-    sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
-
-    sb.append(
+    sql.append(
         replaceQualify(
             """
             \sfrom (\
@@ -272,7 +269,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 "historyTableId", HISTORY_TABLE_ID,
                 "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
                 "programId", String.valueOf(program.getId()))));
-    return sb.toString();
+    return sql.toString();
   }
 
   private Map<String, Object> getRowMap(List<String> columnNames, ResultSet resultSet)

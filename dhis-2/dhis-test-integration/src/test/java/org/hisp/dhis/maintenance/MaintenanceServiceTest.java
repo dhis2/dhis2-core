@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.maintenance;
 
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +49,6 @@ import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -336,7 +336,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     eventChangeLogService.addEventChangeLog(
-        eventA, dataElement, "", "value", ChangeLogType.UPDATE, getCurrentUsername());
+        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
     manager.delete(enrollment);

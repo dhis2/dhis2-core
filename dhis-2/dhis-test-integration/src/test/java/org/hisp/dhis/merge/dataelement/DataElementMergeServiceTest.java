@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AnalyticalObjectStore;
@@ -2560,7 +2561,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // --------------------------------------
-  // -- TrackedEntityDataValueChangeLog --
+  // -- EventChangeLog --
   // --------------------------------------
   @Test
   @DisplayName(
@@ -2684,7 +2685,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     DataValueAudit dva = new DataValueAudit();
     dva.setDataElement(de);
     dva.setValue(value);
-    dva.setAuditType(CREATE);
+    dva.setAuditType(AuditOperationType.CREATE);
     dva.setCreated(new Date());
     dva.setCategoryOptionCombo(coc1);
     dva.setAttributeOptionCombo(coc1);
