@@ -133,16 +133,13 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
+    String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
+
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
-
     sql += ") select ";
-
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
-
     sql += " ";
 
     sql +=

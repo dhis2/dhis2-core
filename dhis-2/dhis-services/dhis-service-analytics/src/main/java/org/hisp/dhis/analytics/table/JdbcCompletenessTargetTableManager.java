@@ -158,16 +158,13 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    String sql = "insert into " + tableName + " (";
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
+    String sql = "insert into " + tableName + " (";
+
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
-
     sql += ") select ";
-
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
-
     sql += " ";
 
     sql +=

@@ -294,11 +294,8 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
-
     sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
-
     sql.append(") select ");
-
     sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
