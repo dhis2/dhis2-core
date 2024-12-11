@@ -52,7 +52,6 @@ import org.jboss.aerogear.security.otp.Totp;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
@@ -65,7 +64,6 @@ import org.subethamail.wiser.WiserMessage;
 
 @Tag("logintests")
 @Slf4j
-@Disabled
 public class LoginTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final RestTemplate restTemplate = new RestTemplate();
