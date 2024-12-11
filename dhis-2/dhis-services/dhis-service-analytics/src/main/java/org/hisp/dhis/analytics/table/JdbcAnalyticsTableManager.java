@@ -344,35 +344,33 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
 
     sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
-
     sql.append(") select ");
-
     sql.append(toCommaSeparated(dimensions, AnalyticsTableColumn::getSelectExpression));
+    sql.append(",");
 
-    sql.append(",")
-        .append(
-            replaceQualify(
-                """
-            ${approvalSelectExpression} \
-            as approvallevel, \
-            ${valueExpression} * ps.daysno as daysxvalue, \
-            ps.daysno as daysno, \
-            ${valueExpression} as value, \
-            ${textValueExpression} as textvalue \
-            from ${datavalue} dv \
-            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
-            inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
-            inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
-            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
-            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
-                Map.of(
-                    "approvalSelectExpression", approvalSelectExpression,
-                    "valueExpression", valueExpression,
-                    "textValueExpression", textValueExpression)));
+    sql.append(
+        replaceQualify(
+            """
+        ${approvalSelectExpression} \
+        as approvallevel, \
+        ${valueExpression} * ps.daysno as daysxvalue, \
+        ps.daysno as daysno, \
+        ${valueExpression} as value, \
+        ${textValueExpression} as textvalue \
+        from ${datavalue} dv \
+        inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+        inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+        inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
+        inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+        inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
+        inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+        inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+        inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
+        inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            Map.of(
+                "approvalSelectExpression", approvalSelectExpression,
+                "valueExpression", valueExpression,
+                "textValueExpression", textValueExpression)));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());

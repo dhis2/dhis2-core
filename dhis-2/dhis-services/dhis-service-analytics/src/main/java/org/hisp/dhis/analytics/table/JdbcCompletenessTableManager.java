@@ -150,11 +150,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String sql =
         replaceQualify(
             """
-        select cdr.datasetid \
-        from ${completedatasetregistration} cdr \
-        where cdr.lastupdated >= '${startDate}' \
-        and cdr.lastupdated < '${endDate}' \
-        limit 1;""",
+            select cdr.datasetid \
+            from ${completedatasetregistration} cdr \
+            where cdr.lastupdated >= '${startDate}' \
+            and cdr.lastupdated < '${endDate}' \
+            limit 1;""",
             Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
@@ -198,17 +198,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String sql = "insert into " + tableName + " (";
-
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
-
     sql += ") select ";
-
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
-
     sql += " ";
-
     // Database legacy fix
-
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
