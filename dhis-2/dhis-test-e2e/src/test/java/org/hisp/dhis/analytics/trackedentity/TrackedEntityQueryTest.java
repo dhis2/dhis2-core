@@ -320,18 +320,18 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  void queryWithProgramAndPagination() {
+  void queryWithProgramAndPagination() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
-            .add("lastUpdated=LAST_10_YEARS")
-            .add("pageSize=10")
-            .add("totalPages=true")
             .add("asc=lastupdated")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add(
+                "headers=trackedentity,lastupdated,createdbydisplayname,lastupdatedbydisplayname,geometry,longitude,latitude,ouname,oucode,ounamehierarchy,w75KJ2mc4zz,zDhUuAYrxNC,cejWyOfXge6,lZGmxYbs97q")
+            .add("totalPages=true")
+            .add("pageSize=10")
+            .add("program=IpHINAT79UW")
             .add("relativePeriodDate=2022-09-27");
-
-    params = withDefaultHeaders(params);
 
     // When
     ApiResponse response =
@@ -343,26 +343,17 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("headers", hasSize(equalTo(14)))
         .body("rows", hasSize(equalTo(10)))
-        .body("metaData.pager.page", equalTo(1))
-        .body("metaData.pager.pageSize", equalTo(10))
-        .body("metaData.pager", not(hasKey("isLastPage")))
-        .body("metaData.pager.total", equalTo(19023))
-        .body("metaData.pager.pageCount", equalTo(1903))
-        .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
-        .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
-        .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.ou.name", equalTo(null))
-        .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
-        .body("metaData.dimensions", hasKey("zDhUuAYrxNC"))
-        .body("metaData.dimensions", hasKey("pe"))
-        .body("metaData.dimensions", hasKey("w75KJ2mc4zz"))
-        .body("metaData.dimensions", hasKey("cejWyOfXge6"))
-        .body("metaData.dimensions", not(hasKey("ou")))
         .body("height", equalTo(10))
         .body("width", equalTo(14))
         .body("headerWidth", equalTo(14));
 
-    // Validate headers
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":19029,\"pageSize\":10,\"pageCount\":1903},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2012\":{\"name\":\"2012\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"2019\":{\"name\":\"2019\"},\"2018\":{\"name\":\"2018\"},\"2017\":{\"name\":\"2017\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"2016\":{\"name\":\"2016\"},\"2015\":{\"name\":\"2015\"},\"pe\":{\"name\":\"Period\"},\"2014\":{\"name\":\"2014\"},\"2013\":{\"name\":\"2013\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2012\",\"2013\",\"2014\",\"2015\",\"2016\",\"2017\",\"2018\",\"2019\",\"2020\",\"2021\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
     validateHeader(
         response, 0, "trackedentity", "Tracked entity", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -410,7 +401,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
 
-    // Validate the first three rows, as samples.
+    // Assert rows.
     validateRow(
         response,
         0,
@@ -429,7 +420,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Jackson",
             "Female",
             ""));
-
     validateRow(
         response,
         1,
@@ -448,7 +438,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Thomson",
             "Female",
             ""));
-
     validateRow(
         response,
         2,
@@ -466,6 +455,132 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Tom",
             "Johson",
             "",
+            ""));
+    validateRow(
+        response,
+        3,
+        List.of(
+            "AivS67mcmKY",
+            "2014-11-15 17:48:49.114",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Sophia",
+            "Jackson",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        4,
+        List.of(
+            "cBoQxg16B6R",
+            "2014-11-15 17:56:30.892",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Emma",
+            "Thompson",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        5,
+        List.of(
+            "SHnmavBQu72",
+            "2014-11-15 18:00:47.824",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Olvia",
+            "Watts",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        6,
+        List.of(
+            "PgkxEogQBnX",
+            "2014-11-15 19:12:23.235",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Lily",
+            "Matthews",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        7,
+        List.of(
+            "FcA5liuWG0x",
+            "2014-11-15 19:51:08.162",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Noah",
+            "Thompson",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        8,
+        List.of(
+            "nRcbpL1q9KL",
+            "2014-11-15 21:19:09.35",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "James",
+            "Dunn",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        9,
+        List.of(
+            "UtDZmrX5lSd",
+            "2014-11-15 21:20:06.375",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Tim",
+            "Johnson",
+            "Male",
             ""));
   }
 
@@ -1486,16 +1601,16 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryWithProgramAndFilterByEnrollmentDate() {
+  public void queryWithProgramAndFilterByEnrollmentDate() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
+            .add(
+                "headers=trackedentity,lastupdated,createdbydisplayname,lastupdatedbydisplayname,geometry,longitude,latitude,ouname,oucode,ounamehierarchy,w75KJ2mc4zz,zDhUuAYrxNC,cejWyOfXge6,lZGmxYbs97q")
             .add("enrollmentDate=IpHINAT79UW.LAST_5_YEARS")
+            .add("program=IpHINAT79UW")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2023-09-27");
-
-    params = withDefaultHeaders(params);
 
     // When
     ApiResponse response =
@@ -1507,29 +1622,86 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("headers", hasSize(equalTo(14)))
         .body("rows", hasSize(equalTo(50)))
-        .body("metaData.dimensions", not(hasKey("ou")))
-        .body("metaData.dimensions", hasKey("pe"))
-        .body("metaData.dimensions.pe", hasSize(equalTo(5)))
-        .body("metaData.dimensions.pe", hasItem("2018"))
-        .body("metaData.dimensions.pe", hasItem("2019"))
-        .body("metaData.dimensions.pe", hasItem("2020"))
-        .body("metaData.dimensions.pe", hasItem("2021"))
-        .body("metaData.dimensions.pe", hasItem("2022"))
-        .body("metaData.items.pe.name", equalTo("Period"))
-        .body("metaData.items.2018.name", equalTo("2018"))
-        .body("metaData.items.2019.name", equalTo("2019"))
-        .body("metaData.items.2020.name", equalTo("2020"))
-        .body("metaData.items.2021.name", equalTo("2021"))
-        .body("metaData.items.2022.name", equalTo("2022"))
-        .body("metaData.items.LAST_5_YEARS.name", equalTo("Last 5 years"))
         .body("height", equalTo(50))
         .body("width", equalTo(14))
         .body("headerWidth", equalTo(14));
 
-    // Validate the first three rows, as samples.
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"2019\":{\"name\":\"2019\"},\"2018\":{\"name\":\"2018\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2018\",\"2019\",\"2020\",\"2021\",\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "trackedentity", "Tracked entity", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "lastupdated",
+        "Last updated",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response, 2, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        3,
+        "lastupdatedbydisplayname",
+        "Last updated by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(response, 4, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 5, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        9,
+        "ounamehierarchy",
+        "Organisation unit hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(
+        response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 11, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+
+    // Assert rows.
     validateRow(
         response,
         0,
+        List.of(
+            "PQfMcpmXeFE",
+            "2016-08-03 23:49:43.309",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "John",
+            "Kelly",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        1,
         List.of(
             "EaOyKGOIGRp",
             "2016-08-03 23:47:14.517",
@@ -1545,10 +1717,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Jones",
             "Female",
             ""));
-
     validateRow(
         response,
-        1,
+        2,
         List.of(
             "lSxhGlVaTvy",
             "2016-04-21 16:01:20.435",
@@ -1564,10 +1735,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Bryant",
             "Female",
             ""));
-
     validateRow(
         response,
-        2,
+        3,
         List.of(
             "jdQTFA9gpvc",
             "2015-08-06 21:20:52.781",
@@ -1581,6 +1751,834 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Sierra Leone / Bombali / Makari Gbanti / Kunsho CHP",
             "Chris",
             "Mendoza",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        4,
+        List.of(
+            "xgrOXoHRoZC",
+            "2015-08-06 21:20:52.781",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Govt. Hospital Moyamba",
+            "OU_247056",
+            "Sierra Leone / Moyamba / Kaiyamba / Govt. Hospital Moyamba",
+            "Randy",
+            "Reyes",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        5,
+        List.of(
+            "YiKaRIm5IUj",
+            "2015-08-06 21:20:52.78",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Jangalor MCHP",
+            "OU_543020",
+            "Sierra Leone / Bonthe / Imperi / Jangalor MCHP",
+            "Antonio",
+            "Ruiz",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        6,
+        List.of(
+            "MxYyZgDPpgX",
+            "2015-08-06 21:20:52.78",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Makaba MCHP",
+            "OU_254952",
+            "Sierra Leone / Port Loko / Maforki / Makaba MCHP",
+            "Robin",
+            "Kennedy",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        7,
+        List.of(
+            "kGhadQA1ZjK",
+            "2015-08-06 21:20:52.779",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Sawuria CHP",
+            "OU_226221",
+            "Sierra Leone / Koinadugu / Kasonko / Sawuria CHP",
+            "Kathleen",
+            "Washington",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        8,
+        List.of(
+            "gITQCLMaKEr",
+            "2015-08-06 21:20:52.779",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "UFC Nongowa",
+            "OU_222711",
+            "Sierra Leone / Kenema / Nongowa / UFC Nongowa",
+            "Randy",
+            "Andrews",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        9,
+        List.of(
+            "FEnJV6qzliH",
+            "2015-08-06 21:20:52.778",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Roktolon MCHP",
+            "OU_803066",
+            "Sierra Leone / Port Loko / Dibia / Roktolon MCHP",
+            "Sean",
+            "Washington",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        10,
+        List.of(
+            "kPujepm9ShQ",
+            "2015-08-06 21:20:52.778",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Sengema CHP",
+            "OU_260396",
+            "Sierra Leone / Pujehun / Malen / Sengema CHP",
+            "Theresa",
+            "Wood",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        11,
+        List.of(
+            "ApUIfbrXE0G",
+            "2015-08-06 21:20:52.777",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Mattru Jong MCHP",
+            "OU_197389",
+            "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
+            "Julia",
+            "Gardner",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        12,
+        List.of(
+            "l6Fz9VlkhTQ",
+            "2015-08-06 21:20:52.777",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Pejewa MCHP",
+            "OU_260390",
+            "Sierra Leone / Pujehun / Pejeh / Pejewa MCHP",
+            "Elizabeth",
+            "Harris",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        13,
+        List.of(
+            "NiuDa8jIu4J",
+            "2015-08-06 21:20:52.776",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngaiya MCHP",
+            "OU_233404",
+            "Sierra Leone / Kono / Nimikoro / Ngaiya MCHP",
+            "Beverly",
+            "Hart",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        14,
+        List.of(
+            "UBARXmyHicM",
+            "2015-08-06 21:20:52.775",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "PCM Hospital",
+            "OU_278328",
+            "Sierra Leone / Western Area / Freetown / PCM Hospital",
+            "Jose",
+            "Daniels",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        15,
+        List.of(
+            "upZqHCgMQqK",
+            "2015-08-06 21:20:52.775",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Yekior MCHP",
+            "OU_233361",
+            "Sierra Leone / Kono / Fiama / Yekior MCHP",
+            "Albert",
+            "Allen",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        16,
+        List.of(
+            "MZH9hAN0M0Y",
+            "2015-08-06 21:20:52.774",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Banana Island MCHP",
+            "OU_278384",
+            "Sierra Leone / Western Area / Rural Western Area / Banana Island MCHP",
+            "Stephen",
+            "Stewart",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        17,
+        List.of(
+            "rbZ23ojIwQj",
+            "2015-08-06 21:20:52.774",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Kensay MCHP",
+            "OU_233330",
+            "Sierra Leone / Kono / Tankoro / Kensay MCHP",
+            "Sharon",
+            "Carpenter",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        18,
+        List.of(
+            "EAp3diT7nqP",
+            "2015-08-06 21:20:52.773",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Gbongongor CHP",
+            "OU_233350",
+            "Sierra Leone / Kono / Lei / Gbongongor CHP",
+            "Douglas",
+            "Hicks",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        19,
+        List.of(
+            "JZG7ubbqnzh",
+            "2015-08-06 21:20:52.773",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Njama CHC",
+            "OU_247034",
+            "Sierra Leone / Moyamba / Kowa / Njama CHC",
+            "Gary",
+            "Johnston",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        20,
+        List.of(
+            "BzeyHltLCLl",
+            "2015-08-06 21:20:52.772",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Bureh MCHP",
+            "OU_255052",
+            "Sierra Leone / Port Loko / Bureh Kasseh Maconteh / Bureh MCHP",
+            "Ralph",
+            "Smith",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        21,
+        List.of(
+            "n7RLcPI2GX4",
+            "2015-08-06 21:20:52.772",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Konta (Gorama M) CHP",
+            "OU_222630",
+            "Sierra Leone / Kenema / Gorama Mende / Konta (Gorama M) CHP",
+            "Earl",
+            "Mason",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        22,
+        List.of(
+            "tkM5opeKUUa",
+            "2015-08-06 21:20:52.771",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Lowoma CHC",
+            "OU_222656",
+            "Sierra Leone / Kenema / Lower Bambara / Lowoma CHC",
+            "Debra",
+            "Barnes",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        23,
+        List.of(
+            "TQ99z9CHt0n",
+            "2015-08-06 21:20:52.771",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Katherie MCHP",
+            "OU_211278",
+            "Sierra Leone / Kambia / Tonko Limba / Katherie MCHP",
+            "Christine",
+            "Ferguson",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        24,
+        List.of(
+            "Wn3p37cV0cL",
+            "2015-08-06 21:20:52.77",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Weima CHC",
+            "OU_222671",
+            "Sierra Leone / Kenema / Lower Bambara / Weima CHC",
+            "Ruby",
+            "Day",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        25,
+        List.of(
+            "UkMUJ07Jksi",
+            "2015-08-06 21:20:52.77",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Goderich MI Room",
+            "OU_278370",
+            "Sierra Leone / Western Area / Rural Western Area / Goderich MI Room",
+            "Patrick",
+            "Carr",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        26,
+        List.of(
+            "zxZAB1P2lD6",
+            "2015-08-06 21:20:52.769",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Rotaimbana MCHP",
+            "OU_925999",
+            "Sierra Leone / Kambia / Mambolo / Rotaimbana MCHP",
+            "Phillip",
+            "Ruiz",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        27,
+        List.of(
+            "iazEa3annQq",
+            "2015-08-06 21:20:52.768",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Konjo (Dama) CHP",
+            "OU_222739",
+            "Sierra Leone / Kenema / Dama / Konjo (Dama) CHP",
+            "Eric",
+            "Fuller",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        28,
+        List.of(
+            "mu7j7R3vwfI",
+            "2015-08-06 21:20:52.768",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Kono Bendu CHP",
+            "OU_204858",
+            "Sierra Leone / Kailahun / Penguia / Kono Bendu CHP",
+            "Charles",
+            "Cruz",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        29,
+        List.of(
+            "IgqH8cYJNck",
+            "2015-08-06 21:20:52.767",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Bo Govt. Hosp.",
+            "OU_15",
+            "Sierra Leone / Bo / Kakua / Bo Govt. Hosp.",
+            "Eric",
+            "Bradley",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        30,
+        List.of(
+            "cnuUoIV0ESK",
+            "2015-08-06 21:20:52.767",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Bombordu MCHP",
+            "OU_233363",
+            "Sierra Leone / Kono / Fiama / Bombordu MCHP",
+            "Theresa",
+            "Medina",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        31,
+        List.of(
+            "fJG2FR4nXQ3",
+            "2015-08-06 21:20:52.766",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Kpolies Clinic",
+            "OU_172172",
+            "Sierra Leone / Bo / Kakua / Kpolies Clinic",
+            "Mildred",
+            "Ellis",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        32,
+        List.of(
+            "EKCoUebhQAC",
+            "2015-08-06 21:20:52.766",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "UNIMUS MCHP",
+            "OU_851",
+            "Sierra Leone / Bo / Kakua / UNIMUS MCHP",
+            "Alan",
+            "Tucker",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        33,
+        List.of(
+            "dlNfSH00keL",
+            "2015-08-06 21:20:52.765",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Fulamansa MCHP",
+            "OU_226217",
+            "Sierra Leone / Koinadugu / Dembelia Sinkunia / Fulamansa MCHP",
+            "Patricia",
+            "Washington",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        34,
+        List.of(
+            "yQfr9G91wNB",
+            "2015-08-06 21:20:52.765",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Durukoro MCHP",
+            "OU_758915",
+            "Sierra Leone / Koinadugu / Neya / Durukoro MCHP",
+            "Eric",
+            "Sullivan",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        35,
+        List.of(
+            "NtdkFJiZgoe",
+            "2015-08-06 21:20:52.764",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Yakaji MCHP",
+            "OU_583",
+            "Sierra Leone / Bo / Baoma / Yakaji MCHP",
+            "Johnny",
+            "Fields",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        36,
+        List.of(
+            "WfPaSDmPEM9",
+            "2015-08-06 21:20:52.764",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Mokandor CHP",
+            "OU_247073",
+            "Sierra Leone / Moyamba / Kargboro / Mokandor CHP",
+            "Jeremy",
+            "Jones",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        37,
+        List.of(
+            "z1DXQ58Fzni",
+            "2015-08-06 21:20:52.763",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Borongoh Makarankay CHP",
+            "OU_193220",
+            "Sierra Leone / Bombali / Gbanti Kamaranka / Borongoh Makarankay CHP",
+            "Jesse",
+            "Oliver",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        38,
+        List.of(
+            "KAk244m4iUh",
+            "2015-08-06 21:20:52.763",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Romeni MCHP",
+            "OU_255047",
+            "Sierra Leone / Port Loko / Bureh Kasseh Maconteh / Romeni MCHP",
+            "Nancy",
+            "Wallace",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        39,
+        List.of(
+            "TK51Ls5BxR3",
+            "2015-08-06 21:20:52.762",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Komneh CHP",
+            "OU_255002",
+            "Sierra Leone / Port Loko / Sanda Magbolonthor / Komneh CHP",
+            "Rebecca",
+            "Hernandez",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        40,
+        List.of(
+            "FBtsSH7TDEN",
+            "2015-08-06 21:20:52.762",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Jormu MCHP",
+            "OU_579",
+            "Sierra Leone / Bo / Baoma / Jormu MCHP",
+            "Nicole",
+            "Bishop",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        41,
+        List.of(
+            "pl52a441ePj",
+            "2015-08-06 21:20:52.761",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Niayahun CHP",
+            "OU_830",
+            "Sierra Leone / Bo / Jaiama Bongor / Niayahun CHP",
+            "Rebecca",
+            "Kelly",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        42,
+        List.of(
+            "tATraAhY5Kc",
+            "2015-08-06 21:20:52.76",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Stella Maries Clinic",
+            "OU_278349",
+            "Sierra Leone / Western Area / Freetown / Stella Maries Clinic",
+            "Ryan",
+            "Robinson",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        43,
+        List.of(
+            "KdXQuVKXCve",
+            "2015-08-06 21:20:52.76",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Magboki Rd. Mile 91 MCHP",
+            "OU_268231",
+            "Sierra Leone / Tonkolili / Yoni / Magboki Rd. Mile 91 MCHP",
+            "Kimberly",
+            "Gordon",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        44,
+        List.of(
+            "lKEJ86KtgSH",
+            "2015-08-06 21:20:52.759",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Mabineh MCHP",
+            "OU_268179",
+            "Sierra Leone / Tonkolili / Kunike / Mabineh MCHP",
+            "Amanda",
+            "Powell",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        45,
+        List.of(
+            "bW0wi3e3bCp",
+            "2015-08-06 21:20:52.759",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Rokupr CHC",
+            "OU_211237",
+            "Sierra Leone / Kambia / Magbema / Rokupr CHC",
+            "Carl",
+            "Gardner",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        46,
+        List.of(
+            "Lm6WnNTtbCy",
+            "2015-08-06 21:20:52.758",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Mokandor CHP",
+            "OU_247073",
+            "Sierra Leone / Moyamba / Kargboro / Mokandor CHP",
+            "Janet",
+            "Howard",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        47,
+        List.of(
+            "UbzZFRYTSTs",
+            "2015-08-06 21:20:52.758",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Kukuna CHP",
+            "OU_211223",
+            "Sierra Leone / Kambia / Bramaia / Kukuna CHP",
+            "Lillian",
+            "Clark",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        48,
+        List.of(
+            "PTwjety2SOH",
+            "2015-08-06 21:20:52.757",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Waterloo CHC",
+            "OU_278397",
+            "Sierra Leone / Western Area / Rural Western Area / Waterloo CHC",
+            "Sandra",
+            "Moore",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        49,
+        List.of(
+            "RWr8rsI01YA",
+            "2015-08-06 21:20:52.756",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Ngaiya MCHP",
+            "OU_233404",
+            "Sierra Leone / Kono / Nimikoro / Ngaiya MCHP",
+            "James",
+            "Ward",
             "Male",
             ""));
   }
@@ -1745,15 +2743,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryWithProgramAndEnrollmentDateAndNegativeEnrollmentOffset() {
+  public void queryWithProgramAndEnrollmentDateAndNegativeEnrollmentOffset() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
+            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC")
             .add("enrollmentDate=IpHINAT79UW[1].LAST_YEAR")
+            .add("program=IpHINAT79UW")
             .add("desc=lastupdated")
-            .add("relativePeriodDate=2023-04-03")
-            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC");
+            .add("relativePeriodDate=2023-04-03");
 
     // When
     ApiResponse response =
@@ -1769,7 +2767,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Validate headers
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -1777,10 +2781,57 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
-    // Validate the first three rows, as samples.
-    validateRow(response, 0, List.of("Ngelehun CHC", "Anna", "Jones"));
-    validateRow(response, 1, List.of("Masoko MCHP", "Diane", "Bryant"));
-    validateRow(response, 2, List.of("Kunsho CHP", "Chris", "Mendoza"));
+    // Assert rows.
+    validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "Anna", "Jones"));
+    validateRow(response, 2, List.of("Masoko MCHP", "Diane", "Bryant"));
+    validateRow(response, 3, List.of("Kunsho CHP", "Chris", "Mendoza"));
+    validateRow(response, 4, List.of("Govt. Hospital Moyamba", "Randy", "Reyes"));
+    validateRow(response, 5, List.of("Jangalor MCHP", "Antonio", "Ruiz"));
+    validateRow(response, 6, List.of("Makaba MCHP", "Robin", "Kennedy"));
+    validateRow(response, 7, List.of("Sawuria CHP", "Kathleen", "Washington"));
+    validateRow(response, 8, List.of("UFC Nongowa", "Randy", "Andrews"));
+    validateRow(response, 9, List.of("Roktolon MCHP", "Sean", "Washington"));
+    validateRow(response, 10, List.of("Sengema CHP", "Theresa", "Wood"));
+    validateRow(response, 11, List.of("Mattru Jong MCHP", "Julia", "Gardner"));
+    validateRow(response, 12, List.of("Pejewa MCHP", "Elizabeth", "Harris"));
+    validateRow(response, 13, List.of("Ngaiya MCHP", "Beverly", "Hart"));
+    validateRow(response, 14, List.of("PCM Hospital", "Jose", "Daniels"));
+    validateRow(response, 15, List.of("Yekior MCHP", "Albert", "Allen"));
+    validateRow(response, 16, List.of("Banana Island MCHP", "Stephen", "Stewart"));
+    validateRow(response, 17, List.of("Kensay MCHP", "Sharon", "Carpenter"));
+    validateRow(response, 18, List.of("Gbongongor CHP", "Douglas", "Hicks"));
+    validateRow(response, 19, List.of("Njama CHC", "Gary", "Johnston"));
+    validateRow(response, 20, List.of("Bureh MCHP", "Ralph", "Smith"));
+    validateRow(response, 21, List.of("Konta (Gorama M) CHP", "Earl", "Mason"));
+    validateRow(response, 22, List.of("Lowoma CHC", "Debra", "Barnes"));
+    validateRow(response, 23, List.of("Katherie MCHP", "Christine", "Ferguson"));
+    validateRow(response, 24, List.of("Weima CHC", "Ruby", "Day"));
+    validateRow(response, 25, List.of("Goderich MI Room", "Patrick", "Carr"));
+    validateRow(response, 26, List.of("Rotaimbana MCHP", "Phillip", "Ruiz"));
+    validateRow(response, 27, List.of("Konjo (Dama) CHP", "Eric", "Fuller"));
+    validateRow(response, 28, List.of("Kono Bendu CHP", "Charles", "Cruz"));
+    validateRow(response, 29, List.of("Bo Govt. Hosp.", "Eric", "Bradley"));
+    validateRow(response, 30, List.of("Bombordu MCHP", "Theresa", "Medina"));
+    validateRow(response, 31, List.of("Kpolies Clinic", "Mildred", "Ellis"));
+    validateRow(response, 32, List.of("UNIMUS MCHP", "Alan", "Tucker"));
+    validateRow(response, 33, List.of("Fulamansa MCHP", "Patricia", "Washington"));
+    validateRow(response, 34, List.of("Durukoro MCHP", "Eric", "Sullivan"));
+    validateRow(response, 35, List.of("Yakaji MCHP", "Johnny", "Fields"));
+    validateRow(response, 36, List.of("Mokandor CHP", "Jeremy", "Jones"));
+    validateRow(response, 37, List.of("Borongoh Makarankay CHP", "Jesse", "Oliver"));
+    validateRow(response, 38, List.of("Romeni MCHP", "Nancy", "Wallace"));
+    validateRow(response, 39, List.of("Komneh CHP", "Rebecca", "Hernandez"));
+    validateRow(response, 40, List.of("Jormu MCHP", "Nicole", "Bishop"));
+    validateRow(response, 41, List.of("Niayahun CHP", "Rebecca", "Kelly"));
+    validateRow(response, 42, List.of("Stella Maries Clinic", "Ryan", "Robinson"));
+    validateRow(response, 43, List.of("Magboki Rd. Mile 91 MCHP", "Kimberly", "Gordon"));
+    validateRow(response, 44, List.of("Mabineh MCHP", "Amanda", "Powell"));
+    validateRow(response, 45, List.of("Rokupr CHC", "Carl", "Gardner"));
+    validateRow(response, 46, List.of("Mokandor CHP", "Janet", "Howard"));
+    validateRow(response, 47, List.of("Kukuna CHP", "Lillian", "Clark"));
+    validateRow(response, 48, List.of("Waterloo CHC", "Sandra", "Moore"));
+    validateRow(response, 49, List.of("Ngaiya MCHP", "James", "Ward"));
   }
 
   @Test
