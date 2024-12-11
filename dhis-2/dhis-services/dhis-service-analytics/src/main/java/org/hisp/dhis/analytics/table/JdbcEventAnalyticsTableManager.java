@@ -492,8 +492,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String selectExpression =
-        String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
+    String selectExpression = getSelectExpression(dataElement, columnExpression);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
@@ -514,6 +513,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .build());
 
     return columns;
+  }
+
+  /**
+   * Returns a select expression.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param columnExpression the column expression.
+   * @return a select expression.
+   */
+  private String getSelectExpression(DataElement dataElement, String columnExpression) {
+    return String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
   }
 
   /**
