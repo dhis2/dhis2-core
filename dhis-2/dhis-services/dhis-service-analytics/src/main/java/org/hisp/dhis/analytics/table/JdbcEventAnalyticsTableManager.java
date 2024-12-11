@@ -346,7 +346,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
             ${attributeJoinClause}\
             where ev.lastupdated < '${startTime}' ${partitionClause} \
-            and pr.programid=${programId} \
+            and pr.programid = ${programId} \
             and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
@@ -492,8 +492,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
-    String selectExpression =
-        String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
+    String selectExpression = getSelectExpression(dataElement, columnExpression);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
@@ -517,6 +516,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
+   * Returns a select expression.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param columnExpression the column expression.
+   * @return a select expression.
+   */
+  private String getSelectExpression(DataElement dataElement, String columnExpression) {
+    return String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
+  }
+
+  /**
    * Returns a list of columns.
    *
    * @param dataElement the {@link DataElement}.
@@ -532,7 +542,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(getOrgUnitSelectSubquery("geometry", dataElement))
+              .selectExpression(getOrgUnitSelectSubquery(dataElement, "geometry"))
               .indexType(IndexType.GIST)
               .build());
     }
@@ -542,7 +552,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
-            .selectExpression(getOrgUnitSelectSubquery("name", dataElement))
+            .selectExpression(getOrgUnitSelectSubquery(dataElement, "name"))
             .skipIndex(SKIP)
             .build());
 
@@ -552,11 +562,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   /**
    * Returns a org unit select query.
    *
-   * @param column the column name.
    * @param dataElement the {@link DataElement}.
+   * @param column the column name.
    * @return an org unit select query.
    */
-  private String getOrgUnitSelectSubquery(String column, DataElement dataElement) {
+  private String getOrgUnitSelectSubquery(DataElement dataElement, String column) {
     String format =
         """
         (select ou.${column} from ${organisationunit} ou \

@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.audit.AuditOperationType.READ;
+import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -397,7 +397,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             e -> {
               Set<Event> filteredEvents =
                   e.getEvents().stream()
-                      .filter(event -> includeDeleted || !event.isDeleted())
+                      .filter(
+                          event ->
+                              (includeDeleted || !event.isDeleted())
+                                  && trackerAccessManager.canRead(user, event, false).isEmpty())
                       .collect(Collectors.toSet());
               e.setEvents(filteredEvents);
               return e;
@@ -651,7 +654,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             .map(
                 te ->
                     new TrackedEntityAudit(
-                        te.getUid(), CurrentUserUtil.getCurrentUsername(), ChangeLogType.SEARCH))
+                        te.getUid(), CurrentUserUtil.getCurrentUsername(), SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {

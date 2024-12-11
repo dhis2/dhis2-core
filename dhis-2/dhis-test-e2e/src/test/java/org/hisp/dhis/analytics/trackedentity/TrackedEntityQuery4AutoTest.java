@@ -1089,14 +1089,14 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(7)))
-        .body("rows", hasSize(equalTo(30)))
-        .body("height", equalTo(30))
+        .body("rows", hasSize(equalTo(7)))
+        .body("height", equalTo(7))
         .body("width", equalTo(7))
         .body("headerWidth", equalTo(7));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":30,\"isLastPage\":false},\"items\":{\"fTZFU8cWvb3\":{\"uid\":\"fTZFU8cWvb3\",\"code\":\"DE_860002\",\"name\":\"TB lab Hemoglobin\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"202109\":{\"uid\":\"202109\",\"code\":\"202109\",\"name\":\"September 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-09-01T00:00:00.000\",\"endDate\":\"2021-09-30T00:00:00.000\"},\"202107\":{\"uid\":\"202107\",\"code\":\"202107\",\"name\":\"July 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-07-01T00:00:00.000\",\"endDate\":\"2021-07-31T00:00:00.000\"},\"202108\":{\"uid\":\"202108\",\"code\":\"202108\",\"name\":\"August 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-08-01T00:00:00.000\",\"endDate\":\"2021-08-31T00:00:00.000\"},\"202105\":{\"uid\":\"202105\",\"code\":\"202105\",\"name\":\"May 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-05-01T00:00:00.000\",\"endDate\":\"2021-05-31T00:00:00.000\"},\"202106\":{\"uid\":\"202106\",\"code\":\"202106\",\"name\":\"June 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-06-01T00:00:00.000\",\"endDate\":\"2021-06-30T00:00:00.000\"},\"202103\":{\"uid\":\"202103\",\"code\":\"202103\",\"name\":\"March 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-03-01T00:00:00.000\",\"endDate\":\"2021-03-31T00:00:00.000\"},\"202104\":{\"uid\":\"202104\",\"code\":\"202104\",\"name\":\"April 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-04-01T00:00:00.000\",\"endDate\":\"2021-04-30T00:00:00.000\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"IpHINAT79UW.ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"202112\":{\"uid\":\"202112\",\"code\":\"202112\",\"name\":\"December 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-12-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202110\":{\"uid\":\"202110\",\"code\":\"202110\",\"name\":\"October 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-10-01T00:00:00.000\",\"endDate\":\"2021-10-31T00:00:00.000\"},\"202111\":{\"uid\":\"202111\",\"code\":\"202111\",\"name\":\"November 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-11-01T00:00:00.000\",\"endDate\":\"2021-11-30T00:00:00.000\"},\"EPEcjy3FWmI\":{\"uid\":\"EPEcjy3FWmI\",\"name\":\"Lab monitoring\",\"description\":\"Laboratory monitoring\"},\"ur1Edk5Oe2n\":{\"uid\":\"ur1Edk5Oe2n\",\"name\":\"TB program\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"w75KJ2mc4zz\":{\"uid\":\"w75KJ2mc4zz\",\"code\":\"MMD_PER_NAM\",\"name\":\"First name\",\"description\":\"First name\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ur1Edk5Oe2n.pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"2020\":{\"uid\":\"2020\",\"code\":\"2020\",\"name\":\"2020\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2020-01-01T00:00:00.000\",\"endDate\":\"2020-12-31T00:00:00.000\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"202101\":{\"uid\":\"202101\",\"code\":\"202101\",\"name\":\"January 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-01-31T00:00:00.000\"},\"202102\":{\"uid\":\"202102\",\"code\":\"202102\",\"name\":\"February 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-02-01T00:00:00.000\",\"endDate\":\"2021-02-28T00:00:00.000\"},\"2019\":{\"uid\":\"2019\",\"code\":\"2019\",\"name\":\"2019\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2019-01-01T00:00:00.000\",\"endDate\":\"2019-12-31T00:00:00.000\"},\"ur1Edk5Oe2n.enrollmentdate\":{\"name\":\"Start of treatment date\",\"dimensionType\":\"PERIOD\"},\"2018\":{\"uid\":\"2018\",\"code\":\"2018\",\"name\":\"2018\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2018-01-01T00:00:00.000\",\"endDate\":\"2018-12-31T00:00:00.000\"},\"2017\":{\"uid\":\"2017\",\"code\":\"2017\",\"name\":\"2017\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2017-01-01T00:00:00.000\",\"endDate\":\"2017-12-31T00:00:00.000\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3\":{\"uid\":\"fTZFU8cWvb3\",\"code\":\"DE_860002\",\"name\":\"TB lab Hemoglobin\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"fTZFU8cWvb3\":[],\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[\"wfkKVdPBzho\",\"Yjte6foKMny\"],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\",\"2017\",\"2018\",\"2019\",\"2020\",\"2021\"],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":30,\"isLastPage\":true},\"items\":{\"fTZFU8cWvb3\":{\"uid\":\"fTZFU8cWvb3\",\"code\":\"DE_860002\",\"name\":\"TB lab Hemoglobin\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"202109\":{\"uid\":\"202109\",\"code\":\"202109\",\"name\":\"September 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-09-01T00:00:00.000\",\"endDate\":\"2021-09-30T00:00:00.000\"},\"202107\":{\"uid\":\"202107\",\"code\":\"202107\",\"name\":\"July 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-07-01T00:00:00.000\",\"endDate\":\"2021-07-31T00:00:00.000\"},\"202108\":{\"uid\":\"202108\",\"code\":\"202108\",\"name\":\"August 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-08-01T00:00:00.000\",\"endDate\":\"2021-08-31T00:00:00.000\"},\"202105\":{\"uid\":\"202105\",\"code\":\"202105\",\"name\":\"May 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-05-01T00:00:00.000\",\"endDate\":\"2021-05-31T00:00:00.000\"},\"202106\":{\"uid\":\"202106\",\"code\":\"202106\",\"name\":\"June 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-06-01T00:00:00.000\",\"endDate\":\"2021-06-30T00:00:00.000\"},\"202103\":{\"uid\":\"202103\",\"code\":\"202103\",\"name\":\"March 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-03-01T00:00:00.000\",\"endDate\":\"2021-03-31T00:00:00.000\"},\"202104\":{\"uid\":\"202104\",\"code\":\"202104\",\"name\":\"April 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-04-01T00:00:00.000\",\"endDate\":\"2021-04-30T00:00:00.000\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"IpHINAT79UW.ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"202112\":{\"uid\":\"202112\",\"code\":\"202112\",\"name\":\"December 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-12-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202110\":{\"uid\":\"202110\",\"code\":\"202110\",\"name\":\"October 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-10-01T00:00:00.000\",\"endDate\":\"2021-10-31T00:00:00.000\"},\"202111\":{\"uid\":\"202111\",\"code\":\"202111\",\"name\":\"November 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-11-01T00:00:00.000\",\"endDate\":\"2021-11-30T00:00:00.000\"},\"EPEcjy3FWmI\":{\"uid\":\"EPEcjy3FWmI\",\"name\":\"Lab monitoring\",\"description\":\"Laboratory monitoring\"},\"ur1Edk5Oe2n\":{\"uid\":\"ur1Edk5Oe2n\",\"name\":\"TB program\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"w75KJ2mc4zz\":{\"uid\":\"w75KJ2mc4zz\",\"code\":\"MMD_PER_NAM\",\"name\":\"First name\",\"description\":\"First name\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ur1Edk5Oe2n.pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"2020\":{\"uid\":\"2020\",\"code\":\"2020\",\"name\":\"2020\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2020-01-01T00:00:00.000\",\"endDate\":\"2020-12-31T00:00:00.000\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"202101\":{\"uid\":\"202101\",\"code\":\"202101\",\"name\":\"January 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-01-31T00:00:00.000\"},\"202102\":{\"uid\":\"202102\",\"code\":\"202102\",\"name\":\"February 2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-02-01T00:00:00.000\",\"endDate\":\"2021-02-28T00:00:00.000\"},\"2019\":{\"uid\":\"2019\",\"code\":\"2019\",\"name\":\"2019\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2019-01-01T00:00:00.000\",\"endDate\":\"2019-12-31T00:00:00.000\"},\"ur1Edk5Oe2n.enrollmentdate\":{\"name\":\"Start of treatment date\",\"dimensionType\":\"PERIOD\"},\"2018\":{\"uid\":\"2018\",\"code\":\"2018\",\"name\":\"2018\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2018-01-01T00:00:00.000\",\"endDate\":\"2018-12-31T00:00:00.000\"},\"2017\":{\"uid\":\"2017\",\"code\":\"2017\",\"name\":\"2017\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2017-01-01T00:00:00.000\",\"endDate\":\"2017-12-31T00:00:00.000\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3\":{\"uid\":\"fTZFU8cWvb3\",\"code\":\"DE_860002\",\"name\":\"TB lab Hemoglobin\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"fTZFU8cWvb3\":[],\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[\"wfkKVdPBzho\",\"Yjte6foKMny\"],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\",\"2017\",\"2018\",\"2019\",\"2020\",\"2021\"],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1147,123 +1147,28 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         0,
-        List.of("Bai Largo MCHP", "Female", "Furuta", "", "", "", "2021-02-22 12:28:59.5"));
+        List.of("Ngelehun CHC", "Male", "Berhane", "", "", "", "2021-05-14 12:35:24.03"));
     validateRow(
         response,
         1,
-        List.of("Konjo CHP", "Female", "Sesuna", "", "", "", "2021-02-22 12:29:10.226"));
+        List.of("Ngelehun CHC", "Male", "Scott", "", "", "", "2021-05-19 12:27:48.317"));
     validateRow(
         response,
         2,
-        List.of("Mokpende MCHP", "Female", "Simret", "", "", "", "2021-02-22 12:29:17.878"));
+        List.of("Ngelehun CHC", "Male", "Johnathan", "", "", "", "2021-06-17 12:27:48.595"));
     validateRow(
         response,
         3,
-        List.of("Konta Wallah MCHP", "Female", "Sarama", "", "", "", "2021-02-22 12:30:18.762"));
+        List.of("Ngelehun CHC", "Female", "Lynn", "", "", "", "2021-09-11 12:27:48.552"));
     validateRow(
         response,
         4,
-        List.of("Magbaft MCHP", "Female", "Makda", "", "", "", "2021-02-22 12:36:38.143"));
+        List.of("Ngelehun CHC", "Male", "Yusef", "", "", "", "2021-10-15 12:34:17.849"));
     validateRow(
         response,
         5,
-        List.of("Masoko MCHP", "Female", "Miniya", "", "", "", "2021-02-22 12:37:38.153"));
+        List.of("Ngelehun CHC", "Female", "Drew", "", "", "", "2021-11-11 12:27:48.386"));
     validateRow(
-        response,
-        6,
-        List.of("Mamalikie MCHP", "Male", "Iggi", "", "", "", "2021-02-22 12:37:43.562"));
-    validateRow(
-        response,
-        7,
-        List.of("Ninkikoro MCHP", "Male", "Medhanie", "", "", "", "2021-02-22 12:37:59.06"));
-    validateRow(
-        response,
-        8,
-        List.of("Seidu MCHP", "Male", "Daniel", "", "", "", "2021-02-22 12:38:16.207"));
-    validateRow(
-        response,
-        9,
-        List.of("Bangoma MCHP", "Female", "Sarama", "", "", "", "2021-02-22 12:42:36.654"));
-    validateRow(
-        response,
-        10,
-        List.of("Blamawo MCHP", "Male", "Abdullah", "", "", "", "2021-02-23 12:28:45.299"));
-    validateRow(
-        response,
-        11,
-        List.of(
-            "Benguima Grassfield MCHP", "Female", "Almaz", "", "", "", "2021-02-23 12:32:07.441"));
-    validateRow(
-        response,
-        12,
-        List.of("Degbuama MCHP", "Male", "Amanuel", "", "", "", "2021-02-23 12:34:11.197"));
-    validateRow(
-        response,
-        13,
-        List.of("Suen CHP", "Female", "Mezan", "", "", "", "2021-02-23 12:40:28.099"));
-    validateRow(
-        response,
-        14,
-        List.of("Petifu CHC", "Male", "Medhane", "", "", "", "2021-02-23 12:42:51.379"));
-    validateRow(
-        response,
-        15,
-        List.of("Kpowubu MCHP", "Female", "Furuta", "", "", "", "2021-02-24 12:28:13.16"));
-    validateRow(
-        response,
-        16,
-        List.of("Massahun MCHP", "Female", "Luwam", "", "", "", "2021-02-24 12:29:44.902"));
-    validateRow(
-        response,
-        17,
-        List.of("Kawula CHP", "Male", "Kifle", "", "", "", "2021-02-24 12:30:06.041"));
-    validateRow(
-        response,
-        18,
-        List.of("Kamiendor MCHP", "Male", "Demsas", "", "", "", "2021-02-24 12:33:12.117"));
-    validateRow(
-        response,
-        19,
-        List.of("Mapaki CHC", "Female", "Demet", "", "", "", "2021-02-24 12:33:15.016"));
-    validateRow(
-        response,
-        20,
-        List.of("Makali CHC", "Male", "Yemane", "", "", "", "2021-02-24 12:39:47.712"));
-    validateRow(
-        response,
-        21,
-        List.of("Koindukura MCHP", "Male", "Brhane", "", "", "", "2021-02-24 12:40:06.942"));
-    validateRow(
-        response,
-        22,
-        List.of("Kamabai CHC", "Female", "Selamawit", "", "", "", "2021-02-25 12:28:25.771"));
-    validateRow(
-        response,
-        23,
-        List.of("Mafufuneh MCHP", "Male", "Massawa", "", "", "", "2021-02-25 12:29:02.87"));
-    validateRow(
-        response,
-        24,
-        List.of("St. Mary's Clinic", "Female", "Asmeret", "", "", "", "2021-02-25 12:29:39.291"));
-    validateRow(
-        response,
-        25,
-        List.of("Bomu Saamba CHP", "Female", "Yorda", "", "", "", "2021-02-25 12:29:52.461"));
-    validateRow(
-        response,
-        26,
-        List.of("Geoma Jagor CHC", "Female", "Bisirat", "", "", "", "2021-02-25 12:30:46.251"));
-    validateRow(
-        response,
-        27,
-        List.of("Makona MCHP", "Male", "Sebhat", "", "", "", "2021-02-25 12:31:45.792"));
-    validateRow(
-        response,
-        28,
-        List.of("Bo Govt. Hosp.", "Male", "Tewolde", "", "", "", "2021-02-25 12:33:20.889"));
-    validateRow(
-        response,
-        29,
-        List.of("Fairo CHC", "Male", "Petros", "", "", "", "2021-02-25 12:37:04.983"));
+        response, 6, List.of("Ngelehun CHC", "Male", "Tom", "", "", "", "2021-11-14 12:27:48.61"));
   }
 }

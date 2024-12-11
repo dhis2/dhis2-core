@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -144,30 +143,6 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .selectExpression("ev.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("uidlevel1")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel1")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel2")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel2")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel3")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel3")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel4")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel4")
-              .build(),
-          AnalyticsTableColumn.builder()
               .name("ou")
               .dataType(CHARACTER_11)
               .nullable(NULL)
@@ -228,11 +203,6 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     this.analyticsSqlBuilder = analyticsSqlBuilder;
   }
 
-  /**
-   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-   *
-   * @return type of analytics table.
-   */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return TRACKED_ENTITY_INSTANCE_EVENTS;
@@ -367,6 +337,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     }
 
     columns.add(getOrganisationUnitNameHierarchyColumn());
+    columns.addAll(getOrganisationUnitLevelColumns());
 
     return columns;
   }
@@ -386,41 +357,35 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     AnalyticsTable masterTable = partition.getMasterTable();
     String tableName = partition.getName();
+    long tetId = masterTable.getTrackedEntityType().getId();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause =
         sqlBuilder.supportsDeclarativePartitioning() ? "" : getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
+    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(") select distinct ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
+    sql.append(" ");
 
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(quote(col.getName()) + ",");
-    }
-
-    removeLastComma(sql).append(") select distinct ");
-
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getSelectExpression() + ",");
-    }
-
-    removeLastComma(sql)
-        .append(
-            replaceQualify(
-                """
-                \s from ${event} ev \
-                inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
-                inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
-                and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
-                left join ${programstage} ps on ev.programstageid=ps.programstageid \
-                left join ${program} p on ps.programid=p.programid \
-                left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
-                where ev.status in (${statuses}) \
-                ${partitionClause} \
-                and ev.deleted = false\s""",
-                Map.of(
-                    "tetId", String.valueOf(masterTable.getTrackedEntityType().getId()),
-                    "startTime", toLongDate(params.getStartTime()),
-                    "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
-                    "partitionClause", partitionClause)));
+    sql.append(
+        replaceQualify(
+            """
+            from ${event} ev \
+            inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
+            inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
+            and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
+            left join ${programstage} ps on ev.programstageid=ps.programstageid \
+            left join ${program} p on ps.programid=p.programid \
+            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+            where ev.status in (${statuses}) \
+            ${partitionClause} \
+            and ev.deleted = false\s""",
+            Map.of(
+                "tetId", String.valueOf(tetId),
+                "startTime", toLongDate(params.getStartTime()),
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
+                "partitionClause", partitionClause)));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
