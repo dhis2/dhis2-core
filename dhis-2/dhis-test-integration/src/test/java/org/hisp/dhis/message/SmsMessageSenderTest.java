@@ -86,7 +86,7 @@ class SmsMessageSenderTest extends PostgresIntegrationTestBase {
     SmsGatewayConfig smsGatewayConfig = new BulkSmsGatewayConfig();
     smsGatewayConfig.setDefault(true);
     smsGatewayConfig.setUsername("user_uio");
-    smsGatewayConfig.setPassword("R}WKLtkN5<");
+    smsGatewayConfig.setPassword("RefLt4N5<1");
 
     gatewayAdministrationService.addGateway(smsGatewayConfig);
   }
