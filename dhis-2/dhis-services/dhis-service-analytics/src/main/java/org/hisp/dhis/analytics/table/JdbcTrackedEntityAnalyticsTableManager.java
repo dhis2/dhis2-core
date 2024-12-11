@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -295,27 +294,19 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
-
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(quote(col.getName()) + ",");
-    }
-
-    removeLastComma(sql).append(") select ");
-
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getSelectExpression() + ",");
-    }
+    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(") select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
-    removeLastComma(sql)
-        .append(
-            replaceQualify(
-                """
-                \sfrom ${trackedentity} te \
-                left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
-                Map.of()));
+    sql.append(
+        replaceQualify(
+            """
+            \sfrom ${trackedentity} te \
+            left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
+            Map.of()));
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
@@ -334,12 +325,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
             """
             \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
-            and exists (select 1 from ${enrollment} en \
-                where en.trackedentityid = te.trackedentityid \
-                and exists (select 1 from ${event} ev \
-                where ev.enrollmentid = en.enrollmentid \
-                and ev.status in (${statuses}) \
-                and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
             Map.of(

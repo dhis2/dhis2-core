@@ -31,7 +31,6 @@ import static java.lang.String.join;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
@@ -172,11 +171,6 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
 
-  /**
-   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-   *
-   * @return type of analytics table.
-   */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
@@ -222,41 +216,30 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
+    long tetId = partition.getMasterTable().getTrackedEntityType().getId();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
+    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(") select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(quote(col.getName()) + ",");
-    }
-
-    removeLastComma(sql).append(") select ");
-
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getSelectExpression() + ",");
-    }
-
-    removeLastComma(sql)
-        .append(
-            replaceQualify(
-                """
-                \sfrom ${enrollment} en \
-                inner join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
-                and te.deleted = false and te.trackedentitytypeid = ${trackedEntityTypeId} \
-                and te.lastupdated < '${startTime}' \
-                left join ${program} p on en.programid=p.programid \
-                left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
-                where exists (select 1 from ${event} ev where ev.deleted = false \
-                and ev.enrollmentid = en.enrollmentid \
-                and ev.status in (${statuses})) \
-                and en.occurreddate is not null \
-                and en.deleted = false\s""",
-                Map.of(
-                    "trackedEntityTypeId",
-                        valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
-                    "startTime", toLongDate(params.getStartTime()),
-                    "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
+    sql.append(
+        replaceQualify(
+            """
+            \sfrom ${enrollment} en \
+            inner join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
+            and te.deleted = false and te.trackedentitytypeid = ${trackedEntityTypeId} \
+            and te.lastupdated < '${startTime}' \
+            left join ${program} p on en.programid=p.programid \
+            left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
+            where en.occurreddate is not null \
+            and en.deleted = false\s""",
+            Map.of(
+                "trackedEntityTypeId", valueOf(tetId),
+                "startTime", toLongDate(params.getStartTime()),
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
