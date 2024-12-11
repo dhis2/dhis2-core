@@ -311,18 +311,20 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
             left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
             Map.of()));
 
-    ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
-        .forEach(
-            tea ->
-                sql.append(
-                    replaceQualify(
-                        """
+    List<TrackedEntityAttribute> attributes =
+        ((List<TrackedEntityAttribute>)
+            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES));
+
+    attributes.forEach(
+        tea ->
+            sql.append(
+                replaceQualify(
+                    """
                         \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
                         and ${teaUid}.trackedentityattributeid = ${teaId}""",
-                        Map.of(
-                            "teaUid", quote(tea.getUid()),
-                            "teaId", String.valueOf(tea.getId())))));
+                    Map.of(
+                        "teaUid", quote(tea.getUid()),
+                        "teaId", String.valueOf(tea.getId())))));
     sql.append(
         replaceQualify(
             """
