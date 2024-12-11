@@ -41,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -86,7 +88,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -515,8 +516,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Retyrns a select expression.
-   * 
+   * Returns a select expression.
+   *
    * @param dataElement the {@link DataElement}.
    * @param columnExpression the column expression.
    * @return a select expression.
@@ -524,7 +525,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getSelectExpression(DataElement dataElement, String columnExpression) {
     return String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
   }
-  
+
   /**
    * Returns a list of columns.
    *
@@ -536,7 +537,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
       return List.of();
     }
-    
+
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (isSpatialSupport()) {
@@ -618,7 +619,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
       return List.of();
     }
-    
+
     String columnExpression = getColumnExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause("value");
     String query =
@@ -666,7 +667,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
       return List.of();
     }
-    
+
     String query =
         """
         (select l.uid from ${maplegend} l \
