@@ -36,7 +36,6 @@ import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +67,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -79,37 +80,38 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class JdbcEnrollmentAnalyticsTableManagerTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
+  @Mock private OrganisationUnitService organisationUnitService;
+
+  @Mock private CategoryService categoryService;
+
+  @Mock private SystemSettingsProvider settingsProvider;
+
+  @Mock private SystemSettings settings;
+
+  @Mock private DataApprovalLevelService dataApprovalLevelService;
+
+  @Mock private ResourceTableService resourceTableService;
+
+  @Mock private AnalyticsTableHookService analyticsTableHookService;
+
+  @Mock private PartitionManager partitionManager;
+
   @Mock private JdbcTemplate jdbcTemplate;
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcEnrollmentAnalyticsTableManager subject;
+  @InjectMocks private JdbcEnrollmentAnalyticsTableManager subject;
 
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   @BeforeEach
   public void setUp() {
     when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
-    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
-    subject =
-        new JdbcEnrollmentAnalyticsTableManager(
-            idObjectManager,
-            mock(OrganisationUnitService.class),
-            mock(CategoryService.class),
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            mock(ResourceTableService.class),
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
   }
 
   @Test

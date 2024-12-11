@@ -38,17 +38,18 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
 
-  // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
-  // to use UserDetails higher up in the layers.
-
   /**
    * Create UserDetails from User
+   *
+   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
+   * refactor // to use UserDetails higher up in the layers.
    *
    * @param user user to convert
    * @return UserDetails
@@ -115,12 +116,14 @@ public interface UserDetails
         UserDetailsImpl.builder()
             .id(user.getId())
             .uid(user.getUid())
+            .code(user.getCode())
             .username(user.getUsername())
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
+            .twoFactorType(user.getTwoFactorType())
+            .secret(user.getSecret())
             .isEmailVerified(user.isEmailVerified())
-            .code(user.getCode())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
             .enabled(user.isEnabled())
@@ -199,6 +202,8 @@ public interface UserDetails
 
   boolean isSuper();
 
+  String getSecret();
+
   @Override
   String getUid();
 
@@ -244,6 +249,8 @@ public interface UserDetails
   boolean isExternalAuth();
 
   boolean isTwoFactorEnabled();
+
+  TwoFactorType getTwoFactorType();
 
   boolean isEmailVerified();
 

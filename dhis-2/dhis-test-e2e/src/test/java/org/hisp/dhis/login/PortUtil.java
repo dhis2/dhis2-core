@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.login;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStage;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Random;
 
-/**
- * @author Lars Helge Overland
- */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityDataValueChangeLogQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
+public class PortUtil {
+  private static final int MIN_PORT = 49152;
+  private static final int MAX_PORT = 65535;
+  private static final Random random = new Random();
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-  private List<Event> events = new ArrayList<>();
-
-  private List<ProgramStage> programStages = new ArrayList<>();
-
-  private Date startDate;
-
-  private Date endDate;
-
-  private OrganisationUnitSelectionMode ouMode;
-
-  private List<ChangeLogType> auditTypes = new ArrayList<>();
-
-  private Pager pager;
-
-  public boolean hasOuMode() {
-    return ouMode != null;
+  public static int findAvailablePort() {
+    int port;
+    do {
+      port = pickRandomPort();
+    } while (!isPortAvailable(port));
+    return port;
   }
 
-  public boolean hasPaging() {
-    return pager != null;
+  private static int pickRandomPort() {
+    return random.nextInt(MAX_PORT - MIN_PORT + 1) + MIN_PORT;
+  }
+
+  private static boolean isPortAvailable(int port) {
+    try (ServerSocket serverSocket = new ServerSocket(port)) {
+      serverSocket.setReuseAddress(true);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
 }

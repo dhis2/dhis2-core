@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.login;
 
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Zubair Asghar
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-@RequiredArgsConstructor
-public class TrackedEntityDataValueChangeLogDeletionHandler extends JdbcDeletionHandler {
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginRequest {
 
-  @Override
-  protected void register() {
-    whenDeleting(DataElement.class, this::deleteDataElement);
-  }
-
-  private void deleteDataElement(DataElement dataElement) {
-    delete(
-        "delete from trackedentitydatavalueaudit where dataelementid = :id",
-        Map.of("id", dataElement.getId()));
-    delete(
-        "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
-  }
+  @JsonProperty private String username;
+  @JsonProperty private String password;
+  @JsonProperty private String twoFactorCode;
 }

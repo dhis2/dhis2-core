@@ -351,8 +351,9 @@ class TrackedEntitiesExportController {
         trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));
   }
 
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{trackedEntity}/changeLogs")
-  ResponseEntity<Page<ObjectNode>> getTrackedEntityAttributeChangeLog(
+  ResponseEntity<Page<ObjectNode>> getTrackedEntityChangeLog(
       @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
           UID trackedEntity,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,

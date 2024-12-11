@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.login;
 
-import jakarta.servlet.Filter;
-import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * Configuration registered if {@link RedisDisabledCondition} matches to true. This serves as a
- * fallback to spring-session if redis is disabled. Since web.xml has a
- * "springSessionRepositoryFilter" mapped to all urls, the container will expect a filter bean with
- * that name. Therefore we define a dummy {@link Filter} named springSessionRepositoryFilter. Here
- * we define a {@link CharacterEncodingFilter} without setting any encoding so that requests will
- * simply pass through the filter.
- *
- * @author Ameen Mohamed
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Configuration
-@Conditional(RedisDisabledCondition.class)
-public class DefaultSessionConfig {
-  /**
-   * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
-   *
-   * @return a {@link CharacterEncodingFilter} without specifying encoding.
-   */
-  @Bean
-  public Filter springSessionRepositoryFilter() {
-    return new CharacterEncodingFilter();
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginResponse {
+  @Getter
+  public enum STATUS {
+    SUCCESS("loginSuccess"),
+    ACCOUNT_DISABLED("accountDisabled"),
+    ACCOUNT_LOCKED("accountLocked"),
+    ACCOUNT_EXPIRED("accountExpired"),
+    PASSWORD_EXPIRED("passwordExpired"),
+    INCORRECT_TWO_FACTOR_CODE("incorrectTwoFactorCode"),
+    REQUIRES_TWO_FACTOR_ENROLMENT("requiresTwoFactorEnrolment");
+
+    private final String keyName;
+    private final String defaultValue;
+
+    STATUS(String keyName) {
+      this.keyName = keyName;
+      this.defaultValue = null;
+    }
   }
+
+  @JsonProperty private STATUS loginStatus;
+  @JsonProperty private String redirectUrl;
 }
