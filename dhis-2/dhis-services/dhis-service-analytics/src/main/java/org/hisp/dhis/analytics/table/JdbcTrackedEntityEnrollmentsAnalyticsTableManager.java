@@ -171,11 +171,6 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
 
-  /**
-   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-   *
-   * @return type of analytics table.
-   */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
