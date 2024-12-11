@@ -148,7 +148,7 @@ public class NepaliCalendar extends AbstractCalendar {
     /*
      * https://en.m.wikipedia.org/wiki/ISO_week_date
      */
-    int week = (int) ((10 + getDayOfYear(dateTimeUnit) - isoWeekday(dateTimeUnit)) / 7);
+    int week = (10 + getDayOfYear(dateTimeUnit) - isoWeekday(dateTimeUnit)) / 7;
     if (week < 1) {
       week = 52;
     } else if (week > 52) {
