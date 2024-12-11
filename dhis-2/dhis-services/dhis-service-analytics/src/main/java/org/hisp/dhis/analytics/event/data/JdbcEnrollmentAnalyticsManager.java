@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -38,13 +39,13 @@ import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -153,6 +154,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       sql = buildEnrollmentQueryWithoutCTE(params);
     }
+
+    System.out.println("SQL: " + sql);
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -833,17 +836,75 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String buildEnrollmentQueryWithoutCTE(EventQueryParams params) {
-    String selectClause = getSelectClause(params);
+    StringBuilder sql = new StringBuilder();
 
-    return String.format(
-            "%s " +
-                    "from %s as ax " +
-                    "where %s %s",
-            selectClause,
-            params.getTableName(),
-            getWhereClauseWithoutCTE(params),
-            getPagingClause(params, 5000)
-    );
+    // 1. Select clause
+    sql.append(getSelectClause(params));
+
+    // 2. From clause
+    sql.append(" from ").append(params.getTableName()).append(" as ax");
+
+    // 3. Where clause
+    List<String> conditions = new ArrayList<>();
+
+    // Add organization unit condition
+    if (!params.getOrganisationUnits().isEmpty()) {
+      String orgUnit = params.getOrganisationUnits().get(0).getUid();
+      conditions.add(String.format("ax.\"uidlevel1\" = '%s'", orgUnit));
+    }
+
+    // Use TimeField and DateRange instead of the dimension approach
+    if (!params.getTimeDateRanges().isEmpty()) {
+      for (Map.Entry<TimeField, List<DateRange>> entry : params.getTimeDateRanges().entrySet()) {
+        String column = getColumnForTimeField(entry.getKey());
+        if (column != null) {
+          List<String> dateConditions = new ArrayList<>();
+          for (DateRange range : entry.getValue()) {
+            dateConditions.add(String.format(
+                    "(%s >= '%s' and %s < '%s')",
+                    column, DateUtils.toMediumDate(range.getStartDate()),
+                    column, DateUtils.toMediumDate(range.getEndDate())
+            ));
+          }
+          conditions.add("(" + String.join(" or ", dateConditions) + ")");
+        }
+      }
+    }
+
+    if (!conditions.isEmpty()) {
+      sql.append(" where ").append(String.join(" and ", conditions));
+    }
+
+    // 4. Order by
+    if (params.getAsc() != null && !params.getAsc().isEmpty()) {
+      sql.append(" order by");
+      boolean first = true;
+      for (QueryItem item : params.getAsc()) {
+        if (!first) {
+          sql.append(",");
+        }
+        String columnName = item.getItemId().equals("incidentdate") ?
+                "occurreddate" : item.getItemId();
+        sql.append(" ").append(quote(columnName)).append(" asc nulls last");
+        first = false;
+      }
+    }
+
+    // 5. Paging
+    sql.append(" ").append(getPagingClause(params, 5000));
+
+    return sql.toString();
+  }
+
+  private String getColumnForTimeField(TimeField timeField) {
+    switch (timeField) {
+      case ENROLLMENT_DATE:
+        return "enrollmentdate";
+      case INCIDENT_DATE:
+        return "occurreddate";
+      default:
+        return null;
+    }
   }
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
@@ -886,6 +947,43 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return sql.toString();
   }
 
+  private String buildYearlyDateRangeCondition(String column, String[] years) {
+    List<String> yearConditions = new ArrayList<>();
+    for (String year : years) {
+      yearConditions.add(String.format(
+              "(%s >= '%s-01-01' and %s < '%s-02-01')",
+              column, year,
+              column, year
+      ));
+    }
+    // Note: The entire set of year conditions should be wrapped in parentheses
+    return "(" + String.join(" or ", yearConditions) + ")";
+  }
+
+
+  private String getOrderByColumn(String itemId) {
+    // Map the column names exactly as they appear in the original query
+    switch (itemId.toLowerCase()) {
+      case "incidentdate":
+        return "occurreddate";  // Note: maps to occurreddate
+      case "ouname":
+        return "ouname";
+      default:
+        return itemId;
+    }
+  }
+
+  private String buildDateRangeCondition(String column, String[] years) {
+    List<String> yearConditions = new ArrayList<>();
+    for (String year : years) {
+      yearConditions.add(String.format(
+              "(%s >= '%s-01-01' and %s < '%s-02-01')",
+              column, year,
+              column, year
+      ));
+    }
+    return String.join(" or ", yearConditions);
+  }
 
   private String getWhereClauseWithoutCTE(EventQueryParams params) {
     List<String> conditions = new ArrayList<>();
@@ -919,11 +1017,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Add date range conditions
     if (params.hasEnrollmentDateCriteria()) {
-      String year = params.getEnrollmentDateCriteria();
-      conditions.add(String.format(
-              "ax.enrollmentdate >= '%s-01-01' and ax.enrollmentdate < '%s-01-01'",
-              year, (Integer.parseInt(year) + 1)
-      ));
+      conditions.add(buildYearlyDateRangeCondition("ax.enrollmentdate",
+              params.getEnrollmentDateCriteria()));
+    }
+
+    if (params.hasIncidentDateCriteria()) {
+      conditions.add(buildYearlyDateRangeCondition("ax.occurreddate",
+              params.getIncidentDateCriteria()));
     } else if (params.getStartDate() != null && params.getEndDate() != null) {
       conditions.add(String.format(
               "ax.enrollmentdate >= '%s' and ax.enrollmentdate < '%s'",

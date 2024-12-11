@@ -678,15 +678,6 @@ public class EventQueryParams extends DataQueryParams {
     return hasProgramIndicatorDimension() && getProgramIndicator().hasAnalyticsVariables();
   }
 
-  public boolean hasEnrollmentDateCriteria() {
-    // Check if enrollmentDate parameter exists in the query
-    return !getDimensionOrFilterItems("enrollmentDate").isEmpty();
-  }
-
-  public String getEnrollmentDateCriteria() {
-    // Get the enrollment date value (year)
-    return getDimensionOrFilterItems("enrollmentDate").get(0).getDimensionItem();
-  }
 
   public boolean useIndividualQuery() {
     return this.hasAnalyticsVariables() || this.hasNonDefaultBoundaries();
@@ -844,6 +835,48 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasDataIdScheme() {
     return dataIdScheme != null;
+  }
+
+  /**
+   * Returns true if enrollment date criteria exists in dimensions or filters.
+   */
+  public boolean hasEnrollmentDateCriteria() {
+    return getDimensionOrFilterItems("enrollmentDate").size() > 0 ||
+            getDimensionOrFilterItems("enrollmentdate").size() > 0;  // Try both cases
+  }
+
+  /**
+   * Returns the enrollment date criteria years.
+   */
+  public String[] getEnrollmentDateCriteria() {
+    List<DimensionalItemObject> items = getDimensionOrFilterItems("enrollmentDate");
+    if (items.isEmpty()) {
+      items = getDimensionOrFilterItems("enrollmentdate");
+    }
+    return items.stream()
+            .map(item -> item.getDimensionItem())
+            .toArray(String[]::new);
+  }
+
+  /**
+   * Returns true if incident date criteria exists in dimensions or filters.
+   */
+  public boolean hasIncidentDateCriteria() {
+    return getDimensionOrFilterItems("incidentDate").size() > 0 ||
+            getDimensionOrFilterItems("incidentdate").size() > 0;  // Try both cases
+  }
+
+  /**
+   * Returns the incident date criteria years.
+   */
+  public String[] getIncidentDateCriteria() {
+    List<DimensionalItemObject> items = getDimensionOrFilterItems("incidentDate");
+    if (items.isEmpty()) {
+      items = getDimensionOrFilterItems("incidentdate");
+    }
+    return items.stream()
+            .map(item -> item.getDimensionItem())
+            .toArray(String[]::new);
   }
 
   /**
