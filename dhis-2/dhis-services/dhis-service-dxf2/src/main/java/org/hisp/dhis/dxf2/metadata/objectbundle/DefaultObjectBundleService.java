@@ -57,6 +57,11 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleFail;
+import org.hisp.dhis.importexport.ObjectBundleParams;
+import org.hisp.dhis.importexport.ObjectBundleResult;
+import org.hisp.dhis.importexport.ObjectBundleStatus;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
@@ -93,25 +98,28 @@ public class DefaultObjectBundleService implements ObjectBundleService {
 
   @Override
   @Transactional(readOnly = true)
-  public ObjectBundle create(ObjectBundleParams params) {
-    PreheatParams preheatParams = params.getPreheatParams();
+  public ObjectBundleResult create(ObjectBundleParams params) {
+    ObjectBundle bundle;
+    try {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (params.getUser() == null) {
-      params.setUser(currentUser);
+      PreheatParams preheatParams = params.getPreheatParams();
+
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      if (params.getUser() == null) {
+        params.setUser(currentUser);
+      }
+
+      preheatParams.setUser(params.getUser());
+      preheatParams.setObjects(params.getObjects());
+
+      Preheat preheat = preheatService.preheat(preheatParams);
+
+      bundle = new ObjectBundle(params, preheat, params.getObjects());
+      bundle.setObjectBundleStatus(ObjectBundleStatus.CREATED);
+      bundle.setObjectReferences(preheatService.collectObjectReferences(params.getObjects()));
+    } catch (Exception e) {
+      return new ObjectBundleFail(e);
     }
-
-    preheatParams.setUser(params.getUser());
-    preheatParams.setObjects(params.getObjects());
-
-    Preheat preheat = preheatService.preheat(preheatParams);
-
-    ObjectBundle bundle = new ObjectBundle(params, preheat, params.getObjects());
-    log.info("OB state 1: " + (bundle != null));
-    bundle.setObjectBundleStatus(ObjectBundleStatus.CREATED);
-    log.info("OB state 2: " + (bundle != null));
-    bundle.setObjectReferences(preheatService.collectObjectReferences(params.getObjects()));
-    log.info("OB state 3: " + (bundle != null));
 
     return bundle;
   }

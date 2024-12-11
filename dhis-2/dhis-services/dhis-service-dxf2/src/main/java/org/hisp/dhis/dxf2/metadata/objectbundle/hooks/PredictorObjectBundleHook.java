@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.hisp.dhis.predictor.Predictor;
 import org.springframework.stereotype.Component;
 

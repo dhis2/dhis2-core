@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Objects;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
 

@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.importexport.ObjectBundle;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.SortableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.springframework.stereotype.Component;
 
 @Component

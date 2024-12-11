@@ -32,10 +32,10 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.springframework.stereotype.Component;
 
 /**

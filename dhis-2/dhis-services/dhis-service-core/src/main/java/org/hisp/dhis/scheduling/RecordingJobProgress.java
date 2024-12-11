@@ -40,6 +40,7 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.importexport.ObjectBundleResult;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -288,7 +289,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public <T> T nonNullStagePostCondition(@CheckForNull T value) throws CancellationException {
     observer.run();
-    if (value == null) throw cancellationException(true);
+    if (value instanceof ObjectBundleResult) if (value == null) throw cancellationException(true);
     return value;
   }
 

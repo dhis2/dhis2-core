@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 
 /**
  * This is simple class responsible for ensuring that the necessary attributes are correctly mapped

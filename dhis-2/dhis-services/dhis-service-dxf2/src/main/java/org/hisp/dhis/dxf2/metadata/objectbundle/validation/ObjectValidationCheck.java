@@ -30,10 +30,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
 
 /**
  * Base interface for a {@link ValidationCheck} that only checks objects and creates {@link

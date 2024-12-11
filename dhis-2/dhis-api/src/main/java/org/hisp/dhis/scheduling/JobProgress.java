@@ -63,6 +63,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleFail;
+import org.hisp.dhis.importexport.ObjectBundleResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -252,6 +255,14 @@ public interface JobProgress {
    */
   @Nonnull
   default <T> T nonNullStagePostCondition(@CheckForNull T value) throws CancellationException {
+    if (value instanceof ObjectBundleResult obr) {
+      if (obr instanceof ObjectBundle) {
+        return value;
+      } else if (obr instanceof ObjectBundleFail obf) {
+        throw new CancellationException("Post-condition was null: " + obf.e().getMessage());
+      }
+    }
+
     if (value == null) throw new CancellationException("Post-condition was null");
     return value;
   }

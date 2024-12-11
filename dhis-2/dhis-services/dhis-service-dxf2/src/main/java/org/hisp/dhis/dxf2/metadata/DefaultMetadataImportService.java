@@ -44,15 +44,16 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
+import org.hisp.dhis.importexport.ObjectBundleResult;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -99,11 +100,12 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
     progress.startingStage("Creating bundle");
     log.info("OBP: " + bundleParams);
-    ObjectBundle bundle =
+    ObjectBundleResult bundleResult =
         progress.nonNullStagePostCondition(
             progress.runStage(() -> objectBundleService.create(bundleParams)));
 
-    log.info("OB after nonnull stage: " + (bundle != null));
+    ObjectBundle bundle = (ObjectBundle) bundleResult;
+
     progress.startingStage("Running postCreateBundle");
     progress.runStage(() -> postCreateBundle(bundle, bundleParams));
 

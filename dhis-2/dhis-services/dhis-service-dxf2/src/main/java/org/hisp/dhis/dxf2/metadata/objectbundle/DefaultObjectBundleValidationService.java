@@ -39,6 +39,8 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationFactory;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleStatus;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;

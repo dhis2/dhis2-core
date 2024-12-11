@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
 
 /**
  * This interface is implemented by classes that can validate an {@see ObjectBundle}

@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
 
 public interface AnalyticalObjectImportHandler {

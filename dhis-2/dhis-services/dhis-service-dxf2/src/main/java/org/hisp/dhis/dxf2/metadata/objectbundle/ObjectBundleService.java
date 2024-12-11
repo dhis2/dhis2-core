@@ -28,6 +28,9 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
+import org.hisp.dhis.importexport.ObjectBundleResult;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -40,7 +43,7 @@ public interface ObjectBundleService {
    * @param params Params object for this bundle.
    * @return Configured ObjectBundle instance
    */
-  ObjectBundle create(ObjectBundleParams params);
+  ObjectBundleResult create(ObjectBundleParams params);
 
   /**
    * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.

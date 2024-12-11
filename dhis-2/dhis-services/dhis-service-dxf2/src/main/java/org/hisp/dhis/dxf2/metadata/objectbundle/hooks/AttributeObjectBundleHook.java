@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -29,10 +29,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.EventHookSecretManager;
 import org.hisp.dhis.eventhook.ReloadEventHookListeners;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 

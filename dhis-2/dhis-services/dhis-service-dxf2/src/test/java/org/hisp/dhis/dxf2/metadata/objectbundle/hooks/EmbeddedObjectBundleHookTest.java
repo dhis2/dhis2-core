@@ -33,10 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.Property;

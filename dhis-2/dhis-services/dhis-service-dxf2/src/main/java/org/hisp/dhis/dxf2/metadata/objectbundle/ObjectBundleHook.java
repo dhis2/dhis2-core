@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.importexport.ObjectBundle;
 
 /**
  * Contains hooks for object bundle commit phase.

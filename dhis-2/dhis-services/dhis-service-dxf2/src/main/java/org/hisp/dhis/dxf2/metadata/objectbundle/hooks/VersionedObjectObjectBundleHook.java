@@ -34,7 +34,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundle;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
