@@ -155,9 +155,9 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(0)))
-        .body("height", equalTo(0))
-        .body("width", equalTo(0))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
     // Assert metaData.
@@ -172,6 +172,7 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, true);
 
     // Assert rows.
+    validateRow(response, List.of("1", "ImspTQPwCqd", "202304"));
   }
 
   @Test
