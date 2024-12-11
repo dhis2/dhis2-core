@@ -303,9 +303,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
     sql.append(
         replaceQualify(
             """
-        \sfrom ${trackedentity} te \
-        left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
-        left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
+            \sfrom ${trackedentity} te \
+            left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
             Map.of()));
 
     ((List<TrackedEntityAttribute>)
