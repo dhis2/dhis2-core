@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -176,25 +177,27 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         (Map<String, List<Program>>) params.getExtraParam("", PROGRAMS_BY_TET_KEY);
 
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
+    List<Program> programs = programsByTetUid.get(trackedEntityType.getUid());
 
-    String enrolledInProgramExpression =
-        """
-        \s exists(select 1 from ${enrollment} en_0 \
-        where en_0.trackedentityid = te.trackedentityid \
-        and en_0.programid = ${programId})""";
+    if (isNotEmpty(programs)) {
+      String enrolledInProgramExpression =
+          """
+          \s exists(select 1 from ${enrollment} en_0 \
+          where en_0.trackedentityid = te.trackedentityid \
+          and en_0.programid = ${programId})""";
 
-    emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
-        .forEach(
-            program ->
-                columns.add(
-                    AnalyticsTableColumn.builder()
-                        .name(program.getUid())
-                        .dataType(BOOLEAN)
-                        .selectExpression(
-                            replaceQualify(
-                                enrolledInProgramExpression,
-                                Map.of("programId", String.valueOf(program.getId()))))
-                        .build()));
+      programs.forEach(
+          program ->
+              columns.add(
+                  AnalyticsTableColumn.builder()
+                      .name(program.getUid())
+                      .dataType(BOOLEAN)
+                      .selectExpression(
+                          replaceQualify(
+                              enrolledInProgramExpression,
+                              Map.of("programId", String.valueOf(program.getId()))))
+                      .build()));
+    }
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
