@@ -179,7 +179,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
     List<Program> programs = programsByTetUid.get(trackedEntityType.getUid());
 
-    if (isNotEmpty(programs)) {
+    if (isNotEmpty(programs) && sqlBuilder.supportsCorrelatedSubquery()) {
       String enrolledInProgramExpression =
           """
           \s exists(select 1 from ${enrollment} en_0 \
