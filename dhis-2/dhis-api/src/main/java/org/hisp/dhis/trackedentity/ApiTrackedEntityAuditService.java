@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.audit.AuditOperationType;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
@@ -38,5 +38,5 @@ public interface ApiTrackedEntityAuditService {
   String ID = ApiTrackedEntityAuditService.class.getName();
 
   void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
+      TrackedEntity trackedEntity, String username, AuditOperationType auditOperationType);
 }

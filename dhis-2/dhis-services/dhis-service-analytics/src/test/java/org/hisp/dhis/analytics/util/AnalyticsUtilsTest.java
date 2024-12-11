@@ -740,14 +740,6 @@ class AnalyticsUtilsTest extends TestBase {
   }
 
   @Test
-  void testGetClosingParentheses() {
-    assertEquals("", AnalyticsUtils.getClosingParentheses(null));
-    assertEquals("", AnalyticsUtils.getClosingParentheses(""));
-    assertEquals(")", AnalyticsUtils.getClosingParentheses("from(select(select (*))"));
-    assertEquals("))", AnalyticsUtils.getClosingParentheses("(("));
-  }
-
-  @Test
   void whenUncategorizedSQLException_withTableNotExisting_thenThrowException() {
     SQLException sqlException = new SQLException("relation does not exist", "42P01");
     UncategorizedSQLException uncategorizedSQLException =

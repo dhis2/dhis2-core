@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -71,7 +71,7 @@ public class DefaultTrackedEntityAttributeValueService
           attributeValue.getAttribute(),
           attributeValue.getPlainValue(),
           null,
-          ChangeLogType.DELETE,
+          DELETE,
           getCurrentUsername());
     }
 
