@@ -87,7 +87,7 @@ public class JdbcNoteStore {
             "select count(1) from note where uid = :uid",
             Map.of("uid", note.getValue()),
             Integer.class);
-    return count == null || count > 0;
+    return count != null && count > 0;
   }
 
   private long saveNote(@Nonnull Note note, @Nonnull UserDetails user) {
