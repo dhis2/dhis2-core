@@ -1012,24 +1012,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Add organization unit conditions
     if (!params.getOrganisationUnits().isEmpty()) {
       String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
+      conditions.add(String.format("ax.\"uidlevel1\" = '%s'", orgUnit));
     }
 
-    // Add date range conditions
-    if (params.hasEnrollmentDateCriteria()) {
-      conditions.add(buildYearlyDateRangeCondition("ax.enrollmentdate",
-              params.getEnrollmentDateCriteria()));
-    }
-
-    if (params.hasIncidentDateCriteria()) {
-      conditions.add(buildYearlyDateRangeCondition("ax.occurreddate",
-              params.getIncidentDateCriteria()));
-    } else if (params.getStartDate() != null && params.getEndDate() != null) {
-      conditions.add(String.format(
-              "ax.enrollmentdate >= '%s' and ax.enrollmentdate < '%s'",
-              DateUtils.toMediumDate(params.getStartDate()),
-              DateUtils.toMediumDate(params.getEndDate())
-      ));
+    // Handle date ranges using TimeField and DateRange
+    if (!params.getTimeDateRanges().isEmpty()) {
+      for (Map.Entry<TimeField, List<DateRange>> entry : params.getTimeDateRanges().entrySet()) {
+        String column = getColumnForTimeField(entry.getKey());
+        if (column != null) {
+          List<String> dateConditions = new ArrayList<>();
+          for (DateRange range : entry.getValue()) {
+            dateConditions.add(String.format(
+                    "(%s >= '%s' and %s < '%s')",
+                    "ax." + column, DateUtils.toMediumDate(range.getStartDate()),
+                    "ax." + column, DateUtils.toMediumDate(range.getEndDate())
+            ));
+          }
+          conditions.add("(" + String.join(" or ", dateConditions) + ")");
+        }
+      }
     }
 
     // Handle NV (null value) filter
@@ -1038,7 +1039,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       conditions.add("le.enrollment is not null");
     }
 
-    // Join conditions with AND, but don't add extra spaces or concatenate with order by
+    // Join conditions with AND
     return conditions.isEmpty() ? "" : conditions.stream()
             .filter(StringUtils::isNotBlank)
             .collect(Collectors.joining(" and "));
