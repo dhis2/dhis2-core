@@ -34,7 +34,6 @@ import java.util.List;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
@@ -181,13 +180,33 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private Query getQuery(Query query, boolean persistedOnly) {
     Query pQuery = Query.from(query.getSchema(), query.getRootJunctionType());
-    Iterator<Criterion> criterions = query.getCriterions().iterator();
+    Iterator<Criterion> iterator = query.getCriterions().iterator();
 
-    while (criterions.hasNext()) {
-      Criterion criterion = criterions.next();
-      if (addJunction(criterion, pQuery, persistedOnly)
-          || addRestriction(query, criterion, pQuery)) {
-        criterions.remove();
+    while (iterator.hasNext()) {
+      Criterion criterion = iterator.next();
+
+      if (criterion instanceof Junction) {
+        Junction junction = handleJunction(pQuery, (Junction) criterion, persistedOnly);
+
+        if (!junction.getCriterions().isEmpty()) {
+          pQuery.getAliases().addAll(junction.getAliases());
+          pQuery.add(junction);
+        }
+
+        if (((Junction) criterion).getCriterions().isEmpty()) {
+          iterator.remove();
+        }
+      } else if (criterion instanceof Restriction) {
+        Restriction restriction = (Restriction) criterion;
+        restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
+
+        if (restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias()) {
+          pQuery
+              .getAliases()
+              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+          pQuery.getCriterions().add(criterion);
+          iterator.remove();
+        }
       }
     }
 
@@ -226,12 +245,10 @@ public class DefaultQueryPlanner implements QueryPlanner {
         Restriction restriction = (Restriction) criterion;
         restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
 
-        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
-          if (restriction.getQueryPath().haveAlias()) {
-            criteriaJunction
-                .getAliases()
-                .addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
-          }
+        if (restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias(1)) {
+          criteriaJunction
+              .getAliases()
+              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
           criteriaJunction.getCriterions().add(criterion);
           iterator.remove();
         } else if (persistedOnly) {
@@ -248,59 +265,5 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
   private boolean isFilterByAttributeId(Property curProperty, String propertyName) {
     return curProperty == null && CodeGenerator.isValidUid(propertyName);
-  }
-
-  /**
-   * Handle attribute filter such as /attributes?fields=id,name&filter=userAttribute:eq:true
-   *
-   * @return true if attribute filter
-   */
-  private boolean isAttributeFilter(Query query, Restriction restriction) {
-    return query.getSchema().getKlass().isAssignableFrom(Attribute.class)
-        && Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
-  }
-
-  /**
-   * Add given criterion which is an instance of {@link Junction} to given {@link Query} pQuery. If
-   * successfully added, return TRUE indicating that the given {@link Criterion} criterion should be
-   * removed.
-   */
-  private boolean addJunction(Criterion criterion, Query pQuery, boolean persistedOnly) {
-    if (!(criterion instanceof Junction)) {
-      return false;
-    }
-    boolean shouldRemove = false;
-    Junction junction = handleJunction(pQuery, (Junction) criterion, persistedOnly);
-    if (!junction.getCriterions().isEmpty()) {
-      pQuery.getAliases().addAll(junction.getAliases());
-      pQuery.add(junction);
-    }
-    if (((Junction) criterion).getCriterions().isEmpty()) {
-      shouldRemove = true;
-    }
-    return shouldRemove;
-  }
-
-  /**
-   * Add given criterion which is an instance of {@link Restriction} to given {@link Query} pQuery.
-   * If successfully added, return TRUE indicating that the given {@link Criterion} criterion should
-   * be removed.
-   */
-  private boolean addRestriction(Query query, Criterion criterion, Query pQuery) {
-    if (!(criterion instanceof Restriction)) {
-      return false;
-    }
-    boolean shouldRemove = false;
-    Restriction restriction = (Restriction) criterion;
-    restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
-
-    if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
-      pQuery.getCriterions().add(criterion);
-      shouldRemove = true;
-      if (restriction.getQueryPath().haveAlias()) {
-        pQuery.getAliases().addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
-      }
-    }
-    return shouldRemove;
   }
 }
