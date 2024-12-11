@@ -37,12 +37,13 @@ details_sql: >
   SELECT f.uid, f.name as name, f.storagekey as comment FROM fileresource f 
   WHERE domain = 'ICON' 
   AND NOT EXISTS (SELECT 1 FROM icon i WHERE i.fileresourceid = f.fileresourceid);
-details_id_type: users
-severity: WARNING
+details_id_type: fileResources
+severity: SEVERE
 introduction: >
   A file resource of type ICON should always have a corresponding icon entry.
 recommendation: >
-  The easiest solution is to delete the file resource and re-add the icon anew if it is still needed.
-  If the file resource is of unknown origin and should be kept a corresponding icon entry needs to be
-  created manually. This likely requires SQL level access as usually icon and file resource are 
-  maintained together when using the API.
+  If the missing icon belongs to a default (system) icon delete the file resource manually.
+  The icon will be recreated automatically.
+  If the missing icon is a custom (user provided) icon there are two options:
+  1. repair the icon by manually creating the icon entry linked to the existing file resource
+  2. discard the icon completely by deleting the file resource manually (image can not be recovered)
