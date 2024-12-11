@@ -325,12 +325,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
             """
             \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
-            and exists (select 1 from ${enrollment} en \
-                where en.trackedentityid = te.trackedentityid \
-                and exists (select 1 from ${event} ev \
-                where ev.enrollmentid = en.enrollmentid \
-                and ev.status in (${statuses}) \
-                and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
             Map.of(

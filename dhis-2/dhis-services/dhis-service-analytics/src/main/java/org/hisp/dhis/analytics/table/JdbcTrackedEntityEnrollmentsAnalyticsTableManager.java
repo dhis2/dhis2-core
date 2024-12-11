@@ -171,11 +171,6 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
 
-  /**
-   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
-   *
-   * @return type of analytics table.
-   */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
     return TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
@@ -239,10 +234,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             and te.lastupdated < '${startTime}' \
             left join ${program} p on en.programid=p.programid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
-            where exists (select 1 from ${event} ev where ev.deleted = false \
-            and ev.enrollmentid = en.enrollmentid \
-            and ev.status in (${statuses})) \
-            and en.occurreddate is not null \
+            where en.occurreddate is not null \
             and en.deleted = false\s""",
             Map.of(
                 "trackedEntityTypeId", valueOf(tetId),
