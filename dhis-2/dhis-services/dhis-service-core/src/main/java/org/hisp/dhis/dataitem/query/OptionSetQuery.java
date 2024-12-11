@@ -84,7 +84,7 @@ public class OptionSetQuery implements DataItemQuery {
               Pair.of("item_type", "cast ('OPTION_SET' as text)"),
               Pair.of("expression", CAST_NULL_AS_TEXT))
           .stream()
-          .map(pair -> pair.getLeft() + " as " + pair.getRight())
+          .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(Collectors.joining(", "));
 
   /**
