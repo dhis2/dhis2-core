@@ -362,6 +362,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     AnalyticsTable masterTable = partition.getMasterTable();
     String tableName = partition.getName();
+    long tetId = masterTable.getTrackedEntityType().getId();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause =
         sqlBuilder.supportsDeclarativePartitioning() ? "" : getPartitionClause(partition);
@@ -386,14 +387,10 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             ${partitionClause} \
             and ev.deleted = false\s""",
             Map.of(
-                "tetId",
-                String.valueOf(masterTable.getTrackedEntityType().getId()),
-                "startTime",
-                toLongDate(params.getStartTime()),
-                "statuses",
-                join(",", EXPORTABLE_EVENT_STATUSES),
-                "partitionClause",
-                partitionClause)));
+                "tetId", String.valueOf(tetId),
+                "startTime", toLongDate(params.getStartTime()),
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
+                "partitionClause", partitionClause)));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
