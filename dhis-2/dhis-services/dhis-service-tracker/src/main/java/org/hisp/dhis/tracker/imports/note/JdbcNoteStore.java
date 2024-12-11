@@ -94,7 +94,7 @@ public class JdbcNoteStore {
     String sql =
         """
             INSERT INTO public.note(noteid, notetext, creator, lastupdatedby, uid, created)
-            VALUES (nextVal('note_id_sequence'),
+            VALUES (nextVal('note_sequence'),
                     :text,
                     :creator,
                     (select userinfoid from userinfo where uid = :lastUpdatedBy),
