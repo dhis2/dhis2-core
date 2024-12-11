@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.program;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Zubair Asghar
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityDataValueChangeLogQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
+@Component
+@RequiredArgsConstructor
+public class EventChangeLogDeletionHandler extends JdbcDeletionHandler {
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-  private List<Event> events = new ArrayList<>();
-
-  private List<ProgramStage> programStages = new ArrayList<>();
-
-  private Date startDate;
-
-  private Date endDate;
-
-  private OrganisationUnitSelectionMode ouMode;
-
-  private List<ChangeLogType> auditTypes = new ArrayList<>();
-
-  private Pager pager;
-
-  public boolean hasOuMode() {
-    return ouMode != null;
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
   }
 
-  public boolean hasPaging() {
-    return pager != null;
+  private void deleteDataElement(DataElement dataElement) {
+    delete(
+        "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
   }
 }

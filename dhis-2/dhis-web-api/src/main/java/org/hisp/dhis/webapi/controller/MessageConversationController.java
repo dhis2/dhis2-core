@@ -180,8 +180,11 @@ public class MessageConversationController
 
   @Override
   protected List<UID> getPreQueryMatches(GetMessageConversationObjectListParams params) {
+    if (params.getQuery() != null) return null;
+    List<org.hisp.dhis.message.MessageConversation> allUserMessages =
+        messageService.getMessageConversations();
     String query = params.getQueryString();
-    if (query == null) return null;
+    if (query == null) return allUserMessages.stream().map(UID::of).toList();
 
     String op = params.getQueryOperator();
     if (op == null) op = "token";
@@ -197,7 +200,8 @@ public class MessageConversationController
             .setPaging(false)
             .setRootJunction(Junction.Type.OR)
             .setFilters(filters);
-    Query subQuery = queryService.getQueryFromUrl(getEntityClass(), subQueryParams);
+    Query subQuery =
+        queryService.getQueryFromUrl(getEntityClass(), subQueryParams).setObjects(allUserMessages);
     // Note: in theory these filters could be added to the main query
     // but the OR concerns both DB and in-memory properties
     // which would break if added to the main query ATM
