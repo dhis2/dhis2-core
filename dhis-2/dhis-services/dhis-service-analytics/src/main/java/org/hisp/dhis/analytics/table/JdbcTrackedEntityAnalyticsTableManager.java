@@ -267,7 +267,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           " cast(${columnName} as ${type})",
           Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
     }
-    if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
+    if (valueType.isGeo() && isSpatialSupport()) {
       return replace(
           """
           \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',

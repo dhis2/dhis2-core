@@ -160,7 +160,7 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
     String expectedSql =
         """
         insert into analytics_te_event_tetuid_temp ("trackedentity","program","enrollment","programstage","event","occurreddate","lastupdated","created",
-        "scheduleddate","status","uidlevel1","uidlevel2","uidlevel3","uidlevel4","ou","ouname","oucode","oulevel","eventdatavalues","eventgeometry",
+        "scheduleddate","status","ou","ouname","oucode","oulevel","eventdatavalues","eventgeometry",
         "evlongitude","evlatitude","ounamehierarchy") select distinct te.uid,p.uid,en.uid,ps.uid,ev.uid,ev.occurreddate,ev.lastupdated,
         ev.created,ev.scheduleddate,ev.status,ous.organisationunituid,ous.name,ous.code,ous.level,
         %s,
