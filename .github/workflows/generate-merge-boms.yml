@@ -1,0 +1,53 @@
+name: Generate and Merge BOMs
+
+on:
+  push:
+    branches:
+      - master
+      - "2.3[1-9]"
+      - "2.4[0-9]"
+  pull_request:
+    branches:
+      - master
+      - "2.3[1-9]"
+      - "2.4[0-9]"
+concurrency:
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  create-boms:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Install CycloneDX Maven Plugin
+        run: mvn install org.cyclonedx:cyclonedx-maven-plugin:2.7.4
+
+      - name: Generate BOMs
+        run: mvn cyclonedx:makeBom
+
+      - name: Install CycloneDX CLI
+        run: |
+          wget https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.20.0/cyclonedx-cli-v0.20.0-linux-x64.tar.gz
+          tar -xzf cyclonedx-cli-v0.20.0-linux-x64.tar.gz
+          sudo mv cyclonedx /usr/local/bin/
+
+      - name: Merge BOMs
+        run: cyclonedx merge --input-files $(find . -name 'dxbom.json') --input-format json --output-file target/merged-bom.json --output-format json
+
+    #  - name: Upload merged BOM
+    #    uses: actions/upload-artifact@v3
+    #    with:
+    #      name: merged-bom
+    #      path: target/merged-bom.json
