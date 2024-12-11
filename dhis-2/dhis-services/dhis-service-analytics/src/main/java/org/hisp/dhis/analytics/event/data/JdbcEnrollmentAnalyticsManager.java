@@ -897,14 +897,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String getColumnForTimeField(TimeField timeField) {
-    switch (timeField) {
-      case ENROLLMENT_DATE:
-        return "enrollmentdate";
-      case INCIDENT_DATE:
-        return "occurreddate";
-      default:
-        return null;
-    }
+      return switch (timeField) {
+          case ENROLLMENT_DATE -> "enrollmentdate";
+          case INCIDENT_DATE -> "occurreddate";
+          default -> null;
+      };
   }
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
@@ -947,64 +944,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return sql.toString();
   }
 
-  private String buildYearlyDateRangeCondition(String column, String[] years) {
-    List<String> yearConditions = new ArrayList<>();
-    for (String year : years) {
-      yearConditions.add(String.format(
-              "(%s >= '%s-01-01' and %s < '%s-02-01')",
-              column, year,
-              column, year
-      ));
-    }
-    // Note: The entire set of year conditions should be wrapped in parentheses
-    return "(" + String.join(" or ", yearConditions) + ")";
-  }
-
-
-  private String getOrderByColumn(String itemId) {
-    // Map the column names exactly as they appear in the original query
-    switch (itemId.toLowerCase()) {
-      case "incidentdate":
-        return "occurreddate";  // Note: maps to occurreddate
-      case "ouname":
-        return "ouname";
-      default:
-        return itemId;
-    }
-  }
-
-  private String buildDateRangeCondition(String column, String[] years) {
-    List<String> yearConditions = new ArrayList<>();
-    for (String year : years) {
-      yearConditions.add(String.format(
-              "(%s >= '%s-01-01' and %s < '%s-02-01')",
-              column, year,
-              column, year
-      ));
-    }
-    return String.join(" or ", yearConditions);
-  }
-
-  private String getWhereClauseWithoutCTE(EventQueryParams params) {
-    List<String> conditions = new ArrayList<>();
-
-    // Add date range conditions
-    if (params.getStartDate() != null && params.getEndDate() != null) {
-      conditions.add(String.format(
-              "enrollmentdate >= '%s' and enrollmentdate < '%s'",
-              DateUtils.toMediumDate(params.getStartDate()),
-              DateUtils.toMediumDate(params.getEndDate())
-      ));
-    }
-
-    // Add organization unit conditions
-    if (!params.getOrganisationUnits().isEmpty()) {
-      String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("ax.uidlevel1 = '%s'", orgUnit));
-    }
-
-    return String.join(" and ", conditions);
-  }
 
   private String getWhereClauseWithCTE(EventQueryParams params, QueryItem item) {
     List<String> conditions = new ArrayList<>();
