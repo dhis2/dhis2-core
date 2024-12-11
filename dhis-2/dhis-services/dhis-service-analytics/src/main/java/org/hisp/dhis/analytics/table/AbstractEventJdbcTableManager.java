@@ -168,13 +168,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String sql = "insert into " + tableName + " (";
-
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
-
     sql += ") select ";
-
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
-
     sql += " " + fromClause;
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
