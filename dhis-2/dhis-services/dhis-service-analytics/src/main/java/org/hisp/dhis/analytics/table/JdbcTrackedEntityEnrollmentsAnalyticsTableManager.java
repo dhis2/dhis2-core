@@ -221,6 +221,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
+    long tetId = partition.getMasterTable().getTrackedEntityType().getId();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
@@ -244,8 +245,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             and en.occurreddate is not null \
             and en.deleted = false\s""",
             Map.of(
-                "trackedEntityTypeId",
-                    valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                "trackedEntityTypeId", valueOf(tetId),
                 "startTime", toLongDate(params.getStartTime()),
                 "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
