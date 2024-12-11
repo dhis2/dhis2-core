@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -170,11 +169,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     String sql = "insert into " + tableName + " (";
 
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
-
     sql += ") select ";
-
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
-
     sql += " " + fromClause;
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
@@ -218,6 +214,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
       TrackedEntityAttribute attribute) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+    
     Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
