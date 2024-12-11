@@ -79,7 +79,8 @@ public class MetadataActions extends RestApiActions {
   public MetadataApiResponse importMetadata(JsonObject object, String... queryParams) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll(queryParams);
-    queryParamsBuilder.addAll("atomicMode=OBJECT", "importReportMode=FULL");
+    queryParamsBuilder.addAll(
+        "atomicMode=OBJECT", "importReportMode=FULL", "metadataSyncImport=true");
 
     ApiResponse response = post(object, queryParamsBuilder);
     response.validate().statusCode(200);

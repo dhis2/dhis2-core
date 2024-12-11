@@ -39,6 +39,8 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -74,7 +76,7 @@ class ObjectBundleServiceImportReportModeTest extends PostgresIntegrationTestBas
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     metadata =
@@ -86,7 +88,7 @@ class ObjectBundleServiceImportReportModeTest extends PostgresIntegrationTestBas
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setImportReportMode(ImportReportMode.ERRORS_NOT_OWNER);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.hasErrorReports());
     assertEquals(4, validate.getErrorReportsCount());

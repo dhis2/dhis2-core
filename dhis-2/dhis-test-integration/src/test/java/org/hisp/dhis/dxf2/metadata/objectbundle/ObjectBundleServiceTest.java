@@ -60,6 +60,8 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -106,7 +108,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testCreateObjectBundle() {
     ObjectBundleParams params = new ObjectBundleParams();
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertNotNull(bundle);
   }
 
@@ -117,7 +119,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setPreheatMode(PreheatMode.REFERENCE);
     params.addObject(dataElementGroup);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertNotNull(bundle);
     assertFalse(bundle.getPreheat().isEmpty());
     assertFalse(bundle.getPreheat().isEmpty(PreheatIdentifier.UID));
@@ -138,7 +140,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.addObject(dataElementGroup);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     bundle.getPreheat().put(bundle.getPreheatIdentifier(), dataElementGroup);
     assertTrue(
         StreamSupport.stream(bundle.getObjects(DataElementGroup.class).spliterator(), false)
@@ -158,7 +160,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.isEmpty());
     assertTrue(validate.hasErrorReports());
@@ -193,7 +195,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
   }
@@ -207,7 +209,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.hasErrorReports());
     assertEquals(1, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5002));
@@ -223,7 +225,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.hasErrorReports());
     assertEquals(3, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5001));
@@ -239,7 +241,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.UID);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(3, validate.getTypeReport(DataElement.class).getObjectReportsCount());
   }
@@ -256,7 +258,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setAtomicMode(NONE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5001));
     assertNotEquals(0, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E4000));
@@ -273,7 +275,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.getTypeReport(DataElement.class).hasObjectReports());
     assertEquals(3, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5001));
@@ -289,7 +291,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.UID);
     params.setImportStrategy(ImportStrategy.DELETE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.getTypeReport(DataElement.class).hasObjectReports());
     assertEquals(3, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5001));
@@ -305,7 +307,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.DELETE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertTrue(validate.getTypeReport(DataElement.class).hasObjectReports());
     assertEquals(3, validate.getErrorReportsCountByCode(DataElement.class, ErrorCode.E5001));
@@ -320,7 +322,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertNotNull(validate);
   }
@@ -336,7 +338,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.DELETE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     List<DataElement> dataElements = manager.getAll(DataElement.class);
@@ -356,7 +358,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.DELETE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     List<DataElement> dataElements = manager.getAll(DataElement.class);
@@ -373,7 +375,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
@@ -417,7 +419,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
@@ -444,7 +446,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -456,7 +458,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -489,7 +491,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     UserGroup userGroup = manager.get(UserGroup.class, "ugabcdefghA");
     assertEquals(4, dataElementMap.size());
     assertNotNull(userGroup);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     DataElement dataElementA = dataElementMap.get("deabcdefghA");
@@ -537,7 +539,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     UserGroup userGroup = manager.get(UserGroup.class, "ugabcdefghA");
     assertEquals(4, dataElementMap.size());
     assertNotNull(userGroup);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     DataElement dataElementA = dataElementMap.get("deabcdefghA");
@@ -580,7 +582,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -617,7 +619,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -672,7 +674,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -696,7 +698,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     DataElement dataElement = manager.get(DataElement.class, "nHwIqKAudKN");
     assertNotNull(dataElement);
     validate = objectBundleValidationService.validate(bundle);
@@ -757,7 +759,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -779,7 +781,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -801,7 +803,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -835,7 +837,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -847,7 +849,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
 
     validate.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
@@ -883,7 +885,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCount());
     assertTrue(
@@ -903,7 +905,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCount());
     assertTrue(
@@ -928,7 +930,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport objectBundleValidationReport =
         objectBundleValidationService.validate(bundle);
     assertFalse(objectBundleValidationReport.hasErrorReports());
@@ -978,7 +980,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     DataElement dataElementA = manager.get(DataElement.class, "deabcdefghA");
@@ -1028,7 +1030,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     DataElement dataElementE = manager.get(DataElement.class, "deabcdefghE");
@@ -1050,7 +1052,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.isEmpty());
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5003));
@@ -1068,7 +1070,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(NONE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     assertEquals(1, manager.getAll(DataElement.class).size());
@@ -1089,7 +1091,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(NONE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     assertEquals(1, manager.getAll(DataElement.class).size());
@@ -1109,7 +1111,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     assertEquals(0, manager.getAll(DataElement.class).size());
@@ -1125,7 +1127,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(AtomicMode.ALL);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     OrganisationUnit root = manager.get(OrganisationUnit.class, "inVD5SdytkT");
@@ -1143,7 +1145,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -1155,7 +1157,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -1197,7 +1199,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     assertEquals(3, manager.getAll(OrganisationUnit.class).size());
@@ -1221,7 +1223,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(AtomicMode.ALL);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     OrganisationUnit root = manager.get(OrganisationUnit.class, "inVD5SdytkT");
@@ -1240,7 +1242,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setAtomicMode(AtomicMode.ALL);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     List<DataElement> dataElements = manager.getAll(DataElement.class);
@@ -1261,7 +1263,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
   }
@@ -1278,7 +1280,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatMode(PreheatMode.REFERENCE);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertEquals(3, objectBundleValidationService.validate(bundle).getErrorReportsCount());
   }
 
@@ -1293,7 +1295,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
@@ -1311,7 +1313,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.UPDATE);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     organisationUnits = manager.getAll(OrganisationUnit.class);
@@ -1332,7 +1334,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     List<OrganisationUnit> organisationUnits = manager.getAll(OrganisationUnit.class);
@@ -1350,7 +1352,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
     objectBundleService.commit(bundle);
     organisationUnits = manager.getAll(OrganisationUnit.class);

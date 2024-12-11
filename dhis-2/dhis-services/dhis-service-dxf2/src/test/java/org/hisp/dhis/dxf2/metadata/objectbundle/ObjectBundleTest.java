@@ -34,6 +34,8 @@ import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.junit.jupiter.api.Assertions;

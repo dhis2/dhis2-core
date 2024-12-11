@@ -41,6 +41,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
@@ -86,7 +88,7 @@ class ObjectBundleServiceFavoritesTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -138,7 +140,7 @@ class ObjectBundleServiceFavoritesTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -165,7 +167,7 @@ class ObjectBundleServiceFavoritesTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
@@ -187,7 +189,7 @@ class ObjectBundleServiceFavoritesTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);

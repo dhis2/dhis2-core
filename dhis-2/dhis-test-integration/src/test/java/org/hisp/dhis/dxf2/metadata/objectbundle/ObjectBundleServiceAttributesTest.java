@@ -48,6 +48,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -95,7 +97,7 @@ class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
     assertFalse(validationReport.hasErrorReports());
     transactionTemplate.execute(
@@ -164,7 +166,7 @@ class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
     TypeReport typeReport = validationReport.getTypeReport(DataElement.class);
     assertNotNull(typeReport);
@@ -183,7 +185,7 @@ class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
     TypeReport typeReport = validationReport.getTypeReport(DataElement.class);
     assertNotNull(typeReport);
@@ -202,7 +204,7 @@ class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
     TypeReport typeReport = validationReport.getTypeReport(DataElement.class);
     assertNotNull(typeReport);
@@ -220,7 +222,7 @@ class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.VALIDATE);
     params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
     assertNotNull(validationReport.getTypeReport(DataElement.class));
     assertEquals(

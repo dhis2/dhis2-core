@@ -40,6 +40,8 @@ import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.importexport.ObjectBundle;
+import org.hisp.dhis.importexport.ObjectBundleParams;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -81,7 +83,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params =
         createBundleParams(
             ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE, "dxf2/users.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5003));
     objectBundleService.commit(bundle);
@@ -106,7 +108,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params =
         createBundleParams(
             ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE, "dxf2/users.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5003));
     objectBundleService.commit(bundle);
@@ -116,7 +118,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.UPDATE,
             AtomicMode.NONE,
             "dxf2/users_update.json");
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5001));
     objectBundleService.commit(bundle);
@@ -135,7 +137,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params =
         createBundleParams(
             ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE, "dxf2/users.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCountByCode(UserRole.class, ErrorCode.E5003));
     objectBundleService.commit(bundle);
@@ -145,7 +147,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.UPDATE,
             AtomicMode.NONE,
             "dxf2/users_illegal_update.json");
-    bundle = objectBundleService.create(params);
+    bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport report = objectBundleValidationService.validate(bundle);
     assertEquals(1, report.getErrorReportsCountByCode(User.class, ErrorCode.E4003));
     assertTrue(report.hasErrorReport(error -> "email".equals(error.getErrorProperty())));
@@ -159,7 +161,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.NONE,
             "dxf2/user_duplicate_username.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     assertEquals(3, manager.getAll(User.class).size());
@@ -173,7 +175,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.NONE,
             "dxf2/user_duplicate_username.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleValidationService.validate(bundle);
     objectBundleService.commit(bundle);
     assertEquals(3, manager.getAll(User.class).size());
@@ -184,7 +186,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
     ObjectBundleParams params =
         createBundleParams(
             ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.ALL, "dxf2/user_admin.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     assertEquals(0, objectBundleValidationService.validate(bundle).getErrorReportsCount());
   }
 
@@ -196,7 +198,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.CREATE,
             AtomicMode.ALL,
             "dxf2/users_passwords.json");
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
     assertEquals(1, validate.getErrorReportsCountByCode(User.class, ErrorCode.E4005));
   }
@@ -209,7 +211,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.ALL,
             "dxf2/user_userrole.json");
-    ObjectBundle bundle1 = objectBundleService.create(params);
+    ObjectBundle bundle1 = (ObjectBundle) objectBundleService.create(params);
     objectBundleService.commit(bundle1);
     User userB = manager.get(User.class, "MwhEJUnTHkn");
     User userA = manager.get(User.class, "sPWjoHSY03y");
@@ -233,7 +235,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.ALL,
             "dxf2/user_userrole_update.json");
-    ObjectBundle bundle2 = objectBundleService.create(params);
+    ObjectBundle bundle2 = (ObjectBundle) objectBundleService.create(params);
     objectBundleService.commit(bundle2);
     assertEquals(2, userA.getUserRoles().size());
     assertEquals(2, userB.getUserRoles().size());
@@ -248,7 +250,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
             AtomicMode.ALL,
             "dxf2/user_userrole_code.json");
     params.setPreheatIdentifier(PreheatIdentifier.CODE);
-    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundle bundle = (ObjectBundle) objectBundleService.create(params);
     objectBundleService.commit(bundle);
     User userA = manager.get(User.class, "sPWjoHSY03y");
     assertNotNull(userA);
