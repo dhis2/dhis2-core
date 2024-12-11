@@ -38,11 +38,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.restassured.response.ValidatableResponse;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,6 +83,11 @@ class CategoryOptionMergeTest extends ApiTest {
   public void setup() {
     loginActions.loginAsSuperUser();
     setupMetadata();
+  }
+
+  @AfterEach
+  public void cleanup() {
+    new TestCleanUp().deleteCreatedEntities();
   }
 
   @Test
