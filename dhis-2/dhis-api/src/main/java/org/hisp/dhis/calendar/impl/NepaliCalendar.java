@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.calendar.impl;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -144,25 +145,36 @@ public class NepaliCalendar extends AbstractCalendar {
 
   @Override
   public int week(DateTimeUnit dateTimeUnit) {
-    return isoWeek(dateTimeUnit);
+    /*
+     * https://en.m.wikipedia.org/wiki/ISO_week_date
+     */
+    int week = (int) Math.floor((10 + getDayOfYear(dateTimeUnit) - isoWeekday(dateTimeUnit)) / 7);
+    if (week < 1) {
+      week = 52;
+    } else if (week > 52) {
+      week = 1;
+    }
+    return week;
   }
 
   @Override
   public int isoWeekday(DateTimeUnit dateTimeUnit) {
-    DateTime dateTime =
-        toIso(dateTimeUnit).toJodaDateTime(ISOChronology.getInstance(DateTimeZone.getDefault()));
-    return dateTime.getDayOfWeek();
+    /*
+     * calculating week day from calendar dateTimeUnit is best managed
+     * via Gregorian calendar as week duration is 7 days in 'all' calendars
+     * and Mon = Day 1, Tue = Day 2, Wed = Day 3, ...
+     */
+    DateTimeUnit isoDateTimeUnit = toIso(dateTimeUnit);
+
+    LocalDate localDate =
+        LocalDate.of(
+            isoDateTimeUnit.getYear(), isoDateTimeUnit.getMonth(), isoDateTimeUnit.getDay());
+    return localDate.getDayOfWeek().getValue();
   }
 
   @Override
   public int weekday(DateTimeUnit dateTimeUnit) {
-    int dayOfWeek = (isoWeekday(dateTimeUnit) + 1);
-
-    if (dayOfWeek > 7) {
-      return 1;
-    }
-
-    return dayOfWeek;
+    return isoWeekday(dateTimeUnit);
   }
 
   @Override
@@ -461,11 +473,24 @@ public class NepaliCalendar extends AbstractCalendar {
     return new DateInterval(from, to, DateIntervalType.ISO8601_DAY);
   }
 
+  private int getDayOfYear(DateTimeUnit dateTimeUnit) {
+    int dayOfYear = dateTimeUnit.getDay();
+
+    if (CONVERSION_MAP.get(dateTimeUnit.getYear()) != null) {
+      for (int j = 1; j < dateTimeUnit.getMonth(); j++) {
+        dayOfYear += CONVERSION_MAP.get(dateTimeUnit.getYear())[j];
+      }
+    }
+    return dayOfYear;
+  }
+
   // ------------------------------------------------------------------------------------------------------------
   // Conversion map for Nepali calendar
   //
   // Based on map from:
-  // http://forjavaprogrammers.blogspot.com/2012/06/how-to-convert-english-date-to-nepali.html
+  // http://www.ashesh.com.np
+  // http://nepalicalendar.rat32.com/index.php
+  // http://www.ashesh.com.np/nepali-calendar/
   // ------------------------------------------------------------------------------------------------------------
 
   /**
@@ -475,6 +500,39 @@ public class NepaliCalendar extends AbstractCalendar {
   private static final Map<Integer, int[]> CONVERSION_MAP = new HashMap<>();
 
   static {
+    CONVERSION_MAP.put(1970, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1971, new int[] {0, 31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1972, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+    CONVERSION_MAP.put(1973, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
+    CONVERSION_MAP.put(1974, new int[] {0, 30, 32, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1975, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1976, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+    CONVERSION_MAP.put(1977, new int[] {0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31});
+    CONVERSION_MAP.put(1978, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1979, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
+
+    CONVERSION_MAP.put(1980, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+    CONVERSION_MAP.put(1981, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1982, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1983, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1984, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+    CONVERSION_MAP.put(1985, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1986, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1987, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1988, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+    CONVERSION_MAP.put(1989, new int[] {0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30});
+
+    CONVERSION_MAP.put(1990, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1991, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
+    CONVERSION_MAP.put(1992, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
+    CONVERSION_MAP.put(1993, new int[] {0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1994, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1995, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
+    CONVERSION_MAP.put(1996, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
+    CONVERSION_MAP.put(1997, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1998, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(1999, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+
     CONVERSION_MAP.put(2000, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2001, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2002, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
@@ -485,6 +543,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2007, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
     CONVERSION_MAP.put(2008, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31});
     CONVERSION_MAP.put(2009, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+
     CONVERSION_MAP.put(2010, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2011, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
     CONVERSION_MAP.put(2012, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30});
@@ -495,6 +554,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2017, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2018, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2019, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
+
     CONVERSION_MAP.put(2020, new int[] {0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2021, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2022, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
@@ -505,6 +565,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2027, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2028, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2029, new int[] {0, 31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30});
+
     CONVERSION_MAP.put(2030, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
     CONVERSION_MAP.put(2031, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2032, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
@@ -515,6 +576,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2037, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2038, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
     CONVERSION_MAP.put(2039, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30});
+
     CONVERSION_MAP.put(2040, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2041, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2042, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
@@ -525,6 +587,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2047, new int[] {0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2048, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2049, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
+
     CONVERSION_MAP.put(2050, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2051, new int[] {0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2052, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
@@ -535,6 +598,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2057, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
     CONVERSION_MAP.put(2058, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2059, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+
     CONVERSION_MAP.put(2060, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2061, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
     CONVERSION_MAP.put(2062, new int[] {0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31});
@@ -545,6 +609,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2067, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2068, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2069, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+
     CONVERSION_MAP.put(2070, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30});
     CONVERSION_MAP.put(2071, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2072, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30});
@@ -555,26 +620,29 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2077, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2078, new int[] {0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2079, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+
     CONVERSION_MAP.put(2080, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
-    CONVERSION_MAP.put(2081, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
-    CONVERSION_MAP.put(2082, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2083, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2084, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
-    CONVERSION_MAP.put(2085, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
-    CONVERSION_MAP.put(2086, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2087, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2088, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
-    CONVERSION_MAP.put(2089, new int[] {0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31});
-    CONVERSION_MAP.put(2090, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2091, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2092, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
-    CONVERSION_MAP.put(2093, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31});
-    CONVERSION_MAP.put(2094, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2095, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 29});
-    CONVERSION_MAP.put(2096, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 32});
-    CONVERSION_MAP.put(2097, new int[] {0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2098, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2099, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30});
-    CONVERSION_MAP.put(2100, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31});
+    CONVERSION_MAP.put(2081, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2082, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2083, new int[] {0, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2084, new int[] {0, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2085, new int[] {0, 31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2086, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2087, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2088, new int[] {0, 30, 31, 32, 32, 30, 31, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2089, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+
+    CONVERSION_MAP.put(2090, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2091, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2092, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2093, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2094, new int[] {0, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2095, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 30, 30, 30});
+    CONVERSION_MAP.put(2096, new int[] {0, 30, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(2097, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2098, new int[] {0, 31, 31, 32, 31, 31, 31, 29, 30, 29, 30, 30, 31});
+    CONVERSION_MAP.put(2099, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 29, 30, 30, 30});
+
+    CONVERSION_MAP.put(2100, new int[] {0, 31, 32, 31, 32, 30, 31, 30, 29, 30, 29, 30, 30});
   }
 }
