@@ -969,42 +969,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             .append(" and le.rn = ").append(Math.abs(offset) + 1);
 
     // 4. Where clause
-    List<String> conditions = new ArrayList<>();
-
-    // Add org unit condition
-    if (!params.getOrganisationUnits().isEmpty()) {
-      String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("ax.\"uidlevel1\" = '%s'", orgUnit));
-    }
-
-    // Add date conditions
-    if (!params.getTimeDateRanges().isEmpty()) {
-      for (Map.Entry<TimeField, List<DateRange>> entry : params.getTimeDateRanges().entrySet()) {
-        String column = getColumnForTimeField(entry.getKey());
-        if (column != null) {
-          List<String> dateConditions = new ArrayList<>();
-          for (DateRange range : entry.getValue()) {
-            dateConditions.add(String.format(
-                    "(%s >= '%s' and %s < '%s')",
-                    "ax." + column,
-                    DateUtils.toMediumDate(range.getStartDate()),
-                    "ax." + column,
-                    DateUtils.toMediumDate(range.getEndDate())
-            ));
-          }
-          conditions.add("(" + String.join(" or ", dateConditions) + ")");
-        }
-      }
-    }
-
-    // Add NV filter condition
-    if (hasNullValueFilter(params)) {
-      conditions.add("le.value is null");
-      conditions.add("le.enrollment is not null");
-    }
-
-    if (!conditions.isEmpty()) {
-      sql.append(" where ").append(String.join(" and ", conditions));
+    String whereClause = getWhereClauseWithCTE(params, item);
+    if (!whereClause.isEmpty()) {
+      sql.append(" where ").append(whereClause);
     }
 
     // Add order by
