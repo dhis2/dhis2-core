@@ -534,6 +534,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (isSpatialSupport()) {
@@ -612,6 +616,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
       TrackedEntityAttribute attribute) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     String columnExpression = getColumnExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause("value");
     String query =
@@ -656,6 +664,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     String query =
         """
         (select l.uid from ${maplegend} l \

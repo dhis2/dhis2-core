@@ -214,6 +214,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
       TrackedEntityAttribute attribute) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
