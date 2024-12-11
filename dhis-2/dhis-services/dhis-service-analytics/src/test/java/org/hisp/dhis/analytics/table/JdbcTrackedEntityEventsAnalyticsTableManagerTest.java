@@ -162,7 +162,7 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
         insert into analytics_te_event_tetuid_temp ("trackedentity","program","enrollment","programstage","event","occurreddate","lastupdated","created",
         "scheduleddate","status","uidlevel1","uidlevel2","uidlevel3","uidlevel4","ou","ouname","oucode","oulevel","eventdatavalues","eventgeometry",
         "evlongitude","evlatitude","ounamehierarchy") select distinct te.uid,p.uid,en.uid,ps.uid,ev.uid,ev.occurreddate,ev.lastupdated,
-        ev.created,ev.scheduleddate,ev.status,ous.uidlevel1,ous.uidlevel2,ous.uidlevel3,ous.uidlevel4,ous.organisationunituid,ous.name,ous.code,ous.level,
+        ev.created,ev.scheduleddate,ev.status,ous.organisationunituid,ous.name,ous.code,ous.level,
         %s,
         ev.geometry,case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end,case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end,concat_ws(' / ',) as ounamehierarchy
         from "event" ev inner join "enrollment" en on en.enrollmentid=ev.enrollmentid

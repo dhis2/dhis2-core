@@ -343,6 +343,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     }
 
     columns.add(getOrganisationUnitNameHierarchyColumn());
+    columns.addAll(getOrganisationUnitLevelColumns());
 
     return columns;
   }
