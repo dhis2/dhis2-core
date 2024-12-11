@@ -340,22 +340,19 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     StringBuilder sql =
         new StringBuilder(replace("insert into ${tableName} (", Map.of("tableName", tableName)));
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(quote(col.getName()) + ",");
-    }
+    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
 
-    sql = TextUtils.removeLastComma(sql).append(") select ");
+    sql.append(") select ");
 
-    for (AnalyticsTableColumn col : dimensions) {
-      sql.append(col.getSelectExpression() + ",");
-    }
+    sql.append(toCommaSeparated(dimensions, AnalyticsTableColumn::getSelectExpression));
 
-    sql.append(
-        replaceQualify(
-            """
+    sql.append(",")
+        .append(
+            replaceQualify(
+                """
             ${approvalSelectExpression} \
             as approvallevel, \
             ${valueExpression} * ps.daysno as daysxvalue, \
@@ -372,10 +369,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
-            Map.of(
-                "approvalSelectExpression", approvalSelectExpression,
-                "valueExpression", valueExpression,
-                "textValueExpression", textValueExpression)));
+                Map.of(
+                    "approvalSelectExpression", approvalSelectExpression,
+                    "valueExpression", valueExpression,
+                    "textValueExpression", textValueExpression)));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());

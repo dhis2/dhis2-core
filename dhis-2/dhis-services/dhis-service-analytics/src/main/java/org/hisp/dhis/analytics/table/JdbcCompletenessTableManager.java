@@ -57,7 +57,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -196,21 +195,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String tableName = partition.getName();
     String partitionClause = getPartitionClause(partition);
 
-    String sql = "insert into " + tableName + " (";
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
+    String sql = "insert into " + tableName + " (";
 
-    sql = TextUtils.removeLastComma(sql) + ") select ";
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
+    sql += ") select ";
 
-    sql = TextUtils.removeLastComma(sql) + " ";
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
+
+    sql += " ";
 
     // Database legacy fix
 

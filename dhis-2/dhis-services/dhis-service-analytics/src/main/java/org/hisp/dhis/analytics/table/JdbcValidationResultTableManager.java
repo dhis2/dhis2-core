@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -168,17 +167,13 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
 
-    sql = removeLastComma(sql) + ") select ";
+    sql += ") select ";
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
 
-    sql = removeLastComma(sql) + " ";
+    sql += " ";
 
     // Database legacy fix
 
