@@ -242,7 +242,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     List<AnalyticsTableColumn> columns = getColumns();
 
     StringBuilder sql = new StringBuilder("select ");
-
     sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
     sql.append(

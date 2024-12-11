@@ -367,26 +367,24 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         sqlBuilder.supportsDeclarativePartitioning() ? "" : getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
-
     sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
-
     sql.append(") select distinct ");
-
     sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
+    sql.append(" ");
 
     sql.append(
         replaceQualify(
             """
-        \s from ${event} ev \
-        inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
-        inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
-        and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
-        left join ${programstage} ps on ev.programstageid=ps.programstageid \
-        left join ${program} p on ps.programid=p.programid \
-        left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
-        where ev.status in (${statuses}) \
-        ${partitionClause} \
-        and ev.deleted = false\s""",
+            from ${event} ev \
+            inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
+            inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
+            and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
+            left join ${programstage} ps on ev.programstageid=ps.programstageid \
+            left join ${program} p on ps.programid=p.programid \
+            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+            where ev.status in (${statuses}) \
+            ${partitionClause} \
+            and ev.deleted = false\s""",
             Map.of(
                 "tetId",
                 String.valueOf(masterTable.getTrackedEntityType().getId()),

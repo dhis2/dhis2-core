@@ -136,7 +136,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
-
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
     sql += ") select ";
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
