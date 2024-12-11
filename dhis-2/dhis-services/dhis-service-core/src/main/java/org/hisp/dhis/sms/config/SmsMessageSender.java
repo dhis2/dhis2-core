@@ -294,7 +294,6 @@ public class SmsMessageSender implements MessageSender {
       sms.setStatus(OutboundSmsStatus.FAILED);
     }
 
-    outboundSmsService.save(sms);
     try {
       authenticationService.obtainSystemAuthentication();
       outboundSmsService.save(sms);
