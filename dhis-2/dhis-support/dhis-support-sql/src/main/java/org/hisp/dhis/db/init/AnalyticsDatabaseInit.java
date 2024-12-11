@@ -127,7 +127,9 @@ public class AnalyticsDatabaseInit {
             "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
             "database", config.getProperty(ConfigurationKey.CONNECTION_DATABASE),
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
-            "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+            "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD),
+            "connection_pool_size", "100",
+            "replace_query", "1");
 
     ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
 
