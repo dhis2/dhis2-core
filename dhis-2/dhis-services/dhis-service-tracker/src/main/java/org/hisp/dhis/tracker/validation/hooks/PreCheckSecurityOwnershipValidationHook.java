@@ -323,7 +323,7 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
             organisationUnit,
             strategy.isCreate()
                 ? event.isCreatableInSearchScope()
-                : bundle.getPreheat().getEvent(event.getUid()).isCreatableInSearchScope(),
+                : programStageInstance.isCreatableInSearchScope(),
             bundle.getUser());
       }
     }
