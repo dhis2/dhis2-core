@@ -132,6 +132,20 @@ public class NameTranslationStatement {
    * @return the columns containing the translated names
    */
   public static String translationNamesColumnsFor(String table, boolean includeProgram) {
+    return translationNamesColumnsFor(table, includeProgram, true);
+  }
+
+  /**
+   * This method defines the values for the translatable columns, for the given table. Depending on
+   * the program flag it will also bring translatable columns from the program table.
+   *
+   * @param table the table containing the translation columns
+   * @param includeProgram if true, it will also bring program columns
+   * @param hasShortName whether the table has a shortname column
+   * @return the columns containing the translated names
+   */
+  public static String translationNamesColumnsFor(
+      String table, boolean includeProgram, boolean hasShortName) {
     StringBuilder columns = new StringBuilder();
 
     if (isNotBlank(table)) {
@@ -141,10 +155,10 @@ public class NameTranslationStatement {
                 ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name")
             .append(
                 ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname")
-            .append(translationNamesColumnsForItem(table, "i18n_second"));
+            .append(translationNamesColumnsForItem(table, "i18n_second", hasShortName));
       } else {
         columns
-            .append(translationNamesColumnsForItem(table, "i18n_first"))
+            .append(translationNamesColumnsForItem(table, "i18n_first", hasShortName))
             .append(", cast (null as text) as i18n_second_name")
             .append(", cast (null as text) as i18n_second_shortname");
       }
@@ -153,7 +167,8 @@ public class NameTranslationStatement {
     return columns.toString();
   }
 
-  private static String translationNamesColumnsForItem(String table, String i18nColumnPrefix) {
+  private static String translationNamesColumnsForItem(
+      String table, String i18nColumnPrefix, boolean hasShortName) {
     StringBuilder columns = new StringBuilder();
 
     columns
@@ -173,8 +188,8 @@ public class NameTranslationStatement {
                 + "_displayshortname.value is not null then "
                 + table
                 + "_displayshortname.value else "
-                + table
-                + ".shortname end) as "
+                + (hasShortName ? table + ".shortname" : "cast (null as text)")
+                + " end) as "
                 + i18nColumnPrefix
                 + "_shortname");
 
