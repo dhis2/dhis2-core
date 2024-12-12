@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.dataitems;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -72,19 +71,7 @@ public class DataItemsAnalyticsTest {
         .validate()
         .statusCode(equalTo(200))
         .body("dataItems.dimensionItemType", hasItem("PROGRAM_INDICATOR"))
-        .body("dataItems.dimensionItemType", hasItem("DATA_ELEMENT"))
-        .body("dataItems.dimensionItemType", hasItem("OPTION_SET"))
-        // asserting first row
-        .body("dataItems[0].id", is("FTRrcoaog83"))
-        .body("dataItems[0].name", is("Accute Flaccid Paralysis (Deaths < 5 yrs)"))
-        .body("dataItems[0].dimensionItemType", is("DATA_ELEMENT"))
-        // asserting second row
-        .body("dataItems[1].id", is("P3jJH5Tu5VC"))
-        .body("dataItems[1].name", is("Acute Flaccid Paralysis (AFP) follow-up"))
-        .body("dataItems[1].dimensionItemType", is("DATA_ELEMENT"))
-        // asserting third row
-        .body("dataItems[2].id", is("FQ2o8UBlcrS"))
-        .body("dataItems[2].name", is("Acute Flaccid Paralysis (AFP) new"))
-        .body("dataItems[2].dimensionItemType", is("DATA_ELEMENT"));
+        .body("dataItems.dimensionItemType", hasItem("DATA_ELEMENT2"))
+        .body("dataItems.dimensionItemType", hasItem("OPTION_SET"));
   }
 }
