@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.tracker.imports.note;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.imports.domain.Note;
 
-/**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have
- * multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@OpenApi.Shared(name = "TrackerNote")
-@OpenApi.Identifiable(as = org.hisp.dhis.note.Note.class)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note {
-  @OpenApi.Property({UID.class, org.hisp.dhis.note.Note.class})
-  @JsonProperty
-  @Builder.Default
-  private UID note = UID.generate();
+public interface NoteService {
+  void addNoteForEnrollment(Note note, UID enrollment)
+      throws ForbiddenException, NotFoundException, BadRequestException;
 
-  @JsonProperty private Instant storedAt;
-
-  @JsonProperty private String value;
-
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private String storedBy;
+  void addNoteForEvent(Note note, UID event)
+      throws ForbiddenException, NotFoundException, BadRequestException;
 }
