@@ -1385,7 +1385,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String args =
         fields.stream()
             .filter(f -> f != null && !f.isBlank())
-            .map(f -> sqlBuilder.quoteAx(f))
+            .map(sqlBuilder::quoteAx)
             .collect(Collectors.joining(","));
 
     return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
