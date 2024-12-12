@@ -230,13 +230,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     return true;
   }
 
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(orgUnit.getPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
   private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,

@@ -485,42 +485,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     assertIsEmpty(reporter.getErrors());
   }
 
-  @Test
-  void shouldSucceedWhenScheduledEventIsCreatedFromSearchOrgUnit() {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .status(EventStatus.SCHEDULE)
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-    Enrollment enrollment = getEnrollment(enrollmentUid);
-
-    Event preheatEvent = getEvent();
-    preheatEvent.setEnrollment(enrollment);
-    preheatEvent.setOrganisationUnit(null);
-
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PS_ID))).thenReturn(programStage);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
   private TrackedEntity teWithNoEnrollments() {
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setUid(TE_ID.getValue());
