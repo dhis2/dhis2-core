@@ -71,7 +71,7 @@ public class DataItemsAnalyticsTest {
         .validate()
         .statusCode(equalTo(200))
         .body("dataItems.dimensionItemType", hasItem("PROGRAM_INDICATOR"))
-        .body("dataItems.dimensionItemType", hasItem("DATA_ELEMENT2"))
+        .body("dataItems.dimensionItemType", hasItem("DATA_ELEMENT"))
         .body("dataItems.dimensionItemType", hasItem("OPTION_SET"));
   }
 }
