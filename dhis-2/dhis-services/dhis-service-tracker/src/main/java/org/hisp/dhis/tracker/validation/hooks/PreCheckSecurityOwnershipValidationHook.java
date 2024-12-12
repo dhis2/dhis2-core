@@ -317,7 +317,14 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
       if (organisationUnit == null) {
         log.warn("ProgramStageInstance " + event.getEvent() + ORG_UNIT_NO_USER_ASSIGNED);
       } else {
-        checkOrgUnitInCaptureScope(reporter, bundle, event, organisationUnit);
+        checkEventOrgUnitWriteAccess(
+            reporter,
+            event,
+            organisationUnit,
+            strategy.isCreate()
+                ? event.isCreatableInSearchScope()
+                : bundle.getPreheat().getEvent(event.getUid()).isCreatableInSearchScope(),
+            bundle.getUser());
       }
     }
 
