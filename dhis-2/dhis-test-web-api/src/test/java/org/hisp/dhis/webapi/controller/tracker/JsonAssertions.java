@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,6 +49,16 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.util.DateUtils;
 
 public class JsonAssertions {
+
+  public static void assertUser(JsonUser expected, JsonUser actual, String property) {
+    assertAll(
+        property,
+        () -> assertEquals(expected.getUid(), actual.getUid(), "uid"),
+        () -> assertEquals(expected.getUsername(), actual.getUsername(), "username"),
+        () -> assertEquals(expected.getFirstName(), actual.getFirstName(), "firstName"),
+        () -> assertEquals(expected.getSurname(), actual.getSurname(), "surname"),
+        () -> assertEquals(expected.getDisplayName(), actual.getDisplayName(), "displayName"));
+  }
 
   public static JsonRelationship assertFirstRelationship(
       Relationship expected, JsonList<JsonRelationship> actual) {

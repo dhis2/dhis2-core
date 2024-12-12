@@ -74,6 +74,7 @@ class Property {
 
   private static final Map<Class<?>, List<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
+  @Nonnull Class<?> declaringClass;
   @Nonnull String name;
   @Nonnull Type type;
   @Nonnull AnnotatedElement source;
@@ -83,6 +84,7 @@ class Property {
 
   private Property(Field f) {
     this(
+        f.getDeclaringClass(),
         getPropertyName(f),
         getType(f, f.getGenericType()),
         f,
@@ -93,6 +95,7 @@ class Property {
 
   private Property(Method m, Field f) {
     this(
+        m.getDeclaringClass(),
         getPropertyName(m),
         getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
         m,
@@ -103,6 +106,7 @@ class Property {
 
   private Property(JsonObject.Property p, Type type) {
     this(
+        p.in(),
         p.jsonName(),
         getType(p.source(), type),
         p.source(),
@@ -125,27 +129,34 @@ class Property {
         (method, field) -> add.accept(new Property(method, field));
 
     boolean includeByDefault = isIncludeAllByDefault(object);
-    Map<String, Field> propertyFields = new HashMap<>();
-    fieldsIn(object).forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
+    Map<String, Field> fieldsByJavaPropertyName = new HashMap<>();
+    fieldsIn(object)
+        .forEach(field -> fieldsByJavaPropertyName.putIfAbsent(getJavaPropertyName(field), field));
     Set<String> ignoredFields =
-        propertyFields.values().stream()
+        fieldsByJavaPropertyName.values().stream()
             .filter(f -> f.isAnnotationPresent(OpenApi.Ignore.class))
-            .map(Property::getPropertyName)
+            .map(Property::getJavaPropertyName)
             .collect(Collectors.toSet());
-    propertyFields.values().stream()
+    fieldsByJavaPropertyName.values().stream()
         .filter(Property::isProperty)
         .filter(f -> includeByDefault || isExplicitlyIncluded(f))
         .forEach(addField);
     methodsIn(object)
         .filter(method -> Property.isGetter(method) || Property.isSetter(method))
         .filter(Property::isExplicitlyIncluded)
-        .filter(method -> !ignoredFields.contains(getPropertyName(method)))
-        .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
+        .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
+        .forEach(
+            method ->
+                addMethod.accept(
+                    method, fieldsByJavaPropertyName.get(getJavaPropertyName(method))));
     if (properties.isEmpty() || includeByDefault) {
       methodsIn(object)
           .filter(Property::isGetter)
-          .filter(method -> !ignoredFields.contains(getPropertyName(method)))
-          .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
+          .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
+          .forEach(
+              method ->
+                  addMethod.accept(
+                      method, fieldsByJavaPropertyName.get(getJavaPropertyName(method))));
     }
     return List.copyOf(properties.values());
   }
@@ -239,11 +250,7 @@ class Property {
   }
 
   private static <T extends Member & AnnotatedElement> String getPropertyName(T member) {
-    String name = member.getName();
-    if (member instanceof Method) {
-      String prop = name.substring(name.startsWith("is") ? 2 : 3);
-      name = Character.toLowerCase(prop.charAt(0)) + prop.substring(1);
-    }
+    String name = getJavaPropertyName(member);
     OpenApi.Property oap = member.getAnnotation(OpenApi.Property.class);
     String nameOverride = oap == null ? "" : oap.name();
     if (!nameOverride.isEmpty()) {
@@ -252,6 +259,15 @@ class Property {
     JsonProperty property = member.getAnnotation(JsonProperty.class);
     nameOverride = property == null ? "" : property.value();
     return nameOverride.isEmpty() ? name : nameOverride;
+  }
+
+  private static <T extends Member & AnnotatedElement> String getJavaPropertyName(T member) {
+    String name = member.getName();
+    if (member instanceof Method) {
+      String prop = name.substring(name.startsWith("is") ? 2 : 3);
+      name = Character.toLowerCase(prop.charAt(0)) + prop.substring(1);
+    }
+    return name;
   }
 
   @CheckForNull

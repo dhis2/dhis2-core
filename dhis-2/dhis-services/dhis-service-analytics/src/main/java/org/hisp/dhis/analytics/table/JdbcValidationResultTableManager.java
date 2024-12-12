@@ -30,8 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -63,7 +61,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -110,7 +107,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
@@ -124,7 +120,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
@@ -168,21 +163,13 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String tableName = partition.getName();
     String partitionClause = getPartitionClause(partition);
 
-    String sql = "insert into " + tableName + " (";
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
-
-    sql = removeLastComma(sql) + ") select ";
-
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
-
-    sql = removeLastComma(sql) + " ";
+    String sql = "insert into " + tableName + " (";
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
+    sql += ") select ";
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
+    sql += " ";
 
     // Database legacy fix
 
@@ -213,9 +200,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String fromDateClause =
         params.getFromDate() == null
             ? ""
-            : replace(
-                "and ps.startdate >= '${fromDate}'",
-                Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+            : String.format(
+                " and ps.startdate >= '%s'", DateUtils.toMediumDate(params.getFromDate()));
+
     String sql =
         replaceQualify(
             """
@@ -223,8 +210,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             from ${validationresult} vrs \
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
             where ps.startdate is not null \
-            and vrs.created < '${startTime}'
-            ${fromDateClause}""",
+            and vrs.created < '${startTime}'${fromDateClause}""",
             Map.of(
                 "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 

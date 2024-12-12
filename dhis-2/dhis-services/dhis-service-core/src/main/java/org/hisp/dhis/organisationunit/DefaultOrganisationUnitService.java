@@ -55,6 +55,7 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.setting.UserSettings;
@@ -161,12 +162,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional(readOnly = true)
   public List<OrganisationUnit> getOrganisationUnitsByUid(@Nonnull Collection<String> uids) {
     return organisationUnitStore.getByUid(new HashSet<>(uids));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<OrganisationUnit> getOrganisationUnitsByQuery(OrganisationUnitQueryParams params) {
-    return organisationUnitStore.getOrganisationUnits(params);
   }
 
   @Override
@@ -360,7 +355,9 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   @Transactional(readOnly = true)
   public Long getOrganisationUnitHierarchyMemberCount(
-      OrganisationUnit parent, Object member, String collectionName) {
+      OrganisationUnit parent, Object member, String collectionName) throws BadRequestException {
+    if (!collectionName.matches("[a-zA-Z0-9_]{1,30}"))
+      throw new BadRequestException("Not a valid property name: " + collectionName);
     return organisationUnitStore.getOrganisationUnitHierarchyMemberCount(
         parent, member, collectionName);
   }

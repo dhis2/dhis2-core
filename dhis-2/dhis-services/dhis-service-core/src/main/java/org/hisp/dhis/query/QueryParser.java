@@ -28,6 +28,7 @@
 package org.hisp.dhis.query;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 
@@ -48,10 +49,10 @@ public interface QueryParser {
    * @return Query instance based on Schema of klass and filters list
    * @throws QueryParserException
    */
-  Query parse(Class<?> klass, List<String> filters, Junction.Type rootJunction)
+  Query parse(Class<?> klass, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException;
 
-  Query parse(Class<?> klass, List<String> filters) throws QueryParserException;
+  Query parse(Class<?> klass, @Nonnull List<String> filters) throws QueryParserException;
 
   Property getProperty(Schema schema, String path) throws QueryParserException;
 }

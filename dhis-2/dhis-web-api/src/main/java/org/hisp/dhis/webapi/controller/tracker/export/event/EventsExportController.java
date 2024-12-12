@@ -363,6 +363,7 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{event}/changeLogs")
   ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
@@ -370,7 +371,10 @@ class EventsExportController {
       HttpServletRequest request)
       throws NotFoundException, BadRequestException, ForbiddenException {
     EventChangeLogOperationParams operationParams =
-        ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
+        ChangeLogRequestParamsMapper.map(
+            eventChangeLogService.getOrderableFields(),
+            eventChangeLogService.getFilterableFields(),
+            requestParams);
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 

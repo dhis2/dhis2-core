@@ -47,12 +47,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,6 +60,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -78,6 +76,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -123,7 +122,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
-    Query<?> userQuery = getUserQuery(params, orders, false);
+    Query<?> userQuery = getUserQuery(params, orders, QueryMode.OBJECTS);
     return extractUserQueryUsers(userQuery.list());
   }
 
@@ -134,7 +133,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public List<User> getExpiringUsers(UserQueryParams params) {
-    return extractUserQueryUsers(getUserQuery(params, null, false).list());
+    return extractUserQueryUsers(getUserQuery(params, null, QueryMode.OBJECTS).list());
   }
 
   @Override
@@ -153,8 +152,15 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public int getUserCount(UserQueryParams params) {
-    Long count = (Long) getUserQuery(params, null, true).uniqueResult();
+    Long count = (Long) getUserQuery(params, null, QueryMode.COUNT).uniqueResult();
     return count != null ? count.intValue() : 0;
+  }
+
+  @Override
+  public List<UID> getUserIds(UserQueryParams params, @CheckForNull List<String> orders) {
+    return getUserQuery(params, orders, QueryMode.IDS).stream()
+        .map(id -> UID.of((String) id))
+        .toList();
   }
 
   @Nonnull
@@ -174,30 +180,35 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     return users;
   }
 
-  private Query<?> getUserQuery(UserQueryParams params, List<String> orders, boolean count) {
+  private enum QueryMode {
+    OBJECTS,
+    COUNT,
+    IDS
+  }
+
+  private Query<?> getUserQuery(UserQueryParams params, List<String> orders, QueryMode mode) {
     SqlHelper hlp = new SqlHelper();
 
     List<Order> convertedOrder = null;
-    String hql = null;
+    String hql;
 
-    if (count) {
+    boolean fetch = mode == QueryMode.OBJECTS;
+    if (mode == QueryMode.COUNT) {
       hql = "select count(distinct u) ";
+    } else if (mode == QueryMode.IDS) {
+      hql = "select distinct u.uid ";
     } else {
       Schema userSchema = schemaService.getSchema(User.class);
       convertedOrder = QueryUtils.convertOrderStrings(orders, userSchema);
-
-      hql =
-          Stream.of(
-                  "select distinct u",
-                  JpaQueryUtils.createSelectOrderExpression(convertedOrder, "u"))
-              .filter(Objects::nonNull)
-              .collect(Collectors.joining(","));
+      String order = JpaQueryUtils.createSelectOrderExpression(convertedOrder, "u");
+      hql = "select distinct u";
+      if (order != null) hql += "," + order;
       hql += " ";
     }
 
     hql += "from User u ";
 
-    if (params.isPrefetchUserGroups() && !count) {
+    if (params.isPrefetchUserGroups() && fetch) {
       hql += "left join fetch u.groups g ";
     } else {
       hql += "left join u.groups g ";
@@ -293,6 +304,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.selfRegistered = true ";
     }
 
+    // TODO(JB) shoundn't UserInvitationStatus.NONE match "u.invitation = false" and null mean no
+    // filter at all?
     if (UserInvitationStatus.ALL.equals(params.getInvitationStatus())) {
       hql += hlp.whereAnd() + " u.invitation = true ";
     }
@@ -306,7 +319,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               + "and u.restoreExpiry < current_timestamp() ";
     }
 
-    if (!count) {
+    if (fetch) {
       String orderExpression = JpaQueryUtils.createOrderExpression(convertedOrder, "u");
       hql += "order by " + StringUtils.defaultString(orderExpression, "u.surname, u.firstName");
     }
@@ -383,7 +396,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       query.setParameterList("userGroupIds", userGroupIds);
     }
 
-    if (!count) {
+    if (fetch) {
       if (params.getFirst() != null) {
         query.setFirstResult(params.getFirst());
       }
@@ -627,7 +640,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public User getUserByVerificationToken(String token) {
+  public User getUserByEmailVerificationToken(String token) {
     Query<User> query =
         getSession()
             .createQuery("from User u where u.emailVerificationToken like :token", User.class);
@@ -641,5 +654,19 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         getSession().createQuery("from User u where u.verifiedEmail = :email", User.class);
     query.setParameter("email", email);
     return query.uniqueResult();
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
+    return getQuery(
+            """
+            select distinct u from User u
+            left join fetch u.%s ous
+            where ous.uid = :uid
+            """
+                .formatted(orgUnitProperty.getValue()))
+        .setParameter("uid", uid.getValue())
+        .getResultList();
   }
 }

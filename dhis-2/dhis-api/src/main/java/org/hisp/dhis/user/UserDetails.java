@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,17 +38,18 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
 
-  // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
-  // to use UserDetails higher up in the layers.
-
   /**
    * Create UserDetails from User
+   *
+   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
+   * refactor // to use UserDetails higher up in the layers.
    *
    * @param user user to convert
    * @return UserDetails
@@ -114,12 +116,14 @@ public interface UserDetails
         UserDetailsImpl.builder()
             .id(user.getId())
             .uid(user.getUid())
+            .code(user.getCode())
             .username(user.getUsername())
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
+            .twoFactorType(user.getTwoFactorType())
+            .secret(user.getSecret())
             .isEmailVerified(user.isEmailVerified())
-            .code(user.getCode())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
             .enabled(user.isEnabled())
@@ -198,6 +202,8 @@ public interface UserDetails
 
   boolean isSuper();
 
+  String getSecret();
+
   @Override
   String getUid();
 
@@ -244,11 +250,21 @@ public interface UserDetails
 
   boolean isTwoFactorEnabled();
 
+  TwoFactorType getTwoFactorType();
+
   boolean isEmailVerified();
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
   void setId(Long id);
+
+  default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
+    if (role == null) return false;
+    if (isSuper()) return true;
+    if (hasAnyAuthorities(List.of(Authorities.ALL))) return true;
+    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) return false;
+    return getAllAuthorities().containsAll(role.getAuthorities());
+  }
 
   default boolean isInUserHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserOrgUnitIds());

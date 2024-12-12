@@ -28,11 +28,14 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertNotContains;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -77,6 +80,10 @@ class MappingErrorsTest {
 
     assertAll(
         () ->
+            assertNotContains(
+                "default category option (combo)s cannot be exported using idScheme=ATTRIBUTE",
+                errors.toString()),
+        () ->
             assertContains(
                 "Following metadata listed using their UIDs is missing identifiers for the"
                     + " requested idScheme:",
@@ -90,5 +97,69 @@ class MappingErrorsTest {
         () -> assertContains("DataElement[NAME]=", errors.toString()),
         () -> assertContains(dataElement1.getUid(), errors.toString()),
         () -> assertContains(dataElement2.getUid(), errors.toString()));
+  }
+
+  @Test
+  void shouldReportDefaultCategoryOptionComboCannotBeExortedUsingIdSchemeAttribute() {
+    CategoryOptionCombo defaultCategoryOptionCombo = new CategoryOptionCombo();
+    defaultCategoryOptionCombo.setName(CategoryOptionCombo.DEFAULT_NAME);
+    defaultCategoryOptionCombo.setUid(CodeGenerator.generateUid());
+    assertTrue(
+        defaultCategoryOptionCombo.isDefault(),
+        "this test needs the CategoryOptionCombo to be the default one");
+
+    TrackerIdSchemeParams idSchemeParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.ofAttribute("i4a244a8341"))
+            .build();
+
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+
+    errors.add(defaultCategoryOptionCombo);
+
+    assertTrue(errors.hasErrors());
+    assertAll(
+        () ->
+            assertContains(
+                "CategoryOptionCombo[ATTRIBUTE:i4a244a8341]="
+                    + defaultCategoryOptionCombo.getUid()
+                    + "(default)",
+                errors.toString()),
+        () ->
+            assertContains(
+                "default category option (combo)s cannot be exported using idScheme=ATTRIBUTE",
+                errors.toString()));
+  }
+
+  @Test
+  void shouldReportDefaultCategoryOptionCannotBeExortedUsingIdSchemeAttribute() {
+    CategoryOption defaultCategoryOption = new CategoryOption();
+    defaultCategoryOption.setName(CategoryOption.DEFAULT_NAME);
+    defaultCategoryOption.setUid(CodeGenerator.generateUid());
+    assertTrue(
+        defaultCategoryOption.isDefault(),
+        "this test needs the CategoryOption to be the default one");
+
+    TrackerIdSchemeParams idSchemeParams =
+        TrackerIdSchemeParams.builder()
+            .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute("i4a244a8341"))
+            .build();
+
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+
+    errors.add(defaultCategoryOption);
+
+    assertTrue(errors.hasErrors());
+    assertAll(
+        () ->
+            assertContains(
+                "CategoryOption[ATTRIBUTE:i4a244a8341]="
+                    + defaultCategoryOption.getUid()
+                    + "(default)",
+                errors.toString()),
+        () ->
+            assertContains(
+                "default category option (combo)s cannot be exported using idScheme=ATTRIBUTE",
+                errors.toString()));
   }
 }

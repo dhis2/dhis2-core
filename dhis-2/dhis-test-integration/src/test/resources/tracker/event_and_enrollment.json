@@ -70,6 +70,14 @@
             "identifier": "numericAttr"
           },
           "value": "88"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "Value"
         }
       ],
       "enrollments": []
@@ -308,6 +316,20 @@
       "potentialDuplicate": false,
       "relationships": [],
       "enrollments": []
+    },
+    {
+      "trackedEntity": "XUitxQbWYNq",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "Fa7NY4PW6DL"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "DiszpKrYNg8"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false
     }
   ],
   "enrollments": [
@@ -883,12 +905,19 @@
       "deleted": false,
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:34.319",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
           },
-          "value": "14",
+          "value": "15",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "10",
           "providedElsewhere": false
         }
       ],

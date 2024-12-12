@@ -28,34 +28,35 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -72,9 +73,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -86,58 +86,69 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }
 
+  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
+
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
-  protected final String getNumericClause() {
-    return " and value " + sqlBuilder.regexpMatch("'" + NUMERIC_LENIENT_REGEXP + "'");
-  }
-
-  protected final String getDateClause() {
-    return " and value " + sqlBuilder.regexpMatch("'" + DATE_REGEXP + "'");
-  }
-
+  /**
+   * Indicates whether creating an index should be skipped.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param hasOptionSet whether an option set exists.
+   * @return a {@link Skip}.
+   */
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
     boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
   /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   * Returns a column expression, potentially with a cast statement, based on the given value type.
    *
-   * @param valueType the value type to represent as database column type.
+   * @param valueType the {@link ValueType} to represent as database column type.
+   * @param columnExpression the expression or name of the column to be selected.
+   * @return a select expression appropriate for the given value type and context.
    */
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    String doubleType = sqlBuilder.dataTypeDouble();
+  protected String getColumnExpression(ValueType valueType, String columnExpression) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as " + doubleType + ")";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
-      return "case when "
-          + columnName
-          + " = 'true' then 1 when "
-          + columnName
-          + " = 'false' then 0 else null end";
+      return String.format(
+          "case when %1$s = 'true' then 1 when %1$s = 'false' then 0 else null end",
+          columnExpression);
     } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as " + sqlBuilder.dataTypeTimestamp() + ")";
+      return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
-      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
-          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-    } else if (valueType.isOrganisationUnit()) {
-      return replaceQualify(
-          "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
-          Map.of("columnName", columnName));
+      return String.format(
+          """
+          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || \
+          ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+          columnExpression);
     } else {
-      return columnName;
+      return columnExpression;
     }
+  }
+
+  /**
+   * Returns a cast expression which includes a value filter for the given value type.
+   *
+   * @param columnExpression the column expression.
+   * @param filterRegex the value type filter regular expression.
+   * @param dataType the SQL data type.
+   * @return a cast and validate expression.
+   */
+  protected String getCastExpression(String columnExpression, String filterRegex, String dataType) {
+    String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
+    return String.format(
+        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
   }
 
   @Override
@@ -157,102 +168,139 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String sql = "insert into " + tableName + " (";
-
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
-
-    sql = TextUtils.removeLastComma(sql) + ") select ";
-
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
-
-    sql = TextUtils.removeLastComma(sql) + " ";
-
-    sql += fromClause;
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
+    sql += ") select ";
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
+    sql += " " + fromClause;
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
-  protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return a list of {@link AnaylyticsTableColumn}.
+   */
+  protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
-      DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-      String dataClause =
-          attribute.isNumericType()
-              ? getNumericClause()
-              : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectClause(attribute.getValueType(), "value");
-      Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+    String valueColumn = getValueColumn(attribute);
+    DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+    String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
+    Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
-      String sql =
-          replaceQualify(
-              """
-              (select ${select} from ${trackedentityattributevalue} \
-              where trackedentityid=en.trackedentityid \
-              and trackedentityattributeid=${attributeId}\
-              ${dataClause})${closingParentheses} as ${attributeUid}""",
-              Map.of(
-                  "select",
-                  select,
-                  "attributeId",
-                  String.valueOf(attribute.getId()),
-                  "dataClause",
-                  dataClause,
-                  "closingParentheses",
-                  getClosingParentheses(select),
-                  "attributeUid",
-                  quote(attribute.getUid())));
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name(attribute.getUid())
-              .columnType(AnalyticsColumnType.DYNAMIC)
-              .dataType(dataType)
-              .selectExpression(sql)
-              .skipIndex(skipIndex)
-              .build());
-
-      if (attribute.getValueType().isOrganisationUnit()) {
-        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
-
-        columns.add(
-            AnalyticsTableColumn.builder()
-                .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-                .columnType(AnalyticsColumnType.DYNAMIC)
-                .dataType(TEXT)
-                .selectExpression(ouNameSql)
-                .skipIndex(SKIP)
-                .build());
-      }
+    if (attribute.getValueType().isOrganisationUnit()) {
+      columns.addAll(getColumnForOrgUnitAttribute(attribute));
     }
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(attribute.getUid())
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(selectExpression)
+            .skipIndex(skipIndex)
+            .build());
+
     return columns;
   }
 
   /**
-   * The select statement used by the table population.
+   * Returns a list of columns based on the given attribute.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
-   * @param fromType the sql snippet related to "from" part
-   * @param dataClause the data type related clause like "NUMERIC"
-   * @return
+   * @return a list of {@link AnalyticsTableColumn}.
    */
-  protected String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
-    return replaceQualify(
+  private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
+      TrackedEntityAttribute attribute) {
+    Validate.isTrue(attribute.getValueType().isOrganisationUnit());
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    if (isSpatialSupport()) {
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .dimensionType(AnalyticsDimensionType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(getOrgUnitSelectSubquery(attribute, "geometry"))
+              .indexType(IndexType.GIST)
+              .build());
+    }
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+            .dimensionType(AnalyticsDimensionType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(getOrgUnitSelectSubquery(attribute, "name"))
+            .skipIndex(SKIP)
+            .build());
+
+    return columns;
+  }
+
+  /**
+   * Returns the value column with alias.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return the vlaue column with alias.
+   */
+  private String getValueColumn(TrackedEntityAttribute attribute) {
+    return String.format("%s.%s", quote(attribute.getUid()), "value");
+  }
+
+  /**
+   * Returns a org unit select query.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param column the column name.
+   * @return an org unit select query.
+   */
+  private String getOrgUnitSelectSubquery(TrackedEntityAttribute attribute, String column) {
+    String format =
         """
-            (select ${fromType} from ${trackedentityattributevalue} \
-            where trackedentityid=en.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
+        (select ou.${column} from ${organisationunit} ou \
+        where ou.uid = ${columnExpression}) as ${alias}""";
+    String valueColumn = getValueColumn(attribute);
+    String columnExpression = getColumnExpression(attribute.getValueType(), valueColumn);
+    String alias = quote(attribute.getUid());
+
+    return replaceQualify(
+        format,
         Map.of(
-            "fromType", fromType,
-            "dataClause", dataClause,
-            "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(fromType),
-            "attributeUid", quote(attribute.getUid())));
+            "column", column,
+            "columnExpression", columnExpression,
+            "alias", alias));
+  }
+
+  /**
+   * Returns a join clause for attribute value for every attribute of the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a join clause.
+   */
+  protected String getAttributeValueJoinClause(Program program) {
+    String template =
+        """
+        left join ${trackedentityattributevalue} as ${uid} \
+        on en.trackedentityid=${uid}.trackedentityid \
+        and ${uid}.trackedentityattributeid = ${id}\s""";
+
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
+        .collect(Collectors.joining());
+  }
+
+  /**
+   * Returns a map of identifiable properties and values.
+   *
+   * @param object the {@link IdentifiableObject}.
+   * @return a {@link Map}.
+   */
+  protected Map<String, String> toVariableMap(IdentifiableObject object) {
+    return Map.of(
+        "id", String.valueOf(object.getId()),
+        "uid", quote(object.getUid()));
   }
 }

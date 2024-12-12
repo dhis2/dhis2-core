@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -78,6 +77,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -100,7 +100,7 @@ class QueryItemLocatorTest {
 
   @Mock private RelationshipTypeService relationshipTypeService;
 
-  private QueryItemLocator subject;
+  @InjectMocks private DefaultQueryItemLocator subject;
 
   private Program programA;
 
@@ -114,16 +114,6 @@ class QueryItemLocatorTest {
 
     dimension = CodeGenerator.generateUid();
     programStageUid = CodeGenerator.generateUid();
-
-    subject =
-        new DefaultQueryItemLocator(
-            programStageService,
-            dataElementService,
-            attributeService,
-            programIndicatorService,
-            legendSetService,
-            relationshipTypeService,
-            dataQueryService);
   }
 
   @Test

@@ -64,7 +64,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -120,10 +119,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -135,9 +133,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
@@ -242,15 +239,12 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a SQL select query.
    */
   private String getInputSql(Program program) {
-    StringBuilder sb = new StringBuilder("select ");
+    List<AnalyticsTableColumn> columns = getColumns();
 
-    for (AnalyticsTableColumn col : getColumns()) {
-      sb.append(col.getSelectExpression()).append(",");
-    }
+    StringBuilder sql = new StringBuilder("select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
-    sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
-
-    sb.append(
+    sql.append(
         replaceQualify(
             """
             \sfrom (\
@@ -275,7 +269,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 "historyTableId", HISTORY_TABLE_ID,
                 "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
                 "programId", String.valueOf(program.getId()))));
-    return sb.toString();
+    return sql.toString();
   }
 
   private Map<String, Object> getRowMap(List<String> columnNames, ResultSet resultSet)

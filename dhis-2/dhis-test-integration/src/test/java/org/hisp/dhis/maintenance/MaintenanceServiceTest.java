@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.maintenance;
 
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +49,6 @@ import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -81,7 +82,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -327,7 +327,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedEnrollmentLinkedToATrackedEntityDataValueAudit()
+  void testDeleteSoftDeletedEnrollmentLinkedToAnEventDataValueChangeLog()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
@@ -335,11 +335,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
+    eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
-    TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
-        new TrackedEntityDataValueChangeLog(
-            dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(trackedEntityDataValueChangeLog);
+    eventChangeLogService.addEventChangeLog(
+        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
     manager.delete(enrollment);
@@ -364,6 +363,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
+    eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     long idA = eventA.getId();
     Relationship r = new Relationship();

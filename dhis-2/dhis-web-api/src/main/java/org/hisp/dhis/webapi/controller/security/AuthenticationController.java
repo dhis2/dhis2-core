@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -70,6 +72,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -106,6 +109,7 @@ public class AuthenticationController {
   @Autowired private UserService userService;
 
   @Autowired protected ApplicationEventPublisher eventPublisher;
+  @Autowired private HttpSessionEventPublisher httpSessionEventPublisher;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -117,21 +121,23 @@ public class AuthenticationController {
 
   @PostConstruct
   public void init() {
-    if (sessionRegistry != null) {
-
-      int maxSessions =
-          Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
-      ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
-          new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
-      concurrentStrategy.setMaximumSessions(maxSessions);
-
-      sessionStrategy =
-          new CompositeSessionAuthenticationStrategy(
-              List.of(
-                  concurrentStrategy,
-                  new SessionFixationProtectionStrategy(),
-                  new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+    if (sessionRegistry == null) {
+      throw new IllegalStateException("SessionRegistry is null");
     }
+
+    int maxSessions =
+        Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
+
+    ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
+        new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
+    concurrentStrategy.setMaximumSessions(maxSessions);
+
+    sessionStrategy =
+        new CompositeSessionAuthenticationStrategy(
+            List.of(
+                concurrentStrategy,
+                new SessionFixationProtectionStrategy(),
+                new RegisterSessionAuthenticationStrategy(sessionRegistry)));
   }
 
   @PostMapping("/login")
@@ -144,7 +150,6 @@ public class AuthenticationController {
       validateRequest(loginRequest);
 
       Authentication authenticationResult = doAuthentication(request, loginRequest);
-
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
       saveContext(request, response, authenticationResult);
 
@@ -210,6 +215,9 @@ public class AuthenticationController {
 
     this.securityContextHolderStrategy.setContext(context);
     this.securityContextRepository.saveContext(context, request, response);
+
+    HttpSession session = request.getSession(true);
+    httpSessionEventPublisher.sessionCreated(new HttpSessionEvent(session));
   }
 
   private String getRedirectUrl(

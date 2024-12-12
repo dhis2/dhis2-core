@@ -93,7 +93,6 @@ class SqlQueryCreatorServiceTest extends TestBase {
 
   @Test
   void testSqlQueryRenderingWithOrgUnitNameObject() {
-    // given
     TrackedEntityQueryParams trackedEntityQueryParams =
         TrackedEntityQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
 
@@ -104,18 +103,15 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .commonParsed(stubSortingCommonParams(null, 1, "ouname"))
             .build();
 
-    // when
     String sql =
         sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
-    // then
     assertTrue(sql.contains("ouname"));
     assertContains("order by t_1.\"ouname\" desc", sql);
   }
 
   @Test
   void testSqlQueryRenderingWithCommonDimensionalObject() {
-    // when
     DimensionalObject dimensionalObject = new BaseDimensionalObject("abc");
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
@@ -132,17 +128,14 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .commonParsed(stubSortingCommonParams(program, 1, dimensionalObject))
             .build();
 
-    // when
     String sql =
         sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
-    // then
     assertTrue(sql.contains(" order by (select (\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT"));
   }
 
   @Test
   void testEnrolledInProgramWhenSpecifiedInRequest() {
-    // given
     CommonParsedParams commonParsed =
         CommonParsedParams.builder()
             .programs(List.of(mockProgram("program1"), mockProgram("program2")))
@@ -162,18 +155,15 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .commonParsed(commonParsed)
             .build();
 
-    // when
     String sql =
         sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
-    // then
     assertTrue(sql.contains("ouname"));
     assertContains("t_1.\"program1\" and t_1.\"program2\"", sql);
   }
 
   @Test
   void testEnrolledInProgramWhenNotSpecifiedInRequest() {
-    // given
     CommonParsedParams commonParsed =
         CommonParsedParams.builder()
             .programs(List.of(mockProgram("program1"), mockProgram("program2")))
@@ -191,11 +181,9 @@ class SqlQueryCreatorServiceTest extends TestBase {
             .commonRaw(requestParams)
             .build();
 
-    // when
     String sql =
         sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
-    // then
     assertTrue(sql.contains("ouname"));
     assertContains("(t_1.\"program1\" or t_1.\"program2\")", sql);
   }

@@ -35,7 +35,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_DAYS;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Set;
@@ -52,7 +52,6 @@ class EnrollmentQueryHelperTest {
 
   @Test
   void testGetHeaderColumnsSamePrefixedDimension() {
-    // Given
     List<GridHeader> headers =
         List.of(
             new GridHeader("name0"),
@@ -64,10 +63,8 @@ class EnrollmentQueryHelperTest {
 
     String sql = "select name0, name1, dim.name2, pe, value, ou from table";
 
-    // When
     Set<String> headerColumns = EnrollmentQueryHelper.getHeaderColumns(headers, sql);
 
-    // Then
     String[] columns = headerColumns.toArray(String[]::new);
     assertEquals(3, columns.length);
     assertEquals("t1.\"name0\"", columns[0]);
@@ -77,7 +74,6 @@ class EnrollmentQueryHelperTest {
 
   @Test
   void testGetHeaderColumnsDifferentPrefixedDimension() {
-    // Given
     List<GridHeader> headers =
         List.of(
             new GridHeader("name0"),
@@ -89,10 +85,8 @@ class EnrollmentQueryHelperTest {
 
     String sql = "select name0, name1, ax.name2, pe, value, ou from table";
 
-    // When
     Set<String> headerColumns = EnrollmentQueryHelper.getHeaderColumns(headers, sql);
 
-    // Then
     String[] columns = headerColumns.toArray(String[]::new);
     assertEquals(3, columns.length);
     assertEquals("t1.\"name0\"", columns[0]);
@@ -102,7 +96,6 @@ class EnrollmentQueryHelperTest {
 
   @Test
   void testGetOrgUnitLevelColumnsOuMode() {
-    // Given
     OrganisationUnit organisationUnit = new OrganisationUnit("OrgTest");
     organisationUnit.setPath("/Level1/OrgTest");
 
@@ -114,10 +107,8 @@ class EnrollmentQueryHelperTest {
                     ORGUNIT_DIM_ID, ORGANISATION_UNIT, List.of(organisationUnit)))
             .build();
 
-    // When
     Set<String> orgUnitColumns = EnrollmentQueryHelper.getOrgUnitLevelColumns(params);
 
-    // Then
     String[] columns = orgUnitColumns.toArray(String[]::new);
     assertEquals(1, columns.length);
     assertEquals("uidlevel2", columns[0]);
@@ -125,7 +116,6 @@ class EnrollmentQueryHelperTest {
 
   @Test
   void testGetOrgUnitLevelColumnsOuModeSelected() {
-    // Given
     OrganisationUnit organisationUnit = new OrganisationUnit("/Level1/Level2");
 
     EventQueryParams params =
@@ -136,16 +126,13 @@ class EnrollmentQueryHelperTest {
                     ORGUNIT_DIM_ID, ORGANISATION_UNIT, List.of(organisationUnit)))
             .build();
 
-    // When
     Set<String> orgUnitColumns = EnrollmentQueryHelper.getOrgUnitLevelColumns(params);
 
-    // Then
     assertEquals(0, orgUnitColumns.size());
   }
 
   @Test
   void testGetOrgUnitLevelColumnsOuModeChildren() {
-    // Given
     OrganisationUnit organisationUnit = new OrganisationUnit("/Level1/Level2");
 
     EventQueryParams params =
@@ -156,16 +143,13 @@ class EnrollmentQueryHelperTest {
                     ORGUNIT_DIM_ID, ORGANISATION_UNIT, List.of(organisationUnit)))
             .build();
 
-    // When
     Set<String> orgUnitColumns = EnrollmentQueryHelper.getOrgUnitLevelColumns(params);
 
-    // Then
     assertEquals(0, orgUnitColumns.size());
   }
 
   @Test
   void testGetPeriodColumns() {
-    // Given
     Period period = new Period(LAST_3_DAYS);
     period.setPeriodType(PeriodType.getPeriodTypeFromIsoString("201101"));
 
@@ -174,10 +158,8 @@ class EnrollmentQueryHelperTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(period)))
             .build();
 
-    // When
     Set<String> periodColumns = EnrollmentQueryHelper.getPeriodColumns(params);
 
-    // Then
     String[] columns = periodColumns.toArray(String[]::new);
     assertEquals(1, columns.length);
     assertEquals("t1.Monthly", columns[0]);
@@ -185,16 +167,13 @@ class EnrollmentQueryHelperTest {
 
   @Test
   void testGetPeriodColumnsNoPeriods() {
-    // Given
     EventQueryParams params =
         new EventQueryParams.Builder()
             .addDimension(new BaseDimensionalObject(ORGUNIT_DIM_ID, ORGANISATION_UNIT, List.of()))
             .build();
 
-    // When
     Set<String> periodColumns = EnrollmentQueryHelper.getPeriodColumns(params);
 
-    // Then
     assertEquals(0, periodColumns.size());
   }
 }

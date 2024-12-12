@@ -41,11 +41,14 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.security.core.session.SessionInformation;
 
 /**
  * @author Chau Thu Tran
@@ -54,10 +57,6 @@ public interface UserService {
   Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
 
   String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
-
-  String TWO_FACTOR_CODE_APPROVAL_PREFIX = "APPROVAL_";
-
-  String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
 
   String RESTORE_PATH = "/dhis-web-login/index.html#/";
 
@@ -72,16 +71,6 @@ public interface UserService {
   int RECOVER_MAX_ATTEMPTS = 5;
 
   String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
-
-  /**
-   * If the user's secret starts with the prefix `APPROVAL_`, then return true
-   *
-   * @param user The user to check.
-   * @return A boolean value.
-   */
-  static boolean hasTwoFactorSecretForApproval(User user) {
-    return user.getSecret().startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
-  }
 
   /**
    * Adds a User.
@@ -232,6 +221,17 @@ public interface UserService {
    * @return a List of users.
    */
   List<User> getUsers(UserQueryParams params, @Nullable List<String> orders);
+
+  /**
+   * Returns a list of users based on the given query parameters. If the specified list of orders
+   * are empty, default order of last name and first name will be applied.
+   *
+   * @param params the user query parameters.
+   * @param orders the already validated order strings (e.g. email:asc).
+   * @return a List of users.
+   */
+  List<UID> getUserIds(UserQueryParams params, @Nullable List<String> orders)
+      throws ConflictException;
 
   /**
    * Returns the number of users based on the given query parameters.
@@ -406,12 +406,9 @@ public interface UserService {
   int countDataSetUserRoles(DataSet dataSet);
 
   /**
-   * Filters the given collection of user roles based on whether the current user is allowed to
-   * issue it.
-   *
-   * @param userRoles the collection of user roles.
+   * @return IDs of the roles the current user can issue
    */
-  void canIssueFilter(Collection<UserRole> userRoles);
+  List<UID> getRolesCurrentUserCanIssue();
 
   /**
    * Validate that the current user are allowed to create or modify properties of the given user.
@@ -499,20 +496,6 @@ public interface UserService {
   UserDetails createUserDetails(User user);
 
   /**
-   * "If the current user is not the user being modified, and the current user has the authority to
-   * modify the user, then disable two-factor authentication for the user."
-   *
-   * <p>The first thing we do is get the user object from the database. If the user doesn't exist,
-   * we throw an exception
-   *
-   * @param currentUser The user who is making the request.
-   * @param userUid The user UID of the user to disable 2FA for.
-   * @param errors A Consumer<ErrorReport> object that will be called if there is an error.
-   */
-  void privilegedTwoFactorDisable(User currentUser, String userUid, Consumer<ErrorReport> errors)
-      throws ForbiddenException;
-
-  /**
    * Checks if the input user can modify the other input user.
    *
    * @param currentUser The user who is trying to modify the user
@@ -523,47 +506,6 @@ public interface UserService {
    */
   boolean canCurrentUserCanModify(
       User currentUser, User userToModify, Consumer<ErrorReport> errors);
-
-  /**
-   * Generate a new two factor (TOTP) secret for the user, but prefix it with a special string so
-   * that we can tell the difference between a normal secret and an approval secret.
-   *
-   * @param user The user object that is being updated.
-   */
-  void generateTwoFactorOtpSecretForApproval(User user);
-
-  /**
-   * If the user has an OTP secret that starts with the approval prefix, remove the prefix and
-   * update the user property.
-   *
-   * @param user The user object that is being updated.
-   */
-  void approveTwoFactorSecret(User user, UserDetails actingUser);
-
-  /**
-   * "Disable 2FA authentication for the input user, by setting the secret to null."
-   *
-   * @param user The user object that you want to reset the 2FA for.
-   */
-  void resetTwoFactor(User user, UserDetails actingUser);
-
-  /**
-   * If the user has a secret, and the secret has not been approved, and the code is valid, then
-   * approve the secret and effectively enable 2FA.
-   *
-   * @param user The user object to enable 2FA authentication for.
-   * @param code The code that the user entered into the app
-   */
-  void enableTwoFa(User user, String code);
-
-  /**
-   * If the user has 2FA authentication enabled, and the code is valid, then disable 2FA
-   * authentication
-   *
-   * @param user The user object that you want to disable 2FA authentication for.
-   * @param code The code that the user entered
-   */
-  void disableTwoFa(User user, String code);
 
   /**
    * Register a failed 2FA disable attempt for the given user account.
@@ -579,7 +521,7 @@ public interface UserService {
    * @param username
    * @return
    */
-  boolean twoFaDisableIsLocked(String username);
+  boolean is2FADisableEndpointLocked(String username);
 
   /**
    * Register a successful 2FA disable attempt for the given user account, this will reset the
@@ -590,25 +532,6 @@ public interface UserService {
   void registerSuccess2FADisable(String username);
 
   /**
-   * If the user has a role with the 2FA authentication required restriction, return true.
-   *
-   * @param userDetails The user object that is being checked for the role.
-   * @return A boolean value.
-   */
-  boolean hasTwoFactorRoleRestriction(UserDetails userDetails);
-
-  /**
-   * If the user is not the same as the user to modify, and the user has the proper acl permissions
-   * to modify the user, then the user can modify the user.
-   *
-   * @param before The state before the update.
-   * @param after The state after the update.
-   * @param userToModify The user object that is being updated.
-   */
-  void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
-      throws ForbiddenException;
-
-  /**
    * Get linked user accounts for the given user
    *
    * @param actingUser the acting/current user
@@ -617,7 +540,33 @@ public interface UserService {
   @Nonnull
   List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser);
 
-  void invalidateUserSessions(String uid);
+  /**
+   * List all user's sessions
+   *
+   * @param userUID
+   * @return
+   */
+  List<SessionInformation> listSessions(String userUID);
+
+  /**
+   * List all user's sessions
+   *
+   * @param principal
+   * @return
+   */
+  List<SessionInformation> listSessions(UserDetails principal);
+
+  /**
+   * Invalidate all sessions for all users WARNING: This does not work when using Redis sessions.
+   */
+  void invalidateAllSessions();
+
+  /**
+   * Invalidate all sessions for the given user.
+   *
+   * @param username the username of the user account.
+   */
+  void invalidateUserSessions(String username);
 
   /**
    * Register a account recovery attempt for the given user account.
@@ -890,5 +839,15 @@ public interface UserService {
 
   boolean isEmailVerified(User currentUser);
 
-  User getUserByVerificationToken(String token);
+  User getUserByEmailVerificationToken(String token);
+
+  /**
+   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
+   * the given table
+   *
+   * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
+   * @param uid {@link OrganisationUnit} {@link UID} to match on
+   * @return matching {@link User}s
+   */
+  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
 }

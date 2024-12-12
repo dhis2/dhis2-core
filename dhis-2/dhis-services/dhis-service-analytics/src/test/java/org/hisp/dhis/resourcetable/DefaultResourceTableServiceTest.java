@@ -28,7 +28,7 @@
 package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +38,7 @@ import java.time.Year;
 import java.util.List;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -60,8 +61,9 @@ class DefaultResourceTableServiceTest {
     List<Integer> yearsToCheck = List.of(2000, 2001, 2002, 2003, 2004);
     int defaultOffset = 22;
 
-    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
     when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
 
     RuntimeException exception =
         assertThrows(
@@ -77,8 +79,9 @@ class DefaultResourceTableServiceTest {
     List<Integer> yearsToCheck = List.of(2000, 2001, 2002, 2003, 2004);
     int zeroOffset = 0;
 
-    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
     when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
 
     RuntimeException exception =
         assertThrows(
@@ -94,8 +97,9 @@ class DefaultResourceTableServiceTest {
     List<Integer> yearsToCheck = List.of(Year.now().getValue());
     int zeroOffset = 0;
 
-    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
     when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
 
     assertDoesNotThrow(() -> defaultResourceTableService.getAndValidateAvailableDataYears());
   }
@@ -109,8 +113,9 @@ class DefaultResourceTableServiceTest {
             Year.now().plus(2, YEARS).getValue());
     int defaultOffset = 2;
 
-    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
     when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
 
     assertDoesNotThrow(() -> defaultResourceTableService.getAndValidateAvailableDataYears());
   }

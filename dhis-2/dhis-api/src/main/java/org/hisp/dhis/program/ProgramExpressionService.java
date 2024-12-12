@@ -45,8 +45,6 @@ import org.hisp.dhis.dataelement.DataElement;
  * @author Chau Thu Tran
  */
 public interface ProgramExpressionService {
-  String ID = ProgramExpressionService.class.getName();
-
   String INVALID_CONDITION = "Expression is not well-formed";
 
   /**

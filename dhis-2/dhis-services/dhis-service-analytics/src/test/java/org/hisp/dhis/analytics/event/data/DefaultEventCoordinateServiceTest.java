@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -61,13 +62,12 @@ class DefaultEventCoordinateServiceTest {
 
   @Mock private TrackedEntityAttributeService attributeService;
 
+  @InjectMocks private DefaultEventCoordinateService service;
+
   @ParameterizedTest
   @ValueSource(strings = {"eventgeometry", "enrollmentgeometry", "ougeometry"})
   void testGetCoordinateFieldOrFail(String geometry) {
     when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
-
-    EventCoordinateService service =
-        new DefaultEventCoordinateService(programService, dataElementService, attributeService);
 
     assertEquals(geometry, service.getCoordinateField("A", geometry, ErrorCode.E7232));
   }
@@ -75,9 +75,6 @@ class DefaultEventCoordinateServiceTest {
   @Test
   void testGetFallbackCoordinateFieldsWithFallbackCoordinateFieldParam() {
     when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
-
-    EventCoordinateService service =
-        new DefaultEventCoordinateService(programService, dataElementService, attributeService);
 
     assertEquals(COL_NAME_GEOMETRY_LIST, service.getFallbackCoordinateFields("A", null, true));
   }
@@ -87,27 +84,18 @@ class DefaultEventCoordinateServiceTest {
   void testGetFallbackCoordinateFieldsWithoutFallbackCoordinateFieldParam(String geometry) {
     when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
 
-    EventCoordinateService service =
-        new DefaultEventCoordinateService(programService, dataElementService, attributeService);
-
     assertEquals(List.of(geometry), service.getFallbackCoordinateFields("A", geometry, true));
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"enrollmentgeometry", "eventgeometry", "tegeometry", "ougeometry"})
   void testVerifyFallbackCoordinateFieldWithRegistrationProgram(String geometry) {
-    EventCoordinateService service =
-        new DefaultEventCoordinateService(programService, dataElementService, attributeService);
-
     assertTrue(service.isFallbackCoordinateFieldValid(true, geometry));
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"enrollmentgeometry", "eventgeometry", "ougeometry"})
   void testVerifyFallbackCoordinateFieldWithoutRegistrationProgram(String geometry) {
-    EventCoordinateService service =
-        new DefaultEventCoordinateService(programService, dataElementService, attributeService);
-
     assertTrue(service.isFallbackCoordinateFieldValid(false, geometry));
   }
 
@@ -116,11 +104,7 @@ class DefaultEventCoordinateServiceTest {
       strings = {"badeventgeometry", "badenrollmentgeometry", "badtegeometry", "badougeometry"})
   void testVerifyBadFallbackCoordinateField(String geometry) {
     when(dataElementService.getDataElement(any(String.class))).thenReturn(null);
-
     when(attributeService.getTrackedEntityAttribute(any(String.class))).thenReturn(null);
-
-    EventCoordinateService service =
-        new DefaultEventCoordinateService(programService, dataElementService, attributeService);
 
     assertThrows(
         IllegalQueryException.class, () -> service.isFallbackCoordinateFieldValid(false, geometry));

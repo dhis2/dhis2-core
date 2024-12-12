@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -75,9 +75,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -89,9 +88,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
@@ -138,33 +136,40 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     Program program = partition.getMasterTable().getProgram();
+    String attributeJoinClause = getAttributeValueJoinClause(program);
 
     String fromClause =
         replaceQualify(
             """
-            \s from ${enrollment} en \
+            \sfrom ${enrollment} en \
             inner join ${program} pr on en.programid=pr.programid \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
-            and te.deleted = false \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
-            and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
-            left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
-            where pr.programid=${programId}  \
+            ${attributeJoinClause}\
+            where pr.programid = ${programId} \
             and en.organisationunitid is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and en.lastupdated <= '${startTime}' \
             and en.occurreddate is not null \
             and en.deleted = false\s""",
             Map.of(
-                "enrollmentDateMonth", sqlBuilder.dateTrunc("month", "en.enrollmentdate"),
+                "attributeJoinClause", attributeJoinClause,
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
 
     populateTableInternal(partition, fromClause);
   }
 
+  /**
+   * Returns a list of columns for the given program.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(fixedColumns);
@@ -173,6 +178,32 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(getTrackedEntityAttributeColumns(program));
+    columns.addAll(getTrackedEntityColumns(program));
+
+    return filterDimensionColumns(columns);
+  }
+
+  /**
+   * Returns a list of tracked entity attribute {@link AnalyticsTableColumn}.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
+    return program.getNonConfidentialTrackedEntityAttributes().stream()
+        .map(this::getColumnForAttribute)
+        .flatMap(Collection::stream)
+        .toList();
+  }
+
+  /**
+   * Returns a list of tracked entity {@link AnalyticsTableColumn}.
+   *
+   * @param program the {@link Program}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getTrackedEntityColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (program.isRegistration()) {
       columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
@@ -181,6 +212,6 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       }
     }
 
-    return filterDimensionColumns(columns);
+    return columns;
   }
 }

@@ -54,11 +54,14 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,7 +71,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
@@ -79,8 +81,6 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserSettingsService userSettingsService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private SystemSettingsService settingsService;
@@ -89,7 +89,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PasswordManager passwordManager;
 
-  @Autowired private TransactionTemplate transactionTemplate;
+  @Autowired private TwoFactorAuthService twoFactorAuthService;
 
   private OrganisationUnit unitA;
 
@@ -637,20 +637,22 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDisableTwoFaWithAdminUser() throws ForbiddenException {
+  void testDisableTwoFaWithAdminUser()
+      throws ForbiddenException, NotFoundException, ConflictException {
     User userToModify = createAndAddUser("A");
-    userService.generateTwoFactorOtpSecretForApproval(userToModify);
+    twoFactorAuthService.enrollTOTP2FA(userToModify.getUsername());
     userService.updateUser(userToModify);
 
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(getAdminUser(), userToModify.getUid(), errors::add);
+    twoFactorAuthService.privileged2FADisable(getAdminUser(), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
   @Test
-  void testDisableTwoFaWithManageUser() throws ForbiddenException {
+  void testDisableTwoFaWithManageUser()
+      throws ForbiddenException, ConflictException, NotFoundException {
     User userToModify = createAndAddUser("A");
-    userService.generateTwoFactorOtpSecretForApproval(userToModify);
+    twoFactorAuthService.enrollTOTP2FA(userToModify.getUsername());
 
     UserGroup userGroupA = createUserGroup('A', Sets.newHashSet(userToModify));
     userGroupService.addUserGroup(userGroupA);
@@ -668,7 +670,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.updateUser(currentUser);
 
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(currentUser, userToModify.getUid(), errors::add);
+    twoFactorAuthService.privileged2FADisable(currentUser, userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
@@ -680,6 +682,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testBCryptedPasswordOnInputError() {
     User user = new User();
+    user.setFirstName("test");
+    user.setSurname("tester");
     user.setUsername("test");
     user.setPassword("password");
     userService.addUser(user);

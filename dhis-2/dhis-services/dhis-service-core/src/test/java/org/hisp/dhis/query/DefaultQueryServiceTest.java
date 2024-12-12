@@ -73,7 +73,7 @@ class DefaultQueryServiceTest {
     QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, settingsService);
     subject =
         new DefaultQueryService(
-            queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine);
+            queryParser, queryPlanner, schemaService, criteriaQueryEngine, inMemoryQueryEngine);
   }
 
   @Test

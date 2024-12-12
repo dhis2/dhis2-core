@@ -46,13 +46,11 @@ class TrackedEntityAttributeConditionTest {
   @Test
   void testProgramAttributeConditionProduceCorrectSql() {
 
-    // SETUP
     String attr = "attr";
     List<String> values = List.of("eq:v1");
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         getProgramAttributeDimensionIdentifier("attr", values);
 
-    // CALL
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 

@@ -89,6 +89,7 @@ class EventQueryValidatorTest extends TestBase {
   private OptionSet osA;
 
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private QueryValidator queryValidator;

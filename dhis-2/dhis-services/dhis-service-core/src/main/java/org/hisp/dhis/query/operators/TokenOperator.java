@@ -61,7 +61,9 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
   @Override
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
+    if (skipUidToken(value, queryPath)) {
+      return null;
+    }
     Predicate defaultSearch =
         builder.equal(
             builder.function(
@@ -93,5 +95,16 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
   @Override
   public boolean test(Object value) {
     return TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
+  }
+
+  /**
+   * Return
+   *
+   * @param value
+   * @param query
+   * @return
+   */
+  private boolean skipUidToken(String value, QueryPath query) {
+    return "uid".equals(query.getProperty().getFieldName()) && value.length() < 4;
   }
 }

@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -84,6 +85,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -107,7 +109,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Spy
+  private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
+      new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
   @Captor private ArgumentCaptor<String> sql;
 
@@ -132,7 +138,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
+            enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             sqlBuilder);
   }
@@ -379,7 +385,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     // Given
     mockEmptyRowSet();
     EventQueryParams params = createRequestParamsWithMultipleQueries();
-    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(BadSqlGrammarException.class);
+    SQLException sqlException = new SQLException("Some exception", "HY000");
+    BadSqlGrammarException badSqlGrammarException =
+        new BadSqlGrammarException("task", "select * from nothing", sqlException);
+    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(badSqlGrammarException);
 
     // Then
     assertDoesNotThrow(() -> subject.getEnrollments(params, new ListGrid(), 10000));
