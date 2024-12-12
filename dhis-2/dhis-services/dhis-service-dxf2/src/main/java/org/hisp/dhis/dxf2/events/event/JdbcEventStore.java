@@ -1287,25 +1287,13 @@ public class JdbcEventStore implements EventStore {
     if (params.getStartDate() != null) {
       mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (psi.executiondate >= ")
-          .append(":startDate")
-          .append(" or (psi.executiondate is null and psi.duedate >= ")
-          .append(":startDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" psi.executiondate >= :startDate ");
     }
 
     if (params.getEndDate() != null) {
       mapSqlParameterSource.addValue("endDate", params.getEndDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (psi.executiondate < ")
-          .append(":endDate")
-          .append(" or (psi.executiondate is null and psi.duedate < ")
-          .append(":endDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" psi.executiondate < :endDate ");
     }
 
     if (params.getProgramType() != null) {

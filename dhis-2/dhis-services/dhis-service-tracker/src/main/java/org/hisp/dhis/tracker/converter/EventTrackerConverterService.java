@@ -261,12 +261,6 @@ public class EventTrackerConverterService
       assignedUser.ifPresent(programStageInstance::setAssignedUser);
     }
 
-    if (program.isRegistration()
-        && programStageInstance.getDueDate() == null
-        && programStageInstance.getExecutionDate() != null) {
-      programStageInstance.setDueDate(programStageInstance.getExecutionDate());
-    }
-
     for (DataValue dataValue : event.getDataValues()) {
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
