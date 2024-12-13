@@ -451,10 +451,10 @@ public interface SqlBuilder {
 
   /**
    * @param intoTable the table to insert rows into.
-   * @param fromTable the table to select rows from.
+   * @param fromTable the name of the table to select rows from, preferrably quoted.
    * @return in insert into select from statement.
    */
-  String insertIntoSelectFrom(Table intoTable, Table fromTable);
+  String insertIntoSelectFrom(Table intoTable, String fromTable);
 
   enum DateUnit {
     DAYS,

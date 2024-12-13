@@ -159,23 +159,23 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
-  public String insertIntoSelectFrom(Table intoTable, Table fromTable) {
+  public String insertIntoSelectFrom(Table intoTable, String fromTable) {
+    String columns = toCommaSeparated(intoTable.getColumns(), col -> quote(col.getName()));
+
     StringBuilder sql =
         new StringBuilder().append("insert into ").append(quote(intoTable.getName())).append(" ");
 
     if (intoTable.hasColumns()) {
-      sql.append("(")
-          .append(toCommaSeparated(intoTable.getColumns(), col -> quote(col.getName())))
-          .append(") ");
+      sql.append("(").append(columns).append(") ");
     }
 
     sql.append("select ");
 
-    if (fromTable.hasColumns()) {
-      sql.append(toCommaSeparated(fromTable.getColumns(), col -> quote(col.getName()))).append(" ");
+    if (intoTable.hasColumns()) {
+      sql.append(columns).append(" ");
     }
 
-    return sql.append(" from ").append(quote(fromTable.getName())).append(";").toString();
+    return sql.append(" from ").append(fromTable).append(";").toString();
   }
 
   // Mapping
