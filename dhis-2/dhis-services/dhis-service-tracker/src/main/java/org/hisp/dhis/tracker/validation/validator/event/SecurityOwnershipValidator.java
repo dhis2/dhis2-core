@@ -111,13 +111,18 @@ class SecurityOwnershipValidator implements Validator<Event> {
       organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
     }
 
-    // If event is newly created, or going to be deleted, capture scope
-    // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
       if (organisationUnit == null) {
         log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getEvent());
       } else {
-        checkOrgUnitInCaptureScope(reporter, bundle, event, organisationUnit);
+        checkEventOrgUnitWriteAccess(
+            reporter,
+            event,
+            organisationUnit,
+            strategy.isCreate()
+                ? event.isCreatableInSearchScope()
+                : bundle.getPreheat().getEvent(event.getUid()).isCreatableInSearchScope(),
+            bundle.getUser());
       }
     }
     String teUid = getTeUidFromEvent(bundle, event, program);
@@ -251,18 +256,6 @@ class SecurityOwnershipValidator implements Validator<Event> {
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
     return true;
-  }
-
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
   }
 
   private void checkTeiTypeAndTeiProgramAccess(
