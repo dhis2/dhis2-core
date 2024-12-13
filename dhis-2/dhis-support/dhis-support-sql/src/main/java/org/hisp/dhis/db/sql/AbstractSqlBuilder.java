@@ -158,6 +158,26 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return notSupported();
   }
 
+  @Override
+  public String insertIntoSelectFrom(Table intoTable, String fromTable) {
+    String columns = toCommaSeparated(intoTable.getColumns(), col -> quote(col.getName()));
+
+    StringBuilder sql =
+        new StringBuilder().append("insert into ").append(quote(intoTable.getName())).append(" ");
+
+    if (intoTable.hasColumns()) {
+      sql.append("(").append(columns).append(") ");
+    }
+
+    sql.append("select ");
+
+    if (intoTable.hasColumns()) {
+      sql.append(columns).append(" ");
+    }
+
+    return sql.append("from ").append(fromTable).append(";").toString();
+  }
+
   // Mapping
 
   /**

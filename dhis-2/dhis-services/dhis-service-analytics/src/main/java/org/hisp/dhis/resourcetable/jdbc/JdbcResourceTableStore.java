@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
-import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
@@ -142,12 +141,8 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param table the {@link Table}.
    */
   private void replicateAnalyticsDatabaseTable(Table table) {
-    // TO DO use explicit column list
-    String sql =
-        format(
-            "insert into %s select * from %s",
-            analyticsDatabaseSqlBuilder.quote(table.getName()),
-            analyticsDatabaseSqlBuilder.qualifyTable(table.getName()));
+    String fromTable = analyticsDatabaseSqlBuilder.qualifyTable(table.getName());
+    String sql = analyticsDatabaseSqlBuilder.insertIntoSelectFrom(table, fromTable);
     log.info("Replicate table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
