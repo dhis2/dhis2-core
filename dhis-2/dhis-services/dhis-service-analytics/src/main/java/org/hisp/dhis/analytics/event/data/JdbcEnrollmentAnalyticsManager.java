@@ -926,148 +926,149 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
 
+    StringBuilder sql = new StringBuilder();
     List<QueryItem> items = params.getItems();
 
-    // Determine the program and stage UIDs
-    String stageUid = item.getProgramStage().getUid();
-    String itemUid = item.getItem().getUid();
+    // 1. Build CTEs for each unique program stage + offset combination
+    sql.append(buildAllRankedEventsCTEs(items));
 
-    var offset = createOffset2(item.getProgramStageOffset());
+    // 2. Build main query
+    sql.append("select ");
 
-    // The column from the event analytics table we are interested in
-    String columnName = quote(itemUid);
+    // 2.1 Add basic columns
+    sql.append(getBasicSelectColumns());
 
-    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
-
-    String order = resolveOrderByOffset(item.getProgramStageOffset());
-
-
-
-    // Build the CTE that ranks all events for each enrollment
-    String allRankedEventsCTE =
-        String.format(
-            "with AllRankedEvents as ("
-                + " select enrollment, %s as value, eventstatus, "
-                + " row_number() over (partition by enrollment order by occurreddate %s, created %s) as rn "
-                + " from %s "
-                + " where eventstatus != 'SCHEDULE' "
-                + "   and ps = '%s' "
-                + ") ",
-            columnName, order, order, eventTableName, stageUid);
-
-    StringBuilder selectBuilder = new StringBuilder(getBasicSelectColumns());
-    StringBuilder joinBuilder = new StringBuilder();
-
-    int rn = offset + 1;
-    String alias = "le";
-
-    joinBuilder
-        .append(" left join AllRankedEvents ")
-        .append(alias)
-        .append(" on ax.enrollment = ")
-        .append(alias)
-        .append(".enrollment and ")
-        .append(alias)
-        .append(".rn = ")
-        .append(rn)
-        .append(" ");
-
-    String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
-    String valueCol = quote(stageUid + offsetLabel + "." + itemUid);
-    String existsCol = quote(stageUid + offsetLabel + "." + itemUid + ".exists");
-    String statusCol = quote(stageUid + offsetLabel + "." + itemUid + ".status");
-
-    selectBuilder
-        .append(", ")
-        .append(alias)
-        .append(".value as ")
-        .append(valueCol)
-        // Use (alias.enrollment is not null) for .exists logic
-        .append(", (")
-        .append(alias)
-        .append(".enrollment is not null) as ")
-        .append(existsCol)
-        .append(", ")
-        .append(alias)
-        .append(".eventstatus as ")
-        .append(statusCol);
-
-    // FROM clause with all joins
-    String fromClause = " from " + params.getTableName() + " as ax " + joinBuilder;
-
-    // WHERE clause: from params and original conditions
-    // 5. Integrate the original where logic
-    //    The getWhereClause method returns conditions that typically start with "and".
-    //    We need to insert them properly after a "where".
-    String baseConditions = getWhereClause(params).trim();
-
-    String whereClause = "";
-
-    if (baseConditions.startsWith("and")) {
-      whereClause = " " + baseConditions.replaceFirst("and", "where");
-    } else {
-      whereClause = baseConditions;
+    // 2.2 Add value columns for each item
+    String valueColumns = buildValueColumns(items);
+    if (!valueColumns.isEmpty()) {
+      sql.append(", ").append(valueColumns);
     }
 
-    // ORDER BY and LIMIT/OFFSET (paging)
-    String orderByClause = getSortClause(params);
-    String pagingClause = getPagingClause(params, 5000);
+    // 2.3 Add FROM clause with all necessary joins
+    sql.append(buildFromClauseWithJoins(params, items));
 
-    // Combine all parts into the final SQL
-    return allRankedEventsCTE
-        + "select "
-        + selectBuilder
-        + fromClause
-        + whereClause
-        + orderByClause
-        + pagingClause;
+    // 2.4 Add WHERE clause
+    String whereClause = getWhereClause(params).trim();
+    if (!whereClause.isEmpty()) {
+      // Remove any leading "and" and ensure only one "where" keyword
+      whereClause = whereClause.replaceFirst("^and\\s+", "");
+      whereClause = whereClause.replaceFirst("^where\\s+", "");
+      if (!whereClause.isEmpty()) {
+        sql.append(" where ").append(whereClause);
+      }
+    }
+
+    // 2.5 Add ORDER BY and paging
+    sql.append(getSortClause(params));
+    sql.append(getPagingClause(params, 5000));
+
+    return sql.toString();
   }
 
-  private List<Integer> determineOffsetsNeeded(EventQueryParams params, QueryItem item) {
+  private String buildAllRankedEventsCTEs(List<QueryItem> items) {
+    StringBuilder ctes = new StringBuilder();
+    Set<String> processedCombinations = new HashSet<>();
 
-    // var dimensions  = params.getDimensions();
-    // get all dimensions with offset -> CWaAcQYKVpq[-1].fyjPqlHE7Dn
-    // extract dimension
-    // pass dimension to getRepeatableStageParams(x)
+    for (QueryItem item : items) {
+      if (!item.hasProgramStage()) {
+        continue;
+      }
 
-    // item.setRepeatableStageParams(getRepeatableStageParams(dimension));
+      String stageUid = item.getProgramStage().getUid();
+      int offset = createOffset2(item.getProgramStageOffset());
+      String order = resolveOrderByOffset(item.getProgramStageOffset());
 
-    Set<Integer> offsets = new HashSet<>();
+      // Create unique key for this combination to avoid duplicate CTEs
+      String key = stageUid + "_" + offset + "_" + order;
+      if (processedCombinations.contains(key)) {
+        continue;
+      }
 
-    // If no repeatable stage params, assume only top event
-    if (!item.hasProgramStage()) {
-      offsets.add(0);
-      return new ArrayList<>(offsets);
+      if (!ctes.isEmpty()) {
+        ctes.append(",\n");
+      }
+
+      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
+      String columnName = quote(item.getItem().getUid());
+
+      ctes.append(String.format(
+              """
+              RankedEvents_%s as (
+                select enrollment, %s as value, eventstatus,
+                  row_number() over (partition by enrollment order by occurreddate %s, created %s) as rn
+                from %s
+                where eventstatus != 'SCHEDULE'
+                  and ps = '%s'
+              )
+              """,
+              key, columnName, order, order, eventTableName, stageUid
+      ));
+
+      processedCombinations.add(key);
     }
 
-    int startIndex = item.getProgramStageOffset();
-    int count = item.hasRepeatableStageParams() ? item.getRepeatableStageParams().getCount() : 1;
+    return ctes.length() > 0 ? "with " + ctes.toString() + "\n" : "";
+  }
 
-    if (startIndex == 0) {
-      // If startIndex is 0, we start from the top event
-      // count=1 means just the top event [0]
-      // count>1 means top event plus more recent events behind it: [0,1,2,...]
-      offsets.add(0);
-      for (int i = 1; i < count; i++) {
-        offsets.add(i);
+  private String buildValueColumns(List<QueryItem> items) {
+    StringBuilder columns = new StringBuilder();
+
+    for (QueryItem item : items) {
+      if (!item.hasProgramStage()) {
+        continue;
       }
-    } else if (startIndex < 0) {
-      // Negative startIndex means starting behind the top event
-      offsets.add(0); // Always include the latest event
-      int x = Math.abs(startIndex);
-      // For count=1 and startIndex=-1, we get [0,1]
-      // For count=2 and startIndex=-1, we get [0,1,2]
-      // For count=1 and startIndex=-2, we get [0,2]
-      for (int i = x; i < x + count; i++) {
-        offsets.add(i);
+
+      String stageUid = item.getProgramStage().getUid();
+      int offset = createOffset2(item.getProgramStageOffset());
+      String key = stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
+
+      String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
+      String alias = "re_" + key;
+
+      if (!columns.isEmpty()) {
+        columns.append(",\n");
       }
-    } else {
-      // If positive offsets are not used by original logic, handle as needed.
-      // For safety, include top event at least.
-      offsets.add(0);
+
+      // Add value column
+      columns.append(String.format("%s.value as %s",
+              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid())));
+
+      // Add exists column
+      columns.append(String.format(",\n(%s.enrollment is not null) as %s",
+              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() + ".exists")));
+
+      // Add status column
+      columns.append(String.format(",\n%s.eventstatus as %s",
+              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() + ".status")));
     }
 
-    return new ArrayList<>(offsets);
+    return columns.toString();
+  }
+
+  private String buildFromClauseWithJoins(EventQueryParams params, List<QueryItem> items) {
+    StringBuilder fromClause = new StringBuilder();
+
+    // Start with base table
+    fromClause.append("\nfrom ").append(params.getTableName()).append(" as ax");
+
+    // Add joins for each item
+    for (QueryItem item : items) {
+      if (!item.hasProgramStage()) {
+        continue;
+      }
+
+      String stageUid = item.getProgramStage().getUid();
+      int offset = createOffset2(item.getProgramStageOffset());
+      String key = stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
+      String alias = "re_" + key;
+
+      fromClause.append(String.format(
+              "\nleft join RankedEvents_%s %s on ax.enrollment = %s.enrollment and %s.rn = %d",
+              key, alias, alias, alias, offset + 1
+      ));
+    }
+
+    return fromClause.toString();
   }
 
   protected String getSortClause(EventQueryParams params) {
