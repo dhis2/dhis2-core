@@ -1,0 +1,18 @@
+name: Hello World Pipeline
+
+on: [ pull_request ]
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Print Hello World
+        run: echo "Hello, World!"
