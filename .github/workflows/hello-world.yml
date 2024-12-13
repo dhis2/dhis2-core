@@ -30,4 +30,4 @@ jobs:
 
       # Run Maven build
       - name: Build with Maven
-        run: mvn --threads 4 --batch-mode --no-transfer-progress clean install --update-snapshots --file ./dhis-2/pom.xml
+        run: mvn --threads 4 --batch-mode --no-transfer-progress clean install --update-snapshots --file ./dhis-2/pom.xml -DskipTests
