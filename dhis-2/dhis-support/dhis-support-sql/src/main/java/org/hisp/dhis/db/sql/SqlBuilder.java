@@ -449,6 +449,13 @@ public interface SqlBuilder {
    */
   String dropCatalogIfExists();
 
+  /**
+   * @param intoTable the table to insert rows into.
+   * @param fromTable the table to select rows from.
+   * @return in insert into select from statement.
+   */
+  String insertIntoSelectFrom(Table intoTable, Table fromTable);
+
   enum DateUnit {
     DAYS,
     MONTHS,

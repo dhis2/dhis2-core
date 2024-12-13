@@ -142,7 +142,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param table the {@link Table}.
    */
   private void replicateAnalyticsDatabaseTable(Table table) {
-    // TO DO use explicit column list
     String sql =
         format(
             "insert into %s select * from %s",
