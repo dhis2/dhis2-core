@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -81,6 +82,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
@@ -152,7 +154,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else if (!params.getItems().isEmpty() && shouldUseCTE(params)) {
       sql = buildEnrollmentQueryWithCTE(params, params.getItems().get(0));
     } else {
-      sql = buildEnrollmentQueryWithoutCTE(params);
+      sql = buildEnrollmentQueryWithCte2(params);
     }
 
     System.out.println("SQL: " + sql);
@@ -824,16 +826,61 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   // New methods //
 
-  private String buildEnrollmentQueryWithoutCTE(EventQueryParams params) {
+  private String buildEnrollmentQueryWithCte2(EventQueryParams params) {
+    // Create CTEContext to collect all CTEs
+    CTEContext cteContext = new CTEContext();
     StringBuilder sql = new StringBuilder();
 
-    // 1. Select clause
-    sql.append(getSelectClause(params));
+    // 1. Process all program indicators to generate CTEs before building the main query
+    for (QueryItem queryItem : params.getItems()) {
+      if (queryItem.isProgramIndicator()) {
+        ProgramIndicator pi = (ProgramIndicator) queryItem.getItem();
 
-    // 2. From clause
+        if (queryItem.hasRelationshipType()) {
+          programIndicatorSubqueryBuilder.contributeCTE(
+                  pi,
+                  queryItem.getRelationshipType(),
+                  getAnalyticsType(),
+                  params.getEarliestStartDate(),
+                  params.getLatestEndDate(),
+                  cteContext);
+        } else {
+          programIndicatorSubqueryBuilder.contributeCTE(
+                  pi,
+                  getAnalyticsType(),
+                  params.getEarliestStartDate(),
+                  params.getLatestEndDate(),
+                  cteContext);
+        }
+      }
+    }
+
+    // 2. Add WITH clause if we have any CTEs
+    String cteDefinitions = cteContext.getCTEDefinition();
+    if (!cteDefinitions.isEmpty()) {
+      sql.append(cteDefinitions).append("\n");
+    }
+
+    // 3. Select clause using our new method
+    List<String> selectCols = ListUtils.distinctUnion(
+            params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
+            getSelectColumnsWithCTE(params, cteContext)
+    );
+    sql.append("SELECT ").append(String.join(",\n    ", selectCols));
+
+    // 4. From clause
     sql.append(" from ").append(params.getTableName()).append(" as ax");
 
-    // 3. Where clause
+    // 5. Add joins for each CTE
+    for (String cteName : cteContext.getCTENames()) {
+      sql.append("\nLEFT JOIN ")
+              .append(cteName)
+              .append(" ON ax.enrollment = ")
+              .append(cteName)
+              .append(".enrollment");
+    }
+
+    // 6. Where clause
     List<String> conditions = new ArrayList<>();
 
     // Add organization unit condition
@@ -842,7 +889,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       conditions.add(String.format("ax.\"uidlevel1\" = '%s'", orgUnit));
     }
 
-    // Use TimeField and DateRange instead of the dimension approach
+    // Add date range conditions
     if (!params.getTimeDateRanges().isEmpty()) {
       for (Map.Entry<TimeField, List<DateRange>> entry : params.getTimeDateRanges().entrySet()) {
         String column = getColumnForTimeField(entry.getKey());
@@ -850,12 +897,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           List<String> dateConditions = new ArrayList<>();
           for (DateRange range : entry.getValue()) {
             dateConditions.add(
-                String.format(
-                    "(%s >= '%s' and %s < '%s')",
-                    column,
-                    DateUtils.toMediumDate(range.getStartDate()),
-                    column,
-                    DateUtils.toMediumDate(range.getEndDate())));
+                    String.format(
+                            "(%s >= '%s' and %s < '%s')",
+                            column,
+                            DateUtils.toMediumDate(range.getStartDate()),
+                            column,
+                            DateUtils.toMediumDate(range.getEndDate())));
           }
           conditions.add("(" + String.join(" or ", dateConditions) + ")");
         }
@@ -863,29 +910,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     if (!conditions.isEmpty()) {
-      sql.append(" where ").append(String.join(" and ", conditions));
+      sql.append("\nWHERE ").append(String.join(" AND ", conditions));
     }
 
-    // 4. Order by
+    // 7. Order by
     if (params.getAsc() != null && !params.getAsc().isEmpty()) {
-      sql.append(" order by");
+      sql.append("\nORDER BY");
       boolean first = true;
       for (QueryItem item : params.getAsc()) {
         if (!first) {
           sql.append(",");
         }
         String columnName =
-            item.getItemId().equals("incidentdate") ? "occurreddate" : item.getItemId();
+                item.getItemId().equals("incidentdate") ? "occurreddate" : item.getItemId();
         sql.append(" ").append(quote(columnName)).append(" asc nulls last");
         first = false;
       }
     }
 
-    // 5. Paging
+    // 8. Paging
     sql.append(" ").append(getPagingClause(params, 5000));
 
     return sql.toString();
   }
+
+
 
   private String getColumnForTimeField(TimeField timeField) {
     return switch (timeField) {
