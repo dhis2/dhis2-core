@@ -91,6 +91,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -1389,6 +1390,41 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .collect(Collectors.joining(","));
 
     return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
+  }
+
+  protected List<String> getSelectColumnsWithCTE(EventQueryParams params, CTEContext cteContext) {
+    List<String> columns = new ArrayList<>();
+
+    // Mirror the logic of addDimensionSelectColumns
+    // (We can copy this logic from the superclass since it's about dimensions)
+    addDimensionSelectColumns(columns, params, false);  // assuming we keep this protected method
+
+    // Mirror the logic of addItemSelectColumns but with CTE references
+    for (QueryItem queryItem : params.getItems()) {
+      if (queryItem.isProgramIndicator()) {
+        // For program indicators, use CTE reference
+        String piUid = queryItem.getItem().getUid();
+        String cteReference = cteContext.getColumnMapping(piUid);
+        columns.add(cteReference + " as \"" + piUid + "\"");
+      } else if (ValueType.COORDINATE == queryItem.getValueType()) {
+        // Handle coordinates
+        columns.add(getCoordinateColumn(queryItem).asSql());
+      } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
+        // Handle org units
+        if (params.getCoordinateFields().stream()
+                .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
+          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
+        } else {
+          columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
+        }
+      } else {
+        // Handle other types as before
+        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
+        columns.add(columnAndAlias.asSql());
+      }
+    }
+
+    return columns;
   }
 
   /**
