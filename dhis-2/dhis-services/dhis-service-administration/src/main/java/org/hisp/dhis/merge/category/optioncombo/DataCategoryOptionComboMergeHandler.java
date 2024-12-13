@@ -158,7 +158,7 @@ public class DataCategoryOptionComboMergeHandler {
    */
   public void handleDataValueAudits(
       @Nonnull List<CategoryOptionCombo> sources,
-      CategoryOptionCombo target,
+      @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
       log.info(
@@ -171,7 +171,9 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   public void handleDataApprovals(
-      List<CategoryOptionCombo> sources, CategoryOptionCombo target, MergeRequest mergeRequest) {
+      @Nonnull List<CategoryOptionCombo> sources,
+      @Nonnull CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
       dataApprovalStore.deleteByCategoryOptionCombo(
           UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -200,7 +202,9 @@ public class DataCategoryOptionComboMergeHandler {
 
   /** */
   public void handleDataApprovalAudits(
-      List<CategoryOptionCombo> sources, CategoryOptionCombo target, MergeRequest mergeRequest) {
+      @Nonnull List<CategoryOptionCombo> sources,
+      @Nonnull CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
       log.info(
           "Deleting source data approval audit records as source CategoryOptionCombos are being deleted");
@@ -225,8 +229,8 @@ public class DataCategoryOptionComboMergeHandler {
 
   /** */
   public void handleCompleteDataSetRegistrations(
-      List<CategoryOptionCombo> sources,
-      CategoryOptionCombo target,
+      @Nonnull List<CategoryOptionCombo> sources,
+      @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
       completeDataSetRegistrationStore.deleteByCategoryOptionCombo(sources);
@@ -257,10 +261,10 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   private void handleCdsrDuplicates(
-      List<CompleteDataSetRegistration> sourceCdsrDuplicates,
-      Map<String, CompleteDataSetRegistration> targetCdsr,
-      CategoryOptionCombo target,
-      List<CategoryOptionCombo> sources) {
+      @Nonnull List<CompleteDataSetRegistration> sourceCdsrDuplicates,
+      @Nonnull Map<String, CompleteDataSetRegistration> targetCdsr,
+      @Nonnull CategoryOptionCombo target,
+      @Nonnull List<CategoryOptionCombo> sources) {
     // group CompleteDataSetRegistration by key, so we can deal with each duplicate correctly
     Map<String, List<CompleteDataSetRegistration>> sourceCdsrGroupedByKey =
         sourceCdsrDuplicates.stream().collect(Collectors.groupingBy(getCdsrKey));
@@ -300,7 +304,7 @@ public class DataCategoryOptionComboMergeHandler {
    * @param target target to use as new ref in copy
    */
   private void handleCdsrNonDuplicates(
-      List<CompleteDataSetRegistration> sourceCdsr, CategoryOptionCombo target) {
+      @Nonnull List<CompleteDataSetRegistration> sourceCdsr, @Nonnull CategoryOptionCombo target) {
     sourceCdsr.forEach(
         cdsr -> {
           CompleteDataSetRegistration copyWithNewAoc =
