@@ -1,11 +1,13 @@
 name: Hello World Pipeline
 
 on:
-  workflow_run:
-    workflows: ["Check formatting"]
-    types:
-      - completed
   pull_request:
+# For this to work, this workflow needs to be on master https://github.com/orgs/community/discussions/66512#discussioncomment-6950485
+#  workflow_run:
+#    workflows: ["Check formatting"]
+#    types:
+#      - completed
+
 
 jobs:
   say-hello:
@@ -21,3 +23,11 @@ jobs:
 
       - name: Print Hello World
         run: echo "Hello, World!"
+
+      # Set up Maven
+      - name: Set up Maven
+        run: sudo apt-get install maven
+
+      # Run Maven build
+      - name: Build with Maven
+        run: mvn --threads 4 --batch-mode --no-transfer-progress clean install --file
