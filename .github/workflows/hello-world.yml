@@ -2,12 +2,11 @@ name: Hello World Pipeline
 
 on:
   pull_request:
-# For this to work, this workflow needs to be on master https://github.com/orgs/community/discussions/66512#discussioncomment-6950485
+# For this to work, this workflow needs to be on master https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#workflow_run
 #  workflow_run:
 #    workflows: ["Check formatting"]
 #    types:
 #      - completed
-
 
 jobs:
   say-hello:
@@ -28,3 +27,10 @@ jobs:
       # Run Maven build
       - name: Build with Maven
         run: mvn --threads 4 --batch-mode --no-transfer-progress clean install --update-snapshots --file ./dhis-2/pom.xml -DskipTests
+
+      - name: Sync war
+        run: |
+          echo 'Syncing WAR for $GITHUB_REF_NAME'
+          curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O
+          chmod +x copy-war-s3.sh
+          ./copy-war-s3.sh dev $GITHUB_REF_NAME
