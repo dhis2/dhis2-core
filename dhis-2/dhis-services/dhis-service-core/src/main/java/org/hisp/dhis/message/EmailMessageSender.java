@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -61,9 +62,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Lars Helge Overland
@@ -184,7 +183,7 @@ public class EmailMessageSender implements MessageSender {
   public Future<OutboundMessageResponse> sendMessageAsync(
       String subject, String text, String footer, User sender, Set<User> users, boolean forceSend) {
     OutboundMessageResponse response = sendMessage(subject, text, footer, sender, users, forceSend);
-    return new AsyncResult<>(response);
+    return CompletableFuture.completedFuture(response);
   }
 
   @Override
@@ -267,13 +266,6 @@ public class EmailMessageSender implements MessageSender {
             .collect(Collectors.toList());
 
     return generateSummary(statuses);
-  }
-
-  @Override
-  public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync(
-      OutboundMessageBatch batch) {
-    OutboundMessageResponseSummary summary = sendMessageBatch(batch);
-    return new AsyncResult<>(summary);
   }
 
   @Override
