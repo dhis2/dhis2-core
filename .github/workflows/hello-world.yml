@@ -22,10 +22,12 @@ jobs:
 
       # Set up Maven
       - name: Set up Maven
+        env:
+          COMMIT_HASH: ${{ github.sha }}
         run: |
           sudo apt-get install maven
           echo "On branch: $GITHUB_REF_NAME"
-          echo "Git commit: ${{ github.sha }}""
+          echo "Git commit: $COMMIT_HASH"
 
       # Run Maven build
       - name: Build with Maven
