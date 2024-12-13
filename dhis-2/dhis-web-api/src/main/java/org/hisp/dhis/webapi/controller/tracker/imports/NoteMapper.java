@@ -35,6 +35,10 @@ import org.mapstruct.Mapper;
 
 @Mapper(uses = {InstantMapper.class, UserMapper.class})
 public interface NoteMapper extends DomainMapper<Note, org.hisp.dhis.tracker.imports.domain.Note> {
+  default org.hisp.dhis.tracker.imports.domain.Note from(Note note) {
+    return from(note, TrackerIdSchemeParams.builder().build());
+  }
+
   org.hisp.dhis.tracker.imports.domain.Note from(
       org.hisp.dhis.tracker.imports.domain.Note note,
       @Context TrackerIdSchemeParams idSchemeParams);

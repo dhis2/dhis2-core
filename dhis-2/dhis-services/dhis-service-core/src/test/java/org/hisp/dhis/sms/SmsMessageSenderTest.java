@@ -69,6 +69,7 @@ import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,6 +104,8 @@ class SmsMessageSenderTest {
   @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private SystemSettings settings;
+
+  @Mock private AuthenticationService authenticationService;
 
   private SmsGatewayConfig smsGatewayConfig;
 
@@ -148,7 +151,8 @@ class SmsMessageSenderTest {
             smsGateways,
             userSettingsService,
             outboundSmsService,
-            settingsProvider);
+            settingsProvider,
+            authenticationService);
   }
 
   private void mockGateway() {
