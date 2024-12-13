@@ -27,7 +27,30 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
@@ -66,29 +89,6 @@ import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 /**
  * @author Markus Bekken
@@ -159,11 +159,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
-              () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
+          () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
     } else {
       withExceptionHandling(
-              () -> getEnrollments(params, grid, sql, maxLimit == 0),
-              params.isMultipleQueries());
+          () -> getEnrollments(params, grid, sql, maxLimit == 0), params.isMultipleQueries());
     }
   }
 
@@ -800,6 +799,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
+  private int createOffset2(int offset) {
+    if (offset == 0) {
+      return 0;
+    }
+
+    if (offset < 0) {
+      return (-1 * offset);
+    } else {
+      return (offset - 1);
+    }
+  }
+
   private String createOrderType(int offset) {
     if (offset == 0) {
       return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
@@ -812,28 +823,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   // New methods //
-
-  private String getLatestEventsCTE(EventQueryParams params, QueryItem item) {
-    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
-    String columnName = quote(item.getItem().getUid());
-
-    return String.format(
-            "with LatestEvents as ( " +
-                    "select " +
-                    "  enrollment, " +
-                    "  %s as value, " +
-                    "  eventstatus, " +
-                    "  row_number() over (partition by enrollment " +
-                    "    order by occurreddate desc, created desc) as rn " +
-                    "from %s " +
-                    "where eventstatus != 'SCHEDULE' " +
-                    "  and ps = '%s' " +
-                    ") ",
-            columnName,
-            eventTableName,
-            item.getProgramStage().getUid()
-    );
-  }
 
   private String buildEnrollmentQueryWithoutCTE(EventQueryParams params) {
     StringBuilder sql = new StringBuilder();
@@ -860,11 +849,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         if (column != null) {
           List<String> dateConditions = new ArrayList<>();
           for (DateRange range : entry.getValue()) {
-            dateConditions.add(String.format(
+            dateConditions.add(
+                String.format(
                     "(%s >= '%s' and %s < '%s')",
-                    column, DateUtils.toMediumDate(range.getStartDate()),
-                    column, DateUtils.toMediumDate(range.getEndDate())
-            ));
+                    column,
+                    DateUtils.toMediumDate(range.getStartDate()),
+                    column,
+                    DateUtils.toMediumDate(range.getEndDate())));
           }
           conditions.add("(" + String.join(" or ", dateConditions) + ")");
         }
@@ -883,8 +874,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         if (!first) {
           sql.append(",");
         }
-        String columnName = item.getItemId().equals("incidentdate") ?
-                "occurreddate" : item.getItemId();
+        String columnName =
+            item.getItemId().equals("incidentdate") ? "occurreddate" : item.getItemId();
         sql.append(" ").append(quote(columnName)).append(" asc nulls last");
         first = false;
       }
@@ -897,144 +888,186 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String getColumnForTimeField(TimeField timeField) {
-      return switch (timeField) {
-          case ENROLLMENT_DATE -> "enrollmentdate";
-          case INCIDENT_DATE -> "occurreddate";
-          default -> null;
-      };
+    return switch (timeField) {
+      case ENROLLMENT_DATE -> "enrollmentdate";
+      case INCIDENT_DATE -> "occurreddate";
+      default -> null;
+    };
   }
 
   private String getBasicSelectColumns() {
-    return String.join(",",
-            "ax.enrollment",
-            "trackedentity",
-            "enrollmentdate",
-            "occurreddate",
-            "storedby",
-            "createdbydisplayname",
-            "lastupdatedbydisplayname",
-            "lastupdated",
-            "ST_AsGeoJSON(enrollmentgeometry)",
-            "longitude",
-            "latitude",
-            "ouname",
-            "ounamehierarchy",
-            "oucode",
-            "enrollmentstatus",
-            "ax.\"ou\""
-    );
+    return String.join(
+        ",",
+        "ax.enrollment",
+        "trackedentity",
+        "enrollmentdate",
+        "occurreddate",
+        "storedby",
+        "createdbydisplayname",
+        "lastupdatedbydisplayname",
+        "lastupdated",
+        "ST_AsGeoJSON(enrollmentgeometry)",
+        "longitude",
+        "latitude",
+        "ouname",
+        "ounamehierarchy",
+        "oucode",
+        "enrollmentstatus",
+        "ax.\"ou\"");
+  }
+
+  private String resolveOrderByOffset(int offset) {
+
+    if (offset <= 0) {
+      return "desc";
+    }
+    return "asc";
   }
 
   private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
-    StringBuilder sql = new StringBuilder();
 
-    // 1. Build CTE
+    List<QueryItem> items = params.getItems();
+
+    // Determine the program and stage UIDs
+    String stageUid = item.getProgramStage().getUid();
+    String itemUid = item.getItem().getUid();
+
+    var offset = createOffset2(item.getProgramStageOffset());
+
+    // The column from the event analytics table we are interested in
+    String columnName = quote(itemUid);
+
     String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
-    String columnName = quote(item.getItem().getUid());
-    int offset = item.getProgramStageOffset();
-    String offsetSuffix = offset != 0 ? "[" + offset + "]" : "";
-    String columnPrefix = item.getProgramStage().getUid() + offsetSuffix;
 
-    sql.append(String.format(
-            "with LatestEvents as ( " +
-                    "select " +
-                    "  enrollment, " +
-                    "  %s as value, " +
-                    "  eventstatus, " +
-                    "  row_number() over (partition by enrollment order by occurreddate desc, created desc) as rn " +
-                    "from %s " +
-                    "where eventstatus != 'SCHEDULE' " +
-                    "  and ps = '%s' " +
-                    ") ",
-            columnName,
-            eventTableName,
-            item.getProgramStage().getUid()
-    ));
+    String order = resolveOrderByOffset(item.getProgramStageOffset());
 
-    // 2. Select columns
-    sql.append(String.format(
-            "select %s, " +
-                    "le.value as \"%s.%s\", " +
-                    "(le.enrollment is not null) as \"%s.%s.exists\", " +
-                    "le.eventstatus as \"%s.%s.status\" ",
-            getBasicSelectColumns(),
-            columnPrefix, item.getItem().getUid(),
-            columnPrefix, item.getItem().getUid(),
-            columnPrefix, item.getItem().getUid()
-    ));
 
-    // 3. From clause with join
-    sql.append(" from ").append(params.getTableName()).append(" as ax")
-            .append(" left join LatestEvents le on ax.enrollment = le.enrollment")
-            .append(" and le.rn = ").append(Math.abs(offset) + 1);
 
-    // 4. Where clause
-    String whereClause = getWhereClauseWithCTE(params, item);
-    if (!whereClause.isEmpty()) {
-      sql.append(" where ").append(whereClause);
+    // Build the CTE that ranks all events for each enrollment
+    String allRankedEventsCTE =
+        String.format(
+            "with AllRankedEvents as ("
+                + " select enrollment, %s as value, eventstatus, "
+                + " row_number() over (partition by enrollment order by occurreddate %s, created %s) as rn "
+                + " from %s "
+                + " where eventstatus != 'SCHEDULE' "
+                + "   and ps = '%s' "
+                + ") ",
+            columnName, order, order, eventTableName, stageUid);
+
+    StringBuilder selectBuilder = new StringBuilder(getBasicSelectColumns());
+    StringBuilder joinBuilder = new StringBuilder();
+
+    int rn = offset + 1;
+    String alias = "le";
+
+    joinBuilder
+        .append(" left join AllRankedEvents ")
+        .append(alias)
+        .append(" on ax.enrollment = ")
+        .append(alias)
+        .append(".enrollment and ")
+        .append(alias)
+        .append(".rn = ")
+        .append(rn)
+        .append(" ");
+
+    String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
+    String valueCol = quote(stageUid + offsetLabel + "." + itemUid);
+    String existsCol = quote(stageUid + offsetLabel + "." + itemUid + ".exists");
+    String statusCol = quote(stageUid + offsetLabel + "." + itemUid + ".status");
+
+    selectBuilder
+        .append(", ")
+        .append(alias)
+        .append(".value as ")
+        .append(valueCol)
+        // Use (alias.enrollment is not null) for .exists logic
+        .append(", (")
+        .append(alias)
+        .append(".enrollment is not null) as ")
+        .append(existsCol)
+        .append(", ")
+        .append(alias)
+        .append(".eventstatus as ")
+        .append(statusCol);
+
+    // FROM clause with all joins
+    String fromClause = " from " + params.getTableName() + " as ax " + joinBuilder;
+
+    // WHERE clause: from params and original conditions
+    // 5. Integrate the original where logic
+    //    The getWhereClause method returns conditions that typically start with "and".
+    //    We need to insert them properly after a "where".
+    String baseConditions = getWhereClause(params).trim();
+
+    String whereClause = "";
+
+    if (baseConditions.startsWith("and")) {
+      whereClause = " " + baseConditions.replaceFirst("and", "where");
+    } else {
+      whereClause = baseConditions;
     }
 
-    // Add order by
-    if (params.isSorting()) {
-      sql.append(" ").append(getSortClause(params));
-    }
+    // ORDER BY and LIMIT/OFFSET (paging)
+    String orderByClause = getSortClause(params);
+    String pagingClause = getPagingClause(params, 5000);
 
-    // Add limit
-    sql.append(" ").append(getPagingClause(params, 5000));
-
-    return sql.toString();
+    // Combine all parts into the final SQL
+    return allRankedEventsCTE
+        + "select "
+        + selectBuilder
+        + fromClause
+        + whereClause
+        + orderByClause
+        + pagingClause;
   }
 
-  private boolean hasNullValueFilter(EventQueryParams params) {
-    return params.getItems().stream()
-            .anyMatch(item -> item.hasFilter() &&
-                    item.getFilters().stream()
-                            .anyMatch(filter -> "NV".equals(filter.getFilter())));
-  }
+  private List<Integer> determineOffsetsNeeded(EventQueryParams params, QueryItem item) {
 
+    // var dimensions  = params.getDimensions();
+    // get all dimensions with offset -> CWaAcQYKVpq[-1].fyjPqlHE7Dn
+    // extract dimension
+    // pass dimension to getRepeatableStageParams(x)
 
-  private String getWhereClauseWithCTE(EventQueryParams params, QueryItem item) {
-    List<String> conditions = new ArrayList<>();
+    // item.setRepeatableStageParams(getRepeatableStageParams(dimension));
 
-    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
-    if (StringUtils.isNotBlank(timeFieldSql)) {
-      conditions.add(timeFieldSql);
+    Set<Integer> offsets = new HashSet<>();
+
+    // If no repeatable stage params, assume only top event
+    if (!item.hasProgramStage()) {
+      offsets.add(0);
+      return new ArrayList<>(offsets);
     }
 
-    // Add organization unit conditions
-    if (!params.getOrganisationUnits().isEmpty()) {
-      String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("ax.\"uidlevel1\" = '%s'", orgUnit));
-    }
+    int startIndex = item.getProgramStageOffset();
+    int count = item.hasRepeatableStageParams() ? item.getRepeatableStageParams().getCount() : 1;
 
-    // Handle date ranges using TimeField and DateRange
-    if (!params.getTimeDateRanges().isEmpty()) {
-      for (Map.Entry<TimeField, List<DateRange>> entry : params.getTimeDateRanges().entrySet()) {
-        String column = getColumnForTimeField(entry.getKey());
-        if (column != null) {
-          List<String> dateConditions = new ArrayList<>();
-          for (DateRange range : entry.getValue()) {
-            dateConditions.add(String.format(
-                    "(%s >= '%s' and %s < '%s')",
-                    "ax." + column, DateUtils.toMediumDate(range.getStartDate()),
-                    "ax." + column, DateUtils.toMediumDate(range.getEndDate())
-            ));
-          }
-          conditions.add("(" + String.join(" or ", dateConditions) + ")");
-        }
+    if (startIndex == 0) {
+      // If startIndex is 0, we start from the top event
+      // count=1 means just the top event [0]
+      // count>1 means top event plus more recent events behind it: [0,1,2,...]
+      offsets.add(0);
+      for (int i = 1; i < count; i++) {
+        offsets.add(i);
       }
+    } else if (startIndex < 0) {
+      // Negative startIndex means starting behind the top event
+      offsets.add(0); // Always include the latest event
+      int x = Math.abs(startIndex);
+      // For count=1 and startIndex=-1, we get [0,1]
+      // For count=2 and startIndex=-1, we get [0,1,2]
+      // For count=1 and startIndex=-2, we get [0,2]
+      for (int i = x; i < x + count; i++) {
+        offsets.add(i);
+      }
+    } else {
+      // If positive offsets are not used by original logic, handle as needed.
+      // For safety, include top event at least.
+      offsets.add(0);
     }
 
-    // Handle NV (null value) filter
-    if (hasNullValueFilter(params)) {
-      conditions.add("le.value is null");
-      conditions.add("le.enrollment is not null");
-    }
-
-    // Join conditions with AND
-    return conditions.isEmpty() ? "" : conditions.stream()
-            .filter(StringUtils::isNotBlank)
-            .collect(Collectors.joining(" and "));
+    return new ArrayList<>(offsets);
   }
 
   protected String getSortClause(EventQueryParams params) {
@@ -1042,60 +1075,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return super.getSortClause(params);
     }
     return "";
-  }
-
-  protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper hlp) {
-    if (params.isEnhancedCondition()) {
-      return getItemsSqlForEnhancedConditions(params, hlp);
-    }
-
-    List<String> conditions = new ArrayList<>();
-
-    // Handle item filters using CTE
-    for (QueryItem item : params.getItems()) {
-      if (item.hasFilter()) {
-        conditions.addAll(getItemConditions(item));
-      }
-    }
-
-    // Handle item filters
-    for (QueryItem item : params.getItemFilters()) {
-      if (item.hasFilter()) {
-        conditions.addAll(getItemConditions(item));
-      }
-    }
-
-    return conditions.isEmpty() ? "" : String.join(" and ", conditions);
-  }
-
-  private List<String> getItemConditions(QueryItem item) {
-    List<String> conditions = new ArrayList<>();
-
-    for (QueryFilter filter : item.getFilters()) {
-      if ("NV".equals(filter.getFilter())) {
-        // Special handling for null values
-        conditions.add("le.value is null");
-      } else {
-        String operator = filter.getSqlOperator();
-        if (operator.equals("in")) {
-          // Handle IN clause differently based on value type
-          String value = getSqlFilter(filter, item);
-          if (item.isNumeric()) {
-            conditions.add("le.value in (" + value + ")");
-          } else {
-            // For text values, keep the quotes
-            conditions.add("le.value in (" + value + ")");
-          }
-        } else {
-          String value = getSqlFilter(filter, item);
-          conditions.add(String.format("le.value %s %s",
-                  operator,
-                  value));
-        }
-      }
-    }
-
-    return conditions;
   }
 
   protected String getSqlFilter(QueryFilter filter, QueryItem item) {
