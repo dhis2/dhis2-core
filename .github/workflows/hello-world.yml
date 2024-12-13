@@ -11,6 +11,8 @@ on:
 jobs:
   say-hello:
     runs-on: ubuntu-latest
+    env:
+      GIT_COMMIT: ${{ github.sha }} # Declare GIT_COMMIT for the entire job
 
     steps:
       - uses: actions/checkout@v4
@@ -22,12 +24,10 @@ jobs:
 
       # Set up Maven
       - name: Set up Maven
-        env:
-          GIT_COMMIT: ${{ github.sha }}
         run: |
           sudo apt-get install maven
           echo "On branch: $GITHUB_HEAD_REF"
-          echo "Git commit: GIT_COMMIT"
+          echo "Git commit: $GIT_COMMIT"
 
       # Run Maven build
       - name: Build with Maven
@@ -38,4 +38,4 @@ jobs:
           echo "Syncing WAR ..."
           curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O
           chmod +x copy-war-s3.sh
-          ./copy-war-s3.sh dev $GITHUB_REF_NAME
+          ./copy-war-s3.sh dev $GITHUB_HEAD_REF
