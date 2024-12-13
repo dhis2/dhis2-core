@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
@@ -66,9 +67,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,9 +128,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
     userService = _userService;
     setUpMetadata("tracker/tracker_basic_metadata.json");
     injectAdminUser();
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    Set<String> allAuthorities = currentUserDetails.getAllAuthorities();
 
     assertNoErrors(
         trackerImportService.importTracker(
@@ -211,16 +207,12 @@ class EventSecurityImportValidationTest extends TrackerTest {
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
     manager.update(programA);
-    User user = userService.getUser(USER_5);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
-    user.addOrganisationUnit(qfUVllTs6cS);
-    user.addOrganisationUnit(organisationUnitA);
     User adminUser = userService.getUser(ADMIN_USER_UID);
     adminUser.addOrganisationUnit(organisationUnitA);
     Program p = programService.getProgram("prabcdefghA");
     p.addOrganisationUnit(qfUVllTs6cS);
     programService.updateProgram(p);
-    manager.update(user);
     manager.update(adminUser);
   }
 
@@ -266,5 +258,33 @@ class EventSecurityImportValidationTest extends TrackerTest {
     params.setImportStrategy(TrackerImportStrategy.UPDATE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1083);
+  }
+
+  @Test
+  void shouldSucceedWhenCreatingScheduledEventFromInsideSearchOrgUnit() throws IOException {
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/events-scheduled-with-registration.json");
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
+    User user = userService.getUser(USER_5);
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    manager.update(user);
+    injectSecurityContextUser(user);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailWhenCreatingScheduledEventFromOutsideSearchOrgUnit() throws IOException {
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/events-scheduled-with-registration.json");
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    injectSecurityContextUser(userService.getUser(USER_5));
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasError(importReport, ValidationCode.E1000);
   }
 }
