@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -75,6 +76,75 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date latestDate) {
     return getAggregateClauseForPIandRelationshipType(
         programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate);
+  }
+
+  @Override
+  public void contributeCTE(ProgramIndicator programIndicator, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate, CTEContext cteContext) {
+    contributeCTE(programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
+  }
+
+  @Override
+  public void contributeCTE(ProgramIndicator programIndicator, RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate, CTEContext cteContext) {
+    // Generate a unique CTE name for this program indicator
+    String cteName = "pi_" + programIndicator.getUid().toLowerCase();
+
+    // Build the CTE definition
+    StringBuilder cteSql = new StringBuilder();
+
+    // Define aggregation function
+    String function = TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
+
+    // Start building the SELECT part of CTE
+    cteSql.append("SELECT ")
+            .append(SUBQUERY_TABLE_ALIAS)
+            .append(".enrollment, ");
+
+    // Add the aggregation expression
+    cteSql.append(function)
+            .append("(")
+            .append(getProgramIndicatorSql(
+                    programIndicator.getExpression(),
+                    NUMERIC,
+                    programIndicator,
+                    earliestStartDate,
+                    latestDate))
+            .append(") as value");
+
+    // Add FROM clause
+    cteSql.append(getFrom(programIndicator));
+
+    // Add WHERE clause
+    String where = getWhere(outerSqlEntity, programIndicator, relationshipType);
+    if (!where.isEmpty()) {
+      cteSql.append(where);
+    }
+
+    // Add program indicator filter if present
+    if (!Strings.isNullOrEmpty(programIndicator.getFilter())) {
+      cteSql.append(where.isBlank() ? " WHERE " : " AND ")
+              .append("(")
+              .append(getProgramIndicatorSql(
+                      programIndicator.getFilter(),
+                      BOOLEAN,
+                      programIndicator,
+                      earliestStartDate,
+                      latestDate))
+              .append(")");
+    }
+
+    // Add GROUP BY clause for the enrollment
+    cteSql.append(" GROUP BY ")
+            .append(SUBQUERY_TABLE_ALIAS)
+            .append(".enrollment");
+
+    // Register the CTE and its column mapping
+    cteContext.addCTE(cteName, cteSql.toString());
+    cteContext.addColumnMapping(
+            programIndicator.getUid(),
+            cteName + ".value"
+    );
   }
 
   /**
@@ -165,20 +235,23 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       RelationshipType relationshipType) {
     String condition = "";
     if (relationshipType != null) {
-      condition =
-          RelationshipTypeJoinGenerator.generate(
-              SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
+      condition = RelationshipTypeJoinGenerator.generate(
+              SUBQUERY_TABLE_ALIAS,
+              relationshipType,
+              programIndicator.getAnalyticsType());
     } else {
-      if (AnalyticsType.ENROLLMENT == outerSqlEntity) {
-        condition = "enrollment = ax.enrollment";
-      } else {
-        if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-          condition = "event = ax.event";
-        }
+      // Remove the reference to the outer query's enrollment
+      // We'll handle the join in the main query
+      if (AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType()) {
+        // No condition needed, we'll join on enrollment in the main query
+        condition = "";
+      } else if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
+        // Handle event type if needed
+        condition = "";
       }
     }
 
-    return isNotBlank(condition) ? " WHERE " + condition : condition;
+    return !condition.isEmpty() ? " WHERE " + condition : "";
   }
 
   /**
