@@ -21,9 +21,6 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      - name: Print Hello World
-        run: echo "Hello, World!"
-
       # Set up Maven
       - name: Set up Maven
         run: sudo apt-get install maven
