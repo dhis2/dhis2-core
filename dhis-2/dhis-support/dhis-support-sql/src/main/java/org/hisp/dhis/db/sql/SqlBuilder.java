@@ -456,11 +456,12 @@ public interface SqlBuilder {
    */
   String dropCatalogIfExists();
 
+  /** Enumeration of time units. */
   enum DateUnit {
     DAYS,
+    WEEKS,
     MONTHS,
     MINUTES,
-    YEARS,
-    WEEKS
+    YEARS
   }
 }
