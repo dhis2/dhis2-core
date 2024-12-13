@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import static java.util.Objects.requireNonNull;
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -384,7 +384,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     assertNotEmpty(trackedEntityChangeLogs);
     assertEquals(original.getUid(), trackedEntityChangeLogs.get(0).getTrackedEntity().getUid());
     assertEquals("value", trackedEntityChangeLogs.get(0).getCurrentValue());
-    assertEquals(ChangeLogType.CREATE, trackedEntityChangeLogs.get(0).getChangeLogType());
+    assertEquals(CREATE, trackedEntityChangeLogs.get(0).getChangeLogType());
   }
 
   private void assertChangeLogUpdate(

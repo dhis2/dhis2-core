@@ -336,7 +336,6 @@ class EventImportValidationTest extends TrackerTest {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertTrue(note.getLastUpdated().getTime() > now.getTime());
               assertNull(note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
@@ -360,7 +359,6 @@ class EventImportValidationTest extends TrackerTest {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertTrue(note.getLastUpdated().getTime() > now.getTime());
               assertNull(note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });

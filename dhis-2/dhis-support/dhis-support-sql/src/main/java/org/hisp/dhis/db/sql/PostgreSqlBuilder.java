@@ -186,6 +186,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsCorrelatedSubquery() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return true;
   }

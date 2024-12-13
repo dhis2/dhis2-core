@@ -30,12 +30,11 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -65,7 +64,6 @@ import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -85,7 +83,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TrackedEntityAnalyticsTableManager")
-public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableManager {
+public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTableManager {
   private static final String PROGRAMS_BY_TET_KEY = "programsByTetUid";
 
   private static final String ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES =
@@ -179,25 +177,27 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
         (Map<String, List<Program>>) params.getExtraParam("", PROGRAMS_BY_TET_KEY);
 
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
+    List<Program> programs = programsByTetUid.get(trackedEntityType.getUid());
 
-    String enrolledInProgramExpression =
-        """
-        \s exists(select 1 from ${enrollment} en_0 \
-        where en_0.trackedentityid = te.trackedentityid \
-        and en_0.programid = ${programId})""";
+    if (isNotEmpty(programs)) {
+      String enrolledInProgramExpression =
+          """
+          \s exists(select 1 from ${enrollment} en_0 \
+          where en_0.trackedentityid = te.trackedentityid \
+          and en_0.programid = ${programId})""";
 
-    emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
-        .forEach(
-            program ->
-                columns.add(
-                    AnalyticsTableColumn.builder()
-                        .name(program.getUid())
-                        .dataType(BOOLEAN)
-                        .selectExpression(
-                            replaceQualify(
-                                enrolledInProgramExpression,
-                                Map.of("programId", String.valueOf(program.getId()))))
-                        .build()));
+      programs.forEach(
+          program ->
+              columns.add(
+                  AnalyticsTableColumn.builder()
+                      .name(program.getUid())
+                      .dataType(BOOLEAN)
+                      .selectExpression(
+                          replaceQualify(
+                              enrolledInProgramExpression,
+                              Map.of("programId", String.valueOf(program.getId()))))
+                      .build()));
+    }
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
@@ -215,7 +215,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(tea.getUid())
                         .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
                         .selectExpression(
-                            castBasedOnType(tea.getValueType(), quote(tea.getUid()) + ".value"))
+                            getColumnExpression(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
             .toList());
 
@@ -240,41 +240,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     }
 
     return getAllTrackedEntityAttributesByEntityType(trackedEntityType);
-  }
-
-  /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   *
-   * @param valueType the value type to represent as database column type.
-   */
-  private String castBasedOnType(ValueType valueType, String columnName) {
-    if (valueType.isDecimal()) {
-
-      return replace(
-          " cast(${columnName} as ${type})",
-          Map.of("columnName", columnName, "type", sqlBuilder.dataTypeDouble()));
-    }
-    if (valueType.isInteger()) {
-      return replace(" cast(${columnName} as bigint)", Map.of("columnName", columnName));
-    }
-    if (valueType.isBoolean()) {
-      return replace(
-          " case when ${columnName} = 'true' then 1 when ${columnName} = 'false' then 0 end ",
-          Map.of("columnName", columnName));
-    }
-    if (valueType.isDate()) {
-      return replace(
-          " cast(${columnName} as ${type})",
-          Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
-    }
-    if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
-      return replace(
-          """
-          \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
-          "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
-          Map.of("columnName", columnName));
-    }
-    return columnName;
   }
 
   /**
@@ -309,7 +274,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getFixedNonGroupByColumns());
-
     return columns;
   }
 
@@ -332,51 +296,42 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
-
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(quote(col.getName()) + ",");
-    }
-
-    removeLastComma(sql).append(") select ");
-
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(col.getSelectExpression() + ",");
-    }
+    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(") select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
-    removeLastComma(sql)
-        .append(
-            replaceQualify(
-                """
-                \sfrom ${trackedentity} te \
-                left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
-                Map.of()));
+    sql.append(
+        replaceQualify(
+            """
+            \sfrom ${trackedentity} te \
+            left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid""",
+            Map.of()));
 
-    ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
-        .forEach(
-            tea ->
-                sql.append(
-                    replaceQualify(
-                        """
-                        \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
-                        and ${teaUid}.trackedentityattributeid = ${teaId}""",
-                        Map.of(
-                            "teaUid", quote(tea.getUid()),
-                            "teaId", String.valueOf(tea.getId())))));
+    List<TrackedEntityAttribute> attributes =
+        ((List<TrackedEntityAttribute>)
+            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES));
+
+    if (isNotEmpty(attributes)) {
+      attributes.forEach(
+          tea ->
+              sql.append(
+                  replaceQualify(
+                      """
+                      \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
+                      and ${teaUid}.trackedentityattributeid = ${teaId}""",
+                      Map.of(
+                          "teaUid", quote(tea.getUid()),
+                          "teaId", String.valueOf(tea.getId())))));
+    }
+
     sql.append(
         replaceQualify(
             """
             \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
-            and exists (select 1 from ${enrollment} en \
-                where en.trackedentityid = te.trackedentityid \
-                and exists (select 1 from ${event} ev \
-                where ev.enrollmentid = en.enrollmentid \
-                and ev.status in (${statuses}) \
-                and ev.deleted = false)) \
             and te.created is not null \
             and te.deleted = false""",
             Map.of(

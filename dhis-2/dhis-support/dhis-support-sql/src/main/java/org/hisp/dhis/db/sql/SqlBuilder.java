@@ -175,6 +175,11 @@ public interface SqlBuilder {
   boolean supportsVacuum();
 
   /**
+   * @return true if the DBMS supports corrected subqueries.
+   */
+  boolean supportsCorrelatedSubquery();
+
+  /**
    * @return true if the DBMS requires indexes for analytics tables for performance.
    */
   boolean requiresIndexesForAnalytics();

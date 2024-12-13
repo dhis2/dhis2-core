@@ -501,11 +501,17 @@ class JdbcEventAnalyticsTableManagerTest {
         eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
     String aliasTeaUid = "%s.value";
 
-    String aliasTea1 =
-        """
-        (select %s from "organisationunit" ou where ou.uid = \
-        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=%d)) as "%s\"""";
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea1.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea1.getUid()));
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -535,17 +541,9 @@ class JdbcEventAnalyticsTableManagerTest {
         .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
         .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, quote(tea1.getUid())))
         // Org unit geometry column
-        .addColumn(
-            tea1.getUid() + "_geom",
-            GEOMETRY,
-            String.format(aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid()),
-            IndexType.GIST)
+        .addColumn(tea1.getUid() + "_geom", GEOMETRY, ouGeometryQuery, IndexType.GIST)
         // Org unit name column
-        .addColumn(
-            tea1.getUid() + "_name",
-            TEXT,
-            String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
-            Skip.SKIP)
+        .addColumn(tea1.getUid() + "_name", TEXT, ouNameQuery, Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
@@ -643,15 +641,20 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
     String ouNameQuery =
         String.format(
             """
-            (select ou.name from "organisationunit" ou where ou.uid = \
-            (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999)) as %s""",
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
             quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
     assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
@@ -932,15 +935,20 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
     String ouNameQuery =
         String.format(
             """
-        (select ou.name from "organisationunit" ou where ou.uid = \
-        (select value from "trackedentityattributevalue" where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=9999)) as %s""",
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
             quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
     assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 

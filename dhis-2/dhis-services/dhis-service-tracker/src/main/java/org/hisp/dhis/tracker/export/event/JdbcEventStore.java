@@ -132,7 +132,6 @@ class JdbcEventStore {
        n.created as note_created,\
        n.creator as note_creator,\
        n.uid as note_uid,\
-       n.lastupdated as note_lastupdated,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
        userinfo.uid as note_user_uid,\
@@ -466,8 +465,6 @@ class JdbcEventStore {
                 noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
-
-              note.setLastUpdated(resultSet.getTimestamp("note_lastupdated"));
 
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
