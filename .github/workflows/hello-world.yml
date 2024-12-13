@@ -22,7 +22,10 @@ jobs:
 
       # Set up Maven
       - name: Set up Maven
-        run: sudo apt-get install maven
+        run: |
+          sudo apt-get install maven
+          echo "On branch: $GITHUB_REF_NAME"
+          echo "Git commit: ${{ github.sha }}""
 
       # Run Maven build
       - name: Build with Maven
@@ -30,7 +33,7 @@ jobs:
 
       - name: Sync war
         run: |
-          echo 'Syncing WAR for $GITHUB_REF_NAME'
+          echo "Syncing WAR ..."
           curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O
           chmod +x copy-war-s3.sh
           ./copy-war-s3.sh dev $GITHUB_REF_NAME
