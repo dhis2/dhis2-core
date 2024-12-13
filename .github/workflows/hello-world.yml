@@ -1,6 +1,11 @@
 name: Hello World Pipeline
 
-on: [ pull_request ]
+on:
+  workflow_run:
+    workflows: ["Check formatting"]
+    types:
+      - completed
+  pull_request:
 
 jobs:
   say-hello:
