@@ -175,7 +175,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       sql.append(columns).append(" ");
     }
 
-    return sql.append(" from ").append(fromTable).append(";").toString();
+    return sql.append("from ").append(fromTable).append(";").toString();
   }
 
   // Mapping
