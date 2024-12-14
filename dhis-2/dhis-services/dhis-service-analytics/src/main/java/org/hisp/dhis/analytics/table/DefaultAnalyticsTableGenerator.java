@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.collections4.CollectionUtils.containsAny;
 import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
@@ -91,7 +90,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     log.info("Found analytics table types: {}", getAvailableTableTypes());
     log.info("Analytics table update params: {}", params);
     log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
-    log.debug("Skipping table types: {}", skipTypes);
+    log.info("Skipping table types: {}", skipTypes);
 
     progress.startingProcess(
         "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
@@ -106,7 +105,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     }
 
     if (!params.isLatestUpdate() && settings.isAnalyticsDatabaseConfigured()) {
-      if (!containsAny(skipTypes, Set.of(EVENT, ENROLLMENT, TRACKED_ENTITY_INSTANCE))) {
+      if (!skipTypes.containsAll(Set.of(EVENT, ENROLLMENT, TRACKED_ENTITY_INSTANCE))) {
         log.info("Replicating tracked entity attribute value table");
         tableReplicationService.replicateTrackedEntityAttributeValue();
       }
