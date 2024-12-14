@@ -146,6 +146,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // Supportive methods
   // -------------------------------------------------------------------------
 
+  /**
+   * Generates resource tables.
+   *
+   * @param progress the {@link JobProgress}.
+   */
   private void generateResourceTablesInternal(JobProgress progress) {
     resourceTableService.dropAllSqlViews(progress);
 
@@ -159,6 +164,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     settingsService.put("keyLastSuccessfulResourceTablesUpdate", new Date());
   }
 
+  /**
+   * Returns the available analytics table types.
+   *
+   * @return a set of {@link AnalyticsTableType}.
+   */
   private Set<AnalyticsTableType> getAvailableTableTypes() {
     return analyticsTableServices.stream()
         .map(AnalyticsTableService::getAnalyticsTableType)
