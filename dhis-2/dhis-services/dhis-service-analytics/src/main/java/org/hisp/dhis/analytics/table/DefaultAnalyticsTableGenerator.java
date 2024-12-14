@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
@@ -74,18 +75,14 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   @Override
   public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     final Clock clock = new Clock(log).startClock();
-    final Date lastSuccessfulUpdate =
-        settingsService.getCurrentSettings().getLastSuccessfulAnalyticsTablesUpdate();
-    final Set<AnalyticsTableType> availableTypes =
-        analyticsTableServices.stream()
-            .map(AnalyticsTableService::getAnalyticsTableType)
-            .collect(Collectors.toSet());
+    final SystemSettings systemSettings = settingsService.getCurrentSettings();
+    final Date lastSuccessfulUpdate = systemSettings.getLastSuccessfulAnalyticsTablesUpdate();
     final AnalyticsTableUpdateParams params =
         params0.toBuilder().lastSuccessfulUpdate(lastSuccessfulUpdate).build();
 
     Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
 
-    log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
+    log.info("Found analytics table types: {}", getAvailableTableTypes());
     log.info("Analytics table update params: {}", params);
     log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
     log.debug("Skipping table types: {}", skipTypes);
@@ -160,5 +157,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     resourceTableService.createAllSqlViews(progress);
 
     settingsService.put("keyLastSuccessfulResourceTablesUpdate", new Date());
+  }
+
+  private Set<AnalyticsTableType> getAvailableTableTypes() {
+    return analyticsTableServices.stream()
+        .map(AnalyticsTableService::getAnalyticsTableType)
+        .collect(Collectors.toSet());
   }
 }
