@@ -85,12 +85,12 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     final Date lastSuccessfulUpdate = systemSettings.getLastSuccessfulAnalyticsTablesUpdate();
     final AnalyticsTableUpdateParams params =
         params0.toBuilder().lastSuccessfulUpdate(lastSuccessfulUpdate).build();
-    final boolean isAnalyticsDatabase = settings.isAnalyticsDatabaseConfigured();
     final Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
 
     log.info("Found analytics table types: {}", getAvailableTableTypes());
     log.info("Analytics table update params: {}", params);
     log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
+    log.info("Analytics database: %b", settings.isAnalyticsDatabase());
     log.info("Skipping table types: {}", skipTypes);
 
     progress.startingProcess(
@@ -99,13 +99,13 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
 
-      if (isAnalyticsDatabase) {
+      if (settings.isAnalyticsDatabase()) {
         log.info("Replicating resource tables in analytics database");
         resourceTableService.replicateAnalyticsResourceTables();
       }
     }
 
-    if (!params.isLatestUpdate() && isAnalyticsDatabase) {
+    if (!params.isLatestUpdate() && settings.isAnalyticsDatabase()) {
       if (!skipTypes.containsAll(Set.of(EVENT, ENROLLMENT, TRACKED_ENTITY_INSTANCE))) {
         log.info("Replicating tracked entity attribute value table");
         tableReplicationService.replicateTrackedEntityAttributeValue();
