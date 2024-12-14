@@ -364,4 +364,14 @@ class DorisSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
+
+  @Test
+  void testInsertIntoSelectFrom() {
+    String expected =
+        """
+        insert into `vaccination` (`id`,`facility_type`,`bcg_doses`) \
+        select `id`,`facility_type`,`bcg_doses` from `immunization`;""";
+
+    assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`"));
+  }
 }

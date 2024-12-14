@@ -81,7 +81,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   @Override
   public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
-    int parallelJobs = getParallelJobs();
+    final int parallelJobs = getParallelJobs();
     int tableUpdates = 0;
 
     log.info("Analytics table update parameters: {}", params);

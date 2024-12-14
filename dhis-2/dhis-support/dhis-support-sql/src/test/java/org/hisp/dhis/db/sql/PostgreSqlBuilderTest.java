@@ -431,7 +431,6 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testCreateIndexWithDescNullsLast() {
-    // given
     String expected =
         "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
     Index index =
@@ -443,10 +442,18 @@ class PostgreSqlBuilderTest {
             .sortOrder("desc nulls last")
             .build();
 
-    // when
     String createIndexStmt = sqlBuilder.createIndex(index);
 
-    // then
     assertEquals(expected, createIndexStmt);
+  }
+
+  @Test
+  void testInsertIntoSelectFrom() {
+    String expected =
+        """
+        insert into "vaccination" ("id","facility_type","bcg_doses") \
+        select "id","facility_type","bcg_doses" from "immunization";""";
+
+    assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "\"immunization\""));
   }
 }

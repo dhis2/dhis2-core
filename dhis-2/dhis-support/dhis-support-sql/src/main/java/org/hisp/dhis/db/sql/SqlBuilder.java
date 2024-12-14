@@ -437,6 +437,13 @@ public interface SqlBuilder {
   String createIndex(Index index);
 
   /**
+   * @param intoTable the table to insert rows into.
+   * @param fromTable the name of the table to select rows from, preferrably quoted.
+   * @return in insert into select from statement.
+   */
+  String insertIntoSelectFrom(Table intoTable, String fromTable);
+
+  /**
    * @param connectionUrl the JDBC connection URL.
    * @param username the JDBC connection username.
    * @param password the JDBC connection password.
@@ -449,11 +456,12 @@ public interface SqlBuilder {
    */
   String dropCatalogIfExists();
 
+  /** Enumeration of time units. */
   enum DateUnit {
     DAYS,
+    WEEKS,
     MONTHS,
     MINUTES,
-    YEARS,
-    WEEKS
+    YEARS
   }
 }
