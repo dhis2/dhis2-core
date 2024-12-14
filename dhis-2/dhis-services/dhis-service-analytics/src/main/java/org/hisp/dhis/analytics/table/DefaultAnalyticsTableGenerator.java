@@ -73,21 +73,22 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   @Override
   public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
-    Clock clock = new Clock(log).startClock();
-    Date lastSuccessfulUpdate =
+    final Clock clock = new Clock(log).startClock();
+    final Date lastSuccessfulUpdate =
         settingsService.getCurrentSettings().getLastSuccessfulAnalyticsTablesUpdate();
-
-    Set<AnalyticsTableType> availableTypes =
+    final Set<AnalyticsTableType> availableTypes =
         analyticsTableServices.stream()
             .map(AnalyticsTableService::getAnalyticsTableType)
             .collect(Collectors.toSet());
-
-    AnalyticsTableUpdateParams params =
+    final AnalyticsTableUpdateParams params =
         params0.toBuilder().lastSuccessfulUpdate(lastSuccessfulUpdate).build();
 
+    Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
+
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
-    log.info("Analytics table update: {}", params);
+    log.info("Analytics table update params: {}", params);
     log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
+    log.debug("Skipping table types: {}", skipTypes);
 
     progress.startingProcess(
         "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
@@ -100,8 +101,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
         resourceTableService.replicateAnalyticsResourceTables();
       }
     }
-
-    Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
 
     for (AnalyticsTableService service : analyticsTableServices) {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
