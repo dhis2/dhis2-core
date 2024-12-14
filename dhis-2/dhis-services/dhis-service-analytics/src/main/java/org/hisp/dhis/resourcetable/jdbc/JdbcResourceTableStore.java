@@ -46,7 +46,6 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -62,12 +61,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  @Qualifier("analyticsJdbcTemplate")
-  private final JdbcTemplate analyticsJdbcTemplate;
-
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
-  private final SqlBuilder analyticsDatabaseSqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -96,55 +90,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
     log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
-  }
-
-  @Override
-  public void replicateAnalyticsResourceTable(ResourceTable resourceTable) {
-    final Clock clock = new Clock().startClock();
-    final Table table = resourceTable.getMainTable();
-    final String tableName = table.getName();
-
-    dropAnalyticsDatabaseTable(table);
-
-    createAnalyticsDatabaseTable(table);
-
-    replicateAnalyticsDatabaseTable(table);
-
-    log.info("Analytics resource table replication done: '{}' '{}'", tableName, clock.time());
-  }
-
-  /**
-   * Drops the given analytics database table.
-   *
-   * @param table the {@link Table}.
-   */
-  private void dropAnalyticsDatabaseTable(Table table) {
-    String sql = analyticsDatabaseSqlBuilder.dropTableIfExists(table);
-    log.info("Drop table SQL: '{}'", sql);
-    analyticsJdbcTemplate.execute(sql);
-  }
-
-  /**
-   * Creates the given analytics database table.
-   *
-   * @param table the {@link Table}.
-   */
-  private void createAnalyticsDatabaseTable(Table table) {
-    String sql = analyticsDatabaseSqlBuilder.createTable(table);
-    log.info("Create table SQL: '{}'", sql);
-    analyticsJdbcTemplate.execute(sql);
-  }
-
-  /**
-   * Replicates the given table in the analytics database.
-   *
-   * @param table the {@link Table}.
-   */
-  private void replicateAnalyticsDatabaseTable(Table table) {
-    String fromTable = analyticsDatabaseSqlBuilder.qualifyTable(table.getName());
-    String sql = analyticsDatabaseSqlBuilder.insertIntoSelectFrom(table, fromTable);
-    log.info("Replicate table SQL: '{}'", sql);
-    analyticsJdbcTemplate.execute(sql);
   }
 
   /**
