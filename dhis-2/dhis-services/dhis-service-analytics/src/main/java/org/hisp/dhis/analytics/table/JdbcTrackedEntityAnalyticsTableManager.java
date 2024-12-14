@@ -320,7 +320,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
               sql.append(
                   replaceQualify(
                       """
-                      \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
+                      \s left join trackedentityattributevalue ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
                       and ${teaUid}.trackedentityattributeid = ${teaId}""",
                       Map.of(
                           "teaUid", quote(tea.getUid()),

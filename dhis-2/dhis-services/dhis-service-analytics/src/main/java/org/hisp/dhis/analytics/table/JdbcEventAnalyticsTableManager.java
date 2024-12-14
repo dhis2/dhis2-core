@@ -625,7 +625,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String query =
         """
         \s(select l.uid from ${maplegend} l \
-        inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
+        inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
         and l.endvalue > ${selectClause} \
         and l.maplegendsetid=${legendSetId} \
         and av.trackedentityid=en.trackedentityid \

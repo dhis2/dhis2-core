@@ -287,7 +287,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected String getAttributeValueJoinClause(Program program) {
     String template =
         """
-        left join ${trackedentityattributevalue} as ${uid} \
+        left join trackedentityattributevalue as ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
