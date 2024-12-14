@@ -55,9 +55,7 @@ public class JdbcTableReplicationStore implements TableReplicationStore {
     final String tableName = table.getName();
 
     dropTable(table);
-
     createTable(table);
-
     replicateTable(table);
 
     log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
