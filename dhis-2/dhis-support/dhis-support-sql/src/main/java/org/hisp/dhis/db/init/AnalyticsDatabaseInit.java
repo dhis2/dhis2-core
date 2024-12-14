@@ -28,8 +28,11 @@
 package org.hisp.dhis.db.init;
 
 import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
+
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
@@ -40,8 +43,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for performing work for initialization of an analytics database.
