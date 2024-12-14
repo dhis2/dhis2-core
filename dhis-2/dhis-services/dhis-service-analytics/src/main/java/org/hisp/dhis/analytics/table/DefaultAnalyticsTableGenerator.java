@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
+import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -51,6 +55,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.tablereplication.TableReplicationService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -63,6 +68,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private final List<AnalyticsTableService> analyticsTableServices;
 
   private final ResourceTableService resourceTableService;
+
+  private final TableReplicationService tableReplicationService;
 
   private final SystemSettingsService settingsService;
 
@@ -98,9 +105,15 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       }
     }
 
+    if (!params.isLatestUpdate() && settings.isAnalyticsDatabaseConfigured()) {
+      if (!containsAny(skipTypes, Set.of(EVENT, ENROLLMENT, TRACKED_ENTITY_INSTANCE))) {
+        log.info("Replicating tracked entity attribute value table");
+        tableReplicationService.replicateTrackedEntityAttributeValue();
+      }
+    }
+
     for (AnalyticsTableService service : analyticsTableServices) {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
-
       if (!skipTypes.contains(tableType)) {
         service.create(params, progress);
       }
