@@ -38,19 +38,19 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTableReplicationService implements TableReplicationService {
+  private static final Table TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE =
+      new Table(
+          "trackedentityattributevalue",
+          List.of(
+              new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
+              new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
+              new Column("value", DataType.TEXT, Nullable.NULL)),
+          List.of("trackedentityid", "trackedentityattributeid"));
+
   private final TableReplicationStore store;
 
   @Override
   public void replicateTrackedEntityAttributeValue() {
-    Table table =
-        new Table(
-            "trackedentityattributevalue",
-            List.of(
-                new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
-                new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
-                new Column("value", DataType.TEXT, Nullable.NULL)),
-            List.of("trackedentityid", "trackedentityattributeid"));
-
-    store.replicateAnalyticsDatabaseTable(table);
+    store.replicateAnalyticsDatabaseTable(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE);
   }
 }
