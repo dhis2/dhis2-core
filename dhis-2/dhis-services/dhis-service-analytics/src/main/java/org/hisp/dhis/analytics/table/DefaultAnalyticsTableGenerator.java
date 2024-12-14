@@ -79,8 +79,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     final Date lastSuccessfulUpdate = systemSettings.getLastSuccessfulAnalyticsTablesUpdate();
     final AnalyticsTableUpdateParams params =
         params0.toBuilder().lastSuccessfulUpdate(lastSuccessfulUpdate).build();
-
-    Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
+    final Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
 
     log.info("Found analytics table types: {}", getAvailableTableTypes());
     log.info("Analytics table update params: {}", params);
