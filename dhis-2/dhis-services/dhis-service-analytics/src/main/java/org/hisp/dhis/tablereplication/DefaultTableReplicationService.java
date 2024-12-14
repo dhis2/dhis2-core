@@ -29,14 +29,12 @@ package org.hisp.dhis.tablereplication;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultTableReplicationService implements TableReplicationService {
@@ -44,17 +42,15 @@ public class DefaultTableReplicationService implements TableReplicationService {
 
   @Override
   public void replicateTrackedEntityAttributeValue() {
-    List<Column> columns =
-        List.of(
-            new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("value", DataType.TEXT, Nullable.NULL));
-    List<String> primaryKeys = List.of("trackedentityid", "trackedentityattributeid");
-
-    Table table = new Table("trackedentityattributevalue", columns, primaryKeys);
+    Table table =
+        new Table(
+            "trackedentityattributevalue",
+            List.of(
+                new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
+                new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
+                new Column("value", DataType.TEXT, Nullable.NULL)),
+            List.of("trackedentityid", "trackedentityattributeid"));
 
     store.replicateAnalyticsDatabaseTable(table);
-
-    log.info("Replicated table: '{}'", table.getName());
   }
 }
