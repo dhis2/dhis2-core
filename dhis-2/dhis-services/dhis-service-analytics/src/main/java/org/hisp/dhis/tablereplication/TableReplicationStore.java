@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.tablereplication;
+
+import org.hisp.dhis.db.model.Table;
 
 /**
  * @author Lars Helge Overland
  */
-public interface ResourceTableStore {
+public interface TableReplicationStore {
   /**
-   * Generates the given resource table.
+   * Replicates the given transactional database table in the analytics database.
    *
-   * @param resourceTable the {@link ResourceTable}.
+   * @param table the {@link Table} to replicate.
    */
-  void generateResourceTable(ResourceTable resourceTable);
+  void replicateAnalyticsDatabaseTable(Table table);
 }
