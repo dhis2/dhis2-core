@@ -28,9 +28,9 @@
 package org.hisp.dhis.analytics.util;
 
 import java.util.function.UnaryOperator;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.db.sql.SqlBuilder;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisplayNameUtils {
@@ -64,6 +64,8 @@ public final class DisplayNameUtils {
     String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
     String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
     String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
+    
+    // return sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'");
 
     // Helper methods for the CASE conditions
     UnaryOperator<String> isEmpty = expression -> sqlBuilder.coalesce(expression, "''") + " = ''";
