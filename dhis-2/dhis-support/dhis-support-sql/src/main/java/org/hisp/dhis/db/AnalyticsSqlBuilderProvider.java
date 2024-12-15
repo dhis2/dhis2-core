@@ -33,7 +33,7 @@ import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.ClickhouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgresAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +70,7 @@ public class AnalyticsSqlBuilderProvider {
     return switch (database) {
       case DORIS -> new DorisAnalyticsSqlBuilder();
       case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
-      default -> new PostgresAnalyticsSqlBuilder();
+      default -> new PostgreSqlAnalyticsSqlBuilder();
     };
   }
 }
