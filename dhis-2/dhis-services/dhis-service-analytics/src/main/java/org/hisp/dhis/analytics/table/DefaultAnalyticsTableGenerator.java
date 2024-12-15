@@ -90,7 +90,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     log.info("Found analytics table types: {}", getAvailableTableTypes());
     log.info("Analytics table update params: {}", params);
     log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
-    log.info("Analytics database: %b", settings.isAnalyticsDatabase());
+    log.info("Analytics database: {}", settings.isAnalyticsDatabase());
     log.info("Skipping table types: {}", skipTypes);
 
     progress.startingProcess(
