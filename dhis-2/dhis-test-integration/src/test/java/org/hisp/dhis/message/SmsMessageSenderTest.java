@@ -48,7 +48,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -60,10 +59,9 @@ class SmsMessageSenderTest extends SingleSetupIntegrationTestBase {
   @Qualifier("smsMessageSender")
   private MessageSender smsMessageSender;
 
-    @Autowired private UserService _userService;
+  @Autowired private UserService _userService;
 
-
-    @Autowired private OutboundSmsService outboundSmsService;
+  @Autowired private OutboundSmsService outboundSmsService;
   @Autowired private GatewayAdministrationService gatewayAdministrationService;
   private User sender;
   private User userA;
@@ -72,7 +70,7 @@ class SmsMessageSenderTest extends SingleSetupIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws ForbiddenException, ConflictException, BadRequestException {
-      userService = _userService;
+    userService = _userService;
     sender = makeUser("S");
     userA = makeUser("A");
     userA.setPhoneNumber("40342434");
