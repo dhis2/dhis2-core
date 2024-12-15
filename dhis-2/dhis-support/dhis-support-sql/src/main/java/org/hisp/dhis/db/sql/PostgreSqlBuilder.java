@@ -278,6 +278,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
           String.format(
               "(extract(epoch from (cast(%s as timestamp) - cast(%s as timestamp))) / 60)",
               endDate, startDate);
+      case WEEKS ->
+          String.format("((cast(%s as date) - cast(%s as date)) / 7)", endDate, startDate);
       case MONTHS ->
           String.format(
               "((date_part('year',age(cast(%s as date), cast(%s as date)))) * 12 + "
@@ -286,8 +288,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       case YEARS ->
           String.format(
               "(date_part('year',age(cast(%s as date), cast(%s as date))))", endDate, startDate);
-      case WEEKS ->
-          String.format("((cast(%s as date) - cast(%s as date)) / 7)", endDate, startDate);
     };
   }
 
