@@ -175,7 +175,6 @@ public final class EnrollmentAnalyticsColumn {
           OU_LEVEL,
           REGISTRATION_OU);
 
-  // Geometry-specific columns
   private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
       List.of(ENROLLMENT_GEOMETRY, LONGITUDE, LATITUDE);
 
@@ -244,12 +243,14 @@ public final class EnrollmentAnalyticsColumn {
   }
 
   public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>(COMMON_COLUMNS);
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(COMMON_COLUMNS);
     columns.addAll(createJsonColumns(sqlBuilder));
-    // Add database-specific columns based on SqlBuilder capabilities
+
     if (sqlBuilder.supportsGeospatialData()) {
       columns.addAll(GEOMETRY_COLUMNS);
     }
+
     return columns;
   }
 }

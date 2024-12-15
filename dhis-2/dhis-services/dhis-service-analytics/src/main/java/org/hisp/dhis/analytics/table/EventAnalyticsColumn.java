@@ -62,8 +62,6 @@ public final class EventAnalyticsColumn {
           .selectExpression("te.geometry")
           .build();
 
-  // Common columns that work across all databases
-
   private static final AnalyticsTableColumn EVENT =
       AnalyticsTableColumn.builder()
           .name(EventAnalyticsColumnName.EVENT_COLUMN_NAME)
@@ -122,11 +120,6 @@ public final class EventAnalyticsColumn {
           .dataType(TIMESTAMP)
           .selectExpression("ev.completeddate")
           .build();
-
-  /*
-   * DHIS2-14981: Use the client-side timestamp if available, otherwise
-   * the server-side timestamp. Applies to both created and lastupdated.
-   */
   private static final AnalyticsTableColumn CREATED =
       AnalyticsTableColumn.builder()
           .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
@@ -145,7 +138,6 @@ public final class EventAnalyticsColumn {
           .dataType(VARCHAR_255)
           .selectExpression("ev.storedby")
           .build();
-
   private static final AnalyticsTableColumn EVENT_STATUS =
       AnalyticsTableColumn.builder()
           .name(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME)
@@ -165,7 +157,6 @@ public final class EventAnalyticsColumn {
           .selectExpression("ev.geometry")
           .indexType(IndexType.GIST)
           .build();
-  // TODO latitude and longitude deprecated in 2.30, remove in 2.33
   private static final AnalyticsTableColumn LONGITUDE =
       AnalyticsTableColumn.builder()
           .name(EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME)
@@ -258,11 +249,9 @@ public final class EventAnalyticsColumn {
           REGISTRATION_OU,
           ENROLLMENT_OU);
 
-  // Geometry-specific columns
   private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
       List.of(EVENT_GEOMETRY, OU_GEOMETRY, ENROLLMENT_GEOMETRY, LONGITUDE, LATITUDE);
 
-  // JSON-specific columns (might vary by database)
   private static List<AnalyticsTableColumn> createJsonColumns(SqlBuilder sqlBuilder) {
     return List.of(
         AnalyticsTableColumn.builder()
@@ -328,14 +317,13 @@ public final class EventAnalyticsColumn {
 
   /** Returns the appropriate set of columns based on the SqlBuilder type */
   public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>(COMMON_COLUMNS);
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(COMMON_COLUMNS);
+    columns.addAll(createJsonColumns(sqlBuilder));
 
-    // Add database-specific columns based on SqlBuilder capabilities
     if (sqlBuilder.supportsGeospatialData()) {
       columns.addAll(GEOMETRY_COLUMNS);
     }
-
-    columns.addAll(createJsonColumns(sqlBuilder));
 
     return columns;
   }
