@@ -49,18 +49,25 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EnrollmentAnalyticsColumn {
 
+  public static final AnalyticsTableColumn TRACKED_ENTITY =
+      AnalyticsTableColumn.builder()
+          .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
+          .dataType(CHARACTER_11)
+          .selectExpression("te.uid")
+          .build();
+  public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
+      AnalyticsTableColumn.builder()
+          .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
+          .dataType(GEOMETRY)
+          .selectExpression("te.geometry")
+          .build();
+
   private static final AnalyticsTableColumn ENROLLMENT =
       AnalyticsTableColumn.builder()
           .name(EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("en.uid")
-          .build();
-  static final AnalyticsTableColumn TRACKED_ENTITY =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .selectExpression("te.uid")
           .build();
   private static final AnalyticsTableColumn ENROLLMENT_DATE =
       AnalyticsTableColumn.builder()
@@ -151,12 +158,6 @@ public final class EnrollmentAnalyticsColumn {
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("coalesce(registrationou.uid,ou.uid)")
-          .build();
-  static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
-          .dataType(GEOMETRY)
-          .selectExpression("te.geometry")
           .build();
 
   private static final List<AnalyticsTableColumn> COMMON_COLUMNS =

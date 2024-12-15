@@ -49,6 +49,19 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EventAnalyticsColumn {
 
+  public static final AnalyticsTableColumn TRACKED_ENTITY =
+      AnalyticsTableColumn.builder()
+          .name(EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
+          .dataType(CHARACTER_11)
+          .selectExpression("te.uid")
+          .build();
+  public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
+      AnalyticsTableColumn.builder()
+          .name(EventAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
+          .dataType(GEOMETRY)
+          .selectExpression("te.geometry")
+          .build();
+
   // Common columns that work across all databases
 
   private static final AnalyticsTableColumn EVENT =
@@ -64,12 +77,6 @@ public final class EventAnalyticsColumn {
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("en.uid")
-          .build();
-  public static final AnalyticsTableColumn TRACKED_ENTITY =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .selectExpression("te.uid")
           .build();
   private static final AnalyticsTableColumn PS =
       AnalyticsTableColumn.builder()
@@ -226,12 +233,6 @@ public final class EventAnalyticsColumn {
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
-          .build();
-  public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
-          .dataType(GEOMETRY)
-          .selectExpression("te.geometry")
           .build();
 
   private static final List<AnalyticsTableColumn> COMMON_COLUMNS =
