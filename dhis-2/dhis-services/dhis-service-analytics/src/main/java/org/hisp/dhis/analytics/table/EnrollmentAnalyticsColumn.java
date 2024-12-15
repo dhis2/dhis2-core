@@ -49,137 +49,146 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EnrollmentAnalyticsColumn {
 
-  private static final AnalyticsTableColumn ENROLLMENT =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("en.uid")
-          .build();
-  static final AnalyticsTableColumn TRACKED_ENTITY =
+  public static final AnalyticsTableColumn TRACKED_ENTITY =
       AnalyticsTableColumn.builder()
           .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
           .dataType(CHARACTER_11)
           .selectExpression("te.uid")
           .build();
-  private static final AnalyticsTableColumn ENROLLMENT_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("en.enrollmentdate")
-          .build();
-  private static final AnalyticsTableColumn OCCURRED_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("en.occurreddate")
-          .build();
-  private static final AnalyticsTableColumn COMPLETED_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("case en.status when 'COMPLETED' then en.completeddate end")
-          .build();
-  private static final AnalyticsTableColumn LAST_UPDATED =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("en.lastupdated")
-          .build();
-  private static final AnalyticsTableColumn STORED_BY =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME)
-          .dataType(VARCHAR_255)
-          .selectExpression("en.storedby")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_STATUS =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
-          .dataType(VARCHAR_50)
-          .selectExpression("en.status")
-          .build();
-  private static final AnalyticsTableColumn LONGITUDE =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME)
-          .dataType(DOUBLE)
-          .selectExpression(
-              "CASE WHEN 'POINT' = GeometryType(en.geometry) THEN ST_X(en.geometry) ELSE null END")
-          .build();
-  private static final AnalyticsTableColumn LATITUDE =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME)
-          .dataType(DOUBLE)
-          .selectExpression(
-              "CASE WHEN 'POINT' = GeometryType(en.geometry) THEN ST_Y(en.geometry) ELSE null END")
-          .build();
-  private static final AnalyticsTableColumn OU =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.OU_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("ou.uid")
-          .build();
-  private static final AnalyticsTableColumn OU_NAME =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-          .dataType(TEXT)
-          .nullable(NOT_NULL)
-          .selectExpression("ou.name")
-          .build();
-  private static final AnalyticsTableColumn OU_CODE =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-          .dataType(TEXT)
-          .selectExpression("ou.code")
-          .build();
-  private static final AnalyticsTableColumn OU_LEVEL =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.OU_LEVEL_COLUMN_NAME)
-          .dataType(INTEGER)
-          .selectExpression("ous.level")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_GEOMETRY =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
-          .dataType(GEOMETRY)
-          .selectExpression("en.geometry")
-          .indexType(IndexType.GIST)
-          .build();
-  private static final AnalyticsTableColumn REGISTRATION_OU =
-      AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("coalesce(registrationou.uid,ou.uid)")
-          .build();
-  static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
+  public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
       AnalyticsTableColumn.builder()
           .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
           .dataType(GEOMETRY)
           .selectExpression("te.geometry")
           .build();
 
-  private static final List<AnalyticsTableColumn> COMMON_COLUMNS =
-      List.of(
-          ENROLLMENT,
-          ENROLLMENT_DATE,
-          OCCURRED_DATE,
-          COMPLETED_DATE,
-          LAST_UPDATED,
-          STORED_BY,
-          ENROLLMENT_STATUS,
-          OU,
-          OU_NAME,
-          OU_CODE,
-          OU_LEVEL,
-          REGISTRATION_OU);
+  /**
+   * Returns a list of {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(getCommonColumns(sqlBuilder));
+    columns.addAll(getJsonColumns(sqlBuilder));
 
-  // Geometry-specific columns
-  private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
-      List.of(ENROLLMENT_GEOMETRY, LONGITUDE, LATITUDE);
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(getGeometryColumns(sqlBuilder));
+    }
 
-  private static List<AnalyticsTableColumn> createJsonColumns(SqlBuilder sqlBuilder) {
+    return columns;
+  }
 
+  /**
+   * Returns a list of {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private static List<AnalyticsTableColumn> getCommonColumns(SqlBuilder sqlBuilder) {
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("en.uid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("en.enrollmentdate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("en.occurreddate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("case en.status when 'COMPLETED' then en.completeddate end")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("en.lastupdated")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME)
+            .dataType(VARCHAR_255)
+            .selectExpression("en.storedby")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
+            .dataType(VARCHAR_50)
+            .selectExpression("en.status")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.OU_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("ou.uid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+            .dataType(TEXT)
+            .nullable(NOT_NULL)
+            .selectExpression("ou.name")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+            .dataType(TEXT)
+            .selectExpression("ou.code")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.OU_LEVEL_COLUMN_NAME)
+            .dataType(INTEGER)
+            .selectExpression("ous.level")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .build());
+  }
+
+  /**
+   * Returns a list of geometry {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private static List<AnalyticsTableColumn> getGeometryColumns(SqlBuilder sqlBuilder) {
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
+            .dataType(GEOMETRY)
+            .selectExpression("en.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME)
+            .dataType(DOUBLE)
+            .selectExpression(
+                "CASE WHEN 'POINT' = GeometryType(en.geometry) THEN ST_X(en.geometry) ELSE null END")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME)
+            .dataType(DOUBLE)
+            .selectExpression(
+                "CASE WHEN 'POINT' = GeometryType(en.geometry) THEN ST_Y(en.geometry) ELSE null END")
+            .build());
+  }
+
+  /**
+   * Returns a list of {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private static List<AnalyticsTableColumn> getJsonColumns(SqlBuilder sqlBuilder) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.CREATED_BY_USERNAME_COLUMN_NAME)
@@ -240,15 +249,5 @@ public final class EnrollmentAnalyticsColumn {
                     "lastupdatedbyuserinfo", "en", "lastupdatedbydisplayname", sqlBuilder))
             .skipIndex(Skip.SKIP)
             .build());
-  }
-
-  public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>(COMMON_COLUMNS);
-    columns.addAll(createJsonColumns(sqlBuilder));
-    // Add database-specific columns based on SqlBuilder capabilities
-    if (sqlBuilder.supportsGeospatialData()) {
-      columns.addAll(GEOMETRY_COLUMNS);
-    }
-    return columns;
   }
 }
