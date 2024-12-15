@@ -237,6 +237,20 @@ class PostgreSqlBuilderTest {
         sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
   }
 
+  @Test
+  void testIfThen() {
+    assertEquals(
+        "case when a.status = 'COMPLETE' then a.eventdate end",
+        sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
+  }
+
+  @Test
+  void testIfThenElse() {
+    assertEquals(
+        "case when a.status = 'COMPLETE' then a.eventdate else a.scheduleddate end",
+        sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
+  }
+
   // Statements
 
   @Test

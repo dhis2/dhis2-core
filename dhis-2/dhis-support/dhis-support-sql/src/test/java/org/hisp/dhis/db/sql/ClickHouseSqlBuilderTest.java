@@ -227,6 +227,20 @@ class ClickHouseSqlBuilderTest {
         sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
   }
 
+  @Test
+  void testIfThen() {
+    assertEquals(
+        "if(a.status = 'COMPLETE', a.eventdate, null)",
+        sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
+  }
+
+  @Test
+  void testIfThenElse() {
+    assertEquals(
+        "if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)",
+        sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
+  }
+
   // Statements
 
   @Test

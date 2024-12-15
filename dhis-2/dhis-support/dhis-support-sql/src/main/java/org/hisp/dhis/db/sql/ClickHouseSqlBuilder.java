@@ -254,6 +254,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public String ifThen(String condition, String result) {
+    return String.format("if(%s, %s, null)", condition, result);
+  }
+
+  @Override
+  public String ifThenElse(String condition, String resultA, String resultB) {
+    return String.format("if(%s, %s, %s)", condition, resultA, resultB);
+  }
+
   // Statements
 
   @Override

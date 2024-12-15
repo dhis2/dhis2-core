@@ -324,6 +324,25 @@ public interface SqlBuilder {
    */
   String dateDifference(String startDate, String endDate, DateUnit dateUnit);
 
+  /**
+   * Returns a conditional statement.
+   *
+   * @param condition the condition to evaluate.
+   * @param result the result to return if the condition is true.
+   * @return a conditional statement.
+   */
+  String ifThen(String condition, String result);
+
+  /**
+   * Returns a conditional statement.
+   *
+   * @param condition the condition to evaluate.
+   * @param resultA the result to return if the condition is true.
+   * @param resultB the result to return if the condition is false.
+   * @return a conditional statement.
+   */
+  String ifThenElse(String condition, String resultA, String resultB);
+
   // Statements
 
   /**

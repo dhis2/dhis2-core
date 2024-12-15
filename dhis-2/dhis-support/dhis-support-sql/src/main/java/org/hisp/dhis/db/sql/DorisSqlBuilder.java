@@ -263,6 +263,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     };
   }
 
+  @Override
+  public String ifThen(String condition, String result) {
+    return String.format("case when %s then %s end", condition, result);
+  }
+
+  @Override
+  public String ifThenElse(String condition, String resultA, String resultB) {
+    return String.format("case when %s then %s else %s end", condition, resultA, resultB);
+  }
+
   // Statements
 
   @Override
