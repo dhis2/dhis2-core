@@ -80,10 +80,6 @@ public class AnalyticsTableColumn {
   /** Date of creation of the underlying data dimension. */
   private final Date created;
 
-  //  // -------------------------------------------------------------------------
-  //  // Logic
-  //  // -------------------------------------------------------------------------
-
   /** Indicates whether this column is not null. */
   public boolean isNotNull() {
     return Nullable.NOT_NULL == nullable;

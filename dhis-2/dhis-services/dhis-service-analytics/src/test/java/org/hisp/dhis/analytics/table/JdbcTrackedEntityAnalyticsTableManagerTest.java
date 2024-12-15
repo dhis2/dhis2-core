@@ -51,7 +51,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -115,9 +114,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     confidentialTea.setValueType(ValueType.TEXT);
 
     Program program = mock(Program.class);
-
-    when(sqlBuilder.qualifyTable(anyString()))
-        .thenAnswer(inv -> SqlUtils.quote(inv.getArgument(0)));
 
     when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
 

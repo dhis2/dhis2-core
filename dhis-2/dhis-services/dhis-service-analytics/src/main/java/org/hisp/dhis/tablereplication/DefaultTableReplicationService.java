@@ -25,52 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db;
+package org.hisp.dhis.tablereplication;
 
-import java.util.Objects;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.db.setting.SqlBuilderSettings;
-import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.ClickhouseAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.springframework.stereotype.Service;
 
-/** Provider of {@link AnalyticsSqlBuilder} implementations. */
 @Service
-public class AnalyticsSqlBuilderProvider {
-  private final AnalyticsSqlBuilder analyticsSqlBuilder;
+@RequiredArgsConstructor
+public class DefaultTableReplicationService implements TableReplicationService {
+  private static final Table TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE =
+      new Table(
+          "trackedentityattributevalue",
+          List.of(
+              new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
+              new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
+              new Column("value", DataType.TEXT, Nullable.NULL)),
+          List.of("trackedentityid", "trackedentityattributeid"));
 
-  public AnalyticsSqlBuilderProvider(SqlBuilderSettings config) {
-    Objects.requireNonNull(config);
-    this.analyticsSqlBuilder = getSqlBuilder(config);
-  }
+  private final TableReplicationStore store;
 
-  /**
-   * Returns a {@link AnalyticsSqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link AnalyticsSqlBuilder}.
-   */
-  public AnalyticsSqlBuilder getAnalyticsSqlBuilder() {
-    return analyticsSqlBuilder;
-  }
-
-  /**
-   * Returns the appropriate {@link AnalyticsSqlBuilder} implementation based on the system
-   * configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link AnalyticsSqlBuilder}.
-   */
-  private AnalyticsSqlBuilder getSqlBuilder(SqlBuilderSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      case DORIS -> new DorisAnalyticsSqlBuilder();
-      case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
-      default -> new PostgreSqlAnalyticsSqlBuilder();
-    };
+  @Override
+  public void replicateTrackedEntityAttributeValue() {
+    store.replicateAnalyticsDatabaseTable(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE);
   }
 }

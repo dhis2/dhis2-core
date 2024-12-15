@@ -124,22 +124,22 @@ public final class DisplayNameUtils {
         isNotEmpty.apply(surname),
         isNotEmpty.apply(firstName),
         isEmpty.apply(username),
-        formatNames(sqlBuilder, surname, "', '", firstName),
+        sqlBuilder.concat(surname, "', '", firstName),
 
         // FirstName and Username
         isEmpty.apply(surname),
         isNotEmpty.apply(firstName),
         isNotEmpty.apply(username),
-        formatNames(sqlBuilder, firstName, "' ('", username, "')'"),
+        sqlBuilder.concat(firstName, "' ('", username, "')'"),
 
         // Surname and Username
         isNotEmpty.apply(surname),
         isEmpty.apply(firstName),
         isNotEmpty.apply(username),
-        formatNames(sqlBuilder, surname, "' ('", username, "')'"),
+        sqlBuilder.concat(surname, "' ('", username, "')'"),
 
         // All fields
-        formatNames(sqlBuilder, surname, "', '", firstName, "' ('", username, "')'"),
+        sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'"),
         columnAlias);
   }
 
@@ -148,9 +148,5 @@ public final class DisplayNameUtils {
     String json = tablePrefix + "." + originColumn;
     String jsonExtracted = sqlBuilder.jsonExtract(json, path);
     return sqlBuilder.trim(jsonExtracted);
-  }
-
-  private static String formatNames(SqlBuilder sqlBuilder, String... elements) {
-    return sqlBuilder.concat(elements);
   }
 }

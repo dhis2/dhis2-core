@@ -214,6 +214,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
       TrackedEntityAttribute attribute) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -283,7 +287,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected String getAttributeValueJoinClause(Program program) {
     String template =
         """
-        left join ${trackedentityattributevalue} as ${uid} \
+        left join trackedentityattributevalue as ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
