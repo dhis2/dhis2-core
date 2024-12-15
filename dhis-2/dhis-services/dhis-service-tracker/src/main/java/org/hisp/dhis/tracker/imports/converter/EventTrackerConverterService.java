@@ -250,12 +250,6 @@ public class EventTrackerConverterService
       assignedUser.ifPresent(result::setAssignedUser);
     }
 
-    if (program.isRegistration()
-        && result.getScheduledDate() == null
-        && result.getOccurredDate() != null) {
-      result.setScheduledDate(result.getOccurredDate());
-    }
-
     for (DataValue dataValue : event.getDataValues()) {
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
