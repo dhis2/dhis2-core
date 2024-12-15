@@ -49,183 +49,11 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EventAnalyticsColumn {
 
-  // Common columns that work across all databases
-
-  private static final AnalyticsTableColumn EVENT =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.EVENT_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("ev.uid")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("en.uid")
-          .build();
   public static final AnalyticsTableColumn TRACKED_ENTITY =
       AnalyticsTableColumn.builder()
           .name(EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
           .dataType(CHARACTER_11)
           .selectExpression("te.uid")
-          .build();
-  private static final AnalyticsTableColumn PS =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.PS_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("ps.uid")
-          .build();
-  private static final AnalyticsTableColumn AO =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("acs.categoryoptioncombouid")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("en.enrollmentdate")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_OCCURRED_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("en.occurreddate")
-          .build();
-  private static final AnalyticsTableColumn OCCURRED_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("ev.occurreddate")
-          .build();
-  private static final AnalyticsTableColumn SCHEDULED_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("ev.scheduleddate")
-          .build();
-  private static final AnalyticsTableColumn COMPLETED_DATE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression("ev.completeddate")
-          .build();
-
-  /*
-   * DHIS2-14981: Use the client-side timestamp if available, otherwise
-   * the server-side timestamp. Applies to both created and lastupdated.
-   */
-  private static final AnalyticsTableColumn CREATED =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression(firstIfNotNullOrElse("ev.createdatclient", "ev.created"))
-          .build();
-  private static final AnalyticsTableColumn LAST_UPDATED =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
-          .dataType(TIMESTAMP)
-          .selectExpression(firstIfNotNullOrElse("ev.lastupdatedatclient", "ev.lastupdated"))
-          .build();
-  private static final AnalyticsTableColumn STOREDBY =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.STORED_BY_COLUMN_NAME)
-          .dataType(VARCHAR_255)
-          .selectExpression("ev.storedby")
-          .build();
-
-  private static final AnalyticsTableColumn EVENT_STATUS =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME)
-          .dataType(VARCHAR_50)
-          .selectExpression("ev.status")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_STATUS =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
-          .dataType(VARCHAR_50)
-          .selectExpression("en.status")
-          .build();
-  private static final AnalyticsTableColumn EVENT_GEOMETRY =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.EVENT_GEOMETRY_COLUMN_NAME)
-          .dataType(GEOMETRY)
-          .selectExpression("ev.geometry")
-          .indexType(IndexType.GIST)
-          .build();
-  // TODO latitude and longitude deprecated in 2.30, remove in 2.33
-  private static final AnalyticsTableColumn LONGITUDE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME)
-          .dataType(DOUBLE)
-          .selectExpression(
-              "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_X(ev.geometry) ELSE null END")
-          .build();
-  private static final AnalyticsTableColumn LATITUDE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.LATITUDE_COLUMN_NAME)
-          .dataType(DOUBLE)
-          .selectExpression(
-              "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_Y(ev.geometry) ELSE null END")
-          .build();
-  private static final AnalyticsTableColumn OU =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.OU_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("ou.uid")
-          .build();
-  private static final AnalyticsTableColumn OU_NAME =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-          .dataType(TEXT)
-          .nullable(NOT_NULL)
-          .selectExpression("ou.name")
-          .build();
-  private static final AnalyticsTableColumn OU_CODE =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-          .dataType(TEXT)
-          .selectExpression("ou.code")
-          .build();
-  private static final AnalyticsTableColumn OU_LEVEL =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.OU_LEVEL_COLUMN_NAME)
-          .dataType(INTEGER)
-          .selectExpression("ous.level")
-          .build();
-  private static final AnalyticsTableColumn OU_GEOMETRY =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.OU_GEOMETRY_COLUMN_NAME)
-          .dataType(GEOMETRY)
-          .selectExpression("ou.geometry")
-          .indexType(IndexType.GIST)
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_GEOMETRY =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
-          .dataType(GEOMETRY)
-          .selectExpression("en.geometry")
-          .indexType(IndexType.GIST)
-          .build();
-  private static final AnalyticsTableColumn REGISTRATION_OU =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("coalesce(registrationou.uid,ou.uid)")
-          .build();
-  private static final AnalyticsTableColumn ENROLLMENT_OU =
-      AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME)
-          .dataType(CHARACTER_11)
-          .nullable(NOT_NULL)
-          .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
           .build();
   public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
       AnalyticsTableColumn.builder()
@@ -234,35 +62,189 @@ public final class EventAnalyticsColumn {
           .selectExpression("te.geometry")
           .build();
 
-  private static final List<AnalyticsTableColumn> COMMON_COLUMNS =
-      List.of(
-          EVENT,
-          ENROLLMENT,
-          PS,
-          AO,
-          ENROLLMENT_DATE,
-          ENROLLMENT_OCCURRED_DATE,
-          OCCURRED_DATE,
-          SCHEDULED_DATE,
-          COMPLETED_DATE,
-          CREATED,
-          LAST_UPDATED,
-          STOREDBY,
-          EVENT_STATUS,
-          ENROLLMENT_STATUS,
-          OU,
-          OU_NAME,
-          OU_CODE,
-          OU_LEVEL,
-          REGISTRATION_OU,
-          ENROLLMENT_OU);
+  /**
+   * Returns a list of {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(getCommonColumns(sqlBuilder));
+    columns.addAll(getJsonColumns(sqlBuilder));
 
-  // Geometry-specific columns
-  private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
-      List.of(EVENT_GEOMETRY, OU_GEOMETRY, ENROLLMENT_GEOMETRY, LONGITUDE, LATITUDE);
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(getGeometryColumns(sqlBuilder));
+    }
 
-  // JSON-specific columns (might vary by database)
-  private static List<AnalyticsTableColumn> createJsonColumns(SqlBuilder sqlBuilder) {
+    return columns;
+  }
+
+  /**
+   * Returns a list of {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private static List<AnalyticsTableColumn> getCommonColumns(SqlBuilder sqlBuilder) {
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.EVENT_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("ev.uid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("en.uid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.PS_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("ps.uid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("acs.categoryoptioncombouid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("en.enrollmentdate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("en.occurreddate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("ev.occurreddate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("ev.scheduleddate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression("ev.completeddate")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression(firstIfNotNullOrElse("ev.createdatclient", "ev.created"))
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression(firstIfNotNullOrElse("ev.lastupdatedatclient", "ev.lastupdated"))
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.STORED_BY_COLUMN_NAME)
+            .dataType(VARCHAR_255)
+            .selectExpression("ev.storedby")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME)
+            .dataType(VARCHAR_50)
+            .selectExpression("ev.status")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
+            .dataType(VARCHAR_50)
+            .selectExpression("en.status")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.OU_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("ou.uid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+            .dataType(TEXT)
+            .nullable(NOT_NULL)
+            .selectExpression("ou.name")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+            .dataType(TEXT)
+            .selectExpression("ou.code")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.OU_LEVEL_COLUMN_NAME)
+            .dataType(INTEGER)
+            .selectExpression("ous.level")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME)
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
+            .build());
+  }
+
+  /**
+   * Returns a list of geometry {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private static List<AnalyticsTableColumn> getGeometryColumns(SqlBuilder sqlBuilder) {
+    return List.of(
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.EVENT_GEOMETRY_COLUMN_NAME)
+            .dataType(GEOMETRY)
+            .selectExpression("ev.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.OU_GEOMETRY_COLUMN_NAME)
+            .dataType(GEOMETRY)
+            .selectExpression("ou.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
+            .dataType(GEOMETRY)
+            .selectExpression("en.geometry")
+            .indexType(IndexType.GIST)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME)
+            .dataType(DOUBLE)
+            .selectExpression(
+                "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_X(ev.geometry) ELSE null END")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.LATITUDE_COLUMN_NAME)
+            .dataType(DOUBLE)
+            .selectExpression(
+                "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_Y(ev.geometry) ELSE null END")
+            .build());
+  }
+
+  /**
+   * Returns a list of {@link AnalyticsTableColumn}.
+   *
+   * @param sqlBuilder the {@link SqlBuilder}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private static List<AnalyticsTableColumn> getJsonColumns(SqlBuilder sqlBuilder) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.CREATED_BY_USERNAME_COLUMN_NAME)
@@ -323,20 +305,6 @@ public final class EventAnalyticsColumn {
                     "lastupdatedbyuserinfo", "ev", "lastupdatedbydisplayname", sqlBuilder))
             .skipIndex(Skip.SKIP)
             .build());
-  }
-
-  /** Returns the appropriate set of columns based on the SqlBuilder type */
-  public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>(COMMON_COLUMNS);
-
-    // Add database-specific columns based on SqlBuilder capabilities
-    if (sqlBuilder.supportsGeospatialData()) {
-      columns.addAll(GEOMETRY_COLUMNS);
-    }
-
-    columns.addAll(createJsonColumns(sqlBuilder));
-
-    return columns;
   }
 
   /**
