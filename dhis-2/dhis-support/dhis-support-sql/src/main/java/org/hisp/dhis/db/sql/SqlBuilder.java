@@ -324,6 +324,25 @@ public interface SqlBuilder {
    */
   String dateDifference(String startDate, String endDate, DateUnit dateUnit);
 
+  /**
+   * Returns a conditional statement.
+   *
+   * @param condition the condition to evaluate.
+   * @param result the result to return if the condition is true.
+   * @return a conditional statement.
+   */
+  String ifThen(String condition, String result);
+
+  /**
+   * Returns a conditional statement.
+   *
+   * @param condition the condition to evaluate.
+   * @param resultA the result to return if the condition is true.
+   * @param resultB the result to return if the condition is false.
+   * @return a conditional statement.
+   */
+  String ifThenElse(String condition, String resultA, String resultB);
+
   // Statements
 
   /**
@@ -437,6 +456,13 @@ public interface SqlBuilder {
   String createIndex(Index index);
 
   /**
+   * @param intoTable the table to insert rows into.
+   * @param fromTable the name of the table to select rows from, preferrably quoted.
+   * @return in insert into select from statement.
+   */
+  String insertIntoSelectFrom(Table intoTable, String fromTable);
+
+  /**
    * @param connectionUrl the JDBC connection URL.
    * @param username the JDBC connection username.
    * @param password the JDBC connection password.
@@ -449,11 +475,12 @@ public interface SqlBuilder {
    */
   String dropCatalogIfExists();
 
+  /** Enumeration of time units. */
   enum DateUnit {
     DAYS,
+    WEEKS,
     MONTHS,
     MINUTES,
-    YEARS,
-    WEEKS
+    YEARS
   }
 }

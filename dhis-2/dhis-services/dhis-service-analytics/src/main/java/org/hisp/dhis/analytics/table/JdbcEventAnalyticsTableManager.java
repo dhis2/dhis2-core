@@ -534,6 +534,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (isSpatialSupport()) {
@@ -612,12 +616,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
       TrackedEntityAttribute attribute) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     String columnExpression = getColumnExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause("value");
     String query =
         """
         \s(select l.uid from ${maplegend} l \
-        inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
+        inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
         and l.endvalue > ${selectClause} \
         and l.maplegendsetid=${legendSetId} \
         and av.trackedentityid=en.trackedentityid \
@@ -656,6 +664,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     String query =
         """
         (select l.uid from ${maplegend} l \
