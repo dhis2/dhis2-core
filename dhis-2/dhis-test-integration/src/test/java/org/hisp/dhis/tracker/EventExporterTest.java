@@ -66,6 +66,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
@@ -76,8 +77,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -105,6 +108,10 @@ class EventExporterTest extends TrackerTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private DataElementService dataElementService;
+
+  @Autowired private ProgramStageInstanceService programStageInstanceService;
+
+  @Autowired private RelationshipService relationshipService;
 
   private OrganisationUnit orgUnit;
 
@@ -176,6 +183,41 @@ class EventExporterTest extends TrackerTest {
             .map(Relationship::getRelationship)
             .collect(Collectors.toList());
     assertContainsOnly(List.of("oLT07jKRu9e", "yZxjxJli9mO"), relationships);
+  }
+
+  @Test
+  void shouldReturnEventWithRelationships() {
+    // Clearing sessionFactory so that hibernate entities are refreshed from DB (after import)
+    manager.clear();
+
+    Event event =
+        eventService.getEvent(
+            programStageInstanceService.getProgramStageInstance("pTzf9KYMk72"), EventParams.TRUE);
+
+    assertEquals("pTzf9KYMk72", event.getEvent());
+    List<String> relationships =
+        event.getRelationships().stream()
+            .map(Relationship::getRelationship)
+            .collect(Collectors.toList());
+    assertContainsOnly(List.of("oLT07jKRu9e", "yZxjxJli9mO"), relationships);
+  }
+
+  @Test
+  void shouldNotReturnDeletedRelationshipInEvent() {
+    // Clearing sessionFactory so that hibernate entities are refreshed from DB (after import)
+    manager.clear();
+    relationshipService.deleteRelationship(relationshipService.getRelationship("yZxjxJli9mO"));
+
+    Event event =
+        eventService.getEvent(
+            programStageInstanceService.getProgramStageInstance("pTzf9KYMk72"), EventParams.TRUE);
+
+    assertEquals("pTzf9KYMk72", event.getEvent());
+    List<String> relationships =
+        event.getRelationships().stream()
+            .map(Relationship::getRelationship)
+            .collect(Collectors.toList());
+    assertContainsOnly(List.of("oLT07jKRu9e"), relationships);
   }
 
   @Test
