@@ -235,16 +235,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     List<Table> swappedPartitions = new UniqueArrayList<>();
 
-    table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
-    table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+    if (!sqlBuilder.supportsDeclarativePartitioning()) {
+      table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+      table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+    }
 
     if (!skipMasterTable) {
       // Full replace update and main table exist, swap main table
       swapTable(table, table.getMainName());
     } else {
       // Incremental append update, update parent of partitions to existing main table
-      swappedPartitions.forEach(
-          partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      if (!sqlBuilder.supportsDeclarativePartitioning()) {
+        swappedPartitions.forEach(
+            partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      }
       dropTable(table);
     }
   }
@@ -292,7 +296,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param mainTableName the main table name.
    */
   private void swapTable(Table stagingTable, String mainTableName) {
-    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    } else {
+      executeSilently(sqlBuilder.dropTableIfExistsCascade(mainTableName));
+      executeSilently(sqlBuilder.renameTable(stagingTable, mainTableName));
+    }
   }
 
   /**
@@ -303,7 +312,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param mainMasterName the main master table name.
    */
   private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
-    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+    } else {
+      executeSilently(sqlBuilder.removeParentTable(partition, stagingMasterName));
+      executeSilently(sqlBuilder.setParentTable(partition, mainMasterName));
+    }
   }
 
   /**
