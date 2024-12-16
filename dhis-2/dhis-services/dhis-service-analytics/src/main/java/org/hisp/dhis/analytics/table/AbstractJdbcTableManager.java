@@ -235,16 +235,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     List<Table> swappedPartitions = new UniqueArrayList<>();
 
-    table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
-    table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+    if (!sqlBuilder.supportsDeclarativePartitioning()) {
+      table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+      table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+    }
 
     if (!skipMasterTable) {
       // Full replace update and main table exist, swap main table
       swapTable(table, table.getMainName());
     } else {
       // Incremental append update, update parent of partitions to existing main table
-      swappedPartitions.forEach(
-          partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      if (!sqlBuilder.supportsDeclarativePartitioning()) {
+        swappedPartitions.forEach(
+            partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      }
       dropTable(table);
     }
   }
