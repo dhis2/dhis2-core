@@ -243,13 +243,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         tables.add(table);
 
         log.info(
-            "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
+            "Added latest event analytics partition for program: '{}', start: '{}' and end: '{}'",
             program.getUid(),
             toLongDate(startDate),
             toLongDate(endDate));
       } else {
         log.info(
-            "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
+            "No updated latest event data found for program: '{}', start: '{}' and end: '{}",
             program.getUid(),
             toLongDate(lastAnyTableUpdate),
             toLongDate(endDate));

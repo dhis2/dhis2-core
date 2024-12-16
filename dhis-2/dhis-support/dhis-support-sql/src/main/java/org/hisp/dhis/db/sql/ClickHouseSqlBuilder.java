@@ -259,6 +259,18 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("if(%s, %s, %s)", condition, resultA, resultB);
   }
 
+  @Override
+  public String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult) {
+    return String.format(
+        "multiIf(%s, %s, %s, %s, %s)",
+        conditionA, thenResultA, conditionB, thenResultB, elseResult);
+  }
+
   // Statements
 
   @Override

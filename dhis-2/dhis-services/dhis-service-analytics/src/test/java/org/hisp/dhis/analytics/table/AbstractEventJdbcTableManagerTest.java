@@ -74,7 +74,7 @@ class AbstractEventJdbcTableManagerTest {
         """
         case when eventdatavalues #>> '{GieVkTxp4HH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
         then cast(eventdatavalues #>> '{GieVkTxp4HH, value}' as double precision) \
-        else null end""";
+        end""";
 
     String actual =
         manager.getCastExpression(
@@ -91,7 +91,7 @@ class AbstractEventJdbcTableManagerTest {
         """
         case when eventdatavalues #>> '{GieVkTxp4HH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
         then cast(eventdatavalues #>> '{GieVkTxp4HH, value}' as double precision) \
-        else null end""";
+        end""";
 
     String actual =
         manager.getColumnExpression(ValueType.NUMBER, "eventdatavalues #>> '{GieVkTxp4HH, value}'");
@@ -103,7 +103,9 @@ class AbstractEventJdbcTableManagerTest {
   void testGetSelectExpressionBoolean() {
     String expected =
         """
-        case when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'true' then 1 when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'false' then 0 else null end""";
+        case when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'true' then 1 \
+        when eventdatavalues #>> '{Xl3voRRcmpo, value}' = 'false' then 0 \
+        else null end""";
 
     String actual =
         manager.getColumnExpression(
@@ -118,7 +120,7 @@ class AbstractEventJdbcTableManagerTest {
         """
         case when eventdatavalues #>> '{AL04Wbutskk, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
         then cast(eventdatavalues #>> '{AL04Wbutskk, value}' as timestamp) \
-        else null end""";
+        end""";
 
     String actual =
         manager.getColumnExpression(ValueType.DATE, "eventdatavalues #>> '{AL04Wbutskk, value}'");

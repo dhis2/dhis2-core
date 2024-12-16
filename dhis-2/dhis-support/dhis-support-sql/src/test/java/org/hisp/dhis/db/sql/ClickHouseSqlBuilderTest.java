@@ -251,6 +251,22 @@ class ClickHouseSqlBuilderTest {
         sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
   }
 
+  @Test
+  void testIfThenElseMulti() {
+    String expected =
+        """
+        multiIf(a.status = 'COMPLETE', a.eventdate, a.status = 'SCHEDULED', a.scheduleddate, a.incidentdate)""";
+
+    assertEquals(
+        expected,
+        sqlBuilder.ifThenElse(
+            "a.status = 'COMPLETE'",
+            "a.eventdate",
+            "a.status = 'SCHEDULED'",
+            "a.scheduleddate",
+            "a.incidentdate"));
+  }
+
   // Statements
 
   @Test
