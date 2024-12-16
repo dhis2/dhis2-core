@@ -86,6 +86,7 @@ class DorisSqlBuilderTest {
   void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+    assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
   // Index types

@@ -125,9 +125,13 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return "String";
   }
 
+  /**
+   * ClickHouse JSON data type is in beta and is not yet production-ready. Check back and enable
+   * <code>JSON</code> when available.
+   */
   @Override
   public String dataTypeJson() {
-    return "JSON";
+    return "String";
   }
 
   // Index functions

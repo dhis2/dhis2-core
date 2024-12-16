@@ -117,6 +117,7 @@ class PostgreSqlBuilderTest {
   void testDataTypes() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
+    assertEquals("jsonb", sqlBuilder.dataTypeJson());
   }
 
   // Index types
