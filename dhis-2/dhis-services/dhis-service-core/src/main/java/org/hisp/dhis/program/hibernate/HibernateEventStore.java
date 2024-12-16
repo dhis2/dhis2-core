@@ -102,4 +102,18 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
         .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }
+
+  @Override
+  public void deleteAllByAttributeOptionCombo(Collection<UID> uids) {
+    if (uids.isEmpty()) return;
+    String hql =
+        """
+        delete from Event e
+        where e.attributeOptionCombo in
+          (select coc from CategoryOptionCombo coc
+          where coc.uid in :uids)
+        """;
+
+    entityManager.createQuery(hql).setParameter("uids", UID.toValueList(uids)).executeUpdate();
+  }
 }

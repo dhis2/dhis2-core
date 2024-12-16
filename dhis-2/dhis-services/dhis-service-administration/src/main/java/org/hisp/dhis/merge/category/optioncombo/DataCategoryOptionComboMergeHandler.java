@@ -157,9 +157,7 @@ public class DataCategoryOptionComboMergeHandler {
    * {@link CategoryOptionCombo}s are being deleted or not.
    */
   public void handleDataValueAudits(
-      @Nonnull List<CategoryOptionCombo> sources,
-      @Nonnull CategoryOptionCombo target,
-      @Nonnull MergeRequest mergeRequest) {
+      @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
       log.info(
           "Deleting source data value audit records as source CategoryOptionCombos are being deleted");
@@ -202,9 +200,7 @@ public class DataCategoryOptionComboMergeHandler {
 
   /** */
   public void handleDataApprovalAudits(
-      @Nonnull List<CategoryOptionCombo> sources,
-      @Nonnull CategoryOptionCombo target,
-      @Nonnull MergeRequest mergeRequest) {
+      @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
       log.info(
           "Deleting source data approval audit records as source CategoryOptionCombos are being deleted");
@@ -220,11 +216,16 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
-    List<Event> sourceEvents =
-        eventStore.getAllByAttributeOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+    if (DISCARD == mergeRequest.getDataMergeStrategy()) {
+      eventStore.deleteAllByAttributeOptionCombo(
+          UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+    } else {
+      List<Event> sourceEvents =
+          eventStore.getAllByAttributeOptionCombo(
+              UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 
-    sourceEvents.forEach(e -> e.setAttributeOptionCombo(target));
+      sourceEvents.forEach(e -> e.setAttributeOptionCombo(target));
+    }
   }
 
   /** */

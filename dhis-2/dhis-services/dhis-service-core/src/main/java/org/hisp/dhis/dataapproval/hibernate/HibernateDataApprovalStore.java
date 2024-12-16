@@ -813,19 +813,17 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
   }
 
   @Override
-  public void deleteByCategoryOptionCombo(@Nonnull Collection<UID> attrOptionCombos) {
+  public void deleteByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return;
     String hql =
         """
         delete from DataApproval da
         where da.attributeOptionCombo in
           (select coc from CategoryOptionCombo coc
-          where coc.uid in :attrOptionCombos)
+          where coc.uid in :uids)
         """;
 
-    entityManager
-        .createQuery(hql)
-        .setParameter("attrOptionCombos", UID.toValueList(attrOptionCombos))
-        .executeUpdate();
+    entityManager.createQuery(hql).setParameter("uids", UID.toValueList(uids)).executeUpdate();
   }
 
   /**

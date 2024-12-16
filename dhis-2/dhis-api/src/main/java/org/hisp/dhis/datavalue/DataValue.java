@@ -282,7 +282,7 @@ public class DataValue implements Serializable {
    * @param newDataElement {@link DataElement} to be used in the new {@link DataValue}
    * @return new {@link DataValue}
    */
-  public static BiFunction<DataValue, BaseIdentifiableObject, DataValue>
+  public static final BiFunction<DataValue, BaseIdentifiableObject, DataValue>
       dataValueWithNewDataElement =
           (oldDv, newDataElement) -> {
             DataValue newValue =

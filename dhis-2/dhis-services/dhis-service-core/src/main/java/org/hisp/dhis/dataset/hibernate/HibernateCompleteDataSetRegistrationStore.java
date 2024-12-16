@@ -180,6 +180,7 @@ public class HibernateCompleteDataSetRegistrationStore
 
   @Override
   public void deleteByCategoryOptionCombo(@Nonnull Collection<CategoryOptionCombo> cocs) {
+    if (cocs.isEmpty()) return;
     String hql =
         """
         delete from CompleteDataSetRegistration cdsr

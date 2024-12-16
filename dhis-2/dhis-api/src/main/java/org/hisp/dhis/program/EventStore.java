@@ -40,4 +40,6 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
   List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
 
   List<Event> getAllByAttributeOptionCombo(Collection<UID> uids);
+
+  void deleteAllByAttributeOptionCombo(Collection<UID> uids);
 }

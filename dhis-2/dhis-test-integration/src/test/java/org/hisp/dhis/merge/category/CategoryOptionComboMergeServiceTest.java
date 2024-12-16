@@ -399,11 +399,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName(
       "MinMaxDataElement refs to source CategoryOptionCombos are replaced, sources deleted")
   void minMaxDataElementRefsReplacedSourcesDeletedTest() throws ConflictException {
-    //    DataElement de1 = createDataElement('1');
-    //    DataElement de2 = createDataElement('2');
-    //    DataElement de3 = createDataElement('3');
-    //    manager.save(List.of(de1, de2, de3));
-
     OrganisationUnit ou1 = createOrganisationUnit('1');
     OrganisationUnit ou2 = createOrganisationUnit('2');
     OrganisationUnit ou3 = createOrganisationUnit('3');
@@ -1474,13 +1469,60 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataApprovals with references to source COCs are deleted when using DISCARD strategy")
   void dataApprovalMergeCocDiscardTest() throws ConflictException {
     // given
-    DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
-    DataValue dv2 = createDataValue(de2, p2, ou1, cocSource2, cocRandom, "value2");
-    DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
+    DataApprovalLevel level1 = new DataApprovalLevel();
+    level1.setLevel(1);
+    level1.setName("DAL1");
+    manager.save(level1);
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    DataApprovalLevel level2 = new DataApprovalLevel();
+    level2.setLevel(2);
+    level2.setName("DAL2");
+    manager.save(level2);
+
+    DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
+    daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw1.setName("DAW1");
+    daw1.setCategoryCombo(cc1);
+    manager.save(daw1);
+
+    DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
+    daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    daw2.setName("DAW2");
+    daw2.setCategoryCombo(cc1);
+    manager.save(daw2);
+
+    DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
+    da1a.setLastUpdated(DateUtils.parseDate("2024-12-03"));
+    DataApproval da1b = createDataApproval(cocSource1, level1, daw1, p2, ou1);
+    da1b.setLastUpdated(DateUtils.parseDate("2024-12-01"));
+    DataApproval da2a = createDataApproval(cocSource2, level1, daw1, p1, ou1);
+    da2a.setLastUpdated(DateUtils.parseDate("2024-11-01"));
+    DataApproval da2b = createDataApproval(cocSource2, level1, daw1, p2, ou1);
+    da2b.setLastUpdated(DateUtils.parseDate("2024-12-08"));
+    DataApproval da3a = createDataApproval(cocTarget, level1, daw1, p1, ou1);
+    da3a.setLastUpdated(DateUtils.parseDate("2024-06-08"));
+    DataApproval da3b = createDataApproval(cocTarget, level1, daw1, p2, ou1);
+    da3b.setLastUpdated(DateUtils.parseDate("2024-06-14"));
+    DataApproval da4a = createDataApproval(cocRandom, level1, daw1, p1, ou1);
+    DataApproval da4b = createDataApproval(cocRandom, level1, daw1, p2, ou1);
+
+    dataApprovalStore.addDataApproval(da1a);
+    dataApprovalStore.addDataApproval(da1b);
+    dataApprovalStore.addDataApproval(da2a);
+    dataApprovalStore.addDataApproval(da2b);
+    dataApprovalStore.addDataApproval(da3a);
+    dataApprovalStore.addDataApproval(da3b);
+    dataApprovalStore.addDataApproval(da4a);
+    dataApprovalStore.addDataApproval(da4b);
+
+    // pre merge state
+    List<DataApproval> sourceItemsBefore =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetItemsBefore =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
+
+    assertEquals(4, sourceItemsBefore.size(), "Expect 4 entries with source COC refs");
+    assertEquals(2, targetItemsBefore.size(), "Expect 2 entry with target COC ref only");
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1490,17 +1532,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2));
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)));
+    List<DataApproval> sourceItems =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
+    List<DataApproval> targetItems =
+        dataApprovalStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
+    assertEquals(2, targetItems.size(), "Expect 2 entry with target COC ref only");
     assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
@@ -1512,7 +1554,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   // -----------------------------
   @Test
   @DisplayName(
-      "Event attributeOptionCombo references to source COCs are replaced with target COC, source COCs are not deleted")
+      "Event attributeOptionCombo references to source COCs are replaced with target COC when using LAST_UPDATED, source COCs are not deleted")
   void eventMergeTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1536,6 +1578,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // params
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(false);
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
 
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
@@ -1556,7 +1599,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references to source COCs are replaced with target COC, source COCs are deleted")
+      "Event eventDataValues references to source COCs are deleted using DISCARD, source COCs are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1592,7 +1635,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, eventSources.size(), "Expect 0 entries with source COC refs");
-    assertEquals(3, targetEvents.size(), "Expect 3 entries with target COC ref");
+    assertEquals(1, targetEvents.size(), "Expect 1 entry with target COC ref");
     assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "source COC should not be present");
