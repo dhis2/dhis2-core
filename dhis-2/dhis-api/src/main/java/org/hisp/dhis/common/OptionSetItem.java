@@ -46,7 +46,7 @@ import org.hisp.dhis.analytics.Aggregation;
 @EqualsAndHashCode
 @JacksonXmlRootElement(localName = "optionSetItem", namespace = DXF_2_0)
 public class OptionSetItem implements Serializable {
-  /** The uids of the options. * */
+  /** The uids of the options. */
   private Set<String> options = new LinkedHashSet<>();
 
   /** The aggregation for this option item. */
