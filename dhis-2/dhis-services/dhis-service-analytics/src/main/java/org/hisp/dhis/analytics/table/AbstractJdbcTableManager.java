@@ -230,8 +230,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
-    log.info("Swapping table: '%s'", table.getMainName());
-    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+    log.info("Swapping table: '{}'", table.getMainName());
+    log.info("Master table exists: {}, skip master table: {}", tableExists, skipMasterTable);
+    log.info("Supports multi-statements: {}", sqlBuilder.supportsMultiStatements());
 
     List<Table> swapPartitions = new UniqueArrayList<>();
     table.getTablePartitions().stream()
