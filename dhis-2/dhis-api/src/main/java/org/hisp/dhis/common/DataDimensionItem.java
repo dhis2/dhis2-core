@@ -208,7 +208,7 @@ public class DataDimensionItem {
     if (indicator != null) {
       return indicator;
     } else if (dataElement != null) {
-      setAttributes(dataElement);
+      loadAttributes(dataElement);
       return dataElement;
     } else if (dataElementOperand != null) {
       return dataElementOperand;
@@ -217,10 +217,10 @@ public class DataDimensionItem {
     } else if (programIndicator != null) {
       return programIndicator;
     } else if (programDataElement != null) {
-      setAttributes(programDataElement);
+      loadAttributes(programDataElement);
       return programDataElement;
     } else if (programAttribute != null) {
-      setAttributes(programAttribute);
+      loadAttributes(programAttribute);
       return programAttribute;
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
@@ -232,11 +232,11 @@ public class DataDimensionItem {
   }
 
   /**
-   * Simply sets the internal attributes into the given item object.
+   * Simply loads the internal attributes into the given item object.
    *
    * @param itemObject the {@link BaseDimensionalItemObject}.
    */
-  private void setAttributes(BaseDimensionalItemObject itemObject) {
+  private void loadAttributes(BaseDimensionalItemObject itemObject) {
     if (attributes != null) {
       itemObject.setOptionSetItem(attributes.getOptionSetItem());
     }
