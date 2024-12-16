@@ -27,30 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
@@ -63,7 +40,6 @@ import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -84,13 +60,35 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 /**
  * @author Markus Bekken
@@ -312,6 +310,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sql += getFromClause(params);
 
     sql += getWhereClause(params);
+    sql += addFiltersToWhereClause(params);
 
     long count = 0;
 
@@ -449,8 +448,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // ---------------------------------------------------------------------
     // Query items and filters
     // ---------------------------------------------------------------------
-
-    sql += getQueryItemsAndFiltersWhereClause(params, hlp);
+    // USE addFiltersToWhereClause(params)
+    //sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
     // ---------------------------------------------------------------------
     // Filter expression
@@ -512,6 +511,19 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return sql;
+  }
+
+  private String addFiltersToWhereClause(EventQueryParams params) {
+    return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+  }
+
+  private String addFiltersToWhereClause(EventQueryParams params, CTEContext cteContext) {
+    SqlHelper hlp = new SqlHelper();
+    if (params.isEnhancedCondition()) {
+      return getItemsSqlForEnhancedConditions(params, hlp);
+    }
+
+    return "";
   }
 
   @Override
@@ -983,37 +995,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               .append(".enrollment");
     }
 
-    // 6. Where clause
-    List<String> conditions = new ArrayList<>();
-
-    // Add organization unit condition
-    if (!params.getOrganisationUnits().isEmpty()) {
-      String orgUnit = params.getOrganisationUnits().get(0).getUid();
-      conditions.add(String.format("ax.\"uidlevel1\" = '%s'", orgUnit));
-    }
-
-    // Add date range conditions
-    if (!params.getTimeDateRanges().isEmpty()) {
-      for (Map.Entry<TimeField, List<DateRange>> entry : params.getTimeDateRanges().entrySet()) {
-        String column = getColumnForTimeField(entry.getKey());
-        if (column != null) {
-          List<String> dateConditions = new ArrayList<>();
-          for (DateRange range : entry.getValue()) {
-            dateConditions.add(String.format(
-                    "(%s >= '%s' and %s < '%s')",
-                    column,
-                    DateUtils.toMediumDate(range.getStartDate()),
-                    column,
-                    DateUtils.toMediumDate(range.getEndDate())));
-          }
-          conditions.add("(" + String.join(" or ", dateConditions) + ")");
-        }
-      }
-    }
-
-    if (!conditions.isEmpty()) {
-      sql.append("\nWHERE ").append(String.join(" AND ", conditions));
-    }
+    sql.append(" ").append(getWhereClause(params));
+    sql.append(" ").append(addFiltersToWhereClause(params, cteContext));
 
     // 7. Order by
     sql.append(" " ).append(getSortClause(params));
