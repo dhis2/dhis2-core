@@ -89,7 +89,6 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     AnalyticsTableType tableType = getAnalyticsTableType();
 
     Clock clock = new Clock(log).startClock();
-
     clock.logTime(
         "Starting update of type: {}, table name: '{}', parallel jobs: {}",
         tableType,
