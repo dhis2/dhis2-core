@@ -11,6 +11,7 @@
 
   <constant name="struts.velocity.contexts" value="org.hisp.dhis.encoding.velocity.EncoderVelocityContext" />
   <constant name="struts.i18n.encoding" value="UTF-8" />
+  <constant name="struts.multipart.enabled" value="false" />
   <constant name="struts.multipart.parser" value="jakarta" />
   <constant name="struts.multipart.maxSize" value="1073741824" />
   <constant name="struts.directive.parse.max.depth" value="30" />
