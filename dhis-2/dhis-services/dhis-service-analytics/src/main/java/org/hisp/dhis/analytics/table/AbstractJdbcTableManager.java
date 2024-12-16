@@ -231,17 +231,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
     log.info("Swapping table: '{}'", table.getMainName());
-    log.info("Master table exists: {}, skip master table: {}", tableExists, skipMasterTable);
-    log.info("Supports multi-statements: {}", sqlBuilder.supportsMultiStatements());
+    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
 
-    List<Table> swapPartitions = new UniqueArrayList<>();
-    table.getTablePartitions().stream()
-        .forEach(partition -> swapPartitions.add(swapTable(partition, partition.getMainName())));
+    List<Table> swappedPartitions = new UniqueArrayList<>();
+
+    table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+    table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
 
     if (!skipMasterTable) {
+      // Full replace update and main table exist, swap main table
       swapTable(table, table.getMainName());
     } else {
-      swapPartitions.forEach(
+      // Incremental append update, update parent of partitions to existing main table
+      swappedPartitions.forEach(
           partition -> swapParentTable(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
@@ -289,14 +291,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private Table swapTable(Table stagingTable, String mainTableName) {
-    if (sqlBuilder.supportsMultiStatements()) {
-      executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
-    } else {
-      executeSilently(sqlBuilder.dropTableIfExistsCascade(mainTableName));
-      executeSilently(sqlBuilder.renameTable(stagingTable, mainTableName));
-    }
-    return stagingTable.fromStaging();
+  private void swapTable(Table stagingTable, String mainTableName) {
+    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
   }
 
   /**
@@ -307,12 +303,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param mainMasterName the main master table name.
    */
   private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
-    if (sqlBuilder.supportsMultiStatements()) {
-      executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
-    } else {
-      sqlBuilder.removeParentTable(partition, stagingMasterName);
-      sqlBuilder.setParentTable(partition, mainMasterName);
-    }
+    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
   }
 
   /**
