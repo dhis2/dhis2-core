@@ -191,6 +191,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsMultiStatements() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return true;
   }

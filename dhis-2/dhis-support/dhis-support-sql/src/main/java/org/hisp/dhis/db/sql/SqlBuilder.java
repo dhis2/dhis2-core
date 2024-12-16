@@ -175,9 +175,14 @@ public interface SqlBuilder {
   boolean supportsVacuum();
 
   /**
-   * @return true if the DBMS supports corrected subqueries.
+   * @return true if the DBMS supports correlated subqueries.
    */
   boolean supportsCorrelatedSubquery();
+
+  /**
+   * @return true if the DMBS supports multiple statements in one operation.
+   */
+  boolean supportsMultiStatements();
 
   /**
    * @return true if the DBMS requires indexes for analytics tables for performance.

@@ -172,6 +172,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsMultiStatements() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return false;
   }

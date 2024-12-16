@@ -170,6 +170,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsMultiStatements() {
+    return false;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return false;
   }

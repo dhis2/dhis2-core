@@ -289,7 +289,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param mainTableName the main table name.
    */
   private Table swapTable(Table stagingTable, String mainTableName) {
-    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    } else {
+      executeSilently(sqlBuilder.dropTableIfExistsCascade(mainTableName));
+      executeSilently(sqlBuilder.renameTable(stagingTable, mainTableName));
+    }
     return stagingTable.swapFromStaging();
   }
 
@@ -301,7 +306,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param mainMasterName the main master table name.
    */
   private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
-    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+    } else {
+      sqlBuilder.removeParentTable(partition, stagingMasterName);
+      sqlBuilder.setParentTable(partition, mainMasterName);
+    }
   }
 
   /**
