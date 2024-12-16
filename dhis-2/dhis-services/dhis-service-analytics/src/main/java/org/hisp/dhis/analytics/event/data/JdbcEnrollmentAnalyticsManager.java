@@ -152,12 +152,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (params.isAggregatedEnrollments()) {
       sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
     } else if (!params.getItems().isEmpty() && shouldUseCTE(params)) {
+      // TODO no longer needed
       sql = buildEnrollmentQueryWithCTE(params, params.getItems().get(0));
     } else {
       sql = buildEnrollmentQueryWithCte2(params);
     }
 
-    System.out.println("SQL: " + sql);
+    System.out.println("SQL: " + sql); // FIXME: Remove debug line
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -604,7 +605,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   protected String getColumnWithCte(QueryItem item, String suffix, CTEContext cteContext) {
     String colName = item.getItemName();
-    String alias = EMPTY;
+    String alias;
 
     if (item.hasProgramStage()) {
       assertProgram(item);
@@ -624,9 +625,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               && !item.getRepeatableStageParams().simpleStageValueExpected()) {
 
         String cteSql = String.format(
-                "SELECT enrollment, json_agg(t1) as value FROM (" +
-                        "  SELECT %s, %s " +  // Removed extra %s placeholders
-                        "  FROM %s " +
+                "SELECT enrollment, COALESCE(json_agg(t1), '[]') as value FROM (" +
+                        "  SELECT %s, %s, %s, %s" +
+                        "  FROM %s" +
                         "  WHERE %s AND ps = '%s' %s %s %s %s" +
                         ") as t1 GROUP BY enrollment",
                 colName,
@@ -646,52 +647,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         );
 
         cteContext.addCTE(cteName, cteSql);
-        return cteName + ".value";
+        alias = quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
+        return cteName + ".value as " + alias;
 
-      } else if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
+      } else {
         String cteSql = String.format(
                 "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
                         "FROM %s " +
-                        "WHERE %s AND ps = '%s' %s %s %s " +
-                        "ORDER BY enrollment, %s",
+                        "WHERE %s AND ps = '%s' " +
+                        "ORDER BY enrollment, occurreddate DESC, created DESC",
                 colName,
                 eventTableName,
                 excludingScheduledCondition,
-                item.getProgramStage().getUid(),
-                getExecutionDateFilter(
-                        item.getRepeatableStageParams().getStartDate(),
-                        item.getRepeatableStageParams().getEndDate()),
-                createOrderType(item.getProgramStageOffset()),
-                createOffset(item.getProgramStageOffset()),
-                createOrderType(item.getProgramStageOffset()).replace("ORDER BY ", "")
+                item.getProgramStage().getUid()
         );
 
         cteContext.addCTE(cteName, cteSql);
-        return cteName + ".value";
+        String columnAlias = quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
+        return cteName + ".value as " + columnAlias;
       }
-
-      if (item.getItem().getDimensionItemType() == DATA_ELEMENT
-              && item.getProgramStage() != null) {
-        alias = quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
-      }
-
-      String cteSql = String.format(
-              "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
-                      "FROM %s " +
-                      "WHERE %s AND ps = '%s' AND %s IS NOT NULL %s %s " +
-                      "ORDER BY enrollment, %s",
-              colName,
-              eventTableName,
-              excludingScheduledCondition,
-              item.getProgramStage().getUid(),
-              colName,
-              createOrderType(item.getProgramStageOffset()),
-              createOffset(item.getProgramStageOffset()),
-              createOrderType(item.getProgramStageOffset()).replace("ORDER BY ", "")
-      );
-
-      cteContext.addCTE(cteName, cteSql);
-      return cteName + ".value" + (alias.isEmpty() ? "" : " as " + alias);
     }
 
     // Non-program stage cases remain unchanged
@@ -962,12 +936,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         String eventTableName = ANALYTICS_EVENT + queryItem.getProgram().getUid();
 
         String cteSql = String.format(
-                "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
-                        "FROM %s " +
-                        "WHERE eventstatus != 'SCHEDULE' " +
-                        "AND ps = '%s' " +
-                        "AND %s IS NOT NULL " +
-                        "ORDER BY enrollment, occurreddate DESC, created DESC",
+                """
+                   -- Generate CTE for program stage items
+                   SELECT DISTINCT ON (enrollment) enrollment, %s as value
+                        FROM %s
+                        WHERE eventstatus != 'SCHEDULE'
+                        AND ps = '%s'
+                        -- AND %s IS NOT NULL
+                        ORDER BY enrollment, occurreddate DESC, created DESC""",
                 colName,
                 eventTableName,
                 queryItem.getProgramStage().getUid(),
@@ -1040,7 +1016,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // 7. Order by
-    sql.append(getSortClause(params));
+    sql.append(" " ).append(getSortClause(params));
 
     // 8. Paging
     sql.append(" ").append(getPagingClause(params, 5000));

@@ -84,60 +84,47 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   @Override
-  public void contributeCTE(ProgramIndicator programIndicator, RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate, CTEContext cteContext) {
+  public void contributeCTE(
+          ProgramIndicator programIndicator,
+          RelationshipType relationshipType,
+          AnalyticsType outerSqlEntity,
+          Date earliestStartDate,
+          Date latestDate,
+          CTEContext cteContext) {
+
     // Generate a unique CTE name for this program indicator
     String cteName = "pi_" + programIndicator.getUid().toLowerCase();
-
-    // Build the CTE definition
-    StringBuilder cteSql = new StringBuilder();
 
     // Define aggregation function
     String function = TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
 
-    // Start building the SELECT part of CTE
-    cteSql.append("SELECT ")
-            .append(SUBQUERY_TABLE_ALIAS)
-            .append(".enrollment, ");
-
-    // Add the aggregation expression
-    cteSql.append(function)
-            .append("(")
-            .append(getProgramIndicatorSql(
+    String cteSql = String.format(
+            "SELECT e.enrollment, " +
+                    "COALESCE(%s(%s), 0) as value " +
+                    "FROM analytics_enrollment_%s e " +
+                    "LEFT JOIN ( " +
+                    "    SELECT enrollment, eventstatus " +
+                    "    FROM %s as subax " +
+                    "    WHERE %s " +
+                    ") t ON t.enrollment = e.enrollment " +
+                    "GROUP BY e.enrollment",
+            function,
+            getProgramIndicatorSql(
                     programIndicator.getExpression(),
                     NUMERIC,
                     programIndicator,
                     earliestStartDate,
-                    latestDate))
-            .append(") as value");
-
-    // Add FROM clause
-    cteSql.append(getFrom(programIndicator));
-
-    // Add WHERE clause
-    String where = getWhere(outerSqlEntity, programIndicator, relationshipType);
-    if (!where.isEmpty()) {
-      cteSql.append(where);
-    }
-
-    // Add program indicator filter if present
-    if (!Strings.isNullOrEmpty(programIndicator.getFilter())) {
-      cteSql.append(where.isBlank() ? " WHERE " : " AND ")
-              .append("(")
-              .append(getProgramIndicatorSql(
-                      programIndicator.getFilter(),
-                      BOOLEAN,
-                      programIndicator,
-                      earliestStartDate,
-                      latestDate))
-              .append(")");
-    }
-
-    // Add GROUP BY clause for the enrollment
-    cteSql.append(" GROUP BY ")
-            .append(SUBQUERY_TABLE_ALIAS)
-            .append(".enrollment");
+                    latestDate),
+            programIndicator.getProgram().getUid().toLowerCase(),
+            getTableName(programIndicator),
+            getProgramIndicatorSql(
+                    programIndicator.getFilter(),
+                    BOOLEAN,
+                    programIndicator,
+                    earliestStartDate,
+                    latestDate));
 
     // Register the CTE and its column mapping
     cteContext.addCTE(cteName, cteSql.toString());
@@ -145,6 +132,11 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             programIndicator.getUid(),
             cteName + ".value"
     );
+  }
+
+
+  private String getTableName(ProgramIndicator programIndicator) {
+    return "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
   }
 
   /**
