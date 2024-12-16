@@ -65,6 +65,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -232,10 +233,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     log.info("Swapping table: '{}'", table.getMainName());
     log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
 
-    table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+    List<Table> swappedPartitions = new UniqueArrayList<>();
 
-    List<Table> swappedPartitions =
-        table.getTablePartitions().stream().map(Table::fromStaging).distinct().toList();
+    table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+    table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
 
     if (!skipMasterTable) {
       // Full replace update and main table exist, swap main table
