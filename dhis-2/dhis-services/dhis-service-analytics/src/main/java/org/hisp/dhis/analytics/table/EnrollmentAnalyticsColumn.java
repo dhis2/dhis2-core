@@ -107,7 +107,7 @@ public final class EnrollmentAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("case en.status when 'COMPLETED' then en.completeddate end")
+            .selectExpression(sqlBuilder.ifThen("en.status = 'COMPLETED'", "en.completeddate"))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)

@@ -231,16 +231,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return "concat(" + String.join(", ", columns) + ")";
-  }
-
-  @Override
-  public String trim(String expression) {
-    return "trim(" + expression + ")";
-  }
-
-  @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
   }
@@ -257,12 +247,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String cast(String column, DataType dataType) {
-    return column
-        + switch (dataType) {
-          case NUMERIC -> "::numeric";
-          case BOOLEAN -> "::numeric!=0";
-          case TEXT -> "::text";
-        };
+    return switch (dataType) {
+      case NUMERIC -> String.format("%s::numeric", column);
+      case BOOLEAN -> String.format("%s::numeric!=0", column);
+      case TEXT -> String.format("%s::text", column);
+    };
   }
 
   @Override
@@ -289,6 +278,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
           String.format(
               "(date_part('year',age(cast(%s as date), cast(%s as date))))", endDate, startDate);
     };
+  }
+
+  @Override
+  public String ifThen(String condition, String result) {
+    return String.format("case when %s then %s end", condition, result);
+  }
+
+  @Override
+  public String ifThenElse(String condition, String resultA, String resultB) {
+    return String.format("case when %s then %s else %s end", condition, resultA, resultB);
   }
 
   // Statements

@@ -81,6 +81,16 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
+  @Override
+  public String concat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "trim(" + expression + ")";
+  }
+
   // Index types
 
   @Override

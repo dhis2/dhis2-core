@@ -140,12 +140,18 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression(firstIfNotNullOrElse("ev.createdatclient", "ev.created"))
+            .selectExpression(
+                sqlBuilder.ifThenElse(
+                    "ev.createdatclient is not null", "ev.createdatclient", "ev.created"))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression(firstIfNotNullOrElse("ev.lastupdatedatclient", "ev.lastupdated"))
+            .selectExpression(
+                sqlBuilder.ifThenElse(
+                    "ev.lastupdatedatclient is not null",
+                    "ev.lastupdatedatclient",
+                    "ev.lastupdated"))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.STORED_BY_COLUMN_NAME)
@@ -305,17 +311,5 @@ public final class EventAnalyticsColumn {
                     "lastupdatedbyuserinfo", "ev", "lastupdatedbydisplayname", sqlBuilder))
             .skipIndex(Skip.SKIP)
             .build());
-  }
-
-  /**
-   * Returns a SQL expression that returns the first argument if it is not null, otherwise the
-   * second argument.
-   *
-   * @param first the first argument
-   * @param second the second argument
-   * @return a SQL expression
-   */
-  private static String firstIfNotNullOrElse(String first, String second) {
-    return "case when " + first + " is not null then " + first + " else " + second + " end";
   }
 }

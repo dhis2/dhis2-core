@@ -171,6 +171,16 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testConcat() {
+    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testTrim() {
+    assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
+  }
+
+  @Test
   void testSinqleQuotedCommaDelimited() {
     assertEquals(
         "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
@@ -225,6 +235,20 @@ class ClickHouseSqlBuilderTest {
     assertEquals(
         "JSONExtractString(eventdatavalues, 'D7m8vpzxHDJ.value')",
         sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+  }
+
+  @Test
+  void testIfThen() {
+    assertEquals(
+        "if(a.status = 'COMPLETE', a.eventdate, null)",
+        sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
+  }
+
+  @Test
+  void testIfThenElse() {
+    assertEquals(
+        "if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)",
+        sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
   }
 
   // Statements
