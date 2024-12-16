@@ -41,7 +41,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +49,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -88,6 +86,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -706,11 +705,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a data filter clause.
    */
   private String getDataFilterClause(DataElement dataElement) {
-    String uid = dataElement.getUid();
     ValueType valueType = dataElement.getValueType();
 
     if (valueType.isNumeric() || valueType.isDate()) {
-      String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
+      String jsonExpression = 
+          sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
       String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
 
       return " and " + sqlBuilder.regexpMatch(jsonExpression, regex);
