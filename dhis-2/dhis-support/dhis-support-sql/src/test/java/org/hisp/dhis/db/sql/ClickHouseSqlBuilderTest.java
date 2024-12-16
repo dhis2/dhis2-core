@@ -101,6 +101,7 @@ class ClickHouseSqlBuilderTest {
   void testDataTypes() {
     assertEquals("Float64", sqlBuilder.dataTypeDouble());
     assertEquals("DateTime64(3)", sqlBuilder.dataTypeTimestamp());
+    assertEquals("String", sqlBuilder.dataTypeJson());
   }
 
   // Index types
@@ -279,7 +280,7 @@ class ClickHouseSqlBuilderTest {
     String expected =
         """
         create table "immunization" ("id" Int64 not null,"data" String not null,\
-        "period" String not null,"created" DateTime64(3) null,"user" JSON null,\
+        "period" String not null,"created" DateTime64(3) null,"user" String null,\
         "value" Float64 null) \
         engine = MergeTree() \
         order by ("id");""";

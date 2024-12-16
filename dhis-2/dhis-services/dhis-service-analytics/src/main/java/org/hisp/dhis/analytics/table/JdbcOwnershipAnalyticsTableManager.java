@@ -91,6 +91,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           AnalyticsTableColumn.builder()
               .name("teuid")
               .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
               .selectExpression("te.uid")
               .build(),
           AnalyticsTableColumn.builder()
@@ -250,16 +251,17 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             \sfrom (\
             select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
             from ${programownershiphistory} h \
-            where h.programid=${programId} \
+            where h.programid = ${programId} \
             and h.organisationunitid is not null \
             union \
             select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
             from ${trackedentityprogramowner} o \
-            where o.programid=${programId} \
+            where o.programid = ${programId} \
             and exists (\
             select 1 from ${programownershiphistory} p \
             where o.trackedentityid = p.trackedentityid \
-            and p.programid=${programId} and p.organisationunitid is not null)) a \
+            and p.programid = ${programId} \
+            and p.organisationunitid is not null)) a \
             inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
             inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
