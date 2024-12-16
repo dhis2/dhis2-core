@@ -35,9 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
@@ -69,7 +66,7 @@ class SmsMessageSenderTest extends SingleSetupIntegrationTestBase {
   private Set<User> users;
 
   @BeforeAll
-  void setUp() throws ForbiddenException, ConflictException, BadRequestException {
+  void setUp() {
     userService = _userService;
     sender = makeUser("S");
     userA = makeUser("A");
