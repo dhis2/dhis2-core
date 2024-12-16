@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -52,7 +53,8 @@ public enum QueryableDataItem {
   PROGRAM_INDICATOR(ProgramIndicator.class),
   PROGRAM_DATA_ELEMENT(ProgramDataElementDimensionItem.class),
   PROGRAM_ATTRIBUTE(ProgramTrackedEntityAttributeDimensionItem.class),
-  EXPRESSION_DIMENSION_ITEM(ExpressionDimensionItem.class);
+  EXPRESSION_DIMENSION_ITEM(ExpressionDimensionItem.class),
+  OPTION_SET(OptionSet.class);
 
   private Class<? extends BaseIdentifiableObject> entity;
 
