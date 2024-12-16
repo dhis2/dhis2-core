@@ -540,14 +540,8 @@ public class DefaultDimensionService implements DimensionService {
             if (dimItemObject != null) {
               DataDimensionItem dataItem = DataDimensionItem.create(dimItemObject);
 
-              // Adds dependencies to the current data item object.
-              Attributes attributes =
-                  new Attributes(
-                      item.getOptionSetItem(),
-                      item.getOptions(),
-                      item.getAggregation(),
-                      item.getOptionItem());
-              dataItem.setAttributes(attributes);
+              // Adds attributes to the current data item object.
+              dataItem.setAttributes(new Attributes(item.getOptionSetItem()));
 
               object.getDataDimensionItems().add(dataItem);
             }

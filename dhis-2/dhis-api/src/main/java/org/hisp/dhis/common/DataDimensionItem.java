@@ -34,19 +34,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -115,54 +112,16 @@ public class DataDimensionItem {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class Attributes implements Serializable {
-    /** The client's option set for this dimension item. */
-    private OptionSet optionSetItem;
-
-    private Set<String> options = new LinkedHashSet<>();
-
-    /** The aggregation for this dimension item. */
-    private Aggregation aggregation;
-
-    /** Third option. The option item for this dimension item. * */
-    private OptionItem optionItem;
+    /** The option item for this dimension item. * */
+    private OptionSetItem optionItem;
 
     @JsonProperty
     @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-    public OptionSet getOptionSetItem() {
-      return optionSetItem;
-    }
-
-    public void setOptionSetItem(OptionSet optionSetItem) {
-      this.optionSetItem = optionSetItem;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-    public Aggregation getAggregation() {
-      return aggregation;
-    }
-
-    public void setAggregation(Aggregation aggregation) {
-      this.aggregation = aggregation;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-    public Set<String> getOptions() {
-      return options;
-    }
-
-    public void setOptions(Set<String> options) {
-      this.options = options;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-    public OptionItem getOptionItem() {
+    public OptionSetItem getOptionSetItem() {
       return optionItem;
     }
 
-    public void setOptionItem(OptionItem optionItem) {
+    public void setOptionSetItem(OptionSetItem optionItem) {
       this.optionItem = optionItem;
     }
   }
@@ -279,10 +238,7 @@ public class DataDimensionItem {
    */
   private void setAttributes(BaseDimensionalItemObject itemObject) {
     if (attributes != null) {
-      itemObject.setAggregation(attributes.getAggregation());
       itemObject.setOptionSetItem(attributes.getOptionSetItem());
-      itemObject.setOptions(attributes.getOptions());
-      itemObject.setOptionItem(attributes.getOptionItem());
     }
   }
 
@@ -367,10 +323,6 @@ public class DataDimensionItem {
   }
 
   public Attributes getAttributes() {
-    if (attributes == null) {
-      attributes = new Attributes();
-    }
-
     return attributes;
   }
 

@@ -36,13 +36,16 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.Aggregation;
 
+/** Encapsulates {@link org.hisp.dhis.option.Option}s uids and the {@link Aggregation} type. */
 @NoArgsConstructor
 @AllArgsConstructor
-@JacksonXmlRootElement(localName = "optionItem", namespace = DXF_2_0)
-public class OptionItem implements Serializable {
+@EqualsAndHashCode
+@JacksonXmlRootElement(localName = "optionSetItem", namespace = DXF_2_0)
+public class OptionSetItem implements Serializable {
   /** The uids of the options. * */
   private Set<String> options = new LinkedHashSet<>();
 

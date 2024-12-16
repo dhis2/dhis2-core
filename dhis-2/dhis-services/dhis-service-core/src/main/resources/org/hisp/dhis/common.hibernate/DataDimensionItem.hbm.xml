@@ -62,19 +62,7 @@
         column="expressiondimensionitemid" foreign-key="fk_datadimensionitem_expressiondimensionitemid" />
 
     <component name="attributes">
-      <property name="aggregation" length="40">
-        <type name="org.hibernate.type.EnumType">
-          <param name="enumClass">org.hisp.dhis.analytics.Aggregation</param>
-          <param name="useNamed">true</param>
-          <param name="type">12</param>
-        </type>
-      </property>
-
-      <property name="optionSetItem" type="jbOptionSet"/>
-
-      <property name="options" type="jbSet"/>
-
-      <property name="optionItem" type="jbOptionItem"/>
+      <property name="optionSetItem" type="jbOptionSetItem"/>
     </component>
   </class>
 </hibernate-mapping>

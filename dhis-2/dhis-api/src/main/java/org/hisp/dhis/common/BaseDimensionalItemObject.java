@@ -33,14 +33,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
 
 /**
  * @author Lars Helge Overland
@@ -55,20 +51,8 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
   /** The aggregation type for this dimension. */
   protected AggregationType aggregationType;
 
-  /** The option set for this dimension. */
-  protected OptionSet optionSet;
-
-  /** The client's option set for this dimension item. */
-  protected Set<String> options = new LinkedHashSet<>();
-
-  /** The client's option set for this dimension item. */
-  protected OptionSet optionSetItem;
-
-  /** The client's option set for this dimension item. */
-  protected OptionItem optionItem;
-
-  /** The aggregation for this dimension item. */
-  protected Aggregation aggregation;
+  /** The client's OptionSet for this dimension item. */
+  protected OptionSetItem optionSetItem;
 
   /** Query modifiers for this object. */
   protected transient QueryModifiers queryMods;
@@ -114,56 +98,12 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OptionSet getOptionSet() {
-    return optionSet;
+  public OptionSetItem getOptionSetItem() {
+    return optionSetItem;
   }
 
-  public void setOptionSet(OptionSet optionSet) {
-    this.optionSet = optionSet;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Set<String> getOptions() {
-    return options;
-  }
-
-  public void setOptions(Set<String> options) {
-    this.options = options;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OptionSet getOptionSetItem() {
-    return optionSet;
-  }
-
-  public void setOptionSetItem(OptionSet optionSetItem) {
+  public void setOptionSetItem(OptionSetItem optionSetItem) {
     this.optionSetItem = optionSetItem;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OptionItem getOptionItem() {
-    return optionItem;
-  }
-
-  public void setOptionItem(OptionItem optionItem) {
-    this.optionItem = optionItem;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Aggregation getAggregation() {
-    return aggregation;
-  }
-
-  public void setAggregation(Aggregation aggregation) {
-    this.aggregation = aggregation;
   }
 
   // -------------------------------------------------------------------------

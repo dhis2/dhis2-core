@@ -28,11 +28,8 @@
 package org.hisp.dhis.common;
 
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.OptionSet;
 
 /**
  * @author Lars Helge Overland
@@ -57,19 +54,8 @@ public interface DimensionalItemObject extends NameableObject {
   /** Gets the legend sets. */
   List<LegendSet> getLegendSets();
 
-  /** Gets the option set. */
-  OptionSet getOptionSet();
-
   /** Option set saved for client usage. */
-  Set<String> getOptions();
-
-  /** Option set saved for client usage. */
-  OptionSet getOptionSetItem();
-
-  /** Option set saved for client usage. */
-  OptionItem getOptionItem();
-
-  Aggregation getAggregation();
+  OptionSetItem getOptionSetItem();
 
   /**
    * Gets the first legend set in the legend set list. This field is derived from {@link
