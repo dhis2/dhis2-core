@@ -1396,8 +1396,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     List<String> columns = new ArrayList<>();
 
     // Mirror the logic of addDimensionSelectColumns
-    // (We can copy this logic from the superclass since it's about dimensions)
-    addDimensionSelectColumns(columns, params, false);  // assuming we keep this protected method
+    addDimensionSelectColumns(columns, params, false);
 
     // Mirror the logic of addItemSelectColumns but with CTE references
     for (QueryItem queryItem : params.getItems()) {
@@ -1417,6 +1416,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
         }
+      } else if (queryItem.hasProgramStage()) {
+        // Handle program stage items with CTE
+        columns.add(getColumnWithCte(queryItem, "", cteContext));
       } else {
         // Handle other types as before
         ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
@@ -1427,6 +1429,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return columns;
   }
 
+
+
   /**
    * Returns a select SQL clause for the given query.
    *
@@ -1434,6 +1438,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected abstract String getSelectClause(EventQueryParams params);
 
+  protected abstract String getColumnWithCte(QueryItem item, String suffix, CTEContext cteContext);
   /**
    * Generates the SQL for the from-clause. Generally this means which analytics table to get data
    * from.
