@@ -235,7 +235,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     table.getTablePartitions().stream().forEach(prt -> swapTable(prt, prt.getMainName()));
 
     List<Table> partitions =
-        table.getTablePartitions().stream().map(Table::swapFromStaging).distinct().toList();
+        table.getTablePartitions().stream().map(Table::fromStaging).distinct().toList();
 
     if (!skipMasterTable) {
       swapTable(table, table.getMainName());
