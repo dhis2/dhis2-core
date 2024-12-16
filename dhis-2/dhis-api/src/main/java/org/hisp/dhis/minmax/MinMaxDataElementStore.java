@@ -34,6 +34,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -61,5 +62,13 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
 
+  /**
+   * Retrieve all {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link
+   * UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link UID}
+   *     passed in
+   */
   List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

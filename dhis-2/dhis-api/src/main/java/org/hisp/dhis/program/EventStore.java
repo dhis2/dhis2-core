@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 
@@ -39,7 +40,18 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
 
   List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
 
+  /**
+   * Retrieve all {@link Event}s with references to {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link Event}s with references to {@link CategoryOptionCombo} {@link UID} passed in
+   */
   List<Event> getAllByAttributeOptionCombo(Collection<UID> uids);
 
+  /**
+   * Delete all {@link Event}s with references to {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   */
   void deleteAllByAttributeOptionCombo(Collection<UID> uids);
 }

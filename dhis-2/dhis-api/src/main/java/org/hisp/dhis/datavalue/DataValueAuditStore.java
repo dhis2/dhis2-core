@@ -28,6 +28,7 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -75,7 +76,7 @@ public interface DataValueAuditStore {
    *
    * @param categoryOptionCombo the categoryOptionCombo.
    */
-  void deleteDataValueAudits(CategoryOptionCombo categoryOptionCombo);
+  void deleteDataValueAudits(@Nonnull CategoryOptionCombo categoryOptionCombo);
 
   /**
    * Returns data value audits for the given query.

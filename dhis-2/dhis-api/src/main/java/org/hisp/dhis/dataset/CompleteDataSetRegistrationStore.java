@@ -113,7 +113,19 @@ public interface CompleteDataSetRegistrationStore {
    */
   int getCompleteDataSetCountLastUpdatedAfter(Date lastUpdated);
 
+  /**
+   * Retrieve all {@link CompleteDataSetRegistration}s with {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link CompleteDataSetRegistration}s with references to {@link CategoryOptionCombo}
+   *     {@link UID}s passed in
+   */
   List<CompleteDataSetRegistration> getAllByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 
+  /**
+   * Delete all {@link CompleteDataSetRegistration}s with references to {@link CategoryOptionCombo}s
+   *
+   * @param cocs {@link CategoryOptionCombo}s
+   */
   void deleteByCategoryOptionCombo(@Nonnull Collection<CategoryOptionCombo> cocs);
 }

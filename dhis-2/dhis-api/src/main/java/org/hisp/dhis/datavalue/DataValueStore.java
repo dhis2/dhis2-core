@@ -94,11 +94,26 @@ public interface DataValueStore {
    */
   void deleteDataValues(DataElement dataElement);
 
+  /**
+   * Deletes all data values for the given data element.
+   *
+   * @param dataElement the dataElement.
+   */
   void deleteDataValues(@Nonnull Collection<DataElement> dataElement);
 
+  /**
+   * Deletes all data values for the given category option combos.
+   *
+   * @param categoryOptionCombos the categoryOptionCombos.
+   */
   void deleteDataValuesByCategoryOptionCombo(
       @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos);
 
+  /**
+   * Deletes all data values for the given attribute option combos.
+   *
+   * @param attributeOptionCombos the attributeOptionCombos.
+   */
   void deleteDataValuesByAttributeOptionCombo(
       @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
@@ -175,6 +190,12 @@ public interface DataValueStore {
    */
   List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
 
+  /**
+   * Retrieve all {@link DataValue}s with references to {@link DataElement}s
+   *
+   * @param dataElements {@link DataElement}s
+   * @return {@link DataValue}s with references to {@link DataElement}s passed in
+   */
   List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements);
 
   /**

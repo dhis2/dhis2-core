@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -58,6 +59,7 @@ import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.CommonDataMergeHandler;
 import org.hisp.dhis.merge.CommonDataMergeHandler.DataValueMergeParams;
+import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
@@ -198,7 +200,10 @@ public class DataCategoryOptionComboMergeHandler {
     }
   }
 
-  /** */
+  /**
+   * Deletes {@link DataApprovalAudit}s if the source {@link CategoryOptionCombo}s are being
+   * deleted. Otherwise, no other action taken.
+   */
   public void handleDataApprovalAudits(
       @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
@@ -211,7 +216,12 @@ public class DataCategoryOptionComboMergeHandler {
     }
   }
 
-  /** */
+  /**
+   * Deletes {@link Event}s if the {@link DataMergeStrategy}s is {@link DataMergeStrategy#DISCARD}.
+   * Otherwise, reassigns source {@link Event}s attributeOptionCombos to the target {@link
+   * CategoryOptionCombo} if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#LAST_UPDATED}.
+   */
   public void handleEvents(
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
@@ -228,7 +238,12 @@ public class DataCategoryOptionComboMergeHandler {
     }
   }
 
-  /** */
+  /**
+   * Deletes {@link CompleteDataSetRegistration}s if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#DISCARD}. Otherwise, if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#LAST_UPDATED}, it groups source {@link CompleteDataSetRegistration}s into
+   * duplicates and non-duplicates for further processing.
+   */
   public void handleCompleteDataSetRegistrations(
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
@@ -236,7 +251,7 @@ public class DataCategoryOptionComboMergeHandler {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
       completeDataSetRegistrationStore.deleteByCategoryOptionCombo(sources);
     } else if (LAST_UPDATED == mergeRequest.getDataMergeStrategy()) {
-      // get DVs from sources
+      // get CDSRs from sources
       List<CompleteDataSetRegistration> sourceCdsr =
           completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
               UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));

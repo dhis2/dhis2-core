@@ -63,6 +63,14 @@ public class CommonDataMergeHandler {
   private final DataValueStore dataValueStore;
   private final EntityManager entityManager;
 
+  /**
+   * Groups {@link DataValue}s into duplicates & non-duplicates. It uses the duplicate predicate
+   * param value to decide whether the {@link DataValue} is considered a duplicate or not. Once
+   * grouped, they are then passed on to be handled accordingly.
+   *
+   * @param merge {@link DataValueMergeParams} to perform merge
+   * @param <T> {@link BaseIdentifiableObject} type
+   */
   public <T extends BaseIdentifiableObject> void handleDataValues(
       @Nonnull DataValueMergeParams<T> merge) {
     Map<Boolean, List<DataValue>> sourceDuplicateList =
@@ -78,11 +86,11 @@ public class CommonDataMergeHandler {
   }
 
   /**
-   * Method to handle merging duplicate {@link DataValue}s. There may be multiple potential {@link
-   * DataValue} duplicates. The {@link DataValue} with the latest `lastUpdated` value is filtered
-   * out, the rest are then deleted at the end of the process (We can only have one of these entries
-   * due to the composite key constraint). The filtered-out {@link DataValue} will be compared with
-   * the target {@link DataValue} lastUpdated date.
+   * Handle merging duplicate {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. The {@link DataValue} with the latest `lastUpdated` value is filtered out, the rest
+   * are then deleted at the end of the process (We can only have one of these entries due to the
+   * composite key constraint). The filtered-out {@link DataValue} will be compared with the target
+   * {@link DataValue} lastUpdated date.
    *
    * <p>If the target date is later, no action is required.
    *

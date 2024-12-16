@@ -325,10 +325,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     if (uids.isEmpty()) return List.of();
     return getQuery(
             """
-        select dv from DataValue dv
-        join dv.attributeOptionCombo aoc
-        where aoc.uid in :uids
-        """)
+            select dv from DataValue dv
+            join dv.attributeOptionCombo aoc
+            where aoc.uid in :uids
+            """)
         .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }

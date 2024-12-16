@@ -165,7 +165,18 @@ public interface DataApprovalStore {
       List<DataApprovalLevel> userApprovalLevels,
       Map<Integer, DataApprovalLevel> levelMap);
 
+  /**
+   * Retrieve all {@link DataApproval}s with {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link DataApproval}s with {@link CategoryOptionCombo} {@link UID}s passed in
+   */
   List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uid);
 
+  /**
+   * Delete all {@link DataApproval}s with references to {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   */
   void deleteByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }
