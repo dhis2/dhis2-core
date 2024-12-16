@@ -120,9 +120,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isInteger()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
-      return String.format(
-          "case when %1$s = 'true' then 1 when %1$s = 'false' then 0 else null end",
-          columnExpression);
+      return sqlBuilder.ifThenElse(
+          columnExpression + " = 'true'", "1", columnExpression + " = 'false'", "0", "null");
     } else if (valueType.isDate()) {
       return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
@@ -146,8 +145,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String getCastExpression(String columnExpression, String filterRegex, String dataType) {
     String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
-    return String.format(
-        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
+    String result = String.format("cast(%s as %s)", columnExpression, dataType);
+
+    return sqlBuilder.ifThen(filter, result);
   }
 
   @Override

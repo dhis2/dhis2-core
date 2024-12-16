@@ -291,8 +291,20 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String ifThenElse(String condition, String resultA, String resultB) {
-    return String.format("case when %s then %s else %s end", condition, resultA, resultB);
+  public String ifThenElse(String condition, String thenResult, String elseResult) {
+    return String.format("case when %s then %s else %s end", condition, thenResult, elseResult);
+  }
+
+  @Override
+  public String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult) {
+    return String.format(
+        "case when %s then %s when %s then %s else %s end",
+        conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
   // Statements
