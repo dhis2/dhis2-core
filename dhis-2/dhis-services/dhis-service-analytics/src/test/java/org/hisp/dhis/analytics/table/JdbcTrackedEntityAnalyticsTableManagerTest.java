@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -59,6 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -70,7 +71,7 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock private SqlBuilder sqlBuilder;
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @Mock private PartitionManager partitionManager;
 
@@ -114,13 +115,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     confidentialTea.setValueType(ValueType.TEXT);
 
     Program program = mock(Program.class);
-
-    when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
-
-    when(sqlBuilder.coalesce(anyString(), anyString()))
-        .thenAnswer(inv -> "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + "))");
-
-    when(sqlBuilder.trim(anyString())).thenAnswer(inv -> "trim(" + inv.getArgument(0) + ")");
 
     when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
 
