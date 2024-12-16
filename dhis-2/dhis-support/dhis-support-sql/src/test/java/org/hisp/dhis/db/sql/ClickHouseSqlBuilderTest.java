@@ -231,10 +231,13 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
-  void testJsonExtractNested() {
+  void testJsonExtractObject() {
     assertEquals(
-        "JSONExtractString(eventdatavalues, 'D7m8vpzxHDJ.value')",
-        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'D7m8vpzxHDJ'), 'value')",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
+    assertEquals(
+        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'qrur9Dvnyt5'), 'value')",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
   @Test
