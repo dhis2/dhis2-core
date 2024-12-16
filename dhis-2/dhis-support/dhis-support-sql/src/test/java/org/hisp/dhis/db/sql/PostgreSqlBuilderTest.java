@@ -195,6 +195,16 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testConcat() {
+    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testTrim() {
+    assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
+  }
+
+  @Test
   void testQualifyTable() {
     assertEquals("\"category\"", sqlBuilder.qualifyTable("category"));
     assertEquals("\"categories_options\"", sqlBuilder.qualifyTable("categories_options"));

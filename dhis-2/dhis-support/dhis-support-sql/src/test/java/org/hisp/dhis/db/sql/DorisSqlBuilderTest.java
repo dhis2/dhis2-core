@@ -155,6 +155,16 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testConcat() {
+    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testTrim() {
+    assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
+  }
+
+  @Test
   void testSinqleQuotedCommaDelimited() {
     assertEquals(
         "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",

@@ -209,16 +209,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return "concat(" + String.join(", ", columns) + ")";
-  }
-
-  @Override
-  public String trim(String expression) {
-    return "trim(" + expression + ")";
-  }
-
-  @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
   }
