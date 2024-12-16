@@ -109,6 +109,11 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetEmailVerifiedProperty() {
+    assertFalse(GET("/me").content().as(JsonUser.class).getEmailVerified());
+  }
+
+  @Test
   void testGetSettings() {
     JsonObject settings = GET("/me/settings").content(HttpStatus.OK);
     assertTrue(settings.isObject());

@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.mail.BodyPart;
@@ -231,6 +232,20 @@ public class LoginTest {
   }
 
   @Test
+  void redirectAfterEmailVerificationFailure() {
+    RestTemplate template = addAdminBasicAuthHeaders(getRestTemplateNoRedirects());
+    ResponseEntity<String> response =
+        template.exchange(
+            dhis2ServerApi + "/account/verifyEmail?token=WRONGTOKEN",
+            HttpMethod.GET,
+            new HttpEntity<>(new HashMap(), jsonHeaders()),
+            String.class);
+    assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    List<String> location = response.getHeaders().get("Location");
+    assertEquals(dhis2Server + "dhis-web-login/#/email-verification-failure", location.get(0));
+  }
+
+  @Test
   void testRedirectWithQueryParam() {
     assertRedirectToSameUrl("/api/users?fields=id,name,displayName");
   }
@@ -269,7 +284,7 @@ public class LoginTest {
   void testRedirectAccountWhenVerifiedEmailEnforced() {
     changeSystemSetting("enforceVerifiedEmail", "true");
     try {
-      assertRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/account");
+      assertRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/profile");
     } finally {
       changeSystemSetting("enforceVerifiedEmail", "false");
     }
@@ -472,8 +487,11 @@ public class LoginTest {
 
   private static void verifyEmailWithToken(String cookie, String verifyToken) {
     ResponseEntity<String> verifyEmailResp =
-        getWithCookie("/account/verifyEmail?token=" + verifyToken, cookie);
-    assertEquals(HttpStatus.OK, verifyEmailResp.getStatusCode());
+        getWithCookie(
+            getRestTemplateNoRedirects(), "/account/verifyEmail?token=" + verifyToken, cookie);
+    assertEquals(HttpStatus.FOUND, verifyEmailResp.getStatusCode());
+    List<String> location = verifyEmailResp.getHeaders().get("Location");
+    assertEquals(dhis2Server + "dhis-web-login/#/email-verification-success", location.get(0));
   }
 
   // --------------------------------------------------------------------------------------------
@@ -536,17 +554,7 @@ public class LoginTest {
 
   private static void testRedirectWhenLoggedIn(String url, String redirectUrl) {
     // Disable auto-redirects
-    ClientHttpRequestFactory requestFactory =
-        new SimpleClientHttpRequestFactory() {
-          @Override
-          protected void prepareConnection(HttpURLConnection connection, String httpMethod)
-              throws IOException {
-            super.prepareConnection(connection, httpMethod);
-            connection.setInstanceFollowRedirects(false);
-          }
-        };
-
-    RestTemplate restTemplateNoRedirects = new RestTemplate(requestFactory);
+    RestTemplate restTemplateNoRedirects = getRestTemplateNoRedirects();
 
     // Do an invalid login to capture URL request
     ResponseEntity<LoginResponse> firstResponse =
@@ -623,29 +631,34 @@ public class LoginTest {
     }
   }
 
-  private static ResponseEntity<String> getWithCookie(String path, String cookie) {
+  private static ResponseEntity<String> getWithCookie(
+      RestTemplate template, String path, String cookie) {
     HttpHeaders headers = jsonHeaders();
     headers.set("Cookie", cookie);
-    return exchangeWithHeaders(path, HttpMethod.GET, null, headers);
+    return exchangeWithHeaders(template, path, HttpMethod.GET, null, headers);
+  }
+
+  private static ResponseEntity<String> getWithCookie(String path, String cookie) {
+    return getWithCookie(restTemplate, path, cookie);
   }
 
   private static ResponseEntity<String> getWithAdminBasicAuth(
       String path, Map<String, Object> map) {
-    RestTemplate rt = createRestTemplateWithAdminBasicAuthHeader();
+    RestTemplate rt = addAdminBasicAuthHeaders(new RestTemplate());
     return rt.exchange(
         dhis2ServerApi + path, HttpMethod.GET, new HttpEntity<>(map, jsonHeaders()), String.class);
   }
 
   private static ResponseEntity<String> postWithAdminBasicAuth(
       String path, Map<String, Object> map) {
-    RestTemplate rt = createRestTemplateWithAdminBasicAuthHeader();
+    RestTemplate rt = addAdminBasicAuthHeaders(new RestTemplate());
     return rt.exchange(
         dhis2ServerApi + path, HttpMethod.POST, new HttpEntity<>(map, jsonHeaders()), String.class);
   }
 
   private static ResponseEntity<String> deleteWithAdminBasicAuth(
       String path, Map<String, Object> map) {
-    RestTemplate rt = createRestTemplateWithAdminBasicAuthHeader();
+    RestTemplate rt = addAdminBasicAuthHeaders(new RestTemplate());
     return rt.exchange(
         dhis2ServerApi + path,
         HttpMethod.DELETE,
@@ -655,16 +668,20 @@ public class LoginTest {
 
   private static ResponseEntity<String> exchangeWithHeaders(
       String path, HttpMethod method, Object body, HttpHeaders headers) {
+    return exchangeWithHeaders(restTemplate, path, method, body, headers);
+  }
+
+  private static ResponseEntity<String> exchangeWithHeaders(
+      RestTemplate template, String path, HttpMethod method, Object body, HttpHeaders headers) {
     try {
-      return restTemplate.exchange(
+      return template.exchange(
           dhis2ServerApi + path, method, new HttpEntity<>(body, headers), String.class);
     } catch (HttpClientErrorException e) {
       return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
     }
   }
 
-  private static RestTemplate createRestTemplateWithAdminBasicAuthHeader() {
-    RestTemplate template = new RestTemplate();
+  private static RestTemplate addAdminBasicAuthHeaders(RestTemplate template) {
     String authHeader =
         Base64.getUrlEncoder().encodeToString("admin:district".getBytes(StandardCharsets.UTF_8));
     template
@@ -675,6 +692,21 @@ public class LoginTest {
               return execution.execute(request, body);
             });
     return template;
+  }
+
+  @NotNull
+  private static RestTemplate getRestTemplateNoRedirects() {
+    // Disable auto-redirects
+    ClientHttpRequestFactory requestFactory =
+        new SimpleClientHttpRequestFactory() {
+          @Override
+          protected void prepareConnection(HttpURLConnection connection, String httpMethod)
+              throws IOException {
+            super.prepareConnection(connection, httpMethod);
+            connection.setInstanceFollowRedirects(false);
+          }
+        };
+    return new RestTemplate(requestFactory);
   }
 
   // --------------------------------------------------------------------------------------------
@@ -812,7 +844,7 @@ public class LoginTest {
   private static void changeSystemSetting(String key, String value) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.TEXT_PLAIN);
-    RestTemplate rt = createRestTemplateWithAdminBasicAuthHeader();
+    RestTemplate rt = addAdminBasicAuthHeaders(new RestTemplate());
     ResponseEntity<String> response =
         rt.exchange(
             dhis2ServerApi + "/systemSettings/" + key,

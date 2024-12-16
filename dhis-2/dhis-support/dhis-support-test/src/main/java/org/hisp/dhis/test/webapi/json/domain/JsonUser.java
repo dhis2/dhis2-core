@@ -28,6 +28,7 @@
 package org.hisp.dhis.test.webapi.json.domain;
 
 import java.time.LocalDateTime;
+import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 
@@ -51,6 +52,10 @@ public interface JsonUser extends JsonIdentifiableObject {
 
   default JsonList<JsonUserGroup> getUserGroups() {
     return getList("userGroups", JsonUserGroup.class);
+  }
+
+  default boolean getEmailVerified() {
+    return get("emailVerified", JsonBoolean.class).booleanValue();
   }
 
   default JsonList<JsonOrganisationUnit> getOrganisationUnits() {
