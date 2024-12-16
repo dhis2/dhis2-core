@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import java.util.function.UnaryOperator;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -35,24 +34,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisplayNameUtils {
   /**
-   * TODO Refactor and change this, too much code vs benefit.
-   *
-   * <p>This method will extract/compose the display name, based on the tracker JSON objects living
-   * in the 'originColumn'. This method will return the display name respecting these rules:
-   *
-   * <p>If (last name, first name and username) are populated => Last name, first name (username)
-   *
-   * <p>If (only username is populated) => username
-   *
-   * <p>If (only first name is populated) => first name
-   *
-   * <p>If (only last name is populated) => last name
-   *
-   * <p>If (only last name and first name are populated) => last name, first name
-   *
-   * <p>If (only last name and username are populated) => last name (username)
-   *
-   * <p>If (only first name and username are populated) => first name (username)
+   * Creates a display name from a user info JSON object.
    *
    * @param originColumn the original column from where the JSON values are extracted from
    * @param tablePrefix the prefix of the tracker table
@@ -64,83 +46,9 @@ public final class DisplayNameUtils {
     String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
     String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
     String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
+    String expression = sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'");
 
-    // Helper methods for the CASE conditions
-    UnaryOperator<String> isEmpty = expression -> sqlBuilder.coalesce(expression, "''") + " = ''";
-
-    UnaryOperator<String> isNotEmpty =
-        expression -> sqlBuilder.coalesce(expression, "''") + " <> ''";
-
-    return String.format(
-        "case"
-            +
-            // All empty
-            " when %s and %s and %s then null"
-            +
-            // Username only
-            " when %s and %s and %s then %s"
-            +
-            // FirstName only
-            " when %s and %s and %s then %s"
-            +
-            // Surname only
-            " when %s and %s and %s then %s"
-            +
-            // Surname and FirstName
-            " when %s and %s and %s then %s"
-            +
-            // FirstName and Username
-            " when %s and %s and %s then %s"
-            +
-            // Surname and Username
-            " when %s and %s and %s then %s"
-            +
-            // All fields
-            " else %s end as %s",
-        // All empty
-        isEmpty.apply(surname),
-        isEmpty.apply(firstName),
-        isEmpty.apply(username),
-
-        // Username only
-        isEmpty.apply(surname),
-        isEmpty.apply(firstName),
-        isNotEmpty.apply(username),
-        username,
-
-        // FirstName only
-        isEmpty.apply(surname),
-        isNotEmpty.apply(firstName),
-        isEmpty.apply(username),
-        firstName,
-
-        // Surname only
-        isNotEmpty.apply(surname),
-        isEmpty.apply(firstName),
-        isEmpty.apply(username),
-        surname,
-
-        // Surname and FirstName
-        isNotEmpty.apply(surname),
-        isNotEmpty.apply(firstName),
-        isEmpty.apply(username),
-        sqlBuilder.concat(surname, "', '", firstName),
-
-        // FirstName and Username
-        isEmpty.apply(surname),
-        isNotEmpty.apply(firstName),
-        isNotEmpty.apply(username),
-        sqlBuilder.concat(firstName, "' ('", username, "')'"),
-
-        // Surname and Username
-        isNotEmpty.apply(surname),
-        isEmpty.apply(firstName),
-        isNotEmpty.apply(username),
-        sqlBuilder.concat(surname, "' ('", username, "')'"),
-
-        // All fields
-        sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'"),
-        columnAlias);
+    return String.format("%s as %s", expression, columnAlias);
   }
 
   private static String extractJsonValue(
