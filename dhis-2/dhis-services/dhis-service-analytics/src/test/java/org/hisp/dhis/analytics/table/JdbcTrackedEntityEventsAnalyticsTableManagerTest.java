@@ -52,8 +52,8 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.PostgresAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -82,7 +82,7 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
 
   @Spy private PostgreSqlBuilder sqlBuilder;
 
-  @Spy private PostgresAnalyticsSqlBuilder analyticsSqlBuilder;
+  @Spy private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder;
 
   @Mock private PartitionManager partitionManager;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util;
+package org.hisp.dhis.tablereplication;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
+import org.springframework.stereotype.Service;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class DisplayNameUtils {
-  /**
-   * Creates a display name from a user info JSON object.
-   *
-   * @param originColumn the original column from where the JSON values are extracted from
-   * @param tablePrefix the prefix of the tracker table
-   * @param columnAlias the alias of this column in the analytics database
-   * @return the trimmed display name
-   */
-  public static String getDisplayName(
-      String originColumn, String tablePrefix, String columnAlias, SqlBuilder sqlBuilder) {
-    String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
-    String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
-    String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
-    String expression = sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'");
+@Service
+@RequiredArgsConstructor
+public class DefaultTableReplicationService implements TableReplicationService {
+  private static final Table TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE =
+      new Table(
+          "trackedentityattributevalue",
+          List.of(
+              new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
+              new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
+              new Column("value", DataType.TEXT, Nullable.NULL)),
+          List.of("trackedentityid", "trackedentityattributeid"));
 
-    return String.format("%s as %s", expression, columnAlias);
-  }
+  private final TableReplicationStore store;
 
-  private static String extractJsonValue(
-      SqlBuilder sqlBuilder, String tablePrefix, String originColumn, String path) {
-    String json = tablePrefix + "." + originColumn;
-    String jsonExtracted = sqlBuilder.jsonExtract(json, path);
-    return sqlBuilder.trim(jsonExtracted);
+  @Override
+  public void replicateTrackedEntityAttributeValue() {
+    store.replicateAnalyticsDatabaseTable(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE);
   }
 }

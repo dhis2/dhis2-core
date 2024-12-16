@@ -195,6 +195,16 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testConcat() {
+    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testTrim() {
+    assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
+  }
+
+  @Test
   void testQualifyTable() {
     assertEquals("\"category\"", sqlBuilder.qualifyTable("category"));
     assertEquals("\"categories_options\"", sqlBuilder.qualifyTable("categories_options"));
@@ -235,6 +245,20 @@ class PostgreSqlBuilderTest {
     assertEquals(
         "eventdatavalues #>> '{D7m8vpzxHDJ, value}'",
         sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+  }
+
+  @Test
+  void testIfThen() {
+    assertEquals(
+        "case when a.status = 'COMPLETE' then a.eventdate end",
+        sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
+  }
+
+  @Test
+  void testIfThenElse() {
+    assertEquals(
+        "case when a.status = 'COMPLETE' then a.eventdate else a.scheduleddate end",
+        sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
   }
 
   // Statements
@@ -431,7 +455,6 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testCreateIndexWithDescNullsLast() {
-    // given
     String expected =
         "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
     Index index =
@@ -443,10 +466,18 @@ class PostgreSqlBuilderTest {
             .sortOrder("desc nulls last")
             .build();
 
-    // when
     String createIndexStmt = sqlBuilder.createIndex(index);
 
-    // then
     assertEquals(expected, createIndexStmt);
+  }
+
+  @Test
+  void testInsertIntoSelectFrom() {
+    String expected =
+        """
+        insert into "vaccination" ("id","facility_type","bcg_doses") \
+        select "id","facility_type","bcg_doses" from "immunization";""";
+
+    assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "\"immunization\""));
   }
 }

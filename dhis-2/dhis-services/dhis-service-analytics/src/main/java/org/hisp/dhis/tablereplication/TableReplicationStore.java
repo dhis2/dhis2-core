@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util;
+package org.hisp.dhis.tablereplication;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.model.Table;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class DisplayNameUtils {
+/**
+ * @author Lars Helge Overland
+ */
+public interface TableReplicationStore {
   /**
-   * Creates a display name from a user info JSON object.
+   * Replicates the given transactional database table in the analytics database.
    *
-   * @param originColumn the original column from where the JSON values are extracted from
-   * @param tablePrefix the prefix of the tracker table
-   * @param columnAlias the alias of this column in the analytics database
-   * @return the trimmed display name
+   * @param table the {@link Table} to replicate.
    */
-  public static String getDisplayName(
-      String originColumn, String tablePrefix, String columnAlias, SqlBuilder sqlBuilder) {
-    String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
-    String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
-    String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
-    String expression = sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'");
-
-    return String.format("%s as %s", expression, columnAlias);
-  }
-
-  private static String extractJsonValue(
-      SqlBuilder sqlBuilder, String tablePrefix, String originColumn, String path) {
-    String json = tablePrefix + "." + originColumn;
-    String jsonExtracted = sqlBuilder.jsonExtract(json, path);
-    return sqlBuilder.trim(jsonExtracted);
-  }
+  void replicateAnalyticsDatabaseTable(Table table);
 }
