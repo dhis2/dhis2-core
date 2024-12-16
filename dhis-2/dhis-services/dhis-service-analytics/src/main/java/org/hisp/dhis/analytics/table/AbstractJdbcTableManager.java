@@ -238,8 +238,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         table.getTablePartitions().stream().map(Table::fromStaging).distinct().toList();
 
     if (!skipMasterTable) {
+      // Full replace update and main table exist, swap main table
       swapTable(table, table.getMainName());
     } else {
+      // Incremental append update, update parent of partitions to existing main table
       swappedPartitions.forEach(
           partition -> swapParentTable(partition, table.getName(), table.getMainName()));
       dropTable(table);
