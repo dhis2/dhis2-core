@@ -32,7 +32,6 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -158,12 +157,6 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
 
   /** Returns the option set of the dimension, if any. */
   OptionSet getOptionSet();
-
-  /** The option set saved by the client, if any. */
-  OptionSet getOptionSetItem();
-
-  /** The client's aggregation type. */
-  Aggregation getAggregation();
 
   /** Dimension items. */
   List<DimensionalItemObject> getItems();
