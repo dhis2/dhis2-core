@@ -66,7 +66,6 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
   private CategoryOptionCombo coc1;
   private CategoryOptionCombo coc2;
   private CategoryOptionCombo coc3;
-  private CategoryOptionCombo coc4;
 
   @BeforeEach
   void setUp() {
