@@ -602,6 +602,106 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return ColumnAndAlias.EMPTY;
   }
 
+  protected String getColumnWithCte(QueryItem item, String suffix, CTEContext cteContext) {
+    String colName = item.getItemName();
+    String alias = EMPTY;
+
+    if (item.hasProgramStage()) {
+      assertProgram(item);
+      colName = quote(colName + suffix);
+
+      // Generate CTE name based on program stage and item
+      String cteName = String.format("ps_%s_%s",
+              item.getProgramStage().getUid().toLowerCase(),
+              item.getItem().getUid().toLowerCase());
+
+      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+      String excludingScheduledCondition =
+              eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "'";
+
+      if (item.getProgramStage().getRepeatable()
+              && item.hasRepeatableStageParams()
+              && !item.getRepeatableStageParams().simpleStageValueExpected()) {
+
+        String cteSql = String.format(
+                "SELECT enrollment, json_agg(t1) as value FROM (" +
+                        "  SELECT %s, %s " +  // Removed extra %s placeholders
+                        "  FROM %s " +
+                        "  WHERE %s AND ps = '%s' %s %s %s %s" +
+                        ") as t1 GROUP BY enrollment",
+                colName,
+                String.join(", ",
+                        EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+                        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
+                        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+                eventTableName,
+                excludingScheduledCondition,
+                item.getProgramStage().getUid(),
+                getExecutionDateFilter(
+                        item.getRepeatableStageParams().getStartDate(),
+                        item.getRepeatableStageParams().getEndDate()),
+                createOrderType(item.getProgramStageOffset()),
+                createOffset(item.getProgramStageOffset()),
+                getLimit(item.getRepeatableStageParams().getCount())
+        );
+
+        cteContext.addCTE(cteName, cteSql);
+        return cteName + ".value";
+
+      } else if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
+        String cteSql = String.format(
+                "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
+                        "FROM %s " +
+                        "WHERE %s AND ps = '%s' %s %s %s " +
+                        "ORDER BY enrollment, %s",
+                colName,
+                eventTableName,
+                excludingScheduledCondition,
+                item.getProgramStage().getUid(),
+                getExecutionDateFilter(
+                        item.getRepeatableStageParams().getStartDate(),
+                        item.getRepeatableStageParams().getEndDate()),
+                createOrderType(item.getProgramStageOffset()),
+                createOffset(item.getProgramStageOffset()),
+                createOrderType(item.getProgramStageOffset()).replace("ORDER BY ", "")
+        );
+
+        cteContext.addCTE(cteName, cteSql);
+        return cteName + ".value";
+      }
+
+      if (item.getItem().getDimensionItemType() == DATA_ELEMENT
+              && item.getProgramStage() != null) {
+        alias = quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
+      }
+
+      String cteSql = String.format(
+              "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
+                      "FROM %s " +
+                      "WHERE %s AND ps = '%s' AND %s IS NOT NULL %s %s " +
+                      "ORDER BY enrollment, %s",
+              colName,
+              eventTableName,
+              excludingScheduledCondition,
+              item.getProgramStage().getUid(),
+              colName,
+              createOrderType(item.getProgramStageOffset()),
+              createOffset(item.getProgramStageOffset()),
+              createOrderType(item.getProgramStageOffset()).replace("ORDER BY ", "")
+      );
+
+      cteContext.addCTE(cteName, cteSql);
+      return cteName + ".value" + (alias.isEmpty() ? "" : " as " + alias);
+    }
+
+    // Non-program stage cases remain unchanged
+    if (isOrganizationUnitProgramAttribute(item)) {
+      return quoteAlias(colName + suffix);
+    } else {
+      return quoteAlias(colName);
+    }
+  }
+
   /**
    * Creates a column "selector" for the given item name. The suffix will be appended as part of the
    * item name. The column selection is based on events analytics tables.
@@ -827,11 +927,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   // New methods //
 
   private String buildEnrollmentQueryWithCte2(EventQueryParams params) {
-    // Create CTEContext to collect all CTEs
     CTEContext cteContext = new CTEContext();
     StringBuilder sql = new StringBuilder();
 
-    // 1. Process all program indicators to generate CTEs before building the main query
+    // 1. Process all program indicators to generate CTEs
     for (QueryItem queryItem : params.getItems()) {
       if (queryItem.isProgramIndicator()) {
         ProgramIndicator pi = (ProgramIndicator) queryItem.getItem();
@@ -853,6 +952,34 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                   cteContext);
         }
       }
+      else if (queryItem.hasProgramStage()) {
+        // Generate CTE for program stage items
+        String cteName = String.format("ps_%s_%s",
+                queryItem.getProgramStage().getUid().toLowerCase(),
+                queryItem.getItem().getUid().toLowerCase());
+
+        String colName = quote(queryItem.getItemName());
+        String eventTableName = ANALYTICS_EVENT + queryItem.getProgram().getUid();
+
+        String cteSql = String.format(
+                "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
+                        "FROM %s " +
+                        "WHERE eventstatus != 'SCHEDULE' " +
+                        "AND ps = '%s' " +
+                        "AND %s IS NOT NULL " +
+                        "ORDER BY enrollment, occurreddate DESC, created DESC",
+                colName,
+                eventTableName,
+                queryItem.getProgramStage().getUid(),
+                colName);
+
+        cteContext.addCTE(cteName, cteSql);
+
+        String alias = quote(queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid());
+        cteContext.addColumnMapping(
+                queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid(),
+                cteName + ".value as " + alias);
+      }
     }
 
     // 2. Add WITH clause if we have any CTEs
@@ -869,7 +996,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sql.append("SELECT ").append(String.join(",\n    ", selectCols));
 
     // 4. From clause
-    sql.append(" from ").append(params.getTableName()).append(" as ax");
+    sql.append("\nFROM ").append(params.getTableName()).append(" AS ax");
 
     // 5. Add joins for each CTE
     for (String cteName : cteContext.getCTENames()) {
@@ -896,13 +1023,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         if (column != null) {
           List<String> dateConditions = new ArrayList<>();
           for (DateRange range : entry.getValue()) {
-            dateConditions.add(
-                    String.format(
-                            "(%s >= '%s' and %s < '%s')",
-                            column,
-                            DateUtils.toMediumDate(range.getStartDate()),
-                            column,
-                            DateUtils.toMediumDate(range.getEndDate())));
+            dateConditions.add(String.format(
+                    "(%s >= '%s' and %s < '%s')",
+                    column,
+                    DateUtils.toMediumDate(range.getStartDate()),
+                    column,
+                    DateUtils.toMediumDate(range.getEndDate())));
           }
           conditions.add("(" + String.join(" or ", dateConditions) + ")");
         }
@@ -914,26 +1040,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // 7. Order by
-    if (params.getAsc() != null && !params.getAsc().isEmpty()) {
-      sql.append("\nORDER BY");
-      boolean first = true;
-      for (QueryItem item : params.getAsc()) {
-        if (!first) {
-          sql.append(",");
-        }
-        String columnName =
-                item.getItemId().equals("incidentdate") ? "occurreddate" : item.getItemId();
-        sql.append(" ").append(quote(columnName)).append(" asc nulls last");
-        first = false;
-      }
-    }
+    sql.append(getSortClause(params));
 
     // 8. Paging
     sql.append(" ").append(getPagingClause(params, 5000));
 
     return sql.toString();
   }
-
 
 
   private String getColumnForTimeField(TimeField timeField) {
