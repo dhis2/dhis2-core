@@ -88,14 +88,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     AnalyticsTableType tableType = getAnalyticsTableType();
 
-    Clock clock =
-        new Clock(log)
-            .startClock()
-            .logTime(
-                "Starting update of type: {}, table name: '{}', parallel jobs: {}",
-                tableType,
-                tableType.getTableName(),
-                parallelJobs);
+    Clock clock = new Clock(log).startClock();
+    clock.logTime(
+        "Starting update of type: {}, table name: '{}', parallel jobs: {}",
+        tableType,
+        tableType.getTableName(),
+        parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
     boolean validState = tableManager.validState();
