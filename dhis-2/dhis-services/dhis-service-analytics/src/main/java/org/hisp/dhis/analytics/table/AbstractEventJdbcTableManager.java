@@ -121,7 +121,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
       return sqlBuilder.ifThenElse(
-          columnExpression + " = 'true", "1", columnExpression + " = 'false'", "0", "null");
+          columnExpression + " = 'true'", "1", columnExpression + " = 'false'", "0", "null");
     } else if (valueType.isDate()) {
       return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
