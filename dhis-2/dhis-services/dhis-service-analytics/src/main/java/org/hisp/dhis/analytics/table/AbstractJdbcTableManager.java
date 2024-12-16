@@ -230,19 +230,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
-    log.info(
-        "Swapping table, master table exists: '{}', skip master table: '{}'",
-        tableExists,
-        skipMasterTable);
-    List<Table> swappedPartitions = new UniqueArrayList<>();
+    log.info("Swapping table: '%s'", table.getMainName());
+    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+
+    List<Table> swapPartitions = new UniqueArrayList<>();
     table.getTablePartitions().stream()
-        .forEach(p -> swappedPartitions.add(swapTable(p, p.getMainName())));
+        .forEach(p -> swapPartitions.add(swapTable(p, p.getMainName())));
 
     if (!skipMasterTable) {
       swapTable(table, table.getMainName());
     } else {
-      swappedPartitions.forEach(
-          partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+      swapPartitions.forEach(
+          partition -> swapParentTable(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
   }
@@ -301,7 +300,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingMasterName the staging master table name.
    * @param mainMasterName the main master table name.
    */
-  private void swapInheritance(Table partition, String stagingMasterName, String mainMasterName) {
+  private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
     executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
   }
 
