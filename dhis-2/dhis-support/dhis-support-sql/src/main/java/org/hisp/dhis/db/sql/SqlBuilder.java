@@ -342,11 +342,28 @@ public interface SqlBuilder {
    * Returns a conditional statement.
    *
    * @param condition the condition to evaluate.
-   * @param resultA the result to return if the condition is true.
-   * @param resultB the result to return if the condition is false.
+   * @param thenResult the result to return if the condition is true.
+   * @param elseResult the result to return if the condition is false.
    * @return a conditional statement.
    */
-  String ifThenElse(String condition, String resultA, String resultB);
+  String ifThenElse(String condition, String thenResult, String elseResult);
+
+  /**
+   * Returns a conditional statement.
+   *
+   * @param conditionA the first condition to evaluate.
+   * @param thenResultA the result to return if the first condition is true.
+   * @param conditionB the second condition to evaluate.
+   * @param thenResultB the result to return if the second condition is false.
+   * @param elseResult the result to return if all conditions are false.
+   * @return a conditional statement.
+   */
+  String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult);
 
   // Statements
 
