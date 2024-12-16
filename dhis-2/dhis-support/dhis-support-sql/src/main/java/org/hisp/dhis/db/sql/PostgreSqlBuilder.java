@@ -246,8 +246,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtractNested(String column, String... expression) {
-    return String.format("%s #>> '{%s}'", column, String.join(", ", expression));
+  public String jsonExtract(String json, String key, String property) {
+    String path = String.join(", ", key, property);
+    return String.format("%s #>> '{%s}'", json, path);
   }
 
   @Override

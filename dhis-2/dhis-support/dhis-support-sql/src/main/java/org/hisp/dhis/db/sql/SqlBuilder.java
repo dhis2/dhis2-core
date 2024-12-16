@@ -284,19 +284,20 @@ public interface SqlBuilder {
    * Extracts a value from a JSON column using a specified property path.
    *
    * @param json the JSON column name or value to extract from.
-   * @param property the JSON property path to extract.
+   * @param property the JSON property to extract.
    * @return the SQL function for JSON value extraction.
    */
   String jsonExtract(String json, String property);
 
   /**
-   * Extracts a nested value from a JSON column.
+   * Extracts a nested value from a JSON object.
    *
-   * @param json the JSON column name or value to extract from.
-   * @param expression the hierarchical path expression to the nested value.
+   * @param json the JSON column name or object to extract from.
+   * @param key the object key.
+   * @param property the JSON property to extract.
    * @return a SQL expression to extract the specified nested value from the JSON column.
    */
-  String jsonExtractNested(String json, String... expression);
+  String jsonExtract(String json, String key, String property);
 
   /**
    * Generates a SQL casting expression for the given column or expression.

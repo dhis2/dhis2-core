@@ -86,6 +86,7 @@ class DorisSqlBuilderTest {
   void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+    assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
   // Index types
@@ -215,10 +216,13 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testJsonExtractNested() {
+  void testJsonExtractObject() {
     assertEquals(
-        "json_unquote(json_extract(eventdatavalues, '$.D7m8vpzxHDJ.value'))",
-        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+        "json_unquote(json_extract(ev.eventdatavalues, '$.D7m8vpzxHDJ.value'))",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
+    assertEquals(
+        "json_unquote(json_extract(ev.eventdatavalues, '$.qrur9Dvnyt5.value'))",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
   @Test
