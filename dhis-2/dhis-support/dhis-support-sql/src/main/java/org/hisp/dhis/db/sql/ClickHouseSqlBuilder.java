@@ -214,16 +214,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return "concat(" + String.join(", ", columns) + ")";
-  }
-
-  @Override
-  public String trim(String expression) {
-    return "trim(" + expression + ")";
-  }
-
-  @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
   }
@@ -257,6 +247,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String ifThen(String condition, String result) {
+    return String.format("if(%s, %s, null)", condition, result);
+  }
+
+  @Override
+  public String ifThenElse(String condition, String resultA, String resultB) {
+    return String.format("if(%s, %s, %s)", condition, resultA, resultB);
   }
 
   // Statements
