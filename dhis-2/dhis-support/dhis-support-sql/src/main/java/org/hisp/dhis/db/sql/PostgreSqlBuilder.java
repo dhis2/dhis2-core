@@ -247,12 +247,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String cast(String column, DataType dataType) {
-    return column
-        + switch (dataType) {
-          case NUMERIC -> "::numeric";
-          case BOOLEAN -> "::numeric!=0";
-          case TEXT -> "::text";
-        };
+    return switch (dataType) {
+      case NUMERIC -> column + "::numeric";
+      case BOOLEAN -> column + "::numeric!=0";
+      case TEXT -> column + "::text";
+    };
   }
 
   @Override
