@@ -241,7 +241,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       swapTable(table, table.getMainName());
     } else {
       swappedPartitions.forEach(
-          partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+          partition -> swapParentTable(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
   }
@@ -299,7 +299,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingMasterName the staging master table name.
    * @param mainMasterName the main master table name.
    */
-  private void swapInheritance(Table partition, String stagingMasterName, String mainMasterName) {
+  private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
     executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
   }
 
