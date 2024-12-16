@@ -374,7 +374,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
 
     assertEquals("DATA_X", columnNode.get("dimensionType").value());
-    assertEquals(true, columnNode.get("dataDimension").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
     assertEquals("PROGRAM_ATTRIBUTE", itemsNode.get("dimensionItemType").value());
     assertEquals("SUM", itemsNode.get("aggregationType").value());
     assertEquals(programUid + "." + attributeUid, itemsNode.get("dimensionItem").value());
@@ -428,7 +428,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
 
     assertEquals("DATA_X", columnNode.get("dimensionType").value());
-    assertEquals(true, columnNode.get("dataDimension").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
     assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
     assertEquals("SUM", itemsNode.get("aggregationType").value());
     assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
