@@ -236,7 +236,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     List<Table> swapPartitions = new UniqueArrayList<>();
     table.getTablePartitions().stream()
-        .forEach(p -> swapPartitions.add(swapTable(p, p.getMainName())));
+        .forEach(partition -> swapPartitions.add(swapTable(partition, partition.getMainName())));
 
     if (!skipMasterTable) {
       swapTable(table, table.getMainName());
@@ -296,7 +296,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       executeSilently(sqlBuilder.dropTableIfExistsCascade(mainTableName));
       executeSilently(sqlBuilder.renameTable(stagingTable, mainTableName));
     }
-    return stagingTable.swapFromStaging();
+    return stagingTable.fromStaging();
   }
 
   /**

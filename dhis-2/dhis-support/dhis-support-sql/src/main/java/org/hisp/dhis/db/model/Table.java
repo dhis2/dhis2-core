@@ -254,7 +254,7 @@ public class Table {
     return isNotEmpty(partitions);
   }
 
-  public Table swapFromStaging() {
+  public Table fromStaging() {
     return new Table(
         fromStaging(this.getName()),
         this.getColumns(),
