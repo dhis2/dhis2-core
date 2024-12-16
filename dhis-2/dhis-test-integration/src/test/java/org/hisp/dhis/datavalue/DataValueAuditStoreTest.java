@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,7 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
   private CategoryOptionCombo coc1;
   private CategoryOptionCombo coc2;
   private CategoryOptionCombo coc3;
+  private CategoryOptionCombo coc4;
 
   @BeforeEach
   void setUp() {
@@ -169,28 +170,45 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
     dataValueAuditService.addDataValueAudit(dataValueAuditC1);
     dataValueAuditService.addDataValueAudit(dataValueAuditC2);
 
-    // when
-    dataValueAuditStore.deleteDataValueAudits(coc1);
-    dataValueAuditStore.deleteDataValueAudits(coc2);
-
-    // then
-    List<DataValueAudit> dvaCoc1 =
+    // state before delete
+    List<DataValueAudit> dvaCoc1Before =
         dataValueAuditStore.getDataValueAudits(
             new DataValueAuditQueryParams().setCategoryOptionCombo(coc1));
-    List<DataValueAudit> dvaCoc2 =
+    List<DataValueAudit> dvaCoc2Before =
         dataValueAuditStore.getDataValueAudits(
             new DataValueAuditQueryParams().setAttributeOptionCombo(coc2));
-    List<DataValueAudit> dvaCoc3 =
+    List<DataValueAudit> dvaCoc3Before =
         dataValueAuditStore.getDataValueAudits(
             new DataValueAuditQueryParams()
                 .setCategoryOptionCombo(coc3)
                 .setAttributeOptionCombo(coc3));
 
-    assertTrue(dvaCoc1.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 1");
-    assertTrue(dvaCoc2.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 2");
-    assertEquals(2, dvaCoc3.size(), "There should be 2 audits referencing Cat Opt Combo 3");
+    assertEquals(2, dvaCoc1Before.size(), "There should be 2 audits referencing Cat Opt Combo 1");
+    assertEquals(2, dvaCoc2Before.size(), "There should be 2 audits referencing Cat Opt Combo 2");
+    assertEquals(2, dvaCoc3Before.size(), "There should be 2 audits referencing Cat Opt Combo 3");
+
+    // when
+    dataValueAuditStore.deleteDataValueAudits(coc1);
+    dataValueAuditStore.deleteDataValueAudits(coc2);
+
+    // then
+    List<DataValueAudit> dvaCoc1After =
+        dataValueAuditStore.getDataValueAudits(
+            new DataValueAuditQueryParams().setCategoryOptionCombo(coc1));
+    List<DataValueAudit> dvaCoc2After =
+        dataValueAuditStore.getDataValueAudits(
+            new DataValueAuditQueryParams().setAttributeOptionCombo(coc2));
+    List<DataValueAudit> dvaCoc3After =
+        dataValueAuditStore.getDataValueAudits(
+            new DataValueAuditQueryParams()
+                .setCategoryOptionCombo(coc3)
+                .setAttributeOptionCombo(coc3));
+
+    assertTrue(dvaCoc1After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 1");
+    assertTrue(dvaCoc2After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 2");
+    assertEquals(2, dvaCoc3After.size(), "There should be 2 audits referencing Cat Opt Combo 3");
     assertTrue(
-        dvaCoc3.containsAll(List.of(dataValueAuditC1, dataValueAuditC2)),
+        dvaCoc3After.containsAll(List.of(dataValueAuditC1, dataValueAuditC2)),
         "Retrieved entries should contain both audits referencing cat opt combo 3");
   }
 }

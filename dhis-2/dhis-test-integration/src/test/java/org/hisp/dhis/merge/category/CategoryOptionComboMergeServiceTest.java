@@ -131,21 +131,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private EventStore eventStore;
-  private Category cat1;
-  private Category cat2;
-  private Category cat3;
-  private Category cat4;
 
   private CategoryCombo cc1;
-  private CategoryCombo cc2;
-  private CategoryOption co1A;
-  private CategoryOption co1B;
-  private CategoryOption co2A;
-  private CategoryOption co2B;
-  private CategoryOption co3A;
-  private CategoryOption co3B;
-  private CategoryOption co4A;
-  private CategoryOption co4B;
   private CategoryOptionCombo cocSource1;
   private CategoryOptionCombo cocSource2;
   private CategoryOptionCombo cocTarget;
@@ -164,14 +151,14 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   public void setUp() {
     // 8 category options
-    co1A = createCategoryOption("1A", CodeGenerator.generateUid());
-    co1B = createCategoryOption("1B", CodeGenerator.generateUid());
-    co2A = createCategoryOption("2A", CodeGenerator.generateUid());
-    co2B = createCategoryOption("2B", CodeGenerator.generateUid());
-    co3A = createCategoryOption("3A", CodeGenerator.generateUid());
-    co3B = createCategoryOption("3B", CodeGenerator.generateUid());
-    co4A = createCategoryOption("4A", CodeGenerator.generateUid());
-    co4B = createCategoryOption("4B", CodeGenerator.generateUid());
+    CategoryOption co1A = createCategoryOption("1A", CodeGenerator.generateUid());
+    CategoryOption co1B = createCategoryOption("1B", CodeGenerator.generateUid());
+    CategoryOption co2A = createCategoryOption("2A", CodeGenerator.generateUid());
+    CategoryOption co2B = createCategoryOption("2B", CodeGenerator.generateUid());
+    CategoryOption co3A = createCategoryOption("3A", CodeGenerator.generateUid());
+    CategoryOption co3B = createCategoryOption("3B", CodeGenerator.generateUid());
+    CategoryOption co4A = createCategoryOption("4A", CodeGenerator.generateUid());
+    CategoryOption co4B = createCategoryOption("4B", CodeGenerator.generateUid());
     categoryService.addCategoryOption(co1A);
     categoryService.addCategoryOption(co1B);
     categoryService.addCategoryOption(co2A);
@@ -182,17 +169,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOption(co4B);
 
     // 4 categories (each with 2 category options)
-    cat1 = createCategory('1', co1A, co1B);
-    cat2 = createCategory('2', co2A, co2B);
-    cat3 = createCategory('3', co3A, co3B);
-    cat4 = createCategory('4', co4A, co4B);
+    Category cat1 = createCategory('1', co1A, co1B);
+    Category cat2 = createCategory('2', co2A, co2B);
+    Category cat3 = createCategory('3', co3A, co3B);
+    Category cat4 = createCategory('4', co4A, co4B);
     categoryService.addCategory(cat1);
     categoryService.addCategory(cat2);
     categoryService.addCategory(cat3);
     categoryService.addCategory(cat4);
 
     cc1 = createCategoryCombo('1', cat1, cat2);
-    cc2 = createCategoryCombo('2', cat3, cat4);
+    CategoryCombo cc2 = createCategoryCombo('2', cat3, cat4);
     categoryService.addCategoryCombo(cc1);
     categoryService.addCategoryCombo(cc2);
 
