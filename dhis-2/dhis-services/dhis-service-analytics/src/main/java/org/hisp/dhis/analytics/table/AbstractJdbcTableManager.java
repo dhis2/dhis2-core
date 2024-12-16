@@ -232,7 +232,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     log.info("Swapping table: '{}'", table.getMainName());
     log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
 
-    table.getTablePartitions().stream().forEach(part -> swapTable(part, part.getMainName()));
+    table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
 
     List<Table> swappedPartitions =
         table.getTablePartitions().stream().map(Table::fromStaging).distinct().toList();
