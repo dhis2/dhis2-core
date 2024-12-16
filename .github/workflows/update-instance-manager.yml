@@ -1,4 +1,4 @@
-name: Hello World Pipeline
+name: Update instance manager
 
 on:
   pull_request:
@@ -33,9 +33,10 @@ jobs:
       - name: Build with Maven
         run: mvn --threads 4 --batch-mode --no-transfer-progress clean install --update-snapshots --file ./dhis-2/pom.xml -DskipTests
 
+      #curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O
       - name: Sync war
         run: |
           echo "Syncing WAR ..."
-          curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O
-          chmod +x copy-war-s3.sh
-          ./copy-war-s3.sh dev $GITHUB_HEAD_REF
+          
+          chmod +x gha-copy-war-s3.sh
+          ./gha-copy-war-s3.sh dev $GITHUB_HEAD_REF
