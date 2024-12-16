@@ -65,7 +65,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -230,18 +229,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
-    log.info(
-        "Swapping table, master table exists: '{}', skip master table: '{}'",
-        tableExists,
-        skipMasterTable);
-    List<Table> swappedPartitions = new UniqueArrayList<>();
-    table.getTablePartitions().stream()
-        .forEach(p -> swappedPartitions.add(swapTable(p, p.getMainName())));
+    log.info("Swapping table: '{}'", table.getMainName());
+    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+
+    table.getTablePartitions().stream().forEach(p -> swapTable(p, p.getMainName()));
+
+    List<Table> partitions =
+        table.getTablePartitions().stream().map(Table::swapFromStaging).distinct().toList();
 
     if (!skipMasterTable) {
       swapTable(table, table.getMainName());
     } else {
-      swappedPartitions.forEach(
+      partitions.forEach(
           partition -> swapInheritance(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
@@ -289,9 +288,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private Table swapTable(Table stagingTable, String mainTableName) {
+  private void swapTable(Table stagingTable, String mainTableName) {
     executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
-    return stagingTable.swapFromStaging();
   }
 
   /**
