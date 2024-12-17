@@ -1238,7 +1238,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   @Getter
   @Builder
-  private static class IdentifiableSql {
+  public static class IdentifiableSql {
     private final String identifier;
 
     private final String sql;
@@ -1251,7 +1251,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param filter the {@link QueryFilter}.
    * @param params the {@link EventQueryParams}.
    */
-  private String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
+  protected String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
     String field =
         item.hasAggregationType()
             ? getSelectSql(filter, item, params)
