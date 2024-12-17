@@ -153,9 +153,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     String sql;
     if (params.isAggregatedEnrollments()) {
       sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
-    } else if (!params.getItems().isEmpty() && shouldUseCTE(params)) {
-      // TODO no longer needed
-      sql = buildEnrollmentQueryWithCTE(params, params.getItems().get(0));
     } else {
       sql = buildEnrollmentQueryWithCte2(params);
     }
@@ -169,14 +166,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       withExceptionHandling(
           () -> getEnrollments(params, grid, sql, maxLimit == 0), params.isMultipleQueries());
     }
-  }
-
-  private boolean shouldUseCTE(EventQueryParams params) {
-    if (params.getItems().isEmpty()) {
-      return false;
-    }
-    QueryItem item = params.getItems().get(0);
-    return item.hasProgram() && item.hasProgramStage();
   }
 
   /**
@@ -330,7 +319,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           withExceptionHandling(
                   () -> jdbcTemplate.queryForObject(finalSqlValue, Long.class),
                   params.isMultipleQueries())
-              .orElse(0l);
+              .orElse(0L);
     }
 
     return count;
@@ -1180,47 +1169,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return "desc";
     }
     return "asc";
-  }
-
-  private String buildEnrollmentQueryWithCTE(EventQueryParams params, QueryItem item) {
-
-    StringBuilder sql = new StringBuilder();
-    List<QueryItem> items = params.getItems();
-
-    // 1. Build CTEs for each unique program stage + offset combination
-    sql.append(buildAllRankedEventsCTEs(items));
-
-    // 2. Build main query
-    sql.append("select ");
-
-    // 2.1 Add basic columns
-    sql.append(getBasicSelectColumns());
-
-    // 2.2 Add value columns for each item
-    String valueColumns = buildValueColumns(items);
-    if (!valueColumns.isEmpty()) {
-      sql.append(", ").append(valueColumns);
-    }
-
-    // 2.3 Add FROM clause with all necessary joins
-    sql.append(buildFromClauseWithJoins(params, items));
-
-    // 2.4 Add WHERE clause
-    String whereClause = getWhereClause(params).trim();
-    if (!whereClause.isEmpty()) {
-      // Remove any leading "and" and ensure only one "where" keyword
-      whereClause = whereClause.replaceFirst("^and\\s+", "");
-      whereClause = whereClause.replaceFirst("^where\\s+", "");
-      if (!whereClause.isEmpty()) {
-        sql.append(" where ").append(whereClause);
-      }
-    }
-
-    // 2.5 Add ORDER BY and paging
-    sql.append(getSortClause(params));
-    sql.append(getPagingClause(params, 5000));
-
-    return sql.toString();
   }
 
   private String buildAllRankedEventsCTEs(List<QueryItem> items) {
