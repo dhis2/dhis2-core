@@ -48,7 +48,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -280,7 +279,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
         from "programownershiphistory" h \
         where h.programid = 0 \
         and h.organisationunitid is not null \
-        union \
+        union distinct \
         select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid \
         from "trackedentityprogramowner" o \
         where o.programid = 0 \
