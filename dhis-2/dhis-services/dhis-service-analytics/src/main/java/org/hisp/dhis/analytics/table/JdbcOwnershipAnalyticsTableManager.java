@@ -253,7 +253,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             from ${programownershiphistory} h \
             where h.programid = ${programId} \
             and h.organisationunitid is not null \
-            union \
+            union distinct \
             select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
             from ${trackedentityprogramowner} o \
             where o.programid = ${programId} \
