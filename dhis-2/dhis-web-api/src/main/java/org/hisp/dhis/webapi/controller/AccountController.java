@@ -81,6 +81,7 @@ import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.http.HttpStatus;
@@ -564,15 +565,21 @@ public class AccountController {
             currentUser, token, HttpServletRequestPaths.getContextPath(request));
 
     if (!successfullySent) {
-      throw new ConflictException("Failed to send email verification token");
+      throw new ConflictException(
+          "Sorry, we couldn’t send your verification email. Please try again or contact support.");
     }
   }
 
   @GetMapping("/verifyEmail")
-  @ResponseStatus(HttpStatus.OK)
-  public void verifyEmail(@RequestParam String token) throws ConflictException {
-    if (!userService.verifyEmail(token)) {
-      throw new ConflictException("Verification token is invalid");
+  public void verifyEmail(
+      @RequestParam String token, HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    if (userService.verifyEmail(token)) {
+      response.sendRedirect(
+          ContextUtils.getRootPath(request) + "/dhis-web-login/#/email-verification-success");
+    } else {
+      response.sendRedirect(
+          ContextUtils.getRootPath(request) + "/dhis-web-login/#/email-verification-failure");
     }
   }
 
