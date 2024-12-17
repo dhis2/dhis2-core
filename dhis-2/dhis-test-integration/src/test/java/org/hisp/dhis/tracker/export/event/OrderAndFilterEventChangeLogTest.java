@@ -160,17 +160,19 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
     updateDataValues(event, "GieVkTxp4HG", "20");
 
     List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("kWjSezkXHVp"), params, defaultPageParams));
+        eventChangeLogService
+            .getEventChangeLog(UID.of("kWjSezkXHVp"), params, defaultPageParams)
+            .getItems();
 
-    assertNumberOfChanges(5, changeLogs);
+    assertNumberOfChanges(7, changeLogs);
     assertAll(
         () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(0)),
         () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(1)),
         () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(2)),
         () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(3)),
-        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(4)));
+        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(4)),
+        () -> assertFieldCreate("occurredAt", "2022-04-22 06:00:38.343", changeLogs.get(5)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(6)));
   }
 
   @Test
@@ -188,6 +190,7 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
             .getEventChangeLog(UID.of("kWjSezkXHVp"), params, defaultPageParams)
             .getItems();
 
+    assertNumberOfChanges(7, changeLogs);
     assertAll(
         () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(0)),
         () -> assertFieldCreate("occurredAt", "2022-04-22 06:00:38.343", changeLogs.get(1)),
