@@ -175,9 +175,14 @@ public interface SqlBuilder {
   boolean supportsVacuum();
 
   /**
-   * @return true if the DBMS supports corrected subqueries.
+   * @return true if the DBMS supports correlated subqueries.
    */
   boolean supportsCorrelatedSubquery();
+
+  /**
+   * @return true if the DMBS supports multiple statements in one operation.
+   */
+  boolean supportsMultiStatements();
 
   /**
    * @return true if the DBMS requires indexes for analytics tables for performance.
@@ -279,19 +284,20 @@ public interface SqlBuilder {
    * Extracts a value from a JSON column using a specified property path.
    *
    * @param json the JSON column name or value to extract from.
-   * @param property the JSON property path to extract.
+   * @param property the JSON property to extract.
    * @return the SQL function for JSON value extraction.
    */
   String jsonExtract(String json, String property);
 
   /**
-   * Extracts a nested value from a JSON column.
+   * Extracts a nested value from a JSON object.
    *
-   * @param json the JSON column name or value to extract from.
-   * @param expression the hierarchical path expression to the nested value.
+   * @param json the JSON column name or object to extract from.
+   * @param key the object key.
+   * @param property the JSON property to extract.
    * @return a SQL expression to extract the specified nested value from the JSON column.
    */
-  String jsonExtractNested(String json, String... expression);
+  String jsonExtract(String json, String key, String property);
 
   /**
    * Generates a SQL casting expression for the given column or expression.
@@ -323,6 +329,42 @@ public interface SqlBuilder {
    * @see DateUnit
    */
   String dateDifference(String startDate, String endDate, DateUnit dateUnit);
+
+  /**
+   * Returns a conditional statement.
+   *
+   * @param condition the condition to evaluate.
+   * @param result the result to return if the condition is true.
+   * @return a conditional statement.
+   */
+  String ifThen(String condition, String result);
+
+  /**
+   * Returns a conditional statement.
+   *
+   * @param condition the condition to evaluate.
+   * @param thenResult the result to return if the condition is true.
+   * @param elseResult the result to return if the condition is false.
+   * @return a conditional statement.
+   */
+  String ifThenElse(String condition, String thenResult, String elseResult);
+
+  /**
+   * Returns a conditional statement.
+   *
+   * @param conditionA the first condition to evaluate.
+   * @param thenResultA the result to return if the first condition is true.
+   * @param conditionB the second condition to evaluate.
+   * @param thenResultB the result to return if the second condition is false.
+   * @param elseResult the result to return if all conditions are false.
+   * @return a conditional statement.
+   */
+  String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult);
 
   // Statements
 
@@ -437,6 +479,13 @@ public interface SqlBuilder {
   String createIndex(Index index);
 
   /**
+   * @param intoTable the table to insert rows into.
+   * @param fromTable the name of the table to select rows from, preferrably quoted.
+   * @return in insert into select from statement.
+   */
+  String insertIntoSelectFrom(Table intoTable, String fromTable);
+
+  /**
    * @param connectionUrl the JDBC connection URL.
    * @param username the JDBC connection username.
    * @param password the JDBC connection password.
@@ -449,11 +498,12 @@ public interface SqlBuilder {
    */
   String dropCatalogIfExists();
 
+  /** Enumeration of time units. */
   enum DateUnit {
     DAYS,
+    WEEKS,
     MONTHS,
     MINUTES,
-    YEARS,
-    WEEKS
+    YEARS
   }
 }

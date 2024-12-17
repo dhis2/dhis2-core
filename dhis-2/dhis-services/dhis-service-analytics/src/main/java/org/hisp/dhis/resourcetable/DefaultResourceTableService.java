@@ -73,6 +73,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
+import org.hisp.dhis.tablereplication.TableReplicationStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +85,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultResourceTableService implements ResourceTableService {
   private final ResourceTableStore resourceTableStore;
+
+  private final TableReplicationStore tableReplicationStore;
 
   private final IdentifiableObjectManager idObjectManager;
 
@@ -113,7 +116,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Transactional
   public void replicateAnalyticsResourceTables() {
     for (ResourceTable table : getResourceTables()) {
-      resourceTableStore.replicateAnalyticsResourceTable(table);
+      tableReplicationStore.replicateAnalyticsDatabaseTable(table.getMainTable());
     }
   }
 

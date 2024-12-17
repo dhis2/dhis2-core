@@ -101,6 +101,7 @@ class ClickHouseSqlBuilderTest {
   void testDataTypes() {
     assertEquals("Float64", sqlBuilder.dataTypeDouble());
     assertEquals("DateTime64(3)", sqlBuilder.dataTypeTimestamp());
+    assertEquals("String", sqlBuilder.dataTypeJson());
   }
 
   // Index types
@@ -171,6 +172,16 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testConcat() {
+    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testTrim() {
+    assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
+  }
+
+  @Test
   void testSinqleQuotedCommaDelimited() {
     assertEquals(
         "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
@@ -221,10 +232,43 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
-  void testJsonExtractNested() {
+  void testJsonExtractObject() {
     assertEquals(
-        "JSONExtractString(eventdatavalues, 'D7m8vpzxHDJ.value')",
-        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'D7m8vpzxHDJ'), 'value')",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
+    assertEquals(
+        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'qrur9Dvnyt5'), 'value')",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
+  }
+
+  @Test
+  void testIfThen() {
+    assertEquals(
+        "if(a.status = 'COMPLETE', a.eventdate, null)",
+        sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
+  }
+
+  @Test
+  void testIfThenElse() {
+    assertEquals(
+        "if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)",
+        sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
+  }
+
+  @Test
+  void testIfThenElseMulti() {
+    String expected =
+        """
+        multiIf(a.status = 'COMPLETE', a.eventdate, a.status = 'SCHEDULED', a.scheduleddate, a.incidentdate)""";
+
+    assertEquals(
+        expected,
+        sqlBuilder.ifThenElse(
+            "a.status = 'COMPLETE'",
+            "a.eventdate",
+            "a.status = 'SCHEDULED'",
+            "a.scheduleddate",
+            "a.incidentdate"));
   }
 
   // Statements
@@ -236,7 +280,7 @@ class ClickHouseSqlBuilderTest {
     String expected =
         """
         create table "immunization" ("id" Int64 not null,"data" String not null,\
-        "period" String not null,"created" DateTime64(3) null,"user" JSON null,\
+        "period" String not null,"created" DateTime64(3) null,"user" String null,\
         "value" Float64 null) \
         engine = MergeTree() \
         order by ("id");""";
@@ -356,6 +400,16 @@ class ClickHouseSqlBuilderTest {
         select count(*) as row_count from \"immunization\";""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  @Test
+  void testInsertIntoSelectFrom() {
+    String expected =
+        """
+        insert into "vaccination" ("id","facility_type","bcg_doses") \
+        select "id","facility_type","bcg_doses" from "immunization";""";
+
+    assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "\"immunization\""));
   }
 
   // Named collection

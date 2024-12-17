@@ -111,7 +111,7 @@ public class AnalyticsTableSettings {
    *
    * @return true if an analytics database instance is configured.
    */
-  public boolean isAnalyticsDatabaseConfigured() {
+  public boolean isAnalyticsDatabase() {
     return config.isAnalyticsDatabaseConfigured();
   }
 

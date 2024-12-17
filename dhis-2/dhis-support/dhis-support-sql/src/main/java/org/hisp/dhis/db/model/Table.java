@@ -254,7 +254,12 @@ public class Table {
     return isNotEmpty(partitions);
   }
 
-  public Table swapFromStaging() {
+  /**
+   * Returns this {@link Table} with the staging table name converted to the main table name.
+   *
+   * @return a {@link Table}.
+   */
+  public Table fromStaging() {
     return new Table(
         fromStaging(this.getName()),
         this.getColumns(),

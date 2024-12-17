@@ -182,17 +182,29 @@ pipeline {
                             --json-file ./downloads/v1/versions/stable.json
                         """
 
-                        sh 'git config  user.email "$GITHUB_EMAIL"'
-                        sh 'git config  user.name "$GITHUB_USER"'
+                        withCredentials([
+                            file(credentialsId: 'github-private-signing-key', variable: 'SIGNING_PRIVATE_KEY_PATH'),
+                            file(credentialsId: 'github-public-signing-key', variable: 'SIGNING_PUBLIC_KEY_PATH')
+                        ]) {
+                            sh 'cp $SIGNING_PRIVATE_KEY_PATH ~/.ssh/signing_key'
+                            sh 'cp $SIGNING_PUBLIC_KEY_PATH ~/.ssh/signing_key.pub'
+                            sh 'chmod --changes 600 ~/.ssh/signing_key ~/.ssh/signing_key.pub'
 
-                        releasesBranch = "add-release-${imageTag}"
+                            sh 'git config user.email "$GITHUB_EMAIL"'
+                            sh 'git config user.name "$GITHUB_USER"'
+                            sh 'git config user.signingkey ~/.ssh/signing_key.pub'
+                            sh 'git config commit.gpgSign true'
+                            sh 'git config gpg.format ssh'
 
-                        sh "git checkout -b $releasesBranch"
-                        sh 'git add ./downloads/v1/versions/stable.json'
-                        sh "git diff-index --quiet HEAD || git commit -m \"chore: add version $imageTag to stable.json\""
-                        sh "git push https://${GITHUB_TOKEN}@github.com/$DHIS2_RELEASES_REPO"
+                            releasesBranch = "add-release-${imageTag}"
 
-                        sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
+                            sh "git checkout -b $releasesBranch"
+                            sh 'git add ./downloads/v1/versions/stable.json'
+                            sh "git diff-index --quiet HEAD || git commit -S -m \"chore: add version $imageTag to stable.json\""
+                            sh 'git push https://$GITHUB_TOKEN@github.com/$DHIS2_RELEASES_REPO'
+
+                            sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
+                        }
                     }
                 }
             }
