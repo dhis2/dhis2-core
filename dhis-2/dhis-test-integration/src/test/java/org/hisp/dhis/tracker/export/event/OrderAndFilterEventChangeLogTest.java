@@ -153,31 +153,7 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   void shouldSortChangeLogsWhenOrderingByDataElementAsc()
       throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataElement", SortDirection.ASC).build();
-    Event event = getEvent("kWjSezkXHVp");
-
-    updateDataValues(event, "GieVkTxp4HH", "20", "25");
-    updateDataValues(event, "GieVkTxp4HG", "20");
-
-    List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("kWjSezkXHVp"), params, defaultPageParams));
-
-    assertNumberOfChanges(5, changeLogs);
-    assertAll(
-        () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(0)),
-        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(1)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(2)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(3)),
-        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(4)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByDataElementDesc()
-      throws ForbiddenException, NotFoundException {
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataElement", SortDirection.DESC).build();
+        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.ASC).build();
     Event event = getEvent("kWjSezkXHVp");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
@@ -198,10 +174,35 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByFieldAsc()
+  void shouldSortChangeLogsWhenOrderingByDataItemDesc()
+      throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.DESC).build();
+    Event event = getEvent("kWjSezkXHVp");
+
+    updateDataValues(event, "GieVkTxp4HH", "20", "25");
+    updateDataValues(event, "GieVkTxp4HG", "20");
+
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService
+            .getEventChangeLog(UID.of("kWjSezkXHVp"), params, defaultPageParams)
+            .getItems();
+
+    assertAll(
+        () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2022-04-22 06:00:38.343", changeLogs.get(1)),
+        () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(2)),
+        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(3)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(4)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(5)),
+        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(6)));
+  }
+
+  @Test
+  void shouldSortChangeLogsWhenOrderingByDataItemAscAndChangesOnlyToEventFields()
       throws ForbiddenException, NotFoundException, IOException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("field", SortDirection.ASC).build();
+        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.ASC).build();
     UID event = UID.of("QRYjLTiJTrA");
 
     LocalDateTime currentTime = LocalDateTime.now();
@@ -232,10 +233,10 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByFieldDesc()
+  void shouldSortChangeLogsWhenOrderingByDataItemDescAndChangesOnlyToEventFields()
       throws ForbiddenException, NotFoundException, IOException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("field", SortDirection.DESC).build();
+        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.DESC).build();
     UID event = UID.of("QRYjLTiJTrA");
 
     LocalDateTime currentTime = LocalDateTime.now();
