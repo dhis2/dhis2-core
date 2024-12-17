@@ -280,7 +280,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
         from "programownershiphistory" h \
         where h.programid = 0 \
         and h.organisationunitid is not null \
-        union distinct \
+        union all \
         select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid \
         from "trackedentityprogramowner" o \
         where o.programid = 0 \
