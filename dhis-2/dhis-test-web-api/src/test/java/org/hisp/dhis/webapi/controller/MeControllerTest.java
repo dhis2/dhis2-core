@@ -48,7 +48,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonMeDto;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +77,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetCurrentUser() {
     switchToAdminUser();
-    assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonUser.class).getId());
+    assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonMeDto.class).getId());
   }
 
   @Test
@@ -97,7 +97,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateCurrentUser() {
     assertSeries(Series.SUCCESSFUL, PUT("/me", "{'surname':'Lars'}"));
-    assertEquals("Lars", GET("/me").content().as(JsonUser.class).getSurname());
+    assertEquals("Lars", GET("/me").content().as(JsonMeDto.class).getSurname());
   }
 
   @Test
@@ -106,6 +106,11 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     // with no authorities
     switchToNewUser("Kalle");
     assertFalse(GET("/me/authorities/missing").content(HttpStatus.OK).booleanValue());
+  }
+
+  @Test
+  void testGetEmailVerifiedProperty() {
+    assertFalse(GET("/me").content().as(JsonMeDto.class).getEmailVerified());
   }
 
   @Test
@@ -274,6 +279,6 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     userService.updateUser(userByUsername);
 
     assertEquals(
-        "myvalue", GET("/me").content().as(JsonUser.class).getAttributeValues().get(0).getValue());
+        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).getValue());
   }
 }
