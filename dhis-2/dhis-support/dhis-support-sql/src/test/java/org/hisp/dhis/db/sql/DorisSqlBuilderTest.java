@@ -86,6 +86,7 @@ class DorisSqlBuilderTest {
   void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+    assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
   // Index types
@@ -155,6 +156,16 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testConcat() {
+    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testTrim() {
+    assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
+  }
+
+  @Test
   void testSinqleQuotedCommaDelimited() {
     assertEquals(
         "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
@@ -205,10 +216,47 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testJsonExtractNested() {
+  void testJsonExtractObject() {
     assertEquals(
-        "json_unquote(json_extract(eventdatavalues, '$.D7m8vpzxHDJ.value'))",
-        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+        "json_unquote(json_extract(ev.eventdatavalues, '$.D7m8vpzxHDJ.value'))",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
+    assertEquals(
+        "json_unquote(json_extract(ev.eventdatavalues, '$.qrur9Dvnyt5.value'))",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
+  }
+
+  @Test
+  void testIfThen() {
+    assertEquals(
+        "case when a.status = 'COMPLETE' then a.eventdate end",
+        sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
+  }
+
+  @Test
+  void testIfThenElse() {
+    assertEquals(
+        "case when a.status = 'COMPLETE' then a.eventdate else a.scheduleddate end",
+        sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
+  }
+
+  @Test
+  void testIfThenElseMulti() {
+    String expected =
+        """
+        case \
+        when a.status = 'COMPLETE' then a.eventdate \
+        when a.status = 'SCHEDULED' then a.scheduleddate \
+        else a.incidentdate \
+        end""";
+
+    assertEquals(
+        expected,
+        sqlBuilder.ifThenElse(
+            "a.status = 'COMPLETE'",
+            "a.eventdate",
+            "a.status = 'SCHEDULED'",
+            "a.scheduleddate",
+            "a.incidentdate"));
   }
 
   // Statements
@@ -246,7 +294,7 @@ class DorisSqlBuilderTest {
     assertEquals(expected, sqlBuilder.createTable(table));
   }
 
-  // void testCreateTableB()
+  // TO DO void testCreateTableB()
 
   @Test
   void testCreateTableC() {
@@ -363,5 +411,15 @@ class DorisSqlBuilderTest {
         select count(*) as row_count from `immunization`;""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  @Test
+  void testInsertIntoSelectFrom() {
+    String expected =
+        """
+        insert into `vaccination` (`id`,`facility_type`,`bcg_doses`) \
+        select `id`,`facility_type`,`bcg_doses` from `immunization`;""";
+
+    assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`"));
   }
 }

@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -121,9 +120,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else if (valueType.isInteger()) {
       return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
-      return String.format(
-          "case when %1$s = 'true' then 1 when %1$s = 'false' then 0 else null end",
-          columnExpression);
+      return sqlBuilder.ifThenElse(
+          columnExpression + " = 'true'", "1", columnExpression + " = 'false'", "0", "null");
     } else if (valueType.isDate()) {
       return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
@@ -147,8 +145,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String getCastExpression(String columnExpression, String filterRegex, String dataType) {
     String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
-    return String.format(
-        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
+    String result = String.format("cast(%s as %s)", columnExpression, dataType);
+
+    return sqlBuilder.ifThen(filter, result);
   }
 
   @Override
@@ -214,6 +213,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
       TrackedEntityAttribute attribute) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
     Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -283,24 +286,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected String getAttributeValueJoinClause(Program program) {
     String template =
         """
-        left join ${trackedentityattributevalue} as ${uid} \
+        left join trackedentityattributevalue as ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
     return program.getNonConfidentialTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
         .collect(Collectors.joining());
-  }
-
-  /**
-   * Returns a map of identifiable properties and values.
-   *
-   * @param object the {@link IdentifiableObject}.
-   * @return a {@link Map}.
-   */
-  protected Map<String, String> toVariableMap(IdentifiableObject object) {
-    return Map.of(
-        "id", String.valueOf(object.getId()),
-        "uid", quote(object.getUid()));
   }
 }

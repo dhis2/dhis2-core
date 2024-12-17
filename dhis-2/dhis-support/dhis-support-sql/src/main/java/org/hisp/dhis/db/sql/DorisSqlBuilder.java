@@ -172,6 +172,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsMultiStatements() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return false;
   }
@@ -212,16 +217,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return "concat(" + String.join(", ", columns) + ")";
-  }
-
-  @Override
-  public String trim(String expression) {
-    return "trim(" + expression + ")";
-  }
-
-  @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
   }
@@ -232,9 +227,9 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtractNested(String column, String... expression) {
-    String path = "$." + String.join(".", expression);
-    return String.format("json_unquote(json_extract(%s, '%s'))", column, path);
+  public String jsonExtract(String json, String key, String property) {
+    String path = "$." + String.join(".", key, property);
+    return String.format("json_unquote(json_extract(%s, '%s'))", json, path);
   }
 
   @Override
@@ -261,6 +256,28 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       case YEARS -> String.format("TIMESTAMPDIFF(YEAR, %s, %s)", startDate, endDate);
       case WEEKS -> String.format("TIMESTAMPDIFF(WEEK, %s, %s)", startDate, endDate);
     };
+  }
+
+  @Override
+  public String ifThen(String condition, String result) {
+    return String.format("case when %s then %s end", condition, result);
+  }
+
+  @Override
+  public String ifThenElse(String condition, String thenResult, String elseResult) {
+    return String.format("case when %s then %s else %s end", condition, thenResult, elseResult);
+  }
+
+  @Override
+  public String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult) {
+    return String.format(
+        "case when %s then %s when %s then %s else %s end",
+        conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
   // Statements

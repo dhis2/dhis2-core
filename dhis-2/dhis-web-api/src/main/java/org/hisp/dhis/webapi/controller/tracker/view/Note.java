@@ -51,7 +51,8 @@ import org.hisp.dhis.common.UID;
 public class Note {
   @OpenApi.Property({UID.class, org.hisp.dhis.note.Note.class})
   @JsonProperty
-  private UID note;
+  @Builder.Default
+  private UID note = UID.generate();
 
   @JsonProperty private Instant storedAt;
 

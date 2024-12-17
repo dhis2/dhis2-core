@@ -68,6 +68,7 @@ class MessageServiceTest extends PostgresIntegrationTestBase {
   void setUp() {
     sender = makeUser("S");
     userA = makeUser("A");
+    userA.setPhoneNumber("40342434");
     userB = makeUser("B");
     userService.addUser(sender);
     userService.addUser(userA);
