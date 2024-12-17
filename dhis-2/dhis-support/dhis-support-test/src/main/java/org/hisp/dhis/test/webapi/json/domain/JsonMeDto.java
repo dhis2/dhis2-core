@@ -33,11 +33,11 @@ import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.user.User}.
+ * Web API equivalent of a {@link org.hisp.dhis.webapi.controller.user.MeDto}.
  *
- * @author Jan Bernitt
+ * @author Morten Svanæs
  */
-public interface JsonMe extends JsonIdentifiableObject {
+public interface JsonMeDto extends JsonIdentifiableObject {
   default String getUsername() {
     return getString("username").string();
   }
