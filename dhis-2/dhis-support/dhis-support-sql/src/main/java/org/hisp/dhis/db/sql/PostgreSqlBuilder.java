@@ -261,11 +261,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String age(String endDate, String startDate) {
-    return String.format("age(cast(%s as date), cast(%s as date))", endDate, startDate);
-  }
-
-  @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
     return switch (dateUnit) {
       case DAYS -> String.format("(cast(%s as date) - cast(%s as date))", endDate, startDate);

@@ -244,11 +244,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String age(String endDate, String startDate) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
     return switch (dateUnit) {
       case DAYS -> String.format("dateDiff('day', %s, %s)", startDate, endDate);
