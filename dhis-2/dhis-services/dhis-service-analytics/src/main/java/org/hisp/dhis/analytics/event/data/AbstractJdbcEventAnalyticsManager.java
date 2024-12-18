@@ -1411,7 +1411,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
         // Handle org units
         if (params.getCoordinateFields().stream()
-                .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
+            .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
@@ -1429,8 +1429,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return columns;
   }
 
-
-
   /**
    * Returns a select SQL clause for the given query.
    *
@@ -1439,6 +1437,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected abstract String getSelectClause(EventQueryParams params);
 
   protected abstract String getColumnWithCte(QueryItem item, String suffix, CTEContext cteContext);
+
   /**
    * Generates the SQL for the from-clause. Generally this means which analytics table to get data
    * from.

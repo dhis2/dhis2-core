@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
@@ -79,61 +78,65 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   @Override
-  public void contributeCTE(ProgramIndicator programIndicator, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate, CTEContext cteContext) {
-    contributeCTE(programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
+  public void contributeCTE(
+      ProgramIndicator programIndicator,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CTEContext cteContext) {
+    contributeCTE(
+        programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
   }
 
   @Override
   public void contributeCTE(
-          ProgramIndicator programIndicator,
-          RelationshipType relationshipType,
-          AnalyticsType outerSqlEntity,
-          Date earliestStartDate,
-          Date latestDate,
-          CTEContext cteContext) {
+      ProgramIndicator programIndicator,
+      RelationshipType relationshipType,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CTEContext cteContext) {
 
     // Generate a unique CTE name for this program indicator
     String cteName = "pi_" + programIndicator.getUid().toLowerCase();
 
     // Define aggregation function
-    String function = TextUtils.emptyIfEqual(
+    String function =
+        TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
 
-    String cteSql = String.format(
-            "SELECT e.enrollment, " +
-                    "COALESCE(%s(%s), 0) as value " +
-                    "FROM analytics_enrollment_%s e " +
-                    "LEFT JOIN ( " +
-                    "    SELECT enrollment, eventstatus " +
-                    "    FROM %s as subax " +
-                    "    WHERE %s " +
-                    ") t ON t.enrollment = e.enrollment " +
-                    "GROUP BY e.enrollment",
+    String cteSql =
+        String.format(
+            "SELECT e.enrollment, "
+                + "COALESCE(%s(%s), 0) as value "
+                + "FROM analytics_enrollment_%s e "
+                + "LEFT JOIN ( "
+                + "    SELECT enrollment, eventstatus "
+                + "    FROM %s as subax "
+                + "    WHERE %s "
+                + ") t ON t.enrollment = e.enrollment "
+                + "GROUP BY e.enrollment",
             function,
             getProgramIndicatorSql(
-                    programIndicator.getExpression(),
-                    NUMERIC,
-                    programIndicator,
-                    earliestStartDate,
-                    latestDate),
+                programIndicator.getExpression(),
+                NUMERIC,
+                programIndicator,
+                earliestStartDate,
+                latestDate),
             programIndicator.getProgram().getUid().toLowerCase(),
             getTableName(programIndicator),
             getProgramIndicatorSql(
-                    programIndicator.getFilter(),
-                    BOOLEAN,
-                    programIndicator,
-                    earliestStartDate,
-                    latestDate));
+                programIndicator.getFilter(),
+                BOOLEAN,
+                programIndicator,
+                earliestStartDate,
+                latestDate));
 
     // Register the CTE and its column mapping
     cteContext.addCTE(cteName, cteSql.toString());
-    cteContext.addColumnMapping(
-            programIndicator.getUid(),
-            cteName + ".value"
-    );
+    cteContext.addColumnMapping(programIndicator.getUid(), cteName + ".value");
   }
-
 
   private String getTableName(ProgramIndicator programIndicator) {
     return "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
@@ -227,10 +230,9 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       RelationshipType relationshipType) {
     String condition = "";
     if (relationshipType != null) {
-      condition = RelationshipTypeJoinGenerator.generate(
-              SUBQUERY_TABLE_ALIAS,
-              relationshipType,
-              programIndicator.getAnalyticsType());
+      condition =
+          RelationshipTypeJoinGenerator.generate(
+              SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
     } else {
       // Remove the reference to the outer query's enrollment
       // We'll handle the join in the main query
