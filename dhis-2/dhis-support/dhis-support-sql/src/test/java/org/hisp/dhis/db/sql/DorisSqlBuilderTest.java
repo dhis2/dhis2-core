@@ -226,6 +226,14 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testCast() {
+    assertEquals(
+        """
+        CAST(ax."qrur9Dvnyt5" AS DECIMAL)""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+  }
+
+  @Test
   void testIfThen() {
     assertEquals(
         "case when a.status = 'COMPLETE' then a.eventdate end",
