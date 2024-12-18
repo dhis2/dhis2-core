@@ -33,10 +33,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -104,6 +107,25 @@ public class DataDimensionItem {
 
   private SubexpressionDimensionItem subexpressionDimensionItem;
 
+  private Attributes attributes;
+
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class Attributes implements Serializable {
+    /** The option item for this dimension item. * */
+    private OptionSetItem optionItem;
+
+    @JsonProperty
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public OptionSetItem getOptionSetItem() {
+      return optionItem;
+    }
+
+    public void setOptionSetItem(OptionSetItem optionItem) {
+      this.optionItem = optionItem;
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
@@ -112,7 +134,6 @@ public class DataDimensionItem {
 
   public static List<DataDimensionItem> createWithDependencies(
       DimensionalItemObject object, List<DataDimensionItem> items) {
-
     if (DataElement.class.isAssignableFrom(object.getClass())) {
       DataDimensionItem dimension = new DataDimensionItem();
       DataElement dataElement = (DataElement) object;
@@ -187,6 +208,7 @@ public class DataDimensionItem {
     if (indicator != null) {
       return indicator;
     } else if (dataElement != null) {
+      loadAttributes(dataElement);
       return dataElement;
     } else if (dataElementOperand != null) {
       return dataElementOperand;
@@ -195,16 +217,29 @@ public class DataDimensionItem {
     } else if (programIndicator != null) {
       return programIndicator;
     } else if (programDataElement != null) {
+      loadAttributes(programDataElement);
       return programDataElement;
     } else if (programAttribute != null) {
+      loadAttributes(programAttribute);
       return programAttribute;
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
     } else if (subexpressionDimensionItem != null) {
-      return expressionDimensionItem;
+      return subexpressionDimensionItem;
     }
 
     return null;
+  }
+
+  /**
+   * Simply loads the internal attributes into the given item object.
+   *
+   * @param itemObject the {@link BaseDimensionalItemObject}.
+   */
+  private void loadAttributes(BaseDimensionalItemObject itemObject) {
+    if (attributes != null) {
+      itemObject.setOptionSetItem(attributes.getOptionSetItem());
+    }
   }
 
   @JsonProperty
@@ -287,6 +322,14 @@ public class DataDimensionItem {
     this.id = id;
   }
 
+  public Attributes getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(Attributes attributes) {
+    this.attributes = attributes;
+  }
+
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -298,9 +341,6 @@ public class DataDimensionItem {
     this.indicator = indicator;
   }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
   }

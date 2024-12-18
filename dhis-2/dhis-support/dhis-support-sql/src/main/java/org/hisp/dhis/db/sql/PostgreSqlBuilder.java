@@ -191,6 +191,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsMultiStatements() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return true;
   }
@@ -241,8 +246,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtractNested(String column, String... expression) {
-    return String.format("%s #>> '{%s}'", column, String.join(", ", expression));
+  public String jsonExtract(String json, String key, String property) {
+    String path = String.join(", ", key, property);
+    return String.format("%s #>> '{%s}'", json, path);
   }
 
   @Override
@@ -286,8 +292,20 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String ifThenElse(String condition, String resultA, String resultB) {
-    return String.format("case when %s then %s else %s end", condition, resultA, resultB);
+  public String ifThenElse(String condition, String thenResult, String elseResult) {
+    return String.format("case when %s then %s else %s end", condition, thenResult, elseResult);
+  }
+
+  @Override
+  public String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult) {
+    return String.format(
+        "case when %s then %s when %s then %s else %s end",
+        conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
   // Statements

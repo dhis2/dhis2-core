@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,48 @@
  */
 package org.hisp.dhis.common;
 
-/**
- * @author Lars Helge Overland
- */
-public enum DimensionItemType {
-  DATA_ELEMENT,
-  DATA_ELEMENT_OPERAND,
-  INDICATOR,
-  REPORTING_RATE,
-  PROGRAM_DATA_ELEMENT,
-  PROGRAM_ATTRIBUTE,
-  PROGRAM_INDICATOR,
-  PERIOD,
-  ORGANISATION_UNIT,
-  CATEGORY_OPTION,
-  OPTION_GROUP,
-  DATA_ELEMENT_GROUP,
-  ORGANISATION_UNIT_GROUP,
-  CATEGORY_OPTION_GROUP,
-  EXPRESSION_DIMENSION_ITEM,
-  SUBEXPRESSION_DIMENSION_ITEM,
-  OPTION_SET
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.Aggregation;
+
+/** Encapsulates {@link org.hisp.dhis.option.Option}s uids and the {@link Aggregation} type. */
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@JacksonXmlRootElement(localName = "optionSetItem", namespace = DXF_2_0)
+public class OptionSetItem implements Serializable {
+  /** The uids of the options. */
+  private Set<String> options = new LinkedHashSet<>();
+
+  /** The aggregation for this option item. */
+  private Aggregation aggregation;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Set<String> getOptions() {
+    return options;
+  }
+
+  public void setOptions(Set<String> options) {
+    this.options = options;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Aggregation getAggregation() {
+    return aggregation;
+  }
+
+  public void setAggregation(Aggregation aggregation) {
+    this.aggregation = aggregation;
+  }
 }

@@ -243,13 +243,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         tables.add(table);
 
         log.info(
-            "Added latest event analytics partition for program: '{}' with start: '{}' and end: '{}'",
+            "Added latest event analytics partition for program: '{}', start: '{}' and end: '{}'",
             program.getUid(),
             toLongDate(startDate),
             toLongDate(endDate));
       } else {
         log.info(
-            "No updated latest event data found for program: '{}' with start: '{}' and end: '{}",
+            "No updated latest event data found for program: '{}', start: '{}' and end: '{}",
             program.getUid(),
             toLongDate(lastAnyTableUpdate),
             toLongDate(endDate));
@@ -489,7 +489,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
     String jsonExpression =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+        sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
     String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
     String selectExpression = getSelectExpression(dataElement, columnExpression);
@@ -576,7 +576,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         (select ou.${column} from ${organisationunit} ou \
         where ou.uid = ${columnExpression}) as ${alias}""";
     String columnExpression =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+        sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
     String alias = quote(dataElement.getUid());
 
     return replaceQualify(
@@ -706,11 +706,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a data filter clause.
    */
   private String getDataFilterClause(DataElement dataElement) {
-    String uid = dataElement.getUid();
     ValueType valueType = dataElement.getValueType();
 
     if (valueType.isNumeric() || valueType.isDate()) {
-      String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
+      String jsonExpression =
+          sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
       String regex = valueType.isNumeric() ? NUMERIC_REGEXP : DATE_REGEXP;
 
       return " and " + sqlBuilder.regexpMatch(jsonExpression, regex);

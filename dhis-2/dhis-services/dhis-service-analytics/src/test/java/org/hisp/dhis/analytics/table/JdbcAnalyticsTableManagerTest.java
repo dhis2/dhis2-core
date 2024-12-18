@@ -314,7 +314,7 @@ class JdbcAnalyticsTableManagerTest {
 
     when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytic")));
 
-    Table swappedPartition = table.getTablePartitions().get(0).swapFromStaging();
+    Table swappedPartition = table.getTablePartitions().get(0).fromStaging();
     subject.swapTable(params, table);
     assertEquals("analytics_2023_temp", table.getTablePartitions().get(0).getName());
     assertEquals("analytics_2023", swappedPartition.getName());

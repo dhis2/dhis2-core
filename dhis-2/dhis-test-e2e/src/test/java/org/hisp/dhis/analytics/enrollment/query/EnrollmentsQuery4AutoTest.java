@@ -155,8 +155,8 @@ public class EnrollmentsQuery4AutoTest extends AnalyticsApiTest {
             "",
             "44.5",
             "2017-03-28 12:33:55.9",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "2022-02-24 12:33:55.887",
             "ACTIVE"));
   }

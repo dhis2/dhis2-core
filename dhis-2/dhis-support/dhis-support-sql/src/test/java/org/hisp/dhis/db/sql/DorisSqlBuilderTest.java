@@ -86,6 +86,7 @@ class DorisSqlBuilderTest {
   void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+    assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
   // Index types
@@ -215,10 +216,13 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testJsonExtractNested() {
+  void testJsonExtractObject() {
     assertEquals(
-        "json_unquote(json_extract(eventdatavalues, '$.D7m8vpzxHDJ.value'))",
-        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+        "json_unquote(json_extract(ev.eventdatavalues, '$.D7m8vpzxHDJ.value'))",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
+    assertEquals(
+        "json_unquote(json_extract(ev.eventdatavalues, '$.qrur9Dvnyt5.value'))",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
   @Test
@@ -233,6 +237,26 @@ class DorisSqlBuilderTest {
     assertEquals(
         "case when a.status = 'COMPLETE' then a.eventdate else a.scheduleddate end",
         sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
+  }
+
+  @Test
+  void testIfThenElseMulti() {
+    String expected =
+        """
+        case \
+        when a.status = 'COMPLETE' then a.eventdate \
+        when a.status = 'SCHEDULED' then a.scheduleddate \
+        else a.incidentdate \
+        end""";
+
+    assertEquals(
+        expected,
+        sqlBuilder.ifThenElse(
+            "a.status = 'COMPLETE'",
+            "a.eventdate",
+            "a.status = 'SCHEDULED'",
+            "a.scheduleddate",
+            "a.incidentdate"));
   }
 
   // Statements

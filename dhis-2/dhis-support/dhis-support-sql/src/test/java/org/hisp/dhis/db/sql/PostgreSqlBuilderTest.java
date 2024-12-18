@@ -117,6 +117,7 @@ class PostgreSqlBuilderTest {
   void testDataTypes() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
+    assertEquals("jsonb", sqlBuilder.dataTypeJson());
   }
 
   // Index types
@@ -241,10 +242,13 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testJsonExtractNested() {
+  void testJsonExtractObject() {
     assertEquals(
-        "eventdatavalues #>> '{D7m8vpzxHDJ, value}'",
-        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+        "ev.eventdatavalues #>> '{D7m8vpzxHDJ, value}'",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
+    assertEquals(
+        "ev.eventdatavalues #>> '{qrur9Dvnyt5, value}'",
+        sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
   @Test
@@ -259,6 +263,26 @@ class PostgreSqlBuilderTest {
     assertEquals(
         "case when a.status = 'COMPLETE' then a.eventdate else a.scheduleddate end",
         sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
+  }
+
+  @Test
+  void testIfThenElseMulti() {
+    String expected =
+        """
+        case \
+        when a.status = 'COMPLETE' then a.eventdate \
+        when a.status = 'SCHEDULED' then a.scheduleddate \
+        else a.incidentdate \
+        end""";
+
+    assertEquals(
+        expected,
+        sqlBuilder.ifThenElse(
+            "a.status = 'COMPLETE'",
+            "a.eventdate",
+            "a.status = 'SCHEDULED'",
+            "a.scheduleddate",
+            "a.incidentdate"));
   }
 
   // Statements

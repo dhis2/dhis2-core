@@ -125,9 +125,13 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return "String";
   }
 
+  /**
+   * ClickHouse JSON data type is in beta and is not yet production-ready. Check back and enable
+   * <code>JSON</code> when available.
+   */
   @Override
   public String dataTypeJson() {
-    return "JSON";
+    return "String";
   }
 
   // Index functions
@@ -166,6 +170,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public boolean supportsCorrelatedSubquery() {
+    return false;
+  }
+
+  @Override
+  public boolean supportsMultiStatements() {
     return false;
   }
 
@@ -219,9 +228,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtractNested(String json, String... expression) {
-    String path = String.join(".", expression);
-    return String.format("JSONExtractString(%s, '%s')", json, path);
+  public String jsonExtract(String json, String key, String property) {
+    String path = String.format("JSONExtractRaw(%s, '%s')", json, key);
+    return String.format("JSONExtractString(%s, '%s')", path, property);
   }
 
   @Override
@@ -252,6 +261,18 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String ifThenElse(String condition, String resultA, String resultB) {
     return String.format("if(%s, %s, %s)", condition, resultA, resultB);
+  }
+
+  @Override
+  public String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult) {
+    return String.format(
+        "multiIf(%s, %s, %s, %s, %s)",
+        conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
   // Statements
