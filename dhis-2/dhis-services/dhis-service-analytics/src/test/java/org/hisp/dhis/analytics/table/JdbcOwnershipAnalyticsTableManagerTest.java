@@ -275,33 +275,24 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'");
     assertEquals(
         """
-        select te.uid,a.startdate,a.enddate,ou.uid from (\
-        select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid \
+        select te.uid,null,h.enddate,ou.uid \
         from "programownershiphistory" h \
+        inner join "trackedentity" te on h.trackedentityid = te.trackedentityid \
+        inner join "organisationunit" ou on h.organisationunitid = ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on h.organisationunitid = ous.organisationunitid \
+        left join analytics_rs_organisationunitgroupsetstructure ougs on h.organisationunitid = ougs.organisationunitid \
         where h.programid = 0 \
         and h.organisationunitid is not null \
-        union distinct \
-        select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid \
-        from "trackedentityprogramowner" o \
-        where o.programid = 0 \
-        and o.trackedentityid in (\
-        select distinct p.trackedentityid \
-        from "programownershiphistory" p \
-        where p.programid = 0 \
-        and p.organisationunitid is not null)) a \
-        inner join "trackedentity" te on a.trackedentityid = te.trackedentityid \
-        inner join "organisationunit" ou on a.organisationunitid = ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
-        left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
-        order by te.uid, a.startdate, a.enddate""",
+        order by te.uid, h.enddate""",
         sqlMasked);
 
     List<Invocation> writerInvocations = getInvocations(writer);
-    assertEquals(3, writerInvocations.size());
+    assertEquals(4, writerInvocations.size());
 
     assertEquals("write", writerInvocations.get(0).getMethod().getName());
     assertEquals("write", writerInvocations.get(1).getMethod().getName());
     assertEquals("write", writerInvocations.get(2).getMethod().getName());
+    assertEquals("flush", writerInvocations.get(3).getMethod().getName());
 
     Map<String, Object> map0 = writerInvocations.get(0).getArgument(0);
     Map<String, Object> map1 = writerInvocations.get(1).getArgument(0);
@@ -319,17 +310,18 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
             AnalyticsTableColumn.builder()
                 .name("teuid")
                 .dataType(CHARACTER_11)
+                .nullable(NOT_NULL)
                 .selectExpression("te.uid")
                 .build(),
             AnalyticsTableColumn.builder()
                 .name("startdate")
                 .dataType(DATE)
-                .selectExpression("a.startdate")
+                .selectExpression("null")
                 .build(),
             AnalyticsTableColumn.builder()
                 .name("enddate")
                 .dataType(DATE)
-                .selectExpression("a.enddate")
+                .selectExpression("h.enddate")
                 .build(),
             AnalyticsTableColumn.builder()
                 .name("ou")

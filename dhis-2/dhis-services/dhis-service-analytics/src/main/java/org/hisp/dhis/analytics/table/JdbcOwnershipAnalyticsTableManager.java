@@ -81,11 +81,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableManager {
   private final JdbcConfiguration jdbcConfiguration;
 
-  private static final String HISTORY_TABLE_ID = "1001-01-01";
-
-  // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
-  private static final String TRACKED_ENTITY_OWN_TABLE_ID = "2002-02-02";
-
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
@@ -97,12 +92,12 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           AnalyticsTableColumn.builder()
               .name("startdate")
               .dataType(DATE)
-              .selectExpression("a.startdate")
+              .selectExpression("null")
               .build(),
           AnalyticsTableColumn.builder()
               .name("enddate")
               .dataType(DATE)
-              .selectExpression("a.enddate")
+              .selectExpression("h.enddate")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ou")
@@ -213,6 +208,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             writer.write(getRowMap(columnNames, resultSet));
             queryRowCount.getAndIncrement();
           });
+      writer.flush();
 
       log.info(
           "OwnershipAnalytics query row count was {} for table '{}'", queryRowCount, tableName);
@@ -223,18 +219,11 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   /**
-   * Returns a SQL select query. For the from clause, for tracked entities in this program in
-   * programownershiphistory, get one row for each programownershiphistory row and then get a final
-   * row from the trackedentityprogramowner table to show the final owner.
-   *
-   * <p>The start date values are dummy so that all the history table rows will be ordered first and
-   * the tracked entity owner table row will come last.
+   * Returns a SQL select query.
    *
    * <p>The start date in the analytics table will be a far past date for the first row for each
    * tracked entity, or the previous row's end date plus one day in subsequent rows for that tracked
    * entity.
-   *
-   * <p>Rows in programownershiphistory that don't have organisationunitid will be filtered out.
    *
    * @param program the {@link Program}.
    * @return a SQL select query.
@@ -248,29 +237,15 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     sql.append(
         replaceQualify(
             """
-            \sfrom (\
-            select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
-            from ${programownershiphistory} h \
+            \sfrom ${programownershiphistory} h \
+            inner join ${trackedentity} te on h.trackedentityid = te.trackedentityid \
+            inner join ${organisationunit} ou on h.organisationunitid = ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on h.organisationunitid = ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on h.organisationunitid = ougs.organisationunitid \
             where h.programid = ${programId} \
             and h.organisationunitid is not null \
-            union distinct \
-            select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
-            from ${trackedentityprogramowner} o \
-            where o.programid = ${programId} \
-            and o.trackedentityid in (\
-            select distinct p.trackedentityid \
-            from ${programownershiphistory} p \
-            where p.programid = ${programId} \
-            and p.organisationunitid is not null)) a \
-            inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
-            inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
-            order by te.uid, a.startdate, a.enddate""",
-            Map.of(
-                "historyTableId", HISTORY_TABLE_ID,
-                "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
-                "programId", String.valueOf(program.getId()))));
+            order by te.uid, h.enddate""",
+            Map.of("programId", String.valueOf(program.getId()))));
     return sql.toString();
   }
 

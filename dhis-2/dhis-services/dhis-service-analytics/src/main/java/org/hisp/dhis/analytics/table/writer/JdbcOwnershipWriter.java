@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table.writer;
 
-import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
 import static org.apache.commons.lang3.time.DateUtils.truncate;
 import static org.hisp.dhis.util.DateUtils.addDays;
@@ -51,11 +50,14 @@ import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 public class JdbcOwnershipWriter {
   private final MappingBatchHandler batchHandler;
 
-  /** Previous row for this TRACKED ENTITY, if any. */
-  private Map<String, Object> prevRow = null;
-
   /** Row of the current write, possibly modified. */
   private Map<String, Object> newRow;
+
+  /** Previous row, if any. */
+  private Map<String, Object> prevRow;
+
+  /** Does the previous row exist? */
+  private boolean previousRowExists = false;
 
   public static final String TRACKEDENTITY = "teuid";
 
@@ -65,9 +67,7 @@ public class JdbcOwnershipWriter {
 
   public static final String OU = "ou";
 
-  private static final Date FAR_PAST_DATE = new GregorianCalendar(1000, JANUARY, 1).getTime();
-
-  private static final Date FAR_FUTURE_DATE = new GregorianCalendar(9999, DECEMBER, 31).getTime();
+  private static Date FAR_PAST_DATE = new GregorianCalendar(1001, JANUARY, 1).getTime();
 
   /** Gets instance by a factory method (so it can be mocked). */
   public static JdbcOwnershipWriter getInstance(MappingBatchHandler batchHandler) {
@@ -76,27 +76,28 @@ public class JdbcOwnershipWriter {
 
   /**
    * Write a row to an analytics_ownership staging table. Work on a copy of the row, so we do not
-   * change the original row. We cannot use immutable maps because the orgUnit levels contain nulls
-   * when the orgUnit is not at the lowest level, and immutable maps do not allow null values. Also,
-   * the end date is null in the last record for each TRACKED ENTITY.
+   * change the original row. We cannot use immutable maps because some of the orgUnit levels are
+   * null when the orgUnit isn't at the lowest level. Immutable maps don't allow null values.
    *
    * @param row map of values to write
    */
   public void write(Map<String, Object> row) {
     newRow = new HashMap<>(row);
+    adjustNewRowDates();
 
-    if (newRow.get(ENDDATE) != null) {
-      // Remove the time of day portion of the ENDDATE.
-      newRow.put(ENDDATE, truncate(newRow.get(ENDDATE), Calendar.DATE));
-    }
-
-    if (prevRow == null) {
-      startNewTrackedEntity();
-    } else if (sameValue(OU) || sameValue(ENDDATE)) {
-      combineWithPreviousRow();
+    if (shouldContinuePreviousRow()) {
+      continuePreviousRow();
     } else {
-      writePreviousRow();
+      writePreviousRowIfExists();
     }
+
+    prevRow = newRow;
+    previousRowExists = true;
+  }
+
+  /** Flush the last row to the output. We will have a row to flush unless we had no input. */
+  public void flush() {
+    writePreviousRowIfExists();
   }
 
   // -------------------------------------------------------------------------
@@ -104,75 +105,54 @@ public class JdbcOwnershipWriter {
   // -------------------------------------------------------------------------
 
   /**
-   * Process the first row for a TRACKED ENTITY. Save it as the previous row and set the start date
-   * for far in the past. If the previous row does not have an "enddate", we enforce a default one.
-   */
-  private void startNewTrackedEntity() {
-    prevRow = newRow;
-
-    // Ensure a default "enddate" value.
-    prevRow.putIfAbsent(ENDDATE, FAR_FUTURE_DATE);
-
-    prevRow.put(STARTDATE, FAR_PAST_DATE);
-  }
-
-  /**
-   * Combine the current row with the previous row by updating the previous row's OU and ENDDATE. If
-   * the ENDDATE is the same this means there were multiple assignments during a day, and we want to
-   * record only the last OU assignment for the day. If the OU is the same this means there were
-   * successive assignments to the same OU (possibly after collapsing the same ENDDATE assignments
-   * such as if a TRACKED ENTITY was switched during a day to a different OU and then switched back
-   * again.) In this case we can combine the two successive records for the same OU into a single
-   * record.
+   * Adjust the dates in the new row.
    *
-   * <p>If this is the last (and not only) row for this TRACKED ENTITY, write it out.
-   */
-  private void combineWithPreviousRow() {
-    prevRow.put(OU, newRow.get(OU));
-    prevRow.put(ENDDATE, newRow.get(ENDDATE));
-
-    writeRowIfLast(prevRow);
-  }
-
-  /**
-   * The new row is for a different ownership period of the same TRACKED ENTITY. So write out the
-   * old row and start the new row after the old row's end date. Then also write out the new row if
-   * it is the last for this TRACKED ENTITY.
-   */
-  private void writePreviousRow() {
-    batchHandler.addObject(prevRow);
-
-    newRow.put(STARTDATE, addDays((Date) prevRow.get(ENDDATE), 1));
-
-    prevRow = newRow;
-
-    writeRowIfLast(prevRow);
-  }
-
-  /**
-   * If the passed row is the last for this TRACKED ENTITY (no end date), then set the end date to
-   * far in the future and write it out. However, if this is the only row for this TRACKED ENTITY
-   * (from the beginning of time to the end of time), then don't write it because the ownership
-   * never changed and analytics queries can always use the enrollment orgUnit.
+   * <p>If we are continuing entries for a tracked entity, then set the start date equal to the
+   * previous end date plus one day, otherwise we are recording values for a different tacked entity
+   * so set the start date equal to a far past date.
    *
-   * <p>After, there will be no previous row for this TRACKED ENTITY.
+   * <p>Remove the time portion of the end date, so it is just the date.
    */
-  private void writeRowIfLast(Map<String, Object> row) {
-    if (hasNullValue(row, ENDDATE)) // If the last row
-    {
-      row.put(ENDDATE, FAR_FUTURE_DATE);
-
-      if (!FAR_PAST_DATE.equals(row.get(STARTDATE))) {
-        batchHandler.addObject(row);
-      }
-
-      prevRow = null;
-    }
+  private void adjustNewRowDates() {
+    newRow.put(STARTDATE, sameTrackedEntity() ? startAfterPrevious() : FAR_PAST_DATE);
+    newRow.put(ENDDATE, truncate(newRow.get(ENDDATE), Calendar.DATE));
   }
 
-  /** Returns true if the map has a null value. */
-  private boolean hasNullValue(Map<String, Object> row, String colName) {
-    return row.get(colName) == null;
+  /** Do we have a previous row with the same tracked entity? */
+  private boolean sameTrackedEntity() {
+    return previousRowExists && sameValue(TRACKEDENTITY);
+  }
+
+  /** Start the new row one day after the previous one ends. */
+  private Date startAfterPrevious() {
+    return addDays((Date) prevRow.get(ENDDATE), 1);
+  }
+
+  /**
+   * Should we continue the previous row?
+   *
+   * <p>It should be continued if the previous row is the same tracked entity and either the OU or
+   * the ENDDATE has the same value.
+   *
+   * <p>If the ENDDATE is the same (now that the time of day has been removed), this means that
+   * there were multiple ownership changes within the same day. In this event, we want to record
+   * only a single ownership period that starts with the previous ownership start date and ends at
+   * the end of the day.
+   *
+   * <p>If the OU is the same (perhaps after combining rows with the same ENDDATE), then also we
+   * only want to record a single ownership that starts with the previous ownership start date and
+   * ends with the new ownership end date.
+   */
+  private boolean shouldContinuePreviousRow() {
+    return sameTrackedEntity() && (sameValue(ENDDATE) || sameValue(OU));
+  }
+
+  /**
+   * Continue the previous row by transferring the previous row's start date to the new row. All
+   * other properties such as OU and ENDDATE come from the new row.
+   */
+  private void continuePreviousRow() {
+    newRow.put(STARTDATE, prevRow.get(STARTDATE));
   }
 
   /**
@@ -181,5 +161,12 @@ public class JdbcOwnershipWriter {
    */
   private boolean sameValue(String colName) {
     return Objects.equals(prevRow.get(colName), newRow.get(colName));
+  }
+
+  /** Write out the previous row to the batch handler. */
+  private void writePreviousRowIfExists() {
+    if (previousRowExists) {
+      batchHandler.addObject(prevRow);
+    }
   }
 }
