@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,48 @@
  */
 package org.hisp.dhis.common;
 
-/**
- * @author Lars Helge Overland
- */
-public enum DimensionType {
-  DATA_X(0),
-  PROGRAM_DATA_ELEMENT,
-  PROGRAM_ATTRIBUTE,
-  PROGRAM_INDICATOR,
-  DATA_COLLAPSED,
-  CATEGORY_OPTION_COMBO(1),
-  ATTRIBUTE_OPTION_COMBO(2),
-  PERIOD,
-  ORGANISATION_UNIT,
-  CATEGORY_OPTION_GROUP_SET,
-  DATA_ELEMENT_GROUP_SET,
-  ORGANISATION_UNIT_GROUP_SET,
-  ORGANISATION_UNIT_GROUP,
-  CATEGORY,
-  OPTION_GROUP_SET,
-  OPTION_SET,
-  VALIDATION_RULE,
-  STATIC,
-  ORGANISATION_UNIT_LEVEL;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-  private static final int LAST_ORDER = 999;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.Aggregation;
 
-  private int order = LAST_ORDER;
+/** Encapsulates {@link org.hisp.dhis.option.Option}s uids and the {@link Aggregation} type. */
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@JacksonXmlRootElement(localName = "optionSetItem", namespace = DXF_2_0)
+public class OptionSetItem implements Serializable {
+  /** The uids of the options. */
+  private Set<String> options = new LinkedHashSet<>();
 
-  DimensionType() {}
+  /** The aggregation for this option item. */
+  private Aggregation aggregation;
 
-  DimensionType(int order) {
-    this.order = order;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Set<String> getOptions() {
+    return options;
   }
 
-  public int getOrder() {
-    return order;
+  public void setOptions(Set<String> options) {
+    this.options = options;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Aggregation getAggregation() {
+    return aggregation;
+  }
+
+  public void setAggregation(Aggregation aggregation) {
+    this.aggregation = aggregation;
   }
 }
