@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.data.handler.HeaderHandler;
 import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.data.EventAggregateService;
+import org.hisp.dhis.analytics.event.data.EventQueryService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -87,6 +88,8 @@ abstract class AnalyticsServiceBaseTest {
 
   @Mock protected EventAggregateService eventAggregatedService;
 
+  @Mock protected EventQueryService eventQueryService;
+
   @Mock private DataQueryService dataQueryService;
 
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
@@ -115,6 +118,7 @@ abstract class AnalyticsServiceBaseTest {
     DataHandler dataHandler =
         new DataHandler(
             eventAggregatedService,
+            eventQueryService,
             rawAnalyticsManager,
             resolvers,
             expressionService,

@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -71,6 +72,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.model.Partitions;
@@ -85,6 +87,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -342,6 +345,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     String sql = "select " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + ", ";
 
     sql += getValueClause(params);
+    sql += getAggregatedOptionValueClause(params);
 
     return sql;
   }
@@ -355,13 +359,45 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   protected String getValueClause(DataQueryParams params) {
     String sql = "";
 
-    if (params.isAggregation()) {
+    if (hasAggregation(params)) {
       sql += getAggregateValueColumn(params);
     } else {
       sql += params.getValueColumn();
     }
 
     return sql + " as value ";
+  }
+
+  private boolean hasAggregation(DataQueryParams params) {
+    // analytics query is an item of sequential queries with one data element only.
+    if (params.getDataElements().size() != 1) {
+      return params.isAggregation();
+    }
+
+    Optional<OptionSetSelectionMode> optionSetSelectionMode =
+            params.getDataElements().stream()
+                    .map(
+                            de ->
+                                    params
+                                            .getOptionSetSelectionCriteria()
+                                            .getOptionSetSelections()
+                                            .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
+                                            .getOptionSetSelectionMode())
+                    .findFirst();
+    OptionSetSelectionMode mode = optionSetSelectionMode.orElse(OptionSetSelectionMode.AGGREGATED);
+
+    return params.isAggregation() && mode == OptionSetSelectionMode.AGGREGATED;
+  }
+
+  protected String getAggregatedOptionValueClause(DataQueryParams params) {
+    String sql = "";
+
+    if (params.hasOptionSetInDimensionItems() && hasAggregation(params)) {
+      sql += ", count(" + params.getValueColumn() + ") as valuecount ";
+      return sql;
+    }
+
+    return sql;
   }
 
   /**
@@ -463,10 +499,36 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     getWhereClauseDimensions(params, sqlHelper, sql);
     getWhereClauseFilters(params, sqlHelper, sql);
+    getWhereClauseOptions(params, sqlHelper, sql);
     getWhereClauseDataApproval(params, sqlHelper, sql);
     getWhereClauseRestrictions(params, sqlHelper, sql, tableType);
 
     return sql.toString();
+  }
+
+  /** Add where clause for option set selection. */
+  private void getWhereClauseOptions(
+          DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql) {
+    if (!params.hasOptionSetSelectionCriteria()) {
+      return;
+    }
+
+    params
+            .getOptionSetSelectionCriteria()
+            .getOptionSetSelections()
+            .forEach(
+                    (key, value) -> {
+                      List<String> options = value.getOptions();
+                      if (options != null && !options.isEmpty()) {
+                        sql.append(" ")
+                                .append(sqlHelper.whereAnd())
+                                .append(" ")
+                                .append(quote("optionvalueuid"))
+                                .append(" in ('")
+                                .append(String.join("','", options))
+                                .append("') ");
+                      }
+                    });
   }
 
   /** Add where clause dimensions. */
@@ -640,13 +702,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL group by clause.
    */
   protected String getGroupByClause(DataQueryParams params) {
-    String sql = "";
-
-    if (params.isAggregation()) {
-      sql = "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + " ";
+    if (hasAggregation(params)) {
+      return "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + " ";
     }
 
-    return sql;
+    return "";
   }
 
   /**
@@ -961,7 +1021,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);
-        map.put(key.toString(), value);
+        if (params.hasOptionSetInDimensionItems()) {
+          map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
+        } else {
+          map.put(key.toString(), value);
+        }
       }
     }
 

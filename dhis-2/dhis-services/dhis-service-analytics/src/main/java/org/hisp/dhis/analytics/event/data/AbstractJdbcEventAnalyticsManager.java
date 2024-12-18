@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.data.QueryPlannerUtils.getAggregationType;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -89,6 +90,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
@@ -111,6 +113,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
@@ -591,6 +594,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getGroupByClause(EventQueryParams params) {
     String sql = "";
 
+    AggregationType aggregationType = getAggregationType(params);
+    if (aggregationType == NONE) {
+      return sql;
+    }
+
     if (params.isAggregation()) {
       List<String> selectColumnNames = getGroupByColumnNames(params, true);
 
@@ -697,7 +705,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     EventOutputType outputType = params.getOutputType();
 
-    AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
+    AggregationType aggregationType = getAggregationType(params);
 
     String function =
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
@@ -745,6 +753,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+  }
+
+  private AggregationType getAggregationType(EventQueryParams params) {
+
+    if (params.getValue() instanceof DataElement
+            && ((DataElement) params.getValue()).hasOptionSet()
+            && params
+            .getOptionSetSelectionCriteria()
+            .getOptionSetSelections()
+            .get(
+                    params.getValue().getUid()
+                            + "."
+                            + ((DataElement) params.getValue()).getOptionSet().getUid())
+            .getOptionSetSelectionMode()
+            != OptionSetSelectionMode.AGGREGATED) {
+      return NONE;
+    }
+
+    return params.getAggregationTypeFallback().getAggregationType();
   }
 
   /**

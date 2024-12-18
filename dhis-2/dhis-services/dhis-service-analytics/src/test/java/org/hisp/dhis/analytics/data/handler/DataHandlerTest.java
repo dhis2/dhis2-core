@@ -180,6 +180,6 @@ class DataHandlerTest {
   }
 
   private DataHandler withNullDependencies() {
-    return new DataHandler(null, null, null, null, null, null, null, null, null);
+    return new DataHandler(null, null, null, null, null, null, null, null, null, null);
   }
 }
