@@ -121,6 +121,15 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
 
+  private static final BaseDimensionalItemObject USER_OU_ITEM_OBJ =
+      buildDimItemObj(KEY_USER_ORGUNIT, "User organisation unit");
+
+  private static final BaseDimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
+      buildDimItemObj(KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
+
+  private static final BaseDimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
+      buildDimItemObj(KEY_USER_ORGUNIT_GRANDCHILDREN, "User organisation unit grand children");
+
   public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
 
   /** Line and axis labels. */
@@ -319,6 +328,19 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
       I18nFormat format);
+
+  /**
+   * Returns the dimensional item object for the given dimension and name.
+   *
+   * @param uid the dimension uid.
+   * @param name the dimension name.
+   * @return the DimensionalObject.
+   */
+  private static BaseDimensionalItemObject buildDimItemObj(String uid, String name) {
+    BaseDimensionalItemObject itemObj = new BaseDimensionalItemObject(uid);
+    itemObj.setName(name);
+    return itemObj;
+  }
 
   @Override
   public abstract void populateAnalyticalProperties();
@@ -699,17 +721,17 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         ouList.addAll(organisationUnits);
         ouList.addAll(transientOrganisationUnits);
 
-        if (userOrganisationUnit) {
-          ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT));
-        }
+      if (userOrganisationUnit) {
+        ouList.add(USER_OU_ITEM_OBJ);
+      }
 
-        if (userOrganisationUnitChildren) {
-          ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT_CHILDREN));
-        }
+      if (userOrganisationUnitChildren) {
+        ouList.add(USER_OU_CHILDREN_ITEM_OBJ);
+      }
 
-        if (userOrganisationUnitGrandChildren) {
-          ouList.add(new BaseDimensionalItemObject(KEY_USER_ORGUNIT_GRANDCHILDREN));
-        }
+      if (userOrganisationUnitGrandChildren) {
+        ouList.add(USER_OU_GRANDCHILDREN_ITEM_OBJ);
+      }
 
         if (organisationUnitLevels != null && !organisationUnitLevels.isEmpty()) {
           for (Integer level : organisationUnitLevels) {
