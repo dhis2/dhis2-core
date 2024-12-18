@@ -177,15 +177,15 @@ class DimensionalObjectUtilsTest {
   @Test
   void testGetFirstSecondIdentifier() {
     assertEquals(
-        "A123456789A", DimensionalObjectUtils.getFirstIdentifer("A123456789A.P123456789A"));
-    assertNull(DimensionalObjectUtils.getFirstIdentifer("A123456789A"));
+        "A123456789A", DimensionalObjectUtils.getFirstIdentifier("A123456789A.P123456789A"));
+    assertNull(DimensionalObjectUtils.getFirstIdentifier("A123456789A"));
   }
 
   @Test
   void testGetSecondIdentifier() {
     assertEquals(
-        "P123456789A", DimensionalObjectUtils.getSecondIdentifer("A123456789A.P123456789A"));
-    assertNull(DimensionalObjectUtils.getSecondIdentifer("A123456789A"));
+        "P123456789A", DimensionalObjectUtils.getSecondIdentifier("A123456789A.P123456789A"));
+    assertNull(DimensionalObjectUtils.getSecondIdentifier("A123456789A"));
   }
 
   @Test

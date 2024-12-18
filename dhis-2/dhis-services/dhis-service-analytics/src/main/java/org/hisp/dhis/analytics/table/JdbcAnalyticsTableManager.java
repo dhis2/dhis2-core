@@ -103,6 +103,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service("org.hisp.dhis.analytics.AnalyticsTableManager")
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
+  // deo.optionsetuid                               as optionsetuid,
+  //       deo.optionvalueuid                             as optionuid,
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
@@ -124,6 +126,18 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .nullable(NOT_NULL)
               .selectExpression("acs.categoryoptioncombouid as ao")
               .indexColumns(List.of("dx", "ao"))
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("optionsetuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("deo.optionsetuid as optionsetuid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("optionvalueuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("deo.optionvalueuid as optionvalueuid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("pestartdate")
@@ -351,22 +365,23 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replaceQualify(
             """
-        ${approvalSelectExpression} \
-        as approvallevel, \
-        ${valueExpression} * ps.daysno as daysxvalue, \
-        ps.daysno as daysno, \
-        ${valueExpression} as value, \
-        ${textValueExpression} as textvalue \
-        from ${datavalue} dv \
-        inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-        inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
-        inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-        inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
-        inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
-        inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
-        inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
-        inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-        inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            ${approvalSelectExpression} \
+            as approvallevel, \
+            ${valueExpression} * ps.daysno as daysxvalue, \
+            ps.daysno as daysno, \
+            ${valueExpression} as value, \
+            ${textValueExpression} as textvalue \
+            from ${datavalue} dv \
+            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+            inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
+            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+            inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
+            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid \
+            left outer join analytics_rs_dataelementoption deo on dv.dataelementid = deo.dataelementid and dv.value = deo.optionvaluecode \s""",
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,

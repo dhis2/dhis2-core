@@ -91,6 +91,13 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   }
 
   @Override
+  public List<EventQueryParams> planQuery(EventQueryParams params) {
+    List<EventQueryParams> queries = Lists.newArrayList(params);
+
+    return withTableNameAndPartitions(queries);
+  }
+
+  @Override
   public EventQueryParams planEventQuery(EventQueryParams params) {
     return withTableNameAndPartitions(params);
   }

@@ -50,6 +50,7 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
@@ -515,6 +517,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
+    sql += getWhereClauseOptions(params, hlp);
+
     // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
@@ -622,6 +626,29 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     return sql;
+  }
+
+  private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
+    StringBuilder sql = new StringBuilder();
+    params
+        .getOptionSetSelectionCriteria()
+        .getOptionSetSelections()
+        .forEach(
+            (key, value) -> {
+              List<String> uids = Arrays.stream(key.split("\\.")).toList();
+              List<String> options = value.getOptions();
+              if (!uids.isEmpty() && options != null && !options.isEmpty()) {
+                sql.append(" ")
+                    .append(sqlHelper.whereAnd())
+                    .append(" ")
+                    .append(quote(uids.get(0)))
+                    .append(" in ('")
+                    .append(String.join("','", options))
+                    .append("') ");
+              }
+            });
+
+    return sql.toString();
   }
 
   /** Generates a sub query which provides a filter by organisation descendant level. */
