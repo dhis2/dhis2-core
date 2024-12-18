@@ -47,11 +47,9 @@ import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +58,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.CTEUtils;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.common.RowContextUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
@@ -155,7 +154,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (params.isAggregatedEnrollments()) {
       sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
     } else {
-      sql = buildEnrollmentQueryWithCte2(params);
+      sql = buildEnrollmentQueryWithCte(params);
     }
 
     System.out.println("SQL: " + sql); // FIXME: Remove debug line
@@ -524,25 +523,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             String operator = getSqlOperator(filter);
             String value = getSqlFilterValue(filter, item);
             whereClause
-                    .append(" AND ")
-                    .append(cteName)
-                    .append(".value ")
-                    .append(operator)
-                    .append(" ")
-                    .append(value);
+                .append(" AND ")
+                .append(cteName)
+                .append(".value ")
+                .append(operator)
+                .append(" ")
+                .append(value);
           }
         }
       } else {
         // If the filter is not part of the CTE, apply it directly to the enrollment table
         // using the standard where clause method
-        String filters  = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+        String filters = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
         if (StringUtils.isNotBlank(filters) && filters.trim().startsWith("where")) {
           // remove the 'where' keyword
-            filters = filters.trim().substring(5);
-            whereClause.append("and ").append(filters);
+          filters = filters.trim().substring(5);
+          whereClause.append("and ").append(filters);
         }
       }
     }
+    // Handle the row context case
+    List<String> rowContextColumns = RowContextUtils.getRowContextWhereClauses(cteContext);
+    if (!StringUtils.isEmpty(whereClause)) {
+      whereClause.append(" AND ");
+    }
+    whereClause.append(String.join(" AND ", rowContextColumns));
 
     return whereClause.toString();
   }
@@ -610,7 +615,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             })
         .collect(Collectors.joining("\nUNION ALL\n"));
   }
-
 
   @Override
   protected String getSelectClause(EventQueryParams params) {
@@ -1035,40 +1039,52 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         String eventTableName = ANALYTICS_EVENT + queryItem.getProgram().getUid();
 
         String cteSql =
-            String.format(
-                """
+            """
                    -- Generate CTE for program stage items
-                   SELECT DISTINCT ON (enrollment) enrollment, %s as value
+                   SELECT DISTINCT ON (enrollment) enrollment, %s as value, %s
                         FROM %s
                         WHERE eventstatus != 'SCHEDULE'
                         AND ps = '%s'
-                        -- AND %s IS NOT NULL
-                        ORDER BY enrollment, occurreddate DESC, created DESC""",
-                colName, eventTableName, queryItem.getProgramStage().getUid(), colName);
+                        ORDER BY enrollment, occurreddate DESC, created DESC"""
+                .formatted(
+                    colName,
+                    rowContextAllowedAndNeeded(params, queryItem) ? "true as exists_flag" : "",
+                    eventTableName,
+                    queryItem.getProgramStage().getUid());
 
         cteContext.addCTE(cteName, cteSql);
-
-        String alias =
-            quote(queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid());
+        String unquotedAlias =
+            queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid();
         cteContext.addColumnMapping(
             queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid(),
-            cteName + ".value as " + alias);
+            cteName + ".value as " + quote(unquotedAlias));
+
+        if (rowContextAllowedAndNeeded(
+            params, queryItem)) { // TODO original condition && !isEmpty(columnAndAlias.alias)) {
+
+          String statusCteSql =
+              """
+                    select
+                        distinct on (enrollment)
+                        enrollment,
+                        eventstatus as status
+                    from
+                        %s
+                    where
+                        eventstatus != 'SCHEDULE'
+                        and ps = '%s'
+                    order by
+                        enrollment,
+                        occurreddate desc,
+                        created desc
+                """
+                  .formatted(eventTableName, queryItem.getProgramStage().getUid());
+          cteContext.addCTE(cteName + "_status", statusCteSql);
+          cteContext.addRowContextColumnMapping(unquotedAlias, cteName);
+        }
       }
     }
     return cteContext;
-  }
-
-  private String buildFilterCteSql(QueryItem item, EventQueryParams params) {
-    String tableName = params.getTableName();
-    String columnName = getColumn(item);
-    String filterCondition =
-        item.getFilters().stream()
-            .map(filter -> toSql(item, filter, params))
-            .collect(Collectors.joining(" AND "));
-
-    return String.format(
-        "SELECT enrollment, %s AS value " + "FROM %s " + "WHERE %s",
-        columnName, tableName, filterCondition);
   }
 
   private void generateFilterCTEs(EventQueryParams params, CTEContext cteContext) {
@@ -1111,7 +1127,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             });
   }
 
-  private String buildEnrollmentQueryWithCte2(EventQueryParams params) {
+  private String buildEnrollmentQueryWithCte(EventQueryParams params) {
 
     StringBuilder sql = new StringBuilder();
 
@@ -1131,7 +1147,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     List<String> selectCols =
         ListUtils.distinctUnion(
             params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
-            getSelectColumnsWithCTE(params, cteContext));
+            getSelectColumnsWithCTE(params, cteContext),
+            getRowContextColumns(cteContext));
     sql.append("SELECT ").append(String.join(",\n    ", selectCols));
 
     // 4. From clause
@@ -1161,148 +1178,134 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return sql.toString();
   }
 
-  private String getBasicSelectColumns() {
-    return String.join(
-        ",",
-        "ax.enrollment",
-        "trackedentity",
-        "enrollmentdate",
-        "occurreddate",
-        "storedby",
-        "createdbydisplayname",
-        "lastupdatedbydisplayname",
-        "lastupdated",
-        "ST_AsGeoJSON(enrollmentgeometry)",
-        "longitude",
-        "latitude",
-        "ouname",
-        "ounamehierarchy",
-        "oucode",
-        "enrollmentstatus",
-        "ax.\"ou\"");
+  private List<String> getRowContextColumns(CTEContext cteContext) {
+    return RowContextUtils.getRowContextColumns(cteContext, sqlBuilder);
   }
 
-  private String resolveOrderByOffset(int offset) {
+  //  private String resolveOrderByOffset(int offset) {
+  //
+  //    if (offset <= 0) {
+  //      return "desc";
+  //    }
+  //    return "asc";
+  //  }
 
-    if (offset <= 0) {
-      return "desc";
-    }
-    return "asc";
-  }
-
-  private String buildAllRankedEventsCTEs(List<QueryItem> items) {
-    StringBuilder ctes = new StringBuilder();
-    Set<String> processedCombinations = new HashSet<>();
-
-    for (QueryItem item : items) {
-      if (!item.hasProgramStage()) {
-        continue;
-      }
-
-      String stageUid = item.getProgramStage().getUid();
-      int offset = createOffset2(item.getProgramStageOffset());
-      String order = resolveOrderByOffset(item.getProgramStageOffset());
-
-      // Create unique key for this combination to avoid duplicate CTEs
-      String key = stageUid + "_" + offset + "_" + order;
-      if (processedCombinations.contains(key)) {
-        continue;
-      }
-
-      if (!ctes.isEmpty()) {
-        ctes.append(",\n");
-      }
-
-      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
-      String columnName = quote(item.getItem().getUid());
-
-      ctes.append(
-          String.format(
-              """
-              RankedEvents_%s as (
-                select enrollment, %s as value, eventstatus,
-                  row_number() over (partition by enrollment order by occurreddate %s, created %s) as rn
-                from %s
-                where eventstatus != 'SCHEDULE'
-                  and ps = '%s'
-              )
-              """,
-              key, columnName, order, order, eventTableName, stageUid));
-
-      processedCombinations.add(key);
-    }
-
-    return !ctes.isEmpty() ? "with " + ctes + "\n" : "";
-  }
-
-  private String buildValueColumns(List<QueryItem> items) {
-    StringBuilder columns = new StringBuilder();
-
-    for (QueryItem item : items) {
-      if (!item.hasProgramStage()) {
-        continue;
-      }
-
-      String stageUid = item.getProgramStage().getUid();
-      int offset = createOffset2(item.getProgramStageOffset());
-      String key =
-          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
-
-      String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
-      String alias = "re_" + key;
-
-      if (!columns.isEmpty()) {
-        columns.append(",\n");
-      }
-
-      // Add value column
-      columns.append(
-          String.format(
-              "%s.value as %s",
-              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid())));
-
-      // Add exists column
-      columns.append(
-          String.format(
-              ",\n(%s.enrollment is not null) as %s",
-              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() + ".exists")));
-
-      // Add status column
-      columns.append(
-          String.format(
-              ",\n%s.eventstatus as %s",
-              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() + ".status")));
-    }
-
-    return columns.toString();
-  }
-
-  private String buildFromClauseWithJoins(EventQueryParams params, List<QueryItem> items) {
-    StringBuilder fromClause = new StringBuilder();
-
-    // Start with base table
-    fromClause.append("\nfrom ").append(params.getTableName()).append(" as ax");
-
-    // Add joins for each item
-    for (QueryItem item : items) {
-      if (!item.hasProgramStage()) {
-        continue;
-      }
-
-      String stageUid = item.getProgramStage().getUid();
-      int offset = createOffset2(item.getProgramStageOffset());
-      String key =
-          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
-      String alias = "re_" + key;
-
-      fromClause.append(
-          String.format(
-              "\nleft join RankedEvents_%s %s on ax.enrollment = %s.enrollment and %s.rn = %d",
-              key, alias, alias, alias, offset + 1));
-    }
-
-    return fromClause.toString();
-  }
+  //  private String buildAllRankedEventsCTEs(List<QueryItem> items) {
+  //    StringBuilder ctes = new StringBuilder();
+  //    Set<String> processedCombinations = new HashSet<>();
+  //
+  //    for (QueryItem item : items) {
+  //      if (!item.hasProgramStage()) {
+  //        continue;
+  //      }
+  //
+  //      String stageUid = item.getProgramStage().getUid();
+  //      int offset = createOffset2(item.getProgramStageOffset());
+  //      String order = resolveOrderByOffset(item.getProgramStageOffset());
+  //
+  //      // Create unique key for this combination to avoid duplicate CTEs
+  //      String key = stageUid + "_" + offset + "_" + order;
+  //      if (processedCombinations.contains(key)) {
+  //        continue;
+  //      }
+  //
+  //      if (!ctes.isEmpty()) {
+  //        ctes.append(",\n");
+  //      }
+  //
+  //      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
+  //      String columnName = quote(item.getItem().getUid());
+  //
+  //      ctes.append(
+  //          String.format(
+  //              """
+  //              RankedEvents_%s as (
+  //                select enrollment, %s as value, eventstatus,
+  //                  row_number() over (partition by enrollment order by occurreddate %s, created
+  // %s) as rn
+  //                from %s
+  //                where eventstatus != 'SCHEDULE'
+  //                  and ps = '%s'
+  //              )
+  //              """,
+  //              key, columnName, order, order, eventTableName, stageUid));
+  //
+  //      processedCombinations.add(key);
+  //    }
+  //
+  //    return !ctes.isEmpty() ? "with " + ctes + "\n" : "";
+  //  }
+  //
+  //  private String buildValueColumns(List<QueryItem> items) {
+  //    StringBuilder columns = new StringBuilder();
+  //
+  //    for (QueryItem item : items) {
+  //      if (!item.hasProgramStage()) {
+  //        continue;
+  //      }
+  //
+  //      String stageUid = item.getProgramStage().getUid();
+  //      int offset = createOffset2(item.getProgramStageOffset());
+  //      String key =
+  //          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
+  //
+  //      String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
+  //      String alias = "re_" + key;
+  //
+  //      if (!columns.isEmpty()) {
+  //        columns.append(",\n");
+  //      }
+  //
+  //      // Add value column
+  //      columns.append(
+  //          String.format(
+  //              "%s.value as %s",
+  //              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid())));
+  //
+  //      // Add exists column
+  //      columns.append(
+  //          String.format(
+  //              ",\n(%s.enrollment is not null) as %s",
+  //              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() +
+  // ".exists")));
+  //
+  //      // Add status column
+  //      columns.append(
+  //          String.format(
+  //              ",\n%s.eventstatus as %s",
+  //              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() +
+  // ".status")));
+  //    }
+  //
+  //    return columns.toString();
+  //  }
+  //
+  //  private String buildFromClauseWithJoins(EventQueryParams params, List<QueryItem> items) {
+  //    StringBuilder fromClause = new StringBuilder();
+  //
+  //    // Start with base table
+  //    fromClause.append("\nfrom ").append(params.getTableName()).append(" as ax");
+  //
+  //    // Add joins for each item
+  //    for (QueryItem item : items) {
+  //      if (!item.hasProgramStage()) {
+  //        continue;
+  //      }
+  //
+  //      String stageUid = item.getProgramStage().getUid();
+  //      int offset = createOffset2(item.getProgramStageOffset());
+  //      String key =
+  //          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
+  //      String alias = "re_" + key;
+  //
+  //      fromClause.append(
+  //          String.format(
+  //              "\nleft join RankedEvents_%s %s on ax.enrollment = %s.enrollment and %s.rn = %d",
+  //              key, alias, alias, alias, offset + 1));
+  //    }
+  //
+  //    return fromClause.toString();
+  //  }
 
   protected String getSortClause(EventQueryParams params) {
     if (params.isSorting()) {

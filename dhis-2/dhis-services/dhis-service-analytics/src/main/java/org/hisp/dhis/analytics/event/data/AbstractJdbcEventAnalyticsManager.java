@@ -414,7 +414,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param queryItem
    * @return true when eligible for row context
    */
-  private boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
+  protected boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
     return params.getEndpointItem() == ENROLLMENT
         && params.isRowContext()
         && queryItem.hasProgramStage()
