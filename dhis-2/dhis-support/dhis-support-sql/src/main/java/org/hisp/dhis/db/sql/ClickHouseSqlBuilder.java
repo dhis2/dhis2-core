@@ -236,7 +236,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String cast(String column, DataType dataType) {
     return switch (dataType) {
-      case NUMERIC -> String.format("toDecimal64(%s, 4)", column);
+      case NUMERIC -> String.format("toFloat64(%s)", column);
       case BOOLEAN ->
           String.format("toUInt8(%s) != 0", column); // ClickHouse uses UInt8 for boolean
       case TEXT -> String.format("toString(%s)", column);
