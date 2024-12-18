@@ -542,12 +542,19 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         }
       }
     }
+
     // Handle the row context case
     List<String> rowContextColumns = RowContextUtils.getRowContextWhereClauses(cteContext);
-    if (!StringUtils.isEmpty(whereClause)) {
-      whereClause.append(" AND ");
+    if (rowContextColumns.isEmpty()) {
+      return whereClause.toString();
+    } else {
+      if (whereClause.isEmpty()) {
+        whereClause.append(" where ");
+      } else {
+        whereClause.append(" AND ");
+      }
+      whereClause.append(String.join(" AND ", rowContextColumns));
     }
-    whereClause.append(String.join(" AND ", rowContextColumns));
 
     return whereClause.toString();
   }
@@ -1041,14 +1048,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         String cteSql =
             """
                    -- Generate CTE for program stage items
-                   SELECT DISTINCT ON (enrollment) enrollment, %s as value, %s
+                   SELECT DISTINCT ON (enrollment) enrollment, %s as value%s
                         FROM %s
                         WHERE eventstatus != 'SCHEDULE'
                         AND ps = '%s'
                         ORDER BY enrollment, occurreddate DESC, created DESC"""
                 .formatted(
                     colName,
-                    rowContextAllowedAndNeeded(params, queryItem) ? "true as exists_flag" : "",
+                    rowContextAllowedAndNeeded(params, queryItem) ? " ,true as exists_flag" : "",
                     eventTableName,
                     queryItem.getProgramStage().getUid());
 
