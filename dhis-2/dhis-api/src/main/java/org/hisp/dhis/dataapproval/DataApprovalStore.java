@@ -171,7 +171,7 @@ public interface DataApprovalStore {
    * @param uids {@link CategoryOptionCombo} {@link UID}s
    * @return {@link DataApproval}s with {@link CategoryOptionCombo} {@link UID}s passed in
    */
-  List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uid);
+  List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 
   /**
    * Delete all {@link DataApproval}s with references to {@link CategoryOptionCombo} {@link UID}s
