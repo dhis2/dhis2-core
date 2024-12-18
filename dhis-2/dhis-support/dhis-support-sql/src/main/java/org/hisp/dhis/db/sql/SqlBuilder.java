@@ -310,15 +310,6 @@ public interface SqlBuilder {
   String cast(String column, DataType dataType);
 
   /**
-   * Generates a SQL expression that calculates the time interval between two dates in years.
-   *
-   * @param endDate The end date expression in the calculation
-   * @param startDate The start date expression in the calculation.
-   * @return A SQL string that calculates the age between the two dates
-   */
-  String age(String endDate, String startDate);
-
-  /**
    * Generates SQL to calculate the difference between two dates based on the specified date part.
    *
    * @param startDate the start date expression (can be a date literal or a column reference)
