@@ -87,6 +87,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -233,6 +234,9 @@ public class DataQueryParams {
 
   /** The aggregation type. */
   protected AnalyticsAggregationType aggregationType;
+
+  /** The option set selection criteria. */
+  protected OptionSetSelectionCriteriaV2 optionSetSelectionCriteria;
 
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
@@ -498,6 +502,7 @@ public class DataQueryParams {
     params.dimensions = DimensionalObjectUtils.getCopies(this.dimensions);
     params.filters = DimensionalObjectUtils.getCopies(this.filters);
     params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
+    params.optionSetSelectionCriteria = this.optionSetSelectionCriteria;
     params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.preAggregateMeasureCriteria = new HashMap<>(this.preAggregateMeasureCriteria);
     params.skipMeta = this.skipMeta;
@@ -591,6 +596,7 @@ public class DataQueryParams {
         (k, v) -> key.add("preAggregateMeasureCriteria", (String.valueOf(k) + v)));
 
     return key.add("aggregationType", aggregationType)
+        .add("optionSetSelectionCriteria", optionSetSelectionCriteria)
         .add("skipMeta", skipMeta)
         .add("skipData", skipData)
         .add("skipHeaders", skipHeaders)
@@ -746,6 +752,11 @@ public class DataQueryParams {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
   }
 
+  /** Indicates whether option set selection criteria are present as dimension. */
+  public boolean hasOptionSetSelectionCriteria() {
+    return optionSetSelectionCriteria != null;
+  }
+
   /**
    * Returns the period type of the first period specified as filter, or null if there is no period
    * filter.
@@ -859,6 +870,17 @@ public class DataQueryParams {
   /** Indicates whether the this parameters has the given output format specified. */
   public boolean isOutputFormat(OutputFormat format) {
     return this.outputFormat != null && this.outputFormat == format;
+  }
+
+  public boolean hasOptionSetInDimensionItems() {
+    return dimensions.stream()
+            .anyMatch(
+                    d ->
+                            d.getItems().stream()
+                                    .anyMatch(
+                                            it ->
+                                                    it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
+                                                            && ((DataElement) it).getOptionSet() != null));
   }
 
   /**
@@ -1952,6 +1974,10 @@ public class DataQueryParams {
     return aggregationType;
   }
 
+  public OptionSetSelectionCriteriaV2 getOptionSetSelectionCriteria() {
+    return optionSetSelectionCriteria;
+  }
+
   public Map<MeasureFilter, Double> getMeasureCriteria() {
     return measureCriteria;
   }
@@ -2793,6 +2819,12 @@ public class DataQueryParams {
 
     public Builder withAggregationType(AnalyticsAggregationType aggregationType) {
       this.params.aggregationType = aggregationType;
+      return this;
+    }
+
+    public Builder withOptionSetSelectionCriteria(
+            OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
+      this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
 

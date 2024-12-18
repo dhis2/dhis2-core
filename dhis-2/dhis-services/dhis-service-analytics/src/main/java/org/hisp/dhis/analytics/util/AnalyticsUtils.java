@@ -644,8 +644,8 @@ public final class AnalyticsUtils {
         coc = dataItem.getAggregateExportCategoryOptionCombo();
         aoc = dataItem.getAggregateExportAttributeOptionCombo();
       } else if (DataElementOperand.class.isAssignableFrom(item.getClass())) {
-        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifer(dx));
-        coc = DimensionalObjectUtils.getSecondIdentifer(dx);
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        coc = DimensionalObjectUtils.getSecondIdentifier(dx);
       }
 
       cocCol.add(coc);
