@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.common.CTEUtils.createFilterNameByIdentifier;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
@@ -57,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CTEContext;
+import org.hisp.dhis.analytics.common.CTEUtils;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -503,7 +505,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
   }
 
-  private String addCteFiltersToWhereClause(EventQueryParams params) {
+  private String addCteFiltersToWhereClause(EventQueryParams params, CTEContext cteContext) {
     StringBuilder whereClause = new StringBuilder();
 
     // Iterate over each filter and apply the correct condition
@@ -512,21 +514,32 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             .filter(QueryItem::hasFilter)
             .toList()) {
 
-      String cteName = "filter_" + getIdentifier(item).replace('.', '_').toLowerCase();
+      String cteName = CTEUtils.createFilterName(item);
 
-      for (QueryFilter filter : item.getFilters()) {
-        if ("NV".equals(filter.getFilter())) { // Handle null filters explicitly
-          whereClause.append(" AND ").append(cteName).append(".value IS NULL");
-        } else {
-          String operator = getSqlOperator(filter);
-          String value = getSqlFilterValue(filter, item);
-          whereClause
-              .append(" AND ")
-              .append(cteName)
-              .append(".value ")
-              .append(operator)
-              .append(" ")
-              .append(value);
+      if (cteContext.containsCteFilter(cteName)) {
+        for (QueryFilter filter : item.getFilters()) {
+          if ("NV".equals(filter.getFilter())) { // Handle null filters explicitly
+            whereClause.append(" AND ").append(cteName).append(".value IS NULL");
+          } else {
+            String operator = getSqlOperator(filter);
+            String value = getSqlFilterValue(filter, item);
+            whereClause
+                    .append(" AND ")
+                    .append(cteName)
+                    .append(".value ")
+                    .append(operator)
+                    .append(" ")
+                    .append(value);
+          }
+        }
+      } else {
+        // If the filter is not part of the CTE, apply it directly to the enrollment table
+        // using the standard where clause method
+        String filters  = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+        if (StringUtils.isNotBlank(filters) && filters.trim().startsWith("where")) {
+          // remove the 'where' keyword
+            filters = filters.trim().substring(5);
+            whereClause.append("and ").append(filters);
         }
       }
     }
@@ -598,26 +611,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         .collect(Collectors.joining("\nUNION ALL\n"));
   }
 
-  private Stream<IdentifiableSql> asSqlCollection(
-      List<QueryItem> queryItems, EventQueryParams params) {
-    return Optional.ofNullable(queryItems).orElse(List.of()).stream()
-        .map(
-            queryItem -> {
-              String sql =
-                  queryItem.getFilters().stream()
-                      .map(filter -> toSql(queryItem, filter, params))
-                      .collect(Collectors.joining(" AND "));
-              return IdentifiableSql.builder()
-                  .identifier(getIdentifier(queryItem))
-                  .sql(sql)
-                  .build();
-            });
-  }
-
-  private String getIdentifier(QueryItem queryItem) {
-    String stage = queryItem.hasProgramStage() ? queryItem.getProgramStage().getUid() : "default";
-    return stage + "." + queryItem.getItemId();
-  }
 
   @Override
   protected String getSelectClause(EventQueryParams params) {
@@ -1009,6 +1002,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private CTEContext getCteDefinitions(EventQueryParams params) {
     CTEContext cteContext = new CTEContext();
+
     for (QueryItem queryItem : params.getItems()) {
       if (queryItem.isProgramIndicator()) {
         ProgramIndicator pi = (ProgramIndicator) queryItem.getItem();
@@ -1029,7 +1023,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               params.getLatestEndDate(),
               cteContext);
         }
-      } else if (queryItem.hasProgramStage()) {
+      } else if (queryItem.hasProgramStage() && queryItem.hasProgram()) {
         // Generate CTE for program stage items
         String cteName =
             String.format(
@@ -1096,10 +1090,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Process repeatable stage filters
     itemsByRepeatableFlag.getOrDefault(true, List.of()).stream()
-        .collect(groupingBy(this::getIdentifier))
+        .collect(groupingBy(CTEUtils::getIdentifier))
         .forEach(
             (identifier, items) -> {
-              String cteName = "filter_" + identifier.replace('.', '_').toLowerCase();
+              String cteName = createFilterNameByIdentifier(identifier);
               String cteSql = buildFilterCteSql(items, params);
               cteContext.addCTE(cteName, cteSql);
             });
@@ -1109,9 +1103,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         .getOrDefault(false, List.of())
         .forEach(
             queryItem -> {
-              String cteName = "filter_" + getIdentifier(queryItem).replace('.', '_').toLowerCase();
-              String cteSql = buildFilterCteSql(List.of(queryItem), params);
-              cteContext.addCTE(cteName, cteSql);
+              if (queryItem.hasProgram() && queryItem.hasProgramStage()) {
+                String cteName = CTEUtils.createFilterName(queryItem);
+                String cteSql = buildFilterCteSql(List.of(queryItem), params);
+                cteContext.addCTE(cteName, cteSql);
+              }
             });
   }
 
@@ -1154,7 +1150,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     sql.append(" ")
         .append(getWhereClause(params))
         .append(" ")
-        .append(addCteFiltersToWhereClause(params));
+        .append(addCteFiltersToWhereClause(params, cteContext));
 
     // 7. Order by
     sql.append(" ").append(getSortClause(params));

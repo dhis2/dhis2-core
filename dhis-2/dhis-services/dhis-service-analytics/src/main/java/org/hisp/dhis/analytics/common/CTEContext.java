@@ -68,4 +68,8 @@ public class CTEContext {
   public String getColumnMapping(String columnId) {
     return columnMappings.getOrDefault(columnId, columnId);
   }
+
+  public boolean containsCteFilter(String cteFilterName) {
+    return cteDefinitions.containsKey(cteFilterName);
+  }
 }
