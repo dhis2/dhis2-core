@@ -245,8 +245,16 @@ class ClickHouseSqlBuilderTest {
   void testCast() {
     assertEquals(
         """
-        toDecimal64(ax."qrur9Dvnyt5", 4)""",
+        toFloat64(ax."qrur9Dvnyt5")""",
         sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+    assertEquals(
+        """
+        toUInt8(ax."qrur9Dvnyt5") != 0""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.BOOLEAN));
+    assertEquals(
+        """
+        toString(ax."qrur9Dvnyt5")""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.TEXT));
   }
 
   @Test
