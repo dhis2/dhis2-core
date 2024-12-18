@@ -64,14 +64,14 @@ public class HibernateEventChangeLogStore {
 
   /**
    * Event change logs can be ordered by given fields which correspond to fields on {@link
-   * EventChangeLog}. Maps fields to DB columns, except for dataItem. In that case we need to sort
-   * by concatenation, to treat the dataElement and eventField as a single entity.
+   * EventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case we
+   * need to sort by concatenation, to treat the dataElement and eventField as a single entity.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
-          entry("dataItem", ORDER_DATA_ITEM_EXPRESSION));
+          entry("change", ORDER_DATA_ITEM_EXPRESSION));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
