@@ -111,12 +111,12 @@ public class CommonDataMergeHandler {
             + sourceDataValueDuplicates.size()
             + " duplicate data values, keeping later lastUpdated value");
 
-    // group Data values by key, so we can deal with each duplicate correctly
+    // Group Data values by key, so we can deal with each duplicate correctly
     Map<String, List<DataValue>> sourceDataValuesGroupedByKey =
         sourceDataValueDuplicates.stream()
             .collect(Collectors.groupingBy(dvMergeParams.dataValueKey));
 
-    // filter groups down to single DV with latest date
+    // Filter groups down to single DV with latest date
     List<DataValue> filtered =
         sourceDataValuesGroupedByKey.values().stream()
             .map(ls -> Collections.max(ls, Comparator.comparing(DataValue::getLastUpdated)))
@@ -129,7 +129,7 @@ public class CommonDataMergeHandler {
       if (matchingTargetDataValue.getLastUpdated().before(source.getLastUpdated())) {
         dataValueStore.deleteDataValue(matchingTargetDataValue);
 
-        // detaching is required here as it's not possible to add a new DataValue with essentially
+        // Detaching is required here as it's not possible to add a new DataValue with essentially
         // the same composite primary key - Throws `NonUniqueObjectException: A different object
         // with the same identifier value was already associated with the session`
         entityManager.detach(matchingTargetDataValue);
@@ -139,7 +139,7 @@ public class CommonDataMergeHandler {
       }
     }
 
-    // delete the rest of the source data values after handling the last update duplicate
+    // Delete the rest of the source data values after handling the last update duplicate
     dvMergeParams.dvStoreDelete.accept(dvMergeParams.sources);
   }
 
