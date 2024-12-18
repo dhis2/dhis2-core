@@ -242,6 +242,14 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testCast() {
+    assertEquals(
+        """
+        toDecimal64(ax."qrur9Dvnyt5", 4)""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+  }
+
+  @Test
   void testIfThen() {
     assertEquals(
         "if(a.status = 'COMPLETE', a.eventdate, null)",

@@ -252,6 +252,14 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testCast() {
+    assertEquals(
+        """
+        ax."qrur9Dvnyt5"::numeric""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+  }
+
+  @Test
   void testIfThen() {
     assertEquals(
         "case when a.status = 'COMPLETE' then a.eventdate end",
