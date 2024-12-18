@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.dataelement.handler;
 
-import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewDataElement;
+import static org.hisp.dhis.datavalue.DataValueUtil.dataValueWithNewDataElement;
 
 import java.util.List;
 import java.util.Map;

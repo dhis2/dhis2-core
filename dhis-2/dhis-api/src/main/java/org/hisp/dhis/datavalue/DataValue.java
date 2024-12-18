@@ -31,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
@@ -272,87 +271,6 @@ public class DataValue implements Serializable {
     this.followup = other.isFollowup();
     this.deleted = other.isDeleted();
   }
-
-  /**
-   * Method that creates a new {@link DataValue}. All the old values are used from the supplied old
-   * {@link DataValue} except for the {@link DataElement} field, which uses the supplied {@link
-   * DataElement}.
-   *
-   * @param oldDv old {@link DataValue} whose values will be used in the new {@link DataValue}
-   * @param newDataElement {@link DataElement} to be used in the new {@link DataValue}
-   * @return new {@link DataValue}
-   */
-  public static final BiFunction<DataValue, BaseIdentifiableObject, DataValue>
-      dataValueWithNewDataElement =
-          (oldDv, newDataElement) -> {
-            DataValue newValue =
-                DataValue.builder()
-                    .dataElement((DataElement) newDataElement)
-                    .period(oldDv.getPeriod())
-                    .source(oldDv.getSource())
-                    .categoryOptionCombo(oldDv.getCategoryOptionCombo())
-                    .attributeOptionCombo(oldDv.getAttributeOptionCombo())
-                    .value(oldDv.getValue())
-                    .storedBy(oldDv.getStoredBy())
-                    .lastUpdated(oldDv.getLastUpdated())
-                    .comment(oldDv.getComment())
-                    .followup(oldDv.isFollowup())
-                    .deleted(oldDv.isDeleted())
-                    .build();
-            newValue.setCreated(oldDv.getCreated());
-            return newValue;
-          };
-
-  /**
-   * Creates a new {@link DataValue}. All the old values are used from the supplied old {@link
-   * DataValue} except for the {@link CategoryOptionCombo} field, which uses the supplied {@link
-   * CategoryOptionCombo}.
-   *
-   * @param oldDv old {@link DataValue} whose values will be used in the new {@link DataValue}
-   * @param newCoc {@link CategoryOptionCombo} to be used in the new {@link DataValue}
-   * @return new {@link DataValue}
-   */
-  public static final BiFunction<DataValue, BaseIdentifiableObject, DataValue>
-      dataValueWithNewCatOptionCombo =
-          (oldDv, newCoc) -> {
-            DataValue newValue =
-                DataValue.builder()
-                    .dataElement(oldDv.getDataElement())
-                    .period(oldDv.getPeriod())
-                    .source(oldDv.getSource())
-                    .categoryOptionCombo((CategoryOptionCombo) newCoc)
-                    .attributeOptionCombo(oldDv.getAttributeOptionCombo())
-                    .value(oldDv.getValue())
-                    .storedBy(oldDv.getStoredBy())
-                    .lastUpdated(oldDv.getLastUpdated())
-                    .comment(oldDv.getComment())
-                    .followup(oldDv.isFollowup())
-                    .deleted(oldDv.isDeleted())
-                    .build();
-            newValue.setCreated(oldDv.getCreated());
-            return newValue;
-          };
-
-  public static final BiFunction<DataValue, BaseIdentifiableObject, DataValue>
-      dataValueWithNewAttrOptionCombo =
-          (oldDv, newAoc) -> {
-            DataValue newValue =
-                DataValue.builder()
-                    .dataElement(oldDv.getDataElement())
-                    .period(oldDv.getPeriod())
-                    .source(oldDv.getSource())
-                    .categoryOptionCombo(oldDv.getCategoryOptionCombo())
-                    .attributeOptionCombo((CategoryOptionCombo) newAoc)
-                    .value(oldDv.getValue())
-                    .storedBy(oldDv.getStoredBy())
-                    .lastUpdated(oldDv.getLastUpdated())
-                    .comment(oldDv.getComment())
-                    .followup(oldDv.isFollowup())
-                    .deleted(oldDv.isDeleted())
-                    .build();
-            newValue.setCreated(oldDv.getCreated());
-            return newValue;
-          };
 
   // -------------------------------------------------------------------------
   // hashCode and equals

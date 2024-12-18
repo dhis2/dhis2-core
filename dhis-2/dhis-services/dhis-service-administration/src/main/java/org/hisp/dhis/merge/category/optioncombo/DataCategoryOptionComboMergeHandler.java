@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.merge.category.optioncombo;
 
-import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewAttrOptionCombo;
-import static org.hisp.dhis.datavalue.DataValue.dataValueWithNewCatOptionCombo;
+import static org.hisp.dhis.datavalue.DataValueUtil.dataValueWithNewAttrOptionCombo;
+import static org.hisp.dhis.datavalue.DataValueUtil.dataValueWithNewCatOptionCombo;
 import static org.hisp.dhis.merge.DataMergeStrategy.DISCARD;
 import static org.hisp.dhis.merge.DataMergeStrategy.LAST_UPDATED;
 
