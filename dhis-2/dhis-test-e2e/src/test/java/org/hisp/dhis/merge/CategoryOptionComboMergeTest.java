@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -52,6 +53,8 @@ import org.junit.jupiter.api.Test;
 class CategoryOptionComboMergeTest extends ApiTest {
 
   private RestApiActions categoryOptionComboApiActions;
+  private RestApiActions dataElementApiActions;
+  private RestApiActions minMaxActions;
   private MetadataActions metadataActions;
   private RestApiActions maintenanceApiActions;
   private UserActions userActions;
@@ -64,6 +67,8 @@ class CategoryOptionComboMergeTest extends ApiTest {
   public void before() {
     userActions = new UserActions();
     loginActions = new LoginActions();
+    dataElementApiActions = new RestApiActions("dataElements");
+    minMaxActions = new RestApiActions("minMaxDataElements");
     categoryOptionComboApiActions = new RestApiActions("categoryOptionCombos");
     metadataActions = new MetadataActions();
     maintenanceApiActions = new RestApiActions("maintenance");
@@ -169,6 +174,93 @@ class CategoryOptionComboMergeTest extends ApiTest {
             "message",
             equalTo(
                 "Access is denied, requires one Authority from [F_CATEGORY_OPTION_COMBO_MERGE]"));
+  }
+
+  @Test
+  @DisplayName("Category Option Combo merge fails when min max DE DB unique key constraint met")
+  void dbConstraintMinMaxTest() {
+    // given
+    // generate category option combos
+    String emptyParams = new QueryParamsBuilder().build();
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
+        .validateStatus(200);
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
+        .validateStatus(200);
+
+    // get cat opt combo uids for sources and target, after generating
+    sourceUid1 = getCocWithOptions("1A", "2A");
+    sourceUid2 = getCocWithOptions("1B", "2B");
+    targetUid = getCocWithOptions("3A", "4B");
+
+    String dataElement = setupDataElement("9", "TEXT", "AGGREGATE");
+
+    setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, dataElement);
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when
+    ApiResponse response =
+        categoryOptionComboApiActions.post("merge", getMergeBody()).validateStatus(409);
+
+    // then
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
+        .body("message", containsString("minmaxdataelement_unique_key"));
+  }
+
+  private void setupMinMaxDataElements(
+      String sourceUid1, String sourceUid2, String targetUid, String dataElement) {
+    minMaxActions.post(minMaxDataElements(sourceUid1, dataElement));
+    minMaxActions.post(minMaxDataElements(sourceUid2, dataElement));
+    minMaxActions.post(minMaxDataElements(targetUid, dataElement));
+  }
+
+  private String minMaxDataElements(String coc, String de) {
+    return """
+          {
+               "min": 2,
+               "max": 11,
+               "generated": false,
+               "source": {
+                   "id": "OrgUnitUid1"
+               },
+               "dataElement": {
+                   "id": "%s"
+               },
+               "optionCombo": {
+                   "id": "%s"
+               }
+           }
+          """
+        .formatted(de, coc);
+  }
+
+  private String setupDataElement(String uniqueChar, String valueType, String domainType) {
+    return dataElementApiActions
+        .post(createDataElement("source 1" + uniqueChar, valueType, domainType))
+        .validateStatus(201)
+        .extractUid();
+  }
+
+  private String createDataElement(String name, String valueType, String domainType) {
+    return """
+            {
+                 "aggregationType": "DEFAULT",
+                 "domainType": "%s",
+                 "name": "%s",
+                 "shortName": "%s",
+                 "displayName": "%s",
+                 "valueType": "%s"
+             }
+            """
+        .formatted(domainType, name, name, name, valueType);
   }
 
   private JsonObject getMergeBody() {
