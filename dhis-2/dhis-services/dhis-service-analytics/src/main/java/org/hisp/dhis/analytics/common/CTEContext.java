@@ -31,10 +31,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 
 public class CTEContext {
   private final Map<String, String> cteDefinitions = new LinkedHashMap<>();
   private final Map<String, String> columnMappings = new HashMap<>();
+  @Getter private final Map<String, String> rowContextReferences = new HashMap<>();
 
   public void addCTE(String cteName, String cteDefinition) {
     cteDefinitions.put(cteName, cteDefinition);
@@ -42,6 +44,17 @@ public class CTEContext {
 
   public void addColumnMapping(String originalColumn, String cteReference) {
     columnMappings.put(originalColumn, cteReference);
+  }
+
+  /**
+   * Adds a mapping between a row context column and the CTE name that it references.
+   *
+   * @param alias The alias of the row context column, for instance "EPEcjy3FWmI.lJTx9EZ1dk1"
+   * @param cteName The name of the CTE that the row context column references, for instance
+   *     "ps_epecjy3fwmi_ljtx9ez1dk1"
+   */
+  public void addRowContextColumnMapping(String alias, String cteName) {
+    rowContextReferences.put(alias, cteName);
   }
 
   public String getCTEDefinition() {

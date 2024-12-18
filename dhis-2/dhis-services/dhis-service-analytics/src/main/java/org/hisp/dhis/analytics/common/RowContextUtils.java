@@ -27,20 +27,41 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import org.hisp.dhis.common.QueryItem;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
-public class CTEUtils {
+public class RowContextUtils {
 
-  public static String createFilterName(QueryItem queryItem) {
-    return "filter_" + getIdentifier(queryItem).replace('.', '_').toLowerCase();
+  public static List<String> getRowContextColumns(CTEContext cteContext, SqlBuilder sqlBuilder) {
+    List<String> columns = new ArrayList<>();
+    Map<String, String> rowCtxRefs = cteContext.getRowContextReferences();
+    for (String aliases : rowCtxRefs.keySet()) {
+      columns.add(getStatusColumn(aliases, rowCtxRefs.get(aliases), sqlBuilder));
+      columns.add(getExistsColumn(aliases, rowCtxRefs.get(aliases), sqlBuilder));
+    }
+
+    return columns;
   }
 
-  public static String createFilterNameByIdentifier(String identifier) {
-    return "filter_" + identifier.replace('.', '_').toLowerCase();
+  public static List<String> getRowContextWhereClauses(CTEContext cteContext) {
+    List<String> whereClauses = new ArrayList<>();
+    Map<String, String> rowCtxRefs = cteContext.getRowContextReferences();
+    for (String alias : rowCtxRefs.values()) {
+      whereClauses.add("%s.value is null".formatted(alias));
+      whereClauses.add("%s.exists_flag = true".formatted(alias));
+    }
+    return whereClauses;
   }
 
-  public static String getIdentifier(QueryItem queryItem) {
-    String stage = queryItem.hasProgramStage() ? queryItem.getProgramStage().getUid() : "default";
-    return stage + "." + queryItem.getItemId();
+  private static String getExistsColumn(
+      String aliases, String cteReference, SqlBuilder sqlBuilder) {
+    return "coalesce(%s.exists_flag, false) as %s"
+        .formatted(cteReference, sqlBuilder.quote(aliases + ".status.exists"));
+  }
+
+  private static String getStatusColumn(String alias, String cteReference, SqlBuilder sqlBuilder) {
+    return "%s_status.status as %s".formatted(cteReference, sqlBuilder.quote(alias));
   }
 }
