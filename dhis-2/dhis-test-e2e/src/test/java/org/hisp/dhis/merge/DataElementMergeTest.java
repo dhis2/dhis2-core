@@ -42,16 +42,18 @@ import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class DataElementMergeTest extends ApiTest {
 
   private RestApiActions dataElementApiActions;
+  private RestApiActions maintenanceApiActions;
   private RestApiActions datasetApiActions;
+  private RestApiActions categoryComboApiActions;
   private MetadataActions metadataApiActions;
   private RestApiActions minMaxActions;
   private UserActions userActions;
@@ -68,6 +70,8 @@ class DataElementMergeTest extends ApiTest {
     datasetApiActions = new RestApiActions("dataSets");
     metadataApiActions = new MetadataActions();
     minMaxActions = new RestApiActions("minMaxDataElements");
+    categoryComboApiActions = new RestApiActions("categoryCombos");
+    maintenanceApiActions = new RestApiActions("maintenance");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
@@ -111,9 +115,9 @@ class DataElementMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge complete"))
+        .body("response.mergeReport.message", equalTo("DataElement merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("DATA_ELEMENT"))
+        .body("response.mergeReport.mergeType", equalTo("DataElement"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
     // and all the following source data element references have been handled appropriately
@@ -124,15 +128,35 @@ class DataElementMergeTest extends ApiTest {
   }
 
   @Test
-  @Disabled(
-      "setup started failing on GitHub only 409 response, reason not know, e2e all passing locally")
   @DisplayName("DataElement merge fails when min max DE DB unique key constraint met")
   void dbConstraintMinMaxTest() {
     // given
     sourceUid1 = setupDataElement("9", "TEXT", "AGGREGATE");
     sourceUid2 = setupDataElement("8", "TEXT", "AGGREGATE");
     targetUid = setupDataElement("7", "TEXT", "AGGREGATE");
-    setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid);
+
+    metadataApiActions.importMetadata(metadata()).validateStatus(200);
+    // generate category option combos
+    String emptyParams = new QueryParamsBuilder().build();
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
+        .validateStatus(200);
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
+        .validateStatus(200);
+
+    // get cat opt combo ID to use in min max data elements
+    String cocId =
+        categoryComboApiActions
+            .get("CatComUid01")
+            .validateStatus(200)
+            .validate()
+            .extract()
+            .jsonPath()
+            .get("categoryOptionCombos[0].id")
+            .toString();
+
+    setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, cocId);
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -231,13 +255,13 @@ class DataElementMergeTest extends ApiTest {
         .validate()
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
-        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge has errors"))
+        .body("response.mergeReport.message", equalTo("DataElement merge has errors"))
         .body(
             "response.mergeReport.mergeErrors.message",
             allOf(
                 hasItem(
                     "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER]`")))
-        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1554")));
+        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1550")));
   }
 
   @Test
@@ -262,13 +286,13 @@ class DataElementMergeTest extends ApiTest {
         .validate()
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
-        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge has errors"))
+        .body("response.mergeReport.message", equalTo("DataElement merge has errors"))
         .body(
             "response.mergeReport.mergeErrors.message",
             allOf(
                 hasItem(
                     "All source DataElementDomains must match target DataElementDomain: `AGGREGATE`. Other DataElementDomains found: `[TRACKER]`")))
-        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1555")));
+        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1551")));
   }
 
   @Test
@@ -325,11 +349,11 @@ class DataElementMergeTest extends ApiTest {
         .validateStatus(200);
   }
 
-  private void setupMinMaxDataElements(String sourceUid1, String sourceUid2, String targetUid) {
-    metadataApiActions.importMetadata(metadata()).validateStatus(200);
-    minMaxActions.post(minMaxDataElements("OrgUnit0Z91", sourceUid1, "CatOptComZ3"));
-    minMaxActions.post(minMaxDataElements("OrgUnit0Z91", sourceUid2, "CatOptComZ3"));
-    minMaxActions.post(minMaxDataElements("OrgUnit0Z91", targetUid, "CatOptComZ3"));
+  private void setupMinMaxDataElements(
+      String sourceUid1, String sourceUid2, String targetUid, String coc) {
+    minMaxActions.post(minMaxDataElements(sourceUid1, coc));
+    minMaxActions.post(minMaxDataElements(sourceUid2, coc));
+    minMaxActions.post(minMaxDataElements(targetUid, coc));
   }
 
   private String programWithStageAndDataElements(
@@ -419,57 +443,14 @@ class DataElementMergeTest extends ApiTest {
         .formatted(sourceUid1, sourceUid2, targetUid, sourceUid1, sourceUid2, targetUid);
   }
 
-  private String metadata() {
-    return """
-    {
-          "organisationUnits": [
-             {
-                 "id": "OrgUnit0Z91",
-                 "name": "test org 1",
-                 "shortName": "test org 1",
-                 "openingDate": "2023-06-15T23:00:00.000Z"
-             }
-         ],
-         "categoryCombos": [
-             {
-                 "id": "CatComboZ01",
-                 "name": "cat combo 1",
-                 "dataDimensionType": "DISAGGREGATION"
-             }
-         ],
-         "categoryOptions": [
-             {
-                 "id": "CatOptZZ001",
-                 "name": "cat opt 1",
-                 "shortName": "cat opt 1"
-             }
-         ],
-         "categoryOptionCombos": [
-             {
-                 "id":"CatOptComZ3",
-                 "name": "cat option combo 1",
-                 "categoryCombo": {
-                     "id": "CatComboZ01"
-                 },
-                 "categoryOptions": [
-                     {
-                         "id": "CatOptZZ001"
-                     }
-                 ]
-             }
-         ]
-     }
-    """;
-  }
-
-  private String minMaxDataElements(String orgUnit, String de, String coc) {
+  private String minMaxDataElements(String de, String coc) {
     return """
     {
          "min": 2,
          "max": 11,
          "generated": false,
          "source": {
-             "id": "%s"
+             "id": "OrgUnitUid1"
          },
          "dataElement": {
              "id": "%s"
@@ -479,7 +460,7 @@ class DataElementMergeTest extends ApiTest {
          }
      }
     """
-        .formatted(orgUnit, de, coc);
+        .formatted(de, coc);
   }
 
   private String createDataElement(String name, String valueType, String domainType) {
@@ -522,5 +503,264 @@ class DataElementMergeTest extends ApiTest {
       }
     """
         .formatted(dataEl1, dataEl2, dataEl3);
+  }
+
+  private String metadata() {
+    return """
+          {
+              "categoryOptions": [
+                  {
+                      "id": "CatOptUid1A",
+                      "name": "cat opt 1A",
+                      "shortName": "cat opt 1A",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid1"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid1B",
+                      "name": "cat opt 1B",
+                      "shortName": "cat opt 1B",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid1"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid2A",
+                      "name": "cat opt 2A",
+                      "shortName": "cat opt 2A",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid2"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid2B",
+                      "name": "cat opt 2B",
+                      "shortName": "cat opt 2B",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid2"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid3A",
+                      "name": "cat opt 3A",
+                      "shortName": "cat opt 3A",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid3"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid3B",
+                      "name": "cat opt 3B",
+                      "shortName": "cat opt 3B",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid3"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid4A",
+                      "name": "cat opt 4A",
+                      "shortName": "cat opt 4A",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid4"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid4B",
+                      "name": "cat opt 4B",
+                      "shortName": "cat opt 4B",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid4"
+                          }
+                      ]
+                  }
+              ],
+              "categories": [
+                  {
+                      "id": "CategoUid01",
+                      "name": "cat 1",
+                      "shortName": "cat 1",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid1A"
+                          },
+                          {
+                              "id": "CatOptUid1B"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUid02",
+                      "name": "cat 2",
+                      "shortName": "cat 2",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid2A"
+                          },
+                          {
+                              "id": "CatOptUid2B"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUid03",
+                      "name": "cat 3",
+                      "shortName": "cat 3",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid3A"
+                          },
+                          {
+                              "id": "CatOptUid3B"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUid04",
+                      "name": "cat 4",
+                      "shortName": "cat 4",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid4A"
+                          },
+                          {
+                              "id": "CatOptUid4B"
+                          }
+                      ]
+                  }
+              ],
+              "organisationUnits": [
+                  {
+                      "id": "OrgUnitUid1",
+                      "name": "org 1",
+                      "shortName": "org 1",
+                      "openingDate": "2023-06-15"
+                  },
+                  {
+                      "id": "OrgUnitUid2",
+                      "name": "org 2",
+                      "shortName": "org 2",
+                      "openingDate": "2024-06-15"
+                  },
+                  {
+                      "id": "OrgUnitUid3",
+                      "name": "org 3",
+                      "shortName": "org 3",
+                      "openingDate": "2023-09-15"
+                  },
+                  {
+                      "id": "OrgUnitUid4",
+                      "name": "org 4",
+                      "shortName": "org 4",
+                      "openingDate": "2023-06-25"
+                  }
+              ],
+              "categoryOptionGroups": [
+                  {
+                      "id": "CatOptGrp01",
+                      "name": "cog 1",
+                      "shortName": "cog 1",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid1A"
+                          },
+                          {
+                              "id": "CatOptUid1B"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptGrp02",
+                      "name": "cog 2",
+                      "shortName": "cog 2",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid2A"
+                          },
+                          {
+                              "id": "CatOptUid2B"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptGrp03",
+                      "name": "cog 3",
+                      "shortName": "cog 3",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid3A"
+                          },
+                          {
+                              "id": "CatOptUid3B"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptGrp04",
+                      "name": "cog 4",
+                      "shortName": "cog 4",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid4A"
+                          },
+                          {
+                              "id": "CatOptUid4B"
+                          }
+                      ]
+                  }
+              ],
+              "categoryCombos": [
+                  {
+                      "id": "CatComUid01",
+                      "name": "cat combo 1",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categories": [
+                          {
+                              "id": "CategoUid01"
+                          },
+                          {
+                              "id": "CategoUid02"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatComUid02",
+                      "name": "cat combo 2",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categories": [
+                          {
+                              "id": "CategoUid03"
+                          },
+                          {
+                              "id": "CategoUid04"
+                          }
+                      ]
+                  }
+              ]
+          }
+          """;
   }
 }

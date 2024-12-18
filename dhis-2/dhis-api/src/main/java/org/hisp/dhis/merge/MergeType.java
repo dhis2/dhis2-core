@@ -27,16 +27,38 @@
  */
 package org.hisp.dhis.merge;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
+
 /**
  * Enum for merge type.
  *
  * @author david mackessy
  */
 public enum MergeType {
-  ORG_UNIT,
+  INDICATOR_TYPE(IndicatorType.class),
+  INDICATOR(Indicator.class),
+  DATA_ELEMENT(DataElement.class),
+  CATEGORY_OPTION(CategoryOption.class);
 
-  INDICATOR_TYPE,
-  INDICATOR,
-  DATA_ELEMENT,
-  CATEGORY_OPTION,
+  private final Class<? extends IdentifiableObject> clazz;
+  private final String name;
+
+  MergeType(Class<? extends IdentifiableObject> clazz) {
+    this.clazz = clazz;
+    this.name = clazz.getSimpleName();
+  }
+
+  public Class<? extends IdentifiableObject> getClazz() {
+    return this.clazz;
+  }
+
+  @JsonValue
+  public String getName() {
+    return this.name;
+  }
 }

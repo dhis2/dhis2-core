@@ -216,6 +216,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("programnotificationinstance");
     emptyTable("trackedentitydatavalueaudit");
+    emptyTable("eventchangelog");
     emptyTable("trackedentityprogramowner");
 
     emptyTable("event_notes");
@@ -241,6 +242,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("trackedentityattributevalue");
     emptyTable("trackedentityattributevalueaudit");
+    emptyTable("trackedentitychangelog");
     emptyTable("trackedentitytypeattribute");
     emptyTable("trackedentityattribute");
     emptyTable("trackedentity");

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,38 +35,34 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.feedback.Assertions;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
-class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
+class EventChangeLogServiceTest extends TrackerTest {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -75,12 +72,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
-  @Autowired private RenderService renderService;
-
   private User importUser;
 
   private TrackerImportParams importParams;
@@ -89,22 +80,26 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
       EventChangeLogOperationParams.builder().build();
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
-  @BeforeEach
+  private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
+  private TrackerObjects trackerObjects;
+
+  @BeforeAll
   void setUp() throws IOException {
+    injectSecurityContextUser(getAdminUser());
     setUpMetadata("tracker/simple_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
     importParams = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(
-            importParams, fromJson("tracker/event_and_enrollment.json")));
+    trackerObjects = fromJson("tracker/event_and_enrollment.json");
+
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
   @BeforeEach
-  void setUpUser() {
-    importUser = userService.getUser("tTgjgobT1oS");
+  void resetSecurityContext() {
     injectSecurityContextUser(importUser);
   }
 
@@ -165,123 +160,356 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
 
-    assertNumberOfChanges(1, changeLogs.getItems());
-    assertCreate(dataElement, "15", changeLogs.getItems().get(0));
+    assertNumberOfChanges(1, changeLogs);
+    assertDataElementCreate(dataElement, "15", changeLogs.get(0));
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsDeleted()
-      throws NotFoundException, IOException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, ForbiddenException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "");
 
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
 
-    assertNumberOfChanges(2, changeLogs.getItems());
+    assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDelete(dataElement, "15", changeLogs.getItems().get(0)),
-        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(1)));
+        () -> assertDataElementDelete(dataElement, "15", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(1)));
   }
 
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
-      throws NotFoundException, IOException, ForbiddenException {
+      throws NotFoundException, ForbiddenException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "");
     updateDataValue(event, dataElement, "");
 
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
 
-    assertNumberOfChanges(2, changeLogs.getItems());
+    assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDelete(dataElement, "15", changeLogs.getItems().get(0)),
-        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(1)));
+        () -> assertDataElementDelete(dataElement, "15", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(1)));
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdated()
-      throws NotFoundException, IOException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, ForbiddenException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "20");
 
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
 
-    assertNumberOfChanges(2, changeLogs.getItems());
+    assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertUpdate(dataElement, "15", "20", changeLogs.getItems().get(0)),
-        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(1)));
+        () -> assertDataElementUpdate(dataElement, "15", "20", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
-      throws NotFoundException, IOException, ForbiddenException {
+      throws NotFoundException, ForbiddenException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "20");
     updateDataValue(event, dataElement, "25");
 
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
 
-    assertNumberOfChanges(3, changeLogs.getItems());
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
-        () -> assertUpdate(dataElement, "20", "25", changeLogs.getItems().get(0)),
-        () -> assertUpdate(dataElement, "15", "20", changeLogs.getItems().get(1)),
-        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(2)));
+        () -> assertDataElementUpdate(dataElement, "20", "25", changeLogs.get(0)),
+        () -> assertDataElementUpdate(dataElement, "15", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(2)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
-      throws IOException, NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "20");
     updateDataValue(event, dataElement, "");
 
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertDataElementDelete(dataElement, "20", changeLogs.get(0)),
+        () -> assertDataElementUpdate(dataElement, "15", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase()
+      throws ForbiddenException, NotFoundException {
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    User deletedUser = new User();
+    deletedUser.setUsername("deletedUserName");
+    eventChangeLogService.addEventChangeLog(
+        event, dataElement, "previous", "current", UPDATE, deletedUser.getUsername());
+
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams));
+
+    assertNumberOfChanges(2, changeLogs);
+    assertAll(
+        () ->
+            assertUpdate(
+                dataElementUid, null, "previous", "current", changeLogs.get(0), deletedUser),
+        () -> assertDataElementCreate(dataElementUid, "15", changeLogs.get(1)));
+  }
+
+  @Test
+  void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded()
+      throws ForbiddenException, NotFoundException {
+    String event = "QRYjLTiJTrA";
+
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
-    assertNumberOfChanges(3, changeLogs.getItems());
+    assertNumberOfChanges(1, scheduledAtLogs);
+    assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () -> assertDelete(dataElement, "20", changeLogs.getItems().get(0)),
-        () -> assertUpdate(dataElement, "15", "20", changeLogs.getItems().get(1)),
-        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(2)));
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
   }
 
-  private void updateDataValue(String event, String dataElementUid, String newValue)
-      throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+  @Test
+  void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
+      throws IOException, ForbiddenException, NotFoundException {
+    UID event = UID.of("QRYjLTiJTrA");
+    LocalDateTime currentTime = LocalDateTime.now();
+
+    updateEventDates(event, currentTime.toDate().toInstant());
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
+
+    assertNumberOfChanges(2, scheduledAtLogs);
+    assertNumberOfChanges(2, occurredAtLogs);
+    assertAll(
+        () ->
+            assertFieldUpdate(
+                "scheduledAt",
+                "2022-04-22 06:00:38.343",
+                currentTime.toString(formatter),
+                scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
+        () ->
+            assertFieldUpdate(
+                "occurredAt",
+                "2022-04-20 06:00:38.343",
+                currentTime.toString(formatter),
+                occurredAtLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(1)));
+  }
+
+  @Test
+  void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted()
+      throws ForbiddenException, NotFoundException {
+    UID event = UID.of("QRYjLTiJTrA");
+
+    deleteScheduledAtDate(event);
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
+
+    assertNumberOfChanges(2, scheduledAtLogs);
+    assertNumberOfChanges(1, occurredAtLogs);
+    assertAll(
+        () -> assertFieldDelete("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
+        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
+  }
+
+  @Test
+  void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
+      throws ForbiddenException, NotFoundException {
+    String event = "QRYjLTiJTrA";
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
+
+    assertNumberOfChanges(1, geometryChangeLogs);
+    assertAll(
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)));
+  }
+
+  @Test
+  void shouldReturnEventFieldChangeLogWhenNewGeometryPolygonFieldValueAdded()
+      throws ForbiddenException, NotFoundException {
+    String event = "YKmfzHdjUDL";
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
+
+    assertNumberOfChanges(1, geometryChangeLogs);
+    assertAll(
+        () ->
+            assertFieldCreate(
+                "geometry",
+                "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
+                geometryChangeLogs.get(0)));
+  }
+
+  @Test
+  void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldUpdated()
+      throws ForbiddenException, NotFoundException {
+    UID event = UID.of("QRYjLTiJTrA");
+
+    Geometry geometry = createGeometryPoint(16.435547, 49.26422);
+    updateEventGeometry(event, geometry);
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
+
+    assertNumberOfChanges(2, geometryChangeLogs);
+    assertAll(
+        () ->
+            assertFieldUpdate(
+                "geometry",
+                "(-11.419700, 8.103900)",
+                "(16.435547, 49.264220)",
+                geometryChangeLogs.get(0)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
+  }
+
+  @Test
+  void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldDeleted()
+      throws ForbiddenException, NotFoundException {
+    UID event = UID.of("QRYjLTiJTrA");
+
+    deleteEventGeometry(event);
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
+
+    assertNumberOfChanges(2, geometryChangeLogs);
+    assertAll(
+        () -> assertFieldDelete("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
+  }
+
+  private void updateDataValue(String event, String dataElementUid, String newValue) {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().getValue().equalsIgnoreCase(event))
         .findFirst()
-        .flatMap(
-            e ->
-                e.getDataValues().stream()
-                    .filter(
-                        dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
-                    .findFirst())
-        .ifPresent(dv -> dv.setValue(newValue));
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+        .ifPresent(
+            e -> {
+              e.getDataValues().stream()
+                  .filter(
+                      dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
+                  .findFirst()
+                  .ifPresent(dv -> dv.setValue(newValue));
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
+  }
+
+  private void updateEventDates(UID event, Instant newDate) throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+
+    trackerObjects.getEvents().stream()
+        .filter(e -> e.getEvent().equals(event))
+        .findFirst()
+        .ifPresent(
+            e -> {
+              e.setOccurredAt(newDate);
+              e.setScheduledAt(newDate);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
+  }
+
+  private void deleteScheduledAtDate(UID event) {
+    trackerObjects.getEvents().stream()
+        .filter(e -> e.getEvent().equals(event))
+        .findFirst()
+        .ifPresent(
+            e -> {
+              e.setScheduledAt(null);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
+  }
+
+  private void updateEventGeometry(UID event, Geometry newGeometry) {
+    trackerObjects.getEvents().stream()
+        .filter(e -> e.getEvent().equals(event))
+        .findFirst()
+        .ifPresent(
+            e -> {
+              e.setGeometry(newGeometry);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
+  }
+
+  private void deleteEventGeometry(UID event) {
+    trackerObjects.getEvents().stream()
+        .filter(e -> e.getEvent().equals(event))
+        .findFirst()
+        .ifPresent(
+            e -> {
+              e.setGeometry(null);
+
+              assertNoErrors(
+                  trackerImportService.importTracker(
+                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+            });
   }
 
   private String getDataElement(String uid) {
@@ -311,57 +539,121 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
             expected, changeLogs.size(), changeLogs));
   }
 
-  private void assertCreate(String dataElement, String currentValue, EventChangeLog changeLog) {
+  private void assertDataElementCreate(
+      String dataElement, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.type()),
-        () -> assertChange(dataElement, null, currentValue, changeLog));
+        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertDataElementChange(dataElement, null, currentValue, changeLog));
+  }
+
+  private void assertFieldCreate(String field, String currentValue, EventChangeLog changeLog) {
+    assertAll(
+        () -> assertUser(importUser, changeLog),
+        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertFieldChange(field, null, currentValue, changeLog));
+  }
+
+  private void assertDataElementUpdate(
+      String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertUpdate(dataElement, null, previousValue, currentValue, changeLog, importUser);
+  }
+
+  private void assertFieldUpdate(
+      String field, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertUpdate(null, field, previousValue, currentValue, changeLog, importUser);
   }
 
   private void assertUpdate(
-      String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+      String dataElement,
+      String field,
+      String previousValue,
+      String currentValue,
+      EventChangeLog changeLog,
+      User user) {
     assertAll(
-        () -> assertUser(importUser, changeLog),
-        () -> assertEquals("UPDATE", changeLog.type()),
-        () -> assertChange(dataElement, previousValue, currentValue, changeLog));
+        () -> assertUser(user, changeLog),
+        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
+        () -> {
+          if (dataElement != null) {
+            assertDataElementChange(dataElement, previousValue, currentValue, changeLog);
+          } else {
+            assertFieldChange(field, previousValue, currentValue, changeLog);
+          }
+        });
   }
 
-  private void assertDelete(String dataElement, String previousValue, EventChangeLog changeLog) {
-    assertAll(
-        () -> assertUser(importUser, changeLog),
-        () -> assertEquals("DELETE", changeLog.type()),
-        () -> assertChange(dataElement, previousValue, null, changeLog));
+  private void assertDataElementDelete(
+      String dataElement, String previousValue, EventChangeLog changeLog) {
+    assertDelete(dataElement, null, previousValue, changeLog);
   }
 
-  private static void assertChange(
+  private void assertFieldDelete(String field, String previousValue, EventChangeLog changeLog) {
+    assertDelete(null, field, previousValue, changeLog);
+  }
+
+  private void assertDelete(
+      String dataElement, String field, String previousValue, EventChangeLog changeLog) {
+    assertAll(
+        () -> assertUser(importUser, changeLog),
+        () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
+        () -> {
+          if (dataElement != null) {
+            assertDataElementChange(dataElement, previousValue, null, changeLog);
+          } else {
+            assertFieldChange(field, previousValue, null, changeLog);
+          }
+        });
+  }
+
+  private static void assertDataElementChange(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
-    DataValueChange expected = new DataValueChange(dataElement, previousValue, currentValue);
-    assertEquals(expected, changeLog.change().dataValue());
+    assertEquals(
+        dataElement,
+        changeLog.getDataElement() != null ? changeLog.getDataElement().getUid() : null);
+    assertEquals(previousValue, changeLog.getPreviousValue());
+    assertEquals(currentValue, changeLog.getCurrentValue());
+  }
+
+  private static void assertFieldChange(
+      String field, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertEquals(field, changeLog.getEventField());
+    assertEquals(previousValue, changeLog.getPreviousValue());
+    assertEquals(currentValue, changeLog.getCurrentValue());
   }
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
-        () -> assertEquals(user.getFirstName(), changeLog.createdBy().getFirstName()),
-        () -> assertEquals(user.getSurname(), changeLog.createdBy().getSurname()),
-        () -> assertEquals(user.getUid(), changeLog.createdBy().getUid()));
+        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
+        () ->
+            assertEquals(
+                user.getFirstName(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getFirstName()),
+        () ->
+            assertEquals(
+                user.getSurname(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getSurname()),
+        () ->
+            assertEquals(
+                user.getUid(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
   }
 
-  private ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    Assertions.assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
+  private List<EventChangeLog> getDataElementChangeLogs(Page<EventChangeLog> changeLogs) {
+    return changeLogs.getItems().stream().filter(cl -> cl.getDataElement() != null).toList();
   }
 
-  private TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
+  private List<EventChangeLog> getChangeLogsByField(
+      Page<EventChangeLog> changeLogs, String fieldName) {
+    return changeLogs.getItems().stream()
+        .filter(cl -> cl.getEventField() != null && cl.getEventField().equals(fieldName))
+        .toList();
+  }
+
+  private Geometry createGeometryPoint(double x, double y) {
+    GeometryFactory geometryFactory = new GeometryFactory();
+    Coordinate coordinate = new Coordinate(x, y);
+
+    return geometryFactory.createPoint(coordinate);
   }
 }

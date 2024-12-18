@@ -28,14 +28,12 @@
 package org.hisp.dhis.tracker.deduplication.merge;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.test.e2e.Constants;
-import org.hisp.dhis.test.e2e.actions.AuditActions;
 import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -108,46 +106,6 @@ public class PotentialDuplicatesAttributeMergeTests extends PotentialDuplicatesA
         .validate()
         .body("attributes", hasSize(1))
         .body("attributes[0].value", equalTo("attribute 2"));
-  }
-
-  @Test
-  public void shouldMoveChangelogs() {
-    String teA =
-        createTrackedEntityWithAttributes(createAttribute(attributes.get(0), "attribute A"));
-    String teB =
-        createTrackedEntityWithAttributes(
-            createAttribute(attributes.get(0), "attribute A - changed"),
-            createAttribute(attributes.get(1), "attribute B"));
-
-    String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
-
-    potentialDuplicatesActions
-        .manualMergePotentialDuplicate(
-            potentialDuplicate,
-            new JsonObjectBuilder()
-                .addArray(
-                    "trackedEntityAttributes", Arrays.asList(attributes.get(0), attributes.get(1)))
-                .build())
-        .validate()
-        .statusCode(200);
-
-    new AuditActions()
-        .getTrackedEntityAttributeValueAudits(teA)
-        .validate()
-        .statusCode(200)
-        .rootPath("trackedEntityAttributeValueAudits")
-        .body("", hasSize(greaterThanOrEqualTo(2)))
-        .appendRootPath(
-            String.format("find{it.trackedEntityAttribute.id=='%s'}", attributes.get(1)))
-        .body("value", equalTo("attribute B"))
-        .body("auditType", equalTo("CREATE"))
-        .rootPath(
-            String.format(
-                "trackedEntityAttributeValueAudits.find{it.trackedEntityAttribute.id=='%s'}",
-                attributes.get(0)))
-        .body("value", equalTo("attribute A - changed"))
-        .body("auditType", equalTo("UPDATE"));
   }
 
   private JsonObject createAttribute(String tet, String value) {

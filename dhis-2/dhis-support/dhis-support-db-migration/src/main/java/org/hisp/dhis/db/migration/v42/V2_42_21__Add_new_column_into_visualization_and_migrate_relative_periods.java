@@ -111,8 +111,35 @@ public class V2_42_21__Add_new_column_into_visualization_and_migrate_relative_pe
   }
 
   public void migrate(Context context) throws SQLException {
-    step1(context);
-    step2(context);
+    if (!isMigrationAlreadyApplied(context)) {
+      step1(context);
+      step2(context);
+    }
+  }
+
+  private boolean isMigrationAlreadyApplied(Context context) {
+    String schema = null;
+    try {
+      schema = context.getConnection().getSchema();
+    } catch (SQLException e) {
+      log.error("Schema check: ", e);
+    }
+
+    final String checkColumnExists =
+        "select exists (select 1 from information_schema.columns where "
+            + (schema != null ? "table_schema='" + schema + "' and " : "")
+            + "table_name='eventvisualization' and column_name='relativeperiods')";
+
+    try (Statement statement = context.getConnection().createStatement();
+        ResultSet rs = statement.executeQuery(checkColumnExists)) {
+      while (rs.next()) {
+        return rs.getBoolean(1);
+      }
+    } catch (SQLException e) {
+      log.error("Check failed: ", e);
+    }
+
+    return false;
   }
 
   /**
@@ -213,7 +240,7 @@ public class V2_42_21__Add_new_column_into_visualization_and_migrate_relative_pe
       ps.setLong(2, parentTableId);
       ps.executeUpdate();
 
-      // Clear the list of periods so it can be reused in the next iteration.
+      // Clear the list of periods, so it can be reused in the next iteration.
       periodList.clear();
     }
   }

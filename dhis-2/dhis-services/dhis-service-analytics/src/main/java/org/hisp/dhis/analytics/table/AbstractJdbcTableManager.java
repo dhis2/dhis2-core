@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
+import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -61,6 +62,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -83,7 +85,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -109,7 +111,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * </ul>
    */
   protected static final String DATE_REGEXP =
-      "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
+      "'^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$'";
+
+  protected static final String NUMERIC_REGEXP = "'" + MathUtils.NUMERIC_LENIENT_REGEXP + "'";
 
   protected static final Set<ValueType> NO_INDEX_VAL_TYPES =
       Set.of(ValueType.TEXT, ValueType.LONG_TEXT);
@@ -136,8 +140,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final PartitionManager partitionManager;
 
-  protected final DatabaseInfoProvider databaseInfoProvider;
-
   protected final JdbcTemplate jdbcTemplate;
 
   protected final AnalyticsTableSettings analyticsTableSettings;
@@ -145,14 +147,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   protected final SqlBuilder sqlBuilder;
-
-  protected Boolean spatialSupport;
-
-  protected boolean isSpatialSupport() {
-    if (spatialSupport == null)
-      spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    return spatialSupport;
-  }
 
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
@@ -237,19 +231,25 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
-    log.info(
-        "Swapping table, master table exists: '{}', skip master table: '{}'",
-        tableExists,
-        skipMasterTable);
+    log.info("Swapping table: '{}'", table.getMainName());
+    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+
     List<Table> swappedPartitions = new UniqueArrayList<>();
-    table.getTablePartitions().stream()
-        .forEach(p -> swappedPartitions.add(swapTable(p, p.getMainName())));
+
+    if (!sqlBuilder.supportsDeclarativePartitioning()) {
+      table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+      table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+    }
 
     if (!skipMasterTable) {
+      // Full replace update and main table exist, swap main table
       swapTable(table, table.getMainName());
     } else {
-      swappedPartitions.forEach(
-          partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+      // Incremental append update, update parent of partitions to existing main table
+      if (!sqlBuilder.supportsDeclarativePartitioning()) {
+        swappedPartitions.forEach(
+            partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      }
       dropTable(table);
     }
   }
@@ -296,9 +296,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private Table swapTable(Table stagingTable, String mainTableName) {
-    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
-    return stagingTable.swapFromStaging();
+  private void swapTable(Table stagingTable, String mainTableName) {
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    } else {
+      executeSilently(sqlBuilder.dropTableIfExistsCascade(mainTableName));
+      executeSilently(sqlBuilder.renameTable(stagingTable, mainTableName));
+    }
   }
 
   /**
@@ -308,8 +312,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingMasterName the staging master table name.
    * @param mainMasterName the main master table name.
    */
-  private void swapInheritance(Table partition, String stagingMasterName, String mainMasterName) {
-    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+  private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+    } else {
+      executeSilently(sqlBuilder.removeParentTable(partition, stagingMasterName));
+      executeSilently(sqlBuilder.setParentTable(partition, mainMasterName));
+    }
   }
 
   /**
@@ -339,6 +348,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // Protected supportive methods
   // -------------------------------------------------------------------------
 
+  /**
+   * Indicates whether spatial support is available.
+   *
+   * @return true if spatial support is available.
+   */
+  protected boolean isSpatialSupport() {
+    return analyticsTableSettings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  }
+
   /** Returns the analytics table name. */
   protected String getTableName() {
     return getAnalyticsTableType().getTableName();
@@ -354,14 +372,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> columns) {
+      List<AnalyticsTableColumn> columns,
+      List<String> sortKey) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -396,7 +415,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(
@@ -432,6 +451,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     String logMessage = format(logPattern, args);
 
     log.info("{} in: {}", logMessage, timer.stop().toString());
+  }
+
+  /**
+   * Returns a map of identifiable properties and values.
+   *
+   * @param object the {@link IdentifiableObject}.
+   * @return a {@link Map}.
+   */
+  protected Map<String, String> toVariableMap(IdentifiableObject object) {
+    return Map.of(
+        "id", String.valueOf(object.getId()),
+        "uid", quote(object.getUid()));
   }
 
   /**
@@ -529,7 +560,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = ougs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("ougs." + quote(name))
                   .skipIndex(skipIndex(ougs))
@@ -546,7 +577,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = degs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("degs." + quote(name))
                   .skipIndex(skipIndex(degs))
@@ -563,7 +594,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
                   .skipIndex(skipIndex(cogs))
@@ -580,7 +611,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
                   .skipIndex(skipIndex(cogs))
@@ -597,7 +628,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
                   .skipIndex(skipIndex(category))
@@ -614,7 +645,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
                   .name(name)
-                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dimensionType(AnalyticsDimensionType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
                   .skipIndex(skipIndex(category))
@@ -668,6 +699,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected boolean tableIsNotEmpty(String name) {
     String sql = format("select 1 from {} limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
+  }
+
+  /**
+   * Converts the given list of items to a comma-separated string, using the given mapping function
+   * to map the object to string.
+   *
+   * @param <T> the type.
+   * @param list the list.
+   * @param mapper the mapping function.
+   * @return a comma-separated string.
+   */
+  protected <T> String toCommaSeparated(List<T> list, Function<T, String> mapper) {
+    return list.stream().map(mapper).collect(Collectors.joining(","));
   }
 
   /**

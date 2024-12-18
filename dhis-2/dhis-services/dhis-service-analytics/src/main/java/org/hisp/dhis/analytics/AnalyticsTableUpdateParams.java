@@ -166,6 +166,15 @@ public class AnalyticsTableUpdateParams {
     return earliest;
   }
 
+  /**
+   * Indicates whether a from date exists.
+   *
+   * @return true if a from date exists.
+   */
+  public boolean hasFromDate() {
+    return getFromDate() != null;
+  }
+
   public AnalyticsTableUpdateParams withLatestPartition() {
     return this.toBuilder().lastYears(AnalyticsTablePartition.LATEST_PARTITION).build();
   }

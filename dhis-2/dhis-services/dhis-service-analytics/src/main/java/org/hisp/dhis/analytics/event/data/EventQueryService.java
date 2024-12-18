@@ -349,7 +349,7 @@ public class EventQueryService {
 
     params = queryPlanner.planEventQuery(params);
 
-    timer.getSplitTime("Planned event query, got partitions: " + params.getPartitions());
+    timer.getSplitTime("Planned event query, got partitions: {}", params.getPartitions());
 
     long count = 0;
     EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();

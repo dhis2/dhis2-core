@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.common.UID;
@@ -65,6 +66,19 @@ public final class Assertions {
    * @param actual the actual collection.
    */
   public static <E> void assertContainsOnly(Collection<E> expected, Collection<E> actual) {
+    assertContainsOnly(expected, actual, "assertContainsOnly found mismatch");
+  }
+
+  /**
+   * Asserts that the given collection contains exactly the given items in any order.
+   *
+   * @param <E> the type.
+   * @param expected the expected items.
+   * @param actual the actual collection.
+   * @param heading the assertAll heading
+   */
+  public static <E> void assertContainsOnly(
+      Collection<E> expected, Collection<E> actual, String heading) {
     assertNotNull(
         actual,
         () -> String.format("Expected collection to contain %s, got null instead", expected));
@@ -72,7 +86,7 @@ public final class Assertions {
     List<E> missing = CollectionUtils.difference(expected, actual);
     List<E> extra = CollectionUtils.difference(actual, expected);
     assertAll(
-        "assertContainsOnly found mismatch",
+        heading,
         () ->
             assertTrue(
                 missing.isEmpty(), () -> String.format("Expected %s to be in %s", missing, actual)),
@@ -128,6 +142,17 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertIsEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(actual.isEmpty(), message);
+  }
+
+  /**
    * Asserts that the given collection is not null and not empty.
    *
    * @param actual the collection.
@@ -135,6 +160,17 @@ public final class Assertions {
   public static void assertNotEmpty(Collection<?> actual) {
     assertNotNull(actual);
     assertFalse(actual.isEmpty(), "expected collection not to be empty");
+  }
+
+  /**
+   * Asserts that the given collection is not null and not empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertFalse(actual.isEmpty(), message);
   }
 
   /**
@@ -205,14 +241,44 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertNotEmpty(String actual, Supplier<String> messageSupplier) {
+    assertNotNull(actual, messageSupplier);
+    assertTrue(!actual.isEmpty(), messageSupplier);
+  }
+
+  /**
+   * Asserts that the given character sequence is NOT contained within the actual string.
+   *
+   * @param expected expected character sequence not to be contained within the actual string
+   * @param actual actual string which should not contain the expected character sequence
+   */
+  public static void assertNotContains(CharSequence expected, String actual) {
+    assertNotEmpty(
+        actual,
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', use assertIsEmpty if that is what you expect",
+                expected));
+    assertFalse(
+        actual.contains(expected),
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', got '%s' instead", expected, actual));
+  }
+
+  /**
    * Asserts that the given character sequence is contained within the actual string.
    *
    * @param expected expected character sequence to be contained within the actual string
    * @param actual actual string which should contain the expected character sequence
    */
   public static void assertContains(CharSequence expected, String actual) {
-    assertNotNull(
-        actual, () -> String.format("expected actual to contain '%s', got null instead", expected));
+    assertNotEmpty(actual, () -> String.format("expected actual to contain '%s'", expected));
     assertTrue(
         actual.contains(expected),
         () -> String.format("expected actual to contain '%s', got '%s' instead", expected, actual));

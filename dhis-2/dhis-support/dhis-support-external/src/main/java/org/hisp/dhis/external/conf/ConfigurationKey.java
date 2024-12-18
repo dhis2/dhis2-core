@@ -90,10 +90,10 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
-  /** Analytics database JDBC catalog name. */
+  /** Analytics database JDBC catalog name. Applies to Apache Doris. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
 
-  /** Analytics database JDBC driver filename. */
+  /** Analytics database JDBC driver filename. Applies to Apache Doris. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
   /** JDBC driver class. */
@@ -117,6 +117,15 @@ public enum ConfigurationKey {
 
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
+
+  /** Database host (hostname or IP). Applies to ClickHouse. */
+  CONNECTION_HOST("connection.host", "", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_PORT("connection.port", "5432", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_DATABASE("connection.database", "", false),
 
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
@@ -393,6 +402,9 @@ public enum ConfigurationKey {
    */
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
 
+  /** Whether to skip Flyway migration on startup. (default: false). */
+  FLYWAY_SKIP_MIGRATION("flyway.skip_migration", Constants.OFF, false),
+
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
   /** Use unlogged tables during analytics export. (default: ON) */
@@ -663,6 +675,9 @@ public enum ConfigurationKey {
   LINKED_ACCOUNTS_ENABLED("linked_accounts.enabled", Constants.OFF, false),
 
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
+
+  LINKED_ACCOUNTS_LOGOUT_URL("linked_accounts.logout_url", "", false),
+
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
   SWITCH_USER_ALLOW_LISTED_IPS(
       "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
@@ -670,12 +685,27 @@ public enum ConfigurationKey {
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. */
-  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true);
+  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
+
+  /** The maximum number of category options in a single category */
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  /** The maximum number of categories per category combo */
+  METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
+  /**
+   * The maximum number of possible category combination. This is computed by multiplying the number
+   * of options in each category in a category combo with each other.
+   */
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false);
 
   private final String key;
 
   private final String defaultValue;
 
+  /**
+   * Confidential means that the system setting will be encrypted and not visible through the API.
+   * The system setting will be used internally in the backend, but cannot be used by web apps and
+   * clients.
+   */
   private final boolean confidential;
 
   private final String[] aliases;

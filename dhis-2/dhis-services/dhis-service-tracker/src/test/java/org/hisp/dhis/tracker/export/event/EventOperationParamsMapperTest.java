@@ -154,24 +154,24 @@ class EventOperationParamsMapperTest {
   void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage() {
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
-    EventOperationParams eventOperationParams = eventBuilder.programStage(programStage).build();
+    EventOperationParams operationParams = eventBuilder.programStage(programStage).build();
 
     when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
 
     Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, user));
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
     assertEquals(
         "User has no access to program stage: " + programStage.getUid(), exception.getMessage());
   }
 
   @Test
   void shouldFailWithBadRequestExceptionWhenMappingWithUnknownProgramStage() {
-    EventOperationParams eventOperationParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder().programStage(UID.of("NeU85luyD4w")).build();
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams, user));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
     assertEquals(
         "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage());
   }
@@ -179,7 +179,7 @@ class EventOperationParamsMapperTest {
   @Test
   void
       shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions() {
-    EventOperationParams eventOperationParams =
+    EventOperationParams operationParams =
         eventBuilder
             .attributeCategoryCombo(UID.of("NeU85luyD4w"))
             .attributeCategoryOptions(UID.of("tqrzUqNMHib", "bT6OSf4qnnk"))
@@ -193,7 +193,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(false);
 
     Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, user));
+        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
 
     assertEquals(
         "User has no access to attribute category option combo: " + combo.getUid(),

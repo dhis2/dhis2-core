@@ -235,6 +235,9 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testVerifyEmailWithTokenTwice() {
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
+
     User user = switchToNewUser("kent");
 
     String emailAddress = user.getEmail();
@@ -243,15 +246,24 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     String token = extractTokenFromEmailText(emailMessage.getText());
     assertNotNull(token);
 
-    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    HttpResponse success = GET("/account/verifyEmail?token=" + token);
+    assertStatus(HttpStatus.FOUND, success);
+    assertEquals(
+        "http://localhost/dhis-web-login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
     assertTrue(userService.isEmailVerified(user));
 
-    assertStatus(HttpStatus.CONFLICT, GET("/account/verifyEmail?token=" + token));
+    HttpResponse failure = GET("/account/verifyEmail?token=" + token);
+    assertStatus(HttpStatus.FOUND, failure);
+    assertEquals(
+        "http://localhost/dhis-web-login/#/email-verification-failure", failure.header("Location"));
   }
 
   @Test
   void testSendEmailVerification() {
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
+
     User user = switchToNewUser("clark");
 
     String emailAddress = user.getEmail();
@@ -266,6 +278,9 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testVerifyEmailWithToken() {
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
+
     User user = switchToNewUser("lex");
 
     String emailAddress = user.getEmail();
@@ -274,7 +289,10 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     String token = extractTokenFromEmailText(emailMessage.getText());
     assertValidEmailVerificationToken(token);
 
-    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    HttpResponse success = GET("/account/verifyEmail?token=" + token);
+    assertStatus(HttpStatus.FOUND, success);
+    assertEquals(
+        "http://localhost/dhis-web-login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
     assertTrue(userService.isEmailVerified(user));
   }
@@ -282,12 +300,10 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testVerifyWithBadToken() {
     switchToNewUser("zod");
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Verification token is invalid",
-        GET("/account/verifyEmail?token=eviltoken").content(HttpStatus.CONFLICT));
+    HttpResponse response = GET("/account/verifyEmail?token=WRONGTOKEN");
+    assertStatus(HttpStatus.FOUND, response);
+    String location = response.header("Location");
+    assertEquals("http://localhost/dhis-web-login/#/email-verification-failure", location);
   }
 
   @Test
@@ -298,7 +314,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Email is not set",
+        "User has no email set",
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
@@ -311,7 +327,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Email is already verified",
+        "User has already verified the email address",
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
@@ -329,12 +345,12 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Email is already in use by another account",
+        "The email the user is trying to verify is already verified by another account",
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
   private void assertValidEmailVerificationToken(String token) {
-    User user = userService.getUserByVerificationToken(token);
+    User user = userService.getUserByEmailVerificationToken(token);
     assertNotNull(user);
   }
 

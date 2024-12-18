@@ -215,7 +215,7 @@ public class EnrollmentQueryService {
 
     long count = 0;
 
-    timer.getSplitTime("Planned enrollment query, got partitions: " + queryParams.getPartitions());
+    timer.getSplitTime("Planned enrollment query, got partitions: {}", queryParams.getPartitions());
 
     if (queryParams.isTotalPages()) {
       count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);

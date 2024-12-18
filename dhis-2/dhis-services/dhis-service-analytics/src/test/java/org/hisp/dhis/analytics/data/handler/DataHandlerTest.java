@@ -43,12 +43,10 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link DataHandler}. */
 class DataHandlerTest {
 
   @Test
   void testOperandDataQueryParamsOnlyOperands() {
-    // Given
     DataElement dataElement = new DataElement("NameA");
     dataElement.setUid("uid1234567A");
     dataElement.setCode("CodeA");
@@ -63,19 +61,16 @@ class DataHandlerTest {
 
     TotalType anyTotalType = COC_ONLY;
 
-    // When
     DataHandler dataHandler = withNullDependencies();
     DataQueryParams params =
         dataHandler.getOperandDataQueryParams(
             stubParams, List.of(dataElementOperand), anyTotalType);
 
-    // Then
     assertEquals(1, params.getDimensions().size());
   }
 
   @Test
   void testOperandDataQueryParamsWithCatOptionCombo() {
-    // Given
     DataElement dataElement = new DataElement("NameA");
     dataElement.setUid("uid1234567A");
     dataElement.setCode("CodeA");
@@ -94,18 +89,15 @@ class DataHandlerTest {
                 new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(dataElementOperand)))
             .build();
 
-    // When
     DataHandler dataHandler = withNullDependencies();
     DataQueryParams params =
         dataHandler.getOperandDataQueryParams(stubParams, List.of(dataElementOperand), COC_ONLY);
 
-    // Then
     assertEquals(2, params.getDimensions().size());
   }
 
   @Test
   void testOperandDataQueryParamsWithCatOptionComboInFilter() {
-    // Given
     DataElement dataElement = new DataElement("NameA");
     dataElement.setUid("uid1234567A");
     dataElement.setCode("CodeA");
@@ -124,19 +116,16 @@ class DataHandlerTest {
                 new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(dataElementOperand)))
             .build();
 
-    // When
     DataHandler dataHandler = withNullDependencies();
     DataQueryParams params =
         dataHandler.getOperandDataQueryParams(stubParams, List.of(dataElementOperand), COC_ONLY);
 
-    // Then
     assertEquals(0, params.getDimensions().size());
     assertEquals(3, params.getFilters().size());
   }
 
   @Test
   void testOperandDataQueryParamsWithAttrOptionCombo() {
-    // Given
     DataElement dataElement = new DataElement("NameA");
     dataElement.setUid("uid1234567A");
     dataElement.setCode("CodeA");
@@ -155,18 +144,15 @@ class DataHandlerTest {
                 new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(dataElementOperand)))
             .build();
 
-    // When
     DataHandler dataHandler = withNullDependencies();
     DataQueryParams params =
         dataHandler.getOperandDataQueryParams(stubParams, List.of(dataElementOperand), AOC_ONLY);
 
-    // Then
     assertEquals(2, params.getDimensions().size());
   }
 
   @Test
   void testOperandDataQueryParamsWithAttrOptionComboInFilter() {
-    // Given
     DataElement dataElement = new DataElement("NameA");
     dataElement.setUid("uid1234567A");
     dataElement.setCode("CodeA");
@@ -185,12 +171,10 @@ class DataHandlerTest {
                 new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(dataElementOperand)))
             .build();
 
-    // When
     DataHandler dataHandler = withNullDependencies();
     DataQueryParams params =
         dataHandler.getOperandDataQueryParams(stubParams, List.of(dataElementOperand), AOC_ONLY);
 
-    // Then
     assertEquals(0, params.getDimensions().size());
     assertEquals(3, params.getFilters().size());
   }

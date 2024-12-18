@@ -195,13 +195,6 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   }
 
   @Test
-  void testField_UserNameAutomaticFromTransformation() {
-    JsonArray users = GET("/users/gist?fields=id,name&headless=true").content();
-    assertEquals(
-        "FirstNameuserGist SurnameuserGist", users.getObject(1).getString("name").string());
-  }
-
-  @Test
   void testNestedFieldsOfListProperty() {
     JsonArray groups =
         GET("/userGroups/gist?fields=id,name,users[id,username]&headless=true").content();

@@ -39,9 +39,7 @@ import com.google.gson.internal.Primitives;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -407,34 +405,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     return object;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> filter(
-      @Nonnull Class<T> type, @Nonnull String query) {
-    Set<T> uniqueObjects = new HashSet<>();
-
-    T uidObject = get(type, query);
-
-    if (uidObject != null) {
-      uniqueObjects.add(uidObject);
-    }
-
-    T codeObject = getByCode(type, query);
-
-    if (codeObject != null) {
-      uniqueObjects.add(codeObject);
-    }
-
-    uniqueObjects.addAll(getLikeName(type, query, false));
-
-    List<T> objects = new ArrayList<>(uniqueObjects);
-
-    Collections.sort(objects);
-
-    return objects;
   }
 
   @Nonnull

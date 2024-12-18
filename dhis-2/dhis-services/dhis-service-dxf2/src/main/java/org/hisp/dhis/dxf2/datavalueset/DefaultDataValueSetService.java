@@ -54,10 +54,10 @@ import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -933,7 +933,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
                 internalValue,
                 existingValue.getValue(),
                 context.getStoredBy(dataValue),
-                ChangeLogType.DELETE);
+                AuditOperationType.DELETE);
 
         context.getAuditBatchHandler().addObject(auditValue);
       }
@@ -947,13 +947,13 @@ public class DefaultDataValueSetService implements DataValueSetService {
       ImportContext.DataValueContext valueContext,
       DataValue internalValue,
       DataValue existingValue) {
-    ChangeLogType changeLogType = ChangeLogType.UPDATE;
+    AuditOperationType auditOperationType = AuditOperationType.UPDATE;
     if (internalValue.isNullValue()
         || internalValue.isDeleted()
         || dataValueIsZeroAndInsignificant(dataValue.getValue(), valueContext.getDataElement())) {
       internalValue.setDeleted(true);
 
-      changeLogType = ChangeLogType.DELETE;
+      auditOperationType = AuditOperationType.DELETE;
 
       importCount.incrementDeleted();
     } else {
@@ -972,14 +972,14 @@ public class DefaultDataValueSetService implements DataValueSetService {
                 internalValue,
                 existingValue.getValue(),
                 context.getStoredBy(dataValue),
-                changeLogType);
+                auditOperationType);
 
         context.getAuditBatchHandler().addObject(auditValue);
       }
 
       if (valueContext.getDataElement().isFileType()) {
         FileResource fr = fileResourceService.getFileResource(existingValue.getValue());
-        if (changeLogType == ChangeLogType.DELETE) {
+        if (auditOperationType == AuditOperationType.DELETE) {
           fileResourceService.deleteFileResource(fr);
         } else {
           if (fr != null && !fr.isAssigned()) {

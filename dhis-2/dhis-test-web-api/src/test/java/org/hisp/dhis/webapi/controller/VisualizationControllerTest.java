@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.CONFLICT;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
@@ -39,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -47,8 +50,10 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -312,5 +317,123 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(visualization);
     assertTrue(
         visualization.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testPostOptionSetItemInProgramAttribute() {
+    // Given
+    TrackedEntityAttribute trackedEntityAttribute =
+        new TrackedEntityAttribute("tea", "tea-desc", TEXT, false, false);
+    trackedEntityAttribute.setShortName("tea-shortName");
+    trackedEntityAttribute.setAggregationType(SUM);
+    manager.save(trackedEntityAttribute);
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        new ProgramTrackedEntityAttribute(mockProgram, trackedEntityAttribute);
+    manager.save(programTrackedEntityAttribute);
+
+    String programUid = programTrackedEntityAttribute.getProgram().getUid();
+    String attributeUid = programTrackedEntityAttribute.getAttribute().getUid();
+    String jsonBody =
+        """
+{
+    "type": "PIVOT_TABLE",
+    "columns": [
+        {
+            "dimension": "dx",
+            "items": [
+                {
+                    "id": "${program}.${attribute}",
+                    "name": "Program Attribute - OptionSet",
+                    "dimensionItemType": "PROGRAM_ATTRIBUTE",
+                    "optionSetItem": {
+                        "aggregation": "DISAGGREGATED",
+                        "options": [
+                            "BFhv3jQZ8Cw"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "name": "OptionSetItem - Test"
+}
+"""
+            .replace("${program}", programUid)
+            .replace("${attribute}", attributeUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams =
+        "?fields=dataDimensionItems[programAttribute[attribute[optionSet[options[:all]]]]],attributeValues[:all,attribute[id,name,displayName]],columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonNode columnNode = response.get("columns").node().element(0);
+    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
+
+    assertEquals("DATA_X", columnNode.get("dimensionType").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
+    assertEquals("PROGRAM_ATTRIBUTE", itemsNode.get("dimensionItemType").value());
+    assertEquals("SUM", itemsNode.get("aggregationType").value());
+    assertEquals(programUid + "." + attributeUid, itemsNode.get("dimensionItem").value());
+    assertEquals("DISAGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
+    assertEquals(
+        "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
+  }
+
+  @Test
+  void testPostOptionSetItemInDataElement() {
+    // Given
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+
+    String dataElementUid = dataElement.getUid();
+    String jsonBody =
+        """
+{
+    "type": "PIE",
+    "columns": [
+        {
+            "dimension": "dx",
+            "items": [
+                {
+                    "id": "${dataElement}",
+                    "name": "Data Element - OptionSet",
+                    "dimensionItemType": "DATA_ELEMENT",
+                    "optionSetItem": {
+                        "aggregation": "AGGREGATED",
+                        "options": [
+                            "BFhv3jQZ8Cw"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "name": "OptionSetItem - Test"
+}
+"""
+            .replace("${dataElement}", dataElementUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams = "?fields=columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonNode columnNode = response.get("columns").node().element(0);
+    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
+
+    assertEquals("DATA_X", columnNode.get("dimensionType").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
+    assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
+    assertEquals("SUM", itemsNode.get("aggregationType").value());
+    assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
+    assertEquals("AGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
+    assertEquals(
+        "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
   }
 }

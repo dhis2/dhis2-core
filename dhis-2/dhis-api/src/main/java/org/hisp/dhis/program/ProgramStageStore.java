@@ -35,7 +35,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
  * @author Chau Thu Tran
  */
 public interface ProgramStageStore extends IdentifiableObjectStore<ProgramStage> {
-
   /**
    * Retrieve a program stage by name and a program
    *

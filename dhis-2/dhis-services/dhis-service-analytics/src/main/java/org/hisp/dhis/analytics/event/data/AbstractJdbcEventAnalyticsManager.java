@@ -49,8 +49,8 @@ import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
@@ -377,8 +377,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
                 throw new IllegalStateException(
-                    "Program indicator non-default boundary query must have "
-                        + "exactly one period, or no periods and a period filter");
+                    """
+                    Program indicator non-default boundary query must have \"
+                    exactly one period, or no periods and a period filter""");
               }
             });
   }
@@ -457,7 +458,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
           getColumnAndAlias(queryItem, isAggregated, queryItem.getItemName());
-
       return ColumnAndAlias.ofColumnAndAlias(
           columnAndAlias.getColumn(),
           defaultIfNull(columnAndAlias.getAlias(), queryItem.getItemName()));
@@ -534,14 +534,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   @Transactional(readOnly = true, propagation = REQUIRES_NEW)
   public Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit) {
     String aggregateClause = getAggregateClause(params);
+    String columns = StringUtils.join(getSelectColumns(params, true), ",");
 
     String sql =
-        TextUtils.removeLastComma(
-            "select "
-                + aggregateClause
-                + " as value,"
-                + StringUtils.join(getSelectColumns(params, true), ",")
-                + " ");
+        TextUtils.removeLastComma("select " + aggregateClause + " as value," + columns + " ");
 
     // ---------------------------------------------------------------------
     // Criteria
@@ -927,7 +923,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
-      return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
+      return params
+          .getOrgUnitField()
+          .withSqlBuilder(sqlBuilder)
+          .getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()

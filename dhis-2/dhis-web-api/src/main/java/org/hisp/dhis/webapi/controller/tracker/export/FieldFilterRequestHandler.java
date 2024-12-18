@@ -29,38 +29,16 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getServletPath;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.webapi.controller.tracker.view.Page;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldFilterRequestHandler {
 
-  private final FieldFilterService fieldFilterService;
-
-  /**
-   * Returns a page which will serialize the items under given {@code jsonKey} after applying the
-   * {@code fields} filter. Previous and next page links will be generated based on the request if
-   * {@link org.hisp.dhis.tracker.export.Page#getPrevPage()} or next are not null.
-   */
-  public <T> Page<ObjectNode> handle(
-      HttpServletRequest request,
-      String jsonKey,
-      org.hisp.dhis.tracker.export.Page<T> page,
-      FieldsRequestParam fieldsParam) {
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(page.getItems(), fieldsParam.getFields());
-
-    String requestURL = getRequestURL(request);
-    return Page.withPager(jsonKey, page.withItems(objectNodes), requestURL);
-  }
-
-  private static String getRequestURL(HttpServletRequest request) {
+  public static String getRequestURL(HttpServletRequest request) {
     StringBuilder requestURL = new StringBuilder(getServletPath(request));
     requestURL.append(request.getPathInfo());
     String queryString = request.getQueryString();

@@ -28,6 +28,7 @@
 package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -39,6 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import javax.annotation.Nonnull;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -47,7 +50,6 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +66,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private final QueryCacheManager queryCacheManager;
 
-  private Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
+  private final Map<Class<?>, IdentifiableObjectStore<T>> stores = new HashMap<>();
 
   public JpaCriteriaQueryEngine(
       QueryPlanner queryPlanner,
@@ -86,16 +88,17 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   public List<T> query(Query query) {
     Schema schema = query.getSchema();
 
+    @SuppressWarnings("unchecked")
     Class<T> klass = (Class<T>) schema.getKlass();
 
-    InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore(klass);
+    InternalHibernateGenericStore<T> store = getStore(klass);
 
     if (store == null) {
       return new ArrayList<>();
     }
 
     if (query.getCurrentUserDetails() == null) {
-      query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
+      query.setCurrentUserDetails(getCurrentUserDetails());
     }
 
     if (!query.isPlannedQuery()) {
@@ -108,68 +111,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
     Root<T> root = criteriaQuery.from(klass);
 
-    if (query.isEmpty()) {
-
-      UserDetails userDetails =
-          query.getCurrentUserDetails() != null
-              ? query.getCurrentUserDetails()
-              : CurrentUserUtil.getCurrentUserDetails();
-
-      Predicate predicate = builder.conjunction();
-      boolean shareable = schema.isShareable();
-      if (shareable && !query.isSkipSharing()) {
-        predicate
-            .getExpressions()
-            .addAll(
-                store.getSharingPredicates(builder, userDetails).stream()
-                    .map(t -> t.apply(root))
-                    .toList());
-      }
-      criteriaQuery.where(predicate);
-
-      TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
-
-      typedQuery.setFirstResult(query.getFirstResult());
-      typedQuery.setMaxResults(query.getMaxResults());
-
-      return typedQuery.getResultList();
-    }
-
     Predicate predicate = buildPredicates(builder, root, query);
-    boolean shareable = schema.isShareable();
-
-    String username =
-        CurrentUserUtil.getCurrentUsername() != null
-            ? CurrentUserUtil.getCurrentUsername()
-            : "system-process";
-
-    if (!username.equals("system-process") && shareable && !query.isSkipSharing()) {
-
-      UserDetails userDetails =
-          query.getCurrentUserDetails() != null
-              ? query.getCurrentUserDetails()
-              : CurrentUserUtil.getCurrentUserDetails();
-
-      predicate
-          .getExpressions()
-          .addAll(
-              store.getSharingPredicates(builder, userDetails).stream()
-                  .map(t -> t.apply(root))
-                  .toList());
-    }
-
+    addSharingPredicates(query, schema, predicate, store, builder, root);
     criteriaQuery.where(predicate);
 
-    if (!query.getOrders().isEmpty()) {
-      criteriaQuery.orderBy(
-          query.getOrders().stream()
-              .map(
-                  o ->
-                      o.isAscending()
-                          ? builder.asc(root.get(o.getProperty().getFieldName()))
-                          : builder.desc(root.get(o.getProperty().getFieldName())))
-              .toList());
-    }
+    if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
 
     TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
 
@@ -186,20 +132,42 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     return typedQuery.getResultList();
   }
 
+  private static <T extends IdentifiableObject> void addSharingPredicates(
+      Query query,
+      Schema schema,
+      Predicate predicate,
+      InternalHibernateGenericStore<T> store,
+      CriteriaBuilder builder,
+      Root<T> root) {
+    boolean shareable = schema.isShareable();
+    if (!shareable) return;
+    UserDetails user = query.getCurrentUserDetails();
+    if (user == null) user = getCurrentUserDetails();
+    List<Function<Root<T>, Predicate>> predicates = List.of();
+    if (query.isDataSharing()) {
+      predicates = store.getDataSharingPredicates(builder, user);
+    } else if (!query.isSkipSharing()) {
+      predicates = store.getSharingPredicates(builder, user);
+    }
+    if (!predicates.isEmpty())
+      predicate.getExpressions().addAll(predicates.stream().map(t -> t.apply(root)).toList());
+  }
+
   @Override
   public long count(Query query) {
     Schema schema = query.getSchema();
 
+    @SuppressWarnings("unchecked")
     Class<T> klass = (Class<T>) schema.getKlass();
 
-    InternalHibernateGenericStore<T> store = (InternalHibernateGenericStore<T>) getStore(klass);
+    InternalHibernateGenericStore<T> store = getStore(klass);
 
     if (store == null) {
       return 0;
     }
 
     if (query.getCurrentUserDetails() == null) {
-      query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
+      query.setCurrentUserDetails(getCurrentUserDetails());
     }
 
     if (!query.isPlannedQuery()) {
@@ -215,34 +183,24 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     criteriaQuery.select(builder.count(root));
 
     Predicate predicate = buildPredicates(builder, root, query);
-
-    boolean shareable = schema.isShareable();
-    if (shareable && !query.isSkipSharing()) {
-      UserDetails currentUserDetails = query.getCurrentUserDetails();
-      predicate
-          .getExpressions()
-          .addAll(
-              store.getSharingPredicates(builder, currentUserDetails).stream()
-                  .map(t -> t.apply(root))
-                  .toList());
-    }
-
+    addSharingPredicates(query, schema, predicate, store, builder, root);
     criteriaQuery.where(predicate);
-
-    if (!query.getOrders().isEmpty()) {
-      criteriaQuery.orderBy(
-          query.getOrders().stream()
-              .map(
-                  o ->
-                      o.isAscending()
-                          ? builder.asc(root.get(o.getProperty().getName()))
-                          : builder.desc(root.get(o.getProperty().getName())))
-              .toList());
-    }
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
     return typedQuery.getSingleResult();
+  }
+
+  @Nonnull
+  private static <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
+      Query query, CriteriaBuilder builder, Root<T> root) {
+    return query.getOrders().stream()
+        .map(
+            o ->
+                o.isAscending()
+                    ? builder.asc(root.get(o.getProperty().getFieldName()))
+                    : builder.desc(root.get(o.getProperty().getFieldName())))
+        .toList();
   }
 
   private void initStoreMap() {
@@ -255,9 +213,10 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     }
   }
 
-  private IdentifiableObjectStore<?> getStore(Class<? extends IdentifiableObject> klass) {
+  @SuppressWarnings("unchecked")
+  private <E extends IdentifiableObject> InternalHibernateGenericStore<E> getStore(Class<E> klass) {
     initStoreMap();
-    return stores.get(klass);
+    return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 
   private <Y> Predicate buildPredicates(CriteriaBuilder builder, Root<Y> root, Query query) {
@@ -273,14 +232,10 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   }
 
   private Predicate getJpaJunction(CriteriaBuilder builder, Junction.Type type) {
-    switch (type) {
-      case AND:
-        return builder.conjunction();
-      case OR:
-        return builder.disjunction();
-    }
-
-    return builder.conjunction();
+    return switch (type) {
+      case AND -> builder.conjunction();
+      case OR -> builder.disjunction();
+    };
   }
 
   private <Y> Predicate getPredicate(

@@ -35,13 +35,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -141,7 +143,10 @@ public class DefaultDataValueService implements DataValueService {
       if (config.isEnabled(CHANGELOG_AGGREGATE)) {
         DataValueAudit dataValueAudit =
             new DataValueAudit(
-                dataValue, dataValue.getValue(), dataValue.getStoredBy(), ChangeLogType.CREATE);
+                dataValue,
+                dataValue.getValue(),
+                dataValue.getStoredBy(),
+                AuditOperationType.CREATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -166,7 +171,7 @@ public class DefaultDataValueService implements DataValueService {
                 dataValue,
                 dataValue.getAuditValue(),
                 dataValue.getStoredBy(),
-                ChangeLogType.UPDATE);
+                AuditOperationType.UPDATE);
 
         dataValueAuditService.addDataValueAudit(dataValueAudit);
       }
@@ -194,7 +199,7 @@ public class DefaultDataValueService implements DataValueService {
               dataValue,
               dataValue.getAuditValue(),
               CurrentUserUtil.getCurrentUsername(),
-              ChangeLogType.DELETE);
+              AuditOperationType.DELETE);
 
       dataValueAuditService.addDataValueAudit(dataValueAudit);
     }
@@ -347,5 +352,10 @@ public class DefaultDataValueService implements DataValueService {
   @Transactional(readOnly = true)
   public boolean dataValueExists(CategoryCombo combo) {
     return dataValueStore.dataValueExists(combo);
+  }
+
+  @Override
+  public boolean dataValueExistsForDataElement(@Nonnull UID uid) {
+    return dataValueStore.dataValueExistsForDataElement(uid.getValue());
   }
 }

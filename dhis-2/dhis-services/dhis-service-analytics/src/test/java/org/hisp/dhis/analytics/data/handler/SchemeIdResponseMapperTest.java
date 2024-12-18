@@ -69,7 +69,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -79,12 +78,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class SchemeIdResponseMapperTest {
-  private SchemeIdResponseMapper schemeIdResponseMapper;
-
-  @BeforeEach
-  public void setUp() {
-    schemeIdResponseMapper = new SchemeIdResponseMapper();
-  }
+  private final SchemeIdResponseMapper schemeIdResponseMapper = new SchemeIdResponseMapper();
 
   @Test
   void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName() {

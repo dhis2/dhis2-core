@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -51,6 +50,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -117,9 +117,11 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.util.Assert;
 
 /**
@@ -1180,16 +1182,8 @@ public final class AnalyticsUtils {
       Supplier<T> supplier, boolean isMultipleQueries) {
     try {
       return Optional.ofNullable(supplier.get());
-    } catch (BadSqlGrammarException ex) {
-      if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-        throw ex;
-      }
-      if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
-      }
-      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (UncategorizedSQLException | BadSqlGrammarException usq) {
+      handleDataAccessException(usq, isMultipleQueries);
     } catch (QueryRuntimeException ex) {
       log.error("Internal runtime exception", ex);
       throw ex;
@@ -1204,6 +1198,22 @@ public final class AnalyticsUtils {
     return Optional.empty();
   }
 
+  private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
+    if (ex.getCause() instanceof SQLException sqlexception) {
+      if (relationDoesNotExist(sqlexception)) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!isMultipleQueries) {
+        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } else {
+      throw ex;
+    }
+  }
+
   /**
    * Retrieves the sql string with content replacement between for example select and from
    *
@@ -1216,34 +1226,5 @@ public final class AnalyticsUtils {
         Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
     Matcher matcher = pattern.matcher(original);
     return matcher.replaceAll(startToken + replacement + endToken);
-  }
-
-  /**
-   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
-   * number of missing closing parenthesis in the argument string.
-   *
-   * <p>Example:
-   *
-   * <p>{@code} input: "((( ))" -> output: ")" {@code}
-   *
-   * @param str a string.
-   * @return a String containing 0 or more "closing" parenthesis
-   */
-  public static String getClosingParentheses(String str) {
-    if (StringUtils.isEmpty(str)) {
-      return EMPTY;
-    }
-
-    int open = 0;
-
-    for (int i = 0; i < str.length(); i++) {
-      if (str.charAt(i) == '(') {
-        open++;
-      } else if ((str.charAt(i) == ')') && open >= 1) {
-        open--;
-      }
-    }
-
-    return StringUtils.repeat(")", open);
   }
 }

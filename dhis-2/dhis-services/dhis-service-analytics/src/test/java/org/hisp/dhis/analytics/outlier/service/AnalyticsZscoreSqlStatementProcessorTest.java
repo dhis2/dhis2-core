@@ -57,10 +57,6 @@ import org.junit.jupiter.api.Test;
 class AnalyticsZscoreSqlStatementProcessorTest {
   private OutlierSqlStatementProcessor subject;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-
   private List<DataDimension> dataDimensions;
 
   private OrganisationUnit ouA;

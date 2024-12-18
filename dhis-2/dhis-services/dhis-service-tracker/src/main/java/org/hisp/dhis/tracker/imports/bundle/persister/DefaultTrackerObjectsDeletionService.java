@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
@@ -48,7 +48,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
@@ -74,7 +74,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityChangeLogService attributeValueAuditService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -138,9 +138,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      // This is needed until deprecated method
-      // eventChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
-      eventChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
+      eventChangeLogService.deleteEventChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
@@ -208,7 +206,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
       }
 
-      attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(entity);
+      trackedEntityChangeLogService.deleteTrackedEntityChangeLogs(entity);
 
       manager.delete(entity);
 

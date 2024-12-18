@@ -29,84 +29,32 @@ package org.hisp.dhis.analytics.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisplayNameUtils {
   /**
-   * TODO Refactor and change this, too much code vs benefit.
-   *
-   * <p>This method will extract/compose the display name, based on the tracker JSON objects living
-   * in the 'originColumn'. This method will return the display name respecting these rules:
-   *
-   * <p>If (last name, first name and username) are populated => Last name, first name (username)
-   *
-   * <p>If (only username is populated) => username
-   *
-   * <p>If (only first name is populated) => first name
-   *
-   * <p>If (only last name is populated) => last name
-   *
-   * <p>If (only last name and first name are populated) => last name, first name
-   *
-   * <p>If (only last name and username are populated) => last name (username)
-   *
-   * <p>If (only first name and username are populated) => first name (username)
+   * Creates a display name from a user info JSON object.
    *
    * @param originColumn the original column from where the JSON values are extracted from
    * @param tablePrefix the prefix of the tracker table
    * @param columnAlias the alias of this column in the analytics database
    * @return the trimmed display name
    */
-  public static String getDisplayName(String originColumn, String tablePrefix, String columnAlias) {
-    return ("case"
-            // If all are empty, return null
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then null"
+  public static String getDisplayName(
+      String originColumn, String tablePrefix, String columnAlias, SqlBuilder sqlBuilder) {
+    String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
+    String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
+    String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
+    String expression = sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'");
 
-            // If username only, return username
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
-            + " then trim({prefix}.{column} ->> 'username')"
+    return String.format("%s as %s", expression, columnAlias);
+  }
 
-            // If firstName only, return firstName
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then trim({prefix}.{column} ->> 'firstName')"
-
-            // If surname only, return surname
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then trim({prefix}.{column} ->> 'surname')"
-
-            // If surname and firstName only, return surname + firstName
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'))"
-
-            // If firstName and username only, return firstName + username
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
-            + " then concat(trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')')"
-
-            // If surname and username only, return surname + username
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
-            + " then concat(trim({prefix}.{column} ->> 'surname'), ' (', trim({prefix}.{column} ->> 'username'), ')')"
-
-            // If has all columns populated, return surname + firstName +
-            // username
-            + " else concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')') end"
-            + " as {alias}")
-        .replaceAll("\\{column}", originColumn)
-        .replaceAll("\\{prefix}", tablePrefix)
-        .replaceAll("\\{alias}", columnAlias);
+  private static String extractJsonValue(
+      SqlBuilder sqlBuilder, String tablePrefix, String originColumn, String path) {
+    String json = tablePrefix + "." + originColumn;
+    String jsonExtracted = sqlBuilder.jsonExtract(json, path);
+    return sqlBuilder.trim(jsonExtracted);
   }
 }

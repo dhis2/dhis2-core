@@ -27,32 +27,31 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityChangeLogService {
-  void addTrackedEntityAttributeValueChangeLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
 
-  /**
-   * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  void addTrackedEntityChangeLog(
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull TrackedEntityAttribute trackedEntityAttribute,
+      @Nullable String previousValue,
+      @Nullable String currentValue,
+      @Nonnull ChangeLogType changeLogType,
+      @Nonnull String username);
 
-  @Deprecated(since = "2.42")
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity);
 
   /**
    * Retrieves the change log data for a particular tracked entity.
@@ -60,10 +59,10 @@ public interface TrackedEntityChangeLogService {
    * @return the paged change logs of the supplied tracked entity, if any
    */
   Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
-      UID trackedEntityUid,
-      UID programUid,
-      TrackedEntityChangeLogOperationParams operationParams,
-      PageParams pageParams)
+      @Nonnull UID trackedEntityUid,
+      @Nullable UID programUid,
+      @Nonnull TrackedEntityChangeLogOperationParams operationParams,
+      @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**
@@ -74,4 +73,13 @@ public interface TrackedEntityChangeLogService {
    * PageParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)} can filter attribute change logs by. Filtering by fields other than these, is
+   * considered a programmer error. Validation of user provided field names should occur before
+   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)}.
+   */
+  Set<Pair<String, Class<?>>> getFilterableFields();
 }

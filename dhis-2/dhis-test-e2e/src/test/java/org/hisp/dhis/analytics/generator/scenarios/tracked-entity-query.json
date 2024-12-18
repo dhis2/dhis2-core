@@ -9,7 +9,7 @@
     },
     {
       "name": "sortByTeDateAsc",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=YESTERDAY&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=created&relativePeriodDate=2017-01-27",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=YESTERDAY&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&asc=created&relativePeriodDate=2017-01-27",
       "version": {
         "min": 41
       }
@@ -51,7 +51,7 @@
     },
     {
       "name": "sortByEnrollmentDateAscMultiProgram",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,cejWyOfXge6,w75KJ2mc4zz,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3&headers=ouname,cejWyOfXge6,w75KJ2mc4zz,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.ouname,ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3,ur1Edk5Oe2n.enrollmentdate&totalPages=false&rowContext=true&enrollmentDate=ur1Edk5Oe2n.LAST_12_MONTHS,ur1Edk5Oe2n.LAST_5_YEARS&displayProperty=NAME&pageSize=30&page=1&includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&relativePeriodDate=2022-01-27",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,cejWyOfXge6,w75KJ2mc4zz,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3&headers=ouname,cejWyOfXge6,w75KJ2mc4zz,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.ouname,ur1Edk5Oe2n.EPEcjy3FWmI.fTZFU8cWvb3,ur1Edk5Oe2n.enrollmentdate&totalPages=false&rowContext=true&enrollmentDate=ur1Edk5Oe2n.LAST_12_MONTHS,ur1Edk5Oe2n.LAST_5_YEARS&displayProperty=NAME&pageSize=30&page=1&includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&relativePeriodDate=2028-01-27",
       "version": {
         "min": 41
       }
@@ -86,7 +86,7 @@
     },
     {
       "name": "singleOrgUnitLongitudeAsc",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:jNb63DIHuwU,RG7uGl4w5Jq,lw1SqmMlnfh:GT:180&headers=ouname,RG7uGl4w5Jq,lw1SqmMlnfh&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=RG7uGl4w5Jq&relativePeriodDate=2024-06-13",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&dimension=ou:ImspTQPwCqd,RG7uGl4w5Jq,lw1SqmMlnfh:GE:190&headers=ouname,RG7uGl4w5Jq,lw1SqmMlnfh&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=RG7uGl4w5Jq&relativePeriodDate=2024-06-13",
       "version": {
         "min": 41
       }
@@ -128,7 +128,28 @@
     },
     {
       "name": "financialYear2018Sep",
-      "query": "/api/42/analytics/trackedEntities/query/Zy2SEgA61ys?dimension=ou:USER_ORGUNIT,B6TnnFMgmCk&headers=ouname,B6TnnFMgmCk,created&totalPages=false&rowContext=true&created=2018Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true",
+      "query": "/api/42/analytics/trackedEntities/query/Zy2SEgA61ys.json?dimension=ou:USER_ORGUNIT,B6TnnFMgmCk&headers=ouname,B6TnnFMgmCk,created&totalPages=false&rowContext=true&created=2018Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryWithProgramAndEnrollmentDateAndNegativeEnrollmentOffset",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?program=IpHINAT79UW&enrollmentDate=IpHINAT79UW[1].LAST_YEAR&desc=lastupdated&relativePeriodDate=2023-04-03&headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryWithProgramAndFilterByEnrollmentDate",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?program=IpHINAT79UW&enrollmentDate=IpHINAT79UW.LAST_5_YEARS&desc=lastupdated&relativePeriodDate=2023-09-27&headers=trackedentity,lastupdated,createdbydisplayname,lastupdatedbydisplayname,geometry,longitude,latitude,ouname,oucode,ounamehierarchy,w75KJ2mc4zz,zDhUuAYrxNC,cejWyOfXge6,lZGmxYbs97q",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryWithProgramAndPagination",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?program=IpHINAT79UW&lastUpdated=LAST_10_YEARS&pageSize=10&totalPages=true&asc=lastupdated&relativePeriodDate=2022-09-27&headers=trackedentity,lastupdated,createdbydisplayname,lastupdatedbydisplayname,geometry,longitude,latitude,ouname,oucode,ounamehierarchy,w75KJ2mc4zz,zDhUuAYrxNC,cejWyOfXge6,lZGmxYbs97q",
       "version": {
         "min": 42
       }

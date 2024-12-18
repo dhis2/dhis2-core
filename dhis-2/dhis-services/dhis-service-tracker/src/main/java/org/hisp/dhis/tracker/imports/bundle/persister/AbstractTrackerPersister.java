@@ -28,6 +28,9 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
@@ -53,7 +56,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -112,6 +114,8 @@ public abstract class AbstractTrackerPersister<
           determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
       try {
+        V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
+
         //
         // Convert the TrackerDto into an Hibernate-managed entity
         //
@@ -122,14 +126,18 @@ public abstract class AbstractTrackerPersister<
         //
         persistOwnership(bundle, trackerDto, convertedDto);
 
-        updateDataValues(
-            entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-
         //
         // Save or update the entity
         //
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
+          updateDataValues(
+              entityManager,
+              bundle.getPreheat(),
+              trackerDto,
+              convertedDto,
+              originalEntity,
+              bundle.getUser());
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
@@ -139,6 +147,13 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incIgnored();
             // Relationships are not updated. A warning was already added to the report
           } else {
+            updateDataValues(
+                entityManager,
+                bundle.getPreheat(),
+                trackerDto,
+                convertedDto,
+                originalEntity,
+                bundle.getUser());
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             entityManager.merge(convertedDto);
@@ -198,6 +213,9 @@ public abstract class AbstractTrackerPersister<
   /** Get Tracked Entity for enrollments or events that have been updated */
   protected abstract String getUpdatedTrackedEntity(V entity);
 
+  /** Clones the event properties that may potentially be change logged */
+  protected abstract V cloneEntityProperties(TrackerPreheat preheat, T trackerDto);
+
   /**
    * Converts an object implementing the {@link TrackerDto} interface into the corresponding
    * Hibernate-managed object
@@ -212,7 +230,8 @@ public abstract class AbstractTrackerPersister<
       EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,
-      V hibernateEntity,
+      V payloadEntity,
+      V currentEntity,
       UserDetails user);
 
   /** Execute the persistence of Attribute values linked to the entity being processed */
@@ -339,6 +358,10 @@ public abstract class AbstractTrackerPersister<
               isUpdated = !trackedEntityAttributeValue.getPlainValue().equals(attribute.getValue());
             }
 
+            String previousValue =
+                trackedEntityAttributeValue == null
+                    ? null
+                    : trackedEntityAttributeValue.getPlainValue();
             trackedEntityAttributeValue =
                 Optional.ofNullable(trackedEntityAttributeValue)
                     .orElseGet(
@@ -357,6 +380,7 @@ public abstract class AbstractTrackerPersister<
                 isNew,
                 trackedEntity,
                 trackedEntityAttributeValue,
+                previousValue,
                 isUpdated,
                 user);
           }
@@ -381,8 +405,13 @@ public abstract class AbstractTrackerPersister<
             ? trackedEntityAttributeValue
             : entityManager.merge(trackedEntityAttributeValue));
 
-    logTrackedEntityAttributeValueHistory(
-        user.getUsername(), trackedEntityAttributeValue, trackedEntity, ChangeLogType.DELETE);
+    addTrackedEntityChangeLog(
+        user.getUsername(),
+        trackedEntityAttributeValue,
+        trackedEntityAttributeValue.getPlainValue(),
+        null,
+        trackedEntity,
+        DELETE);
   }
 
   private void saveOrUpdate(
@@ -391,6 +420,7 @@ public abstract class AbstractTrackerPersister<
       boolean isNew,
       TrackedEntity trackedEntity,
       TrackedEntityAttributeValue trackedEntityAttributeValue,
+      String previousValue,
       boolean isUpdated,
       UserDetails user) {
     if (isFileResource(trackedEntityAttributeValue)) {
@@ -405,17 +435,22 @@ public abstract class AbstractTrackerPersister<
       // In case it's a newly created attribute we'll add it back to TE,
       // so it can end up in preheat
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
-      changeLogType = ChangeLogType.CREATE;
+      changeLogType = CREATE;
     } else {
       entityManager.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
-        changeLogType = ChangeLogType.UPDATE;
+        changeLogType = UPDATE;
       }
     }
 
-    logTrackedEntityAttributeValueHistory(
-        user.getUsername(), trackedEntityAttributeValue, trackedEntity, changeLogType);
+    addTrackedEntityChangeLog(
+        user.getUsername(),
+        trackedEntityAttributeValue,
+        previousValue,
+        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntity,
+        changeLogType);
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {
@@ -443,20 +478,23 @@ public abstract class AbstractTrackerPersister<
     }
   }
 
-  private void logTrackedEntityAttributeValueHistory(
+  private void addTrackedEntityChangeLog(
       String userName,
       TrackedEntityAttributeValue attributeValue,
+      String previousValue,
+      String currentValue,
       TrackedEntity trackedEntity,
       ChangeLogType changeLogType) {
     boolean allowAuditLog = trackedEntity.getTrackedEntityType().isAllowAuditLog();
 
-    // create log entry only for updated, created and deleted attributes
     if (allowAuditLog && changeLogType != null) {
-      TrackedEntityAttributeValueChangeLog valueAudit =
-          new TrackedEntityAttributeValueChangeLog(
-              attributeValue, attributeValue.getValue(), userName, changeLogType);
-      valueAudit.setTrackedEntity(trackedEntity);
-      trackedEntityChangeLogService.addTrackedEntityAttributeValueChangeLog(valueAudit);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(
+          trackedEntity,
+          attributeValue.getAttribute(),
+          previousValue,
+          currentValue,
+          changeLogType,
+          userName);
     }
   }
 }

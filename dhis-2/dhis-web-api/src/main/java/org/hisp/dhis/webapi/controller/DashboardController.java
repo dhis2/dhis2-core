@@ -41,6 +41,7 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
@@ -62,7 +63,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/dashboards")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class DashboardController extends AbstractCrudController<Dashboard> {
+public class DashboardController extends AbstractCrudController<Dashboard, GetObjectListParams> {
   @Autowired private DashboardService dashboardService;
 
   @Autowired private CascadeSharingService cascadeSharingService;

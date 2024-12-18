@@ -60,11 +60,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link OrganisationUnitCondition}. */
 class OrganisationUnitConditionTest {
   @Test
   void testTeiOuMultipleOusProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1", "ou2");
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, null, null);
@@ -82,17 +80,14 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String render = organisationUnitCondition.render();
 
-    // Then
     assertEquals("t_1.\"ou\" in (:1)", render);
     assertEquals(ous, queryContext.getParametersPlaceHolder().get("1"));
   }
 
   @Test
   void testChildrenOuModeProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1", "ou2");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -125,13 +120,11 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String render = organisationUnitCondition.render();
 
     List<String> expected =
         ous.stream().flatMap(ouId -> Stream.of(ouId + "_children1", ouId + "_children2")).toList();
 
-    // Then
     assertEquals("t_1.\"ou\" in (:1)", render);
     assertTrue(
         isEqualCollection(
@@ -140,7 +133,6 @@ class OrganisationUnitConditionTest {
 
   @Test
   void testDescendantOuModeProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1", "ou2");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -155,7 +147,6 @@ class OrganisationUnitConditionTest {
               return organisationUnit;
             });
 
-    // Descendant is the default ouMode.
     CommonRequestParams requestParams = new CommonRequestParams();
 
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
@@ -169,16 +160,13 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String render = organisationUnitCondition.render();
 
-    // Then
     assertEquals("(t_1.\"uidlevel1\" = :1 or t_1.\"uidlevel1\" = :2)", render);
   }
 
   @Test
   void testEmptyOuProduceFalse() {
-    // Given
     List<String> ous = List.of();
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, null, null);
@@ -197,17 +185,14 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String render = organisationUnitCondition.render();
 
-    // Then
     assertEquals("false", render);
     assertTrue(queryContext.getParametersPlaceHolder().isEmpty());
   }
 
   @Test
   void testTeiOuSingleOusProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -227,17 +212,14 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String render = organisationUnitCondition.render();
 
-    // Then
     assertEquals("t_1.\"ou\" = :1", render);
     assertEquals(ous.get(0), queryContext.getParametersPlaceHolder().get("1"));
   }
 
   @Test
   void testEventOuSingleOusProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -257,17 +239,14 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String statement = organisationUnitCondition.render();
 
-    // Then
     assertEquals("\"Z8z5uu61HAb.tO8L1aBitDm\".\"ou\" = :1", statement);
     assertEquals(ous.get(0), queryContext.getParametersPlaceHolder().get("1"));
   }
 
   @Test
   void testEventOuMultipleOusProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1", "ou2");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -291,17 +270,14 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String statement = organisationUnitCondition.render();
 
-    // Then
     assertEquals("\"Z8z5uu61HAb.tO8L1aBitDm\".\"ou\" in (:1)", statement);
     assertEquals(ous, queryContext.getParametersPlaceHolder().get("1"));
   }
 
   @Test
   void testEnrollmentOuSingleOusProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -325,17 +301,14 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String statement = organisationUnitCondition.render();
 
-    // Then
     assertEquals("\"Z8z5uu61HAb\".\"ou\" = :1", statement);
     assertEquals(ous.get(0), queryContext.getParametersPlaceHolder().get("1"));
   }
 
   @Test
   void testEnrollmentOuMultipleOusProduceCorrectSql() {
-    // Given
     List<String> ous = List.of("ou1", "ou2");
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
@@ -358,10 +331,8 @@ class OrganisationUnitConditionTest {
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
-    // When
     String statement = organisationUnitCondition.render();
 
-    // Then
     assertEquals("\"Z8z5uu61HAb\".\"ou\" in (:1)", statement);
     assertEquals(ous, queryContext.getParametersPlaceHolder().get("1"));
   }

@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
@@ -62,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/routes")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:extensibility", "purpose:metadata"})
-public class RouteController extends AbstractCrudController<Route> {
+public class RouteController extends AbstractCrudController<Route, GetObjectListParams> {
   private final RouteService routeService;
 
   @RequestMapping(
