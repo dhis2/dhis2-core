@@ -57,7 +57,7 @@ public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
   private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
-  private static final String ORDER_DATA_ITEM_EXPRESSION =
+  private static final String ORDER_CHANGE_EXPRESSION =
       "CONCAT(COALESCE(d.formname, ''), COALESCE(" + COLUMN_CHANGELOG_FIELD + ", ''))";
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
@@ -71,7 +71,7 @@ public class HibernateEventChangeLogStore {
       Map.ofEntries(
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
-          entry("change", ORDER_DATA_ITEM_EXPRESSION));
+          entry("change", ORDER_CHANGE_EXPRESSION));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
