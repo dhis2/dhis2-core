@@ -29,14 +29,14 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -247,12 +247,18 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   public String age(String endDate, String startDate) {
     throw new UnsupportedOperationException();
   }
-
+  
   @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
-    throw new UnsupportedOperationException();
+      return switch (dateUnit) {
+          case DAYS -> String.format("dateDiff('day', %s, %s)", startDate, endDate);
+          case MINUTES -> String.format("dateDiff('minute', %s, %s)", startDate, endDate);
+          case MONTHS -> String.format("dateDiff('month', %s, %s)", startDate, endDate);
+          case YEARS -> String.format("dateDiff('year', %s, %s)", startDate, endDate);
+          case WEEKS -> String.format("dateDiff('week', %s, %s)", startDate, endDate);
+      };
   }
-
+  
   @Override
   public String ifThen(String condition, String result) {
     return String.format("if(%s, %s, null)", condition, result);
