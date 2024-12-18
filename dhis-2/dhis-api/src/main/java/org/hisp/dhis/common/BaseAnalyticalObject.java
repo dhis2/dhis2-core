@@ -331,6 +331,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   /**
    * Returns the dimensional item object for the given dimension and name.
+   *
    * @param uid the dimension uid.
    * @param name the dimension name.
    * @return the DimensionalObject.
