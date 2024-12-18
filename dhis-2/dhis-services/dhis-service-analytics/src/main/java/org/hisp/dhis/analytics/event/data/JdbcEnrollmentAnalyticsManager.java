@@ -27,7 +27,32 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -67,32 +92,6 @@ import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 /**
  * @author Markus Bekken
@@ -508,7 +507,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     StringBuilder whereClause = new StringBuilder();
 
     // Iterate over each filter and apply the correct condition
-    for (QueryItem item : Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+    for (QueryItem item :
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
             .toList()) {
 
@@ -520,8 +520,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         } else {
           String operator = getSqlOperator(filter);
           String value = getSqlFilterValue(filter, item);
-          whereClause.append(" AND ").append(cteName).append(".value ")
-                  .append(operator).append(" ").append(value);
+          whereClause
+              .append(" AND ")
+              .append(cteName)
+              .append(".value ")
+              .append(operator)
+              .append(" ")
+              .append(value);
         }
       }
     }
@@ -530,16 +535,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String getSqlOperator(QueryFilter filter) {
-      return switch (filter.getOperator()) {
-          case EQ -> "=";
-          case NEQ -> "!=";
-          case GT -> ">";
-          case LT -> "<";
-          case GE -> ">=";
-          case LE -> "<=";
-          case IN -> "IN";
-          default -> throw new IllegalArgumentException("Unsupported operator: " + filter.getOperator());
-      };
+    return switch (filter.getOperator()) {
+      case EQ -> "=";
+      case NEQ -> "!=";
+      case GT -> ">";
+      case LT -> "<";
+      case GE -> ">=";
+      case LE -> "<=";
+      case IN -> "IN";
+      default ->
+          throw new IllegalArgumentException("Unsupported operator: " + filter.getOperator());
+    };
   }
 
   private String getSqlFilterValue(QueryFilter filter, QueryItem item) {
@@ -550,7 +556,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Handle IN operator: wrap the value(s) in parentheses
     if (filter.getOperator() == QueryOperator.IN) {
       String[] values = filter.getFilter().split(","); // Support multiple values
-      String quotedValues = Arrays.stream(values)
+      String quotedValues =
+          Arrays.stream(values)
               .map(value -> item.isNumeric() ? value : sqlBuilder.singleQuote(value))
               .collect(Collectors.joining(", "));
       return "(" + quotedValues + ")";
@@ -562,39 +569,48 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
     return queryItems.stream()
-            .map(item -> {
+        .map(
+            item -> {
               // Determine the correct table: event table or enrollment table
-              String tableName = item.hasProgramStage()
-                      ? "analytics_event_" + item.getProgram().getUid().toLowerCase()  // Event table for program stage
+              String tableName =
+                  item.hasProgramStage()
+                      ? "analytics_event_"
+                          + item.getProgram()
+                              .getUid()
+                              .toLowerCase() // Event table for program stage
                       : params.getTableName(); // Enrollment table
 
               String columnName = quote(item.getItemName()); // Raw column name without alias
-              String programStageCondition = item.hasProgramStage()
+              String programStageCondition =
+                  item.hasProgramStage()
                       ? "AND ps = '" + item.getProgramStage().getUid() + "'"
                       : ""; // Add program stage filter if available
 
               // Generate the CTE SQL
-              return String.format("""
+              return String.format(
+                  """
                               SELECT DISTINCT ON (enrollment) enrollment, %s AS value
                               FROM %s
                               WHERE eventstatus != 'SCHEDULE' %s
                               ORDER BY enrollment, occurreddate DESC, created DESC""",
-                      columnName, tableName, programStageCondition
-              );
+                  columnName, tableName, programStageCondition);
             })
-            .collect(Collectors.joining("\nUNION ALL\n"));
+        .collect(Collectors.joining("\nUNION ALL\n"));
   }
 
-  private Stream<IdentifiableSql> asSqlCollection(List<QueryItem> queryItems, EventQueryParams params) {
+  private Stream<IdentifiableSql> asSqlCollection(
+      List<QueryItem> queryItems, EventQueryParams params) {
     return Optional.ofNullable(queryItems).orElse(List.of()).stream()
-            .map(queryItem -> {
-              String sql = queryItem.getFilters().stream()
+        .map(
+            queryItem -> {
+              String sql =
+                  queryItem.getFilters().stream()
                       .map(filter -> toSql(queryItem, filter, params))
                       .collect(Collectors.joining(" AND "));
               return IdentifiableSql.builder()
-                      .identifier(getIdentifier(queryItem))
-                      .sql(sql)
-                      .build();
+                  .identifier(getIdentifier(queryItem))
+                  .sql(sql)
+                  .build();
             });
   }
 
@@ -701,55 +717,57 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       colName = quote(colName + suffix);
 
       // Generate CTE name based on program stage and item
-      String cteName = String.format("ps_%s_%s",
-              item.getProgramStage().getUid().toLowerCase(),
-              item.getItem().getUid().toLowerCase());
+      String cteName =
+          String.format(
+              "ps_%s_%s",
+              item.getProgramStage().getUid().toLowerCase(), item.getItem().getUid().toLowerCase());
 
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
       String excludingScheduledCondition =
-              eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "'";
+          eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "'";
 
       if (item.getProgramStage().getRepeatable()
-              && item.hasRepeatableStageParams()
-              && !item.getRepeatableStageParams().simpleStageValueExpected()) {
+          && item.hasRepeatableStageParams()
+          && !item.getRepeatableStageParams().simpleStageValueExpected()) {
 
-        String cteSql = String.format(
-                "SELECT enrollment, COALESCE(json_agg(t1), '[]') as value FROM (" +
-                        "  SELECT %s, %s, %s, %s" +
-                        "  FROM %s" +
-                        "  WHERE %s AND ps = '%s' %s %s %s %s" +
-                        ") as t1 GROUP BY enrollment",
+        String cteSql =
+            String.format(
+                "SELECT enrollment, COALESCE(json_agg(t1), '[]') as value FROM ("
+                    + "  SELECT %s, %s, %s, %s"
+                    + "  FROM %s"
+                    + "  WHERE %s AND ps = '%s' %s %s %s %s"
+                    + ") as t1 GROUP BY enrollment",
                 colName,
-                String.join(", ",
-                        EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
-                        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
-                        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+                String.join(
+                    ", ",
+                    EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+                    EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
                 eventTableName,
                 excludingScheduledCondition,
                 item.getProgramStage().getUid(),
                 getExecutionDateFilter(
-                        item.getRepeatableStageParams().getStartDate(),
-                        item.getRepeatableStageParams().getEndDate()),
+                    item.getRepeatableStageParams().getStartDate(),
+                    item.getRepeatableStageParams().getEndDate()),
                 createOrderType(item.getProgramStageOffset()),
                 createOffset(item.getProgramStageOffset()),
-                getLimit(item.getRepeatableStageParams().getCount())
-        );
+                getLimit(item.getRepeatableStageParams().getCount()));
 
         cteContext.addCTE(cteName, cteSql);
         alias = quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
         return cteName + ".value as " + alias;
 
       } else {
-        String cteSql = String.format(
-                "SELECT DISTINCT ON (enrollment) enrollment, %s as value " +
-                        "FROM %s " +
-                        "WHERE %s AND ps = '%s' " +
-                        "ORDER BY enrollment, occurreddate DESC, created DESC",
+        String cteSql =
+            String.format(
+                "SELECT DISTINCT ON (enrollment) enrollment, %s as value "
+                    + "FROM %s "
+                    + "WHERE %s AND ps = '%s' "
+                    + "ORDER BY enrollment, occurreddate DESC, created DESC",
                 colName,
                 eventTableName,
                 excludingScheduledCondition,
-                item.getProgramStage().getUid()
-        );
+                item.getProgramStage().getUid());
 
         cteContext.addCTE(cteName, cteSql);
         String columnAlias = quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
@@ -997,31 +1015,33 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         if (queryItem.hasRelationshipType()) {
           programIndicatorSubqueryBuilder.contributeCTE(
-                  pi,
-                  queryItem.getRelationshipType(),
-                  getAnalyticsType(),
-                  params.getEarliestStartDate(),
-                  params.getLatestEndDate(),
-                  cteContext);
+              pi,
+              queryItem.getRelationshipType(),
+              getAnalyticsType(),
+              params.getEarliestStartDate(),
+              params.getLatestEndDate(),
+              cteContext);
         } else {
           programIndicatorSubqueryBuilder.contributeCTE(
-                  pi,
-                  getAnalyticsType(),
-                  params.getEarliestStartDate(),
-                  params.getLatestEndDate(),
-                  cteContext);
+              pi,
+              getAnalyticsType(),
+              params.getEarliestStartDate(),
+              params.getLatestEndDate(),
+              cteContext);
         }
-      }
-      else if (queryItem.hasProgramStage()) {
+      } else if (queryItem.hasProgramStage()) {
         // Generate CTE for program stage items
-        String cteName = String.format("ps_%s_%s",
+        String cteName =
+            String.format(
+                "ps_%s_%s",
                 queryItem.getProgramStage().getUid().toLowerCase(),
                 queryItem.getItem().getUid().toLowerCase());
 
         String colName = quote(queryItem.getItemName());
         String eventTableName = ANALYTICS_EVENT + queryItem.getProgram().getUid();
 
-        String cteSql = String.format(
+        String cteSql =
+            String.format(
                 """
                    -- Generate CTE for program stage items
                    SELECT DISTINCT ON (enrollment) enrollment, %s as value
@@ -1030,17 +1050,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                         AND ps = '%s'
                         -- AND %s IS NOT NULL
                         ORDER BY enrollment, occurreddate DESC, created DESC""",
-                colName,
-                eventTableName,
-                queryItem.getProgramStage().getUid(),
-                colName);
+                colName, eventTableName, queryItem.getProgramStage().getUid(), colName);
 
         cteContext.addCTE(cteName, cteSql);
 
-        String alias = quote(queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid());
+        String alias =
+            quote(queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid());
         cteContext.addColumnMapping(
-                queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid(),
-                cteName + ".value as " + alias);
+            queryItem.getProgramStage().getUid() + "." + queryItem.getItem().getUid(),
+            cteName + ".value as " + alias);
       }
     }
     return cteContext;
@@ -1049,47 +1067,52 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private String buildFilterCteSql(QueryItem item, EventQueryParams params) {
     String tableName = params.getTableName();
     String columnName = getColumn(item);
-    String filterCondition = item.getFilters().stream()
+    String filterCondition =
+        item.getFilters().stream()
             .map(filter -> toSql(item, filter, params))
             .collect(Collectors.joining(" AND "));
 
     return String.format(
-            "SELECT enrollment, %s AS value " +
-                    "FROM %s " +
-                    "WHERE %s",
-            columnName, tableName, filterCondition
-    );
+        "SELECT enrollment, %s AS value " + "FROM %s " + "WHERE %s",
+        columnName, tableName, filterCondition);
   }
 
   private void generateFilterCTEs(EventQueryParams params, CTEContext cteContext) {
     // Combine items and item filters
-    List<QueryItem> queryItems = Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+    List<QueryItem> queryItems =
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
             .toList();
 
     // Group query items by repeatable and non-repeatable stages
     Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
-            queryItems.stream()
-                    .collect(groupingBy(
-                            queryItem -> queryItem.hasRepeatableStageParams()
-                                    && params.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT
-                    ));
+        queryItems.stream()
+            .collect(
+                groupingBy(
+                    queryItem ->
+                        queryItem.hasRepeatableStageParams()
+                            && params.getEndpointItem()
+                                == RequestTypeAware.EndpointItem.ENROLLMENT));
 
     // Process repeatable stage filters
     itemsByRepeatableFlag.getOrDefault(true, List.of()).stream()
-            .collect(groupingBy(this::getIdentifier))
-            .forEach((identifier, items) -> {
+        .collect(groupingBy(this::getIdentifier))
+        .forEach(
+            (identifier, items) -> {
               String cteName = "filter_" + identifier.replace('.', '_').toLowerCase();
               String cteSql = buildFilterCteSql(items, params);
               cteContext.addCTE(cteName, cteSql);
             });
 
     // Process non-repeatable stage filters
-    itemsByRepeatableFlag.getOrDefault(false, List.of()).forEach(queryItem -> {
-      String cteName = "filter_" + getIdentifier(queryItem).replace('.', '_').toLowerCase();
-      String cteSql = buildFilterCteSql(List.of(queryItem), params);
-      cteContext.addCTE(cteName, cteSql);
-    });
+    itemsByRepeatableFlag
+        .getOrDefault(false, List.of())
+        .forEach(
+            queryItem -> {
+              String cteName = "filter_" + getIdentifier(queryItem).replace('.', '_').toLowerCase();
+              String cteSql = buildFilterCteSql(List.of(queryItem), params);
+              cteContext.addCTE(cteName, cteSql);
+            });
   }
 
   private String buildEnrollmentQueryWithCte2(EventQueryParams params) {
@@ -1109,10 +1132,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // 3. Select clause
-    List<String> selectCols = ListUtils.distinctUnion(
+    List<String> selectCols =
+        ListUtils.distinctUnion(
             params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
-            getSelectColumnsWithCTE(params, cteContext)
-    );
+            getSelectColumnsWithCTE(params, cteContext));
     sql.append("SELECT ").append(String.join(",\n    ", selectCols));
 
     // 4. From clause
@@ -1121,26 +1144,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 5. Add joins for each CTE
     for (String cteName : cteContext.getCTENames()) {
       sql.append("\nLEFT JOIN ")
-              .append(cteName)
-              .append(" ON ax.enrollment = ")
-              .append(cteName)
-              .append(".enrollment");
+          .append(cteName)
+          .append(" ON ax.enrollment = ")
+          .append(cteName)
+          .append(".enrollment");
     }
 
     // 6. Where clause
-    sql.append(" ").append(getWhereClause(params))
-            .append(" ")
-            .append(addCteFiltersToWhereClause(params));
+    sql.append(" ")
+        .append(getWhereClause(params))
+        .append(" ")
+        .append(addCteFiltersToWhereClause(params));
 
     // 7. Order by
-    sql.append(" " ).append(getSortClause(params));
+    sql.append(" ").append(getSortClause(params));
 
     // 8. Paging
     sql.append(" ").append(getPagingClause(params, 5000));
 
     return sql.toString();
   }
-
 
   private String getBasicSelectColumns() {
     return String.join(
@@ -1197,7 +1220,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
       String columnName = quote(item.getItem().getUid());
 
-      ctes.append(String.format(
+      ctes.append(
+          String.format(
               """
               RankedEvents_%s as (
                 select enrollment, %s as value, eventstatus,
@@ -1207,8 +1231,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                   and ps = '%s'
               )
               """,
-              key, columnName, order, order, eventTableName, stageUid
-      ));
+              key, columnName, order, order, eventTableName, stageUid));
 
       processedCombinations.add(key);
     }
@@ -1226,7 +1249,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
       String stageUid = item.getProgramStage().getUid();
       int offset = createOffset2(item.getProgramStageOffset());
-      String key = stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
+      String key =
+          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
 
       String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
       String alias = "re_" + key;
@@ -1236,15 +1260,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       }
 
       // Add value column
-      columns.append(String.format("%s.value as %s",
+      columns.append(
+          String.format(
+              "%s.value as %s",
               alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid())));
 
       // Add exists column
-      columns.append(String.format(",\n(%s.enrollment is not null) as %s",
+      columns.append(
+          String.format(
+              ",\n(%s.enrollment is not null) as %s",
               alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() + ".exists")));
 
       // Add status column
-      columns.append(String.format(",\n%s.eventstatus as %s",
+      columns.append(
+          String.format(
+              ",\n%s.eventstatus as %s",
               alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() + ".status")));
     }
 
@@ -1265,13 +1295,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
       String stageUid = item.getProgramStage().getUid();
       int offset = createOffset2(item.getProgramStageOffset());
-      String key = stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
+      String key =
+          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
       String alias = "re_" + key;
 
-      fromClause.append(String.format(
+      fromClause.append(
+          String.format(
               "\nleft join RankedEvents_%s %s on ax.enrollment = %s.enrollment and %s.rn = %d",
-              key, alias, alias, alias, offset + 1
-      ));
+              key, alias, alias, alias, offset + 1));
     }
 
     return fromClause.toString();
