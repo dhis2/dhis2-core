@@ -153,7 +153,7 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   void shouldSortChangeLogsWhenOrderingByDataElementAsc()
       throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.ASC).build();
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
     Event event = getEvent("kWjSezkXHVp");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
@@ -176,10 +176,9 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByDataItemDesc()
-      throws ForbiddenException, NotFoundException {
+  void shouldSortChangeLogsWhenOrderingByChangeDesc() throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.DESC).build();
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
     Event event = getEvent("kWjSezkXHVp");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
@@ -202,10 +201,10 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByDataItemAscAndChangesOnlyToEventFields()
+  void shouldSortChangeLogsWhenOrderingByChangeAscAndChangesOnlyToEventFields()
       throws ForbiddenException, NotFoundException, IOException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.ASC).build();
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
     UID event = UID.of("QRYjLTiJTrA");
 
     LocalDateTime currentTime = LocalDateTime.now();
@@ -236,10 +235,10 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByDataItemDescAndChangesOnlyToEventFields()
+  void shouldSortChangeLogsWhenOrderingByChangeDescAndChangesOnlyToEventFields()
       throws ForbiddenException, NotFoundException, IOException {
     EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataItem", SortDirection.DESC).build();
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
     UID event = UID.of("QRYjLTiJTrA");
 
     LocalDateTime currentTime = LocalDateTime.now();
