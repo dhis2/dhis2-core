@@ -67,17 +67,18 @@ class DataValueUtilTest {
     assertWithNewValue(newDataValue, "New DE", "DE");
   }
 
-  private void assertWithNewValue(@Nonnull DataValue dv, String newValue, String property) {
+  private void assertWithNewValue(
+      @Nonnull DataValue dv, @Nonnull String newValue, @Nonnull String property) {
     if (property.equals("DE")) {
-      assertEquals("New DE", dv.getDataElement().getName());
+      assertEquals(newValue, dv.getDataElement().getName());
     } else assertEquals("test DE", dv.getDataElement().getName());
     assertEquals("test Period", dv.getPeriod().getName());
     assertEquals("test Org Unit", dv.getSource().getName());
     if (property.equals("COC")) {
-      assertEquals("New COC", dv.getCategoryOptionCombo().getName());
+      assertEquals(newValue, dv.getCategoryOptionCombo().getName());
     } else assertEquals("test COC", dv.getCategoryOptionCombo().getName());
     if (property.equals("AOC")) {
-      assertEquals("New AOC", dv.getAttributeOptionCombo().getName());
+      assertEquals(newValue, dv.getAttributeOptionCombo().getName());
     } else assertEquals("test AOC", dv.getAttributeOptionCombo().getName());
     assertEquals("test value", dv.getValue());
     assertEquals("test user", dv.getStoredBy());
