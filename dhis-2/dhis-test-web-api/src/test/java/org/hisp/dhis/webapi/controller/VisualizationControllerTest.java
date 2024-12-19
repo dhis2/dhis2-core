@@ -436,4 +436,104 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
   }
+
+  @Test
+  void testPostWithoutOptionSetItemAndLoadDefaults() {
+    // Given
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+
+    String dataElementUid = dataElement.getUid();
+    String jsonBody =
+        """
+{
+    "type": "PIE",
+    "columns": [
+        {
+            "dimension": "dx",
+            "items": [
+                {
+                    "id": "${dataElement}",
+                    "name": "Data Element - OptionSet",
+                    "dimensionItemType": "DATA_ELEMENT"
+                }
+            ]
+        }
+    ],
+    "name": "OptionSetItem - Test"
+}
+"""
+            .replace("${dataElement}", dataElementUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams = "?fields=columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonNode columnNode = response.get("columns").node().element(0);
+    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
+
+    assertEquals("DATA_X", columnNode.get("dimensionType").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
+    assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
+    assertEquals("SUM", itemsNode.get("aggregationType").value());
+    assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
+    assertEquals("AGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
+    assertEquals("[]", itemsNode.get("optionSetItem").get("options").value().toString());
+  }
+
+  @Test
+  void testPostOptionSetItemWithNoAggregation() {
+    // Given
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+
+    String dataElementUid = dataElement.getUid();
+    String jsonBody =
+        """
+{
+    "type": "PIE",
+    "columns": [
+        {
+            "dimension": "dx",
+            "items": [
+                {
+                    "id": "${dataElement}",
+                    "name": "Data Element - OptionSet",
+                    "dimensionItemType": "DATA_ELEMENT",
+                    "optionSetItem": {
+                        "options": [
+                            "BFhv3jQZ8Cw"
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "name": "OptionSetItem - Test"
+}
+"""
+            .replace("${dataElement}", dataElementUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams = "?fields=columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonNode columnNode = response.get("columns").node().element(0);
+    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
+
+    assertEquals("DATA_X", columnNode.get("dimensionType").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
+    assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
+    assertEquals("SUM", itemsNode.get("aggregationType").value());
+    assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
+    assertEquals("AGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
+    assertEquals(
+        "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
+  }
 }
