@@ -695,9 +695,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
     }
 
-    teiService.addTrackedEntityInstance(daoEntityInstance);
-
-    addAttributeValues(dtoEntityInstance, daoEntityInstance, importOptions.getUser());
+    if (!importOptions.isDryRun()) {
+      teiService.addTrackedEntityInstance(daoEntityInstance);
+      addAttributeValues(dtoEntityInstance, daoEntityInstance, importOptions.getUser());
+    }
 
     importSummary.setReference(daoEntityInstance.getUid());
     importSummary.getImportCount().incrementImported();
@@ -843,13 +844,17 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       daoEntityInstance.setGeometry(null);
     }
 
-    if (!importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getAttributes().isEmpty()) {
+    if (!importOptions.isDryRun()
+        && (!importOptions.isIgnoreEmptyCollection()
+            || !dtoEntityInstance.getAttributes().isEmpty())) {
       updateAttributeValues(dtoEntityInstance, daoEntityInstance, program, importOptions.getUser());
     }
 
     updateDateFields(dtoEntityInstance, daoEntityInstance);
 
-    teiService.updateTrackedEntityInstance(daoEntityInstance);
+    if (!importOptions.isDryRun()) {
+      teiService.updateTrackedEntityInstance(daoEntityInstance);
+    }
 
     importSummary.setReference(daoEntityInstance.getUid());
     importSummary.getImportCount().incrementUpdated();
@@ -920,8 +925,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       }
 
       daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
-      teiService.deleteTrackedEntityInstance(daoEntityInstance);
-
+      if (!importOptions.isDryRun()) {
+        teiService.deleteTrackedEntityInstance(daoEntityInstance);
+      }
       importSummary.setStatus(ImportStatus.SUCCESS);
       importSummary.setDescription(
           "Deletion of tracked entity instance " + uid + " was successful");
