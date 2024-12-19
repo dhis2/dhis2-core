@@ -1,0 +1,51 @@
+name: Generate and Merge SBOMs and Upload them to DependencyTrack every night
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Run every day at midnight
+
+concurrency:
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  create-boms:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dhis-2/
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Install CycloneDX CLI
+        run: |
+          curl -s https://api.github.com/repos/CycloneDX/cyclonedx-cli/releases/latest | grep "browser_download_url.*linux.x64" | cut -d '"' -f 4 | wget -i -
+          sudo mv cyclonedx-linux-x64 /usr/local/bin/
+          sudo chmod +x /usr/local/bin/cyclonedx-linux-x64
+
+      - name: Generate BOMs
+        run: mvn cyclonedx:makeBom
+
+      - name: Merge BOMs
+        run: cyclonedx-linux-x64 merge --input-files $(find . -name 'dxbom.json') --input-format json --output-file target/merged-bom.json --output-format json
+
+      - name: Upload SBOM to DependencyTrack
+        env:
+          DEPENDENCY_TRACK_API: "https://dt.security.dhis2.org/api/v1/bom"
+        run: |
+          curl -X POST "$DEPENDENCY_TRACK_API" \
+              --fail-with-body \
+              -H "Content-Type: multipart/form-data" \
+              -H "X-Api-Key: ${{ secrets.DEPENDENCYTRACK_APIKEY }}" \
+              -F "project=56383704-d5a2-4a35-ad6a-081f80f5d6d3" \
+              -F "bom=@target/merged-bom.json"
