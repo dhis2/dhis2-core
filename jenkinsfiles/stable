@@ -105,7 +105,7 @@ pipeline {
                     oldImageTag = env.DOCKER_IMAGE_TAG.replace("-rc", "")
 
                     // If version contains more than 2 dots... It's a hotfix.
-                    boolean isHotfix = oldImageTag.length() - oldImageTag.replace(".", "").length() > 2
+                    isHotfix = oldImageTag.length() - oldImageTag.replace(".", "").length() > 2
 
                     if (!isHotfix) {
                         oldImageTag = "$oldImageTag.0"
