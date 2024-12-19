@@ -37,9 +37,11 @@ import java.lang.annotation.Target;
  * Annotation that takes in any number of {@link Authorities}. This allows us to check if a {@link
  * org.hisp.dhis.user.User} has any of the {@link Authorities} passed in.
  *
- * <p>{@link Authorities#ALL} is automatically added to the check, as having this Authority allows
- * access to all methods by default. No need to pass {@link Authorities#ALL} in the arguments. See
- * {@link AuthorityInterceptor}.
+ * <p>{@link Authorities#ALL} is automatically added to the check by default, as having this
+ * Authority allows access to all methods by default. No need to pass {@link Authorities#ALL} in the
+ * arguments. See {@link AuthorityInterceptor}. <br>
+ * {@link Authorities#ALL} will only be excluded from the check if explicitly requested, using the
+ * optional param `excludeAllAuth=true`.
  *
  * <p>Can be used at Class or Method level. Usage at the method level will always take precedence
  * (matching how Spring works). Class level usage only applies if there is no usage at the method
@@ -50,4 +52,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequiresAuthority {
   Authorities[] anyOf();
+
+  boolean excludeAllAuth() default false;
 }
