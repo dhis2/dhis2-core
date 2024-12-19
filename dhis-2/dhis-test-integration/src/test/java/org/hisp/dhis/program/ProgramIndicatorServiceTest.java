@@ -551,14 +551,14 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testBooleanAsBoolean() {
     assertEquals(
-        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false)",
+        "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric != 0,false)",
         filter("#{ProgrmStagA.DataElmentG}"));
   }
 
   @Test
   void testBooleanAsBooleanWithinIf() {
     assertEquals(
-        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false) then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric != 0,false) then 4 else 5 end",
         sql("if(#{ProgrmStagA.DataElmentG},4,5)"));
   }
 
