@@ -721,17 +721,17 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         ouList.addAll(organisationUnits);
         ouList.addAll(transientOrganisationUnits);
 
-      if (userOrganisationUnit) {
-        ouList.add(USER_OU_ITEM_OBJ);
-      }
+        if (userOrganisationUnit) {
+          ouList.add(USER_OU_ITEM_OBJ);
+        }
 
-      if (userOrganisationUnitChildren) {
-        ouList.add(USER_OU_CHILDREN_ITEM_OBJ);
-      }
+        if (userOrganisationUnitChildren) {
+          ouList.add(USER_OU_CHILDREN_ITEM_OBJ);
+        }
 
-      if (userOrganisationUnitGrandChildren) {
-        ouList.add(USER_OU_GRANDCHILDREN_ITEM_OBJ);
-      }
+        if (userOrganisationUnitGrandChildren) {
+          ouList.add(USER_OU_GRANDCHILDREN_ITEM_OBJ);
+        }
 
         if (organisationUnitLevels != null && !organisationUnitLevels.isEmpty()) {
           for (Integer level : organisationUnitLevels) {
