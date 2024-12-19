@@ -54,13 +54,16 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -91,6 +94,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -361,16 +367,16 @@ class DimensionalObjectProducerTest {
     String fiveYearsAgo = Integer.toString(currentYear - 5);
 
     List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-    assertDailyPeriod(fiveYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(0));
-    assertDailyPeriod(fourYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(1));
-    assertDailyPeriod(threeYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(2));
-    assertDailyPeriod(twoYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(3));
-    assertDailyPeriod(lastYear, "LAST_UPDATED", (Period) refPeriods.get(4));
+    assertDailyPeriod(lastYear, "LAST_UPDATED", (Period) refPeriods.get(0));
+    assertDailyPeriod(fiveYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(1));
+    assertDailyPeriod(fourYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(2));
+    assertDailyPeriod(threeYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(3));
+    assertDailyPeriod(twoYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(4));
     assertDailyPeriod(lastYear, "SCHEDULED_DATE", (Period) refPeriods.get(5));
   }
 
   private void assertDailyPeriod(String year, String dateField, Period period) {
-    assertTrue(period.getPeriodType() instanceof YearlyPeriodType);
+    assertInstanceOf(YearlyPeriodType.class, period.getPeriodType());
     assertEquals(year, period.getIsoDate());
     assertEquals(dateField, period.getDateField());
     assertEquals(year + "-01-01", period.getStartDateString());
@@ -397,7 +403,7 @@ class DimensionalObjectProducerTest {
     assertEquals("2021-05-01_2021-06-01", refDimensionKeywords.getKeywords().get(0).getKey());
 
     List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-    assertTrue(((Period) refPeriods.get(0)).getPeriodType() instanceof DailyPeriodType);
+    assertInstanceOf(DailyPeriodType.class, ((Period) refPeriods.get(0)).getPeriodType());
     assertEquals("20210501", ((Period) refPeriods.get(0)).getIsoDate());
     assertEquals("LAST_UPDATED", ((Period) refPeriods.get(0)).getDateField());
     assertEquals("2021-05-01", ((Period) refPeriods.get(0)).getStartDateString());
@@ -451,6 +457,70 @@ class DimensionalObjectProducerTest {
     assertEquals(keyword.getMetadataItem().getName(), dimensionalItemObject.getName());
     assertEquals(keyword.getMetadataItem().getCode(), dimensionalItemObject.getCode());
     assertEquals(keyword.getMetadataItem().getUid(), dimensionalItemObject.getUid());
+  }
+
+  @ParameterizedTest
+  @MethodSource("providePeDimensionsForPeriodOrder")
+  void testOrderOfPeriods(List<String> periods, List<String> expected) {
+
+    // Given
+    Date aDayOfJune2024 =
+        Date.from(LocalDate.of(2024, 6, 15).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+    when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
+    when(i18nManager.getI18n()).thenReturn(i18n);
+
+    // When
+    BaseDimensionalObject baseDimensionalObject =
+        target.getPeriodDimension(periods, aDayOfJune2024);
+
+    // Then
+    List<DimensionalItemObject> items = baseDimensionalObject.getItems();
+    // we need to assert that baseDimensionalObject.getItems() is ordered as expected
+    for (int i = 0; i < items.size(); i++) {
+      assertEquals(expected.get(i), items.get(i).getUid());
+    }
+  }
+
+  // This method provides the periods and the expected order of the periods for the
+  // testOrderOfPeriods test
+  private static Stream<Arguments> providePeDimensionsForPeriodOrder() {
+    return Stream.of(
+        Arguments.of(List.of("2024", "LAST_YEAR"), List.of("2024", "2023")),
+        Arguments.of(
+            List.of("THIS_YEAR", "LAST_5_YEARS"),
+            List.of("2024", "2019", "2020", "2021", "2022", "2023")),
+        Arguments.of(
+            List.of("LAST_YEAR", "LAST_5_YEARS"), List.of("2023", "2019", "2020", "2021", "2022")),
+        Arguments.of(
+            List.of("2021", "LAST_5_YEARS"), List.of("2021", "2019", "2020", "2022", "2023")),
+        Arguments.of(
+            List.of("LAST_5_YEARS", "2021"), List.of("2019", "2020", "2021", "2022", "2023")));
+  }
+
+  @Test
+  void testMetadataHandlerGetDistinctPeriodUids() {
+
+    // Given
+    Date aDayOfJune2024 =
+        Date.from(LocalDate.of(2024, 6, 15).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+    when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
+    when(i18nManager.getI18n()).thenReturn(i18n);
+
+    // When
+    List<DimensionalItemObject> dimensionalItemObjects =
+        target
+            .getPeriodDimension(
+                List.of("LAST_YEAR:LAST_UPDATED", "LAST_5_YEARS:SCHEDULED_DATE"), aDayOfJune2024)
+            .getItems();
+
+    // And
+    List<String> distinctPeriodUids = MetadataHandler.getDistinctPeriodUids(dimensionalItemObjects);
+
+    // Then
+    assertEquals(5, distinctPeriodUids.size());
+    assertEquals(List.of("2023", "2019", "2020", "2021", "2022"), distinctPeriodUids);
   }
 
   private void assertOrgUnits(OrganisationUnit expected, OrganisationUnit actual) {
