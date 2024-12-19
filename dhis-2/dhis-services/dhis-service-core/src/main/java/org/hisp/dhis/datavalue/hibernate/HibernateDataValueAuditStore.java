@@ -36,6 +36,8 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -102,6 +104,16 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValueAudits(@Nonnull CategoryOptionCombo categoryOptionCombo) {
+    String hql =
+        "delete from DataValueAudit d where d.categoryOptionCombo = :categoryOptionCombo or d.attributeOptionCombo = :categoryOptionCombo";
+    entityManager
+        .createQuery(hql)
+        .setParameter("categoryOptionCombo", categoryOptionCombo)
+        .executeUpdate();
   }
 
   @Override
