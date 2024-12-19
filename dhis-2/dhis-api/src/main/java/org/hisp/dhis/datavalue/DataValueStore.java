@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -91,6 +93,29 @@ public interface DataValueStore {
    * @param dataElement the data element.
    */
   void deleteDataValues(DataElement dataElement);
+
+  /**
+   * Deletes all data values for the given data element.
+   *
+   * @param dataElement the dataElement.
+   */
+  void deleteDataValues(@Nonnull Collection<DataElement> dataElement);
+
+  /**
+   * Deletes all data values for the given category option combos.
+   *
+   * @param categoryOptionCombos the categoryOptionCombos.
+   */
+  void deleteDataValuesByCategoryOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos);
+
+  /**
+   * Deletes all data values for the given attribute option combos.
+   *
+   * @param attributeOptionCombos the attributeOptionCombos.
+   */
+  void deleteDataValuesByAttributeOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
   void deleteDataValue(DataValue dataValue);
 
@@ -165,6 +190,12 @@ public interface DataValueStore {
    */
   List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
 
+  /**
+   * Retrieve all {@link DataValue}s with references to {@link DataElement}s
+   *
+   * @param dataElements {@link DataElement}s
+   * @return {@link DataValue}s with references to {@link DataElement}s passed in
+   */
   List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements);
 
   /**
@@ -193,4 +224,8 @@ public interface DataValueStore {
    * @return true, if any values exist, otherwise false
    */
   boolean dataValueExistsForDataElement(String uid);
+
+  List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids);
+
+  List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids);
 }
