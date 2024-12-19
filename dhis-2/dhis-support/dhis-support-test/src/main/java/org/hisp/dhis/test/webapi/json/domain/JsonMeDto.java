@@ -25,43 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.test.webapi.json.domain;
+
+import java.time.LocalDateTime;
+import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonList;
 
 /**
- * @author Lars Helge Overland
+ * Web API equivalent of a {@link org.hisp.dhis.webapi.controller.user.MeDto}.
+ *
+ * @author Morten Svanæs
  */
-public enum DimensionType {
-  DATA_X(0),
-  PROGRAM_DATA_ELEMENT,
-  PROGRAM_ATTRIBUTE,
-  PROGRAM_INDICATOR,
-  DATA_COLLAPSED,
-  CATEGORY_OPTION_COMBO(1),
-  ATTRIBUTE_OPTION_COMBO(2),
-  PERIOD,
-  ORGANISATION_UNIT,
-  CATEGORY_OPTION_GROUP_SET,
-  DATA_ELEMENT_GROUP_SET,
-  ORGANISATION_UNIT_GROUP_SET,
-  ORGANISATION_UNIT_GROUP,
-  CATEGORY,
-  OPTION_GROUP_SET,
-  OPTION_SET,
-  VALIDATION_RULE,
-  STATIC,
-  ORGANISATION_UNIT_LEVEL;
-
-  private static final int LAST_ORDER = 999;
-
-  private int order = LAST_ORDER;
-
-  DimensionType() {}
-
-  DimensionType(int order) {
-    this.order = order;
+public interface JsonMeDto extends JsonIdentifiableObject {
+  default String getUsername() {
+    return getString("username").string();
   }
 
-  public int getOrder() {
-    return order;
+  default String getSurname() {
+    return getString("surname").string();
+  }
+
+  default String getFirstName() {
+    return getString("firstName").string();
+  }
+
+  default JsonList<JsonUserGroup> getUserGroups() {
+    return getList("userGroups", JsonUserGroup.class);
+  }
+
+  default boolean getEmailVerified() {
+    return get("emailVerified", JsonBoolean.class).booleanValue();
+  }
+
+  default JsonList<JsonOrganisationUnit> getOrganisationUnits() {
+    return getList("organisationUnits", JsonOrganisationUnit.class);
+  }
+
+  default JsonList<JsonOrganisationUnit> getDataViewOrganisationUnits() {
+    return getList("dataViewOrganisationUnits", JsonOrganisationUnit.class);
+  }
+
+  default JsonList<JsonOrganisationUnit> getTeiSearchOrganisationUnits() {
+    return getList("teiSearchOrganisationUnits", JsonOrganisationUnit.class);
+  }
+
+  default LocalDateTime getLastLogin() {
+    return get("lastLogin", JsonDate.class).date();
+  }
+
+  default LocalDateTime getAccountExpiry() {
+    return get("accountExpiry", JsonDate.class).date();
   }
 }

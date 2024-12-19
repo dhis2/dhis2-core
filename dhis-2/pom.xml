@@ -169,7 +169,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
-    <netty-all.version>4.1.115.Final</netty-all.version>
+    <netty-all.version>4.1.116.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -181,7 +181,7 @@
     <jsoup.version>1.18.3</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.3.1-jre</guava.version>
+    <guava.version>33.4.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.7.1</google-api-client.version>
@@ -213,7 +213,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.3</junit.version>
+    <junit.version>5.11.4</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
