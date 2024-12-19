@@ -180,14 +180,11 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    maleA = createTrackedEntity('A', organisationUnitA);
-    maleB = createTrackedEntity(organisationUnitB);
-    femaleA = createTrackedEntity(organisationUnitA);
-    femaleB = createTrackedEntity(organisationUnitB);
-    maleA.setTrackedEntityType(trackedEntityType);
-    maleB.setTrackedEntityType(trackedEntityType);
-    femaleA.setTrackedEntityType(trackedEntityType);
-    femaleB.setTrackedEntityType(trackedEntityType);
+    maleA = createTrackedEntity('A', organisationUnitA, trackedEntityType);
+    maleB = createTrackedEntity(organisationUnitB, trackedEntityType);
+    femaleA = createTrackedEntity(organisationUnitA, trackedEntityType);
+    femaleB = createTrackedEntity(organisationUnitB, trackedEntityType);
+
     manager.save(maleA);
     manager.save(maleB);
     manager.save(femaleA);
