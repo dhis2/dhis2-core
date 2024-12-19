@@ -170,7 +170,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.38.0</artemis.version>
-    <netty-all.version>4.1.115.Final</netty-all.version>
+    <netty-all.version>4.1.116.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -184,10 +184,10 @@
 
     <!-- Div. utils -->
     <version.debezium>2.7.3.Final</version.debezium>
-    <guava.version>33.3.1-jre</guava.version>
+    <guava.version>33.4.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.7.0</google-api-client.version>
+    <google-api-client.version>2.7.1</google-api-client.version>
     <lombok.version>1.18.36</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.13.0</joda-time.version>
@@ -195,7 +195,7 @@
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
-    <commons-text.version>1.12.0</commons-text.version>
+    <commons-text.version>1.13.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
@@ -212,11 +212,11 @@
     <micrometer.version>1.12.13</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.24.2</log4j.version>
+    <log4j.version>2.24.3</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.2</junit.version>
+    <junit.version>5.11.4</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
@@ -236,7 +236,7 @@
     <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
