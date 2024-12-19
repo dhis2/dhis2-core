@@ -52,12 +52,6 @@ updates:
       - dependency-name: "org.springframework.ldap:*" # Spring ldap 3.x requires Spring 6 (see above)
         versions:
           - ">= 3.0"
-      - dependency-name: "org.hisp.dhis.parser:*" # Antlr parser must be upgraded manually due to circular dependency with rule engine
-        versions:
-          - ">= 1.0"
-      - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
-        versions:
-          - ">= 2.0"
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"
