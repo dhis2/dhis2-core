@@ -91,6 +91,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -169,7 +170,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams}.
    * @param maxLimit the configurable max limit of records.
    */
-  private String getPagingClause(EventQueryParams params, int maxLimit) {
+  protected String getPagingClause(EventQueryParams params, int maxLimit) {
     String sql = "";
 
     if (params.isPaging()) {
@@ -191,7 +192,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param params the {@link EventQueryParams}.
    */
-  private String getSortClause(EventQueryParams params) {
+  protected String getSortClause(EventQueryParams params) {
     String sql = "";
 
     if (params.isSorting()) {
@@ -413,7 +414,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param queryItem
    * @return true when eligible for row context
    */
-  private boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
+  protected boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
     return params.getEndpointItem() == ENROLLMENT
         && params.isRowContext()
         && queryItem.hasProgramStage()
@@ -1113,13 +1114,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     List<String> orConditions =
         repeatableConditionsByIdentifier.values().stream()
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
-            .collect(toList());
+            .toList();
 
     // Non-repeatable conditions
     List<String> andConditions =
         asSqlCollection(itemsByRepeatableFlag.get(false), params)
             .map(IdentifiableSql::getSql)
-            .collect(toList());
+            .toList();
 
     if (orConditions.isEmpty() && andConditions.isEmpty()) {
       return StringUtils.EMPTY;
@@ -1173,7 +1174,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return joinSql(conditions.collect(toList()), joiner);
   }
 
-  private String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+  protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1237,7 +1238,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   @Getter
   @Builder
-  private static class IdentifiableSql {
+  public static class IdentifiableSql {
     private final String identifier;
 
     private final String sql;
@@ -1250,7 +1251,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param filter the {@link QueryFilter}.
    * @param params the {@link EventQueryParams}.
    */
-  private String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
+  protected String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
     String field =
         item.hasAggregationType()
             ? getSelectSql(filter, item, params)
@@ -1385,10 +1386,47 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String args =
         fields.stream()
             .filter(f -> f != null && !f.isBlank())
-            .map(f -> sqlBuilder.quoteAx(f))
+            .map(sqlBuilder::quoteAx)
             .collect(Collectors.joining(","));
 
     return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
+  }
+
+  protected List<String> getSelectColumnsWithCTE(EventQueryParams params, CTEContext cteContext) {
+    List<String> columns = new ArrayList<>();
+
+    // Mirror the logic of addDimensionSelectColumns
+    addDimensionSelectColumns(columns, params, false);
+
+    // Mirror the logic of addItemSelectColumns but with CTE references
+    for (QueryItem queryItem : params.getItems()) {
+      if (queryItem.isProgramIndicator()) {
+        // For program indicators, use CTE reference
+        String piUid = queryItem.getItem().getUid();
+        String cteReference = cteContext.getColumnMapping(piUid);
+        columns.add(cteReference + " as \"" + piUid + "\"");
+      } else if (ValueType.COORDINATE == queryItem.getValueType()) {
+        // Handle coordinates
+        columns.add(getCoordinateColumn(queryItem).asSql());
+      } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
+        // Handle org units
+        if (params.getCoordinateFields().stream()
+            .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
+          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
+        } else {
+          columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
+        }
+      } else if (queryItem.hasProgramStage()) {
+        // Handle program stage items with CTE
+        columns.add(getColumnWithCte(queryItem, "", cteContext));
+      } else {
+        // Handle other types as before
+        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
+        columns.add(columnAndAlias.asSql());
+      }
+    }
+
+    return columns;
   }
 
   /**
@@ -1397,6 +1435,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams}.
    */
   protected abstract String getSelectClause(EventQueryParams params);
+
+  protected abstract String getColumnWithCte(QueryItem item, String suffix, CTEContext cteContext);
 
   /**
    * Generates the SQL for the from-clause. Generally this means which analytics table to get data
