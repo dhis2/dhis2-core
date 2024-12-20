@@ -227,6 +227,63 @@ class TrackerCrudTest {
   }
 
   @Test
+  void shouldNotAddTrackedEntityWhenDryRun() {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        Collections.singletonList(trackedEntityInstance);
+
+    when(importOptions.getImportStrategy()).thenReturn(ImportStrategy.CREATE);
+    when(importOptions.isDryRun()).thenReturn(true);
+
+    ImportSummaries importSummaries =
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+            trackedEntityInstanceList, importOptions, jobConfiguration);
+
+    assertFalse(
+        importSummaries.getImportSummaries().stream()
+            .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
+
+    verify(defaultTrackedEntityInstanceService, times(0)).addTrackedEntityInstance(any());
+  }
+
+  @Test
+  void shouldNotUpdateTrackedEntityWhenDryRun() {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        Collections.singletonList(trackedEntityInstance);
+
+    when(importOptions.getImportStrategy()).thenReturn(ImportStrategy.UPDATE);
+    when(importOptions.isDryRun()).thenReturn(true);
+
+    ImportSummaries importSummaries =
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+            trackedEntityInstanceList, importOptions, jobConfiguration);
+
+    assertFalse(
+        importSummaries.getImportSummaries().stream()
+            .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
+
+    verify(defaultTrackedEntityInstanceService, times(0)).updateTrackedEntityInstance(any());
+  }
+
+  @Test
+  void shouldNotDeleteTrackedEntityWhenDryRun() {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        Collections.singletonList(trackedEntityInstance);
+
+    when(importOptions.getImportStrategy()).thenReturn(ImportStrategy.DELETE);
+    when(importOptions.isDryRun()).thenReturn(true);
+
+    ImportSummaries importSummaries =
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+            trackedEntityInstanceList, importOptions, jobConfiguration);
+
+    assertFalse(
+        importSummaries.getImportSummaries().stream()
+            .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
+
+    verify(defaultTrackedEntityInstanceService, times(0)).deleteTrackedEntityInstance(any());
+  }
+
+  @Test
   void shouldUpdateTrackedEntityWithUpdateStrategy() {
     List<TrackedEntityInstance> trackedEntityInstanceList =
         Collections.singletonList(trackedEntityInstance);
