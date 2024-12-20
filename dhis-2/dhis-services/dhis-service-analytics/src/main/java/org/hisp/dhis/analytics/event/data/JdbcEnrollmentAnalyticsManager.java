@@ -44,7 +44,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -721,21 +720,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // ed."lJTx9EZ1dk1" as "EPEcjy3FWmI[-1].lJTx9EZ1dk1"
 
-    columns.add("""
+    columns.add(
+        """
             %s.%s as %s
-            """.formatted(cteDef.getAlias(), quote(colName), quote(alias)));
+            """
+            .formatted(cteDef.getAlias(), quote(colName), quote(alias)));
     if (cteDef.isRowContext()) {
       // Add additional status and exists columns for row context
       // (ed."lJTx9EZ1dk1" IS NOT NULL) as "EPEcjy3FWmI[-1].lJTx9EZ1dk1.exists",
       //    ed.eventstatus as "EPEcjy3FWmI[-1].lJTx9EZ1dk1.status"
-      columns.add("""
+      columns.add(
+          """
               (%s.%s IS NOT NULL) as %s
-              """.formatted(cteDef.getAlias(), quote(colName), quote(alias + ".exists")));
+              """
+              .formatted(cteDef.getAlias(), quote(colName), quote(alias + ".exists")));
 
-      columns.add("""
+      columns.add(
+          """
             %s.eventstatus as %s
-            """.formatted(cteDef.getAlias(), quote(alias + ".status")));
-
+            """
+              .formatted(cteDef.getAlias(), quote(alias + ".status")));
     }
     return String.join(", ", columns);
   }
@@ -911,23 +915,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   // New methods //
 
-  private void handleProgramIndicatorCte(QueryItem item, CTEContext cteContext, EventQueryParams params) {
+  private void handleProgramIndicatorCte(
+      QueryItem item, CTEContext cteContext, EventQueryParams params) {
     ProgramIndicator pi = (ProgramIndicator) item.getItem();
     if (item.hasRelationshipType()) {
       programIndicatorSubqueryBuilder.contributeCTE(
-              pi,
-              item.getRelationshipType(),
-              getAnalyticsType(),
-              params.getEarliestStartDate(),
-              params.getLatestEndDate(),
-              cteContext);
+          pi,
+          item.getRelationshipType(),
+          getAnalyticsType(),
+          params.getEarliestStartDate(),
+          params.getLatestEndDate(),
+          cteContext);
     } else {
       programIndicatorSubqueryBuilder.contributeCTE(
-              pi,
-              getAnalyticsType(),
-              params.getEarliestStartDate(),
-              params.getLatestEndDate(),
-              cteContext);
+          pi,
+          getAnalyticsType(),
+          params.getEarliestStartDate(),
+          params.getLatestEndDate(),
+          cteContext);
     }
   }
 
@@ -941,11 +946,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
       if (item.isProgramIndicator()) {
         handleProgramIndicatorCte(item, cteContext, params);
-      } else if(item.hasProgramStage()) {
+      } else if (item.hasProgramStage()) {
         // TODO what is this condition would be good to give it a name
         if (item.getProgramStage().getRepeatable()
-                && item.hasRepeatableStageParams()
-                && !item.getRepeatableStageParams().simpleStageValueExpected()) {
+            && item.hasRepeatableStageParams()
+            && !item.getRepeatableStageParams().simpleStageValueExpected()) {
 
           // TODO: Implement repeatable stage items
           log.warn("Repeatable stage items are not yet supported");
@@ -954,7 +959,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           String colName = quote(item.getItemName());
           boolean hasEventStatusColumn = rowContextAllowedAndNeeded(params, item);
 
-          var cteSql = """
+          var cteSql =
+              """
                   SELECT
                       enrollment,
                       %s,%s
@@ -965,40 +971,42 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                   FROM %s
                   WHERE eventstatus != 'SCHEDULE'
                   AND ps = '%s'
-                  """.formatted(
-                          colName,
-                          hasEventStatusColumn ? " eventstatus," : "",
-                          eventTableName,
-                          item.getProgramStage().getUid());
+                  """
+                  .formatted(
+                      colName,
+                      hasEventStatusColumn ? " eventstatus," : "",
+                      eventTableName,
+                      item.getProgramStage().getUid());
 
           cteContext.addCTE(
-                  item.getProgramStage(),
-                  item,
-                  cteSql,
-                  createOffset2(item.getProgramStageOffset()),
-                  hasEventStatusColumn
-          );
+              item.getProgramStage(),
+              item,
+              cteSql,
+              createOffset2(item.getProgramStageOffset()),
+              hasEventStatusColumn);
         } else {
 
           // Generate CTE for program stage items
           String colName = quote(item.getItemName());
 
           String cteSql =
-                  """
+              """
                       -- Generate CTE for program stage items
                       SELECT DISTINCT ON (enrollment) enrollment, %s as value%s
                            FROM %s
                            WHERE eventstatus != 'SCHEDULE'
                            AND ps = '%s'
                            ORDER BY enrollment, occurreddate DESC, created DESC %s %s"""
-                      .formatted(
-                              colName,
-                              rowContextAllowedAndNeeded(params, item) ? " ,true as exists_flag" : "",
-                              eventTableName,
-                              item.getProgramStage().getUid(),
-                              createOffset(item.getProgramStageOffset()), LIMIT_1);
+                  .formatted(
+                      colName,
+                      rowContextAllowedAndNeeded(params, item) ? " ,true as exists_flag" : "",
+                      eventTableName,
+                      item.getProgramStage().getUid(),
+                      createOffset(item.getProgramStageOffset()),
+                      LIMIT_1);
 
-          cteContext.addCTE(item.getProgramStage(), item, cteSql, createOffset2(item.getProgramStageOffset()));
+          cteContext.addCTE(
+              item.getProgramStage(), item, cteSql, createOffset2(item.getProgramStageOffset()));
         }
       }
     }
@@ -1086,11 +1094,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 5. Add joins for each CTE
     for (String itemUid : cteContext.getCTENames()) {
       CteDefinitionWithOffset cteDef = cteContext.getDefinitionByItemUid(itemUid);
-      String join = """
+      String join =
+          """
               LEFT JOIN %s %s
                ON
                %s.enrollment = ax.enrollment
-              """.formatted(cteDef.asCteName(itemUid), cteDef.getAlias(), cteDef.getAlias());
+              """
+              .formatted(cteDef.asCteName(itemUid), cteDef.getAlias(), cteDef.getAlias());
       sql.append("\n").append(join);
       if (cteDef.isProgramStage()) {
         // equivalent to original OFFSET 1 LIMIT 1 but more efficient
@@ -1103,8 +1113,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 6. Where clause
     List<String> conditions = collectWhereConditions(params, cteContext);
     if (!conditions.isEmpty()) {
-      sql.append(" WHERE ")
-              .append(String.join(" AND ", conditions));
+      sql.append(" WHERE ").append(String.join(" AND ", conditions));
     }
 
     // 7. Order by
@@ -1139,9 +1148,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return conditions;
   }
 
-//  private List<String> getRowContextColumns(CTEContext cteContext) {
-//    return RowContextUtils.getRowContextColumns(cteContext, sqlBuilder);
-//  }
+  //  private List<String> getRowContextColumns(CTEContext cteContext) {
+  //    return RowContextUtils.getRowContextColumns(cteContext, sqlBuilder);
+  //  }
 
   //  private String resolveOrderByOffset(int offset) {
   //
