@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
@@ -51,9 +52,9 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.checkOwnerConditions;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -66,18 +67,24 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ExpressionDimensionItemQuery implements DataItemQuery {
-  private static final List<String> COMMON_COLUMNS = new ArrayList<>();
-
-  static {
-    COMMON_COLUMNS.add("cast (null as text) as program_name, cast (null as text) as program_uid");
-    COMMON_COLUMNS.add(
-        "cast (null as text) as program_shortname, expressiondimensionitem.uid as item_uid, expressiondimensionitem.name as item_name");
-    COMMON_COLUMNS.add(
-        "expressiondimensionitem.shortname as item_shortname, cast (null as text) as item_valuetype, expressiondimensionitem.code as item_code");
-    COMMON_COLUMNS.add(
-        "expressiondimensionitem.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type");
-    COMMON_COLUMNS.add("expressiondimensionitem.expression");
-  }
+  private static final String COMMON_COLUMNS =
+      List.of(
+              Pair.of("program_name", CAST_NULL_AS_TEXT),
+              Pair.of("program_uid", CAST_NULL_AS_TEXT),
+              Pair.of("program_shortname", CAST_NULL_AS_TEXT),
+              Pair.of("item_uid", "expressiondimensionitem.uid"),
+              Pair.of("item_name", "expressiondimensionitem.name"),
+              Pair.of("item_shortname", "expressiondimensionitem.shortname"),
+              Pair.of("item_valuetype", CAST_NULL_AS_TEXT),
+              Pair.of("item_code", "expressiondimensionitem.code"),
+              Pair.of("item_sharing", "expressiondimensionitem.sharing"),
+              Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
+              Pair.of("item_type", "cast ('EXPRESSION_DIMENSION_ITEM' as text)"),
+              Pair.of("expression", "expressiondimensionitem.expression"),
+              Pair.of("optionset_uid", CAST_NULL_AS_TEXT))
+          .stream()
+          .map(pair -> pair.getRight() + " as " + pair.getLeft())
+          .collect(joining(", "));
 
   /**
    * Builds and returns the SQL statement required by the implementation.

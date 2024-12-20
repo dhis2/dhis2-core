@@ -49,6 +49,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_SET_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
@@ -66,6 +67,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLA
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.IDENTIFIABLE_TOKEN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.OPTION_SET_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
@@ -297,6 +299,10 @@ public class FilteringHelper {
     // Add program id filtering id, if present.
     String programId = extractValueFromFilter(filters, PROGRAM_ID_EQUAL, true);
     addIfNotBlank(paramsMap, PROGRAM_ID, programId);
+
+    // Add optionSet id filtering id, if present.
+    String optionSetId = extractValueFromFilter(filters, OPTION_SET_ID_EQUAL, true);
+    addIfNotBlank(paramsMap, OPTION_SET_ID, optionSetId);
 
     // Add user group filtering, when present.
     if (currentUser != null && CollectionUtils.isNotEmpty(currentUser.getGroups())) {
