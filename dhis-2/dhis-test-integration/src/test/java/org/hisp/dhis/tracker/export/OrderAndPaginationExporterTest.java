@@ -567,6 +567,29 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEnrollmentsByStatusAndByDefaultOrder()
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnits(get(OrganisationUnit.class, "DiszpKrYNg8"))
+            .orgUnitMode(SELECTED)
+            .enrollments(UID.of("HDWTYSYkICe", "GYWSSZunTLk"))
+            .orderBy("status", SortDirection.DESC)
+            .build();
+
+    Page<Enrollment> firstPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(1, 3, false));
+
+    assertAll(
+        "first page",
+        () -> assertPage(1, 3, firstPage),
+        () -> assertEquals(List.of("GYWSSZunTLk", "HDWTYSYkICe"), uids(firstPage.getItems())));
+
+    assertIsEmpty(
+        enrollmentService.getEnrollments(operationParams, new PageParams(2, 3, false)).getItems());
+  }
+
+  @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams operationParams =
