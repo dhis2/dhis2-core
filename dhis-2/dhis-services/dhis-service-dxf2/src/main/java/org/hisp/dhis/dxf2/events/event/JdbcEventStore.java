@@ -1992,7 +1992,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + " ";
+      return "order by " + StringUtils.join(orderFields, ',') + ", psi_id desc ";
     } else {
       return "order by psi_lastupdated desc ";
     }
