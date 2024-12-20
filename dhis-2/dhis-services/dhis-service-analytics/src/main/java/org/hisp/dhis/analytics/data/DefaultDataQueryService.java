@@ -124,6 +124,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
+      params.withOptionSetSelectionCriteria(getOptionSetSelectionCriteria(request.getDimension()));
     }
 
     if (isNotEmpty(request.getFilter())) {
@@ -193,11 +194,8 @@ public class DefaultDataQueryService implements DataQueryService {
       }
 
       OptionSetSelectionMode mode = DimensionalObjectUtils.getOptionSetSelectionMode(param);
-      if (mode == null) {
-        mode = OptionSetSelectionMode.AGGREGATED;
-      }
 
-      String key = DimensionalObjectUtils.getOptionSetSelectionModeIdentifier(param);
+      String key = DimensionalObjectUtils.getThirdIdentifier(param);
       if (key == null) {
         key =
                 DimensionalObjectUtils.getFirstIdentifier(param)
@@ -209,18 +207,18 @@ public class DefaultDataQueryService implements DataQueryService {
 
       OptionSetSelection.OptionSetSelectionBuilder optionSetSelectionBuilder =
               OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(key);
-      String options = DimensionalObjectUtils.getOptions(param);
-
-      if (options != null && !options.isEmpty()) {
-        List<String> optionList =
-                Stream.of(options.split("#"))
-                        .map(
-                                uid ->
-                                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
-                                                .getCode())
-                        .toList();
-        optionSetSelectionBuilder.options(optionList);
-      }
+//      String options = DimensionalObjectUtils.getOptions(param);
+//
+//      if (options != null && !options.isEmpty()) {
+//        List<String> optionList =
+//                Stream.of(options.split("#"))
+//                        .map(
+//                                uid ->
+//                                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
+//                                                .getCode())
+//                        .toList();
+//        optionSetSelectionBuilder.options(optionList);
+//      }
 
       optionSetSelections.put(key, optionSetSelectionBuilder.build());
     }
@@ -233,7 +231,7 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   private boolean hasOptionSet(String param) {
-    String uid = DimensionalObjectUtils.getOptionSetSelectionModeIdentifier(param);
+    String uid = DimensionalObjectUtils.getThirdIdentifier(param);
     if (uid == null) {
       uid = DimensionalObjectUtils.getSecondIdentifier(param);
     }

@@ -541,7 +541,7 @@ public class DimensionalObjectUtils {
    */
   public static String getFirstIdentifier(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() ? matcher.group(1) : null;
+    return matcher.matches() ? matcher.group("id1") : null;
   }
 
   /**
@@ -552,49 +552,28 @@ public class DimensionalObjectUtils {
    */
   public static String getSecondIdentifier(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() ? extractOptionSetSelectionModeIdentifier(matcher.group(2)) : null;
+    return matcher.matches() ? matcher.group("id2") : null;
   }
 
-  public static String getOptionSetSelectionModeIdentifier(String compositeItem) {
+  /**
+   * Returns the second identifier in a composite dimension object identifier.
+   *
+   * @param compositeItem the composite dimension object identifier.
+   * @return the second identifier, or null if not a valid composite identifier or no match.
+   */
+  public static String getThirdIdentifier(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() && matcher.groupCount() >= 4
-            ? extractOptionSetSelectionModeIdentifier(matcher.group(4))
-            : null;
-  }
-
-  public static String getOptions(String compositeItem) {
-    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() && matcher.groupCount() >= 6 ? matcher.group(6) : null;
+    return matcher.matches() ? matcher.group("id3") : null;
   }
 
   public static OptionSetSelectionMode getOptionSetSelectionMode(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() ? getOptionSetSelectionMode(matcher) : null;
-  }
-
-  private static OptionSetSelectionMode getOptionSetSelectionMode(Matcher matcher) {
-    List<String> modes = OptionSetSelectionMode.getOptionSetSelectionModes();
-    for (int i = 0; i <= matcher.groupCount(); i++) {
-      if (modes.contains(matcher.group(i))) {
-        return OptionSetSelectionMode.valueOf(matcher.group(i));
-      }
+    if(matcher.matches()){
+      String suffix = matcher.group("suffix");
+      return suffix != null ? OptionSetSelectionMode.valueOf(suffix): OptionSetSelectionMode.AGGREGATED;
     }
 
-    return null;
-  }
-
-  private static String extractOptionSetSelectionModeIdentifier(String identifier) {
-    if (identifier == null) {
-      return null;
-    }
-
-    List<String> modes = OptionSetSelectionMode.getOptionSetSelectionModes();
-
-    if (modes.stream().anyMatch(identifier::contains)) {
-      return identifier.split(OPTION_SET_SELECTION_MODE_SEP)[0];
-    }
-
-    return identifier;
+    return OptionSetSelectionMode.AGGREGATED;
   }
 
   /**

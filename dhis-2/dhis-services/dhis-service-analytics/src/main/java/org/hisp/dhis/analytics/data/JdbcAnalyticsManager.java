@@ -376,6 +376,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     Optional<OptionSetSelectionMode> optionSetSelectionMode =
             params.getDataElements().stream()
+                    .filter(de -> params.getOptionSetSelectionCriteria() != null)
                     .map(
                             de ->
                                     params
