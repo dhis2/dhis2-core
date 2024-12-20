@@ -678,6 +678,25 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByStatusAndByDefaultOrder() throws ForbiddenException, BadRequestException {
+    EventOperationParams operationParams =
+        eventParamsBuilder
+            .orgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"))
+            .events(UID.of("ck7DzdxqLqA", "kWjSezkXHVp", "OTmjvJDn0Fu"))
+            .orderBy("status", SortDirection.DESC)
+            .build();
+
+    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 3, false));
+
+    assertAll(
+        "first page",
+        () -> assertPage(1, 3, firstPage),
+        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), uids(firstPage)));
+
+    assertIsEmpty(getEvents(operationParams, new PageParams(2, 3, false)));
+  }
+
+  @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EventOperationParams operationParams =
