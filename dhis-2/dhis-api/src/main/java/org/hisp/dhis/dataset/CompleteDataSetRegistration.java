@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import java.io.Serializable;
 import java.util.Date;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -322,5 +323,29 @@ public class CompleteDataSetRegistration implements Serializable {
         .add("lastUpdatedBy", lastUpdatedBy)
         .add("isCompleted", completed)
         .toString();
+  }
+
+  /**
+   * Creates a copy of the passed in CompleteDataSetRegistration, using all old values except for
+   * attributeOptionCombo, which uses the param attributeOptionCombo passed in.
+   *
+   * @param old old CompleteDataSetRegistration to use values from
+   * @param attributeOptionCombo attributeOptionCombo to use as new value in new
+   *     CompleteDataSetRegistration
+   * @return copy of old CompleteDataSetRegistration except with a new attributeOptionCombo
+   */
+  public static CompleteDataSetRegistration copyWithNewAttributeOptionCombo(
+      @Nonnull CompleteDataSetRegistration old, @Nonnull CategoryOptionCombo attributeOptionCombo) {
+    CompleteDataSetRegistration newCopy = new CompleteDataSetRegistration();
+    newCopy.setDataSet(old.getDataSet());
+    newCopy.setPeriod(old.getPeriod());
+    newCopy.setSource(old.getSource());
+    newCopy.setAttributeOptionCombo(attributeOptionCombo);
+    newCopy.setDate(old.getDate());
+    newCopy.setStoredBy(old.getStoredBy());
+    newCopy.setLastUpdated(old.getLastUpdated());
+    newCopy.setCompleted(old.getCompleted());
+    newCopy.setPeriodName(old.getPeriodName());
+    return newCopy;
   }
 }
