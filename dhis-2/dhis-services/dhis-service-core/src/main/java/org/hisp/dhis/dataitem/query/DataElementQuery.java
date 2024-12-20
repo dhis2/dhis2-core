@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiabl
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.optionSetIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
@@ -54,8 +56,10 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
+import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -70,12 +74,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataElementQuery implements DataItemQuery {
   private static final String COMMON_COLUMNS =
-      "cast (null as text) as program_name, cast (null as text) as program_uid,"
-          + " cast (null as text) as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
-          + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype,"
-          + " dataelement.code as item_code, dataelement.sharing as item_sharing, dataelement.domaintype as item_domaintype,"
-          + " cast ('DATA_ELEMENT' as text) as item_type,"
-          + " cast (null as text) as expression";
+      List.of(
+              Pair.of("program_name", CAST_NULL_AS_TEXT),
+              Pair.of("program_uid", CAST_NULL_AS_TEXT),
+              Pair.of("program_shortname", CAST_NULL_AS_TEXT),
+              Pair.of("item_uid", "dataelement.uid"),
+              Pair.of("item_name", "dataelement.name"),
+              Pair.of("item_shortname", "dataelement.shortname"),
+              Pair.of("item_valuetype", "dataelement.valuetype"),
+              Pair.of("item_code", "dataelement.code"),
+              Pair.of("item_sharing", "dataelement.sharing"),
+              Pair.of("item_domaintype", "dataelement.domaintype"),
+              Pair.of("item_type", "cast ('DATA_ELEMENT' as text)"),
+              Pair.of("expression", CAST_NULL_AS_TEXT),
+              Pair.of("optionset_uid", "optionset.uid"))
+          .stream()
+          .map(pair -> pair.getRight() + " as " + pair.getLeft())
+          .collect(joining(", "));
+
+  private static final String JOINS =
+      "join optionset on dataelement.optionsetid = optionset.optionsetid";
+
+  private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
   @Override
   public String getStatement(MapSqlParameterSource paramsMap) {
@@ -95,7 +115,7 @@ public class DataElementQuery implements DataItemQuery {
     }
 
     sql.append(
-        " group by item_name, item_uid, item_valuetype, item_code, item_domaintype, item_sharing, item_shortname,"
+        " group by optionset.uid, item_name, item_uid, item_valuetype, item_code, item_domaintype, item_sharing, item_shortname,"
             + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname");
 
     // Closing the temp table.
@@ -131,6 +151,7 @@ public class DataElementQuery implements DataItemQuery {
     optionalFilters.append(ifSet(nameFiltering("t.item_name", paramsMap)));
     optionalFilters.append(ifSet(shortNameFiltering("t.item_shortname", paramsMap)));
     optionalFilters.append(ifSet(uidFiltering("t.item_uid", paramsMap)));
+    optionalFilters.append(ifSet(optionSetIdFiltering("t.optionset_uid", paramsMap)));
     sql.append(ifAny(optionalFilters.toString()));
 
     String identifiableStatement =
@@ -180,9 +201,11 @@ public class DataElementQuery implements DataItemQuery {
   private String selectRowsContainingTranslatedName() {
     StringBuilder sql = new StringBuilder();
 
-    sql.append(SPACED_SELECT + COMMON_COLUMNS).append(translationNamesColumnsFor("dataelement"));
-
-    sql.append(" from dataelement ").append(translationNamesJoinsOn("dataelement"));
+    sql.append(SPACED_SELECT + COMMON_COLUMNS)
+        .append(translationNamesColumnsFor("dataelement"))
+        .append(SPACED_FROM_DATA_ELEMENT)
+        .append(JOINS)
+        .append(translationNamesJoinsOn("dataelement"));
 
     return sql.toString();
   }
@@ -193,7 +216,8 @@ public class DataElementQuery implements DataItemQuery {
         .append(", dataelement.name as i18n_first_name, cast (null as text) as i18n_second_name")
         .append(
             ", dataelement.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname")
-        .append(" from dataelement ")
+        .append(SPACED_FROM_DATA_ELEMENT)
+        .append(JOINS)
         .toString();
   }
 }

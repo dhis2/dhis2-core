@@ -38,6 +38,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_SET_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
@@ -90,6 +91,22 @@ public class FilteringStatement {
   public static String programIdFiltering(String column, MapSqlParameterSource paramsMap) {
     if (hasNonBlankStringPresence(paramsMap, PROGRAM_ID)) {
       return equalsFiltering(column, PROGRAM_ID);
+    }
+
+    return EMPTY;
+  }
+
+  /**
+   * Returns a SQL string related to optionSetId equality to be reused as part of data items
+   * optionSetId filtering.
+   *
+   * @param column the uid column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String optionSetIdFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, OPTION_SET_ID)) {
+      return equalsFiltering(column, OPTION_SET_ID);
     }
 
     return EMPTY;

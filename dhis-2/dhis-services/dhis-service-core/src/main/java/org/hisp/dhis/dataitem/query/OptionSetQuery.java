@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
@@ -52,7 +53,6 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.checkOwnerConditions;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -67,8 +67,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class OptionSetQuery implements DataItemQuery {
-  public static final String CAST_NULL_AS_TEXT = "cast (null as text)";
-
   private static final String COMMON_COLUMNS =
       List.of(
               Pair.of("program_name", CAST_NULL_AS_TEXT),
@@ -85,7 +83,7 @@ public class OptionSetQuery implements DataItemQuery {
               Pair.of("expression", CAST_NULL_AS_TEXT))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
-          .collect(Collectors.joining(", "));
+          .collect(joining(", "));
 
   /**
    * Builds and returns the SQL statement required by the implementation.
@@ -179,7 +177,8 @@ public class OptionSetQuery implements DataItemQuery {
    */
   @Override
   public Class<? extends BaseIdentifiableObject> getRootEntity() {
-    return QueryableDataItem.OPTION_SET.getEntity();
+    // Temporary, not "queriable". QueryableDataItem.OPTION_SET.getEntity();
+    return null;
   }
 
   private String selectRowsContainingTranslatedName() {
