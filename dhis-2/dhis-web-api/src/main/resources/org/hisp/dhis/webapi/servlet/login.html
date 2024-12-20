@@ -250,7 +250,7 @@
           </div>
           <img
             class="logo"
-            src="/dhis-web-commons/security/logo_front.png"
+            src="./dhis-web-commons/security/logo_front.png"
             alt="DHIS2 Logo"
           />
         </div>
@@ -351,7 +351,7 @@
             config.applicationDescription || "Welcome to the DHIS2 application";
           if (config.countryFlag) {
             const flag = document.getElementById("flag");
-            flag.src = `/dhis-web-commons/flags/${config.countryFlag}.png`;
+            flag.src = `./dhis-web-commons/flags/${config.countryFlag}.png`;
             flag.style.display = "block";
           }
         } catch (error) {
@@ -425,7 +425,7 @@
             const user = await response.json();
 
             if (user.loginStatus === "SUCCESS") {
-              const redirectUrl = user.redirectUrl || "/";
+              const redirectUrl = user.redirectUrl || "./";
               window.location.href = redirectUrl;
             } else {
               throw new Error("Login failed. Status: " + user.loginStatus);
