@@ -37,6 +37,6 @@ jobs:
       - name: Sync war
         run: |
           echo "Syncing WAR ..."
-          
+          echo "Version: ${GITHUB_REF#refs/heads/}"
           chmod +x ./dhis-2/gha-copy-war-s3.sh
           ./dhis-2/gha-copy-war-s3.sh dev $GITHUB_HEAD_REF
