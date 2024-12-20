@@ -105,11 +105,13 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -824,6 +826,29 @@ public final class AnalyticsUtils {
                 new MetadataItem(
                     coc.getDisplayProperty(params.getDisplayProperty()),
                     includeMetadataDetails ? coc : null));
+          }
+
+          OptionSet optionSet = dataElement.getOptionSet();
+          if (optionSet != null) {
+            map.put(
+                    dataElement.getUid() + "." + optionSet.getUid(),
+                    includeMetadataDetails
+                            ? new MetadataItem(
+                            optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                            : new MetadataItem(optionSet.getName()));
+          }
+        }
+        if (DimensionItemType.PROGRAM_DATA_ELEMENT == item.getDimensionItemType()
+                && item instanceof ProgramDataElementDimensionItem programDataElement) {
+
+          OptionSet optionSet = programDataElement.getOptionSet();
+          if (optionSet != null) {
+            map.put(
+                    programDataElement.getDataElement().getUid() + "." + optionSet.getUid(),
+                    includeMetadataDetails
+                            ? new MetadataItem(
+                            optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                            : new MetadataItem(optionSet.getName()));
           }
         }
       }
