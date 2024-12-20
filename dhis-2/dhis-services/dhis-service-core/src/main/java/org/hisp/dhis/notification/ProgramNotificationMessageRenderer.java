@@ -33,12 +33,16 @@ import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -78,6 +82,8 @@ public class ProgramNotificationMessageRenderer
   private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
       ImmutableSet.of(ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE);
 
+  @Autowired private OptionService optionService;
+
   // -------------------------------------------------------------------------
   // Overrides
   // -------------------------------------------------------------------------
@@ -97,9 +103,7 @@ public class ProgramNotificationMessageRenderer
 
     return entity.getEntityInstance().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(
-            Collectors.toMap(
-                av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
   }
 
   @Override
@@ -123,7 +127,7 @@ public class ProgramNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private static String filterValue(TrackedEntityAttributeValue av) {
+  private String filterValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
@@ -133,9 +137,12 @@ public class ProgramNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value = av.getAttribute().getOptionSet().getOptionByCode(value).getName();
+      value =
+          Optional.ofNullable(optionService.getOptionByCode(value))
+              .map(BaseIdentifiableObject::getName)
+              .orElse(MISSING_VALUE_REPLACEMENT);
     }
 
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    return value;
   }
 }
