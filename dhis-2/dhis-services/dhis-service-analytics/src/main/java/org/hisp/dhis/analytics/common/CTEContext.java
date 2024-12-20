@@ -27,42 +27,51 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import org.apache.commons.text.RandomStringGenerator;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 public class CTEContext {
   private final Map<String, CteDefinitionWithOffset> cteDefinitions = new LinkedHashMap<>();
   @Getter private final Map<String, String> rowContextReferences = new HashMap<>();
-
 
   public CteDefinitionWithOffset getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
   }
 
   public void addCTE(ProgramStage programStage, QueryItem item, String cteDefinition, int offset) {
-    cteDefinitions.put(item.getItem().getUid(),
-            new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset));
+    cteDefinitions.put(
+        item.getItem().getUid(),
+        new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset));
   }
 
-  public void addCTE(ProgramStage programStage, QueryItem item, String cteDefinition, int offset, boolean isRowContext) {
-    cteDefinitions.put(item.getItem().getUid(), new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset, isRowContext));
+  public void addCTE(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext) {
+    cteDefinitions.put(
+        item.getItem().getUid(),
+        new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset, isRowContext));
   }
 
   /**
    * Adds a CTE definition to the context.
+   *
    * @param programIndicator The program indicator
    * @param cteDefinition The CTE definition (the SQL query)
    */
   public void addCTE(ProgramIndicator programIndicator, String cteDefinition) {
-    cteDefinitions.put(programIndicator.getUid(), new CteDefinitionWithOffset(programIndicator.getUid(), cteDefinition));
+    cteDefinitions.put(
+        programIndicator.getUid(),
+        new CteDefinitionWithOffset(programIndicator.getUid(), cteDefinition));
   }
 
   public void addCTEFilter(String name, String ctedefinition) {
@@ -92,16 +101,20 @@ public class CTEContext {
         sb.append(", ");
       }
       CteDefinitionWithOffset cteDef = entry.getValue();
-      sb.append(cteDef.asCteName(entry.getKey())).append(" AS (").append(entry.getValue().cteDefinition).append(")");
+      sb.append(cteDef.asCteName(entry.getKey()))
+          .append(" AS (")
+          .append(entry.getValue().cteDefinition)
+          .append(")");
       first = false;
     }
     return sb.toString();
   }
+
   // Rename to item uid
   public Set<String> getCTENames() {
     return cteDefinitions.keySet();
   }
-  
+
   public boolean containsCteFilter(String cteFilterName) {
     return cteDefinitions.containsKey(cteFilterName);
   }
@@ -124,19 +137,19 @@ public class CTEContext {
     private boolean isProgramIndicator = false;
     // Whether the CTE is a filter
     private boolean isFilter = false;
-    private final static String PS_PREFIX = "ps";
-    private final static String PI_PREFIX = "pi";
+    private static final String PS_PREFIX = "ps";
+    private static final String PI_PREFIX = "pi";
 
     public CteDefinitionWithOffset(String programStageUid, String cteDefinition, int offset) {
       this.programStageUid = programStageUid;
       this.cteDefinition = cteDefinition;
       this.offset = offset;
-      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build()
-              .generate(5);
+      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
       this.isRowContext = false;
     }
 
-    public CteDefinitionWithOffset(String programStageUid, String cteDefinition, int offset, boolean isRowContext) {
+    public CteDefinitionWithOffset(
+        String programStageUid, String cteDefinition, int offset, boolean isRowContext) {
       this(programStageUid, cteDefinition, offset);
       this.isRowContext = isRowContext;
     }
@@ -146,8 +159,7 @@ public class CTEContext {
       this.programIndicatorUid = programIndicatorUid;
       this.programStageUid = null;
       this.offset = -999;
-      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build()
-              .generate(5);
+      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
       this.isRowContext = false;
       this.isProgramIndicator = true;
     }
@@ -157,15 +169,13 @@ public class CTEContext {
       this.programIndicatorUid = null;
       this.programStageUid = null;
       this.offset = -999;
-      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build()
-              .generate(5);
+      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
       this.isRowContext = false;
       this.isProgramIndicator = false;
       this.isFilter = isFilter;
     }
 
     /**
-     *
      * @param uid the uid of an dimension item or ProgramIndicator
      * @return the name of the CTE
      */
