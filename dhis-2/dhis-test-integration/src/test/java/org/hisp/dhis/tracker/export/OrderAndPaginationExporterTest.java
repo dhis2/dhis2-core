@@ -208,6 +208,32 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByInactiveAndByDefaultOrder()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    List<String> expected =
+        Stream.of(
+                get(TrackedEntity.class, "QesgJkTyTCk"),
+                get(TrackedEntity.class, "dUE514NMOlo"),
+                get(TrackedEntity.class, "mHWCacsGYYn"))
+            .sorted(Comparator.comparing(TrackedEntity::getId).reversed()) // reversed = desc
+            .map(TrackedEntity::getUid)
+            .toList();
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(UID.of("mHWCacsGYYn", "QesgJkTyTCk", "dUE514NMOlo"))
+            .trackedEntityType(trackedEntityType)
+            .orderBy("inactive", SortDirection.ASC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(expected, trackedEntities);
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
