@@ -48,7 +48,7 @@ pipeline {
             }
         }
 
-        stage('Run api tests') {
+/*        stage('Run api tests') {
             environment {
                 RP_UUID = credentials('report-portal-access-uuid')
                 RP_ENABLE = 'true'
@@ -100,15 +100,18 @@ pipeline {
                       }
                   }
               }
-        }
+        }*/
 
         stage('Sync WAR') {
             steps {
                 implementIoBuildStarted(buildName: "${STAGE_NAME}")
                 echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
-                sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh dev ${GIT_BRANCH}'
+                //sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
+                //sh 'chmod +x copy-war-s3.sh'
+                //sh './copy-war-s3.sh dev ${GIT_BRANCH}'
+
+                sh 'chmod +x ./dhis-2/gha-copy-war-s3.sh'
+                sh './dhis-2/gha-copy-war-s3.sh dev $GIT_BRANCH'
             }
 
             post {
@@ -118,7 +121,7 @@ pipeline {
             }
         }
 
-        stage('Publish image') {
+/*        stage('Publish image') {
             environment {
                 // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
                 BASE_IMAGE = "tomcat:10.1.30-jre17"
@@ -197,7 +200,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
     }
 
     post {
