@@ -1532,7 +1532,7 @@ class JdbcEventStore implements EventStore {
     }
 
     if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + " ";
+      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
     } else {
       return "order by " + DEFAULT_ORDER + " ";
     }
