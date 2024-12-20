@@ -33,14 +33,18 @@ import com.google.common.collect.Maps;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -106,6 +110,8 @@ public class ProgramStageNotificationMessageRenderer
           ExpressionType.VARIABLE,
           ExpressionType.DATA_ELEMENT);
 
+  @Autowired private OptionService optionService;
+
   // -------------------------------------------------------------------------
   // Singleton instance
   // -------------------------------------------------------------------------
@@ -131,10 +137,7 @@ public class ProgramStageNotificationMessageRenderer
 
     return entity.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(
-            Collectors.toMap(
-                av -> av.getAttribute().getUid(),
-                ProgramStageNotificationMessageRenderer::filterValue));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
   }
 
   @Override
@@ -168,7 +171,7 @@ public class ProgramStageNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private static String filterValue(TrackedEntityAttributeValue av) {
+  private String filterValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
@@ -178,13 +181,16 @@ public class ProgramStageNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value = av.getAttribute().getOptionSet().getOptionByCode(value).getName();
+      value =
+          Optional.ofNullable(optionService.getOptionByCode(value))
+              .map(BaseIdentifiableObject::getName)
+              .orElse(MISSING_VALUE_REPLACEMENT);
     }
 
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    return value;
   }
 
-  private static String filterValue(EventDataValue dv, DataElement dataElement) {
+  private String filterValue(EventDataValue dv, DataElement dataElement) {
     String value = dv.getValue();
 
     if (value == null) {
@@ -194,9 +200,12 @@ public class ProgramStageNotificationMessageRenderer
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option
     if (dataElement != null && dataElement.hasOptionSet()) {
-      value = dataElement.getOptionSet().getOptionByCode(value).getName();
+      value =
+          Optional.ofNullable(optionService.getOptionByCode(value))
+              .map(BaseIdentifiableObject::getName)
+              .orElse(MISSING_VALUE_REPLACEMENT);
     }
 
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    return value;
   }
 }
