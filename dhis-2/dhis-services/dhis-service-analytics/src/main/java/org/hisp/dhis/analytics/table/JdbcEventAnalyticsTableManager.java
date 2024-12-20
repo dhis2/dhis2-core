@@ -39,7 +39,6 @@ import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -52,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -470,104 +468,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-            program.getAnalyticsDataElements().stream()
-                    .filter(DataElement::hasOptionSet)
-                    .map(this::getColumnFromDataElementOptionSet)
-                    .flatMap(Collection::stream)
-                    .toList());
-    columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
     return columns;
   }
-
-  private List<AnalyticsTableColumn> getColumnFromDataElementOptionSet(DataElement dataElement) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    if (!dataElement.hasOptionSet()) {
-      return columns;
-    }
-
-    String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
-    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-    String select = getSelectClause(dataElement.getValueType(), columnName);
-    String sql = selectOptionValueCodeForInsert(dataElement, select, dataClause);
-
-    columns.add(
-            AnalyticsTableColumn.builder()
-                    .name(dataElement.getUid() + ".optionvalueuid")
-                    .columnType(AnalyticsColumnType.DYNAMIC)
-                    .dataType(DataType.VARCHAR_255)
-                    .selectExpression(sql)
-                    .skipIndex(Skip.INCLUDE)
-                    .build());
-
-    return columns;
-  }
-
-  private String selectOptionValueCodeForInsert(
-          DataElement dataElement, String fromType, String dataClause) {
-    String innerSql =
-            replaceQualify(
-                    """
-                    (select ${fromType} from ${event} \
-                    where eventid=ev.eventid ${dataClause})${closingParentheses}""",
-                    Map.of(
-                            "fromType",
-                            fromType,
-                            "dataClause",
-                            dataClause,
-                            "closingParentheses",
-                            getClosingParentheses(fromType),
-                            "dataElementUid",
-                            quote(dataElement.getUid())));
-
-    return replaceQualify(
-            """
-                (select optionvalueuid \
-                 from analytics_rs_dataelementoption \
-                 where dataelementuid = ${dataElementUid} \
-                 and optionvaluecode = ${selectForInsert}::varchar) as ${alias}""",
-            Map.of(
-                    "dataElementUid",
-                    singleQuote(dataElement.getUid()),
-                    "selectForInsert",
-                    innerSql,
-                    "alias",
-                    quote(dataElement.getUid() + ".optionvalueuid")));
-  }
-
-  /**
-   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
-   * number of missing closing parenthesis in the argument string.
-   *
-   * <p>Example:
-   *
-   * <p>{@code} input: "((( ))" -> output: ")" {@code}
-   *
-   * @param str a string.
-   * @return a String containing 0 or more "closing" parenthesis
-   */
-  private static String getClosingParentheses(String str) {
-    if (StringUtils.isEmpty(str)) {
-      return EMPTY;
-    }
-
-    int open = 0;
-
-    for (int i = 0; i < str.length(); i++) {
-      if (str.charAt(i) == '(') {
-        open++;
-      } else if ((str.charAt(i) == ')') && open >= 1) {
-        open--;
-      }
-    }
-
-    return StringUtils.repeat(")", open);
-  }
-}
 
   /**
    * Returns a column for the given data element. If the value type of the data element is {@link
