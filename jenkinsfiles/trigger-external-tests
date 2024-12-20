@@ -32,7 +32,7 @@ pipeline {
         DATABASE_GROUP_NAME = 'test-dbs'
         INSTANCE_NAME = "core-${env.GIT_BRANCH.replaceAll("\\P{Alnum}", "").toLowerCase()}-$BUILD_NUMBER"
         INSTANCE_DOMAIN = "https://${INSTANCE_GROUP_NAME}.$IM_ENVIRONMENT"
-        INSTANCE_URL = "https://test.e2e.dhis2.org/analytics-2.41"
+        INSTANCE_URL = "$INSTANCE_DOMAIN/$INSTANCE_NAME"
         LIVENESS_PROBE_TIMEOUT_SECONDS = 3
         READINESS_PROBE_TIMEOUT_SECONDS = 3
         STARTUP_PROBE_FAILURE_THRESHOLD = 50
@@ -66,8 +66,6 @@ pipeline {
             }
         }
 
-        // Commented out "Deploy DHIS2 Instance" stage to save resources during debugging
-        /*
         stage('Deploy DHIS2 Instance') {
             steps {
                 script {
@@ -131,14 +129,12 @@ pipeline {
                 }
             }
         }
-        */
-
 
         stage('Trigger Cypress Tests') {
             steps {
                 script {
                     def repos = ['dhis2/line-listing-app', 'dhis2/data-visualizer-app', 'dhis2/aggregate-data-entry-app', 'dhis2/dashboard-app', 'dhis2/capture-app', 'dhis2/maps-app', 'dhis2/user-app']
-                    def repos = ['dhis2/line-listing-app', 'dhis2/aggregate-data-entry-app']
+
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
                         instance_url: "$INSTANCE_URL"
