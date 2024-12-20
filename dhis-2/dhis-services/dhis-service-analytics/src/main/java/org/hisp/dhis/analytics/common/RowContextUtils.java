@@ -50,7 +50,7 @@ public class RowContextUtils {
     Map<String, String> rowCtxRefs = cteContext.getRowContextReferences();
     for (String alias : rowCtxRefs.values()) {
       whereClauses.add("%s.value is null".formatted(alias));
-      whereClauses.add("%s.exists_flag = true".formatted(alias));
+      //whereClauses.add("%s.exists_flag = true".formatted(alias));
     }
     return whereClauses;
   }

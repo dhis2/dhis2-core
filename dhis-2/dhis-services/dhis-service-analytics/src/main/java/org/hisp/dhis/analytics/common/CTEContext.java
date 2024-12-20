@@ -27,23 +27,46 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import lombok.Getter;
+import org.apache.commons.text.RandomStringGenerator;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import lombok.Getter;
 
 public class CTEContext {
-  private final Map<String, String> cteDefinitions = new LinkedHashMap<>();
-  private final Map<String, String> columnMappings = new HashMap<>();
+  private final Map<String, CteDefinitionWithOffset> cteDefinitions = new LinkedHashMap<>();
   @Getter private final Map<String, String> rowContextReferences = new HashMap<>();
 
-  public void addCTE(String cteName, String cteDefinition) {
-    cteDefinitions.put(cteName, cteDefinition);
+
+  public CteDefinitionWithOffset getDefinitionByItemUid(String itemUid) {
+    return cteDefinitions.get(itemUid);
   }
 
-  public void addColumnMapping(String originalColumn, String cteReference) {
-    columnMappings.put(originalColumn, cteReference);
+  public void addCTE(ProgramStage programStage, QueryItem item, String cteDefinition, int offset) {
+    cteDefinitions.put(item.getItem().getUid(),
+            new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset));
+  }
+
+  public void addCTE(ProgramStage programStage, QueryItem item, String cteDefinition, int offset, boolean isRowContext) {
+    cteDefinitions.put(item.getItem().getUid(), new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset, isRowContext));
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   * @param programIndicator The program indicator
+   * @param cteDefinition The CTE definition (the SQL query)
+   */
+  public void addCTE(ProgramIndicator programIndicator, String cteDefinition) {
+    cteDefinitions.put(programIndicator.getUid(), new CteDefinitionWithOffset(programIndicator.getUid(), cteDefinition));
+  }
+
+  public void addCTEFilter(String name, String ctedefinition) {
+    cteDefinitions.put(name, new CteDefinitionWithOffset(name, ctedefinition, true));
   }
 
   /**
@@ -64,25 +87,100 @@ public class CTEContext {
 
     StringBuilder sb = new StringBuilder("WITH ");
     boolean first = true;
-    for (Map.Entry<String, String> entry : cteDefinitions.entrySet()) {
+    for (Map.Entry<String, CteDefinitionWithOffset> entry : cteDefinitions.entrySet()) {
       if (!first) {
         sb.append(", ");
       }
-      sb.append(entry.getKey()).append(" AS (").append(entry.getValue()).append(")");
+      CteDefinitionWithOffset cteDef = entry.getValue();
+      sb.append(cteDef.asCteName(entry.getKey())).append(" AS (").append(entry.getValue().cteDefinition).append(")");
       first = false;
     }
     return sb.toString();
   }
-
+  // Rename to item uid
   public Set<String> getCTENames() {
     return cteDefinitions.keySet();
   }
-
-  public String getColumnMapping(String columnId) {
-    return columnMappings.getOrDefault(columnId, columnId);
-  }
-
+  
   public boolean containsCteFilter(String cteFilterName) {
     return cteDefinitions.containsKey(cteFilterName);
+  }
+
+  @Getter
+  public static class CteDefinitionWithOffset {
+    // The program stage uid
+    private final String programStageUid;
+    // The program indicator uid
+    private String programIndicatorUid;
+    // The CTE definition (the SQL query)
+    private final String cteDefinition;
+    // The calculated offset
+    private final int offset;
+    // The alias of the CTE
+    private final String alias;
+    // Whether the CTE is a row context (TODO this need a better explanation)
+    private boolean isRowContext;
+    // Whether the CTE is a program indicator
+    private boolean isProgramIndicator = false;
+    // Whether the CTE is a filter
+    private boolean isFilter = false;
+    private final static String PS_PREFIX = "ps";
+    private final static String PI_PREFIX = "pi";
+
+    public CteDefinitionWithOffset(String programStageUid, String cteDefinition, int offset) {
+      this.programStageUid = programStageUid;
+      this.cteDefinition = cteDefinition;
+      this.offset = offset;
+      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build()
+              .generate(5);
+      this.isRowContext = false;
+    }
+
+    public CteDefinitionWithOffset(String programStageUid, String cteDefinition, int offset, boolean isRowContext) {
+      this(programStageUid, cteDefinition, offset);
+      this.isRowContext = isRowContext;
+    }
+
+    public CteDefinitionWithOffset(String programIndicatorUid, String cteDefinition) {
+      this.cteDefinition = cteDefinition;
+      this.programIndicatorUid = programIndicatorUid;
+      this.programStageUid = null;
+      this.offset = -999;
+      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build()
+              .generate(5);
+      this.isRowContext = false;
+      this.isProgramIndicator = true;
+    }
+
+    public CteDefinitionWithOffset(String cteFilterName, String cteDefinition, boolean isFilter) {
+      this.cteDefinition = cteDefinition;
+      this.programIndicatorUid = null;
+      this.programStageUid = null;
+      this.offset = -999;
+      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build()
+              .generate(5);
+      this.isRowContext = false;
+      this.isProgramIndicator = false;
+      this.isFilter = isFilter;
+    }
+
+    /**
+     *
+     * @param uid the uid of an dimension item or ProgramIndicator
+     * @return the name of the CTE
+     */
+    public String asCteName(String uid) {
+      if (isProgramIndicator) {
+        return "%s_%s".formatted(PI_PREFIX, programIndicatorUid.toLowerCase());
+      }
+      if (isFilter) {
+        return "%s".formatted(uid.toLowerCase());
+      }
+      return "%s_%s_%s".formatted(PS_PREFIX, programStageUid.toLowerCase(), uid.toLowerCase());
+    }
+
+    public boolean isProgramStage() {
+      return !isFilter && !isProgramIndicator;
+    }
   }
 }

@@ -92,6 +92,8 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CTEContext;
+import org.hisp.dhis.analytics.common.CTEContext.CteDefinitionWithOffset;
+import org.hisp.dhis.analytics.common.CTEUtils;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -1403,8 +1405,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (queryItem.isProgramIndicator()) {
         // For program indicators, use CTE reference
         String piUid = queryItem.getItem().getUid();
-        String cteReference = cteContext.getColumnMapping(piUid);
-        columns.add(cteReference + " as \"" + piUid + "\"");
+        CteDefinitionWithOffset cteDef = cteContext.getDefinitionByItemUid(piUid);
+        // ugaee.value as "CH6wamtY9kK",
+        String col = "%s.value as %s".formatted(cteDef.getAlias(), piUid);
+        columns.add(col);
       } else if (ValueType.COORDINATE == queryItem.getValueType()) {
         // Handle coordinates
         columns.add(getCoordinateColumn(queryItem).asSql());
