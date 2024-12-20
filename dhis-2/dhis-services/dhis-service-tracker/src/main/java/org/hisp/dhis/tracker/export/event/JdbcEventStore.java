@@ -1612,7 +1612,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + " ";
+      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
     } else {
       return "order by " + DEFAULT_ORDER + " ";
     }
