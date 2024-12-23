@@ -757,15 +757,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private AggregationType getAggregationType(EventQueryParams params) {
 
-    if (params.getValue() instanceof DataElement
-        && ((DataElement) params.getValue()).hasOptionSet()
+    if (params.getValue() instanceof DataElement dataElement
+        && dataElement.hasOptionSet()
         && params
                 .getOptionSetSelectionCriteria()
                 .getOptionSetSelections()
                 .get(
-                    params.getValue().getUid()
+                    dataElement.getUid()
                         + "."
-                        + ((DataElement) params.getValue()).getOptionSet().getUid())
+                        + dataElement.getOptionSet().getUid())
                 .getOptionSetSelectionMode()
             != OptionSetSelectionMode.AGGREGATED) {
       return NONE;

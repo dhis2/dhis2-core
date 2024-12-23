@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -893,22 +892,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Generates the select clause of the query SQL.
-   *
-   * @param params the {@link DataQueryParams}.
-   * @return a SQL select clause.
-   */
-  private String getSelectClause(DataQueryParams params) {
-    String sql = "select " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + ", ";
-
-    sql += getValueClause(params);
-
-    sql += getAggregatedOptionValueClause(params);
-
-    return sql;
-  }
-
-  /**
    * Generates the value clause of the query SQL.
    *
    * @param params the {@link DataQueryParams}.
@@ -1010,7 +993,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .filter(d -> !d.isFixed())
         .map(DimensionalObject::getDimensionName)
         .map(this::quoteAlias)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
