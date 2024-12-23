@@ -81,7 +81,8 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
           "programStageWorkingList", // same reason as programStage
           "dataElement", // non-postgres SQL in deletion handler
           "predictor", // NPE in preheat when creating objects
-          "aggregateDataExchange" // required JSONB objects not working
+          "aggregateDataExchange", // required JSONB objects not working
+          "trackedEntityInstance" // needs TrackedEntityType
           );
 
   /**

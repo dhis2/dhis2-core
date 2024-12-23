@@ -90,11 +90,13 @@ import org.hisp.dhis.schema.descriptors.DataSetElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DocumentSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.EnrollmentSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventFilterSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventHookSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventRepetitionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.EventSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExpressionSchemaDescriptor;
@@ -167,6 +169,7 @@ import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeValueSchemaDescrip
 import org.hisp.dhis.schema.descriptors.TrackedEntityDataElementDimensionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityFilterSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityProgramIndicatorDimensionSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.TrackedEntitySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserAccessSchemaDescriptor;
@@ -281,6 +284,7 @@ public class DefaultSchemaService implements SchemaService {
     register(new SqlViewSchemaDescriptor());
     register(new TrackedEntityAttributeSchemaDescriptor());
     register(new TrackedEntityAttributeValueSchemaDescriptor());
+    register(new TrackedEntitySchemaDescriptor());
     register(new TrackedEntityFilterSchemaDescriptor());
     register(new TrackedEntityTypeSchemaDescriptor());
     register(new TrackedEntityTypeAttributeSchemaDescriptor());
@@ -312,6 +316,8 @@ public class DefaultSchemaService implements SchemaService {
     register(new OrganisationUnitGroupSetDimensionSchemaDescriptor());
     register(new RelationshipSchemaDescriptor());
     register(new KeyJsonValueSchemaDescriptor());
+    register(new EnrollmentSchemaDescriptor());
+    register(new EventSchemaDescriptor());
     register(new EventFilterSchemaDescriptor());
     register(new VisualizationSchemaDescriptor());
     register(new ApiTokenSchemaDescriptor());
