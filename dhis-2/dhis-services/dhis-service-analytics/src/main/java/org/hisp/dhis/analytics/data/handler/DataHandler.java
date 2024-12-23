@@ -130,7 +130,6 @@ import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.EventAggregateService;
-import org.hisp.dhis.analytics.event.data.EventQueryService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
@@ -173,8 +172,6 @@ public class DataHandler {
   private static final int PERCENT = 100;
 
   private final EventAggregateService eventAggregatedService;
-
-  private final EventQueryService eventQueryService;
 
   private final RawAnalyticsManager rawAnalyticsManager;
 
