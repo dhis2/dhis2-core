@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -70,5 +71,18 @@ public class OptionSetItem implements Serializable {
 
   public void setAggregation(Aggregation aggregation) {
     this.aggregation = aggregation;
+  }
+
+  /**
+   * Returns the current {@link Aggregation} or default.
+   *
+   * @return the respective {@link Aggregation} object.
+   */
+  public Aggregation getAggregationOrDefault() {
+    if (aggregation == null) {
+      return AGGREGATED;
+    }
+
+    return aggregation;
   }
 }

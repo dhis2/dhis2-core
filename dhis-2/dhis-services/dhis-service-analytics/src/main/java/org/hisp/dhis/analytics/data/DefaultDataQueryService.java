@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -67,6 +66,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -508,6 +508,6 @@ public class DefaultDataQueryService implements DataQueryService {
     return items.stream()
         .map(item -> idObjectManager.getObject(CategoryOptionCombo.class, inputIdScheme, item))
         .filter(Objects::nonNull)
-        .collect(toList());
+        .collect(Collectors.toList());
   }
 }

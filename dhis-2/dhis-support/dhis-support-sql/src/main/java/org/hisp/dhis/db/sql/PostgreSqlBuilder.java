@@ -255,14 +255,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String cast(String column, DataType dataType) {
     return switch (dataType) {
       case NUMERIC -> String.format("%s::numeric", column);
-      case BOOLEAN -> String.format("%s::numeric!=0", column);
+      case BOOLEAN -> String.format("%s::numeric != 0", column);
       case TEXT -> String.format("%s::text", column);
     };
-  }
-
-  @Override
-  public String age(String endDate, String startDate) {
-    return String.format("age(cast(%s as date), cast(%s as date))", endDate, startDate);
   }
 
   @Override
