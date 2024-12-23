@@ -93,7 +93,7 @@ public class DataElementQuery implements DataItemQuery {
           .collect(joining(", "));
 
   private static final String JOINS =
-      "join optionset on dataelement.optionsetid = optionset.optionsetid";
+      "left join optionset on dataelement.optionsetid = optionset.optionsetid";
 
   private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 

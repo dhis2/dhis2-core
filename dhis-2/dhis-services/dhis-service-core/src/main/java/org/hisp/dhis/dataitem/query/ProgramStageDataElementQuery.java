@@ -95,7 +95,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery {
       "join programstagedataelement on programstagedataelement.dataelementid = dataelement.dataelementid"
           + " join programstage on programstagedataelement.programstageid = programstage.programstageid"
           + " join program on program.programid = programstage.programid"
-          + " join optionset on dataelement.optionsetid = optionset.optionsetid";
+          + " left join optionset on dataelement.optionsetid = optionset.optionsetid";
 
   private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
