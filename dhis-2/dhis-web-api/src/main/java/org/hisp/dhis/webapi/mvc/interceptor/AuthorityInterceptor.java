@@ -54,8 +54,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * the passed-in {@link org.hisp.dhis.security.Authorities}. The exception message includes the
  * required {@link org.hisp.dhis.security.Authorities} for the endpoint.
  *
- * <p>{@link Authorities#ALL} is automatically added to the check, as having this Authority allows
- * access to all methods by default.
+ * <p>{@link Authorities#ALL} is only excluded if explicitly requested. The default includes {@link
+ * Authorities#ALL} in the check, as this is how the system operates.
  */
 @Component
 public class AuthorityInterceptor implements HandlerInterceptor {
@@ -88,7 +88,7 @@ public class AuthorityInterceptor implements HandlerInterceptor {
         return checkForRequiredAuthority(requiresMethodAuthority);
     }
 
-    // heck if RequiresAuthority is at method level
+    // heck if RequiresAuthority is at class level
     if (handlerMethod.getBeanType().isAnnotationPresent(RequiresAuthority.class)) {
       RequiresAuthority requiresClassAuthority =
           handlerMethod.getBeanType().getAnnotation(RequiresAuthority.class);
@@ -98,8 +98,11 @@ public class AuthorityInterceptor implements HandlerInterceptor {
   }
 
   private boolean checkForRequiredAuthority(RequiresAuthority requiresAuthority) {
-    // include 'ALL' authority in required authorities
-    List<Authorities> requiredAuthorities = new ArrayList<>(List.of(Authorities.ALL));
+    List<Authorities> requiredAuthorities = new ArrayList<>();
+
+    // include 'ALL' authority in required authorities if not excluded
+    if (!requiresAuthority.excludeAllAuth()) requiredAuthorities.add(Authorities.ALL);
+
     requiredAuthorities.addAll(List.of(requiresAuthority.anyOf()));
 
     // get user authorities
