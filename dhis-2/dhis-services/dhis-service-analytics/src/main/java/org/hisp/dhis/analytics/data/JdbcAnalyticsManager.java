@@ -1027,8 +1027,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);
-
-        map.put(key.toString() + counter, value);
+        if (params.hasOptionSetInDimensionItems()) {
+          map.put(key.toString() + counter, value);
+        } else {
+          map.put(key.toString(), value);
+        }
       }
     }
 
