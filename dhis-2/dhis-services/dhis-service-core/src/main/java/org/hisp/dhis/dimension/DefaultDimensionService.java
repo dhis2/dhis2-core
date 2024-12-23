@@ -40,7 +40,6 @@ import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
@@ -348,9 +347,10 @@ public class DefaultDimensionService implements DimensionService {
   public DimensionalItemObject getDataDimensionalItemObject(
       IdScheme idScheme, String dimensionItem) {
     if (DimensionalObjectUtils.isCompositeDimensionalObject(dimensionItem)) {
-      String id0 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0);
-      String id1 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1);
-      String id2 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2);
+
+      String id0 = DimensionalObjectUtils.getFirstIdentifier(dimensionItem);
+      String id1 = DimensionalObjectUtils.getSecondIdentifier(dimensionItem);
+      String id2 = DimensionalObjectUtils.getThirdIdentifier(dimensionItem);
 
       String optionSetSelectionMode = splitSafe(dimensionItem, "-", 1);
       if (optionSetSelectionMode != null && id2 != null) {
@@ -359,6 +359,7 @@ public class DefaultDimensionService implements DimensionService {
         id1 = splitSafe(id1, "-", 0);
       }
 
+      DataElement dataElementWithOptionSet;
       DataElementOperand operand;
       ReportingRate reportingRate;
       ProgramDataElementDimensionItem programDataElement;
@@ -381,8 +382,10 @@ public class DefaultDimensionService implements DimensionService {
         return programAttribute;
       }
 
-      if (!idScheme.is(IdentifiableProperty.UID) || CodeGenerator.isValidUid(id0)) {
-        return idObjectManager.get(DataDimensionItem.DATA_DIM_CLASSES, idScheme, id0);
+      if ((dataElementWithOptionSet =
+              dataDimensionExtractor.getOptionSetDataElementDimensionItem(idScheme, id0, id1))
+          != null) {
+        return dataElementWithOptionSet;
       }
 
     } else if (!idScheme.is(IdentifiableProperty.UID) || CodeGenerator.isValidUid(dimensionItem)) {
