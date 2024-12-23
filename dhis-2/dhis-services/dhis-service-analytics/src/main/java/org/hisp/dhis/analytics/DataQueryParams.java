@@ -874,13 +874,13 @@ public class DataQueryParams {
 
   public boolean hasOptionSetInDimensionItems() {
     return dimensions.stream()
-            .anyMatch(
-                    d ->
-                            d.getItems().stream()
-                                    .anyMatch(
-                                            it ->
-                                                    it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
-                                                            && ((DataElement) it).getOptionSet() != null));
+        .anyMatch(
+            d ->
+                d.getItems().stream()
+                    .anyMatch(
+                        it ->
+                            it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
+                                && ((DataElement) it).getOptionSet() != null));
   }
 
   /**
@@ -2823,7 +2823,7 @@ public class DataQueryParams {
     }
 
     public Builder withOptionSetSelectionCriteria(
-            OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
+        OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
       this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }

@@ -831,24 +831,24 @@ public final class AnalyticsUtils {
           OptionSet optionSet = dataElement.getOptionSet();
           if (optionSet != null) {
             map.put(
-                    dataElement.getUid() + "." + optionSet.getUid(),
-                    includeMetadataDetails
-                            ? new MetadataItem(
-                            optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
-                            : new MetadataItem(optionSet.getName()));
+                dataElement.getUid() + "." + optionSet.getUid(),
+                includeMetadataDetails
+                    ? new MetadataItem(
+                        optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                    : new MetadataItem(optionSet.getName()));
           }
         }
         if (DimensionItemType.PROGRAM_DATA_ELEMENT == item.getDimensionItemType()
-                && item instanceof ProgramDataElementDimensionItem programDataElement) {
+            && item instanceof ProgramDataElementDimensionItem programDataElement) {
 
           OptionSet optionSet = programDataElement.getOptionSet();
           if (optionSet != null) {
             map.put(
-                    programDataElement.getDataElement().getUid() + "." + optionSet.getUid(),
-                    includeMetadataDetails
-                            ? new MetadataItem(
-                            optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
-                            : new MetadataItem(optionSet.getName()));
+                programDataElement.getDataElement().getUid() + "." + optionSet.getUid(),
+                includeMetadataDetails
+                    ? new MetadataItem(
+                        optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                    : new MetadataItem(optionSet.getName()));
           }
         }
       }

@@ -67,7 +67,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -184,7 +183,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private OptionSetSelectionCriteriaV2 getOptionSetSelectionCriteria(Set<String> dimensions) {
     OptionSetSelectionCriteriaV2.OptionSetSelectionCriteriaV2Builder builder =
-            OptionSetSelectionCriteriaV2.builder();
+        OptionSetSelectionCriteriaV2.builder();
     Map<String, OptionSetSelection> optionSetSelections = new HashMap<>();
     for (String dimension : dimensions) {
       String param = DimensionalObjectUtils.getParamFromDimension(dimension);
@@ -198,27 +197,27 @@ public class DefaultDataQueryService implements DataQueryService {
       String key = DimensionalObjectUtils.getThirdIdentifier(param);
       if (key == null) {
         key =
-                DimensionalObjectUtils.getFirstIdentifier(param)
-                        + "."
-                        + DimensionalObjectUtils.getSecondIdentifier(param);
+            DimensionalObjectUtils.getFirstIdentifier(param)
+                + "."
+                + DimensionalObjectUtils.getSecondIdentifier(param);
       } else {
         key = DimensionalObjectUtils.getSecondIdentifier(param) + "." + key;
       }
 
       OptionSetSelection.OptionSetSelectionBuilder optionSetSelectionBuilder =
-              OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(key);
-//      String options = DimensionalObjectUtils.getOptions(param);
-//
-//      if (options != null && !options.isEmpty()) {
-//        List<String> optionList =
-//                Stream.of(options.split("#"))
-//                        .map(
-//                                uid ->
-//                                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
-//                                                .getCode())
-//                        .toList();
-//        optionSetSelectionBuilder.options(optionList);
-//      }
+          OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(key);
+      String options = DimensionalObjectUtils.getOptions(param);
+
+      if (options != null && !options.isEmpty()) {
+        List<String> optionList =
+            Stream.of(options.split("#"))
+                .map(
+                    uid ->
+                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
+                            .getUid())
+                .toList();
+        optionSetSelectionBuilder.options(optionList);
+      }
 
       optionSetSelections.put(key, optionSetSelectionBuilder.build());
     }

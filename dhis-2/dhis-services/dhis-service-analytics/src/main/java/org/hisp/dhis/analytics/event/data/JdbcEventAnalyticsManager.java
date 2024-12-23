@@ -631,22 +631,22 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
     StringBuilder sql = new StringBuilder();
     params
-            .getOptionSetSelectionCriteria()
-            .getOptionSetSelections()
-            .forEach(
-                    (key, value) -> {
-                      List<String> uids = Arrays.stream(key.split("\\.")).toList();
-                      List<String> options = value.getOptions();
-                      if (!uids.isEmpty() && options != null && !options.isEmpty()) {
-                        sql.append(" ")
-                                .append(sqlHelper.whereAnd())
-                                .append(" ")
-                                .append(quote(uids.get(0)))
-                                .append(" in ('")
-                                .append(String.join("','", options))
-                                .append("') ");
-                      }
-                    });
+        .getOptionSetSelectionCriteria()
+        .getOptionSetSelections()
+        .forEach(
+            (key, value) -> {
+              List<String> uids = Arrays.stream(key.split("\\.")).toList();
+              List<String> options = value.getOptions();
+              if (!uids.isEmpty() && options != null && !options.isEmpty()) {
+                sql.append(" ")
+                    .append(sqlHelper.whereAnd())
+                    .append(" ")
+                    .append(quote(uids.get(0) + ".optionvalueuid"))
+                    .append(" in ('")
+                    .append(String.join("','", options))
+                    .append("') ");
+              }
+            });
 
     return sql.toString();
   }

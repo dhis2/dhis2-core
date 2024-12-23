@@ -1364,7 +1364,7 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     public Builder withOptionSetSelectionCriteria(
-            OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
+        OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
       this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }

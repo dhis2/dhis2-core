@@ -91,7 +91,7 @@ public class DimensionalObjectUtils {
   // Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
-              "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?(\\[(?<list>[^\\]]*?)\\])?(-(?<suffix>AGGREGATED|DISAGGREGATED)?)?");
+          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?(\\[(?<list>[^\\]]*?)\\])?(-(?<suffix>AGGREGATED|DISAGGREGATED)?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);
@@ -377,6 +377,7 @@ public class DimensionalObjectUtils {
 
     return param.split(DIMENSION_NAME_SEP).length > 1 ? param.split(DIMENSION_NAME_SEP)[1] : param;
   }
+
   /**
    * Retrieves the dimension options from the given string. Looks for the part succeeding the
    * dimension name separator, if exists, splits the string part on the option separator and returns
@@ -568,12 +569,19 @@ public class DimensionalObjectUtils {
 
   public static OptionSetSelectionMode getOptionSetSelectionMode(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    if(matcher.matches()){
+    if (matcher.matches()) {
       String suffix = matcher.group("suffix");
-      return suffix != null ? OptionSetSelectionMode.valueOf(suffix): OptionSetSelectionMode.AGGREGATED;
+      return suffix != null
+          ? OptionSetSelectionMode.valueOf(suffix)
+          : OptionSetSelectionMode.AGGREGATED;
     }
 
     return OptionSetSelectionMode.AGGREGATED;
+  }
+
+  public static String getOptions(String compositeItem) {
+    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
+    return matcher.matches() ? matcher.group("list") : null;
   }
 
   /**

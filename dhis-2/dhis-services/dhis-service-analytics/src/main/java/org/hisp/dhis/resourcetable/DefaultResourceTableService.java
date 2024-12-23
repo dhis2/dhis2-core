@@ -163,8 +163,8 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
         new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
         new PeriodResourceTable(logged, periodService.getAllPeriods()),
-            new CategoryOptionComboResourceTable(logged),
-            new DataElementOptionResourceTable(logged));
+        new CategoryOptionComboResourceTable(logged),
+        new DataElementOptionResourceTable(logged));
   }
 
   /**

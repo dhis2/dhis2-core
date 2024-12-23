@@ -32,7 +32,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
-
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
@@ -57,7 +56,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -481,11 +479,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-            program.getAnalyticsDataElements().stream()
-                    .filter(DataElement::hasOptionSet)
-                    .map(this::getColumnFromDataElementOptionSet)
-                    .flatMap(Collection::stream)
-                    .toList());
+        program.getAnalyticsDataElements().stream()
+            .filter(DataElement::hasOptionSet)
+            .map(this::getColumnFromDataElementOptionSet)
+            .flatMap(Collection::stream)
+            .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
@@ -822,12 +820,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql = selectOptionValueCodeForInsert(dataElement, select, dataClause);
 
     columns.add(
-            AnalyticsTableColumn.builder()
-                    .name(dataElement.getUid() + ".optionvalueuid")
-                    .dataType(DataType.VARCHAR_255)
-                    .selectExpression(sql)
-                    .skipIndex(Skip.INCLUDE)
-                    .build());
+        AnalyticsTableColumn.builder()
+            .name(dataElement.getUid() + ".optionvalueuid")
+            .dataType(DataType.VARCHAR_255)
+            .selectExpression(sql)
+            .skipIndex(Skip.INCLUDE)
+            .build());
 
     return columns;
   }
@@ -837,43 +835,43 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
       return replace(
-              " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
-              Map.of("uid", uid, "regex", regex));
+          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
+          Map.of("uid", uid, "regex", regex));
     }
 
     return "";
   }
 
   private String selectOptionValueCodeForInsert(
-          DataElement dataElement, String fromType, String dataClause) {
+      DataElement dataElement, String fromType, String dataClause) {
     String innerSql =
-            replaceQualify(
-                    """
+        replaceQualify(
+            """
                     (select ${fromType} from ${event} \
                     where eventid=ev.eventid ${dataClause})${closingParentheses}""",
-                    Map.of(
-                            "fromType",
-                            fromType,
-                            "dataClause",
-                            dataClause,
-                            "closingParentheses",
-                            getClosingParentheses(fromType),
-                            "dataElementUid",
-                            quote(dataElement.getUid())));
+            Map.of(
+                "fromType",
+                fromType,
+                "dataClause",
+                dataClause,
+                "closingParentheses",
+                getClosingParentheses(fromType),
+                "dataElementUid",
+                quote(dataElement.getUid())));
 
     return replaceQualify(
-            """
+        """
                 (select optionvalueuid \
                  from analytics_rs_dataelementoption \
                  where dataelementuid = ${dataElementUid} \
                  and optionvaluecode = ${selectForInsert}::varchar) as ${alias}""",
-            Map.of(
-                    "dataElementUid",
-                    singleQuote(dataElement.getUid()),
-                    "selectForInsert",
-                    innerSql,
-                    "alias",
-                    quote(dataElement.getUid() + ".optionvalueuid")));
+        Map.of(
+            "dataElementUid",
+            singleQuote(dataElement.getUid()),
+            "selectForInsert",
+            innerSql,
+            "alias",
+            quote(dataElement.getUid() + ".optionvalueuid")));
   }
 
   private String getClosingParentheses(String str) {
@@ -935,15 +933,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     Optional<OptionSetSelectionMode> optionSetSelectionMode =
-            params.getDataElements().stream()
-                    .map(
-                            de ->
-                                    params
-                                            .getOptionSetSelectionCriteria()
-                                            .getOptionSetSelections()
-                                            .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
-                                            .getOptionSetSelectionMode())
-                    .findFirst();
+        params.getDataElements().stream()
+            .map(
+                de ->
+                    params
+                        .getOptionSetSelectionCriteria()
+                        .getOptionSetSelections()
+                        .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
+                        .getOptionSetSelectionMode())
+            .findFirst();
     OptionSetSelectionMode mode = optionSetSelectionMode.orElse(OptionSetSelectionMode.AGGREGATED);
 
     return params.isAggregation() && mode == OptionSetSelectionMode.AGGREGATED;
@@ -963,8 +961,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String valueColumn = params.getValueColumn();
 
     if (aggType.isAggregationType(SUM)
-            && aggType.isPeriodAggregationType(AVERAGE)
-            && aggType.isNumericDataType()) {
+        && aggType.isPeriodAggregationType(AVERAGE)
+        && aggType.isNumericDataType()) {
       sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
     } else if (aggType.isAggregationType(AVERAGE) && aggType.isNumericDataType()) {
       sql = "avg(" + valueColumn + ")";
@@ -996,8 +994,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param dimensions the collection of {@link DimensionalObject}.
    * @return a comma-delimited string of quoted dimension names.
    */
-  private String getCommaDelimitedQuotedDimensionColumns(
-          Collection<DimensionalObject> dimensions) {
+  private String getCommaDelimitedQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
     return join(",", getQuotedDimensionColumns(dimensions));
   }
 
@@ -1010,10 +1007,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   protected List<String> getQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
     return dimensions.stream()
-            .filter(d -> !d.isFixed())
-            .map(DimensionalObject::getDimensionName)
-            .map(this::quoteAlias)
-            .collect(Collectors.toList());
+        .filter(d -> !d.isFixed())
+        .map(DimensionalObject::getDimensionName)
+        .map(this::quoteAlias)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -1037,20 +1034,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return "cast(" + columnName + " as bigint)";
     } else if (valueType.isBoolean()) {
       return "case when "
-              + columnName
-              + " = 'true' then 1 when "
-              + columnName
-              + " = 'false' then 0 else null end";
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
       return "cast(" + columnName + " as timestamp)";
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-              + columnName
-              + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
       return replaceQualify(
-              "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
-              Map.of("columnName", columnName));
+          "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
+          Map.of("columnName", columnName));
     } else {
       return columnName;
     }

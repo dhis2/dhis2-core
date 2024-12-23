@@ -375,16 +375,16 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     Optional<OptionSetSelectionMode> optionSetSelectionMode =
-            params.getDataElements().stream()
-                    .filter(de -> params.getOptionSetSelectionCriteria() != null)
-                    .map(
-                            de ->
-                                    params
-                                            .getOptionSetSelectionCriteria()
-                                            .getOptionSetSelections()
-                                            .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
-                                            .getOptionSetSelectionMode())
-                    .findFirst();
+        params.getDataElements().stream()
+            .filter(de -> params.getOptionSetSelectionCriteria() != null)
+            .map(
+                de ->
+                    params
+                        .getOptionSetSelectionCriteria()
+                        .getOptionSetSelections()
+                        .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
+                        .getOptionSetSelectionMode())
+            .findFirst();
     OptionSetSelectionMode mode = optionSetSelectionMode.orElse(OptionSetSelectionMode.AGGREGATED);
 
     return params.isAggregation() && mode == OptionSetSelectionMode.AGGREGATED;
@@ -509,27 +509,27 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
   /** Add where clause for option set selection. */
   private void getWhereClauseOptions(
-          DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql) {
+      DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql) {
     if (!params.hasOptionSetSelectionCriteria()) {
       return;
     }
 
     params
-            .getOptionSetSelectionCriteria()
-            .getOptionSetSelections()
-            .forEach(
-                    (key, value) -> {
-                      List<String> options = value.getOptions();
-                      if (options != null && !options.isEmpty()) {
-                        sql.append(" ")
-                                .append(sqlHelper.whereAnd())
-                                .append(" ")
-                                .append(quote("optionvalueuid"))
-                                .append(" in ('")
-                                .append(String.join("','", options))
-                                .append("') ");
-                      }
-                    });
+        .getOptionSetSelectionCriteria()
+        .getOptionSetSelections()
+        .forEach(
+            (key, value) -> {
+              List<String> options = value.getOptions();
+              if (options != null && !options.isEmpty()) {
+                sql.append(" ")
+                    .append(sqlHelper.whereAnd())
+                    .append(" ")
+                    .append(quote("optionvalueuid"))
+                    .append(" in ('")
+                    .append(String.join("','", options))
+                    .append("') ");
+              }
+            });
   }
 
   /** Add where clause dimensions. */
@@ -1018,15 +1018,17 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
-        map.put(key.toString(), value);
-      } else // NUMERIC
-      {
-        Double value = rowSet.getDouble(VALUE_ID);
+
         if (params.hasOptionSetInDimensionItems()) {
           map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
         } else {
           map.put(key.toString(), value);
         }
+      } else // NUMERIC
+      {
+        Double value = rowSet.getDouble(VALUE_ID);
+
+        map.put(key.toString() + counter, value);
       }
     }
 

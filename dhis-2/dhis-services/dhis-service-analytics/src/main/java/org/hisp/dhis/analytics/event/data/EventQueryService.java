@@ -163,10 +163,10 @@ public class EventQueryService {
   private static EventQueryParams getEventQueryParamsWithProgram(EventQueryParams params) {
     if (!params.hasProgram()) {
       Optional<QueryItem> itemWithProgram =
-              params.getItems().stream().filter(QueryItem::hasProgram).findFirst();
+          params.getItems().stream().filter(QueryItem::hasProgram).findFirst();
       if (itemWithProgram.isPresent()) {
         EventQueryParams.Builder builder =
-                new EventQueryParams.Builder(params).withProgram(itemWithProgram.get().getProgram());
+            new EventQueryParams.Builder(params).withProgram(itemWithProgram.get().getProgram());
         params = builder.build();
       }
     }
