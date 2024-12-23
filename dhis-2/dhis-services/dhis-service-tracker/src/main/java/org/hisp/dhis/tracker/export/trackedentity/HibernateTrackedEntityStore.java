@@ -1007,10 +1007,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (!orderFields.isEmpty()) {
-      return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
+      return "ORDER BY " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + SPACE;
     }
 
-    return "ORDER BY " + DEFAULT_ORDER + " ";
+    return "ORDER BY " + DEFAULT_ORDER + SPACE;
   }
 
   /**

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -264,10 +265,13 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private List<Order> orderBy(
       RelationshipQueryParams queryParams, CriteriaBuilder builder, Root<Relationship> root) {
+    List<Order> defaultOrder = orderBy(List.of(DEFAULT_ORDER), builder, root);
     if (!queryParams.getOrder().isEmpty()) {
-      return orderBy(queryParams.getOrder(), builder, root);
+      return Stream.concat(
+              orderBy(queryParams.getOrder(), builder, root).stream(), defaultOrder.stream())
+          .toList();
     } else {
-      return orderBy(List.of(DEFAULT_ORDER), builder, root);
+      return defaultOrder;
     }
   }
 
