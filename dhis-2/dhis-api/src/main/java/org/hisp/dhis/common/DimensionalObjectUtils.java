@@ -541,6 +541,10 @@ public class DimensionalObjectUtils {
    * @return the first identifier, or null if not a valid composite identifier or no match.
    */
   public static String getFirstIdentifier(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
     return matcher.matches() ? matcher.group("id1") : null;
   }
@@ -552,6 +556,10 @@ public class DimensionalObjectUtils {
    * @return the second identifier, or null if not a valid composite identifier or no match.
    */
   public static String getSecondIdentifier(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
     return matcher.matches() ? matcher.group("id2") : null;
   }
@@ -563,11 +571,19 @@ public class DimensionalObjectUtils {
    * @return the second identifier, or null if not a valid composite identifier or no match.
    */
   public static String getThirdIdentifier(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
     return matcher.matches() ? matcher.group("id3") : null;
   }
 
   public static OptionSetSelectionMode getOptionSetSelectionMode(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
     if (matcher.matches()) {
       String suffix = matcher.group("suffix");
