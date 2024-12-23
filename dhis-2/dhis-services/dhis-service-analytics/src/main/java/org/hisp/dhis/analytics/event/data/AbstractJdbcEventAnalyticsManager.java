@@ -762,10 +762,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         && params
                 .getOptionSetSelectionCriteria()
                 .getOptionSetSelections()
-                .get(
-                    dataElement.getUid()
-                        + "."
-                        + dataElement.getOptionSet().getUid())
+                .get(dataElement.getUid() + "." + dataElement.getOptionSet().getUid())
                 .getOptionSetSelectionMode()
             != OptionSetSelectionMode.AGGREGATED) {
       return NONE;
