@@ -32,15 +32,14 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
 public class EnrollmentSchemaDescriptor implements SchemaDescriptor {
-    public static final String SINGULAR = "programInstance";
+  public static final String SINGULAR = "programInstance";
 
-    public static final String PLURAL = "programInstances";
+  public static final String PLURAL = "programInstances";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema() {
-        return new Schema(Enrollment.class, SINGULAR, PLURAL);
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(Enrollment.class, SINGULAR, PLURAL);
+  }
 }
-
