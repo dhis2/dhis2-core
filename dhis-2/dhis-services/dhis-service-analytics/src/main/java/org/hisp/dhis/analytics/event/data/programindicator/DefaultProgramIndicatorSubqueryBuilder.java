@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
@@ -38,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -75,6 +75,70 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date latestDate) {
     return getAggregateClauseForPIandRelationshipType(
         programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate);
+  }
+
+  @Override
+  public void contributeCTE(
+      ProgramIndicator programIndicator,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CTEContext cteContext) {
+    contributeCTE(
+        programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
+  }
+
+  @Override
+  public void contributeCTE(
+      ProgramIndicator programIndicator,
+      RelationshipType relationshipType,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CTEContext cteContext) {
+
+    // Generate a unique CTE name for this program indicator
+    String cteName = "pi_" + programIndicator.getUid().toLowerCase();
+
+    // Define aggregation function
+    String function =
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
+
+    String cteSql =
+        String.format(
+            "SELECT e.enrollment, "
+                + "COALESCE(%s(%s), 0) as value "
+                + "FROM analytics_enrollment_%s e "
+                + "LEFT JOIN ( "
+                + "    SELECT enrollment, eventstatus "
+                + "    FROM %s as subax "
+                + "    WHERE %s "
+                + ") t ON t.enrollment = e.enrollment "
+                + "GROUP BY e.enrollment",
+            function,
+            getProgramIndicatorSql(
+                programIndicator.getExpression(),
+                NUMERIC,
+                programIndicator,
+                earliestStartDate,
+                latestDate),
+            programIndicator.getProgram().getUid().toLowerCase(),
+            getTableName(programIndicator),
+            getProgramIndicatorSql(
+                programIndicator.getFilter(),
+                BOOLEAN,
+                programIndicator,
+                earliestStartDate,
+                latestDate));
+
+    // Register the CTE and its column mapping
+    cteContext.addCTE(programIndicator, cteSql);
+  }
+
+  private String getTableName(ProgramIndicator programIndicator) {
+    return "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
   }
 
   /**
@@ -169,16 +233,18 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
           RelationshipTypeJoinGenerator.generate(
               SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
     } else {
-      if (AnalyticsType.ENROLLMENT == outerSqlEntity) {
-        condition = "enrollment = ax.enrollment";
-      } else {
-        if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-          condition = "event = ax.event";
-        }
+      // Remove the reference to the outer query's enrollment
+      // We'll handle the join in the main query
+      if (AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType()) {
+        // No condition needed, we'll join on enrollment in the main query
+        condition = "";
+      } else if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
+        // Handle event type if needed
+        condition = "";
       }
     }
 
-    return isNotBlank(condition) ? " WHERE " + condition : condition;
+    return !condition.isEmpty() ? " WHERE " + condition : "";
   }
 
   /**
