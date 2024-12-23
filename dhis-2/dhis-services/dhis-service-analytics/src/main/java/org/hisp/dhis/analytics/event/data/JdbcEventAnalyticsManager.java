@@ -629,6 +629,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
+    if (!params.hasOptionSetSelectionCriteria()
+        || params.getOptionSetSelectionCriteria().getOptionSetSelections() == null) {
+      return "";
+    }
+
     StringBuilder sql = new StringBuilder();
     params
         .getOptionSetSelectionCriteria()

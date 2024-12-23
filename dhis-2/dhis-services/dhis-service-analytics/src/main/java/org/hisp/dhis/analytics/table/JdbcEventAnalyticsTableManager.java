@@ -30,8 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
-import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
@@ -54,15 +52,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -74,7 +68,6 @@ import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -889,119 +882,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     return StringUtils.repeat(")", open);
-  }
-
-  /**
-   * Generates the value clause of the query SQL.
-   *
-   * @param params the {@link DataQueryParams}.
-   * @return a SQL value clause.
-   */
-  protected String getValueClause(DataQueryParams params) {
-    String sql = "";
-
-    if (hasAggregation(params)) {
-      sql += getAggregateValueColumn(params);
-    } else {
-      sql += params.getValueColumn();
-    }
-
-    return sql + " as value ";
-  }
-
-  private boolean hasAggregation(DataQueryParams params) {
-    // analytics query is an item of sequential queries with one data element only.
-    if (params.getDataElements().size() != 1) {
-      return params.isAggregation();
-    }
-
-    Optional<OptionSetSelectionMode> optionSetSelectionMode =
-        params.getDataElements().stream()
-            .map(
-                de ->
-                    params
-                        .getOptionSetSelectionCriteria()
-                        .getOptionSetSelections()
-                        .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
-                        .getOptionSetSelectionMode())
-            .findFirst();
-    OptionSetSelectionMode mode = optionSetSelectionMode.orElse(OptionSetSelectionMode.AGGREGATED);
-
-    return params.isAggregation() && mode == OptionSetSelectionMode.AGGREGATED;
-  }
-
-  /**
-   * Returns an aggregate clause for the numeric value column.
-   *
-   * @param params the {@link DataQueryParams}.
-   * @return a SQL numeric value column.
-   */
-  private String getAggregateValueColumn(DataQueryParams params) {
-    String sql;
-
-    AnalyticsAggregationType aggType = params.getAggregationType();
-
-    String valueColumn = params.getValueColumn();
-
-    if (aggType.isAggregationType(SUM)
-        && aggType.isPeriodAggregationType(AVERAGE)
-        && aggType.isNumericDataType()) {
-      sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
-    } else if (aggType.isAggregationType(AVERAGE) && aggType.isNumericDataType()) {
-      sql = "avg(" + valueColumn + ")";
-    } else if (aggType.isAggregationType(AVERAGE) && aggType.isBooleanDataType()) {
-      sql = "sum(daysxvalue) / sum(daysno) * 100";
-    } else // SUM and no value
-    {
-      sql = "sum(" + valueColumn + ")";
-    }
-
-    return sql;
-  }
-
-  private String getAggregatedOptionValueClause(DataQueryParams params) {
-    String sql = "";
-
-    if (params.hasOptionSetInDimensionItems() && hasAggregation(params)) {
-      sql += ", count(" + params.getValueColumn() + ") as valuecount ";
-      return sql;
-    }
-
-    return sql;
-  }
-
-  /**
-   * Generates a comma-delimited string with the dimension names of the given dimensions where each
-   * dimension name is quoted. Dimensions which are considered fixed will be excluded.
-   *
-   * @param dimensions the collection of {@link DimensionalObject}.
-   * @return a comma-delimited string of quoted dimension names.
-   */
-  private String getCommaDelimitedQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
-    return join(",", getQuotedDimensionColumns(dimensions));
-  }
-
-  /**
-   * Generates a list of the dimension names of the given dimensions where each dimension name is
-   * quoted. Dimensions which are considered fixed will be excluded.
-   *
-   * @param dimensions the collection of {@link DimensionalObject}.
-   * @return a list of quoted dimension names.
-   */
-  protected List<String> getQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
-    return dimensions.stream()
-        .filter(d -> !d.isFixed())
-        .map(DimensionalObject::getDimensionName)
-        .map(this::quoteAlias)
-        .toList();
-  }
-
-  /**
-   * @param relation the relation to quote.
-   * @return an "ax" aliased and double quoted relation.
-   */
-  private String quoteAlias(String relation) {
-    return sqlBuilder.quoteAx(relation);
   }
 
   /**
