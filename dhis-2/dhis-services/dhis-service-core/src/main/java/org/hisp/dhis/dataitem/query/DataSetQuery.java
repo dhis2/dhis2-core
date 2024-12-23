@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
@@ -50,7 +51,9 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -65,12 +68,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataSetQuery implements DataItemQuery {
   private static final String COMMON_COLUMNS =
-      "cast (null as text) as program_name, cast (null as text) as program_uid,"
-          + " cast (null as text) as program_shortname, dataset.uid as item_uid, dataset.name as item_name,"
-          + " dataset.shortname as item_shortname, cast (null as text) as item_valuetype, dataset.code as item_code,"
-          + " dataset.sharing as item_sharing, cast (null as text) as item_domaintype,"
-          + " cast('REPORTING_RATE' as text) as item_type,"
-          + " cast (null as text) as expression";
+      List.of(
+              Pair.of("program_name", CAST_NULL_AS_TEXT),
+              Pair.of("program_uid", CAST_NULL_AS_TEXT),
+              Pair.of("program_shortname", CAST_NULL_AS_TEXT),
+              Pair.of("item_uid", "dataset.uid"),
+              Pair.of("item_name", "dataset.name"),
+              Pair.of("item_shortname", "dataset.shortname"),
+              Pair.of("item_valuetype", CAST_NULL_AS_TEXT),
+              Pair.of("item_code", "dataset.code"),
+              Pair.of("item_sharing", "dataset.sharing"),
+              Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
+              Pair.of("item_type", "cast ('REPORTING_RATE' as text)"),
+              Pair.of("expression", CAST_NULL_AS_TEXT),
+              Pair.of("optionset_uid", CAST_NULL_AS_TEXT))
+          .stream()
+          .map(pair -> pair.getRight() + " as " + pair.getLeft())
+          .collect(joining(", "));
 
   @Override
   public String getStatement(MapSqlParameterSource paramsMap) {
