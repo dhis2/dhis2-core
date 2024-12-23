@@ -72,7 +72,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.OptionSetSelection;
-import org.hisp.dhis.analytics.OptionSetSelectionCriteriaV2;
+import org.hisp.dhis.analytics.OptionSetSelectionCriteria;
 import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -181,9 +181,9 @@ public class DefaultDataQueryService implements DataQueryService {
         .build();
   }
 
-  private OptionSetSelectionCriteriaV2 getOptionSetSelectionCriteria(Set<String> dimensions) {
-    OptionSetSelectionCriteriaV2.OptionSetSelectionCriteriaV2Builder builder =
-        OptionSetSelectionCriteriaV2.builder();
+  private OptionSetSelectionCriteria getOptionSetSelectionCriteria(Set<String> dimensions) {
+    OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder builder =
+        OptionSetSelectionCriteria.builder();
     Map<String, OptionSetSelection> optionSetSelections = new HashMap<>();
     for (String dimension : dimensions) {
       String param = DimensionalObjectUtils.getParamFromDimension(dimension);

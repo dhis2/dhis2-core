@@ -236,7 +236,7 @@ public class DataQueryParams {
   protected AnalyticsAggregationType aggregationType;
 
   /** The option set selection criteria. */
-  protected OptionSetSelectionCriteriaV2 optionSetSelectionCriteria;
+  protected OptionSetSelectionCriteria optionSetSelectionCriteria;
 
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
@@ -1974,7 +1974,7 @@ public class DataQueryParams {
     return aggregationType;
   }
 
-  public OptionSetSelectionCriteriaV2 getOptionSetSelectionCriteria() {
+  public OptionSetSelectionCriteria getOptionSetSelectionCriteria() {
     return optionSetSelectionCriteria;
   }
 
@@ -2823,7 +2823,7 @@ public class DataQueryParams {
     }
 
     public Builder withOptionSetSelectionCriteria(
-        OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
+        OptionSetSelectionCriteria optionSetSelectionCriteria) {
       this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }

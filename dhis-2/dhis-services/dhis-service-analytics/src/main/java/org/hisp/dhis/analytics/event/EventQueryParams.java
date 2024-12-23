@@ -59,7 +59,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.OptionSetSelectionCriteriaV2;
+import org.hisp.dhis.analytics.OptionSetSelectionCriteria;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -1364,7 +1364,7 @@ public class EventQueryParams extends DataQueryParams {
     }
 
     public Builder withOptionSetSelectionCriteria(
-        OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
+        OptionSetSelectionCriteria optionSetSelectionCriteria) {
       this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
