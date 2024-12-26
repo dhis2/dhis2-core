@@ -873,4 +873,16 @@ public interface UserService {
    * @return matching {@link User}s
    */
   List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
+
+  /**
+   * Sets the active account for the next login session.
+   *
+   * <p>This method updates the last login timestamp of the target account 'activeUsername', to one
+   * hour in the future. This future timestamp ensures the account appears first when sorting linked
+   * accounts by last login date, and hence the top of the list will be the 'active'.
+   *
+   * @param actingUser the acting/current user
+   * @param activeUsername the username of the user to set as active
+   */
+  void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 }
