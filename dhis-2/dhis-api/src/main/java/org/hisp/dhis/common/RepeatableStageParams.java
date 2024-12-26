@@ -39,11 +39,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"startIndex", "count", "startDate", "endDate"})
+@EqualsAndHashCode(of = {"index", "startDate", "endDate", "dimension"})
 public class RepeatableStageParams {
-  private int startIndex;
-
-  private int count = 1;
+  private int index;
 
   // Related to execution date
   private Date startDate;
@@ -57,24 +55,41 @@ public class RepeatableStageParams {
 
   @Override
   public String toString() {
-    return "startIndex:"
-        + startIndex
-        + " count:"
-        + (count == Integer.MAX_VALUE ? "all" : count)
+    return "index:"
+        + index
         + " startDate:"
         + startDate
         + " endDate: "
-        + endDate;
+        + endDate
+        + " dimension: "
+        + dimension;
   }
 
-  /** Indicates whether value type should be considered as a number. */
-  public boolean simpleStageValueExpected() {
-    return count == 1;
-  }
-
-  public static RepeatableStageParams ofStartIndex(int startIndex) {
+  /**
+   * Instantiates this object with the given arguments.
+   *
+   * @param index the index.
+   * @return an instance of this object.
+   */
+  public static RepeatableStageParams of(int index) {
     RepeatableStageParams params = new RepeatableStageParams();
-    params.setStartIndex(startIndex);
+    params.setIndex(index);
+    params.setDefaultObject(false);
+
+    return params;
+  }
+
+  /**
+   * Instantiates this object with the given arguments.
+   *
+   * @param index the index.
+   * @param dimension the dimension param.
+   * @return an instance of this object.
+   */
+  public static RepeatableStageParams of(int index, String dimension) {
+    RepeatableStageParams params = of(index);
+    params.setDimension(dimension);
+
     return params;
   }
 }

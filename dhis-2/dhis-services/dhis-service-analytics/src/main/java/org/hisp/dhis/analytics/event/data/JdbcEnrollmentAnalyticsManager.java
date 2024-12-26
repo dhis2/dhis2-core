@@ -56,7 +56,6 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -602,39 +601,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
       String excludingScheduledCondition =
           eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "' and ";
-
-      if (item.getProgramStage().getRepeatable()
-          && item.hasRepeatableStageParams()
-          && !item.getRepeatableStageParams().simpleStageValueExpected()) {
-        return "(select json_agg(t1) from (select "
-            + colName
-            + ", "
-            + String.join(
-                ", ",
-                EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
-                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
-                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
-            + " from "
-            + eventTableName
-            + " where "
-            + excludingScheduledCondition
-            + eventTableName
-            + ".enrollment = "
-            + ANALYTICS_TBL_ALIAS
-            + ".enrollment "
-            + "and ps = '"
-            + item.getProgramStage().getUid()
-            + "'"
-            + getExecutionDateFilter(
-                item.getRepeatableStageParams().getStartDate(),
-                item.getRepeatableStageParams().getEndDate())
-            + createOrderType(item.getProgramStageOffset())
-            + " "
-            + createOffset(item.getProgramStageOffset())
-            + " "
-            + getLimit(item.getRepeatableStageParams().getCount())
-            + " ) as t1)";
-      }
 
       if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
         return "(select "
