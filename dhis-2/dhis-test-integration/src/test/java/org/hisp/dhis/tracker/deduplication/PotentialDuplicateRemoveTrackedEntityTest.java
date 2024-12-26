@@ -49,6 +49,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -107,10 +108,12 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteRelationShips() throws NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntity original = createTrackedEntity(ou);
-    TrackedEntity duplicate = createTrackedEntity(ou);
-    TrackedEntity control1 = createTrackedEntity(ou);
-    TrackedEntity control2 = createTrackedEntity(ou);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity original = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity duplicate = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity control1 = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity control2 = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     manager.save(control1);
@@ -145,10 +148,13 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntity original = createTrackedEntity(ou);
-    TrackedEntity duplicate = createTrackedEntity(ou);
-    TrackedEntity control1 = createTrackedEntity(ou);
-    TrackedEntity control2 = createTrackedEntity(ou);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('P');
+    manager.save(trackedEntityType);
+    TrackedEntity original = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity duplicate = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity control1 = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity control2 = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     manager.save(control1);
@@ -187,7 +193,11 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntity trackedEntity = createTrackedEntity('T', ou, trackedEntityAttribute);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('R');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity =
+        createTrackedEntity('T', ou, trackedEntityAttribute, trackedEntityType);
     manager.save(trackedEntity);
     return trackedEntity;
   }
