@@ -1011,4 +1011,10 @@ public class DefaultUserService implements UserService {
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid) {
     return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);
   }
+
+  @Transactional
+  @Override
+  public void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername) {
+    userStore.setActiveLinkedAccounts(actingUser, activeUsername);
+  }
 }
