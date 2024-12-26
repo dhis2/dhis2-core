@@ -52,7 +52,11 @@ class ResultProcessor {
 
   private static final String PROGRAM_UID = "program_uid";
 
+  private static final String ITEM_CODE = "item_code";
+
   private static final String EXPRESSION = "expression";
+
+  private static final String OPTION_SET_UID = "optionset_uid";
 
   private ResultProcessor() {}
 
@@ -74,11 +78,12 @@ class ResultProcessor {
               .id(getUid(rowSet))
               .shortName(getShortName(rowSet))
               .displayShortName(getDisplayShortName(rowSet))
-              .code(rowSet.getString("item_code"))
+              .code(rowSet.getString(ITEM_CODE))
               .dimensionItemType(getItemType(rowSet))
               .programId(rowSet.getString(PROGRAM_UID))
               .valueType(getValueType(rowSet))
               .expression(rowSet.getString(EXPRESSION))
+              .optionSetId(rowSet.getString(OPTION_SET_UID))
               .build());
     }
 
