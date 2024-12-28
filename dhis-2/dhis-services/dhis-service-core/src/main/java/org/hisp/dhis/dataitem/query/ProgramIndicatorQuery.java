@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
@@ -52,7 +53,9 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -68,11 +71,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramIndicatorQuery implements DataItemQuery {
   private static final String COMMON_COLUMNS =
-      "cast (null as text) as program_name, program.uid as program_uid,"
-          + " cast (null as text) as program_shortname, programindicator.uid as item_uid, programindicator.name as item_name,"
-          + " programindicator.shortname as item_shortname, cast (null as text) as item_valuetype, programindicator.code as item_code,"
-          + " programindicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_INDICATOR' as text) as item_type,"
-          + " cast (null as text) as expression";
+      List.of(
+              Pair.of("program_name", CAST_NULL_AS_TEXT),
+              Pair.of("program_uid", "program.uid"),
+              Pair.of("program_shortname", CAST_NULL_AS_TEXT),
+              Pair.of("item_uid", "programindicator.uid"),
+              Pair.of("item_name", "programindicator.name"),
+              Pair.of("item_shortname", "programindicator.shortname"),
+              Pair.of("item_valuetype", CAST_NULL_AS_TEXT),
+              Pair.of("item_code", "programindicator.code"),
+              Pair.of("item_sharing", "programindicator.sharing"),
+              Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
+              Pair.of("item_type", "cast ('PROGRAM_INDICATOR' as text)"),
+              Pair.of("expression", CAST_NULL_AS_TEXT),
+              Pair.of("optionset_uid", CAST_NULL_AS_TEXT))
+          .stream()
+          .map(pair -> pair.getRight() + " as " + pair.getLeft())
+          .collect(joining(", "));
 
   private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.dataitems;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -59,7 +60,7 @@ public class DataItemsAnalyticsTest {
   }
 
   @Test
-  void testDataItemsContainsOptionSets() {
+  void testDataItemsDoesNotContainOptionSets() {
     // Given
     QueryParamsBuilder params = new QueryParamsBuilder().add("paging=false").add("order=name:asc");
 
@@ -72,6 +73,60 @@ public class DataItemsAnalyticsTest {
         .statusCode(equalTo(200))
         .body("dataItems.dimensionItemType", hasItem("PROGRAM_INDICATOR"))
         .body("dataItems.dimensionItemType", hasItem("DATA_ELEMENT"))
-        .body("dataItems.dimensionItemType", hasItem("OPTION_SET"));
+        .body("dataItems.dimensionItemType", not(hasItem("OPTION_SET")));
+  }
+
+  @Test
+  void testDataItemsContainsOptionSetId() {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("paging=false").add("order=name:asc");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems.optionSetId", hasItem("SokRAajDrRz"));
+  }
+
+  @Test
+  void testDataItemsFiltersNonExistingOptionSetId() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("paging=false")
+            .add("order=name:asc")
+            .add("filter=optionSetId:eq:ABCD");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems.optionSetId", not(hasItem("SokRAajDrRz")))
+        .body("dataItems.optionSetId", not(hasItem("ABCD")));
+  }
+
+  @Test
+  void testDataItemsFiltersExistingOptionSetId() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("paging=false")
+            .add("order=name:asc")
+            .add("filter=optionSetId:eq:SokRAajDrRz");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems.optionSetId", hasItem("SokRAajDrRz"));
   }
 }
