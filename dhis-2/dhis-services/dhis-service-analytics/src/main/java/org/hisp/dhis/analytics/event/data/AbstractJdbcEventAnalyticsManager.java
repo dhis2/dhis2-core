@@ -759,6 +759,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (params.getValue() instanceof DataElement dataElement
         && dataElement.hasOptionSet()
+        && params.hasOptionSetSelectionCriteria()
+        && params.hasOptionSetSelections()
         && params
                 .getOptionSetSelectionCriteria()
                 .getOptionSetSelections()

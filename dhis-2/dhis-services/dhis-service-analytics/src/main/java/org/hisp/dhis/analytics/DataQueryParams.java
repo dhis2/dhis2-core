@@ -757,6 +757,12 @@ public class DataQueryParams {
     return optionSetSelectionCriteria != null;
   }
 
+  /** Indicates whether option set selections are present as dimension. */
+  public boolean hasOptionSetSelections() {
+    return optionSetSelectionCriteria.getOptionSetSelections() != null
+        && !optionSetSelectionCriteria.getOptionSetSelections().isEmpty();
+  }
+
   /**
    * Returns the period type of the first period specified as filter, or null if there is no period
    * filter.
