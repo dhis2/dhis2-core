@@ -745,4 +745,15 @@ public non-sealed interface SystemSettings extends Settings {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
+
+  /**
+   * @return A regex pattern string that enforces the current password validation rules
+   */
+  default String getPasswordValidationPattern() {
+    return String.format(
+        "^(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
+        getMinPasswordLength(),
+        getMaxPasswordLength()
+    );
+  }
 }
