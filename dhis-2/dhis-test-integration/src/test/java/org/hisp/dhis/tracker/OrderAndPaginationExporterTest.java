@@ -134,6 +134,27 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEventsByStatusAndByDefaultOrder() {
+    List<String> expected =
+        Stream.of(
+                get(ProgramStageInstance.class, "ck7DzdxqLqA"),
+                get(ProgramStageInstance.class, "kWjSezkXHVp"),
+                get(ProgramStageInstance.class, "OTmjvJDn0Fu"))
+            .sorted(Comparator.comparing(ProgramStageInstance::getId).reversed()) // reversed = desc
+            .map(ProgramStageInstance::getUid)
+            .collect(Collectors.toList());
+
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnit(get(OrganisationUnit.class, "DiszpKrYNg8"));
+    params.setEvents(Set.of("ck7DzdxqLqA", "kWjSezkXHVp", "OTmjvJDn0Fu"));
+    params.addOrders(List.of(new OrderParam("status", SortDirection.DESC)));
+
+    List<String> actual = getEvents(params);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnit(orgUnit);
