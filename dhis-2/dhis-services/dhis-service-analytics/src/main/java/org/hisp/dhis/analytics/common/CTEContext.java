@@ -39,7 +39,6 @@ import org.hisp.dhis.program.ProgramStage;
 
 public class CTEContext {
   private final Map<String, CteDefinitionWithOffset> cteDefinitions = new LinkedHashMap<>();
-  @Getter private final Map<String, String> rowContextReferences = new HashMap<>();
 
   public CteDefinitionWithOffset getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
@@ -48,7 +47,7 @@ public class CTEContext {
   public void addCTE(ProgramStage programStage, QueryItem item, String cteDefinition, int offset) {
     cteDefinitions.put(
         item.getItem().getUid(),
-        new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset));
+        new CteDefinitionWithOffset(programStage.getUid(), item.getItemId(), cteDefinition, offset));
   }
 
   public void addCTE(
@@ -59,7 +58,18 @@ public class CTEContext {
       boolean isRowContext) {
     cteDefinitions.put(
         item.getItem().getUid(),
-        new CteDefinitionWithOffset(programStage.getUid(), cteDefinition, offset, isRowContext));
+        new CteDefinitionWithOffset(programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext));
+  }
+
+  public void addExistsCTE(
+          ProgramStage programStage,
+            QueryItem item,
+          String cteDefinition) {
+    var cteDef = new CteDefinitionWithOffset(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
+            .setExists(true);
+    cteDefinitions.put(
+            programStage.getUid(),
+            cteDef);
   }
 
   /**
@@ -68,7 +78,7 @@ public class CTEContext {
    * @param programIndicator The program indicator
    * @param cteDefinition The CTE definition (the SQL query)
    */
-  public void addCTE(ProgramIndicator programIndicator, String cteDefinition) {
+  public void addProgramIndicatorCTE(ProgramIndicator programIndicator, String cteDefinition) {
     cteDefinitions.put(
         programIndicator.getUid(),
         new CteDefinitionWithOffset(programIndicator.getUid(), cteDefinition));
@@ -76,17 +86,6 @@ public class CTEContext {
 
   public void addCTEFilter(String name, String ctedefinition) {
     cteDefinitions.put(name, new CteDefinitionWithOffset(name, ctedefinition, true));
-  }
-
-  /**
-   * Adds a mapping between a row context column and the CTE name that it references.
-   *
-   * @param alias The alias of the row context column, for instance "EPEcjy3FWmI.lJTx9EZ1dk1"
-   * @param cteName The name of the CTE that the row context column references, for instance
-   *     "ps_epecjy3fwmi_ljtx9ez1dk1"
-   */
-  public void addRowContextColumnMapping(String alias, String cteName) {
-    rowContextReferences.put(alias, cteName);
   }
 
   public String getCTEDefinition() {
@@ -121,6 +120,8 @@ public class CTEContext {
 
   @Getter
   public static class CteDefinitionWithOffset {
+    // Query item id
+    private String itemId;
     // The program stage uid
     private final String programStageUid;
     // The program indicator uid
@@ -137,11 +138,20 @@ public class CTEContext {
     private boolean isProgramIndicator = false;
     // Whether the CTE is a filter
     private boolean isFilter = false;
+    // Whether the CTE is a exists, used for checking if the enrollment exists
+    private boolean isExists = false;
+
     private static final String PS_PREFIX = "ps";
     private static final String PI_PREFIX = "pi";
 
-    public CteDefinitionWithOffset(String programStageUid, String cteDefinition, int offset) {
+    public CteDefinitionWithOffset setExists(boolean exists) {
+      this.isExists = exists;
+      return this;
+    }
+
+    public CteDefinitionWithOffset(String programStageUid, String queryItemId, String cteDefinition, int offset) {
       this.programStageUid = programStageUid;
+      this.itemId = queryItemId;
       this.cteDefinition = cteDefinition;
       this.offset = offset;
       this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
@@ -149,8 +159,8 @@ public class CTEContext {
     }
 
     public CteDefinitionWithOffset(
-        String programStageUid, String cteDefinition, int offset, boolean isRowContext) {
-      this(programStageUid, cteDefinition, offset);
+        String programStageUid, String queryItemId, String cteDefinition, int offset, boolean isRowContext) {
+      this(programStageUid, queryItemId, cteDefinition, offset);
       this.isRowContext = isRowContext;
     }
 
@@ -180,17 +190,25 @@ public class CTEContext {
      * @return the name of the CTE
      */
     public String asCteName(String uid) {
+      if (isExists) {
+        return uid.toLowerCase();
+      }
       if (isProgramIndicator) {
         return "%s_%s".formatted(PI_PREFIX, programIndicatorUid.toLowerCase());
       }
       if (isFilter) {
-        return "%s".formatted(uid.toLowerCase());
+        return uid.toLowerCase();
       }
+
       return "%s_%s_%s".formatted(PS_PREFIX, programStageUid.toLowerCase(), uid.toLowerCase());
     }
 
     public boolean isProgramStage() {
-      return !isFilter && !isProgramIndicator;
+      return !isFilter && !isProgramIndicator && !isExists;
+    }
+
+    public boolean isExists() {
+      return isExists;
     }
   }
 }

@@ -27,41 +27,50 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import org.hisp.dhis.analytics.common.CTEContext.CteDefinitionWithOffset;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.db.sql.SqlBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import java.util.Set;
 
 public class RowContextUtils {
 
-  public static List<String> getRowContextColumns(CTEContext cteContext, SqlBuilder sqlBuilder) {
-    List<String> columns = new ArrayList<>();
-    Map<String, String> rowCtxRefs = cteContext.getRowContextReferences();
-    for (String aliases : rowCtxRefs.keySet()) {
-      columns.add(getStatusColumn(aliases, rowCtxRefs.get(aliases), sqlBuilder));
-      columns.add(getExistsColumn(aliases, rowCtxRefs.get(aliases), sqlBuilder));
+    /**
+     * Get where clauses for row context items
+     * @param cteContext CTE context
+     * @param params Event query parameters
+     * @param sqlBuilder SQL builder
+     * @return List of where clauses
+     */
+    public static List<String> getRowContextWhereClauses(CTEContext cteContext, EventQueryParams params, SqlBuilder sqlBuilder) {
+        List<String> whereClauses = new ArrayList<>();
+        Set<String> ctxNames = cteContext.getCTENames();
+
+        List<String> filters = getItemsWithFilters(params);
+
+        for (String ctxName : ctxNames) {
+            CteDefinitionWithOffset cteDef = cteContext.getDefinitionByItemUid(ctxName);
+                // only add where clause for row context items with filters
+                if (cteDef.isRowContext() && filters.contains(cteDef.getItemId())) {
+                    whereClauses.add("%s.%s IS NULL".formatted(cteDef.getAlias(),
+                            sqlBuilder.quote(cteDef.getItemId())));
+                }
+                // only add where clause for "exists" row context items with filters
+                if (cteDef.isExists() && filters.contains(cteDef.getItemId())) {
+                    whereClauses.add("ee.enrollment IS NOT NULL");
+                }
+        }
+
+        return whereClauses;
     }
 
-    return columns;
-  }
-
-  public static List<String> getRowContextWhereClauses(CTEContext cteContext) {
-    List<String> whereClauses = new ArrayList<>();
-    Map<String, String> rowCtxRefs = cteContext.getRowContextReferences();
-    for (String alias : rowCtxRefs.values()) {
-      whereClauses.add("%s.value is null".formatted(alias));
-      // whereClauses.add("%s.exists_flag = true".formatted(alias));
+    private static List<String> getItemsWithFilters(EventQueryParams params) {
+        return params.getItems().stream()
+                .filter(QueryItem::hasFilter)
+                .map(QueryItem::getItemId)
+                .toList();
     }
-    return whereClauses;
-  }
-
-  private static String getExistsColumn(
-      String aliases, String cteReference, SqlBuilder sqlBuilder) {
-    return "coalesce(%s.exists_flag, false) as %s"
-        .formatted(cteReference, sqlBuilder.quote(aliases + ".status.exists"));
-  }
-
-  private static String getStatusColumn(String alias, String cteReference, SqlBuilder sqlBuilder) {
-    return "%s_status.status as %s".formatted(cteReference, sqlBuilder.quote(alias));
-  }
 }

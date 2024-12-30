@@ -505,9 +505,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
   }
 
-  private String addRowContextFilters(CTEContext cteContext) {
+  private String addRowContextFilters(EventQueryParams params, CTEContext cteContext) {
 
-    List<String> rowContextColumns = RowContextUtils.getRowContextWhereClauses(cteContext);
+    List<String> rowContextColumns = RowContextUtils.getRowContextWhereClauses(cteContext, params, sqlBuilder);
     if (!rowContextColumns.isEmpty()) {
       return String.join(" AND ", rowContextColumns);
     }
@@ -941,8 +941,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     for (QueryItem item : params.getItems()) {
 
-      String itemId = item.getItem().getUid();
-
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
       if (item.isProgramIndicator()) {
         handleProgramIndicatorCte(item, cteContext, params);
@@ -961,12 +959,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
           var cteSql =
               """
-                  SELECT
+                  select
                       enrollment,
                       %s,%s
-                      ROW_NUMBER() OVER (
-                          PARTITION BY enrollment
-                          ORDER BY occurreddate DESC, created DESC
+                      row_number() over (
+                          partition BY enrollment
+                          order BY occurreddate desc, created desc
                       ) as rn
                   FROM %s
                   WHERE eventstatus != 'SCHEDULE'
@@ -984,6 +982,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               cteSql,
               createOffset2(item.getProgramStageOffset()),
               hasEventStatusColumn);
+
+          if (hasEventStatusColumn) {
+            // Generate CTE for event exists clause
+            var existCte = """
+                select distinct
+                    enrollment
+                from
+                    %s
+                where
+                    eventstatus != 'SCHEDULE'
+                    and ps = '%s'
+            """.formatted(eventTableName, item.getProgramStage().getUid());
+
+            cteContext.addExistsCTE(
+                    item.getProgramStage(),
+                    item,
+                    existCte);
+          }
         } else {
 
           // Generate CTE for program stage items
@@ -992,14 +1008,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           String cteSql =
               """
                       -- Generate CTE for program stage items
-                      SELECT DISTINCT ON (enrollment) enrollment, %s as value%s
-                           FROM %s
-                           WHERE eventstatus != 'SCHEDULE'
-                           AND ps = '%s'
-                           ORDER BY enrollment, occurreddate DESC, created DESC %s %s"""
+                      select distinct on (enrollment) enrollment, %s as value
+                           from %s
+                           where eventstatus != 'SCHEDULE'
+                           and ps = '%s'
+                           order by enrollment, occurreddate desc, created desc %s %s"""
                   .formatted(
                       colName,
-                      rowContextAllowedAndNeeded(params, item) ? " ,true as exists_flag" : "",
                       eventTableName,
                       item.getProgramStage().getUid(),
                       createOffset(item.getProgramStageOffset()),
@@ -1094,18 +1109,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 5. Add joins for each CTE
     for (String itemUid : cteContext.getCTENames()) {
       CteDefinitionWithOffset cteDef = cteContext.getDefinitionByItemUid(itemUid);
-      String join =
-          """
-              LEFT JOIN %s %s
-               ON
-               %s.enrollment = ax.enrollment
-              """
-              .formatted(cteDef.asCteName(itemUid), cteDef.getAlias(), cteDef.getAlias());
-      sql.append("\n").append(join);
+      if (!cteDef.isExists()) {
+        String join =
+                """
+                  LEFT JOIN %s %s
+                   ON
+                   %s.enrollment = ax.enrollment
+                  """.formatted(cteDef.asCteName(itemUid), cteDef.getAlias(), cteDef.getAlias());
+        sql.append("\n").append(join);
+      } else {
+        sql.append("""
+            \nLEFT JOIN %s ee
+            ON ee.enrollment = ax.enrollment
+            """.formatted(cteDef.asCteName(itemUid)));
+      }
       if (cteDef.isProgramStage()) {
         // equivalent to original OFFSET 1 LIMIT 1 but more efficient
         // TODO use constant instead of hardcoded 'rn' column name
-        String offset = " AND %s.rn = %s".formatted(cteDef.getAlias(), cteDef.getOffset() + 1);
+        String offset = " and %s.rn = %s".formatted(cteDef.getAlias(), cteDef.getOffset() + 1);
         sql.append(offset);
       }
     }
@@ -1131,7 +1152,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     String baseWhereClause = getWhereClause(params).trim();
     String cteFilters = addCteFiltersToWhereClause(params, cteContext).trim();
-    String rowContextFilters = addRowContextFilters(cteContext).trim();
+    String rowContextFilters = addRowContextFilters(params, cteContext).trim();
 
     // Add non-empty conditions
     if (!baseWhereClause.isEmpty()) {
@@ -1147,135 +1168,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     return conditions;
   }
-
-  //  private List<String> getRowContextColumns(CTEContext cteContext) {
-  //    return RowContextUtils.getRowContextColumns(cteContext, sqlBuilder);
-  //  }
-
-  //  private String resolveOrderByOffset(int offset) {
-  //
-  //    if (offset <= 0) {
-  //      return "desc";
-  //    }
-  //    return "asc";
-  //  }
-
-  //  private String buildAllRankedEventsCTEs(List<QueryItem> items) {
-  //    StringBuilder ctes = new StringBuilder();
-  //    Set<String> processedCombinations = new HashSet<>();
-  //
-  //    for (QueryItem item : items) {
-  //      if (!item.hasProgramStage()) {
-  //        continue;
-  //      }
-  //
-  //      String stageUid = item.getProgramStage().getUid();
-  //      int offset = createOffset2(item.getProgramStageOffset());
-  //      String order = resolveOrderByOffset(item.getProgramStageOffset());
-  //
-  //      // Create unique key for this combination to avoid duplicate CTEs
-  //      String key = stageUid + "_" + offset + "_" + order;
-  //      if (processedCombinations.contains(key)) {
-  //        continue;
-  //      }
-  //
-  //      if (!ctes.isEmpty()) {
-  //        ctes.append(",\n");
-  //      }
-  //
-  //      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
-  //      String columnName = quote(item.getItem().getUid());
-  //
-  //      ctes.append(
-  //          String.format(
-  //              """
-  //              RankedEvents_%s as (
-  //                select enrollment, %s as value, eventstatus,
-  //                  row_number() over (partition by enrollment order by occurreddate %s, created
-  // %s) as rn
-  //                from %s
-  //                where eventstatus != 'SCHEDULE'
-  //                  and ps = '%s'
-  //              )
-  //              """,
-  //              key, columnName, order, order, eventTableName, stageUid));
-  //
-  //      processedCombinations.add(key);
-  //    }
-  //
-  //    return !ctes.isEmpty() ? "with " + ctes + "\n" : "";
-  //  }
-  //
-  //  private String buildValueColumns(List<QueryItem> items) {
-  //    StringBuilder columns = new StringBuilder();
-  //
-  //    for (QueryItem item : items) {
-  //      if (!item.hasProgramStage()) {
-  //        continue;
-  //      }
-  //
-  //      String stageUid = item.getProgramStage().getUid();
-  //      int offset = createOffset2(item.getProgramStageOffset());
-  //      String key =
-  //          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
-  //
-  //      String offsetLabel = offset == 0 ? "[0]" : "[-" + offset + "]";
-  //      String alias = "re_" + key;
-  //
-  //      if (!columns.isEmpty()) {
-  //        columns.append(",\n");
-  //      }
-  //
-  //      // Add value column
-  //      columns.append(
-  //          String.format(
-  //              "%s.value as %s",
-  //              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid())));
-  //
-  //      // Add exists column
-  //      columns.append(
-  //          String.format(
-  //              ",\n(%s.enrollment is not null) as %s",
-  //              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() +
-  // ".exists")));
-  //
-  //      // Add status column
-  //      columns.append(
-  //          String.format(
-  //              ",\n%s.eventstatus as %s",
-  //              alias, quote(stageUid + offsetLabel + "." + item.getItem().getUid() +
-  // ".status")));
-  //    }
-  //
-  //    return columns.toString();
-  //  }
-  //
-  //  private String buildFromClauseWithJoins(EventQueryParams params, List<QueryItem> items) {
-  //    StringBuilder fromClause = new StringBuilder();
-  //
-  //    // Start with base table
-  //    fromClause.append("\nfrom ").append(params.getTableName()).append(" as ax");
-  //
-  //    // Add joins for each item
-  //    for (QueryItem item : items) {
-  //      if (!item.hasProgramStage()) {
-  //        continue;
-  //      }
-  //
-  //      String stageUid = item.getProgramStage().getUid();
-  //      int offset = createOffset2(item.getProgramStageOffset());
-  //      String key =
-  //          stageUid + "_" + offset + "_" + resolveOrderByOffset(item.getProgramStageOffset());
-  //      String alias = "re_" + key;
-  //
-  //      fromClause.append(
-  //          String.format(
-  //              "\nleft join RankedEvents_%s %s on ax.enrollment = %s.enrollment and %s.rn = %d",
-  //              key, alias, alias, alias, offset + 1));
-  //    }
-  //
-  //    return fromClause.toString();
-  //  }
 
   protected String getSortClause(EventQueryParams params) {
     if (params.isSorting()) {

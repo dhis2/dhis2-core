@@ -134,7 +134,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
                 latestDate));
 
     // Register the CTE and its column mapping
-    cteContext.addCTE(programIndicator, cteSql);
+    cteContext.addProgramIndicatorCTE(programIndicator, cteSql);
   }
 
   private String getTableName(ProgramIndicator programIndicator) {
