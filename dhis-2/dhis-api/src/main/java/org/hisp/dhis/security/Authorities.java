@@ -74,7 +74,6 @@ public enum Authorities {
   F_DATAVALUE_ADD,
   F_IMPERSONATE_USER,
   F_SYSTEM_SETTING,
-  F_MAP_EXTERNAL_LAYER_ADD,
   F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 
   public static Set<String> getAllAuthorities() {
