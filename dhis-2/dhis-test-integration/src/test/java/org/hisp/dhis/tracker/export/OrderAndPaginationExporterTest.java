@@ -212,6 +212,33 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByInactiveAndByDefaultOrder()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    List<String> expected =
+        Stream.of(
+                get(TrackedEntity.class, "QesgJkTyTCk"),
+                get(TrackedEntity.class, "dUE514NMOlo"),
+                get(TrackedEntity.class, "mHWCacsGYYn"))
+            .sorted(Comparator.comparing(TrackedEntity::getId).reversed()) // reversed = desc
+            .map(TrackedEntity::getUid)
+            .toList();
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("mHWCacsGYYn", "QesgJkTyTCk", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .orderBy("inactive", SortDirection.ASC)
+            .user(importUser)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(expected, trackedEntities);
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
@@ -587,6 +614,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderEnrollmentsByStatusAndByDefaultOrder()
+      throws ForbiddenException, BadRequestException {
+    List<String> expected =
+        Stream.of(get(Enrollment.class, "HDWTYSYkICe"), get(Enrollment.class, "GYWSSZunTLk"))
+            .sorted(Comparator.comparing(Enrollment::getId).reversed()) // reversed = desc
+            .map(Enrollment::getUid)
+            .toList();
+
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .orgUnitUids(Set.of("DiszpKrYNg8"))
+            .orgUnitMode(SELECTED)
+            .enrollmentUids(Set.of("HDWTYSYkICe", "GYWSSZunTLk"))
+            .orderBy("status", SortDirection.DESC)
+            .build();
+
+    List<String> actual = getEnrollments(operationParams);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams operationParams =
@@ -698,6 +747,29 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     List<String> enrollments = getEnrollments(params);
 
     assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
+  }
+
+  @Test
+  void shouldOrderEventsByStatusAndByDefaultOrder() throws ForbiddenException, BadRequestException {
+    List<String> expected =
+        Stream.of(
+                get(Event.class, "ck7DzdxqLqA"),
+                get(Event.class, "kWjSezkXHVp"),
+                get(Event.class, "OTmjvJDn0Fu"))
+            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
+            .map(Event::getUid)
+            .toList();
+
+    EventOperationParams operationParams =
+        eventParamsBuilder
+            .orgUnitUid("DiszpKrYNg8")
+            .events(Set.of("ck7DzdxqLqA", "kWjSezkXHVp", "OTmjvJDn0Fu"))
+            .orderBy("status", SortDirection.DESC)
+            .build();
+
+    List<String> actual = getEvents(operationParams);
+
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -1306,6 +1378,29 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> events = getEvents(eventParamsBuilder.build());
     assertEquals(List.of(firstEvent, secondEvent), events);
+  }
+
+  @Test
+  void shouldOrderRelationshipsByCreatedAtClientAndByDefaultOrder()
+      throws ForbiddenException, NotFoundException {
+    Relationship oLT07jKRu9e = get(Relationship.class, "fHn74P5T3r1");
+    Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
+    List<String> expected =
+        Stream.of(oLT07jKRu9e, yZxjxJli9mO)
+            .sorted(Comparator.comparing(Relationship::getId).reversed()) // reversed = desc
+            .map(Relationship::getUid)
+            .toList();
+
+    RelationshipOperationParams params =
+        RelationshipOperationParams.builder()
+            .type(TrackerType.TRACKED_ENTITY)
+            .identifier("dUE514NMOlo")
+            .orderBy("createdAtClient", SortDirection.DESC)
+            .build();
+
+    List<String> relationships = getRelationships(params);
+
+    assertEquals(expected, relationships);
   }
 
   @Test

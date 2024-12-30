@@ -273,7 +273,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       orderJoiner.add(
           order.getField() + " " + (order.getDirection().isAscending() ? "asc" : "desc"));
     }
-    return " order by " + orderJoiner;
+    return " order by " + orderJoiner + ", " + DEFAULT_ORDER;
   }
 
   @Getter
