@@ -996,7 +996,7 @@
       "name": "TA tracker program rule - showerror on stage",
       "displayName": "TA tracker program rule - showerror",
       "externalAccess": false,
-      "condition": "V{enrollment_date} > V{current_date}",
+      "condition": "d2:daysBetween(V{enrollment_date},V{current_date}) < 0",
       "favorite": false,
       "program": {
         "id": "U5HE4IRrZ7S"
@@ -1036,7 +1036,7 @@
         "users": {},
         "userGroups": {}
       },
-      "condition": "V{event_date} < V{current_date}",
+      "condition": "d2:daysBetween(V{event_date},V{current_date}) > 0",
       "program": {
         "id": "U5HE4IRrZ7S"
       },
@@ -1067,7 +1067,7 @@
         "users": {},
         "userGroups": {}
       },
-      "condition": "V{event_date} < V{current_date}",
+      "condition": "d2:daysBetween(V{event_date},V{current_date}) > 0",
       "program": {
         "id": "U5HE4IRrZ7S"
       },
@@ -1118,7 +1118,7 @@
       "name": "TA tracker program rule - warnings",
       "displayName": "TA tracker program rule - warnings",
       "externalAccess": false,
-      "condition": "V{enrollment_date} < V{current_date}",
+      "condition": "d2:daysBetween(V{enrollment_date},V{current_date}) > 0",
       "favorite": false,
       "program": {
         "id": "U5HE4IRrZ7S"
