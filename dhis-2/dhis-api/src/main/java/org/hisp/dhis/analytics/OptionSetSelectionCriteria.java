@@ -35,4 +35,13 @@ import lombok.Getter;
 @Getter
 public class OptionSetSelectionCriteria {
   private Map<String, OptionSetSelection> optionSetSelections;
+
+  @Override
+  public String toString() {
+    if (optionSetSelections == null || optionSetSelections.isEmpty()) {
+      return "";
+    }
+
+    return "OptionSetSelectionCriteria{" + "optionSetSelections=" + optionSetSelections + '}';
+  }
 }

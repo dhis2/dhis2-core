@@ -37,4 +37,17 @@ public class OptionSetSelection {
   private String optionSetUid;
   private List<String> options;
   private OptionSetSelectionMode optionSetSelectionMode;
+
+  @Override
+  public String toString() {
+    return "OptionSetSelection{"
+        + "optionSetUid='"
+        + optionSetUid
+        + '\''
+        + ", options="
+        + options
+        + ", optionSetSelectionMode="
+        + optionSetSelectionMode
+        + '}';
+  }
 }
