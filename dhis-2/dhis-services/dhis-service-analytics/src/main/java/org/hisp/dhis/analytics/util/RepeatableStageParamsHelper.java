@@ -63,7 +63,7 @@ public final class RepeatableStageParamsHelper {
   /**
    * Removes the offset of the repeatable stage, if any.
    *
-   * @param dimension, ie: EPEcjy3FWmI[0].fCXKBdc27Bt.
+   * @param dimension ie: EPEcjy3FWmI[0].fCXKBdc27Bt.
    * @return dimension without params like edqlbukwRfQ[1].vANAXwtLwcT -> edqlbukwRfQ.vANAXwtLwcT
    */
   public static String removeRepeatableStageParams(@Nonnull String dimension) {
