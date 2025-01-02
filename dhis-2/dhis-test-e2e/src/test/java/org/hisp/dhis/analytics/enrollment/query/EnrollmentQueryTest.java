@@ -295,7 +295,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true,
         "edqlbukwRfQ",
-        "index:10 startDate:null endDate: null dimension: edqlbukwRfQ[-2].vANAXwtLwcT",
+        "index:10 startDate:null endDate: null dimension: edqlbukwRfQ[10].vANAXwtLwcT",
         10);
 
     validateRowContext(response, 0, 3, "ND");
