@@ -2,16 +2,30 @@
   "scenarios": [
     {
       "name": "someDimensionsWithFilter",
-      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n?dimension=ou:O6uvpzGd5pu,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6:IN:Female,GUOBQt5K2WI:LIKE:Cape,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ:LE:45:NE:NV:!EQ:44&headers=ouname,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6,GUOBQt5K2WI,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ,lastupdated,createdbydisplayname,lastupdatedbydisplayname,enrollmentdate,programstatus&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&programStatus=ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=OvY4VVhSDeJ&relativePeriodDate=2022-07-01",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=ou:O6uvpzGd5pu,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6:IN:Female,GUOBQt5K2WI:LIKE:Cape,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ:LE:45:NE:NV:!EQ:44&headers=ouname,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6,GUOBQt5K2WI,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ,lastupdated,createdbydisplayname,lastupdatedbydisplayname,enrollmentdate,programstatus&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&programStatus=ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=OvY4VVhSDeJ&relativePeriodDate=2022-07-01",
       "version": {
         "min": 39
       }
     },
     {
       "name": "financialYear2022Sep",
-      "query": "/api/42/analytics/enrollments/query/IpHINAT79UW?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&rowContext=true&lastUpdated=2022Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
+      "query": "/api/42/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&rowContext=true&lastUpdated=2022Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
       "version": {
         "min": 42
+      }
+    },
+    {
+      "name": "programIndicatorWeightGainBetweenBirthAndLastPostnatal",
+      "query": "/api/42/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,qhTkqwAJLMv:EQ:NV&headers=ouname,lastupdated,qhTkqwAJLMv&totalPages=false&rowContext=true&lastUpdated=LAST_6_MONTHS&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&desc=lastupdated&relativePeriodDate=2019-02-01",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "programIndicatorWomenWithLowHbVisitWithinOneYear",
+      "query": "/api/42/analytics/enrollments/query/WSGAb5XwJ3Y.json?dimension=EDp0b79Rbx9,ou:USER_ORGUNIT&headers=ouname,lastupdated,EDp0b79Rbx9,programstatus,enrollmentdate&totalPages=false&rowContext=true&lastUpdated=LAST_12_MONTHS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&relativePeriodDate=2019-02-01&desc=lastupdated",
+      "version": {
+        "min": 41
       }
     }
   ]

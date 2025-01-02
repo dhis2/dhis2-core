@@ -41,7 +41,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class DorisSqlBuilderTest {
-  private final SqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
+  private final DorisSqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
 
   private Table getTableA() {
     List<Column> columns =
@@ -223,6 +223,22 @@ class DorisSqlBuilderTest {
     assertEquals(
         "json_unquote(json_extract(ev.eventdatavalues, '$.qrur9Dvnyt5.value'))",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
+  }
+
+  @Test
+  void testCast() {
+    assertEquals(
+        """
+        CAST(ax."qrur9Dvnyt5" AS DECIMAL)""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+    assertEquals(
+        """
+        CAST(ax."qrur9Dvnyt5" AS DECIMAL) != 0""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.BOOLEAN));
+    assertEquals(
+        """
+        CAST(ax."qrur9Dvnyt5" AS CHAR)""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.TEXT));
   }
 
   @Test

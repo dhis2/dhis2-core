@@ -27,16 +27,22 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -104,6 +110,40 @@ public class DataDimensionItem {
 
   private SubexpressionDimensionItem subexpressionDimensionItem;
 
+  private Attributes attributes;
+
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class Attributes implements Serializable {
+    /** The option item for this dimension item. * */
+    private OptionSetItem optionSetItem;
+
+    @JsonProperty
+    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+    public OptionSetItem getOptionSetItem() {
+      return optionSetItem;
+    }
+
+    /**
+     * This method ensure that existing persisted items will return default values, case the current
+     * {@link OptionSetItem} is null or does not have an {@link Aggregation} defined.
+     *
+     * @return the correct version of an {@link OptionSetItem}.
+     */
+    public OptionSetItem getOptionSetItemOrDefault() {
+      if (optionSetItem != null) {
+        return new OptionSetItem(
+            optionSetItem.getOptions(), optionSetItem.getAggregationOrDefault());
+      }
+
+      return new OptionSetItem(Set.of(), AGGREGATED);
+    }
+
+    public void setOptionSetItem(OptionSetItem optionSetItem) {
+      this.optionSetItem = optionSetItem;
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
@@ -112,7 +152,6 @@ public class DataDimensionItem {
 
   public static List<DataDimensionItem> createWithDependencies(
       DimensionalItemObject object, List<DataDimensionItem> items) {
-
     if (DataElement.class.isAssignableFrom(object.getClass())) {
       DataDimensionItem dimension = new DataDimensionItem();
       DataElement dataElement = (DataElement) object;
@@ -187,6 +226,7 @@ public class DataDimensionItem {
     if (indicator != null) {
       return indicator;
     } else if (dataElement != null) {
+      loadAttributes(dataElement);
       return dataElement;
     } else if (dataElementOperand != null) {
       return dataElementOperand;
@@ -195,16 +235,32 @@ public class DataDimensionItem {
     } else if (programIndicator != null) {
       return programIndicator;
     } else if (programDataElement != null) {
+      loadAttributes(programDataElement);
       return programDataElement;
     } else if (programAttribute != null) {
+      loadAttributes(programAttribute);
       return programAttribute;
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
     } else if (subexpressionDimensionItem != null) {
-      return expressionDimensionItem;
+      return subexpressionDimensionItem;
     }
 
     return null;
+  }
+
+  /**
+   * Simply loads the internal attributes into the given item object. Some objects, when null, will
+   * be loaded with their respective defaults.
+   *
+   * @param itemObject the {@link BaseDimensionalItemObject}.
+   */
+  private void loadAttributes(BaseDimensionalItemObject itemObject) {
+    if (attributes == null) {
+      attributes = new Attributes();
+    }
+
+    itemObject.setOptionSetItem(attributes.getOptionSetItemOrDefault());
   }
 
   @JsonProperty
@@ -287,6 +343,14 @@ public class DataDimensionItem {
     this.id = id;
   }
 
+  public Attributes getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(Attributes attributes) {
+    this.attributes = attributes;
+  }
+
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -298,9 +362,6 @@ public class DataDimensionItem {
     this.indicator = indicator;
   }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
   }

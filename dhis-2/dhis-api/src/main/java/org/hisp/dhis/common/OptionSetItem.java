@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,86 +25,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataitem;
+package org.hisp.dhis.common;
 
+import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.analytics.Aggregation;
 
-/**
- * This is a pure DTO class and basic constructors in order to make it simple. It's used only as
- * final output/response to the consumer.
- *
- * @author maikel arabori
- */
-@Getter
-@Builder
+/** Encapsulates {@link org.hisp.dhis.option.Option}s uids and the {@link Aggregation} type. */
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @EqualsAndHashCode
-@JacksonXmlRootElement(localName = "dataItem", namespace = DXF_2_0)
-public class DataItem implements Serializable {
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String name;
+@JacksonXmlRootElement(localName = "optionSetItem", namespace = DXF_2_0)
+public class OptionSetItem implements Serializable {
+  /** The uids of the options. */
+  private Set<String> options = new LinkedHashSet<>();
+
+  /** The aggregation for this option item. */
+  private Aggregation aggregation;
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  private String shortName;
+  public Set<String> getOptions() {
+    return options;
+  }
+
+  public void setOptions(Set<String> options) {
+    this.options = options;
+  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  private String displayName;
+  public Aggregation getAggregation() {
+    return aggregation;
+  }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String displayShortName;
+  public void setAggregation(Aggregation aggregation) {
+    this.aggregation = aggregation;
+  }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String id;
+  /**
+   * Returns the current {@link Aggregation} or default.
+   *
+   * @return the respective {@link Aggregation} object.
+   */
+  public Aggregation getAggregationOrDefault() {
+    if (aggregation == null) {
+      return AGGREGATED;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String code;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private DimensionItemType dimensionItemType;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String programId;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private ValueType valueType;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private ValueType simplifiedValueType;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String expression;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  private String optionSetId;
-
-  public ValueType getSimplifiedValueType() {
-    return valueType != null ? valueType.toSimplifiedValueType() : null;
+    return aggregation;
   }
 }

@@ -212,7 +212,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         sql,
         is(
             "case when (coalesce("
-                + "case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric!=0,false)) "
+                + "case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric != 0,false)) "
                 + "then 10 + 5 else 3 * 2 end"));
   }
 

@@ -242,6 +242,22 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testCast() {
+    assertEquals(
+        """
+        toFloat64(ax."qrur9Dvnyt5")""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+    assertEquals(
+        """
+        toUInt8(ax."qrur9Dvnyt5") != 0""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.BOOLEAN));
+    assertEquals(
+        """
+        toString(ax."qrur9Dvnyt5")""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.TEXT));
+  }
+
+  @Test
   void testIfThen() {
     assertEquals(
         "if(a.status = 'COMPLETE', a.eventdate, null)",
