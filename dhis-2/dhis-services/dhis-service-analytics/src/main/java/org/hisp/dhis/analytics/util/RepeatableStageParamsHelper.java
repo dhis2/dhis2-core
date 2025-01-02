@@ -37,8 +37,10 @@ import org.hisp.dhis.common.RepeatableStageParams;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class RepeatableStageParamsHelper {
-  // [-1]
+  /** Matches indexes like [-1]. */
   private static final String PS_INDEX_REGEX = "\\[-?\\d+\\]";
+
+  private static final Pattern PATTERN_INDEX_REGEX = Pattern.compile(PS_INDEX_REGEX);
 
   /**
    * Returns a {@link RepeatableStageParams} instance based on the given dimension.
@@ -47,8 +49,7 @@ public final class RepeatableStageParamsHelper {
    * @return the {@link RepeatableStageParams}.
    */
   public static RepeatableStageParams getRepeatableStageParams(@Nonnull String dimension) {
-    Pattern pattern = Pattern.compile(PS_INDEX_REGEX);
-    Matcher matcher = pattern.matcher(dimension);
+    Matcher matcher = PATTERN_INDEX_REGEX.matcher(dimension);
     boolean patternMatches = matcher.find();
 
     if (patternMatches) {
@@ -66,8 +67,7 @@ public final class RepeatableStageParamsHelper {
    * @return dimension without params like edqlbukwRfQ[1].vANAXwtLwcT -> edqlbukwRfQ.vANAXwtLwcT
    */
   public static String removeRepeatableStageParams(@Nonnull String dimension) {
-    Pattern pattern = Pattern.compile(PS_INDEX_REGEX);
-    Matcher matcher = pattern.matcher(dimension);
+    Matcher matcher = PATTERN_INDEX_REGEX.matcher(dimension);
 
     if (matcher.find()) {
       return dimension.replace(matcher.group(0), "");

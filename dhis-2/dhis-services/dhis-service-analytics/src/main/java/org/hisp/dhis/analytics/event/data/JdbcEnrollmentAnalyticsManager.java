@@ -713,14 +713,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return sb.toString();
   }
 
-  private String getLimit(int count) {
-    if (count == Integer.MAX_VALUE) {
-      return "";
-    }
-
-    return " LIMIT " + count;
-  }
-
   private void assertProgram(QueryItem item) {
     Assert.isTrue(
         item.hasProgram(),
