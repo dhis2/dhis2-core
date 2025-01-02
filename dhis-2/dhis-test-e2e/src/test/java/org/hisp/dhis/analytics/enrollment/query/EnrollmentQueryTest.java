@@ -283,7 +283,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true,
         "edqlbukwRfQ",
-        "index:-2 startDate:null endDate: null",
+        "index:-2 startDate:null endDate: null dimension: edqlbukwRfQ[-2].vANAXwtLwcT",
         -2);
     validateHeader(
         response,
@@ -295,7 +295,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true,
         "edqlbukwRfQ",
-        "index:10 startDate:null endDate: null",
+        "index:10 startDate:null endDate: null dimension: edqlbukwRfQ[-2].vANAXwtLwcT",
         10);
 
     validateRowContext(response, 0, 3, "ND");
