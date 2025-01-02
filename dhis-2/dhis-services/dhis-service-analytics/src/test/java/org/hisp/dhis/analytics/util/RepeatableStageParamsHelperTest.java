@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link RepeatableStageParamsHelper}. */
 class RepeatableStageParamsHelperTest {
+
   @Test
   void testGetRepeatableStageParams() {
     // Given
