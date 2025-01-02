@@ -71,7 +71,9 @@ class GridHeaderTest {
             "programStage",
             repeatableStageParams);
 
-    assertEquals("index:1 startDate:null endDate: null", gridHeader.getRepeatableStageParams());
+    assertEquals(
+        "index:1 startDate:null endDate: null dimension: null",
+        gridHeader.getRepeatableStageParams());
   }
 
   @Test
