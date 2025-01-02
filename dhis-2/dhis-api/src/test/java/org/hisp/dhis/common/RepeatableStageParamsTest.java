@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link RepeatableStageParams}. */
 class RepeatableStageParamsTest {
+
   @Test
   void equalityTest() {
     // arrange

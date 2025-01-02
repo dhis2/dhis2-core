@@ -68,6 +68,19 @@ public class RepeatableStageParams {
   /**
    * Instantiates this object with the given arguments.
    *
+   * @param dimension the dimension param.
+   * @return an instance of this object.
+   */
+  public static RepeatableStageParams of(String dimension) {
+    RepeatableStageParams params = new RepeatableStageParams();
+    params.setDimension(dimension);
+
+    return params;
+  }
+
+  /**
+   * Instantiates this object with the given arguments.
+   *
    * @param index the index.
    * @return an instance of this object.
    */

@@ -56,7 +56,7 @@ public final class RepeatableStageParamsHelper {
       return RepeatableStageParams.of(Integer.parseInt(index), dimension);
     }
 
-    return new RepeatableStageParams();
+    return RepeatableStageParams.of(dimension);
   }
 
   /**
