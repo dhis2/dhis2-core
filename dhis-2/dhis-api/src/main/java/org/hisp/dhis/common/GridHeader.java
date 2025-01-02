@@ -335,7 +335,7 @@ public class GridHeader implements Serializable {
       return null;
     }
 
-    return repeatableStageParams.getStartIndex();
+    return repeatableStageParams.getIndex();
   }
 
   // -------------------------------------------------------------------------

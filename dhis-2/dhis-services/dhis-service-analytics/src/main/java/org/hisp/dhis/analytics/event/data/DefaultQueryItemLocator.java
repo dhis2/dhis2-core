@@ -36,7 +36,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7224;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -50,16 +49,13 @@ import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.exception.InvalidRepeatableStageParamsException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.program.Program;
@@ -280,18 +276,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
   }
 
   private static RepeatableStageParams getRepeatableStageParams(String dimension) {
-    try {
-      RepeatableStageParams repeatableStageParams =
-          RepeatableStageParamsHelper.getRepeatableStageParams(dimension);
-
-      repeatableStageParams.setDimension(dimension);
-
-      return repeatableStageParams;
-    } catch (InvalidRepeatableStageParamsException e) {
-      ErrorMessage errorMessage = new ErrorMessage(dimension, ErrorCode.E1101, List.of(dimension));
-
-      throw new IllegalQueryException(errorMessage);
-    }
+    return RepeatableStageParamsHelper.getRepeatableStageParams(dimension);
   }
 
   private RelationshipType getRelationshipTypeOrFail(String dimension) {
