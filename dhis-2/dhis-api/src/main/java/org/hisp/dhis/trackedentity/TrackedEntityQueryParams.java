@@ -471,7 +471,7 @@ public class TrackedEntityQueryParams {
 
   /** Indicates whether this parameters specifies a max TE limit. */
   public boolean hasMaxTeLimit() {
-    return this.maxTeLimit > 0;
+    return maxTeLimit > 0;
   }
 
   /** Indicates whether this parameters is of the given organisation unit mode. */
