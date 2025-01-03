@@ -58,16 +58,22 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OptionSetSelection;
+import org.hisp.dhis.analytics.OptionSetSelectionCriteria;
+import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AnalyticalObject;
@@ -75,12 +81,15 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
@@ -114,6 +123,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
+      params.withOptionSetSelectionCriteria(getOptionSetSelectionCriteria(request.getDimension()));
     }
 
     if (isNotEmpty(request.getFilter())) {
@@ -169,6 +179,63 @@ public class DefaultDataQueryService implements DataQueryService {
         .withLocale(locale)
         .withOutputFormat(ANALYTICS)
         .build();
+  }
+
+  private OptionSetSelectionCriteria getOptionSetSelectionCriteria(Set<String> dimensions) {
+    OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder builder =
+        OptionSetSelectionCriteria.builder();
+    Map<String, OptionSetSelection> optionSetSelections = new HashMap<>();
+    for (String dimension : dimensions) {
+      String param = DimensionalObjectUtils.getParamFromDimension(dimension);
+
+      if (!hasOptionSet(param)) {
+        continue;
+      }
+
+      OptionSetSelectionMode mode = DimensionalObjectUtils.getOptionSetSelectionMode(param);
+
+      String key = DimensionalObjectUtils.getThirdIdentifier(param);
+      if (key == null) {
+        key =
+            DimensionalObjectUtils.getFirstIdentifier(param)
+                + "."
+                + DimensionalObjectUtils.getSecondIdentifier(param);
+      } else {
+        key = DimensionalObjectUtils.getSecondIdentifier(param) + "." + key;
+      }
+
+      OptionSetSelection.OptionSetSelectionBuilder optionSetSelectionBuilder =
+          OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(key);
+      String options = DimensionalObjectUtils.getOptions(param);
+
+      if (options != null && !options.isEmpty()) {
+        List<String> optionList =
+            Stream.of(options.split("#"))
+                .map(
+                    uid ->
+                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
+                            .getUid())
+                .toList();
+        optionSetSelectionBuilder.options(optionList);
+      }
+
+      optionSetSelections.put(key, optionSetSelectionBuilder.build());
+    }
+
+    if (optionSetSelections.isEmpty()) {
+      return null;
+    }
+
+    return builder.optionSetSelections(optionSetSelections).build();
+  }
+
+  private boolean hasOptionSet(String param) {
+    String uid = DimensionalObjectUtils.getThirdIdentifier(param);
+    if (uid == null) {
+      uid = DimensionalObjectUtils.getSecondIdentifier(param);
+    }
+
+    return uid != null && idObjectManager.exists(OptionSet.class, uid);
   }
 
   @Override
