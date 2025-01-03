@@ -92,7 +92,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CTEContext;
-import org.hisp.dhis.analytics.common.CTEContext.CteDefinitionWithOffset;
+import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -1404,8 +1404,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (queryItem.isProgramIndicator()) {
         // For program indicators, use CTE reference
         String piUid = queryItem.getItem().getUid();
-        CteDefinitionWithOffset cteDef = cteContext.getDefinitionByItemUid(piUid);
-        // ugaee.value as "CH6wamtY9kK",
+        CteDefinition cteDef = cteContext.getDefinitionByItemUid(piUid);
         String col = "%s.value as %s".formatted(cteDef.getAlias(), piUid);
         columns.add(col);
       } else if (ValueType.COORDINATE == queryItem.getValueType()) {
@@ -1428,8 +1427,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         columns.add(columnAndAlias.asSql());
       }
     }
-
-    return columns;
+    // remove duplicates
+    var ded = columns.stream().distinct().toList();
+    return ded;
   }
 
   /**

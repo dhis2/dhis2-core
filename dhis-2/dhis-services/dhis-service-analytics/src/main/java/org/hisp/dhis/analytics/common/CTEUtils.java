@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import lombok.experimental.UtilityClass;
 import org.hisp.dhis.common.QueryItem;
 
+@UtilityClass
 public class CTEUtils {
 
-  public static String createFilterName(QueryItem queryItem) {
-    return "filter_" + getIdentifier(queryItem).replace('.', '_').toLowerCase();
-  }
+  public static String computeKey(QueryItem queryItem) {
 
-  public static String createFilterNameByIdentifier(String identifier) {
-    return "filter_" + identifier.replace('.', '_').toLowerCase();
+    if (queryItem.hasProgramStage()) {
+      return "%s_%s".formatted(
+              queryItem.getProgramStage().getUid(),
+              queryItem.getItemId());
+    }
+    // TODO continue with the rest of the method
+    return "";
   }
 
   public static String getIdentifier(QueryItem queryItem) {

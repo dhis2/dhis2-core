@@ -27,188 +27,109 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import lombok.Getter;
-import org.apache.commons.text.RandomStringGenerator;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hisp.dhis.analytics.common.CTEUtils.computeKey;
+
 public class CTEContext {
-  private final Map<String, CteDefinitionWithOffset> cteDefinitions = new LinkedHashMap<>();
+    private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
 
-  public CteDefinitionWithOffset getDefinitionByItemUid(String itemUid) {
-    return cteDefinitions.get(itemUid);
-  }
-
-  public void addCTE(ProgramStage programStage, QueryItem item, String cteDefinition, int offset) {
-    cteDefinitions.put(
-        item.getItem().getUid(),
-        new CteDefinitionWithOffset(programStage.getUid(), item.getItemId(), cteDefinition, offset));
-  }
-
-  public void addCTE(
-      ProgramStage programStage,
-      QueryItem item,
-      String cteDefinition,
-      int offset,
-      boolean isRowContext) {
-    cteDefinitions.put(
-        item.getItem().getUid(),
-        new CteDefinitionWithOffset(programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext));
-  }
-
-  public void addExistsCTE(
-          ProgramStage programStage,
-            QueryItem item,
-          String cteDefinition) {
-    var cteDef = new CteDefinitionWithOffset(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
-            .setExists(true);
-    cteDefinitions.put(
-            programStage.getUid(),
-            cteDef);
-  }
-
-  /**
-   * Adds a CTE definition to the context.
-   *
-   * @param programIndicator The program indicator
-   * @param cteDefinition The CTE definition (the SQL query)
-   */
-  public void addProgramIndicatorCTE(ProgramIndicator programIndicator, String cteDefinition) {
-    cteDefinitions.put(
-        programIndicator.getUid(),
-        new CteDefinitionWithOffset(programIndicator.getUid(), cteDefinition));
-  }
-
-  public void addCTEFilter(String name, String ctedefinition) {
-    cteDefinitions.put(name, new CteDefinitionWithOffset(name, ctedefinition, true));
-  }
-
-  public String getCTEDefinition() {
-    if (cteDefinitions.isEmpty()) {
-      return "";
-    }
-
-    StringBuilder sb = new StringBuilder("WITH ");
-    boolean first = true;
-    for (Map.Entry<String, CteDefinitionWithOffset> entry : cteDefinitions.entrySet()) {
-      if (!first) {
-        sb.append(", ");
-      }
-      CteDefinitionWithOffset cteDef = entry.getValue();
-      sb.append(cteDef.asCteName(entry.getKey()))
-          .append(" AS (")
-          .append(entry.getValue().cteDefinition)
-          .append(")");
-      first = false;
-    }
-    return sb.toString();
-  }
-
-  // Rename to item uid
-  public Set<String> getCTENames() {
-    return cteDefinitions.keySet();
-  }
-
-  public boolean containsCteFilter(String cteFilterName) {
-    return cteDefinitions.containsKey(cteFilterName);
-  }
-
-  @Getter
-  public static class CteDefinitionWithOffset {
-    // Query item id
-    private String itemId;
-    // The program stage uid
-    private final String programStageUid;
-    // The program indicator uid
-    private String programIndicatorUid;
-    // The CTE definition (the SQL query)
-    private final String cteDefinition;
-    // The calculated offset
-    private final int offset;
-    // The alias of the CTE
-    private final String alias;
-    // Whether the CTE is a row context (TODO this need a better explanation)
-    private boolean isRowContext;
-    // Whether the CTE is a program indicator
-    private boolean isProgramIndicator = false;
-    // Whether the CTE is a filter
-    private boolean isFilter = false;
-    // Whether the CTE is a exists, used for checking if the enrollment exists
-    private boolean isExists = false;
-
-    private static final String PS_PREFIX = "ps";
-    private static final String PI_PREFIX = "pi";
-
-    public CteDefinitionWithOffset setExists(boolean exists) {
-      this.isExists = exists;
-      return this;
-    }
-
-    public CteDefinitionWithOffset(String programStageUid, String queryItemId, String cteDefinition, int offset) {
-      this.programStageUid = programStageUid;
-      this.itemId = queryItemId;
-      this.cteDefinition = cteDefinition;
-      this.offset = offset;
-      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
-      this.isRowContext = false;
-    }
-
-    public CteDefinitionWithOffset(
-        String programStageUid, String queryItemId, String cteDefinition, int offset, boolean isRowContext) {
-      this(programStageUid, queryItemId, cteDefinition, offset);
-      this.isRowContext = isRowContext;
-    }
-
-    public CteDefinitionWithOffset(String programIndicatorUid, String cteDefinition) {
-      this.cteDefinition = cteDefinition;
-      this.programIndicatorUid = programIndicatorUid;
-      this.programStageUid = null;
-      this.offset = -999;
-      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
-      this.isRowContext = false;
-      this.isProgramIndicator = true;
-    }
-
-    public CteDefinitionWithOffset(String cteFilterName, String cteDefinition, boolean isFilter) {
-      this.cteDefinition = cteDefinition;
-      this.programIndicatorUid = null;
-      this.programStageUid = null;
-      this.offset = -999;
-      this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
-      this.isRowContext = false;
-      this.isProgramIndicator = false;
-      this.isFilter = isFilter;
+    public CteDefinition getDefinitionByItemUid(String itemUid) {
+        return cteDefinitions.get(itemUid);
     }
 
     /**
-     * @param uid the uid of an dimension item or ProgramIndicator
-     * @return the name of the CTE
+     * Adds a CTE definition to the context.
+     *
+     * @param programStage  The program stage
+     * @param item          The query item
+     * @param cteDefinition The CTE definition (the SQL query)
+     * @param offset        The calculated offset
+     * @param isRowContext  Whether the CTE is a row context
      */
-    public String asCteName(String uid) {
-      if (isExists) {
-        return uid.toLowerCase();
-      }
-      if (isProgramIndicator) {
-        return "%s_%s".formatted(PI_PREFIX, programIndicatorUid.toLowerCase());
-      }
-      if (isFilter) {
-        return uid.toLowerCase();
-      }
-
-      return "%s_%s_%s".formatted(PS_PREFIX, programStageUid.toLowerCase(), uid.toLowerCase());
+    public void addCTE(
+            ProgramStage programStage,
+            QueryItem item,
+            String cteDefinition,
+            int offset,
+            boolean isRowContext) {
+        String key = computeKey(item);
+        if (cteDefinitions.containsKey(key)) {
+            cteDefinitions.get(key).getOffsets().add(offset);
+        } else {
+            var cteDef = new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
+            cteDefinitions.put(key, cteDef);
+        }
     }
 
-    public boolean isProgramStage() {
-      return !isFilter && !isProgramIndicator && !isExists;
+    public void addExistsCTE(
+            ProgramStage programStage,
+            QueryItem item,
+            String cteDefinition) {
+        var cteDef = new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
+                .setExists(true);
+        cteDefinitions.put(
+                programStage.getUid(),
+                cteDef);
     }
 
-    public boolean isExists() {
-      return isExists;
+    /**
+     * Adds a CTE definition to the context.
+     *
+     * @param programIndicator The program indicator
+     * @param cteDefinition    The CTE definition (the SQL query)
+     */
+    public void addProgramIndicatorCTE(ProgramIndicator programIndicator, String cteDefinition) {
+        cteDefinitions.put(
+                programIndicator.getUid(),
+                new CteDefinition(programIndicator.getUid(), cteDefinition));
     }
-  }
+
+    public void addCTEFilter(QueryItem item, String ctedefinition) {
+        String key = computeKey(item);
+        if (!cteDefinitions.containsKey(key)) {
+            ProgramStage programStage = item.getProgramStage();
+            cteDefinitions.put(key, new CteDefinition(item.getItemId(),
+                    programStage == null ? null : programStage.getUid(),
+                    ctedefinition,
+                    true));
+        }
+    }
+
+    public String getCTEDefinition() {
+        if (cteDefinitions.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder("WITH ");
+        boolean first = true;
+        for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
+            if (!first) {
+                sb.append(", ");
+            }
+            CteDefinition cteDef = entry.getValue();
+            sb.append(cteDef.asCteName(entry.getKey()))
+                    .append(" AS (")
+                    .append(entry.getValue().getCteDefinition())
+                    .append(")");
+            first = false;
+        }
+        return sb.toString();
+    }
+
+    // Rename to item uid
+    public Set<String> getCTENames() {
+        return cteDefinitions.keySet();
+    }
+
+    public boolean containsCte(String cteName) {
+        return cteDefinitions.containsKey(cteName);
+    }
+
 }
