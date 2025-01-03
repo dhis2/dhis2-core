@@ -752,9 +752,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (cteDef.isRowContext()) {
       // Add additional status and exists columns for row context
       columns.add(
-          "(%s.%s IS NOT NULL) as %s"
+          "COALESCE(%s.rn = %s, false) as %s"
               .formatted(
-                  cteDef.getAlias(programStageOffset), quote(colName), quote(alias + ".exists")));
+                  cteDef.getAlias(programStageOffset),
+                  programStageOffset + 1,
+                  quote(alias + ".exists")));
       columns.add(
           "%s.eventstatus as %s"
               .formatted(cteDef.getAlias(programStageOffset), quote(alias + ".status")));
