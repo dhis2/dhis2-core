@@ -685,7 +685,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params) {
-    if (params.getMaxTeLimit() > 0) {
+    if (params.hasMaxTeLimit()) {
       int teCount = trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(params);
 
       if (teCount > params.getMaxTeLimit()) {
