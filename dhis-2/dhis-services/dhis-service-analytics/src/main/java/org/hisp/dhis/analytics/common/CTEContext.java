@@ -27,109 +27,107 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
+import static org.hisp.dhis.analytics.common.CTEUtils.computeKey;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static org.hisp.dhis.analytics.common.CTEUtils.computeKey;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 
 public class CTEContext {
-    private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
+  private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
 
-    public CteDefinition getDefinitionByItemUid(String itemUid) {
-        return cteDefinitions.get(itemUid);
+  public CteDefinition getDefinitionByItemUid(String itemUid) {
+    return cteDefinitions.get(itemUid);
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   */
+  public void addCTE(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext) {
+    String key = computeKey(item);
+    if (cteDefinitions.containsKey(key)) {
+      cteDefinitions.get(key).getOffsets().add(offset);
+    } else {
+      var cteDef =
+          new CteDefinition(
+              programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
+      cteDefinitions.put(key, cteDef);
+    }
+  }
+
+  public void addExistsCTE(ProgramStage programStage, QueryItem item, String cteDefinition) {
+    var cteDef =
+        new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
+            .setExists(true);
+    cteDefinitions.put(programStage.getUid(), cteDef);
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programIndicator The program indicator
+   * @param cteDefinition The CTE definition (the SQL query)
+   */
+  public void addProgramIndicatorCTE(ProgramIndicator programIndicator, String cteDefinition) {
+    cteDefinitions.put(
+        programIndicator.getUid(), new CteDefinition(programIndicator.getUid(), cteDefinition));
+  }
+
+  public void addCTEFilter(QueryItem item, String ctedefinition) {
+    String key = computeKey(item);
+    if (!cteDefinitions.containsKey(key)) {
+      ProgramStage programStage = item.getProgramStage();
+      cteDefinitions.put(
+          key,
+          new CteDefinition(
+              item.getItemId(),
+              programStage == null ? null : programStage.getUid(),
+              ctedefinition,
+              true));
+    }
+  }
+
+  public String getCTEDefinition() {
+    if (cteDefinitions.isEmpty()) {
+      return "";
     }
 
-    /**
-     * Adds a CTE definition to the context.
-     *
-     * @param programStage  The program stage
-     * @param item          The query item
-     * @param cteDefinition The CTE definition (the SQL query)
-     * @param offset        The calculated offset
-     * @param isRowContext  Whether the CTE is a row context
-     */
-    public void addCTE(
-            ProgramStage programStage,
-            QueryItem item,
-            String cteDefinition,
-            int offset,
-            boolean isRowContext) {
-        String key = computeKey(item);
-        if (cteDefinitions.containsKey(key)) {
-            cteDefinitions.get(key).getOffsets().add(offset);
-        } else {
-            var cteDef = new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
-            cteDefinitions.put(key, cteDef);
-        }
+    StringBuilder sb = new StringBuilder("WITH ");
+    boolean first = true;
+    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
+      if (!first) {
+        sb.append(", ");
+      }
+      CteDefinition cteDef = entry.getValue();
+      sb.append(cteDef.asCteName(entry.getKey()))
+          .append(" AS (")
+          .append(entry.getValue().getCteDefinition())
+          .append(")");
+      first = false;
     }
+    return sb.toString();
+  }
 
-    public void addExistsCTE(
-            ProgramStage programStage,
-            QueryItem item,
-            String cteDefinition) {
-        var cteDef = new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
-                .setExists(true);
-        cteDefinitions.put(
-                programStage.getUid(),
-                cteDef);
-    }
+  // Rename to item uid
+  public Set<String> getCTENames() {
+    return cteDefinitions.keySet();
+  }
 
-    /**
-     * Adds a CTE definition to the context.
-     *
-     * @param programIndicator The program indicator
-     * @param cteDefinition    The CTE definition (the SQL query)
-     */
-    public void addProgramIndicatorCTE(ProgramIndicator programIndicator, String cteDefinition) {
-        cteDefinitions.put(
-                programIndicator.getUid(),
-                new CteDefinition(programIndicator.getUid(), cteDefinition));
-    }
-
-    public void addCTEFilter(QueryItem item, String ctedefinition) {
-        String key = computeKey(item);
-        if (!cteDefinitions.containsKey(key)) {
-            ProgramStage programStage = item.getProgramStage();
-            cteDefinitions.put(key, new CteDefinition(item.getItemId(),
-                    programStage == null ? null : programStage.getUid(),
-                    ctedefinition,
-                    true));
-        }
-    }
-
-    public String getCTEDefinition() {
-        if (cteDefinitions.isEmpty()) {
-            return "";
-        }
-
-        StringBuilder sb = new StringBuilder("WITH ");
-        boolean first = true;
-        for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
-            if (!first) {
-                sb.append(", ");
-            }
-            CteDefinition cteDef = entry.getValue();
-            sb.append(cteDef.asCteName(entry.getKey()))
-                    .append(" AS (")
-                    .append(entry.getValue().getCteDefinition())
-                    .append(")");
-            first = false;
-        }
-        return sb.toString();
-    }
-
-    // Rename to item uid
-    public Set<String> getCTENames() {
-        return cteDefinitions.keySet();
-    }
-
-    public boolean containsCte(String cteName) {
-        return cteDefinitions.containsKey(cteName);
-    }
-
+  public boolean containsCte(String cteName) {
+    return cteDefinitions.containsKey(cteName);
+  }
 }

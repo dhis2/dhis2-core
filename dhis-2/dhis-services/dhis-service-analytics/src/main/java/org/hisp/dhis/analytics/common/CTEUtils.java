@@ -36,9 +36,7 @@ public class CTEUtils {
   public static String computeKey(QueryItem queryItem) {
 
     if (queryItem.hasProgramStage()) {
-      return "%s_%s".formatted(
-              queryItem.getProgramStage().getUid(),
-              queryItem.getItemId());
+      return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
     }
     // TODO continue with the rest of the method
     return "";
