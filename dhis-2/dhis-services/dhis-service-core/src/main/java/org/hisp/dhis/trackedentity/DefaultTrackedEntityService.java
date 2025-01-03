@@ -681,7 +681,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
       params.setMaxTeLimit(maxTeiLimit);
       checkIfMaxTeiLimitIsReached(params);
-
     }
   }
 
