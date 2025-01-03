@@ -63,6 +63,7 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CTEContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -355,6 +356,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
+  }
+
+  @Override
+  protected String getColumnWithCte(QueryItem item, String suffix, CTEContext cteContext) {
+    // TODO: Implement
+    return "";
   }
 
   /**
