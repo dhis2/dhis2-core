@@ -33,7 +33,6 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
-import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.List;
@@ -100,7 +99,7 @@ public class HeaderHelper {
                 name,
                 column,
                 displayColumn,
-                repeatableStageParams.simpleStageValueExpected() ? item.getValueType() : REFERENCE,
+                item.getValueType(),
                 false,
                 true,
                 item.getOptionSet(),

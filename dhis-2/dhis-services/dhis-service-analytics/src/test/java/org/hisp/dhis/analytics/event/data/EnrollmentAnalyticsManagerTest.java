@@ -78,7 +78,6 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -770,40 +769,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue() {
-    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
-
-    QueryItem item = new QueryItem(dio);
-    item.setValueType(ValueType.COORDINATE);
-    item.setProgramStage(repeatableProgramStage);
-    item.setProgram(programB);
-    RepeatableStageParams params = new RepeatableStageParams();
-
-    params.setStartIndex(0);
-    params.setCount(100);
-    params.setStartDate(DateUtils.parseDate("2022-01-01"));
-    params.setEndDate(DateUtils.parseDate("2022-01-31"));
-    item.setRepeatableStageParams(params);
-
-    String columnSql = subject.getColumn(item);
-
-    assertThat(
-        columnSql,
-        is(
-            "(select json_agg(t1) from (select \""
-                + dataElementA.getUid()
-                + "\", enrollmentoccurreddate, scheduleddate, occurreddate from analytics_event_"
-                + programB.getUid()
-                + " where analytics_event_"
-                + programB.getUid()
-                + ".eventstatus != 'SCHEDULE' and analytics_event_"
-                + programB.getUid()
-                + ".enrollment = ax.enrollment and ps = '"
-                + repeatableProgramStage.getUid()
-                + "' and occurreddate >= '2022-01-01'  and occurreddate <= '2022-01-31' order by occurreddate desc, created desc   LIMIT 100 ) as t1)"));
-  }
-
-  @Test
   void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue() {
     DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
@@ -813,8 +778,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setProgram(programB);
     RepeatableStageParams params = new RepeatableStageParams();
 
-    params.setStartIndex(0);
-    params.setCount(1);
+    params.setIndex(0);
     item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);

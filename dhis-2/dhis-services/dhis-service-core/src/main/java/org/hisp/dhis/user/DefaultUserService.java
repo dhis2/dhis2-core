@@ -1500,4 +1500,10 @@ public class DefaultUserService implements UserService {
   public User getUserByVerifiedEmail(String email) {
     return userStore.getUserByVerifiedEmail(email);
   }
+
+  @Transactional
+  @Override
+  public void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername) {
+    userStore.setActiveLinkedAccounts(actingUser, activeUsername);
+  }
 }
