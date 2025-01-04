@@ -72,6 +72,7 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
@@ -635,7 +636,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               ? Date.from(oneHourInTheFuture)
               : Date.from(oneHourAgo));
 
-      update(user);
+      update(user, new SystemUser());
     }
   }
 
