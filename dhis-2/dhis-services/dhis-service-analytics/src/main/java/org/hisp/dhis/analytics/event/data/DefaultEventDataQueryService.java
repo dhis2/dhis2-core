@@ -139,13 +139,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Program pr = programService.getProgram(request.getProgram());
 
-    List<String> coordinateFields =
-        getCoordinateFields(
-            request.getProgram(),
-            request.getCoordinateField(),
-            request.getFallbackCoordinateField(),
-            request.isDefaultCoordinateFallback());
-
     if (pr == null) {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
     }
@@ -155,6 +148,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
     }
+
+    List<String> coordinateFields =
+        getCoordinateFields(
+            request.getProgram(),
+            request.getCoordinateField(),
+            request.getFallbackCoordinateField(),
+            request.isDefaultCoordinateFallback());
 
     addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
 
