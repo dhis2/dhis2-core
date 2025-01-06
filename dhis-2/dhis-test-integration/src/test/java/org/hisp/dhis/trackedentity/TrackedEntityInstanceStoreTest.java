@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -121,6 +122,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest {
     organisationUnitService.addOrganisationUnit(ouB);
     organisationUnitService.addOrganisationUnit(ouC);
     trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setMaxTeiCountToReturn(1000);
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     prA = createProgram('A', null, null);
     prA.setTrackedEntityType(trackedEntityType);
@@ -517,6 +519,32 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest {
                     teiMap.get(TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE)));
           }
         });
+  }
+
+  @Test
+  void shouldHandleNullProgramWhenCheckingMaxTeiLimitInGridQuery() {
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    teiA.setTrackedEntityType(trackedEntityType);
+    teiA.setPotentialDuplicate(true);
+    teiStore.save(teiA);
+    teiB.setTrackedEntityType(trackedEntityType);
+    teiB.setPotentialDuplicate(true);
+    teiStore.save(teiB);
+    teiC.setTrackedEntityType(trackedEntityType);
+    teiStore.save(teiC);
+    teiD.setTrackedEntityType(trackedEntityType);
+    teiStore.save(teiD);
+    dbmsManager.flushSession();
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
+    params.setPrograms(List.of(prA, prB));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setTrackedEntityInstanceUids(
+        Set.of(teiA.getUid(), teiB.getUid(), teiC.getUid(), teiD.getUid()));
+
+    int count = teiStore.getTrackedEntityInstanceCountForGridWithMaxTeiLimit(params);
+    assertEquals(4, count);
   }
 
   @Test
