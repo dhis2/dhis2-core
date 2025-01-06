@@ -714,18 +714,18 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
         }
       }
 
-      checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
       params.setMaxTeiLimit(maxTeiLimit);
+      checkIfMaxTeiLimitIsReached(params);
     }
   }
 
   private void checkIfMaxTeiLimitIsReached(
-      TrackedEntityInstanceQueryParams params, int maxTeiLimit) {
-    if (maxTeiLimit > 0) {
+      TrackedEntityInstanceQueryParams params) {
+    if (params.hasMaxTeiLimit()) {
       int instanceCount =
           trackedEntityInstanceStore.getTrackedEntityInstanceCountForGridWithMaxTeiLimit(params);
 
-      if (instanceCount > maxTeiLimit) {
+      if (instanceCount > params.getMaxTeiLimit()) {
         throw new IllegalQueryException("maxteicountreached");
       }
     }
