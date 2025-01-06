@@ -57,7 +57,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor // TODO
+@AllArgsConstructor
 public class EventDataQueryRequest {
   private String program;
 
