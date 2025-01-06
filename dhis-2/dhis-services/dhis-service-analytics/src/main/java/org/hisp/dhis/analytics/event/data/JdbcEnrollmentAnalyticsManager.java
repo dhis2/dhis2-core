@@ -197,11 +197,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
-   * The method retrieves the amount of the supportive columns in database result set
+   * Retrieves the amount of the supportive columns in database result set.
    *
    * @param rowSet {@link SqlRowSet}.
    * @param columnName The name of the investigated column.
-   * @return If the investigated column has some supportive columns lie .exists or .status, the
+   * @return if the investigated column has some supportive columns like .exists or .status, the
    *     count of the columns is returned.
    */
   private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
@@ -214,7 +214,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
-   * Add value meta info into the grid. Value meta info is information about origin of the
+   * Adds value meta info into the grid. Value meta info is information about origin of the
    * repeatable stage value.
    *
    * @param grid the {@link Grid}.
