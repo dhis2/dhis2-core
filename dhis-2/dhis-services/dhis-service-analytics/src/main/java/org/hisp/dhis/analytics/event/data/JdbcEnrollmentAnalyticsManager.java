@@ -102,24 +102,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String IS_NOT_NULL = " is not null ";
 
-  private static final List<String> COLUMNS =
-      List.of(
-          EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
-          "ST_AsGeoJSON(" + EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME + ")",
-          EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
-          AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME);
-
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
@@ -493,7 +475,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
+            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -659,6 +641,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       return quoteAlias(colName);
     }
+  }
+
+  /**
+   * Returns a list of names of standard columns.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a list of names of standard columns.
+   */
+  private List<String> getStandardColumns(EventQueryParams params) {
+    return List.of(
+        EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+        "ST_AsGeoJSON(" + EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME + ")",
+        EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
+        AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME);
   }
 
   /**

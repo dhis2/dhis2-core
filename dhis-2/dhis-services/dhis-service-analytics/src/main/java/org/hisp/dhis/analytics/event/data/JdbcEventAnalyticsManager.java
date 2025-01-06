@@ -325,7 +325,22 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   @Override
   protected String getSelectClause(EventQueryParams params) {
-    ImmutableList.Builder<String> cols =
+    List<String> standardColumns = getStandardColumns(params);
+
+    List<String> selectCols =
+        ListUtils.distinctUnion(standardColumns, getSelectColumns(params, false));
+
+    return "select " + StringUtils.join(selectCols, ",") + " ";
+  }
+
+  /**
+   * Returns a list of names of standard columns.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a list of names of standard columns.
+   */
+  private List<String> getStandardColumns(EventQueryParams params) {
+    ImmutableList.Builder<String> columns =
         new ImmutableList.Builder<String>()
             .add(
                 EventAnalyticsColumnName.EVENT_COLUMN_NAME,
@@ -338,7 +353,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
-      cols.add(
+      columns.add(
           EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
           EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
           EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
@@ -346,10 +361,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     if (sqlBuilder.supportsGeospatialData()) {
-      cols.add(getCoordinateSelectExpression(params));
+      columns.add(getCoordinateSelectExpression(params));
     }
 
-    cols.add(
+    columns.add(
         EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
         EventAnalyticsColumnName.LATITUDE_COLUMN_NAME,
         EventAnalyticsColumnName.OU_NAME_COLUMN_NAME,
@@ -358,10 +373,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
         EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
 
-    List<String> selectCols =
-        ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
-
-    return "select " + StringUtils.join(selectCols, ",") + " ";
+    return columns.build();
   }
 
   /**
