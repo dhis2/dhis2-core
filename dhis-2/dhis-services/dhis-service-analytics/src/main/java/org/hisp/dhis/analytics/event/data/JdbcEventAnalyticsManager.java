@@ -37,7 +37,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -263,12 +263,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Rectangle getRectangle(EventQueryParams params) {
+    String coalesceClause =
+        getCoalesce(
+            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
     String sql =
         "select count(event) as "
             + COL_COUNT
             + ", ST_Extent("
-            + getCoalesce(
-                params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
+            + coalesceClause
             + ") as "
             + COL_EXTENT
             + " ";
@@ -306,6 +309,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
   }
 
+  @Override
+  protected AnalyticsType getAnalyticsType() {
+    return AnalyticsType.EVENT;
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
@@ -337,12 +345,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME);
     }
 
-    String coordinatesFieldsSnippet =
-        getCoalesce(
-            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+    if (sqlBuilder.supportsGeospatialData()) {
+      cols.add(getCoordinateSelectExpression(params));
+    }
 
     cols.add(
-        "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry",
         EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
         EventAnalyticsColumnName.LATITUDE_COLUMN_NAME,
         EventAnalyticsColumnName.OU_NAME_COLUMN_NAME,
@@ -355,6 +362,20 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
+  }
+
+  /**
+   * Returns a coordinate coalesce select expression.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a coordinate coalesce select expression.
+   */
+  private String getCoordinateSelectExpression(EventQueryParams params) {
+    String field =
+        getCoalesce(
+            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
+    return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
   }
 
   /**
@@ -795,11 +816,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         params.getProgramIndicator(),
         params.getEarliestStartDate(),
         params.getLatestEndDate());
-  }
-
-  @Override
-  protected AnalyticsType getAnalyticsType() {
-    return AnalyticsType.EVENT;
   }
 
   /**

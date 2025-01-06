@@ -32,6 +32,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -47,6 +48,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Constants
 
   private static final String QUOTE = "\"";
+
+  // Database
+
+  @Override
+  public Database getDatabase() {
+    return Database.POSTGRESQL;
+  }
 
   // Data types
 
