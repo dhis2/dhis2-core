@@ -322,6 +322,24 @@ public class HibernateTrackedEntityInstanceStore
     return jdbcTemplate.queryForObject(sql, Integer.class);
   }
 
+  @Override
+  public int getTrackedEntityInstanceCountForGridWithMaxTeiLimit(
+      TrackedEntityInstanceQueryParams params) {
+    // ---------------------------------------------------------------------
+    // Select clause
+    // ---------------------------------------------------------------------
+
+    String sql = getCountQueryWithMaxTeiLimit(params);
+
+    // ---------------------------------------------------------------------
+    // Query
+    // ---------------------------------------------------------------------
+
+    log.debug("Tracked entity instance count SQL: " + sql);
+
+    return jdbcTemplate.queryForObject(sql, Integer.class);
+  }
+
   /**
    * Generates SQL based on "params". The purpose of the SQL is to retrieve a list of tracked entity
    * instances, and additionally any requested attributes (If defined in params).
@@ -412,6 +430,26 @@ public class HibernateTrackedEntityInstanceStore
         .append(getFromSubQuery(params, true, true))
         .append(getQueryRelatedTables(params))
         .append(getQueryGroupBy(params))
+        .append(" ) teicount")
+        .toString();
+  }
+
+  /**
+   * Uses the same basis as the getQuery method, but replaces the projection with a count, ignores
+   * order but uses the TEI limit set on the program if higher than 0
+   *
+   * @param params params defining the query
+   * @return a count SQL query
+   */
+  private String getCountQueryWithMaxTeiLimit(TrackedEntityInstanceQueryParams params) {
+    return new StringBuilder()
+        .append(getQueryCountSelect(params))
+        .append(getQuerySelect(params))
+        .append("FROM ")
+        .append(getFromSubQuery(params, true, true))
+        .append(getQueryRelatedTables(params))
+        .append(getQueryGroupBy(params))
+        .append(params.hasMaxTeiLimit() ? getLimitClause(params.getMaxTeiLimit() + 1) : "")
         .append(" ) teicount")
         .toString();
   }
@@ -1207,6 +1245,10 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     return groupBy.toString();
+  }
+
+  private String getLimitClause(int limit) {
+    return "LIMIT " + limit;
   }
 
   /**
