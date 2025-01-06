@@ -378,7 +378,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     Optional<OptionSetSelectionMode> optionSetSelectionMode = Optional.empty();
 
     for (DimensionalItemObject de : params.getDataElements()) {
-      if (params.getOptionSetSelectionCriteria() != null) {
+      if (params.hasOptionSetSelections()) {
         OptionSetSelectionMode setSelectionMode =
             params
                 .getOptionSetSelectionCriteria()
