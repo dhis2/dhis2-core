@@ -668,12 +668,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME);
 
     if (sqlBuilder.supportsGeospatialData()) {
-      columns.add(COLUMN_ENROLLMENT_GEOMETRY_GEOJSON);
+      columns.add(
+          COLUMN_ENROLLMENT_GEOMETRY_GEOJSON,
+          EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME);
     }
 
     columns.add(
-        EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
-        EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
         AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
