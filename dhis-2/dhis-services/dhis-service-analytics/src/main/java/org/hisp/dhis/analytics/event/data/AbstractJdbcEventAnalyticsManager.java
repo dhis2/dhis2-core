@@ -756,10 +756,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   private AggregationType getAggregationType(EventQueryParams params) {
-
     if (params.getValue() instanceof DataElement dataElement
         && dataElement.hasOptionSet()
-        && params.hasOptionSetSelectionCriteria()
         && params.hasOptionSetSelections()
         && params
                 .getOptionSetSelectionCriteria()

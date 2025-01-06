@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
@@ -347,16 +348,15 @@ public class DefaultDimensionService implements DimensionService {
   public DimensionalItemObject getDataDimensionalItemObject(
       IdScheme idScheme, String dimensionItem) {
     if (DimensionalObjectUtils.isCompositeDimensionalObject(dimensionItem)) {
-
       String id0 = DimensionalObjectUtils.getFirstIdentifier(dimensionItem);
       String id1 = DimensionalObjectUtils.getSecondIdentifier(dimensionItem);
       String id2 = DimensionalObjectUtils.getThirdIdentifier(dimensionItem);
 
-      String optionSetSelectionMode = splitSafe(dimensionItem, "-", 1);
+      String optionSetSelectionMode = splitSafe(dimensionItem, ITEM_SEP, 1);
       if (optionSetSelectionMode != null && id2 != null) {
-        id2 = splitSafe(id2, "-", 0);
+        id2 = splitSafe(id2, ITEM_SEP, 0);
       } else if (optionSetSelectionMode != null && id1 != null) {
-        id1 = splitSafe(id1, "-", 0);
+        id1 = splitSafe(id1, ITEM_SEP, 0);
       }
 
       DataElement dataElementWithOptionSet;

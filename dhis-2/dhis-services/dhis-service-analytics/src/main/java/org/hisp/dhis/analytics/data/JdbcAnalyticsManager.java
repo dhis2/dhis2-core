@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
+import static org.hisp.dhis.common.collection.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -369,22 +370,26 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   }
 
   private boolean hasAggregation(DataQueryParams params) {
-    // analytics query is an item of sequential queries with one data element only.
+    // Analytics query is an item of sequential queries with one data element only.
     if (params.getDataElements().size() != 1) {
       return params.isAggregation();
     }
 
-    Optional<OptionSetSelectionMode> optionSetSelectionMode =
-        params.getDataElements().stream()
-            .filter(de -> params.getOptionSetSelectionCriteria() != null)
-            .map(
-                de ->
-                    params
-                        .getOptionSetSelectionCriteria()
-                        .getOptionSetSelections()
-                        .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
-                        .getOptionSetSelectionMode())
-            .findFirst();
+    Optional<OptionSetSelectionMode> optionSetSelectionMode = Optional.empty();
+
+    for (DimensionalItemObject de : params.getDataElements()) {
+      if (params.getOptionSetSelectionCriteria() != null) {
+        OptionSetSelectionMode setSelectionMode =
+            params
+                .getOptionSetSelectionCriteria()
+                .getOptionSetSelections()
+                .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
+                .getOptionSetSelectionMode();
+        optionSetSelectionMode = Optional.of(setSelectionMode);
+        break;
+      }
+    }
+
     OptionSetSelectionMode mode = optionSetSelectionMode.orElse(OptionSetSelectionMode.AGGREGATED);
 
     return params.isAggregation() && mode == OptionSetSelectionMode.AGGREGATED;
@@ -393,7 +398,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   protected String getAggregatedOptionValueClause(DataQueryParams params) {
     String sql = "";
 
-    if (params.hasOptionSetInDimensionItems() && hasAggregation(params)) {
+    if (params.hasOptionSetInDimensionItemsTypeDataElement() && hasAggregation(params)) {
       sql += ", count(" + params.getValueColumn() + ") as valuecount ";
       return sql;
     }
@@ -510,7 +515,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   /** Add where clause for option set selection. */
   private void getWhereClauseOptions(
       DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql) {
-    if (!params.hasOptionSetSelectionCriteria()) {
+    if (!params.hasOptionSetSelections()) {
       return;
     }
 
@@ -519,8 +524,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         .getOptionSetSelections()
         .forEach(
             (key, value) -> {
-              List<String> options = value.getOptions();
-              if (options != null && !options.isEmpty()) {
+              Set<String> options = value.getOptions();
+              if (isNotEmpty(options)) {
                 sql.append(" ")
                     .append(sqlHelper.whereAnd())
                     .append(" ")
@@ -1019,7 +1024,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
 
-        if (params.hasOptionSetInDimensionItems()) {
+        if (params.hasOptionSetInDimensionItemsTypeDataElement()) {
           map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
         } else {
           map.put(key.toString(), value);
@@ -1027,7 +1032,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);
-        if (params.hasOptionSetInDimensionItems()) {
+        if (params.hasOptionSetInDimensionItemsTypeDataElement()) {
           map.put(key.toString() + counter, value);
         } else {
           map.put(key.toString(), value);

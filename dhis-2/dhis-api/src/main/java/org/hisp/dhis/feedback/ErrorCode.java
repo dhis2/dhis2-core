@@ -72,7 +72,7 @@ public enum ErrorCode {
   E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
   E1127("Category {0} cannot have more than {1} options, but had: {2} "),
   E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
-  E1129("Option set selection mode must match valid mode: `{0}`"),
+  E1129("OptionSet selection mode is not valid: `{0}`"),
 
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),

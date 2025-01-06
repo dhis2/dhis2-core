@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -629,8 +630,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
-    if (!params.hasOptionSetSelectionCriteria()
-        || params.getOptionSetSelectionCriteria().getOptionSetSelections() == null) {
+    if (!params.hasOptionSetSelections()) {
       return "";
     }
 
@@ -641,8 +641,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .forEach(
             (key, value) -> {
               List<String> uids = Arrays.stream(key.split("\\.")).toList();
-              List<String> options = value.getOptions();
-              if (!uids.isEmpty() && options != null && !options.isEmpty()) {
+              Set<String> options = value.getOptions();
+              if (!uids.isEmpty() && isNotEmpty(options)) {
                 sql.append(" ")
                     .append(sqlHelper.whereAnd())
                     .append(" ")

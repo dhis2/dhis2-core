@@ -33,6 +33,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -87,7 +88,6 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -752,14 +752,15 @@ public class DataQueryParams {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
   }
 
-  /** Indicates whether option set selection criteria are present as dimension. */
+  /** Indicates whether an option set selection criteria is present as param in this object. */
   public boolean hasOptionSetSelectionCriteria() {
     return optionSetSelectionCriteria != null;
   }
 
-  /** Indicates whether option set selections are present as dimension. */
+  /** Indicates whether option set selections are present as param ins this objct. */
   public boolean hasOptionSetSelections() {
-    return optionSetSelectionCriteria.getOptionSetSelections() != null
+    return hasOptionSetSelectionCriteria()
+        && optionSetSelectionCriteria.getOptionSetSelections() != null
         && !optionSetSelectionCriteria.getOptionSetSelections().isEmpty();
   }
 
@@ -878,15 +879,23 @@ public class DataQueryParams {
     return this.outputFormat != null && this.outputFormat == format;
   }
 
-  public boolean hasOptionSetInDimensionItems() {
-    return dimensions.stream()
-        .anyMatch(
-            d ->
-                d.getItems().stream()
-                    .anyMatch(
-                        it ->
-                            it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
-                                && ((DataElement) it).getOptionSet() != null));
+  /**
+   * Checks if there is an {@OptionSet} object inside data elements present in the current
+   * "dimensions" attribute of this class.
+   *
+   * @return boolean if found, false otherwise.
+   */
+  public boolean hasOptionSetInDimensionItemsTypeDataElement() {
+    for (DimensionalObject d : dimensions) {
+      for (DimensionalItemObject it : d.getItems()) {
+        if (it.getDimensionItemType() == DATA_ELEMENT
+            && ((DataElement) it).getOptionSet() != null) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**

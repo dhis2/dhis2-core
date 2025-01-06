@@ -33,6 +33,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.hisp.dhis.analytics.OptionSetSelectionMode.AGGREGATED;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
@@ -70,8 +71,6 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @NoArgsConstructor(access = PRIVATE)
 public class DimensionalObjectUtils {
-  public static final String COMPOSITE_DIM_OBJECT_ESCAPED_SEP = "\\.";
-
   public static final String COMPOSITE_DIM_OBJECT_PLAIN_SEP = ".";
 
   public static final String TITLE_ITEM_SEP = ", ";
@@ -82,13 +81,10 @@ public class DimensionalObjectUtils {
 
   public static final String COL_SEP = " ";
 
-  public static final String OPTION_SET_SELECTION_MODE_SEP = "-";
-
   /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
-   * metric.
+   * metric. ie: Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
    */
-  // Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
           "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?(\\[(?<list>[^\\]]*?)\\])?(-(?<suffix>AGGREGATED|DISAGGREGATED)?)?");
@@ -365,12 +361,13 @@ public class DimensionalObjectUtils {
   }
 
   /**
-   * Retrieves the param name from the given string. Returns the part of the string after the
-   * dimension name separator, or the whole string if the separator is not present.
+   * Retrieves the value from the given dimension param. Returns the part of the string after the
+   * dimension name separator, or the whole string if the separator is not present. ie:
+   * dx:WSGAb5XwJ3Y.QFX1FLWBwtq, becomes WSGAb5XwJ3Y.QFX1FLWBwtq
    *
    * @param param the parameter.
    */
-  public static String getParamFromDimension(String param) {
+  public static String getValueFromDimensionParam(String param) {
     if (param == null) {
       return null;
     }
@@ -553,7 +550,8 @@ public class DimensionalObjectUtils {
    * Returns the second identifier in a composite dimension object identifier.
    *
    * @param compositeItem the composite dimension object identifier.
-   * @return the second identifier, or null if not a valid composite identifier or no match.
+   * @return the second identifier, or null if thr composite identifier is not valid or do not
+   *     match.
    */
   public static String getSecondIdentifier(String compositeItem) {
     if (compositeItem == null) {
@@ -565,10 +563,10 @@ public class DimensionalObjectUtils {
   }
 
   /**
-   * Returns the second identifier in a composite dimension object identifier.
+   * Returns the third identifier in a composite dimension object identifier.
    *
    * @param compositeItem the composite dimension object identifier.
-   * @return the second identifier, or null if not a valid composite identifier or no match.
+   * @return the third identifier, or null if thr composite identifier is not valid or do not match.
    */
   public static String getThirdIdentifier(String compositeItem) {
     if (compositeItem == null) {
@@ -576,27 +574,40 @@ public class DimensionalObjectUtils {
     }
 
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
+
     return matcher.matches() ? matcher.group("id3") : null;
   }
 
-  public static OptionSetSelectionMode getOptionSetSelectionMode(String compositeItem) {
-    if (compositeItem == null) {
+  /**
+   * Based on the given argument, it will return the associated {@link OptionSetSelectionMode}. If
+   * the argument is null, or no association is found, it returns the default mode "AGGREGATED".
+   *
+   * @param composedOptionSetId the full option set dimension, ie:
+   *     Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED.
+   * @return the respective {@link OptionSetSelectionMode}, or the default mode.
+   */
+  public static OptionSetSelectionMode getOptionSetSelectionMode(String composedOptionSetId) {
+    if (composedOptionSetId == null) {
       return null;
     }
 
-    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
+    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(composedOptionSetId);
     if (matcher.matches()) {
       String suffix = matcher.group("suffix");
-      return suffix != null
-          ? OptionSetSelectionMode.valueOf(suffix)
-          : OptionSetSelectionMode.AGGREGATED;
+      return suffix != null ? OptionSetSelectionMode.valueOf(suffix) : AGGREGATED;
     }
 
-    return OptionSetSelectionMode.AGGREGATED;
+    return AGGREGATED;
   }
 
-  public static String getOptions(String compositeItem) {
-    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
+  /**
+   * Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
+   *
+   * @param optionSetParam
+   * @return the options specified for the option set param, or null.
+   */
+  public static String getOptionsParam(String optionSetParam) {
+    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(optionSetParam);
     return matcher.matches() ? matcher.group("list") : null;
   }
 

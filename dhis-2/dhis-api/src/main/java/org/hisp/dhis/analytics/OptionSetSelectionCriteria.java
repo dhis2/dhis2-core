@@ -27,19 +27,21 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.util.Map;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Builder
 @Getter
+@AllArgsConstructor
 public class OptionSetSelectionCriteria {
   private Map<String, OptionSetSelection> optionSetSelections;
 
   @Override
   public String toString() {
     if (optionSetSelections == null || optionSetSelections.isEmpty()) {
-      return "";
+      return EMPTY;
     }
 
     return "OptionSetSelectionCriteria{" + "optionSetSelections=" + optionSetSelections + '}';

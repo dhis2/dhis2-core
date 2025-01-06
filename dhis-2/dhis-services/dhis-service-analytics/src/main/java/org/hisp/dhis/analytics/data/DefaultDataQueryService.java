@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
@@ -51,7 +53,13 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getFirstIdentifier;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getOptionSetSelectionMode;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getOptionsParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getSecondIdentifier;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getThirdIdentifier;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getValueFromDimensionParam;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -59,6 +67,7 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,7 +75,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -81,7 +89,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
@@ -181,58 +188,81 @@ public class DefaultDataQueryService implements DataQueryService {
         .build();
   }
 
+  /**
+   * Creates a {@link OptionSetSelectionCriteria} object based on the given collection of
+   * dimensions.
+   *
+   * @param dimensions the collection of dimensions.
+   * @return the {@link OptionSetSelectionCriteria} object.
+   */
   private OptionSetSelectionCriteria getOptionSetSelectionCriteria(Set<String> dimensions) {
-    OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder builder =
-        OptionSetSelectionCriteria.builder();
     Map<String, OptionSetSelection> optionSetSelections = new HashMap<>();
+
     for (String dimension : dimensions) {
-      String param = DimensionalObjectUtils.getParamFromDimension(dimension);
+      String dimValue = getValueFromDimensionParam(dimension);
 
-      if (!hasOptionSet(param)) {
-        continue;
+      if (hasOptionSet(dimValue)) {
+        OptionSetSelectionMode mode = getOptionSetSelectionMode(dimValue);
+        String dimIdentifier = getDimensionIdentifier(dimValue);
+        OptionSetSelection.OptionSetSelectionBuilder optionSetSelectionBuilder =
+            OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(dimIdentifier);
+        String optionsParam = getOptionsParam(dimValue);
+
+        optionSetSelectionBuilder.options(extractOptions(optionsParam));
+        optionSetSelections.put(dimIdentifier, optionSetSelectionBuilder.build());
       }
-
-      OptionSetSelectionMode mode = DimensionalObjectUtils.getOptionSetSelectionMode(param);
-
-      String key = DimensionalObjectUtils.getThirdIdentifier(param);
-      if (key == null) {
-        key =
-            DimensionalObjectUtils.getFirstIdentifier(param)
-                + "."
-                + DimensionalObjectUtils.getSecondIdentifier(param);
-      } else {
-        key = DimensionalObjectUtils.getSecondIdentifier(param) + "." + key;
-      }
-
-      OptionSetSelection.OptionSetSelectionBuilder optionSetSelectionBuilder =
-          OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(key);
-      String options = DimensionalObjectUtils.getOptions(param);
-
-      if (options != null && !options.isEmpty()) {
-        List<String> optionList =
-            Stream.of(options.split("#"))
-                .map(
-                    uid ->
-                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
-                            .getUid())
-                .toList();
-        optionSetSelectionBuilder.options(optionList);
-      }
-
-      optionSetSelections.put(key, optionSetSelectionBuilder.build());
     }
 
-    if (optionSetSelections.isEmpty()) {
-      return null;
+    return new OptionSetSelectionCriteria(optionSetSelections);
+  }
+
+  /**
+   * Extracts the dimension uid based on the given argument and internal rules, depending on the
+   * composition of the value.
+   *
+   * @param composedDimension ie: WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G@aaa]
+   * @return the respective dimension uid.
+   */
+  private static String getDimensionIdentifier(String composedDimension) {
+    String dimIdentifier = getThirdIdentifier(composedDimension);
+
+    if (dimIdentifier == null) {
+      dimIdentifier =
+          getFirstIdentifier(composedDimension) + "." + getSecondIdentifier(composedDimension);
+    } else {
+      dimIdentifier = getSecondIdentifier(composedDimension) + "." + dimIdentifier;
+    }
+    return dimIdentifier;
+  }
+
+  /**
+   * Extracts the options uids specified in the URL param, if any.
+   *
+   * @param options the URL param options.
+   * @return the options uids found, or empty.
+   */
+  private Set<String> extractOptions(String options) {
+    if (isNotBlank(options)) {
+      Set<String> optionSet = new LinkedHashSet<>();
+
+      for (String uid : options.split("@")) {
+        Option option = this.idObjectManager.get(Option.class, uid);
+        if (option != null) {
+          optionSet.add(option.getUid());
+        }
+      }
+
+      return optionSet;
     }
 
-    return builder.optionSetSelections(optionSetSelections).build();
+    return Set.of();
   }
 
   private boolean hasOptionSet(String param) {
-    String uid = DimensionalObjectUtils.getThirdIdentifier(param);
+    String uid = getThirdIdentifier(param);
+
     if (uid == null) {
-      uid = DimensionalObjectUtils.getSecondIdentifier(param);
+      uid = getSecondIdentifier(param);
     }
 
     return uid != null && idObjectManager.exists(OptionSet.class, uid);
@@ -241,7 +271,7 @@ public class DefaultDataQueryService implements DataQueryService {
   @Override
   @Transactional(readOnly = true)
   public DataQueryParams getFromAnalyticalObject(AnalyticalObject object) {
-    Objects.requireNonNull(object);
+    requireNonNull(object);
 
     DataQueryParams.Builder params = DataQueryParams.newBuilder();
 

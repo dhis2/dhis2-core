@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -834,7 +835,7 @@ public final class AnalyticsUtils {
                 dataElement.getUid() + "." + optionSet.getUid(),
                 includeMetadataDetails
                     ? new MetadataItem(
-                        optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                        optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
                     : new MetadataItem(optionSet.getName()));
           }
         }
@@ -847,7 +848,7 @@ public final class AnalyticsUtils {
                 programDataElement.getDataElement().getUid() + "." + optionSet.getUid(),
                 includeMetadataDetails
                     ? new MetadataItem(
-                        optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                        optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
                     : new MetadataItem(optionSet.getName()));
           }
         }

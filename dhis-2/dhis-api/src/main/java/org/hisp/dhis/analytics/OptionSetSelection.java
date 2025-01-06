@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics;
 
-import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -35,7 +35,7 @@ import lombok.Getter;
 @Getter
 public class OptionSetSelection {
   private String optionSetUid;
-  private List<String> options;
+  private Set<String> options;
   private OptionSetSelectionMode optionSetSelectionMode;
 
   @Override
