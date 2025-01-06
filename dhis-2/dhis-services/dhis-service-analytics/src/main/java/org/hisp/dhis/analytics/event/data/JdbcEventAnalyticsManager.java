@@ -47,7 +47,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
@@ -86,6 +85,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -340,17 +340,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    * @return a list of names of standard columns.
    */
   private List<String> getStandardColumns(EventQueryParams params) {
-    ImmutableList.Builder<String> columns =
-        new ImmutableList.Builder<String>()
-            .add(
-                EventAnalyticsColumnName.EVENT_COLUMN_NAME,
-                EventAnalyticsColumnName.PS_COLUMN_NAME,
-                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-                EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
-                EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
-                EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
-                EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
-                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    ListBuilder<String> columns = new ListBuilder<String>();
+
+    columns.add(
+        EventAnalyticsColumnName.EVENT_COLUMN_NAME,
+        EventAnalyticsColumnName.PS_COLUMN_NAME,
+        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+        EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+        EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
+        EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
+        EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
       columns.add(

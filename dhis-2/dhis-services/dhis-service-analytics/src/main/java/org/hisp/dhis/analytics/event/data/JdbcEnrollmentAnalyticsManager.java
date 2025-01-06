@@ -75,6 +75,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.ListBuilder;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -101,6 +102,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private static final String LIMIT_1 = "limit 1";
 
   private static final String IS_NOT_NULL = " is not null ";
+
+  private static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
+      String.format(
+          "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
 
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -650,7 +655,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @return a list of names of standard columns.
    */
   private List<String> getStandardColumns(EventQueryParams params) {
-    return List.of(
+    ListBuilder<String> columns = new ListBuilder<String>();
+
+    columns.add(
         EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
@@ -658,14 +665,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
-        EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
-        "ST_AsGeoJSON(" + EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME + ")",
+        EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME);
+
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.add(COLUMN_ENROLLMENT_GEOMETRY_GEOJSON);
+    }
+
+    columns.add(
         EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
         AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME);
+
+    return columns.build();
   }
 
   /**
