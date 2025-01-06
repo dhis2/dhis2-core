@@ -32,9 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Builder of immutable lists.
- */
+/** Builder of immutable lists. */
 public class ListBuilder<T> {
   private final List<T> list;
 

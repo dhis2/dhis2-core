@@ -292,12 +292,12 @@ public class EventQueryService {
     }
 
     if (isGeospatialSupport()) {
-      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
+      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
+          .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
+          .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true));
     }
 
-    grid.addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
-        .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
-        .addHeader(
+    grid.addHeader(
             new GridHeader(
                 ORG_UNIT_NAME.getItem(),
                 getOrgUnitLabel(params.getProgram(), ORG_UNIT_NAME.getName()),
