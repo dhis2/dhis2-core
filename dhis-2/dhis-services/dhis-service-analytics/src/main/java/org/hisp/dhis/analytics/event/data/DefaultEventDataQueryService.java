@@ -149,12 +149,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
     }
 
-    List<String> coordinateFields =
-        getCoordinateFields(
-            request.getProgram(),
-            request.getCoordinateField(),
-            request.getFallbackCoordinateField(),
-            request.isDefaultCoordinateFallback());
+    List<String> coordinateFields = getCoordinateFields(request);
 
     addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
 
@@ -420,16 +415,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * @return the coordinate column list.
    */
   @Override
-  public List<String> getCoordinateFields(
-      String program,
-      String coordinateField,
-      String fallbackCoordinateField,
-      boolean defaultCoordinateFallback) {
-    List<String> coordinateFields = new ArrayList<>();
-
+  public List<String> getCoordinateFields(EventDataQueryRequest request) {
+    final String program = request.getProgram();
     // TODO Remove when all web apps stop using old names of coordinate fields
-    coordinateField = mapCoordinateField(coordinateField);
-    fallbackCoordinateField = mapCoordinateField(fallbackCoordinateField);
+    final String coordinateField = mapCoordinateField(request.getCoordinateField());
+    final boolean defaultCoordinateFallback = request.isDefaultCoordinateFallback();
+    final String fallbackCoordinateField = mapCoordinateField(request.getFallbackCoordinateField());
+
+    List<String> coordinateFields = new ArrayList<>();
 
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
