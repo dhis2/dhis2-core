@@ -33,10 +33,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 
 import lombok.Getter;
 
-/**
- * Encapsulates some information about the current request and endpoint invoked. They are needed
- * because of some internal rules.
- */
+/** Encapsulates some information about the current request and endpoint invoked. */
 public class RequestTypeAware {
 
   @Getter private EndpointAction endpointAction = OTHER;

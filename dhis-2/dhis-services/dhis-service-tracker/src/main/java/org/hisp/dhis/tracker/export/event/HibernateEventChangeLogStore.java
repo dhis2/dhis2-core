@@ -57,23 +57,21 @@ public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
   private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
-
+  private static final String ORDER_CHANGE_EXPRESSION =
+      "CONCAT(COALESCE(d.formName, ''), COALESCE(" + COLUMN_CHANGELOG_FIELD + ", ''))";
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
   /**
    * Event change logs can be ordered by given fields which correspond to fields on {@link
-   * EventChangeLog}. Maps fields to DB columns. The order implementation for change logs is
-   * different from other tracker exporters {@link EventChangeLog} is the view which is already
-   * returned from the service/store. Tracker exporter services return a representation we have to
-   * map to a view model. This mapping is not necessary for change logs.
+   * EventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case we
+   * need to sort by concatenation, to treat the dataElement and eventField as a single entity.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
-          entry("dataElement", COLUMN_CHANGELOG_DATA_ELEMENT),
-          entry("field", COLUMN_CHANGELOG_FIELD));
+          entry("change", ORDER_CHANGE_EXPRESSION));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
