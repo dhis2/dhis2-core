@@ -55,7 +55,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -82,7 +82,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
   @Transactional
   public ImportReport importMetadata(
       @Nonnull MetadataImportParams params, @Nonnull MetadataObjects objects) {
-    return importMetadata(params, objects, NoopJobProgress.INSTANCE);
+    return importMetadata(params, objects, RecordingJobProgress.transitory());
   }
 
   @Override
