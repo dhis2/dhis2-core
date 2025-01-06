@@ -595,7 +595,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String sql = "";
 
     AggregationType aggregationType = getAggregationType(params);
-    if (aggregationType == NONE) {
+    if (aggregationType == NONE && !params.hasOptionSetSelections()) {
       return sql;
     }
 
