@@ -68,11 +68,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TIMEO
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
-
-import com.google.common.collect.ImmutableMap;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -80,14 +75,18 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import com.google.common.collect.ImmutableMap;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -173,7 +172,7 @@ public final class DatabasePoolUtils {
         switch (dbPoolType) {
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
-          case UNPOOLED -> createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
+          case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
           default ->
               throw new IllegalArgumentException(
                   TextUtils.format(
@@ -185,6 +184,15 @@ public final class DatabasePoolUtils {
     return dataSource;
   }
 
+  public static void testConnection(DataSource dataSource) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
+      stmt.executeQuery("select 'connection_test' as connection_test;");
+    } catch (SQLException e) {
+      log.error(e.getMessage());
+    }
+  }
+  
   private static DataSource createHikariDbPool(
       String username, String password, String driverClassName, String jdbcUrl, PoolConfig config) {
     ConfigKeyMapper mapper = config.getMapper();
@@ -220,17 +228,6 @@ public final class DatabasePoolUtils {
     ds.setMaximumPoolSize(maxPoolSize);
 
     return ds;
-  }
-
-  private static DriverManagerDataSource createUnPooledDataSource(
-      String username, String password, String driverClassName, String jdbcUrl) {
-    final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();
-    unPooledDataSource.setDriverClassName(driverClassName);
-    unPooledDataSource.setUrl(jdbcUrl);
-    unPooledDataSource.setUsername(username);
-    unPooledDataSource.setPassword(password);
-
-    return unPooledDataSource;
   }
 
   private static ComboPooledDataSource createC3p0DbPool(
@@ -306,12 +303,15 @@ public final class DatabasePoolUtils {
     return pooledDataSource;
   }
 
-  public static void testConnection(DataSource dataSource) {
-    try (Connection conn = dataSource.getConnection();
-        Statement stmt = conn.createStatement()) {
-      stmt.executeQuery("select 'connection_test' as connection_test;");
-    } catch (SQLException e) {
-      log.error(e.getMessage());
-    }
+  private static DriverManagerDataSource createNoPoolDataSource(
+      String username, String password, String driverClassName, String jdbcUrl) {
+    final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();
+    unPooledDataSource.setDriverClassName(driverClassName);
+    unPooledDataSource.setUrl(jdbcUrl);
+    unPooledDataSource.setUsername(username);
+    unPooledDataSource.setPassword(password);
+
+    return unPooledDataSource;
   }
+
 }
