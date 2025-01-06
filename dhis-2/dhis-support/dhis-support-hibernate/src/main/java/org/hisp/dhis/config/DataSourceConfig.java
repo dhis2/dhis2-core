@@ -46,7 +46,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
@@ -100,7 +100,8 @@ public class DataSourceConfig {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig poolConfig = PoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
+    DbPoolConfig poolConfig =
+        DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);

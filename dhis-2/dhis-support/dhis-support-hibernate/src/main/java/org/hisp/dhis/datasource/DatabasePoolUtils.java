@@ -84,7 +84,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -148,7 +148,7 @@ public final class DatabasePoolUtils {
     UNPOOLED
   }
 
-  public static DataSource createDbPool(PoolConfig config)
+  public static DataSource createDbPool(DbPoolConfig config)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
@@ -195,7 +195,11 @@ public final class DatabasePoolUtils {
   }
 
   private static DataSource createHikariDbPool(
-      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config) {
+      String username,
+      String password,
+      String driverClassName,
+      String jdbcUrl,
+      DbPoolConfig config) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -232,7 +236,7 @@ public final class DatabasePoolUtils {
   }
 
   private static ComboPooledDataSource createC3p0DbPool(
-      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config)
+      String username, String password, String driverClassName, String jdbcUrl, DbPoolConfig config)
       throws PropertyVetoException {
     ConfigKeyMapper mapper = config.getMapper();
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();

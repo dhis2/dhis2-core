@@ -31,7 +31,7 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.h2.H2SqlFunction;
@@ -68,7 +68,7 @@ public class H2TestConfig {
       throws SQLException, PropertyVetoException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
+    DbPoolConfig.PoolConfigBuilder builder = DbPoolConfig.builder();
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 

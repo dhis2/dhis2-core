@@ -40,7 +40,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
  */
 @Value
 @Builder
-public class PoolConfig {
+public class DbPoolConfig {
   private String dbPoolType;
 
   private DhisConfigurationProvider dhisConfig;
