@@ -188,16 +188,7 @@ public class DataSourceConfig {
         StackTraceElement nextElement = stackTrace[i - 1];
         String methodName1 = nextElement.getMethodName();
         String className1 = nextElement.getClassName();
-
-        log.info(
-            "JDBC: "
-                + className
-                + "#"
-                + methodName
-                + " ---- \n ----"
-                + className1
-                + "#"
-                + methodName1);
+        log.info("JDBC: {}#{} - \n - {}#{}", className, methodName, className1, methodName1);
         break;
       }
     }
