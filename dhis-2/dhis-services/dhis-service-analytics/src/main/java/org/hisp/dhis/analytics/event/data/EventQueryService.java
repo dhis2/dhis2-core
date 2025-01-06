@@ -70,7 +70,6 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.feedback.ErrorCode.E7218;
 
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Rectangle;
@@ -83,7 +82,7 @@ import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -101,18 +100,11 @@ public class EventQueryService {
 
   private final EventQueryPlanner queryPlanner;
 
-  private final DatabaseInfoProvider databaseInfoProvider;
-
   private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
 
-  private boolean spatialSupport;
-
-  @PostConstruct
-  void init() {
-    this.spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-  }
+  private final SqlBuilder sqlBuilder;
 
   /**
    * Returns a list of events matching the given query.
@@ -168,7 +160,7 @@ public class EventQueryService {
    * @return event clusters as a {@link Grid} object.
    */
   public Grid getEventClusters(EventQueryParams params) {
-    if (!spatialSupport) {
+    if (!isGeospatialSupport()) {
       throwIllegalQueryEx(E7218);
     }
 
@@ -182,11 +174,12 @@ public class EventQueryService {
 
     queryValidator.validate(params);
 
-    Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(COUNT.getItem(), COUNT.getName(), NUMBER, false, false))
-        .addHeader(new GridHeader(CENTER.getItem(), CENTER.getName(), TEXT, false, false))
-        .addHeader(new GridHeader(EXTENT.getItem(), EXTENT.getName(), TEXT, false, false))
-        .addHeader(new GridHeader(POINTS.getItem(), POINTS.getName(), TEXT, false, false));
+    Grid grid =
+        new ListGrid()
+            .addHeader(new GridHeader(COUNT.getItem(), COUNT.getName(), NUMBER, false, false))
+            .addHeader(new GridHeader(CENTER.getItem(), CENTER.getName(), TEXT, false, false))
+            .addHeader(new GridHeader(EXTENT.getItem(), EXTENT.getName(), TEXT, false, false))
+            .addHeader(new GridHeader(POINTS.getItem(), POINTS.getName(), TEXT, false, false));
 
     params = queryPlanner.planEventQuery(params);
 
@@ -203,7 +196,7 @@ public class EventQueryService {
    * @return event clusters as a {@link Grid} object.
    */
   public Rectangle getRectangle(EventQueryParams params) {
-    if (!spatialSupport) {
+    if (!isGeospatialSupport()) {
       throwIllegalQueryEx(E7218);
     }
 
@@ -298,10 +291,13 @@ public class EventQueryService {
                   PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true));
     }
 
-    grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
-        .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
-        .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
-        .addHeader(
+    if (isGeospatialSupport()) {
+      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
+          .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
+          .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true));
+    }
+
+    grid.addHeader(
             new GridHeader(
                 ORG_UNIT_NAME.getItem(),
                 getOrgUnitLabel(params.getProgram(), ORG_UNIT_NAME.getName()),
@@ -353,5 +349,14 @@ public class EventQueryService {
     }
 
     return count;
+  }
+
+  /**
+   * Indicates whether the DBMS supports geospatial data types and functions.
+   *
+   * @return true if the DBMS supports geospatial data types and functions.
+   */
+  private boolean isGeospatialSupport() {
+    return sqlBuilder.supportsGeospatialData();
   }
 }

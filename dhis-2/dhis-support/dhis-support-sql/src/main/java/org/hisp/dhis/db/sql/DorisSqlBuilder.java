@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
@@ -49,6 +50,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   // Constants
 
   private static final String QUOTE = "`";
+
+  // Database
+
+  @Override
+  public Database getDatabase() {
+    return Database.DORIS;
+  }
 
   // Data types
 

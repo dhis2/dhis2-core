@@ -68,6 +68,7 @@ import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -88,6 +89,8 @@ public class EnrollmentQueryService {
   private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
+
+  private final SqlBuilder sqlBuilder;
 
   /**
    * Returns a list of enrollments matching the given query.
@@ -143,8 +146,9 @@ public class EnrollmentQueryService {
    * @return the {@link Grid} with headers.
    */
   private Grid createGridWithHeaders(EventQueryParams params) {
-    return new ListGrid()
-        .addHeader(
+    Grid grid = new ListGrid();
+
+    grid.addHeader(
             new GridHeader(
                 ENROLLMENT.getItem(),
                 getEnrollmentLabel(params.getProgram(), ENROLLMENT.getName()),
@@ -183,11 +187,15 @@ public class EnrollmentQueryService {
                 false,
                 true))
         .addHeader(
-            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
-        .addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
-        .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
-        .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
-        .addHeader(
+            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
+
+    if (sqlBuilder.supportsGeospatialData()) {
+      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
+          .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
+          .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true));
+    }
+
+    grid.addHeader(
             new GridHeader(
                 ORG_UNIT_NAME.getItem(),
                 getOrgUnitLabel(params.getProgram(), ORG_UNIT_NAME.getName()),
@@ -205,6 +213,8 @@ public class EnrollmentQueryService {
             new GridHeader(ORG_UNIT_CODE.getItem(), ORG_UNIT_CODE.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
+
+    return grid;
   }
 
   /**

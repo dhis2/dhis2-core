@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -38,6 +39,13 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 public interface SqlBuilder {
+
+  // Database
+
+  /**
+   * @return the {@link Database}.
+   */
+  Database getDatabase();
 
   // Data types
 

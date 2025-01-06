@@ -503,17 +503,18 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         List.of("eventgeometry"),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false));
+            toRequest(prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false)));
     assertEquals(
         List.of("enrollmentgeometry"),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false));
+            toRequest(prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false)));
     assertEquals(
         List.of("eventgeometry"),
-        dataQueryService.getCoordinateFields(prA.getUid(), null, "eventgeometry", false));
+        dataQueryService.getCoordinateFields(
+            toRequest(prA.getUid(), null, "eventgeometry", false)));
     assertEquals(
         List.of(deC.getUid()),
-        dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
+        dataQueryService.getCoordinateFields(toRequest(prA.getUid(), deC.getUid(), null, false)));
   }
 
   @Test
@@ -525,30 +526,30 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         List.of(COL_NAME_EVENT_GEOMETRY),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), OLD_COL_NAME_EVENT_GEOMETRY, null, false));
+            toRequest(prA.getUid(), OLD_COL_NAME_EVENT_GEOMETRY, null, false)));
     assertEquals(
         List.of(COL_NAME_ENROLLMENT_GEOMETRY),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), OLD_COL_NAME_ENROLLMENT_GEOMETRY, null, false));
+            toRequest(prA.getUid(), OLD_COL_NAME_ENROLLMENT_GEOMETRY, null, false)));
     assertEquals(
         List.of(COL_NAME_TRACKED_ENTITY_GEOMETRY),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, null, false));
+            toRequest(prA.getUid(), OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, null, false)));
     assertEquals(
         List.of(COL_NAME_EVENT_GEOMETRY),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), null, OLD_COL_NAME_EVENT_GEOMETRY, false));
+            toRequest(prA.getUid(), null, OLD_COL_NAME_EVENT_GEOMETRY, false)));
     assertEquals(
         List.of(COL_NAME_ENROLLMENT_GEOMETRY),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), null, OLD_COL_NAME_ENROLLMENT_GEOMETRY, false));
+            toRequest(prA.getUid(), null, OLD_COL_NAME_ENROLLMENT_GEOMETRY, false)));
     assertEquals(
         List.of(COL_NAME_TRACKED_ENTITY_GEOMETRY),
         dataQueryService.getCoordinateFields(
-            prA.getUid(), null, OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, false));
+            toRequest(prA.getUid(), null, OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, false)));
     assertEquals(
         List.of(deC.getUid()),
-        dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
+        dataQueryService.getCoordinateFields(toRequest(prA.getUid(), deC.getUid(), null, false)));
   }
 
   @Test
@@ -560,7 +561,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     // Then
     assertThrows(
         IllegalQueryException.class,
-        () -> dataQueryService.getCoordinateFields(programUid, "badfield", null, false));
+        () -> dataQueryService.getCoordinateFields(toRequest(programUid, "badfield", null, false)));
   }
 
   @Test
@@ -572,6 +573,21 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     // Then
     assertThrows(
         IllegalQueryException.class,
-        () -> dataQueryService.getCoordinateFields(programUid, "tegeometry", "badfallback", false));
+        () ->
+            dataQueryService.getCoordinateFields(
+                toRequest(programUid, "tegeometry", "badfallback", false)));
+  }
+
+  private EventDataQueryRequest toRequest(
+      String program,
+      String coordinateField,
+      String fallbackCoordinateField,
+      boolean isDefaultCoordinateFallback) {
+    return EventDataQueryRequest.builder()
+        .program(program)
+        .coordinateField(coordinateField)
+        .fallbackCoordinateField(fallbackCoordinateField)
+        .defaultCoordinateFallback(isDefaultCoordinateFallback)
+        .build();
   }
 }
