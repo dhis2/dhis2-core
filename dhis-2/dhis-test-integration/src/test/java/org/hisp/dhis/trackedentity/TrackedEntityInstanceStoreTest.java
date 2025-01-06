@@ -538,7 +538,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-
+    params.setPrograms(List.of(prA, prB));
     params.setTrackedEntityType(trackedEntityType);
     params.setTrackedEntityInstanceUids(
         Set.of(teiA.getUid(), teiB.getUid(), teiC.getUid(), teiD.getUid()));
