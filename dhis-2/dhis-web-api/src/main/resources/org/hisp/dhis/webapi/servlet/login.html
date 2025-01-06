@@ -250,7 +250,7 @@
           </div>
           <img
             class="logo"
-            src="/dhis-web-commons/security/logo_front.png"
+            src="./dhis-web-commons/security/logo_front.png"
             alt="DHIS2 Logo"
           />
         </div>
@@ -328,7 +328,7 @@
       // Fetch the login configuration dynamically
       async function fetchLoginConfig() {
         try {
-          const response = await fetch("../api/loginConfig");
+          const response = await fetch("./api/loginConfig");
 
           if (!response.ok) {
             let errorMessage = "Login failed: " + response.status;
@@ -351,7 +351,7 @@
             config.applicationDescription || "Welcome to the DHIS2 application";
           if (config.countryFlag) {
             const flag = document.getElementById("flag");
-            flag.src = `/dhis-web-commons/flags/${config.countryFlag}.png`;
+            flag.src = `./dhis-web-commons/flags/${config.countryFlag}.png`;
             flag.style.display = "block";
           }
         } catch (error) {
@@ -400,7 +400,7 @@
           }
 
           try {
-            const response = await fetch("../api/auth/login", {
+            const response = await fetch("./api/auth/login", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -425,7 +425,7 @@
             const user = await response.json();
 
             if (user.loginStatus === "SUCCESS") {
-              const redirectUrl = user.redirectUrl || "/";
+              const redirectUrl = user.redirectUrl || "./";
               window.location.href = redirectUrl;
             } else {
               throw new Error("Login failed. Status: " + user.loginStatus);

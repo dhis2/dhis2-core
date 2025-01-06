@@ -128,7 +128,7 @@
     },
     {
       "name": "financialYear2018Sep",
-      "query": "/api/42/analytics/trackedEntities/query/Zy2SEgA61ys.json?dimension=ou:USER_ORGUNIT,B6TnnFMgmCk&headers=ouname,B6TnnFMgmCk,created&totalPages=false&rowContext=true&created=2018Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true",
+      "query": "/api/42/analytics/trackedEntities/query/Zy2SEgA61ys.json?dimension=ou:USER_ORGUNIT,B6TnnFMgmCk&headers=ouname,B6TnnFMgmCk,created&totalPages=false&rowContext=true&created=2018Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=created",
       "version": {
         "min": 42
       }

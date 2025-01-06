@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -40,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -113,16 +116,31 @@ public class DataDimensionItem {
   @AllArgsConstructor
   public static class Attributes implements Serializable {
     /** The option item for this dimension item. * */
-    private OptionSetItem optionItem;
+    private OptionSetItem optionSetItem;
 
     @JsonProperty
     @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
     public OptionSetItem getOptionSetItem() {
-      return optionItem;
+      return optionSetItem;
     }
 
-    public void setOptionSetItem(OptionSetItem optionItem) {
-      this.optionItem = optionItem;
+    /**
+     * This method ensure that existing persisted items will return default values, case the current
+     * {@link OptionSetItem} is null or does not have an {@link Aggregation} defined.
+     *
+     * @return the correct version of an {@link OptionSetItem}.
+     */
+    public OptionSetItem getOptionSetItemOrDefault() {
+      if (optionSetItem != null) {
+        return new OptionSetItem(
+            optionSetItem.getOptions(), optionSetItem.getAggregationOrDefault());
+      }
+
+      return new OptionSetItem(Set.of(), AGGREGATED);
+    }
+
+    public void setOptionSetItem(OptionSetItem optionSetItem) {
+      this.optionSetItem = optionSetItem;
     }
   }
 
@@ -232,14 +250,17 @@ public class DataDimensionItem {
   }
 
   /**
-   * Simply loads the internal attributes into the given item object.
+   * Simply loads the internal attributes into the given item object. Some objects, when null, will
+   * be loaded with their respective defaults.
    *
    * @param itemObject the {@link BaseDimensionalItemObject}.
    */
   private void loadAttributes(BaseDimensionalItemObject itemObject) {
-    if (attributes != null) {
-      itemObject.setOptionSetItem(attributes.getOptionSetItem());
+    if (attributes == null) {
+      attributes = new Attributes();
     }
+
+    itemObject.setOptionSetItem(attributes.getOptionSetItemOrDefault());
   }
 
   @JsonProperty

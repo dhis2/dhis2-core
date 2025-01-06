@@ -225,8 +225,7 @@ abstract class EventAnalyticsTest {
           RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
           repeatableStageParams.setDimension(
               withProgramStage.getUid() + "[-1]." + dataElementA.getUid());
-          repeatableStageParams.setStartIndex(-1);
-          repeatableStageParams.setCount(1);
+          repeatableStageParams.setIndex(-1);
           queryItem.setRepeatableStageParams(repeatableStageParams);
         }
       }

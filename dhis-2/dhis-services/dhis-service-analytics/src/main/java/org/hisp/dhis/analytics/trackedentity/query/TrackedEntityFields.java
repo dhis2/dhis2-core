@@ -35,7 +35,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
-import static org.hisp.dhis.common.ValueType.REFERENCE;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -214,9 +213,7 @@ public class TrackedEntityFields {
         .filter(DimensionIdentifier::hasProgramStage)
         .map(DimensionIdentifier::getProgramStage)
         .map(ElementWithOffset::getOffset)
-        .map(
-            offset ->
-                gridHeader.withRepeatableStageParams(RepeatableStageParams.ofStartIndex(offset)))
+        .map(offset -> gridHeader.withRepeatableStageParams(RepeatableStageParams.of(offset)))
         .orElse(gridHeader);
   }
 
@@ -378,8 +375,7 @@ public class TrackedEntityFields {
       String column = queryItem.getItem().getDisplayProperty(requestParams.getDisplayProperty());
       RepeatableStageParams repeatableStageParams = queryItem.getRepeatableStageParams();
       String dimName = repeatableStageParams.getDimension();
-      ValueType valueType =
-          repeatableStageParams.simpleStageValueExpected() ? queryItem.getValueType() : REFERENCE;
+      ValueType valueType = queryItem.getValueType();
 
       return new GridHeader(
           dimName,
