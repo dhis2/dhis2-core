@@ -88,7 +88,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
-/** This service is responsible for querying events. */
+/** Service responsible for querying events. */
 @Service
 @RequiredArgsConstructor
 public class EventQueryService {
