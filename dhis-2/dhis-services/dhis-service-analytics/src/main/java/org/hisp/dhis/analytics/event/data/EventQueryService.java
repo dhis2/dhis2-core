@@ -121,32 +121,38 @@ public class EventQueryService {
    * @return events as a {@Grid} object.
    */
   public Grid getEvents(EventQueryParams params) {
-    // Check access/constraints
+    // Security
+
     securityManager.decideAccessEventQuery(params);
     params = securityManager.withUserConstraints(params);
 
-    // Validate request
+    // Validation
+
     queryValidator.validate(params);
 
     List<Keyword> keywords = getDimensionsKeywords(params);
 
-    // Replace periods with start and end dates
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-    // Populate headers
+    // Headers
+
     Grid grid = createGridWithHeaders(params);
     addCommonHeaders(grid, params, List.of());
 
-    // Add data
+    // Data
+
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
       count = addData(grid, params);
     }
 
-    // Add metadata
+    // Metadata
+
     metadataHandler.addMetadata(grid, params, keywords);
     schemeIdHandler.applyScheme(grid, params);
+
+    // Paging
 
     addPaging(params, count, grid);
     applyHeaders(grid, params);
