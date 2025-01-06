@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -541,7 +540,8 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest {
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
 
     params.setTrackedEntityType(trackedEntityType);
-    params.setTrackedEntityInstanceUids(Set.of(teiA.getUid(),teiB.getUid(),teiC.getUid(),teiD.getUid()));
+    params.setTrackedEntityInstanceUids(
+        Set.of(teiA.getUid(), teiB.getUid(), teiC.getUid(), teiD.getUid()));
 
     int count = teiStore.getTrackedEntityInstanceCountForGridWithMaxTeiLimit(params);
     assertEquals(4, count);

@@ -719,8 +719,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
     }
   }
 
-  private void checkIfMaxTeiLimitIsReached(
-      TrackedEntityInstanceQueryParams params) {
+  private void checkIfMaxTeiLimitIsReached(TrackedEntityInstanceQueryParams params) {
     if (params.hasMaxTeiLimit()) {
       int instanceCount =
           trackedEntityInstanceStore.getTrackedEntityInstanceCountForGridWithMaxTeiLimit(params);
