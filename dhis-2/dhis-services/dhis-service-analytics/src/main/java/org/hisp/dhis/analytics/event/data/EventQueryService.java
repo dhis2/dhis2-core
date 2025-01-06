@@ -160,7 +160,7 @@ public class EventQueryService {
    * @return event clusters as a {@link Grid} object.
    */
   public Grid getEventClusters(EventQueryParams params) {
-    if (!isSpatialSupport()) {
+    if (!isGeospatialSupport()) {
       throwIllegalQueryEx(E7218);
     }
 
@@ -196,7 +196,7 @@ public class EventQueryService {
    * @return event clusters as a {@link Grid} object.
    */
   public Rectangle getRectangle(EventQueryParams params) {
-    if (!isSpatialSupport()) {
+    if (!isGeospatialSupport()) {
       throwIllegalQueryEx(E7218);
     }
 
@@ -291,7 +291,7 @@ public class EventQueryService {
                   PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true));
     }
 
-    if (isSpatialSupport()) {
+    if (isGeospatialSupport()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
     }
 
@@ -356,7 +356,7 @@ public class EventQueryService {
    *
    * @return true if the DBMS supports geospatial data types and functions.
    */
-  private boolean isSpatialSupport() {
+  private boolean isGeospatialSupport() {
     return sqlBuilder.supportsGeospatialData();
   }
 }

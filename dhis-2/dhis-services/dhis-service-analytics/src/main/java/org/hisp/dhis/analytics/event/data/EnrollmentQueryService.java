@@ -189,7 +189,7 @@ public class EnrollmentQueryService {
         .addHeader(
             new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
 
-    if (isSpatialSupport()) {
+    if (isGeospatialSupport()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
     }
 
@@ -251,7 +251,7 @@ public class EnrollmentQueryService {
    *
    * @return true if the DBMS supports geospatial data types and functions.
    */
-  private boolean isSpatialSupport() {
+  private boolean isGeospatialSupport() {
     return sqlBuilder.supportsGeospatialData();
   }
 }
