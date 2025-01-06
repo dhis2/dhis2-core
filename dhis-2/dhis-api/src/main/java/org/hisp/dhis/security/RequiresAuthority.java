@@ -32,16 +32,15 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.hisp.dhis.user.User;
 
 /**
- * Annotation that takes in any number of {@link Authorities}. This allows us to check if a {@link
- * org.hisp.dhis.user.User} has any of the {@link Authorities} passed in.
+ * Annotation that provides type safety for {@link Authorities} checks. It allows specifying any
+ * number of {@link Authorities}. Checks if a {@link User} has any of the specified {@link
+ * Authorities}.
  *
- * <p>{@link Authorities#ALL} is automatically added to the check by default, as having this
- * Authority allows access to all methods by default. No need to pass {@link Authorities#ALL} in the
- * arguments. See {@link AuthorityInterceptor}. <br>
- * {@link Authorities#ALL} will only be excluded from the check if explicitly requested, using the
- * optional param `excludeAllAuth=true`.
+ * <p>No need to pass {@link Authorities#ALL} in the arguments. See {@link AuthorityInterceptor}.
+ * <br>
  *
  * <p>Can be used at Class or Method level. Usage at the method level will always take precedence
  * (matching how Spring works). Class level usage only applies if there is no usage at the method
@@ -51,7 +50,15 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequiresAuthority {
+
+  /** {@link Authorities} to check if {@link User} has */
   Authorities[] anyOf();
 
+  /**
+   * Whether to include the {@link Authorities#ALL} in the auth check. If true, the {@link
+   * Authorities#ALL} authority will not be included in the auth check and the {@link User} must
+   * have one of the specified {@link Authorities} in {@link #anyOf()}}. This provides much stricter
+   * authority if required.
+   */
   boolean excludeAllAuth() default false;
 }
