@@ -59,7 +59,7 @@ class DatabasePoolUtilsTest {
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS))
         .willReturn("org.hisp.dhis.datasource.StubDriver");
 
-    DbPoolConfig.PoolConfigBuilder poolConfigBuilder =
+    DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
         DbPoolConfig.builder()
             .dbPoolType(DatabasePoolUtils.DbPoolType.UNPOOLED.name())
             .jdbcUrl("jdbc:fake:db")
@@ -91,7 +91,7 @@ class DatabasePoolUtilsTest {
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_NUM_THREADS))
         .willReturn("1");
 
-    DbPoolConfig.PoolConfigBuilder poolConfigBuilder =
+    DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
         DbPoolConfig.builder()
             .dbPoolType(DatabasePoolUtils.DbPoolType.C3P0.name())
             .jdbcUrl("jdbc:fake:db")
@@ -120,7 +120,7 @@ class DatabasePoolUtilsTest {
                 ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT))
         .willReturn("250");
 
-    DbPoolConfig.PoolConfigBuilder poolConfigBuilder =
+    DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
         DbPoolConfig.builder()
             .dbPoolType(DatabasePoolUtils.DbPoolType.HIKARI.name())
             .jdbcUrl("jdbc:fake:db")
