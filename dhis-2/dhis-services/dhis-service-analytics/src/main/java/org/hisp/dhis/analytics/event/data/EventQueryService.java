@@ -70,7 +70,6 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.feedback.ErrorCode.E7218;
 
 import java.util.List;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Rectangle;
@@ -106,13 +105,6 @@ public class EventQueryService {
   private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
-
-  private boolean spatialSupport;
-
-  @PostConstruct
-  void init() {
-    this.spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-  }
 
   /**
    * Returns a list of events matching the given query.
@@ -168,7 +160,7 @@ public class EventQueryService {
    * @return event clusters as a {@link Grid} object.
    */
   public Grid getEventClusters(EventQueryParams params) {
-    if (!spatialSupport) {
+    if (!isSpatialSupport()) {
       throwIllegalQueryEx(E7218);
     }
 
@@ -203,7 +195,7 @@ public class EventQueryService {
    * @return event clusters as a {@link Grid} object.
    */
   public Rectangle getRectangle(EventQueryParams params) {
-    if (!spatialSupport) {
+    if (!isSpatialSupport()) {
       throwIllegalQueryEx(E7218);
     }
 
@@ -353,5 +345,10 @@ public class EventQueryService {
     }
 
     return count;
+  }
+
+  private boolean isSpatialSupport() {
+    return true;
+    // return sqlBuilder.supportsGeospatialData();
   }
 }
