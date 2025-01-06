@@ -82,6 +82,7 @@ import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -102,6 +103,8 @@ public class EventQueryService {
   private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
+
+  private final SqlBuilder sqlBuilder;
 
   /**
    * Returns a list of events matching the given query.
@@ -344,8 +347,12 @@ public class EventQueryService {
     return count;
   }
 
+  /**
+   * Indicates whether the DBMS supports geospatial data types and functions.
+   *
+   * @return true if the DBMS supports geospatial data types and functions.
+   */
   private boolean isSpatialSupport() {
-    return true;
-    // return sqlBuilder.supportsGeospatialData();
+    return sqlBuilder.supportsGeospatialData();
   }
 }
