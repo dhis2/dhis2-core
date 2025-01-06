@@ -82,6 +82,13 @@ public class DimensionalObjectUtils {
   public static final String COL_SEP = " ";
 
   /**
+   * Regex to ignore splitting by ";" inside square brackets []. ie:
+   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg] Splits into
+   * FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg]
+   */
+  private static final String DX_REGEX = ";(?![^\\(\\[]*[\\]\\)])";
+
+  /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
    * metric. ie: Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
    */
@@ -390,8 +397,12 @@ public class DimensionalObjectUtils {
       // Extracts dimension items by removing dimension name and separator
       String dimensionItems = param.substring(param.indexOf(DIMENSION_NAME_SEP) + 1);
 
+      // Regex to ignore splitting inside square brackets [].
+      // ie: dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg]
+      // Splits into FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg]
+
       // Returns them as List<String>
-      return Arrays.asList(dimensionItems.split(OPTION_SEP));
+      return Arrays.asList(dimensionItems.split(DX_REGEX));
     }
 
     return new ArrayList<>();

@@ -47,6 +47,7 @@ import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.LATITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.LONGITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -245,7 +246,7 @@ public class DefaultDataQueryService implements DataQueryService {
     if (isNotBlank(options)) {
       Set<String> optionSet = new LinkedHashSet<>();
 
-      for (String uid : options.split("@")) {
+      for (String uid : options.split(OPTION_SEP)) {
         Option option = this.idObjectManager.get(Option.class, uid);
         if (option != null) {
           optionSet.add(option.getUid());
