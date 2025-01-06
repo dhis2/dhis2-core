@@ -88,7 +88,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
-/** This service is responsible for querying events. */
+/** Service responsible for querying events. */
 @Service
 @RequiredArgsConstructor
 public class EventQueryService {
@@ -121,32 +121,38 @@ public class EventQueryService {
    * @return events as a {@Grid} object.
    */
   public Grid getEvents(EventQueryParams params) {
-    // Check access/constraints.
+    // Security
+
     securityManager.decideAccessEventQuery(params);
     params = securityManager.withUserConstraints(params);
 
-    // Validate request.
+    // Validation
+
     queryValidator.validate(params);
 
     List<Keyword> keywords = getDimensionsKeywords(params);
 
-    // Set periods.
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-    // Populate headers.
+    // Headers
+
     Grid grid = createGridWithHeaders(params);
     addCommonHeaders(grid, params, List.of());
 
-    // Add data.
+    // Data
+
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
       count = addData(grid, params);
     }
 
-    // Set response info.
+    // Metadata
+
     metadataHandler.addMetadata(grid, params, keywords);
     schemeIdHandler.applyScheme(grid, params);
+
+    // Paging
 
     addPaging(params, count, grid);
     applyHeaders(grid, params);

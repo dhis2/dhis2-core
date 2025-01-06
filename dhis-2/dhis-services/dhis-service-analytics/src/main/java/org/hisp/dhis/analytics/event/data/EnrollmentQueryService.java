@@ -72,7 +72,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
-/** This service is responsible for querying enrollments. */
+/** Service responsible for querying enrollments. */
 @Service
 @RequiredArgsConstructor
 public class EnrollmentQueryService {
@@ -96,32 +96,38 @@ public class EnrollmentQueryService {
    * @return enrollments data as a {@link Grid} object.
    */
   public Grid getEnrollments(EventQueryParams params) {
-    // Check access/constraints.
+    // Security
+
     securityManager.decideAccessEventQuery(params);
     params = securityManager.withUserConstraints(params);
 
-    // Validate request.
+    // Validation
+
     queryValidator.validate(params);
 
     List<Keyword> keywords = getDimensionsKeywords(params);
 
-    // Set periods.
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-    // Populate headers.
+    // Headers
+
     Grid grid = createGridWithHeaders(params);
     addCommonHeaders(grid, params, List.of());
 
-    // Add data.
+    // Data
+
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
       count = addData(grid, params);
     }
 
-    // Set response info.
+    // Metadata
+
     metadataHandler.addMetadata(grid, params, keywords);
     schemeIdHandler.applyScheme(grid, params);
+
+    // Paging
 
     addPaging(params, count, grid);
     applyHeaders(grid, params);
@@ -134,7 +140,7 @@ public class EnrollmentQueryService {
    * Creates a {@link Grid} object with default headers.
    *
    * @param params the {@link EventQueryParams}.
-   * @return the {@link Grid} with initial headers.
+   * @return the {@link Grid} with headers.
    */
   private Grid createGridWithHeaders(EventQueryParams params) {
     return new ListGrid()
@@ -205,8 +211,7 @@ public class EnrollmentQueryService {
    * Adds data into the given grid, based on the given params.
    *
    * @param grid {@link Grid}.
-   * @param params the {@link EventQueryParams}. @@param maxLimit the max number of records to
-   *     retrieve.
+   * @param params the {@link EventQueryParams}.
    */
   private long addData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
