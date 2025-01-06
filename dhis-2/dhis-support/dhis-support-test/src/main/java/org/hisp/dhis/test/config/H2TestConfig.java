@@ -68,7 +68,7 @@ public class H2TestConfig {
       throws SQLException, PropertyVetoException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DbPoolConfig.PoolConfigBuilder builder = DbPoolConfig.builder();
+    DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder();
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 
