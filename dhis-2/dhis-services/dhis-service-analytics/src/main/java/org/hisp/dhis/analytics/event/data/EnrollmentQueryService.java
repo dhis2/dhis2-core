@@ -68,6 +68,7 @@ import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -88,6 +89,8 @@ public class EnrollmentQueryService {
   private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
+
+  private final SqlBuilder sqlBuilder;
 
   /**
    * Returns a list of enrollments matching the given query.
@@ -143,49 +146,56 @@ public class EnrollmentQueryService {
    * @return the {@link Grid} with headers.
    */
   private Grid createGridWithHeaders(EventQueryParams params) {
-    return new ListGrid()
-        .addHeader(
-            new GridHeader(
-                ENROLLMENT.getItem(),
-                getEnrollmentLabel(params.getProgram(), ENROLLMENT.getName()),
-                TEXT,
-                false,
-                true))
-        .addHeader(
-            new GridHeader(TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
-        .addHeader(
-            new GridHeader(
-                ENROLLMENT_DATE.getItem(),
-                getEnrollmentDateLabel(params.getProgram(), ENROLLMENT_DATE.getName()),
-                DATETIME,
-                false,
-                true))
-        .addHeader(
-            new GridHeader(
-                INCIDENT_DATE.getItem(),
-                getIncidentDateLabel(params.getProgram(), INCIDENT_DATE.getName()),
-                DATETIME,
-                false,
-                true))
-        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
-        .addHeader(
-            new GridHeader(
-                CREATED_BY_DISPLAY_NAME.getItem(),
-                CREATED_BY_DISPLAY_NAME.getName(),
-                TEXT,
-                false,
-                true))
-        .addHeader(
-            new GridHeader(
-                LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
-                LAST_UPDATED_BY_DISPLAY_NAME.getName(),
-                TEXT,
-                false,
-                true))
-        .addHeader(
-            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
-        .addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
-        .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
+    Grid grid =
+        new ListGrid()
+            .addHeader(
+                new GridHeader(
+                    ENROLLMENT.getItem(),
+                    getEnrollmentLabel(params.getProgram(), ENROLLMENT.getName()),
+                    TEXT,
+                    false,
+                    true))
+            .addHeader(
+                new GridHeader(
+                    TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
+            .addHeader(
+                new GridHeader(
+                    ENROLLMENT_DATE.getItem(),
+                    getEnrollmentDateLabel(params.getProgram(), ENROLLMENT_DATE.getName()),
+                    DATETIME,
+                    false,
+                    true))
+            .addHeader(
+                new GridHeader(
+                    INCIDENT_DATE.getItem(),
+                    getIncidentDateLabel(params.getProgram(), INCIDENT_DATE.getName()),
+                    DATETIME,
+                    false,
+                    true))
+            .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
+            .addHeader(
+                new GridHeader(
+                    CREATED_BY_DISPLAY_NAME.getItem(),
+                    CREATED_BY_DISPLAY_NAME.getName(),
+                    TEXT,
+                    false,
+                    true))
+            .addHeader(
+                new GridHeader(
+                    LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
+                    LAST_UPDATED_BY_DISPLAY_NAME.getName(),
+                    TEXT,
+                    false,
+                    true))
+            .addHeader(
+                new GridHeader(
+                    LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
+
+    if (isSpatialSupport()) {
+      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
+    }
+
+    grid.addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
         .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true))
         .addHeader(
             new GridHeader(
@@ -205,6 +215,8 @@ public class EnrollmentQueryService {
             new GridHeader(ORG_UNIT_CODE.getItem(), ORG_UNIT_CODE.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
+
+    return grid;
   }
 
   /**
@@ -234,5 +246,14 @@ public class EnrollmentQueryService {
     timer.getTime("Got enrollments " + grid.getHeight());
 
     return count;
+  }
+
+  /**
+   * Indicates whether the DBMS supports geospatial data types and functions.
+   *
+   * @return true if the DBMS supports geospatial data types and functions.
+   */
+  private boolean isSpatialSupport() {
+    return sqlBuilder.supportsGeospatialData();
   }
 }
