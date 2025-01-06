@@ -82,7 +82,6 @@ import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -99,8 +98,6 @@ public class EventQueryService {
   private final EventAnalyticsManager eventAnalyticsManager;
 
   private final EventQueryPlanner queryPlanner;
-
-  private final DatabaseInfoProvider databaseInfoProvider;
 
   private final MetadataItemsHandler metadataHandler;
 
