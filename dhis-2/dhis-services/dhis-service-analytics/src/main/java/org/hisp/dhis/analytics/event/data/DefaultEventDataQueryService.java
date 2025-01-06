@@ -216,6 +216,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     EventQueryParams eventQueryParams = builder.build();
 
     // Partitioning applies only when default period is specified
+
     // Empty period dimension means default period
 
     if (hasPeriodDimension(eventQueryParams) && hasNotDefaultPeriod(eventQueryParams)) {
