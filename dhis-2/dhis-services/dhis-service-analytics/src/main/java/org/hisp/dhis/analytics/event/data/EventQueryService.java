@@ -221,54 +221,53 @@ public class EventQueryService {
    * @param params the {@link EventQueryParams}.
    */
   private Grid createGridWithHeaders(EventQueryParams params) {
-    Grid grid =
-        new ListGrid()
-            .addHeader(
-                new GridHeader(
-                    EVENT.getItem(),
-                    getEventLabel(params.getProgramStage(), EVENT.getName()),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    PROGRAM_STAGE.getItem(),
-                    getProgramStageLabel(params.getProgramStage(), PROGRAM_STAGE.getName()),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    EVENT_DATE.getItem(),
-                    getEventDateLabel(params.getProgramStage(), EVENT_DATE.getName()),
-                    DATETIME,
-                    false,
-                    true))
-            .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
-            .addHeader(
-                new GridHeader(
-                    CREATED_BY_DISPLAY_NAME.getItem(),
-                    CREATED_BY_DISPLAY_NAME.getName(),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
-                    LAST_UPDATED_BY_DISPLAY_NAME.getName(),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
-            .addHeader(
-                new GridHeader(
-                    SCHEDULED_DATE.getItem(),
-                    getScheduledDateLabel(params.getProgramStage(), SCHEDULED_DATE.getName()),
-                    DATETIME,
-                    false,
-                    true));
+    Grid grid = new ListGrid();
+
+    grid.addHeader(
+            new GridHeader(
+                EVENT.getItem(),
+                getEventLabel(params.getProgramStage(), EVENT.getName()),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(
+                PROGRAM_STAGE.getItem(),
+                getProgramStageLabel(params.getProgramStage(), PROGRAM_STAGE.getName()),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(
+                EVENT_DATE.getItem(),
+                getEventDateLabel(params.getProgramStage(), EVENT_DATE.getName()),
+                DATETIME,
+                false,
+                true))
+        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                CREATED_BY_DISPLAY_NAME.getItem(),
+                CREATED_BY_DISPLAY_NAME.getName(),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(
+                LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
+                LAST_UPDATED_BY_DISPLAY_NAME.getName(),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
+        .addHeader(
+            new GridHeader(
+                SCHEDULED_DATE.getItem(),
+                getScheduledDateLabel(params.getProgramStage(), SCHEDULED_DATE.getName()),
+                DATETIME,
+                false,
+                true));
 
     if (params.getProgram().isRegistration()) {
       grid.addHeader(

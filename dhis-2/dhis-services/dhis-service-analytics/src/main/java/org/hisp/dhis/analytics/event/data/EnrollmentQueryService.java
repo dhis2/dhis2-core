@@ -146,50 +146,48 @@ public class EnrollmentQueryService {
    * @return the {@link Grid} with headers.
    */
   private Grid createGridWithHeaders(EventQueryParams params) {
-    Grid grid =
-        new ListGrid()
-            .addHeader(
-                new GridHeader(
-                    ENROLLMENT.getItem(),
-                    getEnrollmentLabel(params.getProgram(), ENROLLMENT.getName()),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
-            .addHeader(
-                new GridHeader(
-                    ENROLLMENT_DATE.getItem(),
-                    getEnrollmentDateLabel(params.getProgram(), ENROLLMENT_DATE.getName()),
-                    DATETIME,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    INCIDENT_DATE.getItem(),
-                    getIncidentDateLabel(params.getProgram(), INCIDENT_DATE.getName()),
-                    DATETIME,
-                    false,
-                    true))
-            .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
-            .addHeader(
-                new GridHeader(
-                    CREATED_BY_DISPLAY_NAME.getItem(),
-                    CREATED_BY_DISPLAY_NAME.getName(),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
-                    LAST_UPDATED_BY_DISPLAY_NAME.getName(),
-                    TEXT,
-                    false,
-                    true))
-            .addHeader(
-                new GridHeader(
-                    LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
+    Grid grid = new ListGrid();
+
+    grid.addHeader(
+            new GridHeader(
+                ENROLLMENT.getItem(),
+                getEnrollmentLabel(params.getProgram(), ENROLLMENT.getName()),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                ENROLLMENT_DATE.getItem(),
+                getEnrollmentDateLabel(params.getProgram(), ENROLLMENT_DATE.getName()),
+                DATETIME,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(
+                INCIDENT_DATE.getItem(),
+                getIncidentDateLabel(params.getProgram(), INCIDENT_DATE.getName()),
+                DATETIME,
+                false,
+                true))
+        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
+        .addHeader(
+            new GridHeader(
+                CREATED_BY_DISPLAY_NAME.getItem(),
+                CREATED_BY_DISPLAY_NAME.getName(),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(
+                LAST_UPDATED_BY_DISPLAY_NAME.getItem(),
+                LAST_UPDATED_BY_DISPLAY_NAME.getName(),
+                TEXT,
+                false,
+                true))
+        .addHeader(
+            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
 
     if (isSpatialSupport()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
