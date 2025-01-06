@@ -189,7 +189,7 @@ public class EnrollmentQueryService {
         .addHeader(
             new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
 
-    if (isGeospatialSupport()) {
+    if (sqlBuilder.supportsGeospatialData()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
           .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
           .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true));
@@ -244,14 +244,5 @@ public class EnrollmentQueryService {
     timer.getTime("Got enrollments " + grid.getHeight());
 
     return count;
-  }
-
-  /**
-   * Indicates whether the DBMS supports geospatial data types and functions.
-   *
-   * @return true if the DBMS supports geospatial data types and functions.
-   */
-  private boolean isGeospatialSupport() {
-    return sqlBuilder.supportsGeospatialData();
   }
 }

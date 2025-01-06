@@ -340,7 +340,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    * @return a list of names of standard columns.
    */
   private List<String> getStandardColumns(EventQueryParams params) {
-    ListBuilder<String> columns = new ListBuilder<String>();
+    ListBuilder<String> columns = new ListBuilder<>();
 
     columns.add(
         EventAnalyticsColumnName.EVENT_COLUMN_NAME,

@@ -357,7 +357,6 @@ public class EventQueryService {
    * @return true if the DBMS supports geospatial data types and functions.
    */
   private boolean isGeospatialSupport() {
-    System.out.println("SUPPORTS GEO: " + sqlBuilder.supportsGeospatialData());
     return sqlBuilder.supportsGeospatialData();
   }
 }

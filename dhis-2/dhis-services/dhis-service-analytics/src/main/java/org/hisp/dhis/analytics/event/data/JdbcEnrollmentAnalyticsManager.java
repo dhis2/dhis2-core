@@ -480,7 +480,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
+            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(),
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -651,11 +651,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   /**
    * Returns a list of names of standard columns.
    *
-   * @param params the {@link EventQueryParams}.
    * @return a list of names of standard columns.
    */
-  private List<String> getStandardColumns(EventQueryParams params) {
-    ListBuilder<String> columns = new ListBuilder<String>();
+  private List<String> getStandardColumns() {
+    ListBuilder<String> columns = new ListBuilder<>();
 
     columns.add(
         EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
