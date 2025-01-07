@@ -908,7 +908,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
       return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && isSpatialSupport()) {
+    } else if (valueType.isGeo() && isGeospatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
           + columnName
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
