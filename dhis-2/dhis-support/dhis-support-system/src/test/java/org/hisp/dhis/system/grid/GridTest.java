@@ -921,7 +921,7 @@ class GridTest {
   void testRepeatableStageParamInHeaderTest() {
     // arrange act assert
     assertEquals(
-        "startIndex:0 count:1 startDate:null endDate: null",
+        "index:0 startDate:null endDate: null dimension: null",
         gridA.getHeaders().get(0).getRepeatableStageParams());
 
     assertNull(gridA.getHeaders().get(1).getRepeatableStageParams());

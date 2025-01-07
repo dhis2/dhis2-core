@@ -323,8 +323,8 @@ public class QueryItem implements GroupableItem {
   }
 
   /**
-   * Indicates whether a program stage and repeatable stage parameters which is not a default object
-   * exists for this query item.
+   * Indicates whether a program stage and repeatable stage parameters exists when there is no
+   * default object for this query item.
    */
   public boolean hasNonDefaultRepeatableProgramStageOffset() {
     return programStage != null
@@ -455,11 +455,16 @@ public class QueryItem implements GroupableItem {
         + "]";
   }
 
+  /**
+   * Indicates whether the item has the repeatable program stage param set.
+   *
+   * @return true if the object was set at some point, false otherwise.
+   */
   public boolean hasRepeatableStageParams() {
     return repeatableStageParams != null;
   }
 
   public int getProgramStageOffset() {
-    return hasRepeatableStageParams() ? repeatableStageParams.getStartIndex() : 0;
+    return hasRepeatableStageParams() ? repeatableStageParams.getIndex() : 0;
   }
 }

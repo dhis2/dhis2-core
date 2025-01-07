@@ -60,6 +60,7 @@ public class TrackedEntityQuery8AutoTest extends AnalyticsApiTest {
             .add("rowContext=true")
             .add("pageSize=100")
             .add("page=1")
+            .add("asc=created")
             .add("dimension=ou:USER_ORGUNIT,B6TnnFMgmCk");
 
     // When
@@ -97,42 +98,42 @@ public class TrackedEntityQuery8AutoTest extends AnalyticsApiTest {
         response, 2, "created", "Created", "DATETIME", "java.time.LocalDateTime", false, true);
 
     // Assert rows.
-    validateRow(response, 0, List.of("Ngelehun CHC", "29", "2019-08-21 13:23:45.456"));
-    validateRow(response, 1, List.of("Ngelehun CHC", "19", "2019-08-21 13:23:48.994"));
-    validateRow(response, 2, List.of("Ngelehun CHC", "0", "2019-08-21 13:23:53.055"));
-    validateRow(response, 3, List.of("Ngelehun CHC", "33", "2019-08-21 13:23:19.551"));
-    validateRow(response, 4, List.of("Ngelehun CHC", "64", "2019-08-21 13:23:24.357"));
-    validateRow(response, 5, List.of("Ngelehun CHC", "29", "2019-08-21 13:23:34.045"));
-    validateRow(response, 6, List.of("Ngelehun CHC", "15", "2019-08-21 13:23:37.63"));
-    validateRow(response, 7, List.of("Ngelehun CHC", "33", "2019-08-21 13:23:41.186"));
-    validateRow(response, 8, List.of("Ngelehun CHC", "", "2019-08-21 13:24:04.74"));
-    validateRow(response, 9, List.of("Ngelehun CHC", "17", "2019-08-21 13:24:08.457"));
-    validateRow(response, 10, List.of("Ngelehun CHC", "30", "2019-08-21 13:24:13.102"));
-    validateRow(response, 11, List.of("Njandama MCHP", "11", "2019-08-21 13:24:17.391"));
-    validateRow(response, 12, List.of("Ngelehun CHC", "", "2019-08-21 13:24:21.658"));
-    validateRow(response, 13, List.of("Njandama MCHP", "26", "2019-08-21 13:24:56.022"));
-    validateRow(response, 14, List.of("Ngelehun CHC", "27", "2019-08-21 13:25:03.887"));
-    validateRow(response, 15, List.of("Ngelehun CHC", "25", "2019-08-21 13:25:07.634"));
-    validateRow(response, 16, List.of("Ngelehun CHC", "27", "2019-08-21 13:25:12.115"));
-    validateRow(response, 17, List.of("Ngelehun CHC", "30", "2019-08-21 13:25:16.651"));
-    validateRow(response, 18, List.of("Ngelehun CHC", "6", "2019-08-21 13:25:34.059"));
-    validateRow(response, 19, List.of("Ngelehun CHC", "9", "2019-08-21 13:25:47.06"));
-    validateRow(response, 20, List.of("Ngelehun CHC", "9", "2019-08-21 13:25:51.247"));
-    validateRow(response, 21, List.of("Njandama MCHP", "0", "2019-08-21 13:23:56.994"));
-    validateRow(response, 22, List.of("Ngelehun CHC", "32", "2019-08-21 13:24:00.882"));
-    validateRow(response, 23, List.of("Njandama MCHP", "36", "2019-08-21 13:23:30.144"));
-    validateRow(response, 24, List.of("Ngelehun CHC", "46", "2019-08-21 13:24:26.104"));
-    validateRow(response, 25, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:30.66"));
-    validateRow(response, 26, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:34.951"));
-    validateRow(response, 27, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:38.952"));
-    validateRow(response, 28, List.of("Ngelehun CHC", "", "2019-08-21 13:24:43.358"));
-    validateRow(response, 29, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:47.119"));
-    validateRow(response, 30, List.of("Njandama MCHP", "0", "2019-08-21 13:24:52.073"));
-    validateRow(response, 31, List.of("Ngelehun CHC", "21", "2019-08-21 13:24:59.811"));
-    validateRow(response, 32, List.of("Ngelehun CHC", "24", "2019-08-21 13:25:20.729"));
-    validateRow(response, 33, List.of("Ngelehun CHC", "23", "2019-08-21 13:25:25.258"));
-    validateRow(response, 34, List.of("Ngelehun CHC", "43", "2019-08-21 13:25:29.756"));
-    validateRow(response, 35, List.of("Ngelehun CHC", "30", "2019-08-21 13:25:38.022"));
-    validateRow(response, 36, List.of("Ngelehun CHC", "32", "2019-08-21 13:25:42.703"));
+    validateRow(response, 0, List.of("Ngelehun CHC", "33", "2019-08-21 13:23:19.551"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "64", "2019-08-21 13:23:24.357"));
+    validateRow(response, 2, List.of("Njandama MCHP", "36", "2019-08-21 13:23:30.144"));
+    validateRow(response, 3, List.of("Ngelehun CHC", "29", "2019-08-21 13:23:34.045"));
+    validateRow(response, 4, List.of("Ngelehun CHC", "15", "2019-08-21 13:23:37.63"));
+    validateRow(response, 5, List.of("Ngelehun CHC", "33", "2019-08-21 13:23:41.186"));
+    validateRow(response, 6, List.of("Ngelehun CHC", "29", "2019-08-21 13:23:45.456"));
+    validateRow(response, 7, List.of("Ngelehun CHC", "19", "2019-08-21 13:23:48.994"));
+    validateRow(response, 8, List.of("Ngelehun CHC", "0", "2019-08-21 13:23:53.055"));
+    validateRow(response, 9, List.of("Njandama MCHP", "0", "2019-08-21 13:23:56.994"));
+    validateRow(response, 10, List.of("Ngelehun CHC", "32", "2019-08-21 13:24:00.882"));
+    validateRow(response, 11, List.of("Ngelehun CHC", "", "2019-08-21 13:24:04.74"));
+    validateRow(response, 12, List.of("Ngelehun CHC", "17", "2019-08-21 13:24:08.457"));
+    validateRow(response, 13, List.of("Ngelehun CHC", "30", "2019-08-21 13:24:13.102"));
+    validateRow(response, 14, List.of("Njandama MCHP", "11", "2019-08-21 13:24:17.391"));
+    validateRow(response, 15, List.of("Ngelehun CHC", "", "2019-08-21 13:24:21.658"));
+    validateRow(response, 16, List.of("Ngelehun CHC", "46", "2019-08-21 13:24:26.104"));
+    validateRow(response, 17, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:30.66"));
+    validateRow(response, 18, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:34.951"));
+    validateRow(response, 19, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:38.952"));
+    validateRow(response, 20, List.of("Ngelehun CHC", "", "2019-08-21 13:24:43.358"));
+    validateRow(response, 21, List.of("Ngelehun CHC", "0", "2019-08-21 13:24:47.119"));
+    validateRow(response, 22, List.of("Njandama MCHP", "0", "2019-08-21 13:24:52.073"));
+    validateRow(response, 23, List.of("Njandama MCHP", "26", "2019-08-21 13:24:56.022"));
+    validateRow(response, 24, List.of("Ngelehun CHC", "21", "2019-08-21 13:24:59.811"));
+    validateRow(response, 25, List.of("Ngelehun CHC", "27", "2019-08-21 13:25:03.887"));
+    validateRow(response, 26, List.of("Ngelehun CHC", "25", "2019-08-21 13:25:07.634"));
+    validateRow(response, 27, List.of("Ngelehun CHC", "27", "2019-08-21 13:25:12.115"));
+    validateRow(response, 28, List.of("Ngelehun CHC", "30", "2019-08-21 13:25:16.651"));
+    validateRow(response, 29, List.of("Ngelehun CHC", "24", "2019-08-21 13:25:20.729"));
+    validateRow(response, 30, List.of("Ngelehun CHC", "23", "2019-08-21 13:25:25.258"));
+    validateRow(response, 31, List.of("Ngelehun CHC", "43", "2019-08-21 13:25:29.756"));
+    validateRow(response, 32, List.of("Ngelehun CHC", "6", "2019-08-21 13:25:34.059"));
+    validateRow(response, 33, List.of("Ngelehun CHC", "30", "2019-08-21 13:25:38.022"));
+    validateRow(response, 34, List.of("Ngelehun CHC", "32", "2019-08-21 13:25:42.703"));
+    validateRow(response, 35, List.of("Ngelehun CHC", "9", "2019-08-21 13:25:47.06"));
+    validateRow(response, 36, List.of("Ngelehun CHC", "9", "2019-08-21 13:25:51.247"));
   }
 }

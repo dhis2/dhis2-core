@@ -236,7 +236,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String cast(String column, DataType dataType) {
     return switch (dataType) {
-      case NUMERIC -> String.format("toDecimal64(%s, 4)", column);
+      case NUMERIC -> String.format("toFloat64(%s)", column);
       case BOOLEAN ->
           String.format("toUInt8(%s) != 0", column); // ClickHouse uses UInt8 for boolean
       case TEXT -> String.format("toString(%s)", column);
@@ -244,13 +244,14 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String age(String endDate, String startDate) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
-    throw new UnsupportedOperationException();
+    return switch (dateUnit) {
+      case DAYS -> String.format("dateDiff('day', %s, %s)", startDate, endDate);
+      case MINUTES -> String.format("dateDiff('minute', %s, %s)", startDate, endDate);
+      case MONTHS -> String.format("dateDiff('month', %s, %s)", startDate, endDate);
+      case YEARS -> String.format("dateDiff('year', %s, %s)", startDate, endDate);
+      case WEEKS -> String.format("dateDiff('week', %s, %s)", startDate, endDate);
+    };
   }
 
   @Override

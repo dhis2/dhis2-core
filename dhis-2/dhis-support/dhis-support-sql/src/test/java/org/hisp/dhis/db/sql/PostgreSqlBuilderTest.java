@@ -44,7 +44,7 @@ import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
 class PostgreSqlBuilderTest {
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final PostgreSqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private Table getTableA() {
     List<Column> columns =
@@ -257,6 +257,14 @@ class PostgreSqlBuilderTest {
         """
         ax."qrur9Dvnyt5"::numeric""",
         sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.NUMERIC));
+    assertEquals(
+        """
+        ax."qrur9Dvnyt5"::numeric != 0""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.BOOLEAN));
+    assertEquals(
+        """
+        ax."qrur9Dvnyt5"::text""",
+        sqlBuilder.cast("ax.\"qrur9Dvnyt5\"", org.hisp.dhis.analytics.DataType.TEXT));
   }
 
   @Test
