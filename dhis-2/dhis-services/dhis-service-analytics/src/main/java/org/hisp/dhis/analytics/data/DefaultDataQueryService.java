@@ -45,6 +45,7 @@ import static org.hisp.dhis.common.DimensionType.STATIC;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.LATITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
@@ -229,9 +230,12 @@ public class DefaultDataQueryService implements DataQueryService {
 
     if (dimIdentifier == null) {
       dimIdentifier =
-          getFirstIdentifier(composedDimension) + "." + getSecondIdentifier(composedDimension);
+          getFirstIdentifier(composedDimension)
+              + DIMENSION_IDENTIFIER_SEP
+              + getSecondIdentifier(composedDimension);
     } else {
-      dimIdentifier = getSecondIdentifier(composedDimension) + "." + dimIdentifier;
+      dimIdentifier =
+          getSecondIdentifier(composedDimension) + DIMENSION_IDENTIFIER_SEP + dimIdentifier;
     }
     return dimIdentifier;
   }

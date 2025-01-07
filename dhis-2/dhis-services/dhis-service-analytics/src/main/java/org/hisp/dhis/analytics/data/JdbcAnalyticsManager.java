@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
@@ -383,7 +384,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
             params
                 .getOptionSetSelectionCriteria()
                 .getOptionSetSelections()
-                .get(de.getUid() + "." + ((DataElement) de).getOptionSet().getUid())
+                .get(
+                    de.getUid()
+                        + DIMENSION_IDENTIFIER_SEP
+                        + ((DataElement) de).getOptionSet().getUid())
                 .getOptionSetSelectionMode();
         optionSetSelectionMode = Optional.of(setSelectionMode);
         break;
