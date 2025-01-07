@@ -444,7 +444,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return notSupported();
   }
 
-  @Override
+  /**
+   * @param connectionUrl the JDBC connection URL.
+   * @param username the JDBC connection username.
+   * @param password the JDBC connection password.
+   * @return a create catalog statement.
+   */
   public String createCatalog(String connectionUrl, String username, String password) {
     return replace(
         """
@@ -465,7 +470,9 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
             "driver_filename", driverFilename));
   }
 
-  @Override
+  /**
+   * @return a drop catalog if exists statement.
+   */
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
   }

@@ -484,19 +484,6 @@ public interface SqlBuilder {
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
 
-  /**
-   * @param connectionUrl the JDBC connection URL.
-   * @param username the JDBC connection username.
-   * @param password the JDBC connection password.
-   * @return a create catalog statement.
-   */
-  String createCatalog(String connectionUrl, String username, String password);
-
-  /**
-   * @return a drop catalog if exists statement.
-   */
-  String dropCatalogIfExists();
-
   /** Enumeration of time units. */
   enum DateUnit {
     DAYS,

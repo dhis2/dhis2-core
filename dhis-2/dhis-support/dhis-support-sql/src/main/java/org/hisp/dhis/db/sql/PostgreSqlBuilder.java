@@ -432,14 +432,4 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
             "create %sindex %s on %s using %s(%s %s);",
             unique, quote(index.getName()), quote(tableName), typeName, columns, sortOrder);
   }
-
-  @Override
-  public String createCatalog(String connectionUrl, String username, String password) {
-    return notSupported();
-  }
-
-  @Override
-  public String dropCatalogIfExists() {
-    return notSupported();
-  }
 }
