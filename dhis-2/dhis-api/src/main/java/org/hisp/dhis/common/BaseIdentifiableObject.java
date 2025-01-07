@@ -49,6 +49,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
@@ -83,22 +85,22 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
 public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
   /** The database internal identifier for this Object. */
-  protected long id;
+  @Setter protected long id;
 
   /** The unique identifier for this object. */
-  @AuditAttribute protected String uid;
+  @Setter @AuditAttribute protected String uid;
 
   /** The unique code for this object. */
-  @AuditAttribute protected String code;
+  @Setter @AuditAttribute protected String code;
 
   /** The name of this object. Required and unique. */
-  protected String name;
+  @Setter protected String name;
 
   /** The date this object was created. */
-  protected Date created;
+  @Setter protected Date created;
 
   /** The date this object was last updated. */
-  protected Date lastUpdated;
+  @Setter protected Date lastUpdated;
 
   /** Set of the dynamic attributes values that belong to this data element. */
   @AuditAttribute private AttributeValues attributeValues = AttributeValues.empty();
@@ -110,7 +112,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    * Cache for object translations, where the cache key is a combination of locale and translation
    * property, and value is the translated value.
    */
-  private Map<String, String> translationCache = new ConcurrentHashMap<>();
+  private final Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   /** User who created this object. This field is immutable and must not be updated. */
   @Immutable protected User createdBy;
@@ -119,13 +121,13 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   protected transient Access access;
 
   /** Users who have marked this object as a favorite. */
-  protected Set<String> favorites = new HashSet<>();
+  @Setter protected Set<String> favorites = new HashSet<>();
 
   /** Last user updated this object. */
-  protected User lastUpdatedBy;
+  @Setter protected User lastUpdatedBy;
 
   /** Object sharing (JSONB). */
-  protected Sharing sharing = new Sharing();
+  @Setter protected Sharing sharing = new Sharing();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -162,7 +164,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    * name.
    */
   @Override
-  public int compareTo(IdentifiableObject object) {
+  public int compareTo(@Nonnull IdentifiableObject object) {
     if (this.getDisplayName() == null) {
       return object.getDisplayName() == null ? 0 : 1;
     }
@@ -182,10 +184,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return id;
   }
 
-  public void setId(long id) {
-    this.id = id;
-  }
-
   @Override
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
@@ -194,10 +192,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @PropertyRange(min = 11, max = 11)
   public String getUid() {
     return uid;
-  }
-
-  public void setUid(String uid) {
-    this.uid = uid;
   }
 
   @Override
@@ -209,10 +203,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return code;
   }
 
-  public void setCode(String code) {
-    this.code = code;
-  }
-
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -220,10 +210,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @PropertyRange(min = 1)
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   @Override
@@ -243,10 +229,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return created;
   }
 
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
   @Override
   @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
@@ -258,10 +240,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return lastUpdatedBy;
   }
 
-  public void setLastUpdatedBy(User lastUpdatedBy) {
-    this.lastUpdatedBy = lastUpdatedBy;
-  }
-
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -269,10 +247,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getLastUpdated() {
     return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
   }
 
   public record AttributeValue(@JsonProperty Attribute attribute, @JsonProperty String value) {}
@@ -308,6 +282,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   @Gist(included = Include.FALSE)
   @Override
+  @Sortable(false)
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
@@ -387,8 +362,9 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  @Sortable(false)
   @Gist(included = Include.FALSE)
-  @JsonProperty
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
   public Access getAccess() {
     return access;
@@ -407,10 +383,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return favorites;
   }
 
-  public void setFavorites(Set<String> favorites) {
-    this.favorites = favorites;
-  }
-
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -422,6 +394,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  @Sortable(false)
   @Gist(included = Include.FALSE)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -431,10 +404,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     }
 
     return sharing;
-  }
-
-  public void setSharing(Sharing sharing) {
-    this.sharing = sharing;
   }
 
   @Override
