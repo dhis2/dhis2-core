@@ -83,7 +83,7 @@ public class DimensionalObjectUtils {
 
   /**
    * Regex to ignore splitting by ";" inside square brackets []. ie:
-   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg] Splits into
+   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg], splits into
    * FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg]
    */
   private static final String DX_REGEX = ";(?![^\\(\\[]*[\\]\\)])";

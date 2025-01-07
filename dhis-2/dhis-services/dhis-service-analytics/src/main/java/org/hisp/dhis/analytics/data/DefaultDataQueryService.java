@@ -222,7 +222,7 @@ public class DefaultDataQueryService implements DataQueryService {
    * Extracts the dimension uid based on the given argument and internal rules, depending on the
    * composition of the value.
    *
-   * @param composedDimension ie: WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G@aaa]
+   * @param composedDimension ie: WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;x7H1HjJ0R64]
    * @return the respective dimension uid.
    */
   private static String getDimensionIdentifier(String composedDimension) {
