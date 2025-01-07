@@ -42,7 +42,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -129,8 +129,8 @@ public class AnalyticsDataSourceConfig {
     String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig poolConfig =
-        PoolConfig.builder().dhisConfig(config).mapper(ANALYTICS).dbPoolType(dbPoolType).build();
+    DbPoolConfig poolConfig =
+        DbPoolConfig.builder().dhisConfig(config).mapper(ANALYTICS).dbPoolType(dbPoolType).build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);

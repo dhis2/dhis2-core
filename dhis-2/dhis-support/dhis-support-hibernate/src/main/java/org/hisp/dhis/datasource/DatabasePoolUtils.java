@@ -84,7 +84,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -148,7 +148,7 @@ public final class DatabasePoolUtils {
     UNPOOLED
   }
 
-  public static DataSource createDbPool(PoolConfig config)
+  public static DataSource createDbPool(DbPoolConfig config)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
@@ -173,7 +173,7 @@ public final class DatabasePoolUtils {
         switch (dbPoolType) {
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
-          case UNPOOLED -> createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
+          case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
           default ->
               throw new IllegalArgumentException(
                   TextUtils.format(
@@ -185,8 +185,21 @@ public final class DatabasePoolUtils {
     return dataSource;
   }
 
+  public static void testConnection(DataSource dataSource) {
+    try (Connection conn = dataSource.getConnection();
+        Statement stmt = conn.createStatement()) {
+      stmt.executeQuery("select 'connection_test' as connection_test;");
+    } catch (SQLException e) {
+      log.error(e.getMessage());
+    }
+  }
+
   private static DataSource createHikariDbPool(
-      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config) {
+      String username,
+      String password,
+      String driverClassName,
+      String jdbcUrl,
+      DbPoolConfig config) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -222,19 +235,8 @@ public final class DatabasePoolUtils {
     return ds;
   }
 
-  private static DriverManagerDataSource createUnPooledDataSource(
-      String username, String password, String driverClassName, String jdbcUrl) {
-    final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();
-    unPooledDataSource.setDriverClassName(driverClassName);
-    unPooledDataSource.setUrl(jdbcUrl);
-    unPooledDataSource.setUsername(username);
-    unPooledDataSource.setPassword(password);
-
-    return unPooledDataSource;
-  }
-
   private static ComboPooledDataSource createC3p0DbPool(
-      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config)
+      String username, String password, String driverClassName, String jdbcUrl, DbPoolConfig config)
       throws PropertyVetoException {
     ConfigKeyMapper mapper = config.getMapper();
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -306,12 +308,14 @@ public final class DatabasePoolUtils {
     return pooledDataSource;
   }
 
-  public static void testConnection(DataSource dataSource) {
-    try (Connection conn = dataSource.getConnection();
-        Statement stmt = conn.createStatement()) {
-      stmt.executeQuery("select 'connection_test' as connection_test;");
-    } catch (SQLException e) {
-      log.error(e.getMessage());
-    }
+  private static DriverManagerDataSource createNoPoolDataSource(
+      String username, String password, String driverClassName, String jdbcUrl) {
+    final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();
+    unPooledDataSource.setDriverClassName(driverClassName);
+    unPooledDataSource.setUrl(jdbcUrl);
+    unPooledDataSource.setUsername(username);
+    unPooledDataSource.setPassword(password);
+
+    return unPooledDataSource;
   }
 }
