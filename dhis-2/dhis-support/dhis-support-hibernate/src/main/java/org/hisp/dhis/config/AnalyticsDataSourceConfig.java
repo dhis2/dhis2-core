@@ -170,8 +170,8 @@ public class AnalyticsDataSourceConfig {
   }
 
   /**
-   * Infers the driver class name in the case of database being defined and driver class name not
-   * being defined in the configuration.
+   * If the driver class name is not explicitly specified, returns the driver class name based on
+   * the the specified analytics database.
    *
    * @return a driver class name
    */
