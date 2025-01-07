@@ -35,15 +35,19 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.restassured.response.ValidatableResponse;
+import java.util.Collections;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.JsonParserUtils;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,11 +61,15 @@ class CategoryOptionComboMergeTest extends ApiTest {
   private RestApiActions minMaxActions;
   private MetadataActions metadataActions;
   private RestApiActions maintenanceApiActions;
+  private RestApiActions dataValueSetActions;
   private UserActions userActions;
   private LoginActions loginActions;
   private String sourceUid1;
   private String sourceUid2;
   private String targetUid;
+  private String randomCocUid1;
+  private String randomCocUid2;
+  private String mergeUserId;
 
   @BeforeAll
   public void before() {
@@ -72,11 +80,13 @@ class CategoryOptionComboMergeTest extends ApiTest {
     categoryOptionComboApiActions = new RestApiActions("categoryOptionCombos");
     metadataActions = new MetadataActions();
     maintenanceApiActions = new RestApiActions("maintenance");
+    dataValueSetActions = new RestApiActions("dataValueSets");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
-    userActions.addUserFull(
-        "user", "auth", "userWithMergeAuth", "Test1234!", "F_CATEGORY_OPTION_COMBO_MERGE");
+    mergeUserId =
+        userActions.addUserFull(
+            "user", "auth", "userWithMergeAuth", "Test1234!", "F_CATEGORY_OPTION_COMBO_MERGE");
   }
 
   @BeforeEach
@@ -150,8 +160,96 @@ class CategoryOptionComboMergeTest extends ApiTest {
                 hasEntry("id", "CatOptUid1B")));
   }
 
-  private void setupMetadata() {
-    metadataActions.post(metadata()).validateStatus(200);
+  @Test
+  @DisplayName("CategoryOptionCombo merge completes successfully with DataValues handled correctly")
+  void cocMergeDataValuesTest() throws JsonProcessingException {
+    // given
+    // generate category option combos
+    String emptyParams = new QueryParamsBuilder().build();
+    maintenanceApiActions.post("categoryOptionComboUpdate", emptyParams).validateStatus(204);
+
+    // get cat opt combo uids for sources and target, after generating
+    sourceUid1 = getCocWithOptions("1A", "2A");
+    sourceUid2 = getCocWithOptions("1A", "2B");
+    targetUid = getCocWithOptions("3A", "4A");
+    randomCocUid1 = getCocWithOptions("1B", "2A");
+    randomCocUid2 = getCocWithOptions("1B", "2B");
+
+    addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid1");
+
+    // add data values
+    QueryParamsBuilder dvsImportParams =
+        new QueryParamsBuilder()
+            .add("async=false")
+            .add("dryRun=false")
+            .add("strategy=NEW_AND_UPDATES")
+            .add("preheatCache=false")
+            .add("dataElementIdScheme=UID")
+            .add("orgUnitIdScheme=UID")
+            .add("idScheme=UID")
+            .add("format=json")
+            .add("skipExistingCheck=false");
+
+    dataValueSetActions
+        .post(
+            dataValueSetImport(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            dvsImportParams)
+        .validateStatus(200)
+        .validate()
+        .body("response.importCount.imported", equalTo(14));
+
+    // confirm Data Value state before merge
+    // dataValueSets?orgUnit=OrgUnitUid1&startDate=1022-01-01&endDate=2025-01-30&dataElement=deUid000001
+    String dvsParams =
+        new QueryParamsBuilder()
+            .add("orgUnit=OrgUnitUid1")
+            .add("startDate=2024-01-01")
+            .add("endDate=2050-01-30")
+            .add("dataElement=deUid000001")
+            .build();
+    ValidatableResponse preMergeState =
+        dataValueSetActions.get(dvsParams).validateStatus(200).validate();
+
+    preMergeState.body("dataValues", hasSize(14));
+
+    // login as merge user
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when a category option combo request is submitted, deleting sources
+    ApiResponse response =
+        categoryOptionComboApiActions.post("merge", getMergeBody()).validateStatus(200);
+
+    loginActions.loginAsSuperUser();
+
+    // then a success response received, sources are deleted & source references were merged
+    response
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("response.mergeReport.message", equalTo("CategoryOptionCombo merge complete"))
+        .body("response.mergeReport.mergeErrors", empty())
+        .body("response.mergeReport.mergeType", equalTo("CategoryOptionCombo"))
+        .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
+
+    categoryOptionComboApiActions.get(sourceUid1).validateStatus(404);
+    categoryOptionComboApiActions.get(sourceUid2).validateStatus(404);
+
+    // check for expected duplicates kept and deleted
+    ValidatableResponse postMergeState =
+        dataValueSetActions.get(dvsParams).validateStatus(200).validate();
+
+    postMergeState.body("dataValues", hasSize(8));
+  }
+
+  private void addOrgUnitAccessForUser(String loggedInUserId, String orgUnitUid) {
+    JsonObject userPatch =
+        JsonObjectBuilder.jsonObject()
+            .addProperty("op", "add")
+            .addProperty("path", "/organisationUnits")
+            .addArray("value", JsonObjectBuilder.jsonObject().addProperty("id", orgUnitUid).build())
+            .build();
+
+    userActions.patch(loggedInUserId, Collections.singletonList(userPatch)).validateStatus(200);
   }
 
   @Test
@@ -213,6 +311,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("status", equalTo("ERROR"))
         .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
         .body("message", containsString("minmaxdataelement_unique_key"));
+  }
+
+  private void setupMetadata() {
+    metadataActions.post(metadata()).validateStatus(200);
   }
 
   private void setupMinMaxDataElements(
@@ -436,25 +538,37 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "id": "OrgUnitUid1",
                       "name": "org 1",
                       "shortName": "org 1",
-                      "openingDate": "2023-06-15"
+                      "openingDate": "2023-06-15",
+                      "parent": {
+                        "id": "DiszpKrYNg8"
+                      }
                   },
                   {
                       "id": "OrgUnitUid2",
                       "name": "org 2",
                       "shortName": "org 2",
-                      "openingDate": "2024-06-15"
+                      "openingDate": "2024-06-15",
+                      "parent": {
+                        "id": "DiszpKrYNg8"
+                      }
                   },
                   {
                       "id": "OrgUnitUid3",
                       "name": "org 3",
                       "shortName": "org 3",
-                      "openingDate": "2023-09-15"
+                      "openingDate": "2023-09-15",
+                      "parent": {
+                        "id": "DiszpKrYNg8"
+                      }
                   },
                   {
                       "id": "OrgUnitUid4",
                       "name": "org 4",
                       "shortName": "org 4",
-                      "openingDate": "2023-06-25"
+                      "openingDate": "2023-06-25",
+                      "parent": {
+                        "id": "DiszpKrYNg8"
+                      }
                   }
               ],
               "categoryOptionGroups": [
@@ -542,8 +656,174 @@ class CategoryOptionComboMergeTest extends ApiTest {
                           }
                       ]
                   }
+              ],
+              "dataElements": [
+                  {
+                      "id": "deUid000001",
+                      "aggregationType": "DEFAULT",
+                      "domainType": "AGGREGATE",
+                      "name": "DE for DVs",
+                      "shortName": "DE for DVs",
+                      "valueType": "TEXT"
+                  }
               ]
           }
           """;
+  }
+
+  private JsonObject dataValueSetImport(
+      String source1Coc,
+      String source2Coc,
+      String targetCoc,
+      String randomCoc1,
+      String randomCoc2) {
+    return JsonParserUtils.toJsonObject(
+        """
+          {
+              "dataValues": [
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202405",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 1, DV 1 - non duplicate earlier - KEEP",
+                      "comment": "source 1, DV 1 - non duplicate earlier - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 1, DV 2 - duplicate earlier - REMOVE",
+                      "comment": "source 1, DV 2 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 1, DV 3 - duplicate later - KEEP",
+                      "comment": "source 1, DV 3 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 1, DV 4 - duplicate earlier - REMOVE",
+                      "comment": "source 1, DV 4 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202410",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 2, DV 1 - non duplicate later - KEEP",
+                      "comment": "source 2, DV 1 - non duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 2, DV 2 - duplicate later - KEEP",
+                      "comment": "source 2, DV 2 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 2, DV 3 - duplicate earlier - REMOVE",
+                      "comment": "source 2, DV 3 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "source 2, DV 4 - duplicate earlier - REMOVE",
+                      "comment": "source 2, DV 4 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "target DV 1 - duplicate earlier - REMOVE",
+                      "comment": "target DV 1 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "target DV 2 - duplicate earlier - REMOVE",
+                      "comment": "target DV 2 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202403",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "target DV 3 - not impacted - KEEP",
+                      "comment": "target DV 3 - not impacted - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "target DV 4 - duplicate later- KEEP",
+                      "comment": "target DV 4 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "random 1, DV 1 - not impacted",
+                      "comment": "random 1, DV 1 - not impacted"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "random 2, DV 2 - not impacted",
+                      "comment": "random 2, DV 2 - not impacted"
+                  }
+              ]
+          }
+          """
+            .formatted(
+                source1Coc,
+                source1Coc,
+                source1Coc,
+                source1Coc,
+                source2Coc,
+                source2Coc,
+                source2Coc,
+                source2Coc,
+                targetCoc,
+                targetCoc,
+                targetCoc,
+                targetCoc,
+                randomCoc1,
+                randomCoc2));
   }
 }

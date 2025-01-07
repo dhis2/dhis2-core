@@ -642,20 +642,35 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Duplicate DataValues with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
-  void duplicateDataValueMergeCocLastUpdatedTest() throws ConflictException {
+      "Duplicate DataValues are handled using LAST_UPDATED strategy, source has latest lastUpdated value")
+  void duplicateDataValueSourceLastUpdatedTest() throws ConflictException {
     // given
-    // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
-    DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "value1");
-    dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
-    DataValue dv2 = createDataValue(de1, p1, ou1, cocSource2, cocRandom, "value2");
-    dv2.setLastUpdated(DateUtils.parseDate("2021-6-18"));
-    DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "value3");
+    // data values have same (data element, period, orgUnit, aoc) triggering duplicate merge path
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "source value1");
+    dv1.setLastUpdated(DateUtils.parseDate("2023-6-8"));
+    DataValue dv2 = createDataValue(de1, p1, ou1, cocSource2, cocRandom, "source value2");
+    dv2.setLastUpdated(DateUtils.parseDate("2024-6-18"));
+    DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value3");
     dv3.setLastUpdated(DateUtils.parseDate("2022-4-15"));
 
     dataValueStore.addDataValue(dv1);
     dataValueStore.addDataValue(dv2);
     dataValueStore.addDataValue(dv3);
+
+    dataValueStore
+        .getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2))
+        .forEach(
+            dv -> {
+              //
+              System.out.println("source DV: " + dv.getValue() + ", " + dv.getLastUpdated());
+            });
+    dataValueStore
+        .getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)))
+        .forEach(
+            dv -> {
+              //
+              System.out.println("target DV: " + dv.getValue() + ", " + dv.getLastUpdated());
+            });
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -678,9 +693,73 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC refs");
     assertEquals(
-        DateUtils.parseDate("2024-6-8"),
+        DateUtils.parseDate("2024-6-18"),
         targetItems.get(0).getLastUpdated(),
         "It should be the latest lastUpdated value from duplicate data values");
+    assertEquals("source value2", targetItems.get(0).getValue(), "It should be the source value");
+    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
+    assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "Duplicate DataValues are handled using LAST_UPDATED strategy, target has latest lastUpdated value")
+  void duplicateDataValueTargetLastUpdatedTest() throws ConflictException {
+    // given
+    // data values have same (data element, period, orgUnit, aoc) triggering duplicate merge path
+    DataValue dv1 = createDataValue(de1, p1, ou1, cocSource1, cocRandom, "source value1");
+    dv1.setLastUpdated(DateUtils.parseDate("2022-8-8"));
+    DataValue dv2 = createDataValue(de1, p1, ou1, cocSource2, cocRandom, "source value2");
+    dv2.setLastUpdated(DateUtils.parseDate("2021-6-18"));
+    DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value3");
+    dv3.setLastUpdated(DateUtils.parseDate("2024-12-15"));
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    dataValueStore
+        .getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2))
+        .forEach(
+            dv -> {
+              //
+              System.out.println("source DV: " + dv.getValue() + ", " + dv.getLastUpdated());
+            });
+    dataValueStore
+        .getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)))
+        .forEach(
+            dv -> {
+              //
+              System.out.println("target DV: " + dv.getValue() + ", " + dv.getLastUpdated());
+            });
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+
+    // then there should be no source data values present
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2));
+    // and only 1 target data value (as 3 duplicates merged using last updated value)
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)));
+
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC refs");
+    assertEquals(
+        DateUtils.parseDate("2024-12-15"),
+        targetItems.get(0).getLastUpdated(),
+        "It should be the latest lastUpdated value from duplicate data values");
+    assertEquals("target value3", targetItems.get(0).getValue(), "It should be the target value");
     assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");

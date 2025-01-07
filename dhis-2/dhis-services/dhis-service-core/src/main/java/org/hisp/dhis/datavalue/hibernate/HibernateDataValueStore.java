@@ -51,6 +51,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
@@ -71,6 +72,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -85,6 +87,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
 
   private final PeriodStore periodStore;
+  private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
   private static final String DELETED = "deleted";
 
@@ -93,10 +96,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   public HibernateDataValueStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
+      NamedParameterJdbcTemplate namedJdbcTemplate,
       ApplicationEventPublisher publisher,
       PeriodStore periodStore) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
+    this.namedJdbcTemplate = namedJdbcTemplate;
   }
 
   // -------------------------------------------------------------------------
@@ -331,6 +336,102 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             """)
         .setParameter("uids", UID.toValueList(uids))
         .getResultList();
+  }
+
+  @Override
+  public void mergeDataValueCategoryCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
+    String plpgsql =
+        """
+         DO
+         $$
+         DECLARE
+           source_dv RECORD;
+           target_duplicate RECORD;
+           target_coc BIGINT default %s;
+         BEGIN
+           RAISE NOTICE 'starting merging data values...';
+           -- loop through each record with source COC
+           FOR source_dv IN
+             SELECT * FROM datavalue where categoryoptioncomboid in (%s)
+             LOOP
+
+             -- output source
+             -- check if target DV exists with same UK
+             SELECT dv.*
+               INTO target_duplicate
+               FROM datavalue dv
+               where dv.dataelementid = source_dv.dataelementid
+               and dv.periodid = source_dv.periodid
+               and dv.sourceid = source_dv.sourceid
+               and dv.attributeoptioncomboid = source_dv.attributeoptioncomboid
+               and dv.categoryoptioncomboid = target_coc;
+
+             -- target duplicate found and target has latest
+             IF (target_duplicate.categoryoptioncomboid is not null
+                 and target_duplicate.lastupdated >= source_dv.lastupdated)
+               THEN
+               RAISE NOTICE 'target duplicate found AND target has latest lastUpdated';
+               -- delete source
+               RAISE NOTICE 'deleting source dv';
+               delete from datavalue
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and source has latest
+             ELSIF (target_duplicate.categoryoptioncomboid is not null
+                 and target_duplicate.lastupdated < source_dv.lastupdated)
+               THEN
+               RAISE NOTICE 'target duplicate found AND source has latest lastUpdated';
+               -- delete target
+               RAISE NOTICE 'deleting target dv';
+               delete from datavalue
+                 where dataelementid = target_duplicate.dataelementid
+                 and periodid = target_duplicate.periodid
+                 and sourceid = target_duplicate.sourceid
+                 and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
+
+               -- update source with target COC
+               RAISE NOTICE 'updating source dv';
+               update datavalue
+                 set categoryoptioncomboid = target_duplicate.categoryoptioncomboid
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             ELSE
+               RAISE NOTICE 'target duplicate NOT found...';
+               -- update source with target COC
+               RAISE NOTICE 'updating source dv';
+               update datavalue
+                 set categoryoptioncomboid = target_coc
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             END IF;
+
+             END LOOP;
+         END;
+         $$
+         LANGUAGE plpgsql;
+         """
+            .formatted(
+                target.getId(),
+                sources.stream()
+                    .map(s -> String.valueOf(s.getId()))
+                    .collect(Collectors.joining(",")));
+
+    System.out.println("SQL: " + plpgsql);
+    jdbcTemplate.update(plpgsql);
   }
 
   // -------------------------------------------------------------------------
