@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -829,28 +830,16 @@ public final class AnalyticsUtils {
                     includeMetadataDetails ? coc : null));
           }
 
-          OptionSet optionSet = dataElement.getOptionSet();
-          if (optionSet != null) {
-            map.put(
-                dataElement.getUid() + "." + optionSet.getUid(),
-                includeMetadataDetails
-                    ? new MetadataItem(
-                        optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
-                    : new MetadataItem(optionSet.getName()));
-          }
+          addOptionSetToMap(dataElement.getOptionSet(), map, dataElement, includeMetadataDetails);
         }
         if (DimensionItemType.PROGRAM_DATA_ELEMENT == item.getDimensionItemType()
             && item instanceof ProgramDataElementDimensionItem programDataElement) {
 
-          OptionSet optionSet = programDataElement.getOptionSet();
-          if (optionSet != null) {
-            map.put(
-                programDataElement.getDataElement().getUid() + "." + optionSet.getUid(),
-                includeMetadataDetails
-                    ? new MetadataItem(
-                        optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
-                    : new MetadataItem(optionSet.getName()));
-          }
+          addOptionSetToMap(
+              programDataElement.getOptionSet(),
+              map,
+              programDataElement.getDataElement(),
+              includeMetadataDetails);
         }
       }
 
@@ -913,6 +902,30 @@ public final class AnalyticsUtils {
     }
 
     return map;
+  }
+
+  /**
+   * Adds the given {@link OptionSet} data into the given map, respecting the internal business
+   * rules.
+   *
+   * @param optionSet the {@link OptionSet} to add.
+   * @param map the source map where to add the given {@link OptionSet}.
+   * @param dataElement the {@link DataElement} associated with the {@link OptionSet}.
+   * @param includeDetails include {@link OptionSet} details or not.
+   */
+  private static void addOptionSetToMap(
+      OptionSet optionSet,
+      Map<String, MetadataItem> map,
+      DataElement dataElement,
+      boolean includeDetails) {
+    if (optionSet != null) {
+      map.put(
+          dataElement.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid(),
+          includeDetails
+              ? new MetadataItem(
+                  optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
+              : new MetadataItem(optionSet.getName()));
+    }
   }
 
   /**
