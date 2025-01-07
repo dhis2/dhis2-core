@@ -158,7 +158,9 @@ public final class DatabasePoolUtils {
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
     final String driverClassName =
-        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
+        firstNonNull(
+            config.getDriverClassName(),
+            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS)));
     final String jdbcUrl =
         firstNonNull(
             config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
@@ -194,6 +196,7 @@ public final class DatabasePoolUtils {
     }
   }
 
+  /** Create a data source based on a Hikari connection pool. */
   private static DataSource createHikariDbPool(
       String username,
       String password,
@@ -235,6 +238,7 @@ public final class DatabasePoolUtils {
     return ds;
   }
 
+  /** Create a data source based on a C3p0 connection pool. */
   private static ComboPooledDataSource createC3p0DbPool(
       String username, String password, String driverClassName, String jdbcUrl, DbPoolConfig config)
       throws PropertyVetoException {
@@ -308,6 +312,7 @@ public final class DatabasePoolUtils {
     return pooledDataSource;
   }
 
+  /** Creates a data source with no connection pool. */
   private static DriverManagerDataSource createNoPoolDataSource(
       String username, String password, String driverClassName, String jdbcUrl) {
     final DriverManagerDataSource unPooledDataSource = new DriverManagerDataSource();

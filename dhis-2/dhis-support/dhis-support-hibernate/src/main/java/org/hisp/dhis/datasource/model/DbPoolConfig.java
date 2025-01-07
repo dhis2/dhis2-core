@@ -45,6 +45,8 @@ public class DbPoolConfig {
 
   private DhisConfigurationProvider dhisConfig;
 
+  private String driverClassName;
+
   private String jdbcUrl;
 
   private String username;
