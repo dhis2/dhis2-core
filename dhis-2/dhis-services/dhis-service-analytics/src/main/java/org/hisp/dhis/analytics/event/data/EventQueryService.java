@@ -175,6 +175,7 @@ public class EventQueryService {
         params = builder.build();
       }
     }
+
     return params;
   }
 

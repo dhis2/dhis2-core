@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -630,30 +631,32 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
-    if (!params.hasOptionSetSelections()) {
-      return "";
+    if (params.hasOptionSetSelections()) {
+      StringBuilder sql = new StringBuilder();
+
+      params
+          .getOptionSetSelectionCriteria()
+          .getOptionSetSelections()
+          .forEach(
+              (key, value) -> {
+                List<String> uids = Arrays.stream(key.split("\\.")).toList();
+                Set<String> options = value.getOptions();
+
+                if (!uids.isEmpty() && isNotEmpty(options)) {
+                  sql.append(" ")
+                      .append(sqlHelper.whereAnd())
+                      .append(" ")
+                      .append(quote(uids.get(0) + ".optionvalueuid"))
+                      .append(" in ('")
+                      .append(String.join("','", options))
+                      .append("') ");
+                }
+              });
+
+      return sql.toString();
     }
 
-    StringBuilder sql = new StringBuilder();
-    params
-        .getOptionSetSelectionCriteria()
-        .getOptionSetSelections()
-        .forEach(
-            (key, value) -> {
-              List<String> uids = Arrays.stream(key.split("\\.")).toList();
-              Set<String> options = value.getOptions();
-              if (!uids.isEmpty() && isNotEmpty(options)) {
-                sql.append(" ")
-                    .append(sqlHelper.whereAnd())
-                    .append(" ")
-                    .append(quote(uids.get(0) + ".optionvalueuid"))
-                    .append(" in ('")
-                    .append(String.join("','", options))
-                    .append("') ");
-              }
-            });
-
-    return sql.toString();
+    return EMPTY;
   }
 
   /** Generates a sub query which provides a filter by organisation descendant level. */

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -52,6 +53,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -465,13 +467,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    Set<DataElement> dataElements =
+        program.getAnalyticsDataElements().stream().filter(Objects::nonNull).collect(toSet());
+
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        dataElements.stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        dataElements.stream()
             .filter(DataElement::hasOptionSet)
             .map(this::getColumnFromDataElementOptionSet)
             .flatMap(Collection::stream)

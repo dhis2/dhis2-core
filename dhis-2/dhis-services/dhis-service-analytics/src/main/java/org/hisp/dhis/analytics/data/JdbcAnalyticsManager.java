@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.join;
+import static org.apache.commons.collections4.CollectionUtils.size;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -372,7 +374,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
   private boolean hasAggregation(DataQueryParams params) {
     // Analytics query is an item of sequential queries with one data element only.
-    if (params.getDataElements().size() != 1) {
+    if (size(params.getDataElements()) != 1) {
       return params.isAggregation();
     }
 
@@ -400,14 +402,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   }
 
   protected String getAggregatedOptionValueClause(DataQueryParams params) {
-    String sql = "";
-
     if (params.hasOptionSetInDimensionItemsTypeDataElement() && hasAggregation(params)) {
-      sql += ", count(" + params.getValueColumn() + ") as valuecount ";
-      return sql;
+      return ", count(" + params.getValueColumn() + ") as valuecount ";
     }
 
-    return sql;
+    return EMPTY;
   }
 
   /**
@@ -417,10 +416,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL numeric value column.
    */
   protected String getAggregateValueColumn(DataQueryParams params) {
-    String sql = null;
-
+    String sql;
     AnalyticsAggregationType aggType = params.getAggregationType();
-
     String valueColumn = params.getValueColumn();
 
     if (aggType.isAggregationType(SUM)
@@ -519,26 +516,24 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   /** Add where clause for option set selection. */
   private void getWhereClauseOptions(
       DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql) {
-    if (!params.hasOptionSetSelections()) {
-      return;
+    if (params.hasOptionSetSelections()) {
+      params
+          .getOptionSetSelectionCriteria()
+          .getOptionSetSelections()
+          .forEach(
+              (key, value) -> {
+                Set<String> options = value.getOptions();
+                if (isNotEmpty(options)) {
+                  sql.append(" ")
+                      .append(sqlHelper.whereAnd())
+                      .append(" ")
+                      .append(quote("optionvalueuid"))
+                      .append(" in ('")
+                      .append(String.join("','", options))
+                      .append("') ");
+                }
+              });
     }
-
-    params
-        .getOptionSetSelectionCriteria()
-        .getOptionSetSelections()
-        .forEach(
-            (key, value) -> {
-              Set<String> options = value.getOptions();
-              if (isNotEmpty(options)) {
-                sql.append(" ")
-                    .append(sqlHelper.whereAnd())
-                    .append(" ")
-                    .append(quote("optionvalueuid"))
-                    .append(" in ('")
-                    .append(String.join("','", options))
-                    .append("') ");
-              }
-            });
   }
 
   /** Add where clause dimensions. */
