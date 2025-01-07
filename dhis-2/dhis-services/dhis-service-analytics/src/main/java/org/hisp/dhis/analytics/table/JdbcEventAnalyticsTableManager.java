@@ -145,7 +145,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     log.info(
         "Get tables using earliest: {}, spatial support: {}",
         params.getFromDate(),
-        isSpatialSupport());
+        isGeospatialSupport());
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
@@ -502,7 +502,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
+    DataType dataType = getColumnType(dataElement.getValueType(), isGeospatialSupport());
     String jsonExpression =
         sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
     String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
@@ -555,7 +555,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    if (isSpatialSupport()) {
+    if (isGeospatialSupport()) {
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))

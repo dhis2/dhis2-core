@@ -1412,11 +1412,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     String args =
         fields.stream()
-            .filter(f -> f != null && !f.isBlank())
+            .filter(StringUtils::isNotBlank)
             .map(f -> sqlBuilder.quoteAx(f))
             .collect(Collectors.joining(","));
 
-    return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
+    String sql = String.format("coalesce(%s)", args);
+
+    return args.isEmpty() ? defaultColumnName : sql;
   }
 
   /**

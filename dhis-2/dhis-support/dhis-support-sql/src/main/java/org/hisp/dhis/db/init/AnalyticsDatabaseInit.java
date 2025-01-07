@@ -37,6 +37,7 @@ import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -112,8 +113,10 @@ public class AnalyticsDatabaseInit {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String password = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
 
-    jdbcTemplate.execute(sqlBuilder.dropCatalogIfExists());
-    jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
+    DorisSqlBuilder dorisSqlBuilder = (DorisSqlBuilder) sqlBuilder;
+
+    jdbcTemplate.execute(dorisSqlBuilder.dropCatalogIfExists());
+    jdbcTemplate.execute(dorisSqlBuilder.createCatalog(connectionUrl, username, password));
   }
 
   /**

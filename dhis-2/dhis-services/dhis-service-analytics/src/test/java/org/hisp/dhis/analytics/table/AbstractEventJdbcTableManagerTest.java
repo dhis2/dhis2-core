@@ -142,7 +142,7 @@ class AbstractEventJdbcTableManagerTest {
 
   @Test
   void testGetSelectExpressionGeometry() {
-    when(manager.isSpatialSupport()).thenReturn(true);
+    when(manager.isGeospatialSupport()).thenReturn(true);
 
     String expected =
         """

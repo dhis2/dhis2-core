@@ -124,7 +124,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           columnExpression + " = 'true'", "1", columnExpression + " = 'false'", "0", "null");
     } else if (valueType.isDate()) {
       return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
-    } else if (valueType.isGeo() && isSpatialSupport()) {
+    } else if (valueType.isGeo() && isGeospatialSupport()) {
       return String.format(
           """
           ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || \
@@ -185,7 +185,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String valueColumn = getValueColumn(attribute);
-    DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+    DataType dataType = getColumnType(attribute.getValueType(), isGeospatialSupport());
     String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
@@ -220,7 +220,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     Validate.isTrue(attribute.getValueType().isOrganisationUnit());
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    if (isSpatialSupport()) {
+    if (isGeospatialSupport()) {
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
