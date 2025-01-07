@@ -436,10 +436,7 @@ public class HibernateTrackedEntityInstanceStore
         .append(getFromSubQuery(params, true, true))
         .append(getQueryRelatedTables(params))
         .append(getQueryGroupBy(params))
-        .append(
-            params.getProgram().getMaxTeiCountToReturn() > 0
-                ? getLimitClause(params.getProgram().getMaxTeiCountToReturn() + 1)
-                : "")
+        .append(params.hasMaxTeiLimit() ? getLimitClause(params.getMaxTeiLimit() + 1) : "")
         .append(" ) teicount")
         .toString();
   }

@@ -477,6 +477,11 @@ public class TrackedEntityInstanceQueryParams {
     return trackedEntityType != null;
   }
 
+  /** Indicates whether this parameters specifies a max TE limit. */
+  public boolean hasMaxTeiLimit() {
+    return maxTeiLimit > 0;
+  }
+
   /** Indicates whether this parameters is of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
     return organisationUnitMode != null && organisationUnitMode.equals(mode);
