@@ -177,7 +177,7 @@ public class AnalyticsDataSourceConfig {
    */
   private String inferDriverClassName() {
     String driverClass = config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS);
-    return isBlank(driverClass) ? getDriverClassName() : null;
+    return isBlank(driverClass) ? getDriverClassName() : driverClass;
   }
 
   /**
