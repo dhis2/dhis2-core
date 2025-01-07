@@ -173,7 +173,7 @@ public class AnalyticsDataSourceConfig {
    * If the driver class name is not explicitly specified, returns the driver class name based on
    * the the specified analytics database.
    *
-   * @return a driver class name
+   * @return a driver class name.
    */
   private String inferDriverClassName() {
     String driverClass = config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS);
