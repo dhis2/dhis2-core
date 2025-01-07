@@ -33,7 +33,7 @@ fi
 
 MAJOR_VERSION=$(cut -d '.' -f 2 <<< "$RELEASE_VERSION")
 
-echo "Release verion: $RELEASE_VERSION"
+echo "Release version: $RELEASE_VERSION"
 echo "Major version: $MAJOR_VERSION"
 if [[ "$RELEASE_VERSION" == "master" || $MAJOR_VERSION -ge 42  ]]; then
   WAR_LOCATION="${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war"

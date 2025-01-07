@@ -9,7 +9,7 @@ on:
 #      - completed
 
 jobs:
-  say-hello:
+  update-instance-manager:
     runs-on: ubuntu-latest
     env:
       GIT_COMMIT: ${{ github.sha }} # Declare GIT_COMMIT, to be used on the entire job
