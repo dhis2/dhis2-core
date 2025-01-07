@@ -57,6 +57,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -762,7 +763,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         && params
                 .getOptionSetSelectionCriteria()
                 .getOptionSetSelections()
-                .get(dataElement.getUid() + "." + dataElement.getOptionSet().getUid())
+                .get(
+                    dataElement.getUid()
+                        + DIMENSION_IDENTIFIER_SEP
+                        + dataElement.getOptionSet().getUid())
                 .getOptionSetSelectionMode()
             != OptionSetSelectionMode.AGGREGATED) {
       return NONE;
