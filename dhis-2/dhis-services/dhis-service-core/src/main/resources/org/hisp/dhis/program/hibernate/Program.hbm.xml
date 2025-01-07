@@ -154,6 +154,11 @@
         <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
                      column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all"/>
 
+        <set name="categoryMappings" table="program_categorymapping">
+            <key column="programid"/>
+            <one-to-many class="org.hisp.dhis.program.ProgramCategoryMapping"/>
+        </set>
+
         <!-- Dynamic attribute values -->
 
         <property name="attributeValues" type="jsbAttributeValues"/>

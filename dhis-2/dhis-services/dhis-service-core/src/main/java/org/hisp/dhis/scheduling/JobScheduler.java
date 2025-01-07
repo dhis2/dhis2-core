@@ -76,7 +76,7 @@ public class JobScheduler implements Runnable, JobRunner {
    *   <li>Leaves as much time as possible otherwise to get through the work of triggering jobs
    * </ul>
    */
-  private static final int LOOP_SECONDS = 20;
+  private static final int LOOP_SECONDS = 20000000;
 
   /**
    * The TTL time for the leader value must be longer than the {@link #LOOP_SECONDS} so that a

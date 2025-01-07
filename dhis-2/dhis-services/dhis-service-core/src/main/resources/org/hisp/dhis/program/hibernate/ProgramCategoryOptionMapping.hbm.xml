@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramCategoryOptionMapping" table="program_categoryoptionmapping">
+    <cache usage="read-write" />
+
+    <id name="id" column="optionmappingid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="categoryOption" class="org.hisp.dhis.category.CategoryOption" column="categoryoptionid"
+                 foreign-key="fk_optionmapping_categoryoptionid"/>
+
+    <property name="filter" not-null="true" type="text"/>
+
+  </class>
+</hibernate-mapping>

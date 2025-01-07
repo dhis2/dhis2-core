@@ -132,6 +132,8 @@ import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OutlierAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.PredictorGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.ProgramCategoryMappingSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.ProgramCategoryOptionMappingSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramDataElementDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorSchemaDescriptor;
@@ -264,6 +266,8 @@ public class DefaultSchemaService implements SchemaService {
     register(new ProgramStageSectionSchemaDescriptor());
     register(new ProgramStageWorkingListSchemaDescriptor());
     register(new ProgramSectionSchemaDescriptor());
+    register(new ProgramCategoryMappingSchemaDescriptor());
+    register(new ProgramCategoryOptionMappingSchemaDescriptor());
     register(new ProgramTrackedEntityAttributeSchemaDescriptor());
     register(new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor());
     register(new ProgramNotificationTemplateSchemaDescriptor());

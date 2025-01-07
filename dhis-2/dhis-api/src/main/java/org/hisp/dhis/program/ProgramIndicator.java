@@ -44,6 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -117,6 +118,18 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
   private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries = new HashSet<>();
 
   private ObjectStyle style;
+
+  /** Data Element ID (of some ID Type) for export to aggregate data exchange */
+  private String aggregateExportDataElement;
+
+  /** {@link CategoryCombo} for COC mappings for PI disaggregation */
+  private CategoryCombo categoryCombo;
+
+  /** {@link CategoryCombo} for AOC mappings for PI disaggregation */
+  private CategoryCombo attributeCombo;
+
+  /** Category mappings for both COC and AOC PI disaggregation */
+  private Set<ProgramIndicatorCategoryMapping> categoryMappings = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -416,6 +429,46 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
 
   public void setOrgUnitField(String orgUnitField) {
     this.orgUnitField = orgUnitField;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAggregateExportDataElement() {
+    return aggregateExportDataElement;
+  }
+
+  public void setAggregateExportDataElement(String aggregateExportDataElement) {
+    this.aggregateExportDataElement = aggregateExportDataElement;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getCategoryCombo() {
+    return categoryCombo;
+  }
+
+  public void setCategoryCombo(CategoryCombo categoryCombo) {
+    this.categoryCombo = categoryCombo;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getAttributeCombo() {
+    return attributeCombo;
+  }
+
+  public void setAttributeCombo(CategoryCombo attributeCombo) {
+    this.attributeCombo = attributeCombo;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramIndicatorCategoryMapping> getCategoryMappings() {
+    return categoryMappings;
+  }
+
+  public void setCategoryMappings(Set<ProgramIndicatorCategoryMapping> categoryMappings) {
+    this.categoryMappings = categoryMappings;
   }
 
   public static ProgramIndicator copyOf(

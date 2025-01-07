@@ -189,6 +189,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   /** Property indicating level of access */
   private AccessLevel accessLevel = AccessLevel.OPEN;
 
+  private Set<ProgramCategoryMapping> categoryMappings = new HashSet<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -933,6 +935,18 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   public void setAccessLevel(AccessLevel accessLevel) {
     this.accessLevel = accessLevel;
+  }
+
+  @JsonProperty("categoryMappings")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "categoryMappings", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryMappings", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramCategoryMapping> getCategoryMappings() {
+    return categoryMappings;
+  }
+
+  public void setCategoryMappings(Set<ProgramCategoryMapping> categoryMappings) {
+    this.categoryMappings = categoryMappings;
   }
 
   public static Program shallowCopy(Program original, Map<String, String> options) {
