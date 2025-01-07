@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.config;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
@@ -43,6 +44,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,6 +63,8 @@ public class AnalyticsDataSourceConfig {
   private static final int FETCH_SIZE = 1000;
 
   private final DhisConfigurationProvider config;
+
+  private final SqlBuilderSettings sqlBuilderSettings;
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")
@@ -126,11 +131,17 @@ public class AnalyticsDataSourceConfig {
    * @return a {@link DataSource}.
    */
   private DataSource getAnalyticsDataSource() {
-    String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
-    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+    final String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
+    final String driverClassName = inferDriverClassName();
+    final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder().dhisConfig(config).mapper(ANALYTICS).dbPoolType(dbPoolType).build();
+        DbPoolConfig.builder()
+            .driverClassName(driverClassName)
+            .dhisConfig(config)
+            .mapper(ANALYTICS)
+            .dbPoolType(dbPoolType)
+            .build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);
@@ -156,5 +167,30 @@ public class AnalyticsDataSourceConfig {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
+  }
+
+  /**
+   * Infers the driver class name in the case of database being defined and driver class name not
+   * being defined in the configuration.
+   *
+   * @return a driver class name
+   */
+  private String inferDriverClassName() {
+    String driverClass = config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS);
+    return isBlank(driverClass) ? getDriverClassName() : null;
+  }
+
+  /**
+   * Returns a driver class name based on the specified analytics database.
+   *
+   * @return a driver class name.
+   */
+  private String getDriverClassName() {
+    final Database database = sqlBuilderSettings.getAnalyticsDatabase();
+    return switch (database) {
+      case POSTGRESQL -> org.postgresql.Driver.class.getName();
+      case DORIS -> com.mysql.cj.jdbc.Driver.class.getName();
+      case CLICKHOUSE -> com.clickhouse.jdbc.ClickHouseDriver.class.getName();
+    };
   }
 }

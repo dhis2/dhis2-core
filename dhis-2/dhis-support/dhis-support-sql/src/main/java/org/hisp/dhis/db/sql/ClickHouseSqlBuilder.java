@@ -374,16 +374,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return notSupported();
   }
 
-  @Override
-  public String createCatalog(String connectionUrl, String username, String password) {
-    return notSupported();
-  }
-
-  @Override
-  public String dropCatalogIfExists() {
-    return notSupported();
-  }
-
   /**
    * @param name the collection name.
    * @param keyValues the map of key value pairs.
