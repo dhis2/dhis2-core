@@ -29,7 +29,6 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.system.util.SqlUtils.escape;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
@@ -385,26 +384,6 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
-  public boolean isOrgUnitCountAboveThreshold(OrganisationUnitQueryParams params, int threshold) {
-    String sql = buildOrganisationUnitDistinctUidsSql(params);
-
-    StringBuilder sb = new StringBuilder();
-    sb.append("select count(*) from (");
-    sb.append(sql);
-    sb.append(" limit ");
-    sb.append(threshold + 1);
-    sb.append(") as douid");
-
-    return (jdbcTemplate.queryForObject(sb.toString(), Integer.class) > threshold);
-  }
-
-  @Override
-  public List<String> getOrganisationUnitUids(OrganisationUnitQueryParams params) {
-    String sql = buildOrganisationUnitDistinctUidsSql(params);
-    return jdbcTemplate.queryForList(sql, String.class);
-  }
-
-  @Override
   public int updateAllOrganisationUnitsGeometryToNull() {
     return getQuery("update OrganisationUnit o set o.geometry = null").executeUpdate();
   }
@@ -421,30 +400,6 @@ public class HibernateOrganisationUnitStore
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
-  }
-
-  private String buildOrganisationUnitDistinctUidsSql(OrganisationUnitQueryParams params) {
-    SqlHelper hlp = new SqlHelper();
-
-    String sql = "select distinct o.uid from organisationunit o ";
-
-    if (params.isFetchChildren()) {
-      sql += " left outer join organisationunit c ON o.organisationunitid = c.parentid ";
-    }
-
-    if (params.hasParents()) {
-      sql += hlp.whereAnd() + " (";
-
-      for (OrganisationUnit parent : params.getParents()) {
-        sql += "o.path like '" + escape(parent.getPath()) + "%'" + " or ";
-      }
-
-      sql = TextUtils.removeLastOr(sql) + ") ";
-    }
-
-    // TODO: Support Groups + Query + Hierarchy + MaxLevels in this sql
-
-    return sql;
   }
 
   private void updatePaths(List<OrganisationUnit> organisationUnits) {

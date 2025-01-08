@@ -153,8 +153,10 @@ public interface OrganisationUnitStore
    */
   List<OrganisationUnit> getWithinCoordinateArea(double[] box);
 
+  /** Updates the <code>path</code> property of all org units. */
   void updatePaths();
 
+  /** Explicitly updates the <code>path</code> property of all org units. */
   void forceUpdatePaths();
 
   /**
@@ -166,25 +168,10 @@ public interface OrganisationUnitStore
   int getMaxLevel();
 
   /**
-   * Check if the number of orgunits that satisfies the conditions in the queryParams is greater
-   * than the threshold provided. Note: groups, maxLevels and levels are not supported yet.
+   * Sets the geometry field for org units to null.
    *
-   * @param params The Org unit query params
-   * @param threshold the threshold count to check against
-   * @return true if the org units satisfying the params criteria is above the threshold, false
-   *     otherwise.
+   * @return then number of affected org units.
    */
-  boolean isOrgUnitCountAboveThreshold(OrganisationUnitQueryParams params, int threshold);
-
-  /**
-   * Get list of organisation unit uids satisfying the query params. Note: groups, maxLevels and
-   * levels are not supported yet.
-   *
-   * @param params The Org unit query params
-   * @return the list of org unit uids satisfying the params criteria
-   */
-  List<String> getOrganisationUnitUids(OrganisationUnitQueryParams params);
-
   int updateAllOrganisationUnitsGeometryToNull();
 
   /**
