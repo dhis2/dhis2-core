@@ -86,7 +86,7 @@ public class DimensionalObjectUtils {
    * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg], splits into
    * FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg]
    */
-  private static final String DX_REGEX = ";(?![^\\(\\[]*[\\]\\)])";
+  private static final Pattern DX_REGEX_PATTERN = Pattern.compile(";(?![^\\(\\[]*[\\]\\)])");
 
   /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
@@ -397,7 +397,7 @@ public class DimensionalObjectUtils {
       // Extracts dimension items by removing dimension name and separator
       String dimensionItems = param.substring(param.indexOf(DIMENSION_NAME_SEP) + 1);
 
-      return Arrays.asList(dimensionItems.split(DX_REGEX));
+      return Arrays.asList(DX_REGEX_PATTERN.split(dimensionItems));
     }
 
     return new ArrayList<>();
