@@ -754,6 +754,13 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.children = children;
   }
 
+  /**
+   * Note that the {@code path} is mapped with the "property access" mode. This method will
+   * recalculate and return the path property value. To access the {@code path} property directly,
+   * use {@link OrganisationUnit#getPathPersisted}.
+   *
+   * @return the recalculated path.
+   */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
@@ -783,6 +790,17 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   /** Do not set directly, managed by persistence layer. */
   public void setPath(String path) {
     this.path = path;
+  }
+
+  /**
+   * Note that the {@code path} is mapped with the "property access" mode. This method will return
+   * the persisted {@code path} property directly. To get the recalculated path value, use {@link
+   * OrganisationUnit#getPath}.
+   *
+   * @return the persisted path.
+   */
+  public String getPathPersisted() {
+    return path;
   }
 
   /**
