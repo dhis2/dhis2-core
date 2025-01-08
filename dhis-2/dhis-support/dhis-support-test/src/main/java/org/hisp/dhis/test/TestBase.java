@@ -1001,7 +1001,6 @@ public abstract class TestBase {
     unit.setName("OrganisationUnit" + uniqueCharacter);
     unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
-    unit.setPath(unit.getPath());
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
     //    unit.getSharing().setPublicAccess("--------");
