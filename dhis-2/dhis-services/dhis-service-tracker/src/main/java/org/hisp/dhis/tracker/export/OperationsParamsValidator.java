@@ -242,7 +242,8 @@ public class OperationsParamsValidator {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (!user.isSuper() && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+      if (!user.isSuper()
+          && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
         throw new ForbiddenException(
             "Organisation unit is not part of the search scope: " + orgUnit.getUid());
       }

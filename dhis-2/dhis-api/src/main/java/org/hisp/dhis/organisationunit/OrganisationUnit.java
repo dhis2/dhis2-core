@@ -29,6 +29,7 @@ package org.hisp.dhis.organisationunit;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -574,7 +575,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(this.getPath(), uid));
+        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
   }
 
   /**
@@ -588,7 +589,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
       return false;
     }
 
-    return StringUtils.contains(this.getPath(), ancestor.getUid());
+    return StringUtils.contains(this.getStoredPath(), ancestor.getUid());
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
@@ -787,20 +788,22 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return this.path;
   }
 
-  /** Do not set directly, managed by persistence layer. */
-  public void setPath(String path) {
-    this.path = path;
-  }
-
   /**
    * Note that the {@code path} is mapped with the "property access" mode. This method will return
-   * the persisted {@code path} property directly. To get the recalculated path value, use {@link
-   * OrganisationUnit#getPath}.
+   * the persisted {@code path} property directly. Note that this method will return the correct
+   * value of the object is already persisted and state flushed to the database. To get the
+   * recalculated path value, use {@link OrganisationUnit#getPath}.
    *
    * @return the persisted path.
    */
-  public String getPathPersisted() {
+  @JsonIgnore
+  public String getStoredPath() {
     return path;
+  }
+
+  /** Do not set directly, managed by persistence layer. */
+  public void setPath(String path) {
+    this.path = path;
   }
 
   /**

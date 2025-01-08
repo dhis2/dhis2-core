@@ -186,7 +186,7 @@ public class HibernateOrganisationUnitStore
             + ")";
 
     Query<Long> query = getTypedQuery(hql);
-    query.setParameter("path", parent.getPath() + "%").setParameter("object", member);
+    query.setParameter("path", parent.getStoredPath() + "%").setParameter("object", member);
 
     return query.getSingleResult();
   }
@@ -244,7 +244,7 @@ public class HibernateOrganisationUnitStore
 
     if (params.hasParents()) {
       for (OrganisationUnit parent : params.getParents()) {
-        query.setParameter(parent.getUid(), parent.getPath() + "%");
+        query.setParameter(parent.getUid(), parent.getStoredPath() + "%");
       }
     }
 
