@@ -134,12 +134,6 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Category> getAllDataElementCategories() {
-    return categoryStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Category getCategory(long id) {
     return categoryStore.get(id);
   }

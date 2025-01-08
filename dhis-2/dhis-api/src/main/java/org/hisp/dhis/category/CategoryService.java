@@ -111,13 +111,6 @@ public interface CategoryService {
   Category getCategoryByName(String name, UserDetails userDetails);
 
   /**
-   * Returns all DataElementCategories.
-   *
-   * @return a list of all DataElementCategories.
-   */
-  List<Category> getAllDataElementCategories();
-
-  /**
    * Retrieves all DataElementCategories of dimension type disaggregation.
    *
    * @return a list of CategoryCombos.
