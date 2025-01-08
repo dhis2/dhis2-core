@@ -29,10 +29,8 @@ package org.hisp.dhis.dataelement;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -42,7 +40,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,38 +137,6 @@ public class DefaultDataElementService implements DataElementService {
   @Transactional(readOnly = true)
   public List<DataElement> getAllDataElements() {
     return dataElementStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getAllDataElementsByValueType(ValueType valueType) {
-    return dataElementStore.getDataElementsByValueType(valueType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementsByZeroIsSignificant(boolean zeroIsSignificant) {
-    return dataElementStore.getDataElementsByZeroIsSignificant(zeroIsSignificant);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementsByPeriodType(final PeriodType periodType) {
-    return getAllDataElements().stream()
-        .filter(p -> p.getPeriodType() != null && p.getPeriodType().equals(periodType))
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementsByDomainType(DataElementDomain domainType) {
-    return dataElementStore.getDataElementsByDomainType(domainType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementByCategoryCombo(CategoryCombo categoryCombo) {
-    return dataElementStore.getDataElementByCategoryCombo(categoryCombo);
   }
 
   @Override
