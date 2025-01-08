@@ -48,8 +48,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -270,25 +268,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public boolean tryExecuteNow(@Nonnull String jobId) {
-    String sql =
-        """
-        update jobconfiguration
-        set
-          schedulingtype = 'ONCE_ASAP',
-          cancel = false,
-          jobstatus = 'SCHEDULED'
-        where uid = :id
-        and enabled = true
-        and jobstatus != 'RUNNING'
-        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
-        """;
-    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
-  }
-
-  @Override
-  public boolean executeNow(@Nonnull String jobId) {
     String sql =
         """
         update jobconfiguration

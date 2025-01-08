@@ -127,7 +127,7 @@ public class JobConfigurationController
   public ObjectReport executeNow(@PathVariable("uid") String uid)
       throws NotFoundException, ConflictException {
 
-    jobSchedulerService.runInTransaction(uid);
+    jobSchedulerService.executeNow(uid);
 
     // OBS! This response is kept for better backwards compatibility
     return new ObjectReport(JobConfiguration.class, 0);
