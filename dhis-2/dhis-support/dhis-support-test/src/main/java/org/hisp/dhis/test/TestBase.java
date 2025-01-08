@@ -1003,6 +1003,7 @@ public abstract class TestBase {
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
+    unit.updatePath();
     // unit.getSharing().setPublicAccess("--------");
 
     return unit;
@@ -1042,6 +1043,7 @@ public abstract class TestBase {
     unit.setCode(name);
     unit.setOpeningDate(date);
     unit.setComment("Comment " + name);
+    unit.updatePath();
 
     return unit;
   }
