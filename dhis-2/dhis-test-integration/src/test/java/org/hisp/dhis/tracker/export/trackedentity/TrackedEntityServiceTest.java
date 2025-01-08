@@ -1889,17 +1889,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntity.setTrackedEntityType(inaccessibleTrackedEntityType);
     manager.save(trackedEntity);
 
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntity), UID.of(programA), TrackedEntityParams.TRUE));
-    assertContains(
-        String.format(
-            "User has no data read access to tracked entity type: %s",
-            inaccessibleTrackedEntityType.getUid()),
-        exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntity), UID.of(programA), TrackedEntityParams.TRUE));
   }
 
   @Test
@@ -1956,16 +1950,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(programC);
 
     injectSecurityContextUser(user);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
-
-    assertContains(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
-        exception.getMessage());
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
   }
 
   @Test
