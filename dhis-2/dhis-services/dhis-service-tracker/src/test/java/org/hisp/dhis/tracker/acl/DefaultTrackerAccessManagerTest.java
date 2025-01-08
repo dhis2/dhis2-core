@@ -53,7 +53,7 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(OPEN);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
 
@@ -67,7 +67,7 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(OPEN);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
@@ -77,7 +77,7 @@ class DefaultTrackerAccessManagerTest {
   @Test
   void shouldHaveAccessWhenProgramNullAndSearchAccessAvailable() {
     User user = new User();
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
 
@@ -89,7 +89,7 @@ class DefaultTrackerAccessManagerTest {
   @Test
   void shouldNotHaveAccessWhenProgramNullAndSearchAccessNotAvailable() {
     User user = new User();
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), null, orgUnit),
@@ -101,7 +101,7 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(CLOSED);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     user.setOrganisationUnits(Set.of(orgUnit));
 
@@ -115,7 +115,7 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(CLOSED);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
@@ -127,7 +127,7 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(PROTECTED);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     user.setOrganisationUnits(Set.of(orgUnit));
 
@@ -141,10 +141,17 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(PROTECTED);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
         "User should not have access to protected program");
+  }
+
+  private OrganisationUnit createOrgUnit() {
+    OrganisationUnit ou = new OrganisationUnit();
+    ou.setAutoFields();
+    ou.updatePath();
+    return ou;
   }
 }

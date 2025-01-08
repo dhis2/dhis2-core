@@ -108,6 +108,7 @@ class OperationsParamsValidatorTest {
   public void setUp() {
     OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
     organisationUnit.setChildren(Set.of(captureScopeOrgUnit, searchScopeOrgUnit));
+    organisationUnit.updatePath();
   }
 
   @Test
@@ -389,6 +390,7 @@ class OperationsParamsValidatorTest {
   private OrganisationUnit createOrgUnit(String name, String uid) {
     OrganisationUnit orgUnit = new OrganisationUnit(name);
     orgUnit.setUid(uid);
+    orgUnit.updatePath();
     return orgUnit;
   }
 }

@@ -801,9 +801,20 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return path;
   }
 
-  /** Do not set directly, managed by persistence layer. */
+  /**
+   * Note that the {@code path} is mapped with the "property access" mode. Do not set directly, this
+   * property is managed by the persistence layer.
+   */
   public void setPath(String path) {
     this.path = path;
+  }
+
+  /**
+   * Note that the {@code path} is mapped with the "property access" mode. This method is for unit
+   * testing purposes only.
+   */
+  public void updatePath() {
+    setPath(getPath());
   }
 
   /**
