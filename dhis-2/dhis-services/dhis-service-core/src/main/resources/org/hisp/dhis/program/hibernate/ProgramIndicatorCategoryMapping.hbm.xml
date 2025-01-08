@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramIndicatorCategoryMapping" table="programindicator_categorymapping">
+
+    <composite-id>
+      <key-many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator" column="programindicatorid"
+                       foreign-key="fk_pi_categorymapping_programindicatorid"/>
+      <key-many-to-one name="category" class="org.hisp.dhis.category.Category" column="categoryid"
+                       foreign-key="fk_pi_categorymapping_categoryid"/>
+    </composite-id>
+
+    <many-to-one name="categoryMapping" class="org.hisp.dhis.program.ProgramCategoryMapping" column="categorymappingid"
+      foreign-key="fk_pi_categorymapping_categorymappingid"/>
+
+  </class>
+</hibernate-mapping>

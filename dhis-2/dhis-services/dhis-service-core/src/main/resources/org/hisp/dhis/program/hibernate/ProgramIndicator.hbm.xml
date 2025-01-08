@@ -63,6 +63,19 @@
 
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 
+    <property name="aggregateExportDataElement" column="aggregateexportdataelement" />
+
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo"
+      column="categorycomboid" foreign-key="fk_programindicator_categorycomboid" not-null="true" />
+
+    <many-to-one name="attributeCombo" class="org.hisp.dhis.category.CategoryCombo"
+      column="attributecomboid" foreign-key="fk_programindicator_attributecomboid" not-null="true" />
+
+    <set name="categoryMappings" inverse="true">
+      <key column="programindicatorid"/>
+      <one-to-many class="org.hisp.dhis.program.ProgramIndicatorCategoryMapping"/>
+    </set>
+
     <property name="displayInForm" />
 
     <property name="analyticsType" column="analyticstype" length="15" not-null="true">

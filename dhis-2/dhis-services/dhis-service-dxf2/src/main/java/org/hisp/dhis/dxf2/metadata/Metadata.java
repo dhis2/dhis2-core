@@ -87,6 +87,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -730,6 +731,19 @@ public class Metadata {
 
   public void setProgramStageSections(List<ProgramStageSection> programStageSections) {
     setValues(ProgramStageSection.class, programStageSections);
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "programCategoryMappings",
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programCategoryMapping", namespace = DxfNamespaces.DXF_2_0)
+  public List<ProgramCategoryMapping> getProgramCategoryMappings() {
+    return getValues(ProgramCategoryMapping.class);
+  }
+
+  public void setProgramCategoryMappings(List<ProgramCategoryMapping> programCategoryMappings) {
+    setValues(ProgramCategoryMapping.class, programCategoryMappings);
   }
 
   @JsonProperty

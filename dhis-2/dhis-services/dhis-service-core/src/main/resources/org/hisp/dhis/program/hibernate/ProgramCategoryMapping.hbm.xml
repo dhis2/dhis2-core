@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramCategoryMapping" table="program_categorymapping">
+
+    <cache usage="read-write"/>
+
+    <id name="id" column="categorymappingid">
+      <generator class="native"/>
+    </id>
+    &identifiableProperties;
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
+      foreign-key="fk_categorymapping_programid"/>
+
+    <many-to-one name="category" class="org.hisp.dhis.category.Category" column="categoryid"
+      foreign-key="fk_categorymapping_categoryid"/>
+
+    <property name="mappingName" column="mappingname" not-null="true" length="126"/>
+
+    <set name="optionMappings" table="program_categoryoptionmapping" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categorymappingid" foreign-key="fk_optionmapping_categorymappingid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramCategoryOptionMapping" />
+    </set>
+
+  </class>
+</hibernate-mapping>
