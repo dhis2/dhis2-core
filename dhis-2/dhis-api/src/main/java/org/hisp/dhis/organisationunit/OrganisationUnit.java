@@ -758,7 +758,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   /**
    * Note that the {@code path} is mapped with the "property access" mode. This method will
    * recalculate and return the path property value. To access the {@code path} property directly,
-   * use {@link OrganisationUnit#getPathPersisted}.
+   * use {@link OrganisationUnit#getStoredPath}.
    *
    * @return the recalculated path.
    */
@@ -790,9 +790,9 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   /**
    * Note that the {@code path} is mapped with the "property access" mode. This method will return
-   * the persisted {@code path} property directly. Note that this method will return the correct
-   * value of the object is already persisted and state flushed to the database. To get the
-   * recalculated path value, use {@link OrganisationUnit#getPath}.
+   * the persisted {@code path} property value directly. Note that this method will return the
+   * correct value only if the object is already persisted and state flushed to the database. To get
+   * the recalculated path value, use {@link OrganisationUnit#getPath}.
    *
    * @return the persisted path.
    */
