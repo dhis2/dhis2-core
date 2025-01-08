@@ -350,6 +350,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setAccessLevel(AccessLevel.OPEN);
     programService.updateProgram(programA);
+    assignOwnership(trackedEntityA1, programA, organisationUnitA);
+    injectSecurityContextUser(userA);
 
     assertEquals(
         trackedEntityA1,

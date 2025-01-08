@@ -594,8 +594,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates an INNER JOIN for program owner. This segment is only included if program is
-   * specified.
+   * Generates an INNER JOIN for program owner.
    *
    * @return a SQL INNER JOIN for program owner, or a LEFT JOIN if no program is specified.
    */
