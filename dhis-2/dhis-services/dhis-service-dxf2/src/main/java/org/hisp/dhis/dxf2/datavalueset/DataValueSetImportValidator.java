@@ -643,8 +643,7 @@ public class DataValueSetImportValidator {
 
   private boolean isOrgUnitValidForAttrOptionCombo(DataValueContext valueContext) {
     Set<OrganisationUnit> aocOrgUnits = valueContext.getAttrOptionCombo().getOrganisationUnits();
-    boolean result = aocOrgUnits == null || valueContext.getOrgUnit().isDescendant(aocOrgUnits);
-    return result;
+    return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant(aocOrgUnits);
   }
 
   private static void checkDataValueTargetDataSets(

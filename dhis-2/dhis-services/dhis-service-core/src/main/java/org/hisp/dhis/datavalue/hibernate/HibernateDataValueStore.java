@@ -87,7 +87,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
 
   private final PeriodStore periodStore;
-  private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
   private static final String DELETED = "deleted";
 
@@ -101,7 +100,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       PeriodStore periodStore) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
-    this.namedJdbcTemplate = namedJdbcTemplate;
   }
 
   // -------------------------------------------------------------------------
