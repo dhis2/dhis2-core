@@ -83,6 +83,8 @@ class AnalyticsZscoreSqlStatementProcessorTest {
 
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
+    ouA.getPath();
+    ouB.getPath();
   }
 
   @Test
