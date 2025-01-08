@@ -25,45 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasource.model;
+package org.hisp.dhis.system.util;
 
-import java.util.Optional;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Encapsulation of a database connection pool configuration.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Value
-@Builder
-public class PoolConfig {
-  private String dbPoolType;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
-  private DhisConfigurationProvider dhisConfig;
+class ListBuilderTest {
+  @Test
+  void testAdd() {
+    List<String> actual =
+        new ListBuilder<String>().add("one").addAll(List.of("two", "three")).build();
 
-  private String jdbcUrl;
+    List<String> expected = List.of("one", "two", "three");
 
-  private String username;
+    assertEquals(expected, actual);
+  }
 
-  private String password;
+  @Test
+  void testAddWithInitial() {
+    List<String> actual =
+        new ListBuilder<String>(List.of("one")).addAll(List.of("two", "three")).build();
 
-  private String maxPoolSize;
+    List<String> expected = List.of("one", "two", "three");
 
-  private String acquireIncrement;
-
-  private String acquireRetryAttempts;
-
-  private String acquireRetryDelay;
-
-  private String maxIdleTime;
-
-  private ConfigKeyMapper mapper;
-
-  public ConfigKeyMapper getMapper() {
-    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
+    assertEquals(expected, actual);
   }
 }

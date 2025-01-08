@@ -136,7 +136,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   private Geometry geometry;
 
-  /** A reference to the Image file associated with this OrganisationUnit. */
+  /** A reference to the image file resource associated with this {@link OrganisationUnit}. */
   private FileResource image;
 
   // -------------------------------------------------------------------------

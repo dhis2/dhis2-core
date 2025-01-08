@@ -29,42 +29,33 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.system.util.SqlUtils.escape;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.Assert;
 
 /**
  * @author Kristian Nordal
  */
-@Slf4j
 @Repository("org.hisp.dhis.organisationunit.OrganisationUnitStore")
 public class HibernateOrganisationUnitStore
     extends HibernateIdentifiableObjectStore<OrganisationUnit> implements OrganisationUnitStore {
@@ -282,57 +273,6 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
-  public Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap(
-      Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets) {
-    SqlHelper hlp = new SqlHelper();
-
-    String sql =
-        "select ou.uid as ou_uid, array_agg(ds.uid) as ds_uid "
-            + "from datasetsource d "
-            + "inner join organisationunit ou on ou.organisationunitid=d.sourceid "
-            + "inner join dataset ds on ds.datasetid=d.datasetid ";
-
-    if (organisationUnits != null) {
-      Assert.notEmpty(organisationUnits, "Organisation units cannot be empty");
-
-      sql += hlp.whereAnd() + " (";
-
-      for (OrganisationUnit unit : organisationUnits) {
-        sql += "ou.path like '" + unit.getPath() + "%' or ";
-      }
-
-      sql = TextUtils.removeLastOr(sql) + ") ";
-    }
-
-    if (dataSets != null) {
-      Assert.notEmpty(dataSets, "Data sets cannot be empty");
-
-      sql +=
-          hlp.whereAnd()
-              + " ds.datasetid in ("
-              + StringUtils.join(IdentifiableObjectUtils.getIdentifiers(dataSets), ",")
-              + ") ";
-    }
-
-    sql += "group by ou_uid";
-
-    log.debug("Org unit data set association map SQL: " + sql);
-
-    Map<String, Set<String>> map = new HashMap<>();
-
-    jdbcTemplate.query(
-        sql,
-        rs -> {
-          String organisationUnitId = rs.getString("ou_uid");
-          Set<String> dataSetIds = SqlUtils.getArrayAsSet(rs, "ds_uid");
-
-          map.put(organisationUnitId, dataSetIds);
-        });
-
-    return map;
-  }
-
-  @Override
   public List<OrganisationUnit> getWithinCoordinateArea(double[] box) {
     // can't use hibernate-spatial 'makeenvelope' function, because not
     // available in
@@ -385,26 +325,6 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
-  public boolean isOrgUnitCountAboveThreshold(OrganisationUnitQueryParams params, int threshold) {
-    String sql = buildOrganisationUnitDistinctUidsSql(params);
-
-    StringBuilder sb = new StringBuilder();
-    sb.append("select count(*) from (");
-    sb.append(sql);
-    sb.append(" limit ");
-    sb.append(threshold + 1);
-    sb.append(") as douid");
-
-    return (jdbcTemplate.queryForObject(sb.toString(), Integer.class) > threshold);
-  }
-
-  @Override
-  public List<String> getOrganisationUnitUids(OrganisationUnitQueryParams params) {
-    String sql = buildOrganisationUnitDistinctUidsSql(params);
-    return jdbcTemplate.queryForList(sql, String.class);
-  }
-
-  @Override
   public int updateAllOrganisationUnitsGeometryToNull() {
     return getQuery("update OrganisationUnit o set o.geometry = null").executeUpdate();
   }
@@ -421,30 +341,6 @@ public class HibernateOrganisationUnitStore
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
-  }
-
-  private String buildOrganisationUnitDistinctUidsSql(OrganisationUnitQueryParams params) {
-    SqlHelper hlp = new SqlHelper();
-
-    String sql = "select distinct o.uid from organisationunit o ";
-
-    if (params.isFetchChildren()) {
-      sql += " left outer join organisationunit c ON o.organisationunitid = c.parentid ";
-    }
-
-    if (params.hasParents()) {
-      sql += hlp.whereAnd() + " (";
-
-      for (OrganisationUnit parent : params.getParents()) {
-        sql += "o.path like '" + escape(parent.getPath()) + "%'" + " or ";
-      }
-
-      sql = TextUtils.removeLastOr(sql) + ") ";
-    }
-
-    // TODO: Support Groups + Query + Hierarchy + MaxLevels in this sql
-
-    return sql;
   }
 
   private void updatePaths(List<OrganisationUnit> organisationUnits) {

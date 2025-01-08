@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datasource.model;
 
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import java.util.Optional;
+import lombok.Builder;
+import lombok.Value;
+import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
-import lombok.Getter;
+/**
+ * Encapsulation of a database connection pool configuration.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Value
+@Builder
+public class DbPoolConfig {
+  private String dbPoolType;
 
-/** Encapsulates some information about the current request and endpoint invoked. */
-public class RequestTypeAware {
+  private DhisConfigurationProvider dhisConfig;
 
-  @Getter private EndpointAction endpointAction = OTHER;
+  private String driverClassName;
 
-  @Getter private EndpointItem endpointItem;
+  private String jdbcUrl;
 
-  public RequestTypeAware withEndpointAction(EndpointAction endpointAction) {
-    this.endpointAction = endpointAction;
-    return this;
-  }
+  private String username;
 
-  public RequestTypeAware withEndpointItem(EndpointItem endpointItem) {
-    this.endpointItem = endpointItem;
-    return this;
-  }
+  private String password;
 
-  public boolean isQueryEndpoint() {
-    return QUERY == endpointAction;
-  }
+  private String maxPoolSize;
 
-  public boolean isAggregateEndpoint() {
-    return AGGREGATE == endpointAction;
-  }
+  private String acquireIncrement;
 
-  public boolean isEnrollmentEndpointItem() {
-    return EndpointItem.ENROLLMENT == endpointItem;
-  }
+  private String acquireRetryAttempts;
 
-  public enum EndpointAction {
-    AGGREGATE,
-    QUERY,
-    OTHER
-  }
+  private String acquireRetryDelay;
 
-  public enum EndpointItem {
-    EVENT,
-    ENROLLMENT,
-    TRACKED_ENTITY_INSTANCE
+  private String maxIdleTime;
+
+  private ConfigKeyMapper mapper;
+
+  public ConfigKeyMapper getMapper() {
+    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
   }
 }

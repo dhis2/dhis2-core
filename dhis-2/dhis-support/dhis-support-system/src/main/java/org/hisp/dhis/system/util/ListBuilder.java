@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.system.util;
 
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import lombok.Getter;
+/** Builder of immutable lists. */
+public class ListBuilder<T> {
+  private final List<T> list;
 
-/** Encapsulates some information about the current request and endpoint invoked. */
-public class RequestTypeAware {
+  public ListBuilder() {
+    list = new ArrayList<>();
+  }
 
-  @Getter private EndpointAction endpointAction = OTHER;
+  public ListBuilder(List<T> initial) {
+    list = new ArrayList<>(initial);
+  }
 
-  @Getter private EndpointItem endpointItem;
-
-  public RequestTypeAware withEndpointAction(EndpointAction endpointAction) {
-    this.endpointAction = endpointAction;
+  public final ListBuilder<T> addAll(List<T> items) {
+    this.list.addAll(items);
     return this;
   }
 
-  public RequestTypeAware withEndpointItem(EndpointItem endpointItem) {
-    this.endpointItem = endpointItem;
+  @SafeVarargs
+  public final ListBuilder<T> add(T... items) {
+    this.list.addAll(Arrays.asList(items));
     return this;
   }
 
-  public boolean isQueryEndpoint() {
-    return QUERY == endpointAction;
+  public final ListBuilder<T> add(T item) {
+    this.list.add(item);
+    return this;
   }
 
-  public boolean isAggregateEndpoint() {
-    return AGGREGATE == endpointAction;
-  }
-
-  public boolean isEnrollmentEndpointItem() {
-    return EndpointItem.ENROLLMENT == endpointItem;
-  }
-
-  public enum EndpointAction {
-    AGGREGATE,
-    QUERY,
-    OTHER
-  }
-
-  public enum EndpointItem {
-    EVENT,
-    ENROLLMENT,
-    TRACKED_ENTITY_INSTANCE
+  public List<T> build() {
+    return Collections.unmodifiableList(list);
   }
 }

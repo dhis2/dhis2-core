@@ -30,12 +30,8 @@ package org.hisp.dhis.dataelement;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
-import org.hisp.dhis.period.PeriodType;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -109,39 +105,6 @@ public interface DataElementService {
    * @return a list of all DataElements, or an empty list if there are no DataElements.
    */
   List<DataElement> getAllDataElements();
-
-  /**
-   * Returns all DataElements of a given type.
-   *
-   * @param valueType the value type restriction
-   * @return a list of all DataElements with the given value type, or an empty list if there are no
-   *     DataElements.
-   */
-  List<DataElement> getAllDataElementsByValueType(ValueType valueType);
-
-  /**
-   * Returns all DataElements with the given domain type.
-   *
-   * @param domainType the DataElementDomainType.
-   * @return all DataElements with the given domainType.
-   */
-  List<DataElement> getDataElementsByDomainType(DataElementDomain domainType);
-
-  /**
-   * Returns the DataElements with the given PeriodType.
-   *
-   * @param periodType the PeriodType.
-   * @return a list of DataElements.
-   */
-  List<DataElement> getDataElementsByPeriodType(PeriodType periodType);
-
-  /**
-   * Returns all DataElements with the given category combo.
-   *
-   * @param categoryCombo the CategoryCombo.
-   * @return all DataElements with the given category combo.
-   */
-  List<DataElement> getDataElementByCategoryCombo(CategoryCombo categoryCombo);
 
   /**
    * Returns all DataElements which are not member of any DataElementGroups.
@@ -246,14 +209,6 @@ public interface DataElementService {
    */
   List<DataElementGroup> getAllDataElementGroups();
 
-  /**
-   * Returns all DataElements which zeroIsSignificant property is true or false.
-   *
-   * @param zeroIsSignificant whether zero is significant is true for this query.
-   * @return a collection of DataElements.
-   */
-  List<DataElement> getDataElementsByZeroIsSignificant(boolean zeroIsSignificant);
-
   // -------------------------------------------------------------------------
   // DataElementGroupSet
   // -------------------------------------------------------------------------
@@ -267,14 +222,4 @@ public interface DataElementService {
   DataElementGroupSet getDataElementGroupSet(long id);
 
   DataElementGroupSet getDataElementGroupSet(String uid);
-
-  DataElementGroupSet getDataElementGroupSetByName(String name);
-
-  List<DataElementGroupSet> getAllDataElementGroupSets();
-
-  List<DataElement> getByAttributeAndValue(UID attribute, String value);
-
-  List<DataElement> getByAttribute(UID attribute);
-
-  DataElement getByUniqueAttributeValue(UID attribute, String value);
 }
