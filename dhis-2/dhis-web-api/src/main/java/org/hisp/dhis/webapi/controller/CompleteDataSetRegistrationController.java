@@ -63,17 +63,14 @@ import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
@@ -112,10 +109,7 @@ public class CompleteDataSetRegistrationController {
 
   private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
-  private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
-
-  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -149,7 +143,7 @@ public class CompleteDataSetRegistrationController {
   @ResponseBody
   public WebMessage postCompleteRegistrationsXml(
       ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return asyncImport(importOptions, APPLICATION_XML, request);
     }
@@ -164,7 +158,7 @@ public class CompleteDataSetRegistrationController {
   @ResponseBody
   public WebMessage postCompleteRegistrationsJson(
       ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return asyncImport(importOptions, APPLICATION_JSON, request);
     }
@@ -260,13 +254,13 @@ public class CompleteDataSetRegistrationController {
 
   private WebMessage asyncImport(
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
 
     JobConfiguration jobConfig = new JobConfiguration(COMPLETE_DATA_SET_REGISTRATION_IMPORT);
 
     jobConfig.setJobParameters(importOptions);
     jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
-    jobSchedulerService.createThenExecute(jobConfig, mimeType, request.getInputStream());
+    jobSchedulerService.executeOnceNow(jobConfig, mimeType, request.getInputStream());
 
     return jobConfigurationReport(jobConfig);
   }

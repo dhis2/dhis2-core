@@ -38,7 +38,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
@@ -83,7 +82,7 @@ public class PredictionController {
       @RequestParam(value = "predictorGroup", required = false) List<String> predictorGroups,
       @RequestParam(defaultValue = "false", required = false) boolean async,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
 
     if (async) {
       JobConfiguration config = new JobConfiguration(PREDICTOR);
@@ -97,7 +96,7 @@ public class PredictionController {
       config.setJobParameters(params);
       config.setExecutedBy(currentUser.getUid());
 
-      jobSchedulerService.createThenExecute(config);
+      jobSchedulerService.executeOnceNow(config);
 
       return jobConfigurationReport(config);
     }

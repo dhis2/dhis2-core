@@ -221,7 +221,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   private String postConditionFailureMessage() {
-    String msg = "Non-null post-condition failed: ";
+    String msg = "Non-null post-condition failed after: ";
     Process p = incompleteProcess.get();
     if (p != null) {
       msg += p.getDescription();

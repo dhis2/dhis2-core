@@ -83,7 +83,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   @Transactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobStatus() == JobStatus.RUNNING)
         throw new ConflictException("Job is already running.");
@@ -92,12 +92,12 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
     }
     if (!jobRunner.isScheduling()) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
     } else {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobType().isUsingContinuousExecution()) {
         jobRunner.runIfDue(job);
@@ -107,18 +107,35 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
 
   @Override
   @Transactional
-  public void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException, NotFoundException {
-    String jobId = jobConfigurationService.create(config, contentType, content);
-    executeNow(jobId);
+  public void executeOnceNow(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException {
+    validateIsNewRunOnce(config);
+    executeOnceNow(jobConfigurationService.create(config, contentType, content));
   }
 
   @Override
   @Transactional
-  public void createThenExecute(JobConfiguration config)
-      throws ConflictException, NotFoundException {
-    String jobId = jobConfigurationService.create(config);
-    executeNow(jobId);
+  public void executeOnceNow(JobConfiguration config) throws ConflictException {
+    validateIsNewRunOnce(config);
+    executeOnceNow(jobConfigurationService.create(config));
+  }
+
+  private void executeOnceNow(String jobId) throws ConflictException {
+    try {
+      executeNow(jobId);
+    } catch (NotFoundException ex) {
+      log.error("For unknown reason execution was unable to find the newly created job", ex);
+    }
+  }
+
+  private void validateIsNewRunOnce(JobConfiguration config) throws ConflictException {
+    if (config.getId() != 0 || config.getSchedulingType() != SchedulingType.ONCE_ASAP)
+      throw new ConflictException(
+          "Job %s must be a run once type but was: %s"
+              .formatted(config.getName(), config.getSchedulingType()));
+    if (jobConfigurationStore.getByUidNoAcl(config.getUid()) != null)
+      throw new ConflictException(
+          "Job %s with id %s does already exist.".formatted(config.getName(), config.getUid()));
   }
 
   @Override
@@ -129,7 +146,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     if (!currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
       throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
     if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId.getValue());
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId.getValue());
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId.getValue());
       if (job.getJobStatus() != JobStatus.RUNNING)
         throw new ConflictException("Job is not running");

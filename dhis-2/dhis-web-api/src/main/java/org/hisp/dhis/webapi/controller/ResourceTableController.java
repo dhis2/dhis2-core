@@ -147,8 +147,7 @@ public class ResourceTableController {
   @RequestMapping(method = {PUT, POST})
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
-  public WebMessage resourceTables(@CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage resourceTables(@CurrentUser UserDetails currentUser) throws ConflictException {
     JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
     config.setExecutedBy(currentUser.getUid());
     return execute(config);
@@ -159,17 +158,16 @@ public class ResourceTableController {
       method = {PUT, POST})
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
-  public WebMessage monitoring() throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage monitoring() throws ConflictException {
     JobConfiguration config = new JobConfiguration(MONITORING);
     config.setJobParameters(new MonitoringJobParameters());
     return execute(config);
   }
 
-  private WebMessage execute(JobConfiguration configuration)
-      throws ConflictException, NotFoundException {
+  private WebMessage execute(JobConfiguration configuration) throws ConflictException {
     log.debug("Executing requested job of type: '{}'", configuration.getJobType());
 
-    jobSchedulerService.createThenExecute(configuration);
+    jobSchedulerService.executeOnceNow(configuration);
 
     return jobConfigurationReport(configuration);
   }

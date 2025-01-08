@@ -60,7 +60,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
@@ -70,7 +69,6 @@ import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
@@ -78,7 +76,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.ResponseEntity;
@@ -111,8 +108,6 @@ public class MetadataImportExportController {
   private final GmlImportService gmlImportService;
   private final MetadataExportService metadataExportService;
   private final UserService userService;
-  private final UserSettingsService userSettingsService;
-  private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
   private final ObjectMapper jsonMapper;
   private final BulkPatchManager bulkPatchManager;
@@ -120,7 +115,7 @@ public class MetadataImportExportController {
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage postJsonMetadata(HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     MetadataImportParams params = getMetadataImportParams();
 
     if (params.isAsync()) {
@@ -140,7 +135,7 @@ public class MetadataImportExportController {
   @PostMapping(value = "", consumes = "application/csv")
   @ResponseBody
   public WebMessage postCsvMetadata(HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     MetadataImportParams params = getMetadataImportParams();
 
     String classKey = request.getParameter("classKey");
@@ -173,7 +168,7 @@ public class MetadataImportExportController {
   @PostMapping(value = "/gml", consumes = APPLICATION_XML_VALUE)
   @ResponseBody
   public WebMessage postGmlMetadata(HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     MetadataImportParams params = getMetadataImportParams();
 
     if (params.isAsync()) {
@@ -255,12 +250,12 @@ public class MetadataImportExportController {
 
   private WebMessage startAsyncMetadata(
       MetadataImportParams params, MimeType contentType, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     JobConfiguration config = new JobConfiguration(JobType.METADATA_IMPORT);
 
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(params);
-    jobSchedulerService.createThenExecute(config, contentType, request.getInputStream());
+    jobSchedulerService.executeOnceNow(config, contentType, request.getInputStream());
     return jobConfigurationReport(config);
   }
 }

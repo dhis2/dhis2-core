@@ -92,7 +92,7 @@ public class DataIntegrityController {
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
@@ -100,7 +100,7 @@ public class DataIntegrityController {
 
   private WebMessage runDataIntegrityAsync(
       @Nonnull Set<String> checks, UserDetails currentUser, DataIntegrityReportType type)
-      throws ConflictException, NotFoundException {
+      throws ConflictException {
     JobType jobType =
         type == DataIntegrityReportType.DETAILS
             ? JobType.DATA_INTEGRITY_DETAILS
@@ -113,7 +113,7 @@ public class DataIntegrityController {
             : new DataIntegrityJobParameters(type, checks);
     config.setJobParameters(parameters);
 
-    jobSchedulerService.createThenExecute(config);
+    jobSchedulerService.executeOnceNow(config);
 
     return jobConfigurationReport(config);
   }

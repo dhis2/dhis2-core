@@ -112,6 +112,6 @@ public class PushAnalysisController
     config.setJobParameters(new PushAnalysisJobParameters(uid));
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    jobSchedulerService.createThenExecute(config);
+    jobSchedulerService.executeOnceNow(config);
   }
 }
