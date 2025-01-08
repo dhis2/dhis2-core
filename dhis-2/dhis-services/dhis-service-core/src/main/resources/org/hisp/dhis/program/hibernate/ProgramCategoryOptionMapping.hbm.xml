@@ -11,6 +11,9 @@
       <generator class="native" />
     </id>
 
+    <many-to-one name="categoryMapping" class="org.hisp.dhis.program.ProgramCategoryMapping" column="categorymappingid"
+                 foreign-key="fk_optionmapping_categorymappingid"/>
+
     <many-to-one name="categoryOption" class="org.hisp.dhis.category.CategoryOption" column="categoryoptionid"
                  foreign-key="fk_optionmapping_categoryoptionid"/>
 
