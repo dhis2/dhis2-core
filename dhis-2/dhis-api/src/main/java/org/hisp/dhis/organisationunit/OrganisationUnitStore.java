@@ -30,8 +30,6 @@ package org.hisp.dhis.organisationunit;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -129,18 +127,6 @@ public interface OrganisationUnitStore
    * @return a list of OrganisationUnits.
    */
   List<OrganisationUnit> getOrganisationUnits(OrganisationUnitQueryParams params);
-
-  /**
-   * Creates a mapping between organisation unit UID and set of data set UIDs being assigned to the
-   * organisation unit.
-   *
-   * @param organisationUnits the parent organisation units of the hierarchy to include, ignored if
-   *     null.
-   * @param dataSets the data set to include, ignored if null.
-   * @return a map of sets.
-   */
-  Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap(
-      Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets);
 
   /**
    * Retrieves the objects where its coordinate is within the 4 area points. 4 area points are Index
