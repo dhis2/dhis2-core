@@ -909,6 +909,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()
+          .withSqlBuilder(sqlBuilder)
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
     } else {
       return quoteAlias(col);
