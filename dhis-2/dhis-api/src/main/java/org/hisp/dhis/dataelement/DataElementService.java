@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 
 /**
@@ -223,14 +222,4 @@ public interface DataElementService {
   DataElementGroupSet getDataElementGroupSet(long id);
 
   DataElementGroupSet getDataElementGroupSet(String uid);
-
-  DataElementGroupSet getDataElementGroupSetByName(String name);
-
-  List<DataElementGroupSet> getAllDataElementGroupSets();
-
-  List<DataElement> getByAttributeAndValue(UID attribute, String value);
-
-  List<DataElement> getByAttribute(UID attribute);
-
-  DataElement getByUniqueAttributeValue(UID attribute, String value);
 }
