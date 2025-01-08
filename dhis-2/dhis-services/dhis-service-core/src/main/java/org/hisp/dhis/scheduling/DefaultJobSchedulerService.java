@@ -107,7 +107,8 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
 
   @Override
   @Transactional
-  public void executeOnceNow(JobConfiguration config, MimeType contentType, InputStream content)
+  public void executeOnceNow(
+      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
       throws ConflictException {
     validateIsNewRunOnce(config);
     executeOnceNow(jobConfigurationService.create(config, contentType, content));
@@ -115,7 +116,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
 
   @Override
   @Transactional
-  public void executeOnceNow(JobConfiguration config) throws ConflictException {
+  public void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException {
     validateIsNewRunOnce(config);
     executeOnceNow(jobConfigurationService.create(config));
   }
@@ -124,7 +125,10 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     try {
       executeNow(jobId);
     } catch (NotFoundException ex) {
-      log.error("For unknown reason execution was unable to find the newly created job", ex);
+      log.error("Ad-hoc job creation failed", ex);
+      ConflictException error = new ConflictException("Ad-hoc job creation failed");
+      error.initCause(ex);
+      throw error;
     }
   }
 

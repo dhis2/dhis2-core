@@ -48,7 +48,9 @@ import org.springframework.util.MimeType;
 public interface JobSchedulerService {
 
   /**
-   * Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
+   * Ad-hoc execution of existing jobs.
+   *
+   * <p>Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
    * SchedulingType#ONCE_ASAP} for the given job.
    *
    * <p>A job with a {@link JobConfiguration#getCronExpression()} switches back to {@link
@@ -71,7 +73,8 @@ public interface JobSchedulerService {
    * @throws ConflictException in case the config belongs to an existing job or when the job isn't
    *     configured correctly
    */
-  void executeOnceNow(JobConfiguration config, MimeType contentType, InputStream content)
+  void executeOnceNow(
+      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
       throws ConflictException;
 
   /**
@@ -81,7 +84,7 @@ public interface JobSchedulerService {
    * @throws ConflictException in case the config belongs to an existing job or when the job isn't
    *     configured correctly
    */
-  void executeOnceNow(JobConfiguration config) throws ConflictException;
+  void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException;
 
   /**
    * Reverts the {@link JobStatus} of the job from {@link JobStatus#RUNNING} to the appropriate

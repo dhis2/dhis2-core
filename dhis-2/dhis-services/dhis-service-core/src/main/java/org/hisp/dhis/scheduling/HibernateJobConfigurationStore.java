@@ -512,8 +512,7 @@ public class HibernateJobConfigurationStore
   }
 
   private static String getSingleResultOrNull(NativeQuery<?> query) {
-    List<?> res = query.list();
-    return res == null || res.isEmpty() ? null : (String) res.get(0);
+    return (String) query.getSingleResultOrNull();
   }
 
   @SuppressWarnings("unchecked")
