@@ -229,6 +229,9 @@ public interface DataValueStore {
 
   List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids);
 
-  void mergeDataValueCategoryCombos(
+  void mergeDataValuesWithCategoryOptionCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources);
+
+  void mergeDataValuesWithAttributeOptionCombos(
       @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources);
 }

@@ -55,7 +55,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
-import org.hisp.dhis.merge.CommonDataMergeHandler;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.program.Event;
@@ -78,7 +77,6 @@ public class DataCategoryOptionComboMergeHandler {
   private final DataApprovalStore dataApprovalStore;
   private final EventStore eventStore;
   private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
-  private final CommonDataMergeHandler commonDataMergeHandler;
   private final EntityManager entityManager;
 
   public void handleDataValues(
@@ -93,71 +91,11 @@ public class DataCategoryOptionComboMergeHandler {
       dataValueStore.deleteDataValuesByCategoryOptionCombo(sources);
       dataValueStore.deleteDataValuesByAttributeOptionCombo(sources);
     } else {
-      // ----------------------
-      // category option combos
-      // ----------------------
-      //      List<DataValue> sourceCocDataValues =
-      //          dataValueStore.getAllDataValuesByCatOptCombo(
-      //              UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
-      //      log.info(
-      //          "{} data values retrieved for source categoryOptionCombos",
-      // sourceCocDataValues.size());
-      //
-      //      // get map of target data values, using the duplicate key constraints as the key
-      //      Map<String, DataValue> targetCocDataValues =
-      //
-      // dataValueStore.getAllDataValuesByCatOptCombo(UID.of(List.of(target.getUid()))).stream()
-      //              .collect(Collectors.toMap(getCocDataValueKey, dv -> dv));
-      //      log.info(
-      //          "{} data values retrieved for target categoryOptionCombo",
-      // targetCocDataValues.size());
-      //
-      //      commonDataMergeHandler.handleDataValues(
-      //          new DataValueMergeParams<>(
-      //              mergeRequest,
-      //              sources,
-      //              target,
-      //              sourceCocDataValues,
-      //              targetCocDataValues,
-      //              dataValueStore::deleteDataValuesByCategoryOptionCombo,
-      //              cocDataValueDuplicates,
-      //              dataValueWithNewCatOptionCombo,
-      //              getCocDataValueKey));
-
-      // merge through DB sql
-      dataValueStore.mergeDataValueCategoryCombos(target, sources);
-      entityManager.flush();
-
-      // -----------------------
-      // attribute option combos
-      // -----------------------
-      //      List<DataValue> sourceAocDataValues =
-      //          dataValueStore.getAllDataValuesByAttrOptCombo(
-      //              UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
-      //      log.info(
-      //          "{} data values retrieved for source attributeOptionCombos",
-      // sourceAocDataValues.size());
-      //
-      //      // get map of target data values, using the duplicate key constraints as the key
-      //      Map<String, DataValue> targetAocDataValues =
-      //
-      // dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(List.of(target.getUid()))).stream()
-      //              .collect(Collectors.toMap(getAocDataValueKey, dv -> dv));
-      //      log.info(
-      //          "{} data values retrieved for target attributeOptionCombo",
-      // targetAocDataValues.size());
-      //
-      //      commonDataMergeHandler.handleDataValues(
-      //          new DataValueMergeParams<>(
-      //              mergeRequest,
-      //              sources,
-      //              target,
-      //              sourceAocDataValues,
-      //              targetAocDataValues,
-      //              dataValueStore::deleteDataValuesByAttributeOptionCombo,
-      //              aocDataValueDuplicates,
-      //              dataValueWithNewAttrOptionCombo,
-      //              getAocDataValueKey));
+      log.info(
+          mergeRequest.getDataMergeStrategy()
+              + " dataMergeStrategy being used, merging source data values");
+      dataValueStore.mergeDataValuesWithCategoryOptionCombos(target, sources);
+      dataValueStore.mergeDataValuesWithAttributeOptionCombos(target, sources);
     }
   }
 

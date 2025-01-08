@@ -338,8 +338,28 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .getResultList();
   }
 
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#categoryOptionCombo} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#categoryOptionCombo} updated to that of the target.
+   *
+   * @param target target {@link CategoryOptionCombo}
+   * @param sources source {@link CategoryOptionCombo}s
+   */
   @Override
-  public void mergeDataValueCategoryCombos(
+  public void mergeDataValuesWithCategoryOptionCombos(
       @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
     String plpgsql =
         """
@@ -350,14 +370,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
            target_duplicate RECORD;
            target_coc BIGINT default %s;
          BEGIN
-           RAISE NOTICE 'starting merging data values...';
-           -- loop through each record with source COC
+
+           -- loop through each record with a source COC
            FOR source_dv IN
              SELECT * FROM datavalue where categoryoptioncomboid in (%s)
              LOOP
 
-             -- output source
-             -- check if target DV exists with same UK
+             -- check if target DV exists with same Unique Key
              SELECT dv.*
                INTO target_duplicate
                FROM datavalue dv
@@ -367,13 +386,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                and dv.attributeoptioncomboid = source_dv.attributeoptioncomboid
                and dv.categoryoptioncomboid = target_coc;
 
-             -- target duplicate found and target has latest
+             -- target duplicate found and target has latest lastUpdated value
              IF (target_duplicate.categoryoptioncomboid is not null
                  and target_duplicate.lastupdated >= source_dv.lastupdated)
                THEN
-               RAISE NOTICE 'target duplicate found AND target has latest lastUpdated';
                -- delete source
-               RAISE NOTICE 'deleting source dv';
                delete from datavalue
                  where dataelementid = source_dv.dataelementid
                  and periodid = source_dv.periodid
@@ -381,13 +398,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and attributeoptioncomboid = source_dv.attributeoptioncomboid
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
-             -- target duplicate found and source has latest
+             -- target duplicate found and source has latest lastUpdated value
              ELSIF (target_duplicate.categoryoptioncomboid is not null
                  and target_duplicate.lastupdated < source_dv.lastupdated)
                THEN
-               RAISE NOTICE 'target duplicate found AND source has latest lastUpdated';
                -- delete target
-               RAISE NOTICE 'deleting target dv';
                delete from datavalue
                  where dataelementid = target_duplicate.dataelementid
                  and periodid = target_duplicate.periodid
@@ -396,7 +411,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
 
                -- update source with target COC
-               RAISE NOTICE 'updating source dv';
                update datavalue
                  set categoryoptioncomboid = target_duplicate.categoryoptioncomboid
                  where dataelementid = source_dv.dataelementid
@@ -406,9 +420,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
              ELSE
-               RAISE NOTICE 'target duplicate NOT found...';
-               -- update source with target COC
-               RAISE NOTICE 'updating source dv';
+               -- no target duplicate found, update source with target COC
                update datavalue
                  set categoryoptioncomboid = target_coc
                  where dataelementid = source_dv.dataelementid
@@ -430,7 +442,113 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                     .map(s -> String.valueOf(s.getId()))
                     .collect(Collectors.joining(",")));
 
-    System.out.println("SQL: " + plpgsql);
+    jdbcTemplate.update(plpgsql);
+  }
+
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#attributeOptionCombo} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#attributeOptionCombo} updated to that of the target.
+   *
+   * @param target target {@link CategoryOptionCombo}
+   * @param sources source {@link CategoryOptionCombo}s
+   */
+  @Override
+  public void mergeDataValuesWithAttributeOptionCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
+    String plpgsql =
+        """
+         DO
+         $$
+         DECLARE
+           source_dv RECORD;
+           target_duplicate RECORD;
+           target_aoc BIGINT default %s;
+         BEGIN
+
+           -- loop through each record with a source AOC
+           FOR source_dv IN
+             SELECT * FROM datavalue where attributeoptioncomboid in (%s)
+             LOOP
+
+             -- check if target DV exists with same Unique Key
+             SELECT dv.*
+               INTO target_duplicate
+               FROM datavalue dv
+               where dv.dataelementid = source_dv.dataelementid
+               and dv.periodid = source_dv.periodid
+               and dv.sourceid = source_dv.sourceid
+               and dv.attributeoptioncomboid = target_aoc
+               and dv.categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and target has latest lastUpdated value
+             IF (target_duplicate.attributeoptioncomboid is not null
+                 and target_duplicate.lastupdated >= source_dv.lastupdated)
+               THEN
+               -- delete source
+               delete from datavalue
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and source has latest lastUpdated value
+             ELSIF (target_duplicate.attributeoptioncomboid is not null
+                 and target_duplicate.lastupdated < source_dv.lastupdated)
+               THEN
+               -- delete target
+               delete from datavalue
+                 where dataelementid = target_duplicate.dataelementid
+                 and periodid = target_duplicate.periodid
+                 and sourceid = target_duplicate.sourceid
+                 and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
+
+               -- update source with target AOC
+               update datavalue
+                 set attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             ELSE
+               -- no target duplicate found, update source with target AOC
+               update datavalue
+                 set attributeoptioncomboid = target_aoc
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             END IF;
+
+             END LOOP;
+         END;
+         $$
+         LANGUAGE plpgsql;
+         """
+            .formatted(
+                target.getId(),
+                sources.stream()
+                    .map(s -> String.valueOf(s.getId()))
+                    .collect(Collectors.joining(",")));
+
     jdbcTemplate.update(plpgsql);
   }
 

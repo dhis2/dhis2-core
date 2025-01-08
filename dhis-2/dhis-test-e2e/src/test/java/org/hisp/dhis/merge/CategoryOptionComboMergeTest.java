@@ -34,12 +34,19 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.restassured.response.ValidatableResponse;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
@@ -54,6 +61,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 class CategoryOptionComboMergeTest extends ApiTest {
 
   private RestApiActions categoryOptionComboApiActions;
@@ -129,7 +137,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
 
     // when a category option combo request is submitted, deleting sources
     ApiResponse response =
-        categoryOptionComboApiActions.post("merge", getMergeBody()).validateStatus(200);
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(200);
 
     // then a success response received, sources are deleted & source references were merged
     response
@@ -161,14 +169,16 @@ class CategoryOptionComboMergeTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("CategoryOptionCombo merge completes successfully with DataValues handled correctly")
-  void cocMergeDataValuesTest() throws JsonProcessingException {
-    // given
-    // generate category option combos
-    String emptyParams = new QueryParamsBuilder().build();
-    maintenanceApiActions.post("categoryOptionComboUpdate", emptyParams).validateStatus(204);
+  @DisplayName(
+      "CategoryOptionCombo merge completes successfully with DataValues (cat opt combo) handled correctly")
+  void cocMergeDataValuesTest() {
+    // Given
+    // Generate category option combos
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
-    // get cat opt combo uids for sources and target, after generating
+    // Get cat opt combo uids for sources and target, after generating
     sourceUid1 = getCocWithOptions("1A", "2A");
     sourceUid2 = getCocWithOptions("1A", "2B");
     targetUid = getCocWithOptions("3A", "4A");
@@ -176,52 +186,37 @@ class CategoryOptionComboMergeTest extends ApiTest {
     randomCocUid2 = getCocWithOptions("1B", "2B");
 
     addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid1");
+    addOrgUnitAccessForUser(mergeUserId, "OrgUnitUid1");
 
-    // add data values
-    QueryParamsBuilder dvsImportParams =
-        new QueryParamsBuilder()
-            .add("async=false")
-            .add("dryRun=false")
-            .add("strategy=NEW_AND_UPDATES")
-            .add("preheatCache=false")
-            .add("dataElementIdScheme=UID")
-            .add("orgUnitIdScheme=UID")
-            .add("idScheme=UID")
-            .add("format=json")
-            .add("skipExistingCheck=false");
+    // Add data values
+    addDataValuesCoc();
 
-    dataValueSetActions
-        .post(
-            dataValueSetImport(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
-            dvsImportParams)
-        .validateStatus(200)
-        .validate()
-        .body("response.importCount.imported", equalTo(14));
+    // Wait 2 seconds, so that lastUpdated values have a different value,
+    // which is crucial for choosing which data values to keep/delete
+    Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
 
-    // confirm Data Value state before merge
-    // dataValueSets?orgUnit=OrgUnitUid1&startDate=1022-01-01&endDate=2025-01-30&dataElement=deUid000001
-    String dvsParams =
-        new QueryParamsBuilder()
-            .add("orgUnit=OrgUnitUid1")
-            .add("startDate=2024-01-01")
-            .add("endDate=2050-01-30")
-            .add("dataElement=deUid000001")
-            .build();
+    // Update some data values, ensures different 'lastUpdated' values for duplicate logic
+    updateDataValuesCoc();
+
+    // Confirm Data Value state before merge
     ValidatableResponse preMergeState =
-        dataValueSetActions.get(dvsParams).validateStatus(200).validate();
+        dataValueSetActions.get(getDataValueSetQueryParams()).validateStatus(200).validate();
 
     preMergeState.body("dataValues", hasSize(14));
+    Set<String> uniqueDates =
+        new HashSet<>(preMergeState.extract().jsonPath().getList("dataValues.lastUpdated"));
+    assertTrue(uniqueDates.size() > 1, "There should be more than 1 unique date present");
 
-    // login as merge user
+    // Login as merge user
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
 
-    // when a category option combo request is submitted, deleting sources
+    // When a merge request using the data merge strategy 'LAST_UPDATED' is submitted
     ApiResponse response =
-        categoryOptionComboApiActions.post("merge", getMergeBody()).validateStatus(200);
+        categoryOptionComboApiActions
+            .post("merge", getMergeBody("LAST_UPDATED"))
+            .validateStatus(200);
 
-    loginActions.loginAsSuperUser();
-
-    // then a success response received, sources are deleted & source references were merged
+    // Then a success response received, sources are deleted & source references were merged
     response
         .validate()
         .statusCode(200)
@@ -231,14 +226,203 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("response.mergeReport.mergeType", equalTo("CategoryOptionCombo"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
+    // And sources should no longer exist
     categoryOptionComboApiActions.get(sourceUid1).validateStatus(404);
     categoryOptionComboApiActions.get(sourceUid2).validateStatus(404);
 
-    // check for expected duplicates kept and deleted
+    // And last updated duplicates are kept and earlier duplicates deleted
     ValidatableResponse postMergeState =
-        dataValueSetActions.get(dvsParams).validateStatus(200).validate();
+        dataValueSetActions.get(getDataValueSetQueryParams()).validateStatus(200).validate();
 
     postMergeState.body("dataValues", hasSize(8));
+
+    // Check for expected values
+    List<String> datValues = postMergeState.extract().jsonPath().getList("dataValues.value");
+    assertTrue(datValues.contains("UPDATED source 1 DV 3 - duplicate later - KEEP"));
+    assertTrue(datValues.contains("UPDATED source 2 DV 2 - duplicate later - KEEP"));
+    assertTrue(datValues.contains("UPDATED target DV 4 - duplicate later - KEEP"));
+
+    assertFalse(datValues.contains("source 1, DV 2 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("source 1, DV 4 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("source 2, DV 3 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("source 2, DV 4 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("target DV 1 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("target DV 2 - duplicate earlier - REMOVE"));
+
+    Set<String> dvCocs =
+        new HashSet<>(
+            postMergeState.extract().jsonPath().getList("dataValues.categoryOptionCombo"));
+    assertTrue(dvCocs.contains(targetUid), "Target COC is present");
+    assertFalse(dvCocs.contains(sourceUid1), "Source COC 1 should not be present");
+    assertFalse(dvCocs.contains(sourceUid2), "Source COC 2 should not be present");
+  }
+
+  @Test
+  @DisplayName(
+      "CategoryOptionCombo merge completes successfully with DataValues (attr opt combo) handled correctly")
+  void aocMergeDataValuesTest() {
+    // Given
+    // Generate category option combos
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
+
+    // Get cat opt combo uids for sources and target, after generating
+    sourceUid1 = getCocWithOptions("1A", "2A");
+    sourceUid2 = getCocWithOptions("1A", "2B");
+    targetUid = getCocWithOptions("3A", "4A");
+    randomCocUid1 = getCocWithOptions("1B", "2A");
+    randomCocUid2 = getCocWithOptions("1B", "2B");
+
+    addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid1");
+    addOrgUnitAccessForUser(mergeUserId, "OrgUnitUid1");
+
+    // Add data values
+    addDataValuesAoc();
+
+    // Wait 2 seconds, so that lastUpdated values have a different value,
+    // which is crucial for choosing which data values to keep/delete
+    Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
+
+    // Update some data values, ensures different 'lastUpdated' values for duplicate logic
+    updateDataValuesAoc();
+
+    // Confirm Data Value state before merge
+    ValidatableResponse preMergeState =
+        dataValueSetActions.get(getDataValueSetQueryParams()).validateStatus(200).validate();
+
+    preMergeState.body("dataValues", hasSize(14));
+    Set<String> uniqueDates =
+        new HashSet<>(preMergeState.extract().jsonPath().getList("dataValues.lastUpdated"));
+    assertTrue(uniqueDates.size() > 1, "There should be more than 1 unique date present");
+
+    // Login as merge user
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // When a merge request using the data merge strategy 'LAST_UPDATED' is submitted
+    ApiResponse response =
+        categoryOptionComboApiActions
+            .post("merge", getMergeBody("LAST_UPDATED"))
+            .validateStatus(200);
+
+    // Then a success response received, sources are deleted & source references were merged
+    response
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("response.mergeReport.message", equalTo("CategoryOptionCombo merge complete"))
+        .body("response.mergeReport.mergeErrors", empty())
+        .body("response.mergeReport.mergeType", equalTo("CategoryOptionCombo"))
+        .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
+
+    // And sources should no longer exist
+    categoryOptionComboApiActions.get(sourceUid1).validateStatus(404);
+    categoryOptionComboApiActions.get(sourceUid2).validateStatus(404);
+
+    // And last updated duplicates are kept and earlier duplicates deleted
+    loginActions.loginAsSuperUser();
+    ValidatableResponse postMergeState =
+        dataValueSetActions.get(getDataValueSetQueryParamsWithAoc()).validateStatus(200).validate();
+
+    postMergeState.body("dataValues", hasSize(6));
+
+    // Check for expected values
+    List<String> datValues = postMergeState.extract().jsonPath().getList("dataValues.value");
+    assertTrue(datValues.contains("UPDATED source 1 DV 3 - duplicate later - KEEP"));
+    assertTrue(datValues.contains("UPDATED source 2 DV 2 - duplicate later - KEEP"));
+    assertTrue(datValues.contains("UPDATED target DV 4 - duplicate later - KEEP"));
+
+    assertFalse(datValues.contains("source 1, DV 2 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("source 1, DV 4 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("source 2, DV 3 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("source 2, DV 4 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("target DV 1 - duplicate earlier - REMOVE"));
+    assertFalse(datValues.contains("target DV 2 - duplicate earlier - REMOVE"));
+
+    Set<String> dvAocs =
+        new HashSet<>(
+            postMergeState.extract().jsonPath().getList("dataValues.attributeOptionCombo"));
+    assertTrue(dvAocs.contains(targetUid), "Target COC is present");
+    assertFalse(dvAocs.contains(sourceUid1), "Source COC 1 should not be present");
+    assertFalse(dvAocs.contains(sourceUid2), "Source COC 2 should not be present");
+  }
+
+  private void addDataValuesCoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportCoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            getDataValueQueryParams())
+        .validateStatus(200)
+        .validate()
+        .body("response.importCount.imported", equalTo(14));
+  }
+
+  private void addDataValuesAoc() {
+    String string =
+        dataValueSetActions
+            .post(
+                dataValueSetImportAoc(
+                    sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+                getDataValueQueryParams())
+            .getAsString();
+    //            .validateStatus(200)
+    //            .validate()
+    //            .extract()
+    //            .asString();
+    System.out.println("check aoc response");
+    // .body("response.importCount.imported", equalTo(14));
+  }
+
+  private void updateDataValuesCoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportUpdateCoc(sourceUid1, sourceUid2, targetUid),
+            getDataValueQueryParams())
+        .validateStatus(200)
+        .validate()
+        .body("response.importCount.updated", equalTo(4));
+  }
+
+  private void updateDataValuesAoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportUpdateAoc(sourceUid1, sourceUid2, targetUid),
+            getDataValueQueryParams())
+        .validateStatus(200)
+        .validate()
+        .body("response.importCount.updated", equalTo(4));
+  }
+
+  private QueryParamsBuilder getDataValueQueryParams() {
+    return new QueryParamsBuilder()
+        .add("async=false")
+        .add("dryRun=false")
+        .add("strategy=NEW_AND_UPDATES")
+        .add("preheatCache=false")
+        .add("dataElementIdScheme=UID")
+        .add("orgUnitIdScheme=UID")
+        .add("idScheme=UID")
+        .add("format=json")
+        .add("skipExistingCheck=false");
+  }
+
+  private String getDataValueSetQueryParams() {
+    return new QueryParamsBuilder()
+        .add("orgUnit=OrgUnitUid1")
+        .add("startDate=2024-01-01")
+        .add("endDate=2050-01-30")
+        .add("dataElement=deUid000001")
+        .build();
+  }
+
+  private String getDataValueSetQueryParamsWithAoc() {
+    return new QueryParamsBuilder()
+        .add("orgUnit=OrgUnitUid1")
+        .add("startDate=2024-01-01")
+        .add("endDate=2050-01-30")
+        .add("dataElement=deUid000001")
+        .add("attributeOptionCombo=" + targetUid)
+        .build();
   }
 
   private void addOrgUnitAccessForUser(String loggedInUserId, String orgUnitUid) {
@@ -260,7 +444,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
 
     // when
     ApiResponse response =
-        categoryOptionComboApiActions.post("merge", getMergeBody()).validateStatus(403);
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(403);
 
     // then
     response
@@ -292,7 +476,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
     sourceUid2 = getCocWithOptions("1B", "2B");
     targetUid = getCocWithOptions("3A", "4B");
 
-    String dataElement = setupDataElement("9", "TEXT", "AGGREGATE");
+    String dataElement = setupDataElement();
 
     setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, dataElement);
 
@@ -301,7 +485,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
 
     // when
     ApiResponse response =
-        categoryOptionComboApiActions.post("merge", getMergeBody()).validateStatus(409);
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(409);
 
     // then
     response
@@ -344,28 +528,24 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .formatted(de, coc);
   }
 
-  private String setupDataElement(String uniqueChar, String valueType, String domainType) {
+  private String setupDataElement() {
     return dataElementApiActions
-        .post(createDataElement("source 1" + uniqueChar, valueType, domainType))
+        .post(
+            """
+            {
+               "aggregationType": "DEFAULT",
+               "domainType": "AGGREGATE",
+               "name": "source 19",
+               "shortName": "source 19",
+               "displayName": "source 19",
+               "valueType": "TEXT"
+             }
+             """)
         .validateStatus(201)
         .extractUid();
   }
 
-  private String createDataElement(String name, String valueType, String domainType) {
-    return """
-            {
-                 "aggregationType": "DEFAULT",
-                 "domainType": "%s",
-                 "name": "%s",
-                 "shortName": "%s",
-                 "displayName": "%s",
-                 "valueType": "%s"
-             }
-            """
-        .formatted(domainType, name, name, name, valueType);
-  }
-
-  private JsonObject getMergeBody() {
+  private JsonObject getMergeBody(String dataMergeStrategy) {
     JsonObject json = new JsonObject();
     JsonArray sources = new JsonArray();
     sources.add(sourceUid1);
@@ -373,7 +553,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
     json.add("sources", sources);
     json.addProperty("target", targetUid);
     json.addProperty("deleteSources", true);
-    json.addProperty("dataMergeStrategy", "DISCARD");
+    json.addProperty("dataMergeStrategy", dataMergeStrategy);
     return json;
   }
 
@@ -420,7 +600,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "shortName": "cat opt 2A",
                       "organisationUnits": [
                           {
-                              "id": "OrgUnitUid2"
+                              "id": "OrgUnitUid1"
                           }
                       ]
                   },
@@ -430,7 +610,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "shortName": "cat opt 2B",
                       "organisationUnits": [
                           {
-                              "id": "OrgUnitUid2"
+                              "id": "OrgUnitUid1"
                           }
                       ]
                   },
@@ -440,7 +620,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "shortName": "cat opt 3A",
                       "organisationUnits": [
                           {
-                              "id": "OrgUnitUid3"
+                              "id": "OrgUnitUid1"
                           }
                       ]
                   },
@@ -450,7 +630,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "shortName": "cat opt 3B",
                       "organisationUnits": [
                           {
-                              "id": "OrgUnitUid3"
+                              "id": "OrgUnitUid1"
                           }
                       ]
                   },
@@ -460,7 +640,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "shortName": "cat opt 4A",
                       "organisationUnits": [
                           {
-                              "id": "OrgUnitUid4"
+                              "id": "OrgUnitUid1"
                           }
                       ]
                   },
@@ -470,7 +650,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "shortName": "cat opt 4B",
                       "organisationUnits": [
                           {
-                              "id": "OrgUnitUid4"
+                              "id": "OrgUnitUid1"
                           }
                       ]
                   }
@@ -671,7 +851,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
           """;
   }
 
-  private JsonObject dataValueSetImport(
+  private JsonObject dataValueSetImportCoc(
       String source1Coc,
       String source2Coc,
       String targetCoc,
@@ -825,5 +1005,257 @@ class CategoryOptionComboMergeTest extends ApiTest {
                 targetCoc,
                 randomCoc1,
                 randomCoc2));
+  }
+
+  private JsonObject dataValueSetImportAoc(
+      String source1Coc,
+      String source2Coc,
+      String targetCoc,
+      String randomCoc1,
+      String randomCoc2) {
+    return JsonParserUtils.toJsonObject(
+        """
+          {
+              "dataValues": [
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202405",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 1, DV 1 - non duplicate earlier - KEEP",
+                      "comment": "source 1, DV 1 - non duplicate earlier - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 1, DV 2 - duplicate earlier - REMOVE",
+                      "comment": "source 1, DV 2 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 1, DV 3 - duplicate later - KEEP",
+                      "comment": "source 1, DV 3 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 1, DV 4 - duplicate earlier - REMOVE",
+                      "comment": "source 1, DV 4 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202410",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 2, DV 1 - non duplicate later - KEEP",
+                      "comment": "source 2, DV 1 - non duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 2, DV 2 - duplicate later - KEEP",
+                      "comment": "source 2, DV 2 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 2, DV 3 - duplicate earlier - REMOVE",
+                      "comment": "source 2, DV 3 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "source 2, DV 4 - duplicate earlier - REMOVE",
+                      "comment": "source 2, DV 4 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "target DV 1 - duplicate earlier - REMOVE",
+                      "comment": "target DV 1 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "target DV 2 - duplicate earlier - REMOVE",
+                      "comment": "target DV 2 - duplicate earlier - REMOVE"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202403",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "target DV 3 - not impacted - KEEP",
+                      "comment": "target DV 3 - not impacted - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "target DV 4 - duplicate later- KEEP",
+                      "comment": "target DV 4 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "random 1, DV 1 - not impacted",
+                      "comment": "random 1, DV 1 - not impacted"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "random 2, DV 2 - not impacted",
+                      "comment": "random 2, DV 2 - not impacted"
+                  }
+              ]
+          }
+          """
+            .formatted(
+                source1Coc,
+                source1Coc,
+                source1Coc,
+                source1Coc,
+                source2Coc,
+                source2Coc,
+                source2Coc,
+                source2Coc,
+                targetCoc,
+                targetCoc,
+                targetCoc,
+                targetCoc,
+                randomCoc1,
+                randomCoc2));
+  }
+
+  private JsonObject dataValueSetImportUpdateAoc(
+      String source1Coc, String source2Coc, String targetCoc) {
+    return JsonParserUtils.toJsonObject(
+        """
+          {
+              "dataValues": [
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "UPDATED source 1 DV 3 - duplicate later - KEEP",
+                      "comment": "source 1, DV 3 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202410",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "UPDATED source 2 DV 1 - non duplicate later - KEEP",
+                      "comment": "source 2, DV 1 - non duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "UPDATED source 2 DV 2 - duplicate later - KEEP",
+                      "comment": "source 2, DV 2 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "HllvX50cXC0",
+                      "attributeOptionCombo": "%s",
+                      "value": "UPDATED target DV 4 - duplicate later - KEEP",
+                      "comment": "target DV 4 - duplicate later - KEEP"
+                  }
+              ]
+          }
+          """
+            .formatted(source1Coc, source2Coc, source2Coc, targetCoc));
+  }
+
+  private JsonObject dataValueSetImportUpdateCoc(
+      String source1Coc, String source2Coc, String targetCoc) {
+    return JsonParserUtils.toJsonObject(
+        """
+          {
+              "dataValues": [
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202409",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "UPDATED source 1 DV 3 - duplicate later - KEEP",
+                      "comment": "source 1, DV 3 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202410",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "UPDATED source 2 DV 1 - non duplicate later - KEEP",
+                      "comment": "source 2, DV 1 - non duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202408",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "UPDATED source 2 DV 2 - duplicate later - KEEP",
+                      "comment": "source 2, DV 2 - duplicate later - KEEP"
+                  },
+                  {
+                      "dataElement": "deUid000001",
+                      "period": "202407",
+                      "orgUnit": "OrgUnitUid1",
+                      "categoryOptionCombo": "%s",
+                      "attributeOptionCombo": "HllvX50cXC0",
+                      "value": "UPDATED target DV 4 - duplicate later - KEEP",
+                      "comment": "target DV 4 - duplicate later - KEEP"
+                  }
+              ]
+          }
+          """
+            .formatted(source1Coc, source2Coc, source2Coc, targetCoc));
   }
 }
