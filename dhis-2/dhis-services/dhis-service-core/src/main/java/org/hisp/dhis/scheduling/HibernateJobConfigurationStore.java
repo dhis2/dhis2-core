@@ -512,7 +512,7 @@ public class HibernateJobConfigurationStore
   }
 
   private static String getSingleResultOrNull(NativeQuery<?> query) {
-    return (String) query.getSingleResultOrNull();
+    return (String) query.getResultStream().findFirst().orElse(null);
   }
 
   @SuppressWarnings("unchecked")

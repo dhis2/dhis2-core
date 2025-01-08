@@ -47,7 +47,6 @@ import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -162,7 +161,7 @@ public class DataIntegrityController {
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/summary?checks=" + toChecksList(names));
@@ -196,7 +195,7 @@ public class DataIntegrityController {
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));

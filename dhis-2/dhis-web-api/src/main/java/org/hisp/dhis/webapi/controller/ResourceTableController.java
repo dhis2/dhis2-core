@@ -56,9 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -85,7 +83,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 public class ResourceTableController {
 
-  private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
   @RequestMapping(
@@ -103,7 +100,7 @@ public class ResourceTableController {
       @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
       @RequestParam(required = false) Integer lastYears,
       @RequestParam(defaultValue = "false") Boolean skipOutliers)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
 
