@@ -55,6 +55,10 @@ public class NepaliCalendar extends AbstractCalendar {
 
   private static final Calendar SELF = new NepaliCalendar();
 
+  private static final int DEFAULT_WEEKS_IN_YEAR = 52;
+
+  private static final int WEEK_LENGTH = 7;
+
   public static Calendar getInstance() {
     return SELF;
   }
@@ -147,11 +151,21 @@ public class NepaliCalendar extends AbstractCalendar {
   public int week(DateTimeUnit dateTimeUnit) {
     /*
      * https://en.m.wikipedia.org/wiki/ISO_week_date
+     *
+     * 10 = the constant =>
+     * 1. we should get zero or positive week number.
+     * 2. the first week should contain 4th of Jan
+     * 3. the earliest day_of_year we could ask week number for is 1 = Jan 1
+     * 4. the latest day_of_week we could ask week number for is 7 = Sun
+     * week = the constant + 1 - 7 => 0 = the constant + 1 - 7 => the constant = 6
+     * however, we also need to add 4 more days to ensure Jan 4th is in the week
+     * hence the constant = 10.
+     *
      */
-    int week = (10 + getDayOfYear(dateTimeUnit) - isoWeekday(dateTimeUnit)) / 7;
+    int week = (10 + getDayOfYear(dateTimeUnit) - isoWeekday(dateTimeUnit)) / WEEK_LENGTH;
     if (week < 1) {
-      week = 52;
-    } else if (week > 52) {
+      week = DEFAULT_WEEKS_IN_YEAR;
+    } else if (week > DEFAULT_WEEKS_IN_YEAR) {
       week = 1;
     }
     return week;
@@ -485,7 +499,7 @@ public class NepaliCalendar extends AbstractCalendar {
   }
 
   // ------------------------------------------------------------------------------------------------------------
-  // Conversion map for Nepali calendar
+  // Conversion map for Nepali calendar from year 1970 to 2100.
   //
   // Based on map from:
   // http://www.ashesh.com.np
