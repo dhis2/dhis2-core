@@ -213,6 +213,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
@@ -282,7 +283,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   @Gist(included = Include.FALSE)
   @Override
-  @Sortable(false)
+  @Sortable(value = false)
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
@@ -362,7 +363,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  @Sortable(false)
+  @Sortable(value = false)
   @Gist(included = Include.FALSE)
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
@@ -394,7 +395,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
-  @Sortable(false)
+  @Sortable(value = false)
   @Gist(included = Include.FALSE)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)

@@ -339,7 +339,9 @@ public class Property implements Ordered, Klass {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSortable() {
     Sortable sortable = getterMethod == null ? null : getterMethod.getAnnotation(Sortable.class);
-    return sortable != null ? sortable.value() : !isCollection() && isSimple();
+    return sortable != null
+        ? sortable.value() && (!sortable.whenPersisted() || isPersisted())
+        : !isCollection() && isSimple() && isPersisted();
   }
 
   @JsonProperty

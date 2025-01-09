@@ -35,5 +35,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Sortable {
+
   boolean value() default true;
+
+  boolean whenPersisted() default true;
 }
