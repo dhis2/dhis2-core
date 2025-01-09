@@ -1025,6 +1025,8 @@ public abstract class TestBase {
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    */
   public static OrganisationUnit createOrganisationUnit(String name) {
@@ -1038,15 +1040,15 @@ public abstract class TestBase {
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    * @param parent The parent.
    */
   public static OrganisationUnit createOrganisationUnit(String name, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(name);
-
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
     return unit;
   }
 
@@ -1056,12 +1058,10 @@ public abstract class TestBase {
   public static OrganisationUnitGroup createOrganisationUnitGroup(char uniqueCharacter) {
     OrganisationUnitGroup group = new OrganisationUnitGroup();
     group.setAutoFields();
-
     group.setUid(BASE_UID + uniqueCharacter);
     group.setName("OrganisationUnitGroup" + uniqueCharacter);
     group.setShortName("OrganisationUnitGroupShort" + uniqueCharacter);
     group.setCode("OrganisationUnitGroupCode" + uniqueCharacter);
-
     return group;
   }
 
@@ -1071,13 +1071,11 @@ public abstract class TestBase {
   public static OrganisationUnitGroupSet createOrganisationUnitGroupSet(char uniqueCharacter) {
     OrganisationUnitGroupSet groupSet = new OrganisationUnitGroupSet();
     groupSet.setAutoFields();
-
     groupSet.setName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setShortName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setCode("OrganisationUnitGroupSetCode" + uniqueCharacter);
     groupSet.setDescription("Description" + uniqueCharacter);
     groupSet.setCompulsory(true);
-
     return groupSet;
   }
 
