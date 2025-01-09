@@ -160,7 +160,7 @@ public class NepaliCalendar extends AbstractCalendar {
   @Override
   public int isoWeekday(DateTimeUnit dateTimeUnit) {
     /*
-     * calculating week day from calendar dateTimeUnit is best managed
+     * Calculating week day from calendar dateTimeUnit is best managed
      * via Gregorian calendar as week duration is 7 days in 'all' calendars
      * and Mon = Day 1, Tue = Day 2, Wed = Day 3, ...
      */
