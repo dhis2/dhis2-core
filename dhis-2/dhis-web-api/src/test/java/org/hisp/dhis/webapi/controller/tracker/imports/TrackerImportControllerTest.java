@@ -53,7 +53,7 @@ import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -94,7 +94,7 @@ class TrackerImportControllerTest {
 
   @Mock private Notifier notifier;
 
-  @Mock private JobSchedulerService jobSchedulerService;
+  @Mock private JobExecutionService jobExecutionService;
 
   @Mock private UserService userService;
 
@@ -118,7 +118,7 @@ class TrackerImportControllerTest {
             trackerImportService,
             csvEventService,
             notifier,
-            jobSchedulerService,
+            jobExecutionService,
             new ObjectMapper(),
             noteService);
 
