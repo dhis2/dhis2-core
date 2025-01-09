@@ -761,7 +761,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * calculate and return the path property value based on the org unit ancestors. To access the
    * {@code path} property directly, use {@link OrganisationUnit#getStoredPath}.
    *
-   * @return the recalculated path.
+   * @return the path.
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -796,7 +796,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * the calculated path based on the org unit ancestors is returned. To get the calculated path
    * value explicitly, use {@link OrganisationUnit#getPath}.
    *
-   * @return the persisted path.
+   * @return the path.
    */
   @JsonIgnore
   public String getStoredPath() {
