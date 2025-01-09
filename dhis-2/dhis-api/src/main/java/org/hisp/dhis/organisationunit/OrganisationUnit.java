@@ -757,7 +757,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Note that the {@code path} is mapped with the "property access" mode. This method will
+   * Note that the {@code path} property is mapped with the "property access" mode. This method will
    * calculate and return the path property value based on the org unit ancestors. To access the
    * {@code path} property directly, use {@link OrganisationUnit#getStoredPath}.
    *
@@ -790,11 +790,11 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Note that the {@code path} is mapped with the "property access" mode. This method will return
-   * the persisted {@code path} property value directly. If the path is not defined, typically as
-   * part of an integration test where the state is not yet flushed to the database, the calculated
-   * path based on the org unit ancestors is returned. To get the calculated path value explicitly,
-   * use {@link OrganisationUnit#getPath}.
+   * Note that the {@code path} property is mapped with the "property access" mode. This method will
+   * return the persisted {@code path} property value directly. If the path is not defined,
+   * typically as part of an integration test where the state is not yet flushed to the database,
+   * the calculated path based on the org unit ancestors is returned. To get the calculated path
+   * value explicitly, use {@link OrganisationUnit#getPath}.
    *
    * @return the persisted path.
    */
@@ -804,16 +804,16 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Note that the {@code path} is mapped with the "property access" mode. Do not set directly, this
-   * property is managed by the persistence layer.
+   * Note that the {@code path} property is mapped with the "property access" mode. Do not set
+   * directly, this property is managed by the persistence layer.
    */
   public void setPath(String path) {
     this.path = path;
   }
 
   /**
-   * Note that the {@code path} is mapped with the "property access" mode. This method is for unit
-   * testing purposes only.
+   * Note that the {@code path} property is mapped with the "property access" mode. This method is
+   * for unit testing purposes only.
    */
   public void updatePath() {
     setPath(getPath());
