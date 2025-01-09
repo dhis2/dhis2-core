@@ -792,9 +792,9 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   /**
    * Note that the {@code path} is mapped with the "property access" mode. This method will return
    * the persisted {@code path} property value directly. If the path is not defined, typically as
-   * part of a test where the state is not yet flushed to the database, the calculated path based on
-   * the org unit ancestors is returned. To get the calculated path value explicitly, use {@link
-   * OrganisationUnit#getPath}.
+   * part of an integration test where the state is not yet flushed to the database, the calculated
+   * path based on the org unit ancestors is returned. To get the calculated path value explicitly,
+   * use {@link OrganisationUnit#getPath}.
    *
    * @return the persisted path.
    */
