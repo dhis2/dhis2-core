@@ -200,7 +200,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
 
     // Confirm Data Value state before merge
     ValidatableResponse preMergeState =
-        dataValueSetActions.get(getDataValueSetQueryParams()).validateStatus(200).validate();
+        dataValueSetActions
+            .get(getDataValueSetQueryParams("OrgUnitUid1"))
+            .validateStatus(200)
+            .validate();
 
     preMergeState.body("dataValues", hasSize(14));
     Set<String> uniqueDates =
@@ -232,7 +235,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
 
     // And last updated duplicates are kept and earlier duplicates deleted
     ValidatableResponse postMergeState =
-        dataValueSetActions.get(getDataValueSetQueryParams()).validateStatus(200).validate();
+        dataValueSetActions
+            .get(getDataValueSetQueryParams("OrgUnitUid1"))
+            .validateStatus(200)
+            .validate();
 
     postMergeState.body("dataValues", hasSize(8));
 
@@ -274,8 +280,8 @@ class CategoryOptionComboMergeTest extends ApiTest {
     randomCocUid1 = getCocWithOptions("1B", "2A");
     randomCocUid2 = getCocWithOptions("1B", "2B");
 
-    addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid1");
-    addOrgUnitAccessForUser(mergeUserId, "OrgUnitUid1");
+    addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid2");
+    addOrgUnitAccessForUser(mergeUserId, "OrgUnitUid2");
 
     // Add data values
     addDataValuesAoc();
@@ -289,7 +295,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
 
     // Confirm Data Value state before merge
     ValidatableResponse preMergeState =
-        dataValueSetActions.get(getDataValueSetQueryParams()).validateStatus(200).validate();
+        dataValueSetActions
+            .get(getDataValueSetQueryParams("OrgUnitUid2"))
+            .validateStatus(200)
+            .validate();
 
     preMergeState.body("dataValues", hasSize(14));
     Set<String> uniqueDates =
@@ -322,7 +331,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
     // And last updated duplicates are kept and earlier duplicates deleted
     loginActions.loginAsSuperUser();
     ValidatableResponse postMergeState =
-        dataValueSetActions.get(getDataValueSetQueryParamsWithAoc()).validateStatus(200).validate();
+        dataValueSetActions
+            .get(getDataValueSetQueryParamsWithAoc("OrgUnitUid2"))
+            .validateStatus(200)
+            .validate();
 
     postMergeState.body("dataValues", hasSize(6));
 
@@ -358,19 +370,11 @@ class CategoryOptionComboMergeTest extends ApiTest {
   }
 
   private void addDataValuesAoc() {
-    String string =
-        dataValueSetActions
-            .post(
-                dataValueSetImportAoc(
-                    sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
-                getDataValueQueryParams())
-            .getAsString();
-    //            .validateStatus(200)
-    //            .validate()
-    //            .extract()
-    //            .asString();
-    System.out.println("check aoc response");
-    // .body("response.importCount.imported", equalTo(14));
+    dataValueSetActions
+        .post(
+            dataValueSetImportAoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            getDataValueQueryParams())
+        .validateStatus(200);
   }
 
   private void updateDataValuesCoc() {
@@ -406,23 +410,25 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .add("skipExistingCheck=false");
   }
 
-  private String getDataValueSetQueryParams() {
+  private String getDataValueSetQueryParams(String orgUnit) {
     return new QueryParamsBuilder()
-        .add("orgUnit=OrgUnitUid1")
+        .add("orgUnit=%s")
         .add("startDate=2024-01-01")
         .add("endDate=2050-01-30")
         .add("dataElement=deUid000001")
-        .build();
+        .build()
+        .formatted(orgUnit);
   }
 
-  private String getDataValueSetQueryParamsWithAoc() {
+  private String getDataValueSetQueryParamsWithAoc(String orgUnit) {
     return new QueryParamsBuilder()
-        .add("orgUnit=OrgUnitUid1")
+        .add("orgUnit=%s")
         .add("startDate=2024-01-01")
         .add("endDate=2050-01-30")
         .add("dataElement=deUid000001")
         .add("attributeOptionCombo=" + targetUid)
-        .build();
+        .build()
+        .formatted(orgUnit);
   }
 
   private void addOrgUnitAccessForUser(String loggedInUserId, String orgUnitUid) {
@@ -463,13 +469,17 @@ class CategoryOptionComboMergeTest extends ApiTest {
   void dbConstraintMinMaxTest() {
     // given
     // generate category option combos
-    String emptyParams = new QueryParamsBuilder().build();
+    //    String emptyParams = new QueryParamsBuilder().build();
+    //    maintenanceApiActions
+    //        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
+    //        .validateStatus(200);
+    //    maintenanceApiActions
+    //        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
+    //        .validateStatus(200);
+
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
-        .validateStatus(200);
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
-        .validateStatus(200);
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
     // get cat opt combo uids for sources and target, after generating
     sourceUid1 = getCocWithOptions("1A", "2A");
@@ -581,6 +591,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -591,6 +604,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -601,6 +617,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -611,6 +630,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -621,6 +643,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -631,6 +656,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -641,6 +669,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   },
@@ -651,6 +682,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
+                          },
+                          {
+                              "id": "OrgUnitUid2"
                           }
                       ]
                   }
@@ -1020,7 +1054,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202405",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 1, DV 1 - non duplicate earlier - KEEP",
@@ -1029,7 +1063,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 1, DV 2 - duplicate earlier - REMOVE",
@@ -1038,7 +1072,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202409",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 1, DV 3 - duplicate later - KEEP",
@@ -1047,7 +1081,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202407",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 1, DV 4 - duplicate earlier - REMOVE",
@@ -1056,7 +1090,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202410",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 2, DV 1 - non duplicate later - KEEP",
@@ -1065,7 +1099,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 2, DV 2 - duplicate later - KEEP",
@@ -1074,7 +1108,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202409",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 2, DV 3 - duplicate earlier - REMOVE",
@@ -1083,7 +1117,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202407",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "source 2, DV 4 - duplicate earlier - REMOVE",
@@ -1092,7 +1126,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "target DV 1 - duplicate earlier - REMOVE",
@@ -1101,7 +1135,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202409",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "target DV 2 - duplicate earlier - REMOVE",
@@ -1110,7 +1144,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202403",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "target DV 3 - not impacted - KEEP",
@@ -1119,7 +1153,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202407",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "target DV 4 - duplicate later- KEEP",
@@ -1128,7 +1162,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "random 1, DV 1 - not impacted",
@@ -1137,7 +1171,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "random 2, DV 2 - not impacted",
@@ -1172,7 +1206,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202409",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "UPDATED source 1 DV 3 - duplicate later - KEEP",
@@ -1181,7 +1215,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202410",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "UPDATED source 2 DV 1 - non duplicate later - KEEP",
@@ -1190,7 +1224,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "UPDATED source 2 DV 2 - duplicate later - KEEP",
@@ -1199,7 +1233,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                   {
                       "dataElement": "deUid000001",
                       "period": "202407",
-                      "orgUnit": "OrgUnitUid1",
+                      "orgUnit": "OrgUnitUid2",
                       "categoryOptionCombo": "HllvX50cXC0",
                       "attributeOptionCombo": "%s",
                       "value": "UPDATED target DV 4 - duplicate later - KEEP",

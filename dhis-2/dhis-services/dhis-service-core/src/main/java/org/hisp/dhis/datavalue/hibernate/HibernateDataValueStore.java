@@ -72,7 +72,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -95,7 +94,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   public HibernateDataValueStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
-      NamedParameterJdbcTemplate namedJdbcTemplate,
       ApplicationEventPublisher publisher,
       PeriodStore periodStore) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
@@ -361,23 +359,23 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
     String plpgsql =
         """
-         DO
+         do
          $$
-         DECLARE
-           source_dv RECORD;
-           target_duplicate RECORD;
-           target_coc BIGINT default %s;
-         BEGIN
+         declare
+           source_dv record;
+           target_duplicate record;
+           target_coc bigint default %s;
+         begin
 
-           -- loop through each record with a source COC
-           FOR source_dv IN
-             SELECT * FROM datavalue where categoryoptioncomboid in (%s)
-             LOOP
+           -- loop through each record with a source CategoryOptionCombo
+           for source_dv in
+             select * from datavalue where categoryoptioncomboid in (%s)
+             loop
 
-             -- check if target DV exists with same Unique Key
-             SELECT dv.*
-               INTO target_duplicate
-               FROM datavalue dv
+             -- check if target Data Value exists with same unique key
+             select dv.*
+               into target_duplicate
+               from datavalue dv
                where dv.dataelementid = source_dv.dataelementid
                and dv.periodid = source_dv.periodid
                and dv.sourceid = source_dv.sourceid
@@ -385,9 +383,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                and dv.categoryoptioncomboid = target_coc;
 
              -- target duplicate found and target has latest lastUpdated value
-             IF (target_duplicate.categoryoptioncomboid is not null
+             if (target_duplicate.categoryoptioncomboid is not null
                  and target_duplicate.lastupdated >= source_dv.lastupdated)
-               THEN
+               then
                -- delete source
                delete from datavalue
                  where dataelementid = source_dv.dataelementid
@@ -397,9 +395,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
              -- target duplicate found and source has latest lastUpdated value
-             ELSIF (target_duplicate.categoryoptioncomboid is not null
+             elsif (target_duplicate.categoryoptioncomboid is not null
                  and target_duplicate.lastupdated < source_dv.lastupdated)
-               THEN
+               then
                -- delete target
                delete from datavalue
                  where dataelementid = target_duplicate.dataelementid
@@ -408,7 +406,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
                  and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
 
-               -- update source with target COC
+               -- update source with target CategoryOptionCombo
                update datavalue
                  set categoryoptioncomboid = target_duplicate.categoryoptioncomboid
                  where dataelementid = source_dv.dataelementid
@@ -417,8 +415,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and attributeoptioncomboid = source_dv.attributeoptioncomboid
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
-             ELSE
-               -- no target duplicate found, update source with target COC
+             else
+               -- no target duplicate found, update source with target CategoryOptionCombo
                update datavalue
                  set categoryoptioncomboid = target_coc
                  where dataelementid = source_dv.dataelementid
@@ -427,12 +425,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and attributeoptioncomboid = source_dv.attributeoptioncomboid
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
-             END IF;
+             end if;
 
-             END LOOP;
-         END;
+             end loop;
+         end;
          $$
-         LANGUAGE plpgsql;
+         language plpgsql;
          """
             .formatted(
                 target.getId(),
@@ -468,23 +466,23 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
     String plpgsql =
         """
-         DO
+         do
          $$
-         DECLARE
-           source_dv RECORD;
-           target_duplicate RECORD;
-           target_aoc BIGINT default %s;
-         BEGIN
+         declare
+           source_dv record;
+           target_duplicate record;
+           target_aoc bigint default %s;
+         begin
 
-           -- loop through each record with a source AOC
-           FOR source_dv IN
-             SELECT * FROM datavalue where attributeoptioncomboid in (%s)
-             LOOP
+           -- loop through each record with a source Attribute Option Combo
+           for source_dv in
+             select * from datavalue where attributeoptioncomboid in (%s)
+             loop
 
-             -- check if target DV exists with same Unique Key
-             SELECT dv.*
-               INTO target_duplicate
-               FROM datavalue dv
+             -- check if target DataValue exists with same unique key
+             select dv.*
+               into target_duplicate
+               from datavalue dv
                where dv.dataelementid = source_dv.dataelementid
                and dv.periodid = source_dv.periodid
                and dv.sourceid = source_dv.sourceid
@@ -492,9 +490,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                and dv.categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
              -- target duplicate found and target has latest lastUpdated value
-             IF (target_duplicate.attributeoptioncomboid is not null
+             if (target_duplicate.attributeoptioncomboid is not null
                  and target_duplicate.lastupdated >= source_dv.lastupdated)
-               THEN
+               then
                -- delete source
                delete from datavalue
                  where dataelementid = source_dv.dataelementid
@@ -504,9 +502,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
              -- target duplicate found and source has latest lastUpdated value
-             ELSIF (target_duplicate.attributeoptioncomboid is not null
+             elsif (target_duplicate.attributeoptioncomboid is not null
                  and target_duplicate.lastupdated < source_dv.lastupdated)
-               THEN
+               then
                -- delete target
                delete from datavalue
                  where dataelementid = target_duplicate.dataelementid
@@ -515,7 +513,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
                  and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
 
-               -- update source with target AOC
+               -- update source with target Attribute Option Combo
                update datavalue
                  set attributeoptioncomboid = target_duplicate.attributeoptioncomboid
                  where dataelementid = source_dv.dataelementid
@@ -524,22 +522,22 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and attributeoptioncomboid = source_dv.attributeoptioncomboid
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
-             ELSE
-               -- no target duplicate found, update source with target AOC
+             else
+               -- no target duplicate found, update source with target Attribute Option Combo
                update datavalue
-                 set attributeoptioncomboid = target_aoc
+                 SET attributeoptioncomboid = target_aoc
                  where dataelementid = source_dv.dataelementid
                  and periodid = source_dv.periodid
                  and sourceid = source_dv.sourceid
                  and attributeoptioncomboid = source_dv.attributeoptioncomboid
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
-             END IF;
+             end if;
 
-             END LOOP;
-         END;
+             end loop;
+         end;
          $$
-         LANGUAGE plpgsql;
+         language plpgsql;
          """
             .formatted(
                 target.getId(),
