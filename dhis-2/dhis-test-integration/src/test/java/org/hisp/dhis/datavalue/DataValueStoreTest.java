@@ -36,6 +36,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -45,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -221,6 +223,107 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     assertFalse(
         allDataValuesByAoc.contains(dv3),
         "retrieved data values do not contain a data value referencing a AOC not used in the query");
+  }
+
+  @Test
+  @DisplayName(
+      "Merging duplicate DataValues (cat opt combos) leaves only the last updated value remaining")
+  void mergeDvWithDuplicates() {
+    // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata();
+
+    Period p1 = createPeriod(DateUtils.getDate(2024, 1, 1), DateUtils.getDate(2023, 2, 1));
+
+    DataElement de = createDataElement('z');
+    manager.persist(de);
+
+    OrganisationUnit ou = createOrganisationUnit("org u 1");
+    manager.persist(ou);
+
+    // data values with same period, org unit, data element and attr opt combo
+    // which will be identified as duplicates during merging
+    DataValue dv1 = createDataValue('1', p1, "dv test 1");
+    dv1.setCategoryOptionCombo(categoryMetadata.coc1());
+    dv1.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv1.setDataElement(de);
+    dv1.setSource(ou);
+    dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
+
+    DataValue dv2 = createDataValue('2', p1, "dv test 2 - last updated");
+    dv2.setCategoryOptionCombo(categoryMetadata.coc2());
+    dv2.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv2.setDataElement(de);
+    dv2.setSource(ou);
+    dv2.setLastUpdated(DateUtils.parseDate("2025-01-08"));
+
+    DataValue dv3 = createDataValue('3', p1, "dv test 3");
+    dv3.setCategoryOptionCombo(categoryMetadata.coc3());
+    dv3.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv3.setDataElement(de);
+    dv3.setSource(ou);
+    dv3.setLastUpdated(DateUtils.parseDate("2024-12-06"));
+
+    DataValue dv4 = createDataValue('4', p1, "dv test 4, untouched");
+    dv4.setCategoryOptionCombo(categoryMetadata.coc4());
+    dv4.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv4.setDataElement(de);
+    dv4.setSource(ou);
+    dv4.setLastUpdated(DateUtils.parseDate("2024-11-02"));
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+    dataValueStore.addDataValue(dv4);
+
+    // check pre merge state
+    List<DataValue> preMergeState = dataValueStore.getAllDataValuesByDataElement(List.of(de));
+
+    assertEquals(4, preMergeState.size(), "there should be 4 data values");
+    assertTrue(
+        preMergeState.stream()
+            .map(dv -> dv.getCategoryOptionCombo().getId())
+            .collect(Collectors.toSet())
+            .containsAll(
+                List.of(
+                    categoryMetadata.coc1().getId(),
+                    categoryMetadata.coc2().getId(),
+                    categoryMetadata.coc3().getId(),
+                    categoryMetadata.coc4().getId())),
+        "All data values have different category option combos");
+
+    entityManager.flush();
+
+    // when
+    dataValueStore.mergeDataValuesWithCategoryOptionCombos(
+        categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
+    entityManager.flush();
+    entityManager.clear();
+
+    // then
+    List<DataValue> postMergeState = dataValueStore.getAllDataValuesByDataElement(List.of(de));
+
+    assertEquals(2, postMergeState.size(), "there should be 2 data values");
+    assertTrue(
+        postMergeState.stream()
+            .map(dv -> dv.getCategoryOptionCombo().getId())
+            .collect(Collectors.toSet())
+            .containsAll(List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId())),
+        "Only 2 expected cat opt combos should be present");
+
+    assertTrue(
+        postMergeState.stream()
+            .map(DataValue::getValue)
+            .collect(Collectors.toSet())
+            .containsAll(List.of("dv test 2 - last updated", "dv test 4, untouched")),
+        "Only latest DataValue and untouched DataValue should be present");
+
+    assertTrue(
+        postMergeState.stream()
+            .map(DataValue::getLastUpdated)
+            .collect(Collectors.toSet())
+            .containsAll(
+                List.of(DateUtils.parseDate("2025-01-08"), DateUtils.parseDate("2024-11-02"))),
+        "Only latest lastUpdated value and untouched lastUpdated should exist");
   }
 
   private DataValue createDataValue(char uniqueChar, Period period, String value) {
