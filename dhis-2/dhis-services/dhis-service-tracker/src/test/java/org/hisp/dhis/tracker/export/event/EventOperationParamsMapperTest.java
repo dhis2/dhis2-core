@@ -424,6 +424,8 @@ class EventOperationParamsMapperTest {
     OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B');
     searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+    searchScopeOrgUnit.updatePath();
+    searchScopeChildOrgUnit.updatePath();
 
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
@@ -456,6 +458,8 @@ class EventOperationParamsMapperTest {
     OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B');
     searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+    searchScopeOrgUnit.updatePath();
+    searchScopeChildOrgUnit.updatePath();
 
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
