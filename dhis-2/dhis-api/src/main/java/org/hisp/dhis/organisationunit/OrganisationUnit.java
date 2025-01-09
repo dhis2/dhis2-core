@@ -839,14 +839,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return hierarchyLevel;
   }
 
-  /**
-   * Note that the {@code path} is mapped with the "property access" mode. This method is for unit
-   * testing purposes only.
-   */
-  public void updatePath() {
-    setPath(getPath());
-  }
-
   /** Do not set directly. */
   public void setHierarchyLevel(Integer hierarchyLevel) {
     this.hierarchyLevel = hierarchyLevel;
