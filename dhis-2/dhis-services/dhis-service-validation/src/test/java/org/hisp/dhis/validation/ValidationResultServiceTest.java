@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,7 +83,7 @@ class ValidationResultServiceTest {
               List<OrganisationUnit> units = new ArrayList<>();
               for (String uid : uids) {
                 if (CodeGenerator.isValidUid(uid)) {
-                  OrganisationUnit unit = new OrganisationUnit();
+                  OrganisationUnit unit = createOrganisationUnit('A');
                   unit.setUid(uid);
                   units.add(unit);
                 }
