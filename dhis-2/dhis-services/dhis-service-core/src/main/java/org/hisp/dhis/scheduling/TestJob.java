@@ -87,6 +87,7 @@ public class TestJob implements Job {
               simulateWorkForDuration(params.getItemDuration());
               if (failAtThisStage && item == failAtItem) {
                 progress.failedWorkItem(msg);
+                if (params.isFailWithPostCondition()) progress.nonNullStagePostCondition(null);
               } else {
                 progress.completedWorkItem(null);
               }
@@ -95,6 +96,7 @@ public class TestJob implements Job {
         } else if (failAtThisStage) {
           if (params.isFailWithException()) throw new RuntimeException(msg);
           progress.failedStage(msg);
+          if (params.isFailWithPostCondition()) progress.nonNullStagePostCondition(null);
         } else {
           progress.completedStage(format("Stage %d complete", stage + 1));
         }
