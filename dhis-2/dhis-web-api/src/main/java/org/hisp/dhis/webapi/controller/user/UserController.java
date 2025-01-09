@@ -217,7 +217,8 @@ public class UserController
 
     @JsonIgnore
     boolean isUsingAnySpecialFilters() {
-      return phoneNumber != null
+      return getQuery() != null
+          || phoneNumber != null
           || canManage
           || authSubset
           || lastLogin != null
