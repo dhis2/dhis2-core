@@ -555,7 +555,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     }
 
     this.parent = newParent;
-
     newParent.getChildren().add(this);
   }
 
