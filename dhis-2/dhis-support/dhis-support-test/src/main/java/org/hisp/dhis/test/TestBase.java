@@ -303,6 +303,7 @@ public abstract class TestBase {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
+
   public User getCurrentUser() {
     return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
