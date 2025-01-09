@@ -293,9 +293,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       boolean isCreatableInSearchScope,
       UserDetails user) {
+    String path = eventOrgUnit.getStoredPath();
     if (isCreatableInSearchScope
-        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(eventOrgUnit.getPath())
-        : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
+        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
+        : !user.isInUserHierarchy(path)) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }
