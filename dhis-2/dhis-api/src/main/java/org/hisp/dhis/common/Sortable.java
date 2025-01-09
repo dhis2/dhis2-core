@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,16 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement(localName = "linkableObject", namespace = DxfNamespaces.DXF_2_0)
-public class BaseLinkableObject implements LinkableObject {
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  private transient String href;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Sortable {
 
-  @Override
-  @Sortable(value = false)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(isAttribute = true)
-  @Property(PropertyType.URL)
-  public String getHref() {
-    return href;
-  }
+  boolean value() default true;
 
-  @Override
-  public void setHref(String href) {
-    this.href = href;
-  }
+  boolean whenPersisted() default true;
 }
