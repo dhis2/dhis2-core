@@ -105,29 +105,22 @@ public class CteContext {
     }
   }
 
-  public String getCteDefinition() {
-    if (cteDefinitions.isEmpty()) {
-      return "";
-    }
 
-    StringBuilder sb = new StringBuilder("with ");
-    boolean first = true;
-    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
-      if (!first) {
-        sb.append(", ");
-      }
-      CteDefinition cteDef = entry.getValue();
-      sb.append(cteDef.asCteName(entry.getKey()))
-          .append(" AS (")
-          .append(entry.getValue().getCteDefinition())
-          .append(")");
-      first = false;
-    }
-    return sb.toString();
+  /**
+   * Returns the CTE definitions as a map. The key is the CTE name and the value is the CTE
+   * definition (the SQL query).
+   *
+   * @return the CTE definitions
+   */
+  public Map<String, String> getCteDefinitions() {
+    return cteDefinitions.entrySet().stream()
+        .collect(
+            LinkedHashMap::new,
+            (map, entry) -> map.put(entry.getKey(), entry.getValue().getCteDefinition()),
+            Map::putAll);
   }
 
-  // Rename to item uid
-  public Set<String> getCteNames() {
+  public Set<String> getCteKeys() {
     return cteDefinitions.keySet();
   }
 
