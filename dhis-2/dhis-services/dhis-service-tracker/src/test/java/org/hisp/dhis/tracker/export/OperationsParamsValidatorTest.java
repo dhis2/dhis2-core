@@ -371,10 +371,4 @@ class OperationsParamsValidatorTest {
 
     assertEquals(Set.of(orgUnit), orgUnits);
   }
-
-  private OrganisationUnit createOrgUnit(String name, String uid) {
-    OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(uid);
-    return orgUnit;
-  }
 }
