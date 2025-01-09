@@ -68,6 +68,8 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.sql.Condition;
+import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -1055,65 +1057,41 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
-  private void appendCteJoins(StringBuilder sql, CteContext cteContext) {
-    for (String itemUid : cteContext.getCteNames()) {
+  private void addCteJoins(SelectBuilder builder, CteContext cteContext) {
+    for (String itemUid : cteContext.getCteKeys()) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
 
       // Handle Program Stage CTE (potentially with multiple offsets)
       if (cteDef.isProgramStage()) {
         for (Integer offset : cteDef.getOffsets()) {
           String alias = cteDef.getAlias(offset);
-          // Using a text block with .formatted() for clarity:
-          String join =
-              """
-                     LEFT JOIN %s %s
-                    ON %s.enrollment = ax.enrollment
-                       AND %s.rn = %d
-                    """
-                  .formatted(
-                      cteDef.asCteName(itemUid), // e.g. ps_ABC123_xyz
-                      alias, // random alias
-                      alias, // alias for table
-                      alias, // alias repeated
-                      offset + 1 // offset index
-                      );
-          sql.append(join);
+          builder.leftJoin(
+              itemUid,
+              alias,
+              tableAlias ->
+                  tableAlias
+                      + ".enrollment = ax.enrollment AND "
+                      + tableAlias
+                      + ".rn = "
+                      + (offset + 1));
         }
       }
 
       // Handle 'Exists' type CTE
       if (cteDef.isExists()) {
-        String join =
-            String.format(
-                """
-                 LEFT JOIN %s ee ON ee.enrollment = ax.enrollment
-                """,
-                cteDef.asCteName(itemUid));
-        sql.append(join);
+        builder.leftJoin(itemUid, "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
       }
 
       // Handle Program Indicator CTE
       if (cteDef.isProgramIndicator()) {
         String alias = cteDef.getAlias();
-        String join =
-            """
-                 LEFT JOIN %s %s
-                    ON %s.enrollment = ax.enrollment
-                """
-                .formatted(cteDef.asCteName(itemUid), alias, alias);
-        sql.append(join);
+        builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
       }
 
       // Handle Filter CTE
       if (cteDef.isFilter()) {
         String alias = cteDef.getAlias();
-        String join =
-            """
-                LEFT JOIN %s %s
-                    ON %s.enrollment = ax.enrollment
-                """
-                .formatted(cteDef.asCteName(itemUid), alias, alias);
-        sql.append(join);
+        builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
       }
     }
   }
@@ -1204,99 +1182,101 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     generateFilterCTEs(params, cteContext);
 
     // 3. Build up the final SQL using dedicated sub-steps
-    StringBuilder sql = new StringBuilder();
+    SelectBuilder sb = new SelectBuilder();
 
     // 3.1: Append the WITH clause if needed
-    appendCteClause(sql, cteContext);
+    addCteClause(sb, cteContext);
 
     // 3.2: Append the SELECT clause, including columns from the CTE context
-    appendSelectClause(sql, params, cteContext);
+    addSelectClause(sb, params, cteContext);
 
     // 3.3: Append the FROM clause (the main enrollment analytics table)
-    appendFromClause(sql, params);
+    addFromClause(sb, params);
 
     // 3.4: Append LEFT JOINs for each relevant CTE definition
-    appendCteJoins(sql, cteContext);
+    addCteJoins(sb, cteContext);
 
     // 3.5: Collect and append WHERE conditions (including filters from CTE)
-    appendWhereClause(sql, params, cteContext);
+    addWhereClause(sb, params, cteContext);
 
     // 3.6: Append ORDER BY and paging
-    appendSortingAndPaging(sql, params);
+    addSortingAndPaging(sb, params);
 
-    return sql.toString();
+    return sb.build();
   }
 
   /**
    * Appends the WITH clause using the CTE definitions from cteContext. If there are no CTE
    * definitions, nothing is appended.
    */
-  private void appendCteClause(StringBuilder sql, CteContext cteContext) {
-    String cteDefinitions = cteContext.getCteDefinition();
-    if (!cteDefinitions.isEmpty()) {
-      sql.append(cteDefinitions).append("\n");
-    }
+  private void addCteClause(SelectBuilder sb, CteContext cteContext) {
+    cteContext
+        .getCteDefinitions()
+        .forEach(sb::withCTE);
+  }
+
+  private boolean columnIsInFormula(String col) {
+    return col.contains("(") && col.contains(")");
   }
 
   /**
    * Appends the SELECT clause, including both the standard enrollment columns (or aggregated
    * columns) and columns derived from the CTE definitions.
    */
-  private void appendSelectClause(
-      StringBuilder sql, EventQueryParams params, CteContext cteContext) {
-    // Get the standard columns, and prepend the alias "ax." to each column name
-    // (except for columns that are part of a function, e.g. "count(abc)").
-    List<String> aliasedSelectCols =
-        getStandardColumns().stream()
-            .map(c -> (!c.contains("(") || !c.contains(")")) ? "ax." + c : c)
-            .toList();
+  private void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
 
-    List<String> selectCols =
-        ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : aliasedSelectCols,
-            getSelectColumnsWithCTE(params, cteContext));
+    // Append standard columns or aggregated columns
+    if (params.isAggregatedEnrollments()) {
+      sb.addColumn("enrollment", "ax");
+    } else {
+      getStandardColumns()
+          .forEach(
+              column -> {
+                if (columnIsInFormula(column)) {
+                  sb.addColumn(column);
+                } else {
+                  sb.addColumn(column, "ax");
+                }
+              });
+    }
 
-    // Join the list of select columns with commas and append
-    sql.append("select ").append(String.join(",\n", selectCols)).append("\n");
+    // Append columns from CTE definitions
+    getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
   }
 
   /** Appends the FROM clause, i.e. the main table name and alias. */
-  private void appendFromClause(StringBuilder sql, EventQueryParams params) {
-    sql.append("from ").append(params.getTableName()).append(" AS ax");
+  private void addFromClause(SelectBuilder sb, EventQueryParams params) {
+    sb.from(params.getTableName(), "ax");
   }
 
   /**
    * Collects the WHERE conditions from both the base enrollment table and the CTE-based filters,
    * then appends them to the SQL.
    */
-  private void appendWhereClause(
-      StringBuilder sql, EventQueryParams params, CteContext cteContext) {
-    List<String> conditions = new ArrayList<>();
-
-    String baseWhereClause = getWhereClause(params).trim();
-    String cteFilters = addCteFiltersToWhereClause(params, cteContext).trim();
-
-    if (!baseWhereClause.isEmpty()) {
-      // Remove leading "WHERE" if present
-      conditions.add(baseWhereClause.replaceFirst("(?i)^WHERE\\s+", ""));
-    }
-    if (!cteFilters.isEmpty()) {
-      conditions.add(cteFilters.replaceFirst("(?i)^AND\\s+", ""));
-    }
-
-    if (!conditions.isEmpty()) {
-      sql.append(" WHERE ").append(String.join(" AND ", conditions));
-    }
+  private void addWhereClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
+    Condition baseConditions = Condition.raw(getWhereClause(params));
+    Condition cteConditions = Condition.raw(addCteFiltersToWhereClause(params, cteContext));
+    sb.where(Condition.and(baseConditions, cteConditions));
   }
 
-  /** Appends the ORDER BY clause if sorting is specified, plus LIMIT/OFFSET for paging. */
-  private void appendSortingAndPaging(StringBuilder sql, EventQueryParams params) {
-    // Add ORDER BY if needed
+  private void addSortingAndPaging(SelectBuilder builder, EventQueryParams params) {
     if (params.isSorting()) {
-      sql.append(" ").append(getSortClause(params));
+      // Assuming getSortFields returns List<OrderByClause>
+      builder.orderBy(getSortClause(params));
     }
-    // Add paging (LIMIT/OFFSET)
-    sql.append(" ").append(getPagingClause(params, 5000));
+
+    // Paging with max limit of 5000
+    if (params.isPaging()) {
+      if (params.isTotalPages()) {
+        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
+      } else {
+        builder
+            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
+            .offset(params.getOffset());
+      }
+    } else {
+      builder.limitPlusOne(5000);
+    }
   }
 
   protected String getSortClause(EventQueryParams params) {
