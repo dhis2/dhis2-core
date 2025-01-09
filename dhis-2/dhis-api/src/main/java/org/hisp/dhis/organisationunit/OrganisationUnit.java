@@ -28,6 +28,7 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -757,8 +758,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   /**
    * Note that the {@code path} is mapped with the "property access" mode. This method will
-   * recalculate and return the path property value. To access the {@code path} property directly,
-   * use {@link OrganisationUnit#getStoredPath}.
+   * calculate and return the path property value based on the org unit ancestors. To access the
+   * {@code path} property directly, use {@link OrganisationUnit#getStoredPath}.
    *
    * @return the recalculated path.
    */
@@ -790,15 +791,16 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   /**
    * Note that the {@code path} is mapped with the "property access" mode. This method will return
-   * the persisted {@code path} property value directly. Note that this method will return the
-   * correct value only if the object is already persisted and state flushed to the database. To get
-   * the recalculated path value, use {@link OrganisationUnit#getPath}.
+   * the persisted {@code path} property value directly. If the path is not defined, typically as
+   * part of a test where the state is not yet flushed to the database, the calculated path based on
+   * the org unit ancestors is returned. To get the calculated path value explicitly, use {@link
+   * OrganisationUnit#getPath}.
    *
    * @return the persisted path.
    */
   @JsonIgnore
   public String getStoredPath() {
-    return path;
+    return isNotEmpty(path) ? path : getPath();
   }
 
   /**
