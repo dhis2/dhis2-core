@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -130,12 +129,6 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional
   public void deleteCategory(Category dataElementCategory) {
     categoryStore.delete(dataElementCategory);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Category> getAllDataElementCategories() {
-    return categoryStore.getAll();
   }
 
   @Override
@@ -419,38 +412,6 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public List<CategoryCombo> getAttributeCategoryCombos() {
     return categoryComboStore.getCategoryCombosByDimensionType(DataDimensionType.ATTRIBUTE);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String validateCategoryCombo(CategoryCombo categoryCombo) {
-    if (categoryCombo == null) {
-      return "category_combo_is_null";
-    }
-
-    if (categoryCombo.getCategories() == null || categoryCombo.getCategories().isEmpty()) {
-      return "category_combo_must_have_at_least_one_category";
-    }
-
-    if (Sets.newHashSet(categoryCombo.getCategories()).size()
-        < categoryCombo.getCategories().size()) {
-      return "category_combo_cannot_have_duplicate_categories";
-    }
-
-    Set<CategoryOption> categoryOptions = new HashSet<>();
-
-    for (Category category : categoryCombo.getCategories()) {
-      if (category == null || category.getCategoryOptions().isEmpty()) {
-        return "categories_must_have_at_least_one_category_option";
-      }
-
-      if (!Sets.intersection(categoryOptions, Sets.newHashSet(category.getCategoryOptions()))
-          .isEmpty()) {
-        return "categories_cannot_share_category_options";
-      }
-    }
-
-    return null;
   }
 
   // -------------------------------------------------------------------------
