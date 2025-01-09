@@ -1051,6 +1051,7 @@ public abstract class TestBase {
     OrganisationUnit unit = createOrganisationUnit(name);
     unit.setParent(parent);
     parent.getChildren().add(unit);
+    unit.updatePath();
     return unit;
   }
 

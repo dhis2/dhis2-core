@@ -95,7 +95,7 @@ class DefaultQueryServiceTest {
 
     List<OrganisationUnit> result = new ArrayList<>();
     for (int i = 0; i < size; i++) {
-      result.add(createOrganisationUnit((char) (i + 65)));
+      result.add(createOrganisationUnit((char) (i + 'A')));
     }
     return result;
   }
