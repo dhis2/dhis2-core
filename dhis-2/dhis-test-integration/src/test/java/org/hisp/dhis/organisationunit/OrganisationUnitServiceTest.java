@@ -1010,6 +1010,22 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testGetStoredPath() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B', ouA);
+    OrganisationUnit ouC = createOrganisationUnit('C', ouB);
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    organisationUnitService.addOrganisationUnit(ouC);
+    String expectedA = String.format("/%s", ouA.getUid());
+    String expectedB = String.format("/%s/%s", ouA.getUid(), ouB.getUid());
+    String expectedC = String.format("/%s/%s/%s", ouA.getUid(), ouB.getUid(), ouC.getUid());
+    assertEquals(expectedA, ouA.getStoredPath());
+    assertEquals(expectedB, ouB.getStoredPath());
+    assertEquals(expectedC, ouC.getStoredPath());
+  }
+
+  @Test
   void testSaveImage() {
     byte[] content = "<<png data>>".getBytes();
     FileResource fileResource =
