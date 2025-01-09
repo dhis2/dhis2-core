@@ -1003,6 +1003,7 @@ public abstract class TestBase {
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
+    unit.updatePath();
     return unit;
   }
 
@@ -1021,7 +1022,7 @@ public abstract class TestBase {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
+    unit.updatePath();
     return unit;
   }
 
@@ -1050,6 +1051,7 @@ public abstract class TestBase {
     OrganisationUnit unit = createOrganisationUnit(name);
     unit.setParent(parent);
     parent.getChildren().add(unit);
+    unit.updatePath();
     return unit;
   }
 
