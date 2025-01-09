@@ -706,9 +706,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return ColumnAndAlias.EMPTY;
   }
 
+  @Override
   protected String getColumnWithCte(QueryItem item, String suffix, CteContext cteContext) {
     List<String> columns = new ArrayList<>();
-    String colName = item.getItemName();
 
     CteDefinition cteDef = cteContext.getDefinitionByItemUid(computeKey(item));
     int programStageOffset = computeRowNumberOffset(item.getProgramStageOffset());
@@ -938,7 +938,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       QueryItem item, CteContext cteContext, EventQueryParams params) {
     ProgramIndicator pi = (ProgramIndicator) item.getItem();
     if (item.hasRelationshipType()) {
-      programIndicatorSubqueryBuilder.contributeCTE(
+      programIndicatorSubqueryBuilder.contributeCte(
           pi,
           item.getRelationshipType(),
           getAnalyticsType(),
@@ -946,7 +946,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           params.getLatestEndDate(),
           cteContext);
     } else {
-      programIndicatorSubqueryBuilder.contributeCTE(
+      programIndicatorSubqueryBuilder.contributeCte(
           pi,
           getAnalyticsType(),
           params.getEarliestStartDate(),
