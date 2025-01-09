@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,13 +64,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OperationsParamsValidatorTest {
-
-  private static final String PARENT_ORG_UNIT_UID = "parent-org-unit";
-
-  private final OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid3");
-
-  private final OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-
   private final Program program = new Program("program");
 
   private final TrackedEntity trackedEntity = new TrackedEntity();
@@ -103,12 +95,6 @@ class OperationsParamsValidatorTest {
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
   private final UserDetails user = UserDetails.fromUser(new User());
-
-  @BeforeEach
-  public void setUp() {
-    OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
-    organisationUnit.setChildren(Set.of(captureScopeOrgUnit, searchScopeOrgUnit));
-  }
 
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
