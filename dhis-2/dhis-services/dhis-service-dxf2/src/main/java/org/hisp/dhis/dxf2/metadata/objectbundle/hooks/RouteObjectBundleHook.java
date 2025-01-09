@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.auth.ApiKeyAuth;
+import org.hisp.dhis.common.auth.ApiParamAuth;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -77,6 +79,18 @@ public class RouteObjectBundleHook extends AbstractObjectBundleHook<Route> {
 
       if (StringUtils.hasText(httpBasicAuth.getPassword())) {
         httpBasicAuth.setPassword(encryptor.encrypt(httpBasicAuth.getPassword()));
+      }
+    } else if (auth.getType().equals(ApiKeyAuth.TYPE)) {
+      ApiKeyAuth apiKeyAuth = (ApiKeyAuth) auth;
+
+      if (StringUtils.hasText(apiKeyAuth.getToken())) {
+        apiKeyAuth.setToken(encryptor.encrypt(apiKeyAuth.getToken()));
+      }
+    } else if (auth.getType().equals(ApiParamAuth.TYPE)) {
+      ApiParamAuth apiParamAuth = (ApiParamAuth) auth;
+
+      if (StringUtils.hasText(apiParamAuth.getToken())) {
+        apiParamAuth.setToken(encryptor.encrypt(apiParamAuth.getToken()));
       }
     }
   }

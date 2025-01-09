@@ -44,6 +44,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.hisp.dhis.common.auth.ApiKeyAuth;
+import org.hisp.dhis.common.auth.ApiParamAuth;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -178,6 +180,8 @@ public class RouteService {
     HttpHeaders queryParameters = new HttpHeaders();
     request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
 
+    processAuth(route, queryParameters);
+
     UriComponentsBuilder uriComponentsBuilder =
         UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
 
@@ -261,6 +265,24 @@ public class RouteService {
     } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
       HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
       httpBasicAuth.setPassword(encryptor.decrypt(httpBasicAuth.getPassword()));
+    } else if (auth.getType().equals(ApiKeyAuth.TYPE)) {
+      ApiKeyAuth apiKeyAuth = (ApiKeyAuth) auth;
+      apiKeyAuth.setToken(encryptor.decrypt(apiKeyAuth.getToken()));
+    } else if (auth.getType().equals(ApiParamAuth.TYPE)) {
+      ApiParamAuth apiParamAuth = (ApiParamAuth) auth;
+      apiParamAuth.setToken(encryptor.decrypt(apiParamAuth.getToken()));
+    }
+  }
+
+  private void processAuth(Route route, HttpHeaders queryParameters) {
+    Auth auth = route.getAuth();
+
+    if (auth == null) {
+      return;
+    }
+
+    if (auth.getType().equals(ApiParamAuth.TYPE)) {
+      route.getAuth().apply(queryParameters);
     }
   }
 }

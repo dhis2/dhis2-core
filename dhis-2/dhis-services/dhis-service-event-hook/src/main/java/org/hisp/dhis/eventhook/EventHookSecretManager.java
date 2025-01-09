@@ -31,6 +31,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.auth.ApiKeyAuth;
+import org.hisp.dhis.common.auth.ApiParamAuth;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -91,6 +93,20 @@ public class EventHookSecretManager {
 
         if (StringUtils.hasText(apiTokenAuth.getToken())) {
           apiTokenAuth.setToken(callback.apply(apiTokenAuth.getToken()));
+        }
+        break;
+      case ApiKeyAuth.TYPE:
+        ApiKeyAuth apiKeyAuth = (ApiKeyAuth) auth;
+
+        if (StringUtils.hasText(apiKeyAuth.getToken())) {
+          apiKeyAuth.setToken(callback.apply(apiKeyAuth.getToken()));
+        }
+        break;
+      case ApiParamAuth.TYPE:
+        ApiParamAuth apiParamAuth = (ApiParamAuth) auth;
+
+        if (StringUtils.hasText(apiParamAuth.getToken())) {
+          apiParamAuth.setToken(callback.apply(apiParamAuth.getToken()));
         }
         break;
       default:

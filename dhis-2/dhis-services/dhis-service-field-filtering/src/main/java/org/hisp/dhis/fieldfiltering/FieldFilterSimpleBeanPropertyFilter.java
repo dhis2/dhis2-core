@@ -43,6 +43,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.auth.ApiKeyAuth;
+import org.hisp.dhis.common.auth.ApiParamAuth;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
@@ -65,6 +67,8 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
   private final boolean skipSharing;
   private final boolean excludeDefaults;
+  private static final String AUTH_TOKEN = "auth.token";
+  private static final String TARGETS_AUTH_TOKEN = "targets.auth.token";
 
   /**
    * Field filtering ignore list. This is mainly because we don't want to inject custom serializers
@@ -75,7 +79,9 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   private static final Map<Class<?>, Set<String>> IGNORE_LIST =
       Map.of(
           HttpBasicAuth.class, Set.of("auth.password", "targets.auth.password"),
-          ApiTokenAuth.class, Set.of("auth.token", "targets.auth.token"),
+          ApiTokenAuth.class, Set.of(AUTH_TOKEN, TARGETS_AUTH_TOKEN),
+          ApiKeyAuth.class, Set.of(AUTH_TOKEN, TARGETS_AUTH_TOKEN),
+          ApiParamAuth.class, Set.of(AUTH_TOKEN, TARGETS_AUTH_TOKEN),
           JmsTarget.class, Set.of("targets.password"),
           KafkaTarget.class, Set.of("targets.password"));
 
