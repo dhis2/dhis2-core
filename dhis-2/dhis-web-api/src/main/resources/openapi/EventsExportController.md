@@ -80,7 +80,7 @@ Get events using given organisation unit mode.
 
 ### `*.parameter.EventRequestParams.assignedUserMode`
 
-Get tracked entities with events assigned to users according to the specified user mode. By default,
+Get events assigned to users according to the specified user mode. By default,
 all events will be retrieved, regardless of whether a user is assigned.
 
 ### `*.parameter.EventRequestParams.assignedUsers`
