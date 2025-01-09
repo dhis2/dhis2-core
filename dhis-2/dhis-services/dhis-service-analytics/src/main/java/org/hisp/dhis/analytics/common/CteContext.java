@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.hisp.dhis.analytics.common.CTEUtils.computeKey;
+import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

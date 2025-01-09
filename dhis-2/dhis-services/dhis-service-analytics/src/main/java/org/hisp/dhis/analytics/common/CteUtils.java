@@ -31,7 +31,7 @@ import lombok.experimental.UtilityClass;
 import org.hisp.dhis.common.QueryItem;
 
 @UtilityClass
-public class CTEUtils {
+public class CteUtils {
 
   public static String computeKey(QueryItem queryItem) {
 

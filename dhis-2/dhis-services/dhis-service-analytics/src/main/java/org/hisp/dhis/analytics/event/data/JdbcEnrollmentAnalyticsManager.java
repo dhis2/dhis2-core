@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.common.CTEUtils.computeKey;
+import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
@@ -59,7 +59,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.common.CTEUtils;
+import org.hisp.dhis.analytics.common.CteUtils;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.InQueryCteFilter;
@@ -508,7 +508,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             .toList();
     // Iterate over each filter and apply the correct condition
     for (QueryItem item : filters) {
-      String cteName = CTEUtils.computeKey(item);
+      String cteName = CteUtils.computeKey(item);
 
       if (cteContext.containsCte(cteName)) {
         processedItems.add(item); // Mark item as processed
@@ -1151,7 +1151,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Process repeatable stage filters
     itemsByRepeatableFlag.getOrDefault(true, List.of()).stream()
-        .collect(groupingBy(CTEUtils::getIdentifier))
+        .collect(groupingBy(CteUtils::getIdentifier))
         .forEach(
             (identifier, items) -> {
               String cteSql = buildFilterCteSql(items, params);
