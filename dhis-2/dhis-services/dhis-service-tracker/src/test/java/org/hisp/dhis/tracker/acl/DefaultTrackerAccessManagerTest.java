@@ -136,11 +136,4 @@ class DefaultTrackerAccessManagerTest {
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
         "User should not have access to protected program");
   }
-
-  private OrganisationUnit createOrgUnit() {
-    OrganisationUnit ou = new OrganisationUnit();
-    ou.setAutoFields();
-    ou.updatePath();
-    return ou;
-  }
 }

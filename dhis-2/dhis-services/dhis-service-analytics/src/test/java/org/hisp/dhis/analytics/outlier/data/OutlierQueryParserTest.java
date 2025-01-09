@@ -79,7 +79,6 @@ class OutlierQueryParserTest {
         .thenReturn(List.of(dataElement));
 
     OrganisationUnit organisationUnit = createOrganisationUnit('O');
-    organisationUnit.getPath();
     BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject();
     baseDimensionalObject.setItems(List.of(organisationUnit));
     lenient()
