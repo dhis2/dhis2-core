@@ -43,8 +43,8 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
@@ -70,7 +70,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class PredictionController {
 
   private final PredictionService predictionService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
@@ -96,7 +96,7 @@ public class PredictionController {
       config.setJobParameters(params);
       config.setExecutedBy(currentUser.getUid());
 
-      jobSchedulerService.executeOnceNow(config);
+      jobExecutionService.executeOnceNow(config);
 
       return jobConfigurationReport(config);
     }

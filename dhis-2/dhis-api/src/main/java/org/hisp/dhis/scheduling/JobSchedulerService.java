@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
@@ -37,7 +36,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
-import org.springframework.util.MimeType;
 
 /**
  * This is the external API (called by users via controller API) for the scheduling.
@@ -63,28 +61,6 @@ public interface JobSchedulerService {
    *     job is already running or is disabled
    */
   void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
-
-  /**
-   * Creates and runs a new job for one-off operations executed via the scheduler.
-   *
-   * @param config a new job that does not exist yet
-   * @param contentType of the provided content data
-   * @param content the data that should be processed by the job which is stored as file
-   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
-   *     configured correctly
-   */
-  void executeOnceNow(
-      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
-      throws ConflictException;
-
-  /**
-   * Creates and runs a new job for one-off operations executed via the scheduler.
-   *
-   * @param config a new job that does not exist yet
-   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
-   *     configured correctly
-   */
-  void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException;
 
   /**
    * Reverts the {@link JobStatus} of the job from {@link JobStatus#RUNNING} to the appropriate

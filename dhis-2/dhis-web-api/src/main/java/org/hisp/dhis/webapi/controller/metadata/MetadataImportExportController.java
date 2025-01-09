@@ -69,8 +69,8 @@ import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -108,7 +108,7 @@ public class MetadataImportExportController {
   private final GmlImportService gmlImportService;
   private final MetadataExportService metadataExportService;
   private final UserService userService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
   private final ObjectMapper jsonMapper;
   private final BulkPatchManager bulkPatchManager;
 
@@ -255,7 +255,7 @@ public class MetadataImportExportController {
 
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(params);
-    jobSchedulerService.executeOnceNow(config, contentType, request.getInputStream());
+    jobExecutionService.executeOnceNow(config, contentType, request.getInputStream());
     return jobConfigurationReport(config);
   }
 }

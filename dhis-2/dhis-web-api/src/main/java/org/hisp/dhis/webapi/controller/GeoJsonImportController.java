@@ -49,7 +49,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -77,7 +77,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GeoJsonImportController {
 
   private final GeoJsonService geoJsonService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
   private final UserService userService;
 
   @PostMapping(
@@ -115,7 +115,7 @@ public class GeoJsonImportController {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
       jobConfig.setExecutedBy(currentUser.getUid());
-      jobSchedulerService.executeOnceNow(jobConfig, APPLICATION_JSON, request.getInputStream());
+      jobExecutionService.executeOnceNow(jobConfig, APPLICATION_JSON, request.getInputStream());
 
       return jobConfigurationReport(jobConfig);
     }

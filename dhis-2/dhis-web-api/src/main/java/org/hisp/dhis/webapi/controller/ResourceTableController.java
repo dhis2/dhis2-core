@@ -57,7 +57,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -83,7 +83,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 public class ResourceTableController {
 
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequestMapping(
       value = "/analytics",
@@ -164,7 +164,7 @@ public class ResourceTableController {
   private WebMessage execute(JobConfiguration configuration) throws ConflictException {
     log.debug("Executing requested job of type: '{}'", configuration.getJobType());
 
-    jobSchedulerService.executeOnceNow(configuration);
+    jobExecutionService.executeOnceNow(configuration);
 
     return jobConfigurationReport(configuration);
   }

@@ -69,7 +69,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -102,7 +102,7 @@ public class DataValueSetController {
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
   private final UserService userService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
   // Get
@@ -315,7 +315,7 @@ public class DataValueSetController {
     config.setExecutedBy(currentUser.getUid());
     config.setJobParameters(importOptions);
 
-    jobSchedulerService.executeOnceNow(config, mimeType, request.getInputStream());
+    jobExecutionService.executeOnceNow(config, mimeType, request.getInputStream());
 
     return jobConfigurationReport(config);
   }

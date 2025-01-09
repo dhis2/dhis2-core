@@ -48,9 +48,8 @@ import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
@@ -81,8 +80,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataIntegrityController {
 
   private final DataIntegrityService dataIntegrityService;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping
@@ -112,7 +110,7 @@ public class DataIntegrityController {
             : new DataIntegrityJobParameters(type, checks);
     config.setJobParameters(parameters);
 
-    jobSchedulerService.executeOnceNow(config);
+    jobExecutionService.executeOnceNow(config);
 
     return jobConfigurationReport(config);
   }

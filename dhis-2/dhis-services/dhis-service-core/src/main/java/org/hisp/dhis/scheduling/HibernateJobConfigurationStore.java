@@ -48,6 +48,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -267,7 +268,13 @@ public class HibernateJobConfigurationStore
         Object::toString);
   }
 
+  /**
+   * Note that the transaction boundary has been set here instead of the service to avoid over
+   * complicating the "executeNow" service method which needs this change to be completed and
+   * visible at the end of this method.
+   */
   @Override
+  @Transactional
   public boolean tryExecuteNow(@Nonnull String jobId) {
     String sql =
         """

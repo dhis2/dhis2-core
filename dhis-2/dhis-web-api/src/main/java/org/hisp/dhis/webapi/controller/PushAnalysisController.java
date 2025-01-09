@@ -43,8 +43,7 @@ import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -73,8 +72,7 @@ public class PushAnalysisController
 
   private final PushAnalysisService pushAnalysisService;
   private final ContextUtils contextUtils;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @GetMapping("/{uid}/render")
   public void renderPushAnalytics(@PathVariable() String uid, HttpServletResponse response)
@@ -112,6 +110,6 @@ public class PushAnalysisController
     config.setJobParameters(new PushAnalysisJobParameters(uid));
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    jobSchedulerService.executeOnceNow(config);
+    jobExecutionService.executeOnceNow(config);
   }
 }

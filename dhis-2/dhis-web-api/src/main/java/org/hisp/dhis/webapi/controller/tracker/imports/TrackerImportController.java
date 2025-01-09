@@ -51,7 +51,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -105,7 +105,7 @@ public class TrackerImportController {
 
   private final Notifier notifier;
 
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   private final ObjectMapper jsonMapper;
 
@@ -148,7 +148,7 @@ public class TrackerImportController {
 
     byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
-    jobSchedulerService.executeOnceNow(config, contentType, new ByteArrayInputStream(jsonInput));
+    jobExecutionService.executeOnceNow(config, contentType, new ByteArrayInputStream(jsonInput));
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
     return ok(TRACKER_JOB_ADDED)

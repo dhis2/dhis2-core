@@ -68,7 +68,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -109,7 +109,7 @@ public class CompleteDataSetRegistrationController {
 
   private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -260,7 +260,7 @@ public class CompleteDataSetRegistrationController {
 
     jobConfig.setJobParameters(importOptions);
     jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
-    jobSchedulerService.executeOnceNow(jobConfig, mimeType, request.getInputStream());
+    jobExecutionService.executeOnceNow(jobConfig, mimeType, request.getInputStream());
 
     return jobConfigurationReport(jobConfig);
   }

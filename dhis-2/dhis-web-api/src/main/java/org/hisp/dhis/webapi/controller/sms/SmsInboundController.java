@@ -53,7 +53,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -94,7 +94,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
 
   private final UserService userService;
 
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @Override
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
@@ -155,7 +155,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
     JobConfiguration jobConfig = new JobConfiguration(SMS_INBOUND_PROCESSING);
     jobConfig.setJobParameters(new SmsInboundProcessingJobParameters(smsUid));
     jobConfig.setExecutedBy(user.getUid());
-    jobSchedulerService.executeOnceNow(jobConfig);
+    jobExecutionService.executeOnceNow(jobConfig);
 
     return ok("Received SMS: " + smsUid);
   }

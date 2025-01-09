@@ -33,7 +33,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,6 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MimeType;
 
 /**
  * @author Jan Bernitt
@@ -61,10 +59,9 @@ import org.springframework.util.MimeType;
 @RequiredArgsConstructor
 public class DefaultJobSchedulerService implements JobSchedulerService {
 
-  private final JobConfigurationStore jobConfigurationStore;
   private final JobRunner jobRunner;
+  private final JobConfigurationStore jobConfigurationStore;
   private final ObjectMapper jsonMapper;
-  private final JobConfigurationService jobConfigurationService;
 
   @Override
   @Transactional
@@ -80,7 +77,6 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
-  @Transactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
       JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
@@ -103,43 +99,6 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
         jobRunner.runIfDue(job);
       }
     }
-  }
-
-  @Override
-  @Transactional
-  public void executeOnceNow(
-      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
-      throws ConflictException {
-    validateIsNewRunOnce(config);
-    executeOnceNow(jobConfigurationService.create(config, contentType, content));
-  }
-
-  @Override
-  @Transactional
-  public void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException {
-    validateIsNewRunOnce(config);
-    executeOnceNow(jobConfigurationService.create(config));
-  }
-
-  private void executeOnceNow(String jobId) throws ConflictException {
-    try {
-      executeNow(jobId);
-    } catch (NotFoundException ex) {
-      log.error("Ad-hoc job creation failed", ex);
-      ConflictException error = new ConflictException("Ad-hoc job creation failed");
-      error.initCause(ex);
-      throw error;
-    }
-  }
-
-  private void validateIsNewRunOnce(JobConfiguration config) throws ConflictException {
-    if (config.getId() != 0 || config.getSchedulingType() != SchedulingType.ONCE_ASAP)
-      throw new ConflictException(
-          "Job %s must be a run once type but was: %s"
-              .formatted(config.getName(), config.getSchedulingType()));
-    if (jobConfigurationStore.getByUidNoAcl(config.getUid()) != null)
-      throw new ConflictException(
-          "Job %s with id %s does already exist.".formatted(config.getName(), config.getUid()));
   }
 
   @Override

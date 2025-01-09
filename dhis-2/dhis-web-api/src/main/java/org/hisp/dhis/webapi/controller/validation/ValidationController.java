@@ -41,8 +41,8 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -70,7 +70,7 @@ public class ValidationController {
 
   private final ValidationService validationService;
   private final CategoryService categoryService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
   private final DataValidator dataValidator;
 
   @GetMapping("/dataSet/{ds}")
@@ -109,7 +109,7 @@ public class ValidationController {
   public WebMessage runValidationNotificationsTask() throws ConflictException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
 
-    jobSchedulerService.executeOnceNow(config);
+    jobExecutionService.executeOnceNow(config);
 
     return jobConfigurationReport(config);
   }
