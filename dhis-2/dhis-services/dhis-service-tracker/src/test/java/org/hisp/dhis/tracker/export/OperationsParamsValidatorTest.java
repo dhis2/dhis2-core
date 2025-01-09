@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -70,7 +71,7 @@ class OperationsParamsValidatorTest {
 
   private final TrackedEntityType trackedEntityType = new TrackedEntityType();
 
-  private final OrganisationUnit orgUnit = new OrganisationUnit();
+  private final OrganisationUnit orgUnit = createOrganisationUnit('A');
 
   private static final UID PROGRAM_UID = UID.generate();
 

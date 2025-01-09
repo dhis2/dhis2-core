@@ -216,8 +216,8 @@ class DimensionalObjectProviderTest {
 
   @Test
   void testGetOrgUnitDimensionWithNoLevelsNoGroup() {
-    OrganisationUnit level2Ou1 = createOrganisationUnit("Bo");
-    OrganisationUnit level2Ou2 = createOrganisationUnit("Bombali");
+    OrganisationUnit level2Ou1 = createOrganisationUnit('A');
+    OrganisationUnit level2Ou2 = createOrganisationUnit('B');
     OrganisationUnit ou1 = createOrganisationUnit('A');
     OrganisationUnit ou2 = createOrganisationUnit('B');
     List<OrganisationUnit> organisationUnits =
@@ -253,8 +253,8 @@ class DimensionalObjectProviderTest {
   @Test
   void testGetOrgUnitDimensionWithWithLevelAndGroup() {
     OrganisationUnitGroup organisationUnitGroup = createOrganisationUnitGroup('A');
-    OrganisationUnit level2Ou1 = createOrganisationUnit("Bo");
-    OrganisationUnit level2Ou2 = createOrganisationUnit("Bombali");
+    OrganisationUnit level2Ou1 = createOrganisationUnit('A');
+    OrganisationUnit level2Ou2 = createOrganisationUnit('B');
     OrganisationUnit ou1 = createOrganisationUnit('A');
     OrganisationUnit ou2 = createOrganisationUnit('B');
     List<OrganisationUnit> organisationUnits =

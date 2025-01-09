@@ -996,23 +996,18 @@ public abstract class TestBase {
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
     OrganisationUnit unit = new OrganisationUnit();
     unit.setAutoFields();
-
     unit.setUid(BASE_OU_UID + uniqueCharacter);
     unit.setName("OrganisationUnit" + uniqueCharacter);
     unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
-    //    unit.getSharing().setPublicAccess("--------");
-
     return unit;
   }
 
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setGeometry(geometry);
-
     return unit;
   }
 
@@ -1033,16 +1028,12 @@ public abstract class TestBase {
    * @param name The name, short name and code of the organisation unit.
    */
   public static OrganisationUnit createOrganisationUnit(String name) {
-    OrganisationUnit unit = new OrganisationUnit();
-    unit.setAutoFields();
-
+    OrganisationUnit unit = createOrganisationUnit('Y');
     unit.setUid(CodeGenerator.generateUid());
     unit.setName(name);
     unit.setShortName(name);
     unit.setCode(name);
-    unit.setOpeningDate(date);
     unit.setComment("Comment " + name);
-
     return unit;
   }
 
