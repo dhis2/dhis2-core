@@ -301,6 +301,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return currentUser.isSuper()
         || currentUser.getOrganisationUnits().stream()
-            .anyMatch(ou -> captureTarget.getPath().startsWith(ou.getStoredPath()));
+            .anyMatch(ou -> captureTarget.getStoredPath().startsWith(ou.getStoredPath()));
   }
 }
