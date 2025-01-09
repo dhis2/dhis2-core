@@ -41,6 +41,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -76,7 +77,13 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     return jobId != null && requestCancel(jobId);
   }
 
+  /**
+   * Note that the TX is opened on the store level for {@code tryExecuteNow} so that state changes
+   * to the job are already visible to other threads even when called from within this method as
+   * done in case of continuous execution.
+   */
   @Override
+  @NonTransactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
       JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
