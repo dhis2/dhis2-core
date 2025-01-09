@@ -303,6 +303,7 @@ public abstract class TestBase {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
+
   public User getCurrentUser() {
     return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
@@ -996,24 +997,18 @@ public abstract class TestBase {
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
     OrganisationUnit unit = new OrganisationUnit();
     unit.setAutoFields();
-
     unit.setUid(BASE_OU_UID + uniqueCharacter);
     unit.setName("OrganisationUnit" + uniqueCharacter);
     unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
-    unit.updatePath();
-    // unit.getSharing().setPublicAccess("--------");
-
     return unit;
   }
 
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setGeometry(geometry);
-
     return unit;
   }
 
@@ -1031,33 +1026,30 @@ public abstract class TestBase {
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    */
   public static OrganisationUnit createOrganisationUnit(String name) {
-    OrganisationUnit unit = new OrganisationUnit();
-    unit.setAutoFields();
-
+    OrganisationUnit unit = createOrganisationUnit('Y');
     unit.setUid(CodeGenerator.generateUid());
     unit.setName(name);
     unit.setShortName(name);
     unit.setCode(name);
-    unit.setOpeningDate(date);
     unit.setComment("Comment " + name);
-    unit.updatePath();
-
     return unit;
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    * @param parent The parent.
    */
   public static OrganisationUnit createOrganisationUnit(String name, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(name);
-
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
     return unit;
   }
 
@@ -1067,12 +1059,10 @@ public abstract class TestBase {
   public static OrganisationUnitGroup createOrganisationUnitGroup(char uniqueCharacter) {
     OrganisationUnitGroup group = new OrganisationUnitGroup();
     group.setAutoFields();
-
     group.setUid(BASE_UID + uniqueCharacter);
     group.setName("OrganisationUnitGroup" + uniqueCharacter);
     group.setShortName("OrganisationUnitGroupShort" + uniqueCharacter);
     group.setCode("OrganisationUnitGroupCode" + uniqueCharacter);
-
     return group;
   }
 
@@ -1082,13 +1072,11 @@ public abstract class TestBase {
   public static OrganisationUnitGroupSet createOrganisationUnitGroupSet(char uniqueCharacter) {
     OrganisationUnitGroupSet groupSet = new OrganisationUnitGroupSet();
     groupSet.setAutoFields();
-
     groupSet.setName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setShortName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setCode("OrganisationUnitGroupSetCode" + uniqueCharacter);
     groupSet.setDescription("Description" + uniqueCharacter);
     groupSet.setCompulsory(true);
-
     return groupSet;
   }
 

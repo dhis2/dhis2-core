@@ -121,6 +121,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private BatchHandlerFactory batchHandlerFactory;
 
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private CategoryService categoryService;
@@ -158,7 +159,9 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private Environment environment;
 
   @Mock private AclService aclService;
+
   @Mock private UserService userService;
+
   private User user;
 
   private DefaultCompleteDataSetRegistrationExchangeService subject;
@@ -299,7 +302,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   void testValidateAssertMissingDataSet() {
     ExportParams params =
         new ExportParams()
-            .setOrganisationUnits(Sets.newHashSet(new OrganisationUnit()))
+            .setOrganisationUnits(Sets.newHashSet(createOrganisationUnit('A')))
             .setPeriods(Sets.newHashSet(new Period()));
 
     assertIllegalQueryEx(

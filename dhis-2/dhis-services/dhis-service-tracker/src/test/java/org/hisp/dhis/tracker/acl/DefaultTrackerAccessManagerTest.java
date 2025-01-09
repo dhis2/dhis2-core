@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.acl;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,6 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,13 +51,22 @@ class DefaultTrackerAccessManagerTest {
 
   @InjectMocks private DefaultTrackerAccessManager trackerAccessManager;
 
+  private Program program;
+
+  private OrganisationUnit orgUnit;
+
+  private User user;
+
+  @BeforeEach
+  public void before() {
+    program = createProgram('A');
+    orgUnit = createOrganisationUnit('A');
+    user = new User();
+  }
+
   @Test
   void shouldHaveAccessWhenProgramOpenAndSearchAccessAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(OPEN);
-    OrganisationUnit orgUnit = createOrgUnit();
-
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
 
     assertTrue(
@@ -64,10 +76,7 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramOpenAndSearchAccessNotAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(OPEN);
-    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
@@ -76,9 +85,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldHaveAccessWhenProgramNullAndSearchAccessAvailable() {
-    User user = new User();
-    OrganisationUnit orgUnit = createOrgUnit();
-
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
 
     assertTrue(
@@ -88,9 +94,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramNullAndSearchAccessNotAvailable() {
-    User user = new User();
-    OrganisationUnit orgUnit = createOrgUnit();
-
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), null, orgUnit),
         "User should not have access to unspecified program");
@@ -98,11 +101,7 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldHaveAccessWhenProgramClosedAndCaptureAccessAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(CLOSED);
-    OrganisationUnit orgUnit = createOrgUnit();
-
     user.setOrganisationUnits(Set.of(orgUnit));
 
     assertTrue(
@@ -112,10 +111,7 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramClosedAndCaptureAccessNotAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(CLOSED);
-    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
@@ -124,11 +120,7 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldHaveAccessWhenProgramProtectedAndCaptureAccessAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(PROTECTED);
-    OrganisationUnit orgUnit = createOrgUnit();
-
     user.setOrganisationUnits(Set.of(orgUnit));
 
     assertTrue(
@@ -138,10 +130,7 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramProtectedAndCaptureAccessNotAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(PROTECTED);
-    OrganisationUnit orgUnit = createOrgUnit();
 
     assertFalse(
         trackerAccessManager.canAccess(UserDetails.fromUser(user), program, orgUnit),
