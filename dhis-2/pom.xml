@@ -193,7 +193,7 @@
     <joda-time.version>2.13.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <commons-beanutils.version>1.10.0</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
@@ -244,7 +244,7 @@
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
     <dependency-check-maven.version>11.1.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.0</spotless.version>
+    <spotless.version>2.44.1</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
