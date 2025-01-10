@@ -421,9 +421,7 @@ class EventOperationParamsMapperTest {
     program.setAccessLevel(accessLevel);
 
     OrganisationUnit searchScopeOrgUnit = createOrganisationUnit('A');
-    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B');
-    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
-    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B', searchScopeOrgUnit);
 
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
@@ -453,9 +451,7 @@ class EventOperationParamsMapperTest {
     program.setAccessLevel(OPEN);
 
     OrganisationUnit searchScopeOrgUnit = createOrganisationUnit('A');
-    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B');
-    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
-    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B', searchScopeOrgUnit);
 
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
