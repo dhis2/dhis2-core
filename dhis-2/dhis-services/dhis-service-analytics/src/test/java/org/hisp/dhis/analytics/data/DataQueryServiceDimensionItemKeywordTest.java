@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -149,7 +150,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     Mockito.lenient().when(i18nManager.getI18n()).thenReturn(i18n);
     Mockito.lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
 
-    rootOu = new OrganisationUnit("Sierra Leone");
+    rootOu = createOrganisationUnit("Sierra Leone");
     rootOu.setUid(CodeGenerator.generateUid());
     rootOu.setCode("OU_525");
   }
@@ -171,7 +172,7 @@ class DataQueryServiceDimensionItemKeywordTest {
         .thenReturn(getOrgUnitLevel(2, "level2UID", "District", null));
     when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
     when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
-        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+        .thenReturn(Lists.newArrayList(createOrganisationUnit('A'), createOrganisationUnit('B')));
 
     rb.addOuFilter("LEVEL-2;ImspTQPwCqd");
     rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
@@ -206,7 +207,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("3")).thenReturn(3);
     when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
     when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
-        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+        .thenReturn(Lists.newArrayList(createOrganisationUnit('A'), createOrganisationUnit('B')));
 
     rb.addOuFilter("LEVEL-2;LEVEL-3;ImspTQPwCqd");
     rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
@@ -623,7 +624,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(idObjectManager.getObject(OrganisationUnit.class, UID, this.rootOu.getUid()))
         .thenReturn(rootOu);
     when(organisationUnitService.getOrganisationUnits(Mockito.anyList(), Mockito.anyList()))
-        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+        .thenReturn(Lists.newArrayList(createOrganisationUnit('A'), createOrganisationUnit('B')));
   }
 
   private void assertOrgUnitGroup(String ouGroupUID, DimensionalObject dimension) {

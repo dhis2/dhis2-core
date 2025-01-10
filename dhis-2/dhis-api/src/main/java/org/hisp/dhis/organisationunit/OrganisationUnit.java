@@ -740,6 +740,14 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
+   * Note that the {@code path} is mapped with the "property access" mode. This method is for unit
+   * testing purposes only.
+   */
+  public void updatePath() {
+    setPath(getPath());
+  }
+
+  /**
    * Used by persistence layer. Purpose is to have a column for use in database queries. For
    * application use see {@link OrganisationUnit#getLevel()} which has better performance.
    */
