@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -57,10 +58,10 @@ class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long> {
   @Test
   void verifySupplier() throws SQLException {
     // Org Unit //
-    OrganisationUnit ou1 = new OrganisationUnit();
+    OrganisationUnit ou1 = createOrganisationUnit('A');
     ou1.setId(1);
     ou1.setUid("abcded");
-    OrganisationUnit ou2 = new OrganisationUnit();
+    OrganisationUnit ou2 = createOrganisationUnit('B');
     ou2.setId(2);
     ou2.setUid("fgfgfg");
     // create 2 events to import - each one pointing to a different org unit

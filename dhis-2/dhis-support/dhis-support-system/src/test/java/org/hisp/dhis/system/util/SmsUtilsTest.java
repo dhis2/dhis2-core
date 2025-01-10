@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.util;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -87,18 +88,18 @@ class SmsUtilsTest {
     userA.setAutoFields();
     userA.setPhoneNumber(phoneNumber);
     userA.setEmail(email);
-    organisationUnitA = new OrganisationUnit();
+    organisationUnitA = createOrganisationUnit('A');
     organisationUnitA.setAutoFields();
     organisationUnitA.setId(1);
     organisationUnitA.setCode("TESTORGA");
     userA.addOrganisationUnit(organisationUnitA);
     userB = new User();
-    organisationUnitB = new OrganisationUnit();
+    organisationUnitB = createOrganisationUnit('B');
     organisationUnitB.setAutoFields();
     organisationUnitB.setId(2);
     organisationUnitB.setCode("TESTORGB");
     userB.addOrganisationUnit(organisationUnitB);
-    organisationUnitC = new OrganisationUnit();
+    organisationUnitC = createOrganisationUnit('C');
     organisationUnitC.setAutoFields();
     organisationUnitC.setId(3);
     organisationUnitC.setCode("TESTORGC");

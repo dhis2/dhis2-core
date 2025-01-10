@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.validator.event;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1010;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1011;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1013;
@@ -35,7 +36,6 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -85,7 +85,7 @@ class MetaValidatorTest {
     Event event = validEvent();
 
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(new ProgramStage());
@@ -100,7 +100,7 @@ class MetaValidatorTest {
     Event event = validEvent();
 
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(new ProgramStage());
 
@@ -114,7 +114,7 @@ class MetaValidatorTest {
     Event event = validEvent();
 
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
     validator.validate(reporter, bundle, event);

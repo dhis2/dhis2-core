@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -67,20 +68,20 @@ class ObjectBundleHooksTest {
 
   @Test
   void testMatchingClassBoundIsIncluded() {
-    assertHasHooksOfType(new OrganisationUnit(), OrganisationUnitObjectBundleHook.class);
+    assertHasHooksOfType(createOrganisationUnit('A'), OrganisationUnitObjectBundleHook.class);
     assertHasHooksOfType(new User(), UserObjectBundleHook.class);
   }
 
   @Test
   void testNonMatchingClassBoundIsNotIncluded() {
-    assertHasNotHooksOfType(new OrganisationUnit(), UserObjectBundleHook.class);
+    assertHasNotHooksOfType(createOrganisationUnit('A'), UserObjectBundleHook.class);
     assertHasNotHooksOfType(new User(), OrganisationUnitObjectBundleHook.class);
   }
 
   @Test
   void testMatchingInterfaceBoundIsIncluded() {
     assertHasHooksOfType(
-        new OrganisationUnit(),
+        createOrganisationUnit('A'),
         IdentifiableObjectBundleHook.class,
         VersionedObjectObjectBundleHook.class);
     assertHasHooksOfType(
@@ -94,7 +95,7 @@ class ObjectBundleHooksTest {
 
   @Test
   void testNonMatchingInterfaceBoundIsNotIncluded() {
-    assertHasNotHooksOfType(new OrganisationUnit(), AnalyticalObjectObjectBundleHook.class);
+    assertHasNotHooksOfType(createOrganisationUnit('A'), AnalyticalObjectObjectBundleHook.class);
     assertHasNotHooksOfType(new User(), AnalyticalObjectObjectBundleHook.class);
   }
 

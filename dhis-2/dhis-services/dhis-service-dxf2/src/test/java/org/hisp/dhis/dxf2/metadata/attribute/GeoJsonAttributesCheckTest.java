@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.attribute;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -72,7 +73,7 @@ public class GeoJsonAttributesCheckTest {
 
   @BeforeEach
   public void setUpTest() {
-    organisationUnit = new OrganisationUnit();
+    organisationUnit = createOrganisationUnit('A');
     organisationUnit.setName("A");
     attribute = new Attribute();
     attribute.setUid("geoJson");

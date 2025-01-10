@@ -951,22 +951,19 @@ public abstract class DhisConvenienceTest {
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
     OrganisationUnit unit = new OrganisationUnit();
     unit.setAutoFields();
-
     unit.setUid(BASE_OU_UID + uniqueCharacter);
     unit.setName("OrganisationUnit" + uniqueCharacter);
     unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
-
+    unit.updatePath();
     return unit;
   }
 
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setGeometry(geometry);
-
     return unit;
   }
 
@@ -977,10 +974,8 @@ public abstract class DhisConvenienceTest {
   public static OrganisationUnit createOrganisationUnit(
       char uniqueCharacter, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
     return unit;
   }
 
@@ -990,14 +985,13 @@ public abstract class DhisConvenienceTest {
   public static OrganisationUnit createOrganisationUnit(String name) {
     OrganisationUnit unit = new OrganisationUnit();
     unit.setAutoFields();
-
     unit.setUid(CodeGenerator.generateUid());
     unit.setName(name);
     unit.setShortName(name);
     unit.setCode(name);
     unit.setOpeningDate(date);
     unit.setComment("Comment " + name);
-
+    unit.updatePath();
     return unit;
   }
 

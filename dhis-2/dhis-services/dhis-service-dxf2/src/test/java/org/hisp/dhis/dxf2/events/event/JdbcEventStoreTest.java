@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,7 +48,6 @@ import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -138,7 +138,8 @@ class JdbcEventStoreTest {
   void shouldUpdateEventsWhenDateFieldsAreNotSet() {
     List<ProgramStageInstance> programStageInstances = new ArrayList<>();
     ProgramStageInstance psi =
-        new ProgramStageInstance(new ProgramInstance(), new ProgramStage(), new OrganisationUnit());
+        new ProgramStageInstance(
+            new ProgramInstance(), new ProgramStage(), createOrganisationUnit('A'));
     psi.setStatus(EventStatus.ACTIVE);
     psi.setAttributeOptionCombo(new CategoryOptionCombo());
     programStageInstances.add(psi);

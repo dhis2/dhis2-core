@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
@@ -141,7 +142,7 @@ class EventRequestToSearchParamsMapperTest {
 
     Program program = new Program();
     User user = new User();
-    OrganisationUnit ou = new OrganisationUnit();
+    OrganisationUnit ou = createOrganisationUnit('A');
     user.setOrganisationUnits(Set.of(ou));
     TrackedEntityInstance tei = new TrackedEntityInstance();
     DataElement de = new DataElement();
@@ -445,9 +446,10 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
-    OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(uid);
-    return orgUnit;
+    OrganisationUnit ou = createOrganisationUnit(name);
+    ou.setUid(uid);
+    ou.updatePath();
+    return ou;
   }
 
   private User createSearchInAllOrgUnitsUser() {

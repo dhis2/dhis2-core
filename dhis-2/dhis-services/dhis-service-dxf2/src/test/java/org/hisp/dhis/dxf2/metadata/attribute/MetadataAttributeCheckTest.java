@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.attribute;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -85,7 +88,7 @@ class MetadataAttributeCheckTest {
 
   @BeforeEach
   void setUpTest() {
-    organisationUnit = new OrganisationUnit();
+    organisationUnit = createOrganisationUnit('A');
     organisationUnit.setName("A");
     attribute = new Attribute();
     attribute.setUid("attributeID");
@@ -456,7 +459,7 @@ class MetadataAttributeCheckTest {
     organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "OU-ID"));
 
     // OrganisationUnit exists
-    when(manager.get(OrganisationUnit.class, "OU-ID")).thenReturn(new OrganisationUnit());
+    when(manager.get(OrganisationUnit.class, "OU-ID")).thenReturn(createOrganisationUnit('A'));
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
