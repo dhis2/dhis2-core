@@ -312,8 +312,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true, null)
-        + (params.getProgram().getMaxTeiCountToReturn() > 0
-            ? getLimitClause(params.getProgram().getMaxTeiCountToReturn() + 1)
+        + (params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn() > 0
+            ? getLimitClause(params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn() + 1)
             : "")
         + " ) tecount";
   }
@@ -448,7 +448,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (!params.hasProgram()) {
       trackedEntity
           .append("AND P.programid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getPrograms())))
+          .append(getCommaDelimitedString(getIdentifiers(params.getAccessibleTrackerPrograms())))
           .append(")");
     }
 
@@ -602,14 +602,15 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasProgram()) {
       return " INNER JOIN trackedentityprogramowner PO "
           + " ON PO.programid = "
-          + params.getProgram().getId()
+          + params.getEnrolledInTrackerProgram().getId()
           + " AND PO.trackedentityid = TE.trackedentityid "
           + " AND P.programid = PO.programid";
     }
 
-    return "LEFT JOIN trackedentityprogramowner PO ON "
-        + " PO.trackedentityid = TE.trackedentityid"
-        + " AND P.programid = PO.programid";
+    return """
+           LEFT JOIN trackedentityprogramowner PO ON \
+            PO.trackedentityid = TE.trackedentityid\
+            AND P.programid = PO.programid""";
   }
 
   /**
@@ -737,14 +738,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
       String join =
           """
-            INNER JOIN enrollment %1$s
-            ON %1$s.trackedentityid = TE.trackedentityid
-            """;
+          INNER JOIN enrollment %1$s
+          ON %1$s.trackedentityid = TE.trackedentityid
+          """;
 
       return !params.hasProgram()
           ? join.formatted(ENROLLMENT_ALIAS)
           : join.concat(" AND %1$s.programid = %2$s")
-              .formatted(ENROLLMENT_ALIAS, params.getProgram().getId());
+              .formatted(ENROLLMENT_ALIAS, params.getEnrolledInTrackerProgram().getId());
     }
 
     return "";
@@ -779,7 +780,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     program
         .append("WHERE EN.trackedentityid = TE.trackedentityid ")
         .append("AND EN.programid = ")
-        .append(params.getProgram().getId())
+        .append(params.getEnrolledInTrackerProgram().getId())
         .append(SPACE);
 
     if (params.hasEnrollmentStatus()) {

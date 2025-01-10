@@ -99,7 +99,7 @@ class TrackedEntityOperationParamsMapper {
 
     List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
 
-    List<Program> programs = getTrackerPrograms(program, user);
+    List<Program> accessibleTrackerPrograms = getAccessibleTrackerPrograms(program, user);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
@@ -114,8 +114,8 @@ class TrackedEntityOperationParamsMapper {
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
 
     params
-        .setProgram(program)
-        .setPrograms(programs)
+        .setEnrolledInTrackerProgram(program)
+        .setAccessibleTrackerPrograms(accessibleTrackerPrograms)
         .setProgramStage(programStage)
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
@@ -167,7 +167,7 @@ class TrackedEntityOperationParamsMapper {
     return trackedEntityTypes;
   }
 
-  private List<Program> getTrackerPrograms(Program program, UserDetails user) {
+  private List<Program> getAccessibleTrackerPrograms(Program program, UserDetails user) {
     if (program == null) {
       return programService.getAllPrograms().stream()
           .filter(Program::isRegistration)
@@ -242,7 +242,8 @@ class TrackedEntityOperationParamsMapper {
           throw new BadRequestException(
               "Cannot order by '"
                   + uid.getValue()
-                  + "' as its not a tracked entity attribute. Tracked entities can be ordered by fields and tracked entity attributes.");
+                  + "' as its not a tracked entity attribute. Tracked entities can be ordered by"
+                  + " fields and tracked entity attributes.");
         }
 
         params.orderBy(tea, order.getDirection());
@@ -298,7 +299,8 @@ class TrackedEntityOperationParamsMapper {
     List<UID> searchableAttributeIds = new ArrayList<>();
 
     if (params.hasProgram()) {
-      searchableAttributeIds.addAll(UID.of(params.getProgram().getSearchableAttributeIds()));
+      searchableAttributeIds.addAll(
+          UID.of(params.getEnrolledInTrackerProgram().getSearchableAttributeIds()));
     }
 
     if (params.hasTrackedEntityType()) {
@@ -347,12 +349,12 @@ class TrackedEntityOperationParamsMapper {
     }
 
     if (params.hasProgram()) {
-      maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+      maxTeiLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
 
       if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
         throw new IllegalQueryException(
             "At least "
-                + params.getProgram().getMinAttributesRequiredToSearch()
+                + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
                 + " attributes should be mentioned in the search criteria.");
       }
     }
@@ -405,9 +407,11 @@ class TrackedEntityOperationParamsMapper {
       return false;
     }
 
-    return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+    return (!params.hasFilters()
+            && params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
-            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+            && params.getFilters().size()
+                < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {

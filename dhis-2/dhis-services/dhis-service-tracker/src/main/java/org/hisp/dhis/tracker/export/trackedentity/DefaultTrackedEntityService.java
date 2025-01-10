@@ -223,30 +223,17 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public TrackedEntity getTrackedEntity(
-      @Nonnull UID trackedEntity, @CheckForNull UID programUid, @Nonnull TrackedEntityParams params)
+      @Nonnull UID trackedEntity, @CheckForNull UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException, BadRequestException {
-    Program program = null;
-    if (programUid != null) {
-      program = programService.getProgram(programUid.getValue());
-      if (program == null) {
-        throw new NotFoundException(Program.class, programUid);
-      }
-    }
-
     Page<TrackedEntity> trackedEntities;
 
-    try {
-      TrackedEntityOperationParams operationParams =
-          TrackedEntityOperationParams.builder()
-              .trackedEntities(Set.of(trackedEntity))
-              .program(program)
-              .trackedEntityParams(params)
-              .build();
-      trackedEntities = getTrackedEntities(operationParams, new PageParams(1, 1, false));
-    } catch (BadRequestException e) {
-      throw new IllegalArgumentException(
-          "this must be a bug in how the TrackedEntityOperationParams are built");
-    }
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntities(Set.of(trackedEntity))
+            .program(program)
+            .trackedEntityParams(params)
+            .build();
+    trackedEntities = getTrackedEntities(operationParams, new PageParams(1, 1, false));
 
     if (trackedEntities.getItems().isEmpty()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getValue());

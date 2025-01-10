@@ -186,7 +186,8 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
 
     if (ctx.getQueryParams().hasProgram()) {
       sql = getTrackedEntitiesOwnershipSqlForSpecificProgram(skipUserScopeValidation);
-      paramSource.addValue("programUid", ctx.getQueryParams().getProgram().getUid());
+      paramSource.addValue(
+          "programUid", ctx.getQueryParams().getEnrolledInTrackerProgram().getUid());
     } else if (checkForOwnership) {
       sql = getTrackedEntitiesOwnershipSqlForAllPrograms(skipUserScopeValidation);
     } else {
