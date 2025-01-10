@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1005;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1049;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -80,7 +80,7 @@ class MetaValidatorTest {
   void verifyTrackedEntityValidationSuccess() {
     TrackedEntity tei = validTei();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID)))
         .thenReturn(new TrackedEntityType());
 
@@ -104,7 +104,7 @@ class MetaValidatorTest {
   void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb() {
     TrackedEntity tei = validTei();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
 
     validator.validate(reporter, bundle, tei);
 

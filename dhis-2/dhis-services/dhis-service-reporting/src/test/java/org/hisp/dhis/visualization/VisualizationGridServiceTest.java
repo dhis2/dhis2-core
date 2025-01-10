@@ -31,6 +31,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,7 +91,7 @@ class VisualizationGridServiceTest {
     final String anyOrganisationUnitUid = "ouiRzW5e";
     final User userStub = userStub();
     final List<Integer> orgUnitLevels = asList(1, 2);
-    final List<OrganisationUnit> orgUnits = asList(new OrganisationUnit());
+    final List<OrganisationUnit> orgUnits = asList(createOrganisationUnit('A'));
     final Map<String, Object> valueMap = valueMapStub();
 
     final Visualization visualizationStub = visualizationStub("abc123xy");
@@ -124,7 +125,7 @@ class VisualizationGridServiceTest {
     final Date anyRelativePeriodDate = new Date();
     final String anyOrganisationUnitUid = "ouiRzW5e";
     final User userStub = userStub();
-    final List<OrganisationUnit> orgUnits = asList(new OrganisationUnit());
+    final List<OrganisationUnit> orgUnits = asList(createOrganisationUnit('A'));
     final List<OrganisationUnitGroup> orgUnitGroups = asList(new OrganisationUnitGroup());
     final Map<String, Object> valueMap = valueMapStub();
 

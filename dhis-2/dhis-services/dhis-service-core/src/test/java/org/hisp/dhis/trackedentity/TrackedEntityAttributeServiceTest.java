@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -108,7 +109,7 @@ class TrackedEntityAttributeServiceTest {
             programAttributeStore,
             organisationUnitService);
 
-    orgUnit = new OrganisationUnit("orgUnitA");
+    orgUnit = createOrganisationUnit('A');
 
     teiPassedInPayload = new TrackedEntityInstance();
     teiPassedInPayload.setUid(identicalTeiUid);
