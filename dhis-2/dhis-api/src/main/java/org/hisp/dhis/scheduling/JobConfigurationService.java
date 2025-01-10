@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.util.MimeType;
@@ -61,13 +60,6 @@ public interface JobConfigurationService {
   void createDefaultJob(JobType type);
 
   void createDefaultJob(JobType type, UserDetails actingUser);
-
-  String createInTransaction(
-      JobConfiguration jobConfiguration, MimeType contentType, InputStream content)
-      throws ConflictException, NotFoundException;
-
-  String createInTransaction(JobConfiguration jobConfiguration)
-      throws ConflictException, NotFoundException;
 
   /**
    * Updates all {@link JobConfiguration}s that are not {@link JobConfiguration#isEnabled()} to

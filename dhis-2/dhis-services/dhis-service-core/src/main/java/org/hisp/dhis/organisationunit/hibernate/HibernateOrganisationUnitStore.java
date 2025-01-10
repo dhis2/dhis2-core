@@ -319,7 +319,7 @@ public class HibernateOrganisationUnitStore
     String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
     Query<Integer> query = getTypedQuery(hql);
-    Integer maxLength = query.getSingleResult();
+    Integer maxLength = getSingleResult(query);
 
     return maxLength != null ? maxLength : 0;
   }
