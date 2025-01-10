@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,31 @@
 package org.hisp.dhis.scheduling;
 
 import java.io.InputStream;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Slf4j
-@RequiredArgsConstructor
-@Service
-@Profile("test")
-public class JobCreationHelperForTests implements JobCreationHelper {
+public interface JobExecutionService {
 
-  private final JobConfigurationStore jobConfigurationStore;
-  private final FileResourceService fileResourceService;
+  /**
+   * Creates and runs a new job for one-off operations executed via the scheduler.
+   *
+   * @param config a new job that does not exist yet
+   * @param contentType of the provided content data
+   * @param content the data that should be processed by the job which is stored as file
+   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
+   *     configured correctly
+   */
+  void executeOnceNow(
+      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
+      throws ConflictException;
 
-  @Transactional
-  public String create(JobConfiguration config) throws ConflictException {
-    return createFromConfig(config, jobConfigurationStore);
-  }
-
-  @Transactional
-  public String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException {
-    return createFromConfigAndInputStream(
-        config, contentType, content, jobConfigurationStore, fileResourceService);
-  }
+  /**
+   * Creates and runs a new job for one-off operations executed via the scheduler.
+   *
+   * @param config a new job that does not exist yet
+   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
+   *     configured correctly
+   */
+  void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException;
 }

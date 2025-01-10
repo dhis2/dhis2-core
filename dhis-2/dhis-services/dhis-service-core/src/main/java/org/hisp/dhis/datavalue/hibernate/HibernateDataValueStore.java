@@ -334,7 +334,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
       hql.append(
           params.getOrganisationUnits().stream()
-              .map(OrganisationUnit::getPath)
+              .map(OrganisationUnit::getStoredPath)
               .map(p -> "ou.path like '" + p + "%'")
               .collect(joining(" or ")));
 
@@ -565,7 +565,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
           where
               .append(sqlHelper.or())
               .append("ou.path like '")
-              .append(parent.getPath())
+              .append(parent.getStoredPath())
               .append("%'");
         }
 

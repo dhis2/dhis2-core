@@ -155,28 +155,6 @@ class DataElementStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataElementsByDomainType() {
-    assertEquals(
-        0, dataElementStore.getDataElementsByDomainType(DataElementDomain.AGGREGATE).size());
-    assertEquals(0, dataElementStore.getDataElementsByDomainType(DataElementDomain.TRACKER).size());
-    DataElement dataElementA = createDataElement('A');
-    dataElementA.setDomainType(DataElementDomain.AGGREGATE);
-    DataElement dataElementB = createDataElement('B');
-    dataElementB.setDomainType(DataElementDomain.TRACKER);
-    DataElement dataElementC = createDataElement('C');
-    dataElementC.setDomainType(DataElementDomain.TRACKER);
-    DataElement dataElementD = createDataElement('D');
-    dataElementD.setDomainType(DataElementDomain.TRACKER);
-    dataElementStore.save(dataElementA);
-    dataElementStore.save(dataElementB);
-    dataElementStore.save(dataElementC);
-    dataElementStore.save(dataElementD);
-    assertEquals(
-        1, dataElementStore.getDataElementsByDomainType(DataElementDomain.AGGREGATE).size());
-    assertEquals(3, dataElementStore.getDataElementsByDomainType(DataElementDomain.TRACKER).size());
-  }
-
-  @Test
   void testGetDataElementAggregationLevels() {
     List<Integer> aggregationLevels = Arrays.asList(3, 5);
     DataElement dataElementA = createDataElement('A');
@@ -231,22 +209,6 @@ class DataElementStoreTest extends PostgresIntegrationTestBase {
     assertEquals(2, dataElements.size());
     assertTrue(dataElements.contains(dataElementA));
     assertTrue(dataElements.contains(dataElementB));
-  }
-
-  @Test
-  void testGetDataElementsZeroIsSignificant() {
-    DataElement dataElementA = createDataElement('A');
-    DataElement dataElementB = createDataElement('B');
-    DataElement dataElementC = createDataElement('C');
-    DataElement dataElementD = createDataElement('D');
-    dataElementA.setZeroIsSignificant(true);
-    dataElementB.setZeroIsSignificant(true);
-    dataElementStore.save(dataElementA);
-    dataElementStore.save(dataElementB);
-    dataElementStore.save(dataElementC);
-    dataElementStore.save(dataElementD);
-    List<DataElement> dataElements = dataElementStore.getDataElementsByZeroIsSignificant(true);
-    assertTrue(equals(dataElements, dataElementA, dataElementB));
   }
 
   @Test

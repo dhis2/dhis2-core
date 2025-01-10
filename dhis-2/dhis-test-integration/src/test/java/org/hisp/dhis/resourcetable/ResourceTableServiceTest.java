@@ -86,12 +86,8 @@ class ResourceTableServiceTest extends PostgresIntegrationTestBase {
     idObjectManager.save(degsA);
     idObjectManager.save(degsB);
     OrganisationUnit ouA = createOrganisationUnit('A');
-    OrganisationUnit ouB = createOrganisationUnit('B');
-    OrganisationUnit ouC = createOrganisationUnit('C');
-    ouB.setParent(ouA);
-    ouC.setParent(ouA);
-    ouA.getChildren().add(ouB);
-    ouA.getChildren().add(ouC);
+    OrganisationUnit ouB = createOrganisationUnit('B', ouA);
+    OrganisationUnit ouC = createOrganisationUnit('C', ouA);
     idObjectManager.save(ouA);
     idObjectManager.save(ouB);
     idObjectManager.save(ouC);

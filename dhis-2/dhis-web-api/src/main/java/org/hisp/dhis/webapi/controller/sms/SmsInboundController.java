@@ -50,12 +50,10 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -96,8 +94,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
 
   private final UserService userService;
 
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @Override
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
@@ -119,7 +116,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
       @RequestParam String message,
       @RequestParam(defaultValue = "Unknown", required = false) String gateway,
       @Nonnull @CurrentUser User currentUser)
-      throws WebMessageException, ConflictException, NotFoundException {
+      throws WebMessageException, ConflictException {
     if (originator == null || originator.length() <= 0) {
       return conflict("Originator must be specified");
     }
@@ -142,7 +139,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
   @ResponseBody
   public WebMessage receiveSMSMessage(
       HttpServletRequest request, @Nonnull @CurrentUser User currentUser)
-      throws WebMessageException, IOException, ConflictException, NotFoundException {
+      throws WebMessageException, IOException, ConflictException {
 
     IncomingSms sms = renderService.fromJson(request.getInputStream(), IncomingSms.class);
 
@@ -150,7 +147,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
   }
 
   private WebMessage handleIncomingSms(@CurrentUser User currentUser, IncomingSms sms)
-      throws WebMessageException, ConflictException, NotFoundException {
+      throws WebMessageException, ConflictException {
     User user = getUserByPhoneNumber(sms.getOriginator(), sms.getText(), currentUser);
     sms.setCreatedBy(user);
 
@@ -158,7 +155,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms, Ge
     JobConfiguration jobConfig = new JobConfiguration(SMS_INBOUND_PROCESSING);
     jobConfig.setJobParameters(new SmsInboundProcessingJobParameters(smsUid));
     jobConfig.setExecutedBy(user.getUid());
-    jobSchedulerService.createThenExecute(jobConfig);
+    jobExecutionService.executeOnceNow(jobConfig);
 
     return ok("Received SMS: " + smsUid);
   }
