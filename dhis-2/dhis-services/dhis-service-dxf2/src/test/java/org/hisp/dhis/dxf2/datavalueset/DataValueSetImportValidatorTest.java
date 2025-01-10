@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -878,11 +879,9 @@ class DataValueSetImportValidatorTest {
       builder.period(p);
     }
     if (ouId != null) {
-      OrganisationUnit ou = new OrganisationUnit();
+      OrganisationUnit ou = createOrganisationUnit('A');
       ou.setUid(ouId);
-      // we set the path here just for the tests. This is usually done by the persistence layer
-      // but there is no interaction with that in these tests.
-      ou.setPath(ou.getPath());
+      ou.updatePath();
       builder.orgUnit(ou);
     }
     if (coId != null) {
