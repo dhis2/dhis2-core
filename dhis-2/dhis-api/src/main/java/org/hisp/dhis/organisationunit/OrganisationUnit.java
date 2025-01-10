@@ -28,7 +28,9 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -573,7 +575,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(this.getPath(), uid));
+        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
   }
 
   /**
@@ -587,7 +589,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
       return false;
     }
 
-    return StringUtils.contains(this.getPath(), ancestor.getUid());
+    return StringUtils.contains(this.getStoredPath(), ancestor.getUid());
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
@@ -753,6 +755,13 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.children = children;
   }
 
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. This method will
+   * calculate and return the path property value based on the org unit ancestors. To access the
+   * {@code path} property directly, use {@link OrganisationUnit#getStoredPath}.
+   *
+   * @return the path.
+   */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
@@ -779,9 +788,34 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return this.path;
   }
 
-  /** Do not set directly, managed by persistence layer. */
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. This method will
+   * return the persisted {@code path} property value directly. If the path is not defined,
+   * typically as part of an integration test where the state is not yet flushed to the database,
+   * the calculated path based on the org unit ancestors is returned. To get the calculated path
+   * value explicitly, use {@link OrganisationUnit#getPath}.
+   *
+   * @return the path.
+   */
+  @JsonIgnore
+  public String getStoredPath() {
+    return isNotEmpty(path) ? path : getPath();
+  }
+
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. Do not set
+   * directly, this property is managed by the persistence layer.
+   */
   public void setPath(String path) {
     this.path = path;
+  }
+
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. This method is
+   * for unit testing purposes only.
+   */
+  public void updatePath() {
+    setPath(getPath());
   }
 
   /**
@@ -804,14 +838,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     hierarchyLevel = uids.size();
 
     return hierarchyLevel;
-  }
-
-  /**
-   * Note that the {@code path} is mapped with the "property access" mode. This method is for unit
-   * testing purposes only.
-   */
-  public void updatePath() {
-    setPath(getPath());
   }
 
   /** Do not set directly. */

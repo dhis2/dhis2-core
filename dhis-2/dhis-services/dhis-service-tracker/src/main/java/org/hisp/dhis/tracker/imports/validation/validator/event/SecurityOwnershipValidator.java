@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -63,7 +62,6 @@ import org.springframework.stereotype.Component;
  */
 @Component("org.hisp.dhis.tracker.imports.validation.validator.event.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-@Slf4j
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
 
   @Nonnull private final AclService aclService;
@@ -295,9 +293,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       boolean isCreatableInSearchScope,
       UserDetails user) {
+    String path = eventOrgUnit.getStoredPath();
     if (isCreatableInSearchScope
-        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(eventOrgUnit.getPath())
-        : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
+        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
+        : !user.isInUserHierarchy(path)) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }
