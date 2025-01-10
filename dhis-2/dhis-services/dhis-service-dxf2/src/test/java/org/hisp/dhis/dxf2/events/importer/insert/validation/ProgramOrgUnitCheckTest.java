@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +77,7 @@ class ProgramOrgUnitCheckTest extends BaseValidationTest {
     // Prepare data
     Program program = createProgram('P');
     program.setId(1);
-    OrganisationUnit ou = new OrganisationUnit();
+    OrganisationUnit ou = createOrganisationUnit('A');
     ou.setId(1);
     ou.setUid(orgUnitId);
     when(workContext.getOrganisationUnitMap()).thenReturn(Map.of(event.getUid(), ou));
@@ -101,7 +102,7 @@ class ProgramOrgUnitCheckTest extends BaseValidationTest {
     // Prepare data
     Program program = createProgram('P');
     program.setId(1);
-    OrganisationUnit ou = new OrganisationUnit();
+    OrganisationUnit ou = createOrganisationUnit('A');
     ou.setId(1);
     ou.setUid(event.getOrgUnit());
     when(workContext.getOrganisationUnitMap()).thenReturn(Map.of(event.getUid(), ou));
