@@ -49,7 +49,9 @@ public class HibernateMetadataProposalStore implements MetadataProposalStore {
     return getSession()
         .createQuery("from MetadataProposal p where p.uid = :uid", MetadataProposal.class)
         .setParameter("uid", uid)
-        .getSingleResult();
+        .getResultStream()
+        .findFirst()
+        .orElse(null);
   }
 
   @Override
