@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -105,12 +106,14 @@ class EnrollmentCriteriaMapperTest {
     program = new Program();
     program.setUid(PROGRAM_UID);
 
-    organisationUnit1 = new OrganisationUnit();
+    organisationUnit1 = createOrganisationUnit('A');
     organisationUnit1.setUid(ORG_UNIT1);
+    organisationUnit1.updatePath();
     orgUnits = Set.of(ORG_UNIT1);
 
-    organisationUnit2 = new OrganisationUnit();
+    organisationUnit2 = createOrganisationUnit('B');
     organisationUnit2.setUid(ORG_UNIT2);
+    organisationUnit2.updatePath();
 
     user = new User();
     when(currentUserService.getCurrentUser()).thenReturn(user);

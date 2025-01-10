@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.category.Category;
@@ -68,7 +69,7 @@ class SharingControllerTest {
 
   @Test
   void notSystemDefaultMetadataNoAccess() {
-    final OrganisationUnit organisationUnit = new OrganisationUnit();
+    final OrganisationUnit organisationUnit = createOrganisationUnit('A');
 
     doReturn(OrganisationUnit.class).when(aclService).classForType(eq("organisationUnit"));
     when(aclService.isClassShareable(eq(OrganisationUnit.class))).thenReturn(true);

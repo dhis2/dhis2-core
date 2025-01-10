@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,7 +89,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
                 periods.add(
                     new MonthlyPeriodType().createPeriod(new DateTime(2014, x, 1, 0, 0).toDate())));
 
-    OrganisationUnit ou = new OrganisationUnit("aaaa");
+    OrganisationUnit ou = createOrganisationUnit('A');
 
     DataQueryParams params =
         DataQueryParams.newBuilder()
@@ -149,7 +150,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()));
 
-    OrganisationUnit ou = new OrganisationUnit("aaaa");
+    OrganisationUnit ou = createOrganisationUnit('A');
 
     DataQueryParams params =
         DataQueryParams.newBuilder()
@@ -195,7 +196,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()));
 
-    OrganisationUnit ou = new OrganisationUnit("aaaa");
+    OrganisationUnit ou = createOrganisationUnit('A');
 
     DataQueryParams params =
         DataQueryParams.newBuilder()
@@ -240,7 +241,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(PeriodType.getPeriodFromIsoString("201902"));
 
-    OrganisationUnit ou = new OrganisationUnit("aaaa");
+    OrganisationUnit ou = createOrganisationUnit('A');
 
     // Create request
     DataQueryParams params =
@@ -289,7 +290,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(PeriodType.getPeriodFromIsoString("201901"));
 
-    OrganisationUnit ou = new OrganisationUnit("aaaa");
+    OrganisationUnit ou = createOrganisationUnit('A');
 
     // Create request
     DataQueryParams params =

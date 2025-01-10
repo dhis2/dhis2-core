@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.orgunit;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -48,9 +49,9 @@ class OrgUnitHelperTest {
     // Given
     List<OrganisationUnit> rqOrgUnit = new ArrayList<>();
 
-    rqOrgUnit.add(new OrganisationUnit("name1"));
-    rqOrgUnit.add(new OrganisationUnit("name2"));
-    rqOrgUnit.add(new OrganisationUnit("name3"));
+    rqOrgUnit.add(createOrganisationUnit('A'));
+    rqOrgUnit.add(createOrganisationUnit('B'));
+    rqOrgUnit.add(createOrganisationUnit('C'));
 
     rqOrgUnit.get(0).setUid(CodeGenerator.generateUid());
     rqOrgUnit.get(1).setUid(CodeGenerator.generateUid());
@@ -75,9 +76,9 @@ class OrgUnitHelperTest {
     // Given
     List<OrganisationUnit> rqOrgUnit = new ArrayList<>();
 
-    rqOrgUnit.add(new OrganisationUnit("name1"));
-    rqOrgUnit.add(new OrganisationUnit("name2"));
-    rqOrgUnit.add(new OrganisationUnit("name3"));
+    rqOrgUnit.add(createOrganisationUnit('A'));
+    rqOrgUnit.add(createOrganisationUnit('B'));
+    rqOrgUnit.add(createOrganisationUnit('C'));
 
     rqOrgUnit.get(0).setUid(CodeGenerator.generateUid());
     rqOrgUnit.get(1).setUid(CodeGenerator.generateUid());
