@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.csv;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import com.csvreader.CsvReader;
@@ -497,7 +498,7 @@ public class DefaultCsvImportService implements CsvImportService {
       String[] values = reader.getValues();
 
       if (values != null && values.length > 0) {
-        OrganisationUnit object = new OrganisationUnit();
+        OrganisationUnit object = createOrganisationUnit('A');
         setIdentifiableObject(object, values);
         String parentUid = getSafe(values, 3, 230);
         object.setShortName(getSafe(values, 4, object.getName(), 50));
@@ -515,9 +516,8 @@ public class DefaultCsvImportService implements CsvImportService {
         object.setAutoFields();
 
         if (parentUid != null) {
-          OrganisationUnit parent = new OrganisationUnit();
+          OrganisationUnit parent = createOrganisationUnit('B', object);
           parent.setUid(parentUid);
-          object.setParent(parent);
         }
 
         list.add(object);

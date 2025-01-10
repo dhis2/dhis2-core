@@ -53,7 +53,7 @@ class DefaultTrackerAccessManagerTest {
 
   @InjectMocks private DefaultTrackerAccessManager trackerAccessManager;
 
-  OrganisationUnit orgUnit;
+  private OrganisationUnit orgUnit;
 
   @BeforeEach
   void before() {
@@ -78,7 +78,6 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(OPEN);
-    OrganisationUnit orgUnit = new OrganisationUnit();
 
     when(organisationUnitService.isInUserSearchHierarchy(user, orgUnit)).thenReturn(false);
 
@@ -114,7 +113,6 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(CLOSED);
-    OrganisationUnit orgUnit = new OrganisationUnit();
 
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
@@ -128,7 +126,6 @@ class DefaultTrackerAccessManagerTest {
     User user = new User();
     Program program = new Program();
     program.setAccessLevel(CLOSED);
-    OrganisationUnit orgUnit = new OrganisationUnit();
 
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(false);
 
