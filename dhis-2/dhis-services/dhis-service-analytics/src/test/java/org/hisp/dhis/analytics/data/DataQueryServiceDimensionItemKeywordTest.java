@@ -248,9 +248,9 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(idObjectManager.getObject(IndicatorGroup.class, UID, INDICATOR_GROUP_UID))
         .thenReturn(indicatorGroup);
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
-        .thenReturn(new OrganisationUnit("aaa"));
+        .thenReturn(createOrganisationUnit('A'));
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
-        .thenReturn(new OrganisationUnit("bbb"));
+        .thenReturn(createOrganisationUnit('B'));
 
     rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
     rb.addDimension("IN_GROUP-" + INDICATOR_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz");
@@ -315,8 +315,8 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Test
   void convertAnalyticsRequestWithOrgUnitLevelAsFilter() {
-    OrganisationUnit level2OuA = new OrganisationUnit("Bo");
-    OrganisationUnit level2OuB = new OrganisationUnit("Bombali");
+    OrganisationUnit level2OuA = createOrganisationUnit('B');
+    OrganisationUnit level2OuB = createOrganisationUnit('C');
 
     mockDimensionService();
 
@@ -358,8 +358,8 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Test
   void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter() {
-    OrganisationUnit level2OuA = new OrganisationUnit("Bo");
-    OrganisationUnit level2OuB = new OrganisationUnit("Bombali");
+    OrganisationUnit level2OuA = createOrganisationUnit('B');
+    OrganisationUnit level2OuB = createOrganisationUnit('C');
 
     OrganisationUnit ou1Group = new OrganisationUnit("ou1-group");
     OrganisationUnit ou2Group = new OrganisationUnit("ou2-group");
@@ -432,9 +432,9 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(idObjectManager.getObject(DataElementGroup.class, UID, DATA_ELEMENT_GROUP_UID))
         .thenReturn(dataElementGroup);
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
-        .thenReturn(new OrganisationUnit("aaa"));
+        .thenReturn(createOrganisationUnit('A'));
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
-        .thenReturn(new OrganisationUnit("bbb"));
+        .thenReturn(createOrganisationUnit('B'));
 
     rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
     rb.addDimension("DE_GROUP-" + DATA_ELEMENT_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz");
@@ -481,9 +481,9 @@ class DataQueryServiceDimensionItemKeywordTest {
         .thenReturn(indicatorGroup);
 
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
-        .thenReturn(new OrganisationUnit("aaa"));
+        .thenReturn(createOrganisationUnit('A'));
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
-        .thenReturn(new OrganisationUnit("bbb"));
+        .thenReturn(createOrganisationUnit('B'));
 
     rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
     rb.addDimension(
