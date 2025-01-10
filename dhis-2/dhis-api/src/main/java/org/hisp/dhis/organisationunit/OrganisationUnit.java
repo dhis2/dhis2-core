@@ -555,7 +555,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     }
 
     this.parent = newParent;
-
     newParent.getChildren().add(this);
   }
 
@@ -805,6 +804,14 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     hierarchyLevel = uids.size();
 
     return hierarchyLevel;
+  }
+
+  /**
+   * Note that the {@code path} is mapped with the "property access" mode. This method is for unit
+   * testing purposes only.
+   */
+  public void updatePath() {
+    setPath(getPath());
   }
 
   /** Do not set directly. */

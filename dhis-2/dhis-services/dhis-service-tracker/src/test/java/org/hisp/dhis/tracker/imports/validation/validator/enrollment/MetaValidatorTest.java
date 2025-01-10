@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1068;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1069;
@@ -36,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -84,7 +84,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationSuccess() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
@@ -99,7 +99,7 @@ class MetaValidatorTest {
     when(bundle.findTrackedEntityByUid(TRACKED_ENTITY_UID))
         .thenReturn(Optional.of(new org.hisp.dhis.tracker.imports.domain.TrackedEntity()));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
     validator.validate(reporter, bundle, enrollment);
@@ -122,7 +122,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
     validator.validate(reporter, bundle, enrollment);
@@ -134,7 +134,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
 
     validator.validate(reporter, bundle, enrollment);

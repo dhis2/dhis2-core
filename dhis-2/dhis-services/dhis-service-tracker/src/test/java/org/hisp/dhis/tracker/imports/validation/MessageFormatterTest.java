@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -104,7 +105,7 @@ class MessageFormatterTest {
     relationshipType.setUid("WTTYiPQDqh1");
     Program program = new Program("friendship");
     ProgramStage programStage = new ProgramStage("meet", program);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setAttributeValues(attributeValues("HpSAvRWtdDR", "sunshine"));
     DataElement dataElement = new DataElement();
     dataElement.setAttributeValues(attributeValues("m0GpPuMUfFW", "ice"));
