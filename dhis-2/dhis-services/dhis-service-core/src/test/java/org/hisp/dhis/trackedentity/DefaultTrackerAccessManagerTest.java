@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
@@ -53,17 +54,21 @@ class DefaultTrackerAccessManagerTest {
 
   @InjectMocks private DefaultTrackerAccessManager trackerAccessManager;
 
+  private Program program;
+
   private OrganisationUnit orgUnit;
+
+  private User user;
 
   @BeforeEach
   void before() {
-    createOrganisationUnit('A');
+    program = createProgram('A');
+    orgUnit = createOrganisationUnit('A');
+    user = new User();
   }
 
   @Test
   void shouldHaveAccessWhenProgramOpenAndSearchAccessAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(OPEN);
 
     when(organisationUnitService.isInUserSearchHierarchy(user, orgUnit)).thenReturn(true);
@@ -75,8 +80,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramOpenAndSearchAccessNotAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(OPEN);
 
     when(organisationUnitService.isInUserSearchHierarchy(user, orgUnit)).thenReturn(false);
@@ -88,8 +91,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldHaveAccessWhenProgramNullAndSearchAccessAvailable() {
-    User user = new User();
-
     when(organisationUnitService.isInUserSearchHierarchy(user, orgUnit)).thenReturn(true);
 
     assertTrue(
@@ -99,8 +100,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramNullAndSearchAccessNotAvailable() {
-    User user = new User();
-
     when(organisationUnitService.isInUserSearchHierarchy(user, orgUnit)).thenReturn(false);
 
     assertFalse(
@@ -110,8 +109,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldHaveAccessWhenProgramClosedAndCaptureAccessAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(CLOSED);
 
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
@@ -123,8 +120,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramClosedAndCaptureAccessNotAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(CLOSED);
 
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(false);
@@ -136,8 +131,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldHaveAccessWhenProgramProtectedAndCaptureAccessAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(PROTECTED);
 
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
@@ -149,8 +142,6 @@ class DefaultTrackerAccessManagerTest {
 
   @Test
   void shouldNotHaveAccessWhenProgramProtectedAndCaptureAccessNotAvailable() {
-    User user = new User();
-    Program program = new Program();
     program.setAccessLevel(PROTECTED);
 
     assertFalse(
