@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.dxf2;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -164,7 +165,7 @@ class TrackerCrudTest {
             TrackedEntityType.class, IdScheme.UID, trackedEntityTypeUid))
         .thenReturn(new TrackedEntityType());
     when(identifiableObjectManager.getObject(OrganisationUnit.class, IdScheme.UID, orgUnitUid))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(trackerAccessManager.canWrite(
             any(), any(org.hisp.dhis.trackedentity.TrackedEntityInstance.class)))
         .thenReturn(new ArrayList<>());

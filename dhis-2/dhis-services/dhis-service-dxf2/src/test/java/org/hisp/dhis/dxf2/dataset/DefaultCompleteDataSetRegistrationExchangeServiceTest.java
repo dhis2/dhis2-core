@@ -292,7 +292,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   void testValidateAssertMissingDataSet() {
     ExportParams params =
         new ExportParams()
-            .setOrganisationUnits(Sets.newHashSet(new OrganisationUnit()))
+            .setOrganisationUnits(Sets.newHashSet(createOrganisationUnit('A')))
             .setPeriods(Sets.newHashSet(new Period()));
 
     assertIllegalQueryEx(

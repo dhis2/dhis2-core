@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -123,7 +124,7 @@ class ValidationResultStoreHqlTest {
     User user = new User();
     when(currentUserService.getCurrentUser()).thenReturn(user);
     user.setGroups(emptySet());
-    OrganisationUnit unit = new OrganisationUnit();
+    OrganisationUnit unit = createOrganisationUnit('A');
     unit.setUid(orgUnitUid);
     user.setDataViewOrganisationUnits(singleton(unit));
     // categories

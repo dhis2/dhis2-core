@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_QUARTER;
@@ -59,7 +60,6 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -98,9 +98,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
                         DimensionType.ORGANISATION_UNIT,
                         null,
                         DISPLAY_NAME_ORGUNIT,
-                        List.of(
-                            new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
-                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")),
+                        List.of(createOrganisationUnit('A'), createOrganisationUnit('B')),
                         new DimensionItemKeywords(
                             Lists.newArrayList(
                                 buildOrgUnitLevel(2, "wjP19dkFeIk", "District", null),
@@ -159,9 +157,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
                         DimensionType.ORGANISATION_UNIT,
                         null,
                         DISPLAY_NAME_ORGUNIT,
-                        List.of(
-                            new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
-                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
+                        List.of(createOrganisationUnit('A'), createOrganisationUnit('B')))))
             .withIgnoreLimit(true)
             .withSkipData(true)
             .build();
@@ -197,9 +193,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
                         DimensionType.ORGANISATION_UNIT,
                         null,
                         DISPLAY_NAME_ORGUNIT,
-                        List.of(
-                            new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
-                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")),
+                        List.of(createOrganisationUnit('A'), createOrganisationUnit('B')),
                         new DimensionItemKeywords(
                             Lists.newArrayList(
                                 new BaseNameableObject("tTUf91fCytl", "OU_12345", "Chiefdom"))))))
@@ -249,7 +243,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
                         DimensionType.ORGANISATION_UNIT,
                         null,
                         DISPLAY_NAME_ORGUNIT,
-                        List.of(new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1")))))
+                        List.of(createOrganisationUnit('A')))))
             .withIgnoreLimit(true)
             .withSkipData(true)
             .build();

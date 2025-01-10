@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeValue;
 import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdSchemeFields;
@@ -57,7 +58,7 @@ class TrackedEntityInstanceMapperTest {
 
     OrganisationUnit orgUnit =
         setIdSchemeFields(
-            new OrganisationUnit(),
+            createOrganisationUnit('A'),
             "HpSAvRWtdDR",
             "meet",
             "green",

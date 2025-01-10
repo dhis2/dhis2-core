@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.filter;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,7 +52,7 @@ class OrganisationUnitPolygonCoveringCoordinateFilterTest {
 
   @BeforeEach
   void setUp() throws IOException {
-    organisationUnit = new OrganisationUnit();
+    organisationUnit = createOrganisationUnit('A');
     DOWNTOWN_OSLO = TestResourceUtils.getFileContent("gis/downtownOslo.json");
   }
 

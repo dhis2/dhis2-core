@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.feedback.ErrorCode.E4062;
 import static org.hisp.dhis.feedback.ErrorCode.E4063;
 import static org.hisp.dhis.feedback.ErrorCode.E4064;
@@ -50,7 +51,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
@@ -136,7 +136,7 @@ class ProgramStageWorkingListObjectBundleHookTest {
             .build();
 
     when(organisationUnitService.getOrganisationUnit(anyString()))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(dataElementService.getDataElement(anyString())).thenReturn(new DataElement());
     when(attributeService.getTrackedEntityAttribute(anyString()))
         .thenReturn(new TrackedEntityAttribute());
