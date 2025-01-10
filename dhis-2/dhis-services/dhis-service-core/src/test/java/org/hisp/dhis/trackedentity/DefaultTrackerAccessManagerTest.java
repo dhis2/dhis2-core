@@ -153,8 +153,6 @@ class DefaultTrackerAccessManagerTest {
     Program program = new Program();
     program.setAccessLevel(PROTECTED);
 
-    when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(false);
-
     assertFalse(
         trackerAccessManager.canAccess(user, program, orgUnit),
         "User should not have access to protected program");
