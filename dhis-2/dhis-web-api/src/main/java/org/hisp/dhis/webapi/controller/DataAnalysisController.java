@@ -671,7 +671,7 @@ public class DataAnalysisController {
       if (organisationUnit != null) {
         validationResultView.setOrganisationUnitId(organisationUnit.getUid());
         validationResultView.setOrganisationUnitDisplayName(organisationUnit.getDisplayName());
-        validationResultView.setOrganisationUnitPath(organisationUnit.getPath());
+        validationResultView.setOrganisationUnitPath(organisationUnit.getStoredPath());
         validationResultView.setOrganisationUnitAncestorNames(organisationUnit.getAncestorNames());
       }
 
