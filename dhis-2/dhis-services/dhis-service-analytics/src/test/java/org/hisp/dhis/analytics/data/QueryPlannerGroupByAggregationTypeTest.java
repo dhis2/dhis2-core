@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,7 +59,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -113,7 +113,7 @@ class QueryPlannerGroupByAggregationTypeTest {
                         DimensionType.ORGANISATION_UNIT,
                         null,
                         DISPLAY_NAME_ORGUNIT,
-                        List.of(new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
+                        List.of(createOrganisationUnit('A')))))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
 
@@ -166,7 +166,7 @@ class QueryPlannerGroupByAggregationTypeTest {
                         DimensionType.ORGANISATION_UNIT,
                         null,
                         DISPLAY_NAME_ORGUNIT,
-                        List.of(new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
+                        List.of(createOrganisationUnit('A')))))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
 
@@ -356,7 +356,7 @@ class QueryPlannerGroupByAggregationTypeTest {
                     DimensionType.ORGANISATION_UNIT,
                     null,
                     DISPLAY_NAME_ORGUNIT,
-                    List.of(new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2"))),
+                    List.of(createOrganisationUnit('A'))),
                 // DATA ELEMENT AS FILTER
                 filterDataElements))
         .build();
