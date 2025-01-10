@@ -226,7 +226,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     OrganisationUnit ou = getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit);
 
-    final String orgUnitPath = ou.getPath();
+    final String orgUnitPath = ou.getStoredPath();
     return switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
@@ -243,7 +243,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return true;
     }
 
-    final String orgUnitPath = owningOrgUnit.getPath();
+    final String orgUnitPath = owningOrgUnit.getStoredPath();
     return switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
@@ -267,7 +267,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   public boolean isOwnerInUserSearchScope(
       UserDetails user, TrackedEntity trackedEntity, Program program) {
     return user.isInUserSearchHierarchy(
-        getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit).getPath());
+        getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit).getStoredPath());
   }
 
   // -------------------------------------------------------------------------

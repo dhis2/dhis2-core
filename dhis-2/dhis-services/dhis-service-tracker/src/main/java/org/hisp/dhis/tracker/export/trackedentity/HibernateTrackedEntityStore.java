@@ -685,7 +685,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       orgUnits
           .append(orHlp.or())
           .append("OU.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'");
     }
 
@@ -704,7 +704,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       orgUnits
           .append(orHlp.or())
           .append(" OU.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'")
           .append(" AND (ou.hierarchylevel = ")
           .append(organisationUnit.getHierarchyLevel())
