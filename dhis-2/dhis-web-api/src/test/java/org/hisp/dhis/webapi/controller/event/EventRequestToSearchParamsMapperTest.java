@@ -446,10 +446,10 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {
-    OrganisationUnit orgUnit = createOrganisationUnit(name);
-    orgUnit.setUid(uid);
-    orgUnit.updatePath();
-    return orgUnit;
+    OrganisationUnit ou = createOrganisationUnit(name);
+    ou.setUid(uid);
+    ou.updatePath();
+    return ou;
   }
 
   private User createSearchInAllOrgUnitsUser() {
