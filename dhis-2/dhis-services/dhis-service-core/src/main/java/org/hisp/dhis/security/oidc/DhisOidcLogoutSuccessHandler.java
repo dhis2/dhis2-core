@@ -108,7 +108,6 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
       setOidcLogoutUrl();
     } else {
       // switch parameter present: switch accounts and then redirect to re-login URL
-      String currentUsername = request.getParameter("current");
       if (!isNullOrEmpty(currentUsername)) {
         userService.setActiveLinkedAccounts(currentUsername, usernameToSwitchTo);
       }
