@@ -156,7 +156,8 @@ class CategoryComboModificationControllerTest extends DhisControllerConvenienceT
             "/categoryOptions",
             // language=JSON
             """
-                { "name": "%s", "shortName": "%s" }""".formatted(name, name)));
+                { "name": "%s", "shortName": "%s" }"""
+                .formatted(name, name)));
   }
 
   private String createSimpleCategory(String name, String categoryOptionId) {
@@ -205,7 +206,8 @@ class CategoryComboModificationControllerTest extends DhisControllerConvenienceT
             getCurrentUser().getUid(),
             Body( // language=JSON
                 """
-                    {"additions":[{"id":"%s"}]}""".formatted(orgUnitId))));
+                    {"additions":[{"id":"%s"}]}"""
+                    .formatted(orgUnitId))));
 
     dataElementId = addDataElement("My data element", "DE1", ValueType.INTEGER, null, testCatCombo);
   }
