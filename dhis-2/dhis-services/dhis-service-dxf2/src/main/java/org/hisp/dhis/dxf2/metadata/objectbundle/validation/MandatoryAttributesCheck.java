@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -70,7 +70,7 @@ public class MandatoryAttributesCheck implements ObjectValidationCheck {
 
     for (T object : objects) {
       if (object != null && !preheat.isDefault(object)) {
-        AttributeValues attributeValues = object.getAttributeValues();
+        Set<AttributeValue> attributeValues = object.getAttributeValues();
         mandatoryAttributes.stream()
             .filter(attrId -> !isDefined(attrId, attributeValues))
             .forEach(
@@ -88,8 +88,11 @@ public class MandatoryAttributesCheck implements ObjectValidationCheck {
     }
   }
 
-  private static boolean isDefined(String attrId, AttributeValues values) {
-    String value = values.get(attrId);
-    return value != null && !value.isEmpty();
+  private static boolean isDefined(String attrId, Set<AttributeValue> values) {
+    if (values == null || values.isEmpty()) return false;
+    for (AttributeValue v : values)
+      if (attrId.equals(v.getAttribute().getUid()))
+        return v.getValue() != null && !v.getValue().isEmpty();
+    return false;
   }
 }
