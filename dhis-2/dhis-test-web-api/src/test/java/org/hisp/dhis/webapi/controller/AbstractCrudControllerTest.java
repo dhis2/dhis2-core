@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
@@ -1237,6 +1238,53 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     JsonObject programs =
         GET("/programs?filter=sharing.users:lt:2", programId).content().as(JsonObject.class);
     assertEquals(1, programs.get("programs").as(JsonArray.class).size());
+  }
+
+  @Test
+  void testPostObject_MandatoryAttributeNoValue() {
+    String attr =
+        "{'name':'USER', 'valueType':'TRUE_ONLY', 'userAttribute':true, 'mandatory':true}";
+    String attrId = assertStatus(HttpStatus.CREATED, POST("/attributes", attr));
+    // language=JSON5
+    String user =
+        """
+        {
+          "username": "testMandatoryAttribute",
+          "password": "-hu@_ka9$P",
+          "firstName": "testMandatoryAttribute",
+          "surname": "tester",
+          "userRoles":[{ "id": "yrB6vc5Ip3r" }],
+          "attributeValues": [{ "attribute": { "id": "%s" }, "value": "" } ]
+        }
+        """;
+    assertErrorMandatoryAttributeRequired(attrId, POST("/users", user.formatted(attrId)));
+  }
+
+  @Test
+  void testPostObject_MandatoryAttributeNoAttribute() {
+    String attr =
+        "{'name':'USER', 'valueType':'TRUE_ONLY', 'userAttribute':true, 'mandatory':true}";
+    String attrId = assertStatus(HttpStatus.CREATED, POST("/attributes", attr));
+    String user =
+        """
+        {
+          "username": "testMandatoryAttribute",
+          "password": "-hu@_ka9$P",
+          "firstName": "testMandatoryAttribute",
+          "surname": "tester",
+          "userRoles":[{ "id": "yrB6vc5Ip3r" }]
+        }
+        """;
+    assertErrorMandatoryAttributeRequired(attrId, POST("/users", user));
+  }
+
+  private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
+    JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
+    JsonList<JsonErrorReport> errorReports = msg.getTypeReport().getErrorReports();
+    assertEquals(1, errorReports.size());
+    JsonErrorReport error = errorReports.get(0);
+    assertEquals(ErrorCode.E4011, error.getErrorCode());
+    assertEquals(List.of(attrId), error.getErrorProperties());
   }
 
   private void assertUserGroupHasOnlyUser(String groupId, String userId) {
