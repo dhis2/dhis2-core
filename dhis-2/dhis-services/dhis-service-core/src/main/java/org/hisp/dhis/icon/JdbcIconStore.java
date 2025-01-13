@@ -88,7 +88,8 @@ public class JdbcIconStore implements IconStore {
 
   @Override
   public long count(IconQueryParams params) {
-    String sql = """
+    String sql =
+        """
      select count(*) from icon c
                       """;
 
