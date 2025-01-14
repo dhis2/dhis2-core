@@ -120,6 +120,11 @@ class DataIntegrityUsersWithAllAuthorityControllerTest
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-    assertEquals(2, issues.size());
+
+    Set<String> issueIds = new HashSet<>();
+    for (JsonDataIntegrityDetails.JsonDataIntegrityIssue issue : issues) {
+      issueIds.add(issue.getId());
+    }
+    assertEquals(userUids, issueIds);
   }
 }
