@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -68,7 +68,6 @@ class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrati
             .map(userRole -> userRole.getList("authorities", JsonString.class).size())
             .collect(Collectors.toList());
 
-    // Two of the roles have no users, while one has one user
     // Two of the roles have no users, while one has one user
     assertEquals(Set.of(0, 1), new HashSet<>(userCounts));
     assertEquals(1, Collections.frequency(userCounts, 0));
