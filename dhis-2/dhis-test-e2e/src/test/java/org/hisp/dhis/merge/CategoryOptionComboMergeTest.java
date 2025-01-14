@@ -56,6 +56,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.test.e2e.helpers.JsonParserUtils;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -101,6 +102,18 @@ class CategoryOptionComboMergeTest extends ApiTest {
   public void setup() {
     loginActions.loginAsSuperUser();
     setupMetadata();
+  }
+
+  @AfterAll
+  public void resetSuperUserOrgUnit() {
+    loginActions.loginAsSuperUser();
+    // reset super user to have same org unit access as setup data
+    addOrgUnitAccessForUser(
+        loginActions.getLoggedInUserId(),
+        "ImspTQPwCqd",
+        "O6uvpzGd5pu",
+        "g8upMTyEZGZ",
+        "YuQRtpLP10I");
   }
 
   @Test
@@ -431,12 +444,16 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .formatted(orgUnit);
   }
 
-  private void addOrgUnitAccessForUser(String loggedInUserId, String orgUnitUid) {
+  private void addOrgUnitAccessForUser(String loggedInUserId, String... orgUnitUids) {
+    JsonArray orgUnits = new JsonArray();
+    for (String orgUnit : orgUnitUids) {
+      orgUnits.add(JsonObjectBuilder.jsonObject().addProperty("id", orgUnit).build());
+    }
     JsonObject userPatch =
         JsonObjectBuilder.jsonObject()
             .addProperty("op", "add")
             .addProperty("path", "/organisationUnits")
-            .addArray("value", JsonObjectBuilder.jsonObject().addProperty("id", orgUnitUid).build())
+            .addArray("value", orgUnits)
             .build();
 
     userActions.patch(loggedInUserId, Collections.singletonList(userPatch)).validateStatus(200);
