@@ -59,7 +59,8 @@ class SelectBuilderTest {
               .from("users", "u")
               .build();
 
-      assertEquals("select id, name, email as email_address, count(*) as total from users as u", sql);
+      assertEquals(
+          "select id, name, email as email_address, count(*) as total from users as u", sql);
     }
   }
 
@@ -96,8 +97,7 @@ class SelectBuilderTest {
               .from("table", "t")
               .build();
 
-      assertEquals(
-          "with cte1 as ( select 1 ), cte2 as ( select 2 ) select * from table as t", sql);
+      assertEquals("with cte1 as ( select 1 ), cte2 as ( select 2 ) select * from table as t", sql);
     }
   }
 
@@ -179,7 +179,7 @@ class SelectBuilderTest {
       String sql =
           new SelectBuilder()
               .addColumn("department")
-              .addColumn("count(*)", "","total")
+              .addColumn("count(*)", "", "total")
               .from("employees", "e")
               .groupBy("department")
               .build();
@@ -672,55 +672,75 @@ class SelectBuilderTest {
     @DisplayName("should clean WHERE prefix from raw condition")
     void shouldHandleRawWhereConditionWithNestedOr() {
       String sql =
-              new SelectBuilder()
-                      .addColumn("name")
-                      .from("users", "u")
-                      .where(Condition.raw("WHERE ps = '12345' AND (status = 'ACTIVE' OR status = 'INACTIVE')"))
-                      .build();
+          new SelectBuilder()
+              .addColumn("name")
+              .from("users", "u")
+              .where(
+                  Condition.raw(
+                      "WHERE ps = '12345' AND (status = 'ACTIVE' OR status = 'INACTIVE')"))
+              .build();
 
-      assertEquals("select name from users as u where ps = '12345' and (status = 'ACTIVE' or status = 'INACTIVE')", sql);
+      assertEquals(
+          "select name from users as u where ps = '12345' and (status = 'ACTIVE' or status = 'INACTIVE')",
+          sql);
     }
 
     @Test
     @DisplayName("should handle multiple nested conditions with mixed operators")
     void shouldHandleMultipleNestedConditions() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
-              .where(Condition.raw("WHERE (ps = '12345' OR ps = '67890') AND (status = 'ACTIVE' OR (status = 'INACTIVE' AND role = 'ADMIN'))"))
+              .where(
+                  Condition.raw(
+                      "WHERE (ps = '12345' OR ps = '67890') AND (status = 'ACTIVE' OR (status = 'INACTIVE' AND role = 'ADMIN'))"))
               .build();
 
-      assertEquals("select name from users as u where (ps = '12345' or ps = '67890') and (status = 'ACTIVE' or (status = 'INACTIVE' and role = 'ADMIN'))", sql);
+      assertEquals(
+          "select name from users as u where (ps = '12345' or ps = '67890') and (status = 'ACTIVE' or (status = 'INACTIVE' and role = 'ADMIN'))",
+          sql);
     }
 
     @Test
     @DisplayName("should handle complex conditions with NOT operator")
     void shouldHandleComplexConditionsWithNot() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
-              .where(Condition.raw("WHERE NOT (ps = '12345' AND status = 'ACTIVE') OR (role = 'ADMIN' AND NOT status = 'INACTIVE')"))
+              .where(
+                  Condition.raw(
+                      "WHERE NOT (ps = '12345' AND status = 'ACTIVE') OR (role = 'ADMIN' AND NOT status = 'INACTIVE')"))
               .build();
 
-      assertEquals("select name from users as u where not (ps = '12345' and status = 'ACTIVE') or (role = 'ADMIN' and not status = 'INACTIVE')", sql);
+      assertEquals(
+          "select name from users as u where not (ps = '12345' and status = 'ACTIVE') or (role = 'ADMIN' and not status = 'INACTIVE')",
+          sql);
     }
 
     @Test
     @DisplayName("should handle conditions with IN and BETWEEN operators")
     void shouldHandleInAndBetweenOperators() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
-              .where(Condition.raw("WHERE ps IN ('12345', '67890') AND created_at BETWEEN '2023-01-01' AND '2023-12-31'"))
+              .where(
+                  Condition.raw(
+                      "WHERE ps IN ('12345', '67890') AND created_at BETWEEN '2023-01-01' AND '2023-12-31'"))
               .build();
 
-      assertEquals("select name from users as u where ps IN ('12345', '67890') and created_at BETWEEN '2023-01-01' and '2023-12-31'", sql);
+      assertEquals(
+          "select name from users as u where ps IN ('12345', '67890') and created_at BETWEEN '2023-01-01' and '2023-12-31'",
+          sql);
     }
 
     @Test
     @DisplayName("should handle conditions with LIKE and IS NULL operators")
     void shouldHandleLikeAndIsNullOperators() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
               .where(Condition.raw("WHERE name LIKE '%John%' AND email IS NULL"))
@@ -732,13 +752,18 @@ class SelectBuilderTest {
     @Test
     @DisplayName("should handle conditions with subqueries")
     void shouldHandleConditionsWithSubqueries() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
-              .where(Condition.raw("WHERE ps = (SELECT ps FROM profiles WHERE user_id = u.id) AND status = 'ACTIVE'"))
+              .where(
+                  Condition.raw(
+                      "WHERE ps = (SELECT ps FROM profiles WHERE user_id = u.id) AND status = 'ACTIVE'"))
               .build();
 
-      assertEquals("select name from users as u where ps = (select ps from profiles where user_id = u.id) and status = 'ACTIVE'", sql);
+      assertEquals(
+          "select name from users as u where ps = (select ps from profiles where user_id = u.id) and status = 'ACTIVE'",
+          sql);
     }
 
     @Test
@@ -789,37 +814,50 @@ class SelectBuilderTest {
     @Test
     @DisplayName("should handle conditions with CASE statements")
     void shouldHandleConditionsWithCaseStatements() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
-              .where(Condition.raw("WHERE CASE WHEN status = 'ACTIVE' THEN ps = '12345' ELSE ps = '67890' END"))
+              .where(
+                  Condition.raw(
+                      "WHERE CASE WHEN status = 'ACTIVE' THEN ps = '12345' ELSE ps = '67890' END"))
               .build();
 
-      assertEquals("select name from users as u where case when status = 'ACTIVE' then ps = '12345' else ps = '67890' end", sql);
+      assertEquals(
+          "select name from users as u where case when status = 'ACTIVE' then ps = '12345' else ps = '67890' end",
+          sql);
     }
 
     @Test
     @DisplayName("should handle conditions with EXISTS operator")
     void shouldHandleConditionsWithExists() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
               .where(Condition.raw("WHERE EXISTS (SELECT 1 FROM profiles WHERE user_id = u.id)"))
               .build();
 
-      assertEquals("select name from users as u where EXISTS (select 1 from profiles where user_id = u.id)", sql);
+      assertEquals(
+          "select name from users as u where EXISTS (select 1 from profiles where user_id = u.id)",
+          sql);
     }
 
     @Test
     @DisplayName("should handle complex parentheses grouping")
     void shouldHandleComplexParenthesesGrouping() {
-      String sql = new SelectBuilder()
+      String sql =
+          new SelectBuilder()
               .addColumn("name")
               .from("users", "u")
-              .where(Condition.raw("WHERE (ps = '12345' OR (status = 'ACTIVE' AND role = 'ADMIN')) AND (created_at > '2023-01-01' OR updated_at < '2023-12-31')"))
+              .where(
+                  Condition.raw(
+                      "WHERE (ps = '12345' OR (status = 'ACTIVE' AND role = 'ADMIN')) AND (created_at > '2023-01-01' OR updated_at < '2023-12-31')"))
               .build();
 
-      assertEquals("select name from users as u where (ps = '12345' or (status = 'ACTIVE' and role = 'ADMIN')) and (created_at > '2023-01-01' or updated_at < '2023-12-31')", sql);
+      assertEquals(
+          "select name from users as u where (ps = '12345' or (status = 'ACTIVE' and role = 'ADMIN')) and (created_at > '2023-01-01' or updated_at < '2023-12-31')",
+          sql);
     }
   }
 }

@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.util.sql;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Parenthesis;
@@ -36,53 +40,48 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class SqlWhereClauseExtractor {
 
-    // GIUSEPPE/MAIKEL: can we use a different approach to avoid using jsqlparser?
-    public static List<String> extractWhereColumns(String sql) {
-        List<String> columns = new ArrayList<>();
-        try {
-            // Parse the SQL string
-            Statement statement = CCJSqlParserUtil.parse(sql);
-            if (statement instanceof Select) {
-                PlainSelect plainSelect = (PlainSelect) ((Select) statement).getSelectBody();
+  // GIUSEPPE/MAIKEL: can we use a different approach to avoid using jsqlparser?
+  public static List<String> extractWhereColumns(String sql) {
+    List<String> columns = new ArrayList<>();
+    try {
+      // Parse the SQL string
+      Statement statement = CCJSqlParserUtil.parse(sql);
+      if (statement instanceof Select) {
+        PlainSelect plainSelect = (PlainSelect) ((Select) statement).getSelectBody();
 
-                // Get the WHERE clause
-                Expression whereExpression = plainSelect.getWhere();
+        // Get the WHERE clause
+        Expression whereExpression = plainSelect.getWhere();
 
-                // Extract columns from the WHERE clause
-                if (whereExpression != null) {
-                    Set<String> columnSet = new HashSet<>();
-                    extractColumnsFromExpression(whereExpression, columnSet);
-                    columns.addAll(columnSet);
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error parsing SQL: " + e.getMessage(), e);
+        // Extract columns from the WHERE clause
+        if (whereExpression != null) {
+          Set<String> columnSet = new HashSet<>();
+          extractColumnsFromExpression(whereExpression, columnSet);
+          columns.addAll(columnSet);
         }
-        return columns;
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Error parsing SQL: " + e.getMessage(), e);
     }
+    return columns;
+  }
 
-    private static void extractColumnsFromExpression(Expression expression, Set<String> columns) {
-        if (expression instanceof net.sf.jsqlparser.schema.Column column) {
-            // Add the column name without table alias to the set
-            String columnName = column.getColumnName();
-            columns.add(columnName);
-        } else if (expression instanceof BinaryExpression binaryExpression) {
-            // Recursively process left and right expressions
-            extractColumnsFromExpression(binaryExpression.getLeftExpression(), columns);
-            extractColumnsFromExpression(binaryExpression.getRightExpression(), columns);
-        } else if (expression instanceof InExpression inExpression) {
-            // Process the left expression of an IN clause
-            extractColumnsFromExpression(inExpression.getLeftExpression(), columns);
-        } else if (expression instanceof Parenthesis parenthesis) {
-            // Process the expression inside parentheses
-            extractColumnsFromExpression(parenthesis.getExpression(), columns);
-        }
+  private static void extractColumnsFromExpression(Expression expression, Set<String> columns) {
+    if (expression instanceof net.sf.jsqlparser.schema.Column column) {
+      // Add the column name without table alias to the set
+      String columnName = column.getColumnName();
+      columns.add(columnName);
+    } else if (expression instanceof BinaryExpression binaryExpression) {
+      // Recursively process left and right expressions
+      extractColumnsFromExpression(binaryExpression.getLeftExpression(), columns);
+      extractColumnsFromExpression(binaryExpression.getRightExpression(), columns);
+    } else if (expression instanceof InExpression inExpression) {
+      // Process the left expression of an IN clause
+      extractColumnsFromExpression(inExpression.getLeftExpression(), columns);
+    } else if (expression instanceof Parenthesis parenthesis) {
+      // Process the expression inside parentheses
+      extractColumnsFromExpression(parenthesis.getExpression(), columns);
     }
+  }
 }

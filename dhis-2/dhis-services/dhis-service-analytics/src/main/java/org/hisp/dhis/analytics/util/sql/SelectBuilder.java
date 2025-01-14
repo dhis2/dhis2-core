@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A fluent builder for creating SQL SELECT queries.
- * Supports common SQL features including CTEs, JOINs, WHERE conditions, GROUP BY,
- * HAVING, ORDER BY, and pagination.
+ * A fluent builder for creating SQL SELECT queries. Supports common SQL features including CTEs,
+ * JOINs, WHERE conditions, GROUP BY, HAVING, ORDER BY, and pagination.
  *
  * <p>Example usage:
+ *
  * <pre>{@code
  * String sql = new SelectBuilder()
  *     .withCTE("active_users", "SELECT id FROM users WHERE active = true")
@@ -70,10 +70,11 @@ public class SelectBuilder {
   private Integer offset;
 
   /**
-   * Represents a column in the SELECT clause of a SQL query.
-   * Handles column expressions with optional table prefix and column aliases.
+   * Represents a column in the SELECT clause of a SQL query. Handles column expressions with
+   * optional table prefix and column aliases.
    *
    * <p>Examples:
+   *
    * <pre>{@code
    * // Simple column with table prefix
    * new Column("name", "u", null)               -> "u.name"
@@ -148,10 +149,11 @@ public class SelectBuilder {
   }
 
   /**
-   * Represents a Common Table Expression (CTE).
-   * CTEs are temporary named result sets that exist for the duration of the query.
+   * Represents a Common Table Expression (CTE). CTEs are temporary named result sets that exist for
+   * the duration of the query.
    *
    * <p>Example:
+   *
    * <pre>{@code
    * new CommonTableExpression("active_users",
    *     "SELECT id FROM users WHERE status = 'ACTIVE'")
@@ -167,10 +169,10 @@ public class SelectBuilder {
   }
 
   /**
-   * Represents a LEFT JOIN clause.
-   * Includes the table name, alias, and join condition.
+   * Represents a LEFT JOIN clause. Includes the table name, alias, and join condition.
    *
    * <p>Example:
+   *
    * <pre>{@code
    * new Join("orders", "o", "o.user_id = u.id")
    *     -> "LEFT JOIN orders o ON o.user_id = u.id"
@@ -183,10 +185,11 @@ public class SelectBuilder {
   }
 
   /**
-   * Represents an ORDER BY clause.
-   * Supports direction (ASC/DESC) and NULL handling (NULLS FIRST/LAST).
+   * Represents an ORDER BY clause. Supports direction (ASC/DESC) and NULL handling (NULLS
+   * FIRST/LAST).
    *
    * <p>Examples:
+   *
    * <pre>{@code
    * new OrderByClause("name", "ASC", null)           -> "name ASC"
    * new OrderByClause("age", "DESC", "NULLS LAST")   -> "age DESC NULLS LAST"
@@ -212,9 +215,8 @@ public class SelectBuilder {
    * @param name the name of the CTE
    * @param query the SELECT query that defines the CTE
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.withCTE("active_users",
    *     "SELECT id FROM users WHERE status = 'ACTIVE'")
    * }</pre>
@@ -239,7 +241,6 @@ public class SelectBuilder {
   public List<String> getColumnNames() {
     return columns.stream().map(Column::expression).collect(Collectors.toList());
   }
-
 
   /**
    * Adds a column with an alias.
@@ -289,14 +290,14 @@ public class SelectBuilder {
    * @param table the table name
    * @param alias the table alias
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.from("users", "u")
    * }</pre>
    */
   public SelectBuilder from(String table, String alias) {
-    this.fromTable = sanitizeFromClause(table);;
+    this.fromTable = sanitizeFromClause(table);
+    ;
     this.fromAlias = alias;
     return this;
   }
@@ -308,9 +309,8 @@ public class SelectBuilder {
    * @param alias the alias for the joined table
    * @param condition the join condition builder
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.leftJoin("orders", "o",
    *     alias -> alias + ".user_id = u.id")
    * }</pre>
@@ -325,9 +325,8 @@ public class SelectBuilder {
    *
    * @param condition the WHERE condition
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.where(Condition.and(
    *     Condition.raw("active = true"),
    *     Condition.raw("age >= 18")
@@ -340,14 +339,12 @@ public class SelectBuilder {
   }
 
   /**
-   * Adds a HAVING clause condition.
-   * Multiple conditions are combined with AND.
+   * Adds a HAVING clause condition. Multiple conditions are combined with AND.
    *
    * @param condition the HAVING condition
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.having(Condition.raw("COUNT(*) > 0"))
    * }</pre>
    */
@@ -361,9 +358,8 @@ public class SelectBuilder {
    *
    * @param columns the columns to group by
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.groupBy("department", "status")
    * }</pre>
    */
@@ -374,6 +370,7 @@ public class SelectBuilder {
 
   /**
    * Adds a GROUP BY column.
+   *
    * @param column the column to group by
    * @return this builder instance
    */
@@ -400,9 +397,8 @@ public class SelectBuilder {
    * @param direction the sort direction ("ASC" or "DESC")
    * @param nullHandling the NULL handling ("NULLS FIRST" or "NULLS LAST")
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.orderBy("last_updated", "DESC", "NULLS LAST")
    * }</pre>
    */
@@ -412,14 +408,13 @@ public class SelectBuilder {
   }
 
   /**
-   * Parses and adds ORDER BY clauses from a raw SQL string.
-   * Handles complex expressions including CASE statements.
+   * Parses and adds ORDER BY clauses from a raw SQL string. Handles complex expressions including
+   * CASE statements.
    *
    * @param rawSortClause the raw ORDER BY clause
    * @return this builder instance
-   *
-   * <p>Example:
-   * <pre>{@code
+   *     <p>Example:
+   *     <pre>{@code
    * builder.orderBy("name ASC, created_at DESC NULLS LAST")
    * builder.orderBy("CASE WHEN active THEN 1 ELSE 2 END DESC")
    * }</pre>
@@ -474,8 +469,8 @@ public class SelectBuilder {
   }
 
   /**
-   * Sets the LIMIT clause to the specified value plus one.
-   * Useful for detecting if there are more rows available.
+   * Sets the LIMIT clause to the specified value plus one. Useful for detecting if there are more
+   * rows available.
    *
    * @param limit the base limit value
    * @return this builder instance
@@ -746,8 +741,7 @@ public class SelectBuilder {
     char lastChar = quoted.charAt(quoted.length() - 1);
 
     // Check if quotes match
-    if ((firstChar == '"' && lastChar == '"') ||
-            (firstChar == '`' && lastChar == '`')) {
+    if ((firstChar == '"' && lastChar == '"') || (firstChar == '`' && lastChar == '`')) {
       return quoted.substring(1, quoted.length() - 1);
     }
 

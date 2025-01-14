@@ -28,10 +28,11 @@
 package org.hisp.dhis.analytics.util.sql;
 
 /**
- * Represents a basic SQL condition string without any transformation.
- * Unlike {@link Condition.Raw}, this condition does not remove leading WHERE/AND keywords.
+ * Represents a basic SQL condition string without any transformation. Unlike {@link Condition.Raw},
+ * this condition does not remove leading WHERE/AND keywords.
  *
  * <p>Examples:
+ *
  * <pre>{@code
  * // Basic conditions
  * new SimpleCondition("active = true")

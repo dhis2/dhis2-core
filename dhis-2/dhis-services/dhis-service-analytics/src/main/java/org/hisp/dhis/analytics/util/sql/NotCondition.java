@@ -26,11 +26,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.analytics.util.sql;
+
 /**
- * Represents a negated SQL condition.
- * Wraps another condition with a NOT operator and parentheses.
+ * Represents a negated SQL condition. Wraps another condition with a NOT operator and parentheses.
  *
  * <p>Examples:
+ *
  * <pre>{@code
  * // Simple negation
  * new NotCondition(new SimpleCondition("active = true"))
