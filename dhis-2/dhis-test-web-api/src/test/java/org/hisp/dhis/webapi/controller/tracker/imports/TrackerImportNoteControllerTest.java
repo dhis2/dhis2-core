@@ -91,7 +91,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
     manager.save(programStage, false);
 
-    TrackedEntity te = createTrackedEntity(orgUnit);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);
     manager.save(te);
 
