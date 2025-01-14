@@ -783,9 +783,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
     Collections.reverse(pathList);
 
-    this.path = PATH_SEP + StringUtils.join(pathList, PATH_SEP);
-
-    return this.path;
+    return PATH_SEP + StringUtils.join(pathList, PATH_SEP);
   }
 
   /**

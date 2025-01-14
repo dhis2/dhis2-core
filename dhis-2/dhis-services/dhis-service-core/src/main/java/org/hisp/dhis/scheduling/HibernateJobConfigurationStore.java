@@ -514,6 +514,7 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and uid = :id
+        and now() > jobconfiguration.lastalive + interval '1 minute'
       """;
     return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
