@@ -33,118 +33,115 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 
 public class CteContext {
-    private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
-    public final static String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
-    public CteDefinition getDefinitionByItemUid(String itemUid) {
-        return cteDefinitions.get(itemUid);
-    }
+  private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
+  public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
-    /**
-     * Adds a CTE definition to the context.
-     *
-     * @param programStage  The program stage
-     * @param item          The query item
-     * @param cteDefinition The CTE definition (the SQL query)
-     * @param offset        The calculated offset
-     * @param isRowContext  Whether the CTE is a row context
-     */
-    public void addCte(
-            ProgramStage programStage,
-            QueryItem item,
-            String cteDefinition,
-            int offset,
-            boolean isRowContext) {
-        String key = computeKey(item);
-        if (cteDefinitions.containsKey(key)) {
-            cteDefinitions.get(key).getOffsets().add(offset);
-        } else {
-            var cteDef =
-                    new CteDefinition(
-                            programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
-            cteDefinitions.put(key, cteDef);
-        }
-    }
+  public CteDefinition getDefinitionByItemUid(String itemUid) {
+    return cteDefinitions.get(itemUid);
+  }
 
-    /**
-     * Adds a aggregated base CTE definition to the context.
-     */
-    public void addBaseAggregateCte(String cteDefinition, String whereClauses) {
-        cteDefinitions.put(ENROLLMENT_AGGR_BASE, new CteDefinition(cteDefinition, whereClauses));
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   */
+  public void addCte(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext) {
+    String key = computeKey(item);
+    if (cteDefinitions.containsKey(key)) {
+      cteDefinitions.get(key).getOffsets().add(offset);
+    } else {
+      var cteDef =
+          new CteDefinition(
+              programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
+      cteDefinitions.put(key, cteDef);
     }
+  }
 
-    public void addExistsCte(ProgramStage programStage, QueryItem item, String cteDefinition) {
-        var cteDef =
-                new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
-                        .setExists(true);
-        cteDefinitions.put(programStage.getUid(), cteDef);
-    }
+  /** Adds a aggregated base CTE definition to the context. */
+  public void addBaseAggregateCte(String cteDefinition, String whereClauses) {
+    cteDefinitions.put(ENROLLMENT_AGGR_BASE, new CteDefinition(cteDefinition, whereClauses));
+  }
 
-    /**
-     * Adds a CTE definition to the context.
-     *
-     * @param programIndicator         The program indicator
-     * @param cteDefinition            The CTE definition (the SQL query)
-     * @param functionRequiresCoalesce Whether the function requires to be "wrapped" in coalesce to
-     *                                 avoid null values (e.g. avg, sum)
-     */
-    public void addProgramIndicatorCte(
-            ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
-        cteDefinitions.put(
-                programIndicator.getUid(),
-                new CteDefinition(programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
-    }
+  public void addExistsCte(ProgramStage programStage, QueryItem item, String cteDefinition) {
+    var cteDef =
+        new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)
+            .setExists(true);
+    cteDefinitions.put(programStage.getUid(), cteDef);
+  }
 
-    public void addCteFilter(QueryItem item, String ctedefinition) {
-        String key = computeKey(item);
-        if (!cteDefinitions.containsKey(key)) {
-            ProgramStage programStage = item.getProgramStage();
-            cteDefinitions.put(
-                    key,
-                    new CteDefinition(
-                            item.getItemId(),
-                            programStage == null ? null : programStage.getUid(),
-                            ctedefinition,
-                            true));
-        }
-    }
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programIndicator The program indicator
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param functionRequiresCoalesce Whether the function requires to be "wrapped" in coalesce to
+   *     avoid null values (e.g. avg, sum)
+   */
+  public void addProgramIndicatorCte(
+      ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
+    cteDefinitions.put(
+        programIndicator.getUid(),
+        new CteDefinition(programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+  }
 
-    public CteDefinition getBaseAggregatedCte() {
-        return cteDefinitions.get(ENROLLMENT_AGGR_BASE);
+  public void addCteFilter(QueryItem item, String ctedefinition) {
+    String key = computeKey(item);
+    if (!cteDefinitions.containsKey(key)) {
+      ProgramStage programStage = item.getProgramStage();
+      cteDefinitions.put(
+          key,
+          new CteDefinition(
+              item.getItemId(),
+              programStage == null ? null : programStage.getUid(),
+              ctedefinition,
+              true));
     }
+  }
 
-    /**
-     * Returns the CTE definitions as a map. The key is the CTE name and the value is the CTE
-     * definition (the SQL query).
-     *
-     * @return the CTE definitions
-     */
-    public Map<String, String> getCteDefinitions() {
-        return cteDefinitions.entrySet().stream()
-                .collect(
-                        LinkedHashMap::new,
-                        (map, entry) -> map.put(entry.getKey(), entry.getValue().getCteDefinition()),
-                        Map::putAll);
-    }
+  public CteDefinition getBaseAggregatedCte() {
+    return cteDefinitions.get(ENROLLMENT_AGGR_BASE);
+  }
 
-    public Set<String> getCteKeys() {
-        return cteDefinitions.keySet();
-    }
+  /**
+   * Returns the CTE definitions as a map. The key is the CTE name and the value is the CTE
+   * definition (the SQL query).
+   *
+   * @return the CTE definitions
+   */
+  public Map<String, String> getCteDefinitions() {
+    return cteDefinitions.entrySet().stream()
+        .collect(
+            LinkedHashMap::new,
+            (map, entry) -> map.put(entry.getKey(), entry.getValue().getCteDefinition()),
+            Map::putAll);
+  }
 
-    public Set<String> getCteKeys(String ... exclude) {
-        final List<String> toExclude = List.of(exclude);
-        return cteDefinitions.keySet().stream()
-                .filter(key -> !toExclude.contains(key))
-                .collect(java.util.stream.Collectors.toSet());
-    }
+  public Set<String> getCteKeys() {
+    return cteDefinitions.keySet();
+  }
 
-    public boolean containsCte(String cteName) {
-        return cteDefinitions.containsKey(cteName);
-    }
+  public Set<String> getCteKeys(String... exclude) {
+    final List<String> toExclude = List.of(exclude);
+    return cteDefinitions.keySet().stream()
+        .filter(key -> !toExclude.contains(key))
+        .collect(java.util.stream.Collectors.toSet());
+  }
+
+  public boolean containsCte(String cteName) {
+    return cteDefinitions.containsKey(cteName);
+  }
 }

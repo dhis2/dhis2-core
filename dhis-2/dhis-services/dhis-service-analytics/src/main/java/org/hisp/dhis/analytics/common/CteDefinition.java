@@ -37,8 +37,7 @@ public class CteDefinition {
   // Query item id
   @Getter private String itemId;
   // The program stage uid
-  @Getter
-  private final String programStageUid;
+  @Getter private final String programStageUid;
   // The program indicator uid
   private String programIndicatorUid;
   // The CTE definition (the SQL query)
