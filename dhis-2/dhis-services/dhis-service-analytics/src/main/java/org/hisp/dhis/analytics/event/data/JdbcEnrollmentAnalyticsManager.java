@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
@@ -70,6 +71,9 @@ import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
+import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
+import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
+import org.hisp.dhis.analytics.util.sql.SqlWhereClauseExtractor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -77,6 +81,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -145,7 +150,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
     String sql;
     if (params.isAggregatedEnrollments()) {
-      sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
+      // LUCIANO //
+      sql = buildAggregatedEnrollmentQueryWithCte(grid.getHeaders(), params);
+      //sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
     } else {
       sql = buildEnrollmentQueryWithCte(params);
     }
@@ -971,8 +978,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param params the {@link EventQueryParams} describing what data is being queried
    * @return a {@link CteContext} instance containing all relevant CTE definitions
    */
-  private CteContext getCteDefinitions(EventQueryParams params) {
-    CteContext cteContext = new CteContext();
+  private CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
+    if (cteContext == null) {
+      cteContext = new CteContext();
+    }
 
     for (QueryItem item : params.getItems()) {
       if (item.isProgramIndicator()) {
@@ -985,6 +994,42 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return cteContext;
+  }
+
+  private CteContext getCteDefinitions(EventQueryParams params) {
+    return getCteDefinitions(params, null);
+  }
+
+  private List<String> addBaseAggregationCte(CteContext cteContext, EventQueryParams params ) {
+    // create base enrollment context
+    List<String> columns = new ArrayList<>();
+    List<String> rootColumns = new ArrayList<>();
+    columns.add("enrollment");
+    addDimensionSelectColumns(columns, params, true);
+
+    SelectBuilder sb = new SelectBuilder();
+    for (String column : Sets.newHashSet(columns)) {
+        sb.addColumn(SqlColumnParser.removeTableAlias(column));
+    }
+    // return the name of the columns that are part
+    // of the original params, no need to return also
+    // the columns that are part of the filters
+    rootColumns = sb.getColumnNames();
+    sb.from(getFromClause(params));
+    sb.where(Condition.and(
+            Condition.raw(getWhereClause(params)),
+            Condition.raw(addFiltersToWhereClause(params))));
+
+    // Extract the columns from the where clause
+    List<String> cols = SqlWhereClauseExtractor.extractWhereColumns(sb.build());
+    for (String col : cols) {
+      sb.addColumnIfNotExist(col);
+    }
+    // Add the base aggregate CTE along with the original where
+    // condition, that have to be propagated in every other CTE
+    cteContext.addBaseAggregateCte(sb.build(), SqlAliasReplacer.replaceTableAliases(sb.getWhereClause(), cols));
+
+    return rootColumns;
   }
 
   /**
@@ -1004,6 +1049,48 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Quoted column name for the item (e.g. "ax"."my_column").
     String colName = quote(item.getItemName());
+    if (params.isAggregatedEnrollments()) {
+
+      CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
+      assert baseAggregatedCte != null;
+
+      String cteSql =
+              """
+              select
+                    evt.enrollment,
+                    evt.%s as value
+              from (
+              select
+                  evt.enrollment,
+                  evt.%s,
+                  row_number() over (
+                      partition by evt.enrollment
+                      order by occurreddate desc, created desc
+                  ) as rn
+              from %s evt
+              join %s eb ON eb.enrollment = evt.enrollment
+              where evt.eventstatus != 'SCHEDULE'
+                and evt.ps = '%s' and %s) evt
+                where evt.rn = 1
+              """.formatted(
+                      colName,
+                      colName,
+                      eventTableName,
+                      ENROLLMENT_AGGR_BASE,
+                      item.getProgramStage().getUid(),
+                      baseAggregatedCte.getAggregateWhereClause().replaceAll("%s", "eb"));
+
+      System.out.println(cteSql);
+
+
+      cteContext.addCte(
+              item.getProgramStage(),
+              item,
+              cteSql,
+              computeRowNumberOffset(item.getProgramStageOffset()),
+              false);
+      return;
+    }
 
     // Determine if row context is needed (repeatable stage + rowContextAllowed).
     boolean hasRowContext = rowContextAllowedAndNeeded(params, item);
@@ -1171,6 +1258,50 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             });
   }
 
+  private String buildAggregatedEnrollmentQueryWithCte(List<GridHeader> headers, EventQueryParams params) {
+    CteContext cteContext = new CteContext();
+    // add base aggregation CTE
+    List<String> rootQueryColumns = addBaseAggregationCte(cteContext, params);
+
+    // Add CTE definitions for program indicators, program stages, etc.
+    getCteDefinitions(params, cteContext);
+
+    SelectBuilder sb = new SelectBuilder();
+    // add the CTE with clause based on the CTE definitions accumulated so far
+    addCteClause(sb, cteContext);
+
+    // add select clause
+    sb.addColumn("count(eb.enrollment) as value");
+    // add the columns from the root CTE query
+    rootQueryColumns.stream()
+            .filter(col -> !col.equals("enrollment"))
+            .peek(sb::groupBy)
+            .forEach(sb::addColumn);
+    // add the columns from the CTE definitions
+    cteContext.getCteKeys(ENROLLMENT_AGGR_BASE).forEach(itemUid -> {
+      CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
+      if (cteDef.isProgramStage()) {
+        String columnAlias = quote(
+                cteDef.getProgramStageUid() + "." + cteDef.getItemId());
+        sb.addColumn(cteDef.getAlias() + ".value", "", columnAlias);
+        sb.groupBy(columnAlias);
+      }
+    });
+
+
+    // add from
+    sb.from(ENROLLMENT_AGGR_BASE, "eb");
+
+    // Add join statements for each CTE definition
+    for (String itemUid : cteContext.getCteKeys(ENROLLMENT_AGGR_BASE)) {
+      CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
+      sb.leftJoin(itemUid, cteDef.getAlias(), tableAlias -> tableAlias + ".enrollment = eb.enrollment");
+    }
+
+
+    return sb.build();
+  }
+
   private String buildEnrollmentQueryWithCte(EventQueryParams params) {
     // LUCIANO //
 
@@ -1227,7 +1358,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Append standard columns or aggregated columns
     if (params.isAggregatedEnrollments()) {
-      sb.addColumn("enrollment", "ax");
+      sb.addColumn("count(eb.enrollment) as value");
     } else {
       getStandardColumns()
           .forEach(

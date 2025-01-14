@@ -236,6 +236,11 @@ public class SelectBuilder {
     return this;
   }
 
+  public List<String> getColumnNames() {
+    return columns.stream().map(Column::expression).collect(Collectors.toList());
+  }
+
+
   /**
    * Adds a column with an alias.
    *
@@ -260,6 +265,13 @@ public class SelectBuilder {
     return this;
   }
 
+  public SelectBuilder addColumnIfNotExist(String expression) {
+    if (!columns.contains(Column.of(unquote(expression)))) {
+      columns.add(Column.of(expression));
+    }
+    return this;
+  }
+
   /**
    * Sets the FROM clause table without an alias.
    *
@@ -267,7 +279,7 @@ public class SelectBuilder {
    * @return this builder instance
    */
   public SelectBuilder from(String table) {
-    this.fromTable = table;
+    this.fromTable = sanitizeFromClause(table);
     return this;
   }
 
@@ -284,7 +296,7 @@ public class SelectBuilder {
    * }</pre>
    */
   public SelectBuilder from(String table, String alias) {
-    this.fromTable = table;
+    this.fromTable = sanitizeFromClause(table);;
     this.fromAlias = alias;
     return this;
   }
@@ -357,6 +369,16 @@ public class SelectBuilder {
    */
   public SelectBuilder groupBy(String... columns) {
     groupByClauses.addAll(Arrays.asList(columns));
+    return this;
+  }
+
+  /**
+   * Adds a GROUP BY column.
+   * @param column the column to group by
+   * @return this builder instance
+   */
+  public SelectBuilder groupBy(String column) {
+    groupByClauses.add(column);
     return this;
   }
 
@@ -505,6 +527,10 @@ public class SelectBuilder {
    */
   public String build() {
     return SqlFormatter.lowercase(buildQuery());
+  }
+
+  public String getWhereClause() {
+    return whereCondition.toSql();
   }
 
   /**
@@ -680,5 +706,51 @@ public class SelectBuilder {
     }
 
     return new String[] {column, direction};
+  }
+
+  /**
+   * Sanitizes the FROM clause by removing any leading or trailing "FROM" keyword.
+   *
+   * @param input the input string
+   * @return the sanitized string
+   */
+  private String sanitizeFromClause(String input) {
+    if (input == null) {
+      return null;
+    }
+
+    // Trim whitespace and remove leading/trailing "FROM" keyword (case-insensitive)
+    String sanitized = input.trim();
+    if (sanitized.toUpperCase().startsWith("FROM ")) {
+      sanitized = sanitized.substring(5).trim();
+    }
+    if (sanitized.toUpperCase().endsWith(" FROM")) {
+      sanitized = sanitized.substring(0, sanitized.length() - 5).trim();
+    }
+
+    return sanitized;
+  }
+
+  private static String unquote(String quoted) {
+    // Handle null or empty
+    if (quoted == null || quoted.isEmpty()) {
+      return "";
+    }
+
+    // Check minimum length (needs at least 2 chars for quotes)
+    if (quoted.length() < 2) {
+      return quoted;
+    }
+
+    char firstChar = quoted.charAt(0);
+    char lastChar = quoted.charAt(quoted.length() - 1);
+
+    // Check if quotes match
+    if ((firstChar == '"' && lastChar == '"') ||
+            (firstChar == '`' && lastChar == '`')) {
+      return quoted.substring(1, quoted.length() - 1);
+    }
+
+    return quoted;
   }
 }

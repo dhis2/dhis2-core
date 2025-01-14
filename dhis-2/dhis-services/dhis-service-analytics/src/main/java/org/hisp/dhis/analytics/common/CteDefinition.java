@@ -37,6 +37,7 @@ public class CteDefinition {
   // Query item id
   @Getter private String itemId;
   // The program stage uid
+  @Getter
   private final String programStageUid;
   // The program indicator uid
   private String programIndicatorUid;
@@ -55,7 +56,11 @@ public class CteDefinition {
   // Whether the CTE is a exists, used for checking if the enrollment exists
   private boolean isExists = false;
 
+  @Getter private boolean aggregationBase = false;
+
   @Getter private boolean requiresCoalesce = false;
+
+  @Getter private String aggregateWhereClause;
 
   private static final String PS_PREFIX = "ps";
   private static final String PI_PREFIX = "pi";
@@ -99,6 +104,14 @@ public class CteDefinition {
       boolean isRowContext) {
     this(programStageUid, queryItemId, cteDefinition, offset);
     this.rowContext = isRowContext;
+  }
+
+  public CteDefinition(String cteDefinition, String aggregateWhereClause) {
+    this(null, null, cteDefinition, 0, false);
+    this.rowContext = false;
+    this.aggregationBase = true;
+    assert aggregateWhereClause != null;
+    this.aggregateWhereClause = aggregateWhereClause;
   }
 
   public CteDefinition(String programIndicatorUid, String cteDefinition, boolean requiresCoalesce) {
