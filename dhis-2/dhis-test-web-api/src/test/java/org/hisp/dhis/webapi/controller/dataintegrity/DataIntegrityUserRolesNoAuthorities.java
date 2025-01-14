@@ -28,8 +28,18 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.test.webapi.json.domain.JsonUserRole;
 import org.junit.jupiter.api.Test;
 
 class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrationTest {
@@ -48,10 +58,23 @@ class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrati
     assertStatus(
         HttpStatus.CREATED,
         POST("/userRoles", "{ 'name': 'Good role', 'authorities': ['F_DATAVALUE_ADD'] }"));
-    // Note that two user roles already exist due to the setup in the
-    // AbstractDataIntegrityIntegrationTest class
-    // Thus there should be 4 roles total. Only the Empty role should be flagged.
+
+    JsonObject content = GET("/userRoles?fields=id,authorities").content();
+    JsonList<JsonUserRole> userRolesInSystem = content.getList("userRoles", JsonUserRole.class);
+    assertEquals(3, userRolesInSystem.size());
+
+    List<Integer> userCounts =
+        userRolesInSystem.stream()
+            .map(userRole -> userRole.getList("authorities", JsonString.class).size())
+            .collect(Collectors.toList());
+
+    // Two of the roles have no users, while one has one user
+    // Two of the roles have no users, while one has one user
+    assertEquals(Set.of(0, 1), new HashSet<>(userCounts));
+    assertEquals(1, Collections.frequency(userCounts, 0));
+    assertEquals(2, Collections.frequency(userCounts, 1));
+
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 25, userRoleUid, "Empty role", null, true);
+        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Empty role", null, true);
   }
 }
