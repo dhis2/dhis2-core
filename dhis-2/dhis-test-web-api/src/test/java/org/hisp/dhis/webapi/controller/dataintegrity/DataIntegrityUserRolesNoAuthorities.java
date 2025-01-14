@@ -67,7 +67,7 @@ class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrati
             .map(userRole -> userRole.getList("authorities", JsonString.class).size())
             .toList();
 
-    // Two of the roles have no users, while one has one user
+    // Two of the roles have no authorities, one has one authority.
     assertEquals(Set.of(0, 1), new HashSet<>(authorityCount));
     assertEquals(1, Collections.frequency(authorityCount, 0));
     assertEquals(2, Collections.frequency(authorityCount, 1));
