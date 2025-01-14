@@ -1414,17 +1414,24 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    List<Event> eventSources =
-        eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocSource1), UID.of(cocSource2)));
-    List<Event> targetEvents = eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocTarget)));
+    List<Event> allEvents = eventStore.getAll();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, eventSources.size(), "Expect 0 entries with source COC refs");
-    assertEquals(3, targetEvents.size(), "Expect 3 entries with target COC ref");
+    assertEquals(4, allEvents.size(), "Expect 4 entries still");
+    assertTrue(
+        allEvents.stream()
+            .map(e -> e.getAttributeOptionCombo().getUid())
+            .collect(Collectors.toSet())
+            .containsAll(Set.of(cocTarget.getUid(), cocRandom.getUid())),
+        "All events should only have references to the target coc and the random coc");
     assertEquals(9, allCategoryOptionCombos.size(), "Expect 9 COCs present");
-    assertTrue(allCategoryOptionCombos.containsAll(List.of(cocSource1, cocSource2, cocTarget)));
+    assertTrue(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .containsAll(Set.of(cocSource1.getUid(), cocSource2.getUid(), cocTarget.getUid())));
   }
 
   @Test
@@ -1457,15 +1464,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    List<Event> eventSources =
-        eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocSource1), UID.of(cocSource2)));
-    List<Event> targetEvents = eventStore.getAllByAttributeOptionCombo(List.of(UID.of(cocTarget)));
+    List<Event> allEvents = eventStore.getAll();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, eventSources.size(), "Expect 0 entries with source COC refs");
-    assertEquals(1, targetEvents.size(), "Expect 1 entry with target COC ref");
+    assertEquals(2, allEvents.size(), "Expect 2 entries still");
     assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "source COC should not be present");

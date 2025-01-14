@@ -32,7 +32,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -89,19 +88,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
               """)
         .setParameter(
             "searchStrings", searchStrings.toArray(String[]::new), StringArrayType.INSTANCE)
-        .getResultList();
-  }
-
-  @Override
-  public List<Event> getAllByAttributeOptionCombo(Collection<UID> uids) {
-    if (uids.isEmpty()) return List.of();
-    return getQuery(
-            """
-            select e from Event e
-            join e.attributeOptionCombo aoc
-            where aoc.uid in :uids
-            """)
-        .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }
 
