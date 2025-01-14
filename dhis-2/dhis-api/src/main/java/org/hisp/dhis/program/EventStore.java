@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -54,4 +55,13 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
    * @param uids {@link CategoryOptionCombo} {@link UID}s
    */
   void deleteAllByAttributeOptionCombo(Collection<UID> uids);
+
+  /**
+   * Updates all {@link Event}s with references to {@link CategoryOptionCombo}s, to use the coc
+   * reference.
+   *
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
+   */
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

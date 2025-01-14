@@ -367,7 +367,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and target_duplicate.lastupdated >= source_dv.lastupdated)
                then
                -- delete source
-               RAISE NOTICE 'target duplicate found and target has latest lastUpdated value';
                delete from datavalue
                  where dataelementid = source_dv.dataelementid
                  and periodid = source_dv.periodid
@@ -380,7 +379,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and target_duplicate.lastupdated < source_dv.lastupdated)
                then
                -- delete target
-               RAISE NOTICE 'target duplicate found and source has latest lastUpdated value';
                delete from datavalue
                  where dataelementid = target_duplicate.dataelementid
                  and periodid = target_duplicate.periodid
@@ -398,7 +396,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                  and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
              else
-             RAISE NOTICE 'no target duplicate found, update source with target CategoryOptionCombo';
                -- no target duplicate found, update source with target CategoryOptionCombo
                update datavalue
                  set categoryoptioncomboid = target_coc

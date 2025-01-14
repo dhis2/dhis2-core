@@ -34,7 +34,9 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -108,12 +110,33 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     if (uids.isEmpty()) return;
     String hql =
         """
-        delete from Event e
+        update Event e
+        set e.deleted = true
         where e.attributeOptionCombo in
           (select coc from CategoryOptionCombo coc
           where coc.uid in :uids)
         """;
+    //        """
+    //        delete from Event e
+    //        where e.attributeOptionCombo in
+    //          (select coc from CategoryOptionCombo coc
+    //          where coc.uid in :uids)
+    //        """;
 
     entityManager.createQuery(hql).setParameter("uids", UID.toValueList(uids)).executeUpdate();
+  }
+
+  @Override
+  public void setAttributeOptionCombo(Set<Long> cocs, long coc) {
+    if (cocs.isEmpty()) return;
+    String sql =
+        """
+        update event
+        set attributeoptioncomboid = %s
+        where attributeoptioncomboid in (%s)
+        """
+            .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));
+
+    entityManager.createNativeQuery(sql).executeUpdate();
   }
 }
