@@ -62,15 +62,15 @@ class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrati
     JsonList<JsonUserRole> userRolesInSystem = content.getList("userRoles", JsonUserRole.class);
     assertEquals(3, userRolesInSystem.size());
 
-    List<Integer> userCounts =
+    List<Integer> authorityCount =
         userRolesInSystem.stream()
             .map(userRole -> userRole.getList("authorities", JsonString.class).size())
             .toList();
 
     // Two of the roles have no users, while one has one user
-    assertEquals(Set.of(0, 1), new HashSet<>(userCounts));
-    assertEquals(1, Collections.frequency(userCounts, 0));
-    assertEquals(2, Collections.frequency(userCounts, 1));
+    assertEquals(Set.of(0, 1), new HashSet<>(authorityCount));
+    assertEquals(1, Collections.frequency(authorityCount, 0));
+    assertEquals(2, Collections.frequency(authorityCount, 1));
 
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Empty role", null, true);
