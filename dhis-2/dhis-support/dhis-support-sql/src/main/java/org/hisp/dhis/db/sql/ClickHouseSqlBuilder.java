@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -47,6 +48,13 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   public static final String NAMED_COLLECTION = "pg_dhis";
 
   private static final String QUOTE = "\"";
+
+  // Database
+
+  @Override
+  public Database getDatabase() {
+    return Database.CLICKHOUSE;
+  }
 
   // Data types
 
@@ -363,16 +371,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createIndex(Index index) {
-    return notSupported();
-  }
-
-  @Override
-  public String createCatalog(String connectionUrl, String username, String password) {
-    return notSupported();
-  }
-
-  @Override
-  public String dropCatalogIfExists() {
     return notSupported();
   }
 

@@ -143,11 +143,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private TrackedEntityAttribute teaC;
 
-  private TrackedEntityAttributeValue trackedEntityAttributeValueA;
+  private TrackedEntityAttributeValue tetavA;
 
-  private TrackedEntityAttributeValue trackedEntityAttributeValueB;
+  private TrackedEntityAttributeValue tetavB;
 
-  private TrackedEntityAttributeValue trackedEntityAttributeValueC;
+  private TrackedEntityAttributeValue pteavC;
 
   private TrackedEntityType trackedEntityTypeA;
 
@@ -324,17 +324,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 new ProgramTrackedEntityAttribute(programB, teaE)));
     manager.update(programB);
 
-    trackedEntityAttributeValueA = new TrackedEntityAttributeValue(teaA, trackedEntityA, "A");
-    trackedEntityAttributeValueB = new TrackedEntityAttributeValue(teaB, trackedEntityA, "B");
-    trackedEntityAttributeValueC = new TrackedEntityAttributeValue(teaC, trackedEntityA, "C");
+    tetavA = new TrackedEntityAttributeValue(teaA, trackedEntityA, "A");
+    tetavB = new TrackedEntityAttributeValue(teaB, trackedEntityA, "B");
+    pteavC = new TrackedEntityAttributeValue(teaC, trackedEntityA, "C");
 
     trackedEntityA = createTrackedEntity(orgUnitA);
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
-    trackedEntityA.setTrackedEntityAttributeValues(
-        Set.of(
-            trackedEntityAttributeValueA,
-            trackedEntityAttributeValueB,
-            trackedEntityAttributeValueC));
+    trackedEntityA.setTrackedEntityAttributeValues(Set.of(tetavA, tetavB, pteavC));
     manager.save(trackedEntityA, false);
 
     trackedEntityChildA = createTrackedEntity(orgUnitChildA);
@@ -2015,23 +2011,22 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
 
     assertContainsOnly(
-        Set.of(
-            trackedEntityAttributeValueA,
-            trackedEntityAttributeValueB,
-            trackedEntityAttributeValueC),
-        trackedEntity.getTrackedEntityAttributeValues());
+        Set.of(tetavA, tetavB, pteavC),
+        trackedEntity.getTrackedEntityAttributeValues(),
+        TrackedEntityAttributeValue::getValue);
   }
 
   @Test
-  void shouldReturnTrackedEntityTypeAttributesWhenSingleTERequestedAndNoProgramSpecified()
+  void shouldReturnTrackedEntityTypeAttributesOnlyWhenSingleTERequestedAndNoProgramSpecified()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
 
     assertContainsOnly(
-        Set.of(trackedEntityAttributeValueA, trackedEntityAttributeValueB),
-        trackedEntity.getTrackedEntityAttributeValues());
+        Set.of(tetavA, tetavB),
+        trackedEntity.getTrackedEntityAttributeValues(),
+        TrackedEntityAttributeValue::getValue);
   }
 
   @Test

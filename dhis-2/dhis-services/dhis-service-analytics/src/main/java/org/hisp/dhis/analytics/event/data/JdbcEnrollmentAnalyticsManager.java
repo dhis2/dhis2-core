@@ -56,7 +56,6 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -76,6 +75,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.ListBuilder;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -103,23 +103,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String IS_NOT_NULL = " is not null ";
 
-  private static final List<String> COLUMNS =
-      List.of(
-          EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
-          "ST_AsGeoJSON(" + EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME + ")",
-          EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
-          AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
-          EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME);
+  private static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
+      String.format(
+          "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
 
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -198,11 +184,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
-   * The method retrieves the amount of the supportive columns in database result set
+   * Retrieves the amount of the supportive columns in database result set.
    *
    * @param rowSet {@link SqlRowSet}.
    * @param columnName The name of the investigated column.
-   * @return If the investigated column has some supportive columns lie .exists or .status, the
+   * @return if the investigated column has some supportive columns like .exists or .status, the
    *     count of the columns is returned.
    */
   private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
@@ -215,7 +201,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
-   * Add value meta info into the grid. Value meta info is information about origin of the
+   * Adds value meta info into the grid. Value meta info is information about origin of the
    * repeatable stage value.
    *
    * @param grid the {@link Grid}.
@@ -494,7 +480,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
+            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(),
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -603,39 +589,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       String excludingScheduledCondition =
           eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "' and ";
 
-      if (item.getProgramStage().getRepeatable()
-          && item.hasRepeatableStageParams()
-          && !item.getRepeatableStageParams().simpleStageValueExpected()) {
-        return "(select json_agg(t1) from (select "
-            + colName
-            + ", "
-            + String.join(
-                ", ",
-                EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
-                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
-                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
-            + " from "
-            + eventTableName
-            + " where "
-            + excludingScheduledCondition
-            + eventTableName
-            + ".enrollment = "
-            + ANALYTICS_TBL_ALIAS
-            + ".enrollment "
-            + "and ps = '"
-            + item.getProgramStage().getUid()
-            + "'"
-            + getExecutionDateFilter(
-                item.getRepeatableStageParams().getStartDate(),
-                item.getRepeatableStageParams().getEndDate())
-            + createOrderType(item.getProgramStageOffset())
-            + " "
-            + createOffset(item.getProgramStageOffset())
-            + " "
-            + getLimit(item.getRepeatableStageParams().getCount())
-            + " ) as t1)";
-      }
-
       if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
         return "(select "
             + colName
@@ -696,6 +649,40 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
+   * Returns a list of names of standard columns.
+   *
+   * @return a list of names of standard columns.
+   */
+  private List<String> getStandardColumns() {
+    ListBuilder<String> columns = new ListBuilder<>();
+
+    columns.add(
+        EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME);
+
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.add(
+          COLUMN_ENROLLMENT_GEOMETRY_GEOJSON,
+          EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME);
+    }
+
+    columns.add(
+        EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
+        AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME);
+
+    return columns.build();
+  }
+
+  /**
    * Returns true if the item is a program attribute and the value type is an organizational unit.
    *
    * @param item the {@link QueryItem}.
@@ -745,14 +732,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return sb.toString();
-  }
-
-  private String getLimit(int count) {
-    if (count == Integer.MAX_VALUE) {
-      return "";
-    }
-
-    return " LIMIT " + count;
   }
 
   private void assertProgram(QueryItem item) {

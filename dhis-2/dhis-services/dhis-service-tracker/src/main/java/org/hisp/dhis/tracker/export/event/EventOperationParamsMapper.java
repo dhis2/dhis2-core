@@ -175,7 +175,7 @@ class EventOperationParamsMapper {
           "Organisation unit is specified but does not exist: " + orgUnitUid);
     }
 
-    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }

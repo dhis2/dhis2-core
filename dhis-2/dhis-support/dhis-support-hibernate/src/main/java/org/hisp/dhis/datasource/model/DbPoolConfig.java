@@ -25,48 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.datasource.model;
 
-import java.io.InputStream;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.util.MimeType;
+import java.util.Optional;
+import lombok.Builder;
+import lombok.Value;
+import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
+ * Encapsulation of a database connection pool configuration.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface JobCreationHelper {
+@Value
+@Builder
+public class DbPoolConfig {
+  private String dbPoolType;
 
-  String create(JobConfiguration config) throws ConflictException;
+  private DhisConfigurationProvider dhisConfig;
 
-  String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException;
+  private String driverClassName;
 
-  default String createFromConfig(JobConfiguration config, JobConfigurationStore store) {
-    config.setAutoFields();
-    store.save(config);
-    return config.getUid();
-  }
+  private String jdbcUrl;
 
-  default String createFromConfigAndInputStream(
-      JobConfiguration config,
-      MimeType contentType,
-      InputStream content,
-      JobConfigurationStore store,
-      FileResourceService fileResourceService)
-      throws ConflictException {
-    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
-      throw new ConflictException(
-          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
-    config.setAutoFields(); // ensure UID is set
-    FileResource fr =
-        FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType.toString());
-    fr.setUid(config.getUid());
-    fr.setAssigned(true);
-    fileResourceService.syncSaveFileResource(fr, content);
-    store.save(config);
-    return config.getUid();
+  private String username;
+
+  private String password;
+
+  private String maxPoolSize;
+
+  private String acquireIncrement;
+
+  private String acquireRetryAttempts;
+
+  private String acquireRetryDelay;
+
+  private String maxIdleTime;
+
+  private ConfigKeyMapper mapper;
+
+  public ConfigKeyMapper getMapper() {
+    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
   }
 }

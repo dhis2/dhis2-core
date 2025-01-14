@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.system.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Luciano Fiandesio
- */
-@Getter
-@AllArgsConstructor
-public class TableColumn implements QueryElement {
-  private String prefix;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
-  private String column;
+class ListBuilderTest {
+  @Test
+  void testAdd() {
+    List<String> actual =
+        new ListBuilder<String>().add("one").addAll(List.of("two", "three")).build();
 
-  private String alias;
+    List<String> expected = List.of("one", "two", "three");
 
-  public TableColumn(String prefix, String column) {
-    this.prefix = prefix;
-    this.column = column;
+    assertEquals(expected, actual);
   }
 
-  @Override
-  public String useInSelect() {
-    return prefix + "." + column + (alias == null ? "" : " as " + alias);
-  }
+  @Test
+  void testAddWithInitial() {
+    List<String> actual =
+        new ListBuilder<String>(List.of("one")).addAll(List.of("two", "three")).build();
 
-  @Override
-  public String getResultsetValue() {
-    return alias == null ? column : alias;
+    List<String> expected = List.of("one", "two", "three");
+
+    assertEquals(expected, actual);
   }
 }

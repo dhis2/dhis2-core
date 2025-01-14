@@ -48,7 +48,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -269,26 +268,14 @@ public class HibernateJobConfigurationStore
         Object::toString);
   }
 
+  /**
+   * Note that the transaction boundary has been set here instead of the service to avoid over
+   * complicating the "executeNow" service method which needs this change to be completed and
+   * visible at the end of this method.
+   */
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public boolean tryExecuteNow(@Nonnull String jobId) {
-    String sql =
-        """
-        update jobconfiguration
-        set
-          schedulingtype = 'ONCE_ASAP',
-          cancel = false,
-          jobstatus = 'SCHEDULED'
-        where uid = :id
-        and enabled = true
-        and jobstatus != 'RUNNING'
-        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
-        """;
-    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
-  }
-
-  @Override
-  public boolean executeNow(@Nonnull String jobId) {
     String sql =
         """
         update jobconfiguration
@@ -527,13 +514,13 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and uid = :id
+        and now() > jobconfiguration.lastalive + interval '1 minute'
       """;
     return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
   private static String getSingleResultOrNull(NativeQuery<?> query) {
-    List<?> res = query.list();
-    return res == null || res.isEmpty() ? null : (String) res.get(0);
+    return (String) query.getResultStream().findFirst().orElse(null);
   }
 
   @SuppressWarnings("unchecked")

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,54 @@
 package org.hisp.dhis.scheduling;
 
 import java.io.InputStream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.context.annotation.Profile;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
 @Slf4j
-@RequiredArgsConstructor
 @Service
-@Profile("!test")
-public class JobCreationHelperForProduction implements JobCreationHelper {
+@RequiredArgsConstructor
+public class DefaultJobExecutionService implements JobExecutionService {
 
-  private final JobConfigurationStore jobConfigurationStore;
-  private final FileResourceService fileResourceService;
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
 
-  @Transactional
-  public String create(JobConfiguration config) throws ConflictException {
-    return createFromConfig(config, jobConfigurationStore);
+  @Override
+  @NonTransactional
+  public void executeOnceNow(
+      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
+      throws ConflictException {
+    validateIsNewRunOnce(config);
+    executeOnceNow(jobConfigurationService.create(config, contentType, content));
   }
 
-  @Transactional
-  public String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException {
-    return createFromConfigAndInputStream(
-        config, contentType, content, jobConfigurationStore, fileResourceService);
+  @Override
+  @NonTransactional
+  public void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException {
+    validateIsNewRunOnce(config);
+    executeOnceNow(jobConfigurationService.create(config));
+  }
+
+  private void executeOnceNow(String jobId) throws ConflictException {
+    try {
+      jobSchedulerService.executeNow(jobId);
+    } catch (NotFoundException ex) {
+      log.error("Ad-hoc job creation failed", ex);
+      ConflictException error = new ConflictException("Ad-hoc job creation failed");
+      error.initCause(ex);
+      throw error;
+    }
+  }
+
+  private void validateIsNewRunOnce(JobConfiguration config) throws ConflictException {
+    if (config.getId() != 0 || config.getSchedulingType() != SchedulingType.ONCE_ASAP)
+      throw new ConflictException(
+          "Job %s must be a run once type but was: %s"
+              .formatted(config.getName(), config.getSchedulingType()));
   }
 }

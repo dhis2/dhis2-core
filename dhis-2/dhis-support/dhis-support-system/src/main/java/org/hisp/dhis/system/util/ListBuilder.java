@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.system.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-/**
- * @author Luciano Fiandesio
- */
-@Getter
-@AllArgsConstructor
-public class Function implements QueryElement {
-  private String function;
+/** Builder of immutable lists. */
+public class ListBuilder<T> {
+  private final List<T> list;
 
-  private String prefix;
-
-  private String column;
-
-  private String alias;
-
-  @Override
-  public String useInSelect() {
-    return this.function + "(" + prefix + "." + column + ") as " + alias;
+  public ListBuilder() {
+    list = new ArrayList<>();
   }
 
-  @Override
-  public String getResultsetValue() {
-    return alias == null ? column : alias;
+  public ListBuilder(List<T> initial) {
+    list = new ArrayList<>(initial);
+  }
+
+  public final ListBuilder<T> addAll(List<T> items) {
+    this.list.addAll(items);
+    return this;
+  }
+
+  @SafeVarargs
+  public final ListBuilder<T> add(T... items) {
+    this.list.addAll(Arrays.asList(items));
+    return this;
+  }
+
+  public final ListBuilder<T> add(T item) {
+    this.list.add(item);
+    return this;
+  }
+
+  public List<T> build() {
+    return Collections.unmodifiableList(list);
   }
 }
