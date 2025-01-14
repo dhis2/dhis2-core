@@ -29,6 +29,7 @@ package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOption;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Component;
  *
  * @author david mackessy
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class MetadataCategoryOptionComboMergeHandler {
@@ -69,6 +71,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    * @param target to add
    */
   public void handleCategoryOptions(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source category options");
     List<CategoryOption> categoryOptions =
         categoryOptionStore.getByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -87,6 +90,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    * @param target to add
    */
   public void handleCategoryCombos(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source category combos");
     List<CategoryCombo> categoryCombos =
         categoryComboStore.getByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -106,6 +110,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    */
   public void handleDataElementOperands(
       List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source data element operands");
     List<DataElementOperand> dataElementOperands =
         dataElementOperandStore.getByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -121,6 +126,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    */
   public void handleMinMaxDataElements(
       List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source min max data elements");
     List<MinMaxDataElement> minMaxDataElements =
         minMaxDataElementStore.getByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -135,6 +141,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    * @param target to add
    */
   public void handlePredictors(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source predictors");
     List<Predictor> predictors =
         predictorStore.getByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -149,6 +156,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    * @param target to add
    */
   public void handleSmsCodes(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source SMS codes");
     List<SMSCode> smsCodes =
         smsCommandStore.getCodesByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
