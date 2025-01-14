@@ -753,7 +753,7 @@ public non-sealed interface SystemSettings extends Settings {
     return asString(
         "passwordValidationPattern",
         String.format(
-            "^(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
+            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
             getMinPasswordLength(), getMaxPasswordLength()));
   }
 }

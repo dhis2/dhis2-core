@@ -109,6 +109,7 @@ class SystemSettingsTest {
     assertTrue(pattern.startsWith("^"));
     assertTrue(pattern.endsWith("$"));
     assertTrue(pattern.contains("(?=.*[A-Z])")); // At least one uppercase
+    assertTrue(pattern.contains("(?=.*[a-z])")); // At least one lowercase
     assertTrue(pattern.contains("(?=.*\\d)")); // At least one digit
     assertTrue(pattern.contains("(?=.*[\\W_])")); // At least one special char
     assertTrue(pattern.contains("{8,72}")); // Default length constraints
