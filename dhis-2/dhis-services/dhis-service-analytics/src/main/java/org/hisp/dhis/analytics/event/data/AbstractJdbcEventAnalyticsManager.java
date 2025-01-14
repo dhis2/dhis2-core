@@ -333,7 +333,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * period will not be present in the query, so add it to the select columns and skip it in the
    * group by columns.
    */
-  private void addDimensionSelectColumns(
+  protected void addDimensionSelectColumns(
       List<String> columns, EventQueryParams params, boolean isGroupByClause) {
     params
         .getDimensions()
