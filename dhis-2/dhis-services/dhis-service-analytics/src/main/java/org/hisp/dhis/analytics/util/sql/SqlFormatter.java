@@ -105,8 +105,8 @@ public class SqlFormatter {
   }
 
   /**
-   * Converts SQL keywords to lowercase and formats the SQL string into a single line.
-   * Preserves single spaces between words and removes extra whitespace.
+   * Converts SQL keywords to lowercase and formats the SQL string into a single line. Preserves
+   * single spaces between words and removes extra whitespace.
    *
    * @param sql the SQL string to format
    * @return formatted SQL string in a single line with lowercase keywords

@@ -26,11 +26,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.analytics.util.sql;
+
 /**
- * Functional interface for building SQL JOIN conditions.
- * The interface takes a table alias and returns the corresponding JOIN condition.
+ * Functional interface for building SQL JOIN conditions. The interface takes a table alias and
+ * returns the corresponding JOIN condition.
  *
  * <p>Examples:
+ *
  * <pre>{@code
  * // Simple join on id
  * JoinCondition idJoin = alias -> alias + ".user_id = users.id";
@@ -50,6 +52,7 @@ package org.hisp.dhis.analytics.util.sql;
  * }</pre>
  *
  * <p>Typical usage in SelectBuilder:
+ *
  * <pre>{@code
  * SelectBuilder builder = new SelectBuilder()
  *     .from("users", "u")
