@@ -34,8 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
