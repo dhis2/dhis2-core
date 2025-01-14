@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -230,19 +231,25 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
-    log.info(
-        "Swapping table, master table exists: '{}', skip master table: '{}'",
-        tableExists,
-        skipMasterTable);
+    log.info("Swapping table: '{}'", table.getMainName());
+    log.info("Master table exists: '{}', skip master table: '{}'", tableExists, skipMasterTable);
+
     List<Table> swappedPartitions = new UniqueArrayList<>();
-    table.getTablePartitions().stream()
-        .forEach(p -> swappedPartitions.add(swapTable(p, p.getMainName())));
+
+    if (!sqlBuilder.supportsDeclarativePartitioning()) {
+      table.getTablePartitions().forEach(part -> swapTable(part, part.getMainName()));
+      table.getTablePartitions().forEach(part -> swappedPartitions.add(part.fromStaging()));
+    }
 
     if (!skipMasterTable) {
+      // Full replace update and main table exist, swap main table
       swapTable(table, table.getMainName());
     } else {
-      swappedPartitions.forEach(
-          partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+      // Incremental append update, update parent of partitions to existing main table
+      if (!sqlBuilder.supportsDeclarativePartitioning()) {
+        swappedPartitions.forEach(
+            partition -> swapParentTable(partition, table.getName(), table.getMainName()));
+      }
       dropTable(table);
     }
   }
@@ -289,9 +296,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private Table swapTable(Table stagingTable, String mainTableName) {
-    executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
-    return stagingTable.swapFromStaging();
+  private void swapTable(Table stagingTable, String mainTableName) {
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    } else {
+      executeSilently(sqlBuilder.dropTableIfExistsCascade(mainTableName));
+      executeSilently(sqlBuilder.renameTable(stagingTable, mainTableName));
+    }
   }
 
   /**
@@ -301,8 +312,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingMasterName the staging master table name.
    * @param mainMasterName the main master table name.
    */
-  private void swapInheritance(Table partition, String stagingMasterName, String mainMasterName) {
-    executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+  private void swapParentTable(Table partition, String stagingMasterName, String mainMasterName) {
+    if (sqlBuilder.supportsMultiStatements()) {
+      executeSilently(sqlBuilder.swapParentTable(partition, stagingMasterName, mainMasterName));
+    } else {
+      executeSilently(sqlBuilder.removeParentTable(partition, stagingMasterName));
+      executeSilently(sqlBuilder.setParentTable(partition, mainMasterName));
+    }
   }
 
   /**
@@ -333,15 +349,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Indicates whether spatial support is available.
+   * Indicates whether the DBMS supports geospatial data types and functions.
    *
-   * @return true if spatial support is available.
+   * @return true if the DBMS supports geospatial data types and functions.
    */
-  protected boolean isSpatialSupport() {
-    return analyticsTableSettings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  protected boolean isGeospatialSupport() {
+    return sqlBuilder.supportsGeospatialData();
   }
 
-  /** Returns the analytics table name. */
+  /**
+   * Returns the analytics table name.
+   *
+   * @return the analytics table name.
+   */
   protected String getTableName() {
     return getAnalyticsTableType().getTableName();
   }
@@ -435,6 +455,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     String logMessage = format(logPattern, args);
 
     log.info("{} in: {}", logMessage, timer.stop().toString());
+  }
+
+  /**
+   * Returns a map of identifiable properties and values.
+   *
+   * @param object the {@link IdentifiableObject}.
+   * @return a {@link Map}.
+   */
+  protected Map<String, String> toVariableMap(IdentifiableObject object) {
+    return Map.of(
+        "id", String.valueOf(object.getId()),
+        "uid", quote(object.getUid()));
   }
 
   /**

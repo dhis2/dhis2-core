@@ -25,48 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.analytics;
 
-import java.io.InputStream;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.util.MimeType;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public interface JobCreationHelper {
-
-  String create(JobConfiguration config) throws ConflictException;
-
-  String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException;
-
-  default String createFromConfig(JobConfiguration config, JobConfigurationStore store) {
-    config.setAutoFields();
-    store.save(config);
-    return config.getUid();
-  }
-
-  default String createFromConfigAndInputStream(
-      JobConfiguration config,
-      MimeType contentType,
-      InputStream content,
-      JobConfigurationStore store,
-      FileResourceService fileResourceService)
-      throws ConflictException {
-    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
-      throw new ConflictException(
-          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
-    config.setAutoFields(); // ensure UID is set
-    FileResource fr =
-        FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType.toString());
-    fr.setUid(config.getUid());
-    fr.setAssigned(true);
-    fileResourceService.syncSaveFileResource(fr, content);
-    store.save(config);
-    return config.getUid();
-  }
+public enum Aggregation {
+  AGGREGATED,
+  DISAGGREGATED
 }

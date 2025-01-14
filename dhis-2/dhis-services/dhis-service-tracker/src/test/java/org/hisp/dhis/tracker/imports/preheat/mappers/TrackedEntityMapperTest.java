@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +58,7 @@ class TrackedEntityMapperTest {
 
     OrganisationUnit orgUnit =
         setIdSchemeFields(
-            new OrganisationUnit(),
+            createOrganisationUnit('A'),
             "HpSAvRWtdDR",
             "meet",
             "green",

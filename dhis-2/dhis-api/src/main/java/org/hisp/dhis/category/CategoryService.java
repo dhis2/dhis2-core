@@ -111,13 +111,6 @@ public interface CategoryService {
   Category getCategoryByName(String name, UserDetails userDetails);
 
   /**
-   * Returns all DataElementCategories.
-   *
-   * @return a list of all DataElementCategories.
-   */
-  List<Category> getAllDataElementCategories();
-
-  /**
    * Retrieves all DataElementCategories of dimension type disaggregation.
    *
    * @return a list of CategoryCombos.
@@ -329,24 +322,6 @@ public interface CategoryService {
    * @return a list of CategoryCombos.
    */
   List<CategoryCombo> getAttributeCategoryCombos();
-
-  /**
-   * Validates the category combo. Possible return values are:
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>category_combo_is_null
-   *   <li>category_combo_must_have_at_least_one_category
-   *   <li>category_combo_cannot_have_duplicate_categories
-   *   <li>categories_must_have_at_least_one_category_option
-   *   <li>categories_cannot_share_category_options
-   * </ul>
-   *
-   * @param categoryCombo the category combo to validate.
-   * @return null if valid, non-empty string if invalid.
-   */
-  String validateCategoryCombo(CategoryCombo categoryCombo);
 
   // -------------------------------------------------------------------------
   // CategoryOptionCombo

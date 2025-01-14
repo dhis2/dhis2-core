@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.scheduling;
 
-/**
- * @author Luciano Fiandesio
- */
-public interface QueryElement {
-  String useInSelect();
+import java.io.InputStream;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ConflictException;
+import org.springframework.util.MimeType;
 
-  String getResultsetValue();
+public interface JobExecutionService {
+
+  /**
+   * Creates and runs a new job for one-off operations executed via the scheduler.
+   *
+   * @param config a new job that does not exist yet
+   * @param contentType of the provided content data
+   * @param content the data that should be processed by the job which is stored as file
+   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
+   *     configured correctly
+   */
+  void executeOnceNow(
+      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
+      throws ConflictException;
+
+  /**
+   * Creates and runs a new job for one-off operations executed via the scheduler.
+   *
+   * @param config a new job that does not exist yet
+   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
+   *     configured correctly
+   */
+  void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException;
 }

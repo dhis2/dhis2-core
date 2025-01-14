@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * @author Luciano Fiandesio
- */
-@Getter
-@AllArgsConstructor
-public class TableColumn implements QueryElement {
-  private String prefix;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Sortable {
 
-  private String column;
+  boolean value() default true;
 
-  private String alias;
-
-  public TableColumn(String prefix, String column) {
-    this.prefix = prefix;
-    this.column = column;
-  }
-
-  @Override
-  public String useInSelect() {
-    return prefix + "." + column + (alias == null ? "" : " as " + alias);
-  }
-
-  @Override
-  public String getResultsetValue() {
-    return alias == null ? column : alias;
-  }
+  boolean whenPersisted() default true;
 }

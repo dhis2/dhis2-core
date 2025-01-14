@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -63,11 +62,7 @@ import org.springframework.stereotype.Component;
  */
 @Component("org.hisp.dhis.tracker.imports.validation.validator.event.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-@Slf4j
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
-
-  private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      "Event {} has no organisation unit assigned, so we skip user validation";
 
   @Nonnull private final AclService aclService;
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
@@ -93,10 +88,15 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
     }
 
-    // If event is newly created, or going to be deleted, capture scope
-    // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
+      checkEventOrgUnitWriteAccess(
+          reporter,
+          event,
+          organisationUnit,
+          strategy.isCreate()
+              ? event.isCreatableInSearchScope()
+              : preheatEvent.isCreatableInSearchScope(),
+          bundle.getUser());
     }
 
     UID teUid = getTeUidFromEvent(bundle, event, program);
@@ -228,13 +228,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     return true;
   }
 
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(orgUnit.getPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
   private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
@@ -300,9 +293,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       boolean isCreatableInSearchScope,
       UserDetails user) {
+    String path = eventOrgUnit.getStoredPath();
     if (isCreatableInSearchScope
-        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(eventOrgUnit.getPath())
-        : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
+        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
+        : !user.isInUserHierarchy(path)) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }

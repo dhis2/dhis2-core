@@ -32,6 +32,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -47,6 +48,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Constants
 
   private static final String QUOTE = "\"";
+
+  // Database
+
+  @Override
+  public Database getDatabase() {
+    return Database.POSTGRESQL;
+  }
 
   // Data types
 
@@ -191,6 +199,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsMultiStatements() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return true;
   }
@@ -231,16 +244,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return "concat(" + String.join(", ", columns) + ")";
-  }
-
-  @Override
-  public String trim(String expression) {
-    return "trim(" + expression + ")";
-  }
-
-  @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
   }
@@ -251,23 +254,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String jsonExtractNested(String column, String... expression) {
-    return String.format("%s #>> '{%s}'", column, String.join(", ", expression));
+  public String jsonExtract(String json, String key, String property) {
+    String path = String.join(", ", key, property);
+    return String.format("%s #>> '{%s}'", json, path);
   }
 
   @Override
   public String cast(String column, DataType dataType) {
-    return column
-        + switch (dataType) {
-          case NUMERIC -> "::numeric";
-          case BOOLEAN -> "::numeric!=0";
-          case TEXT -> "::text";
-        };
-  }
-
-  @Override
-  public String age(String endDate, String startDate) {
-    return String.format("age(cast(%s as date), cast(%s as date))", endDate, startDate);
+    return switch (dataType) {
+      case NUMERIC -> String.format("%s::numeric", column);
+      case BOOLEAN -> String.format("%s::numeric != 0", column);
+      case TEXT -> String.format("%s::text", column);
+    };
   }
 
   @Override
@@ -278,6 +276,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
           String.format(
               "(extract(epoch from (cast(%s as timestamp) - cast(%s as timestamp))) / 60)",
               endDate, startDate);
+      case WEEKS ->
+          String.format("((cast(%s as date) - cast(%s as date)) / 7)", endDate, startDate);
       case MONTHS ->
           String.format(
               "((date_part('year',age(cast(%s as date), cast(%s as date)))) * 12 + "
@@ -286,9 +286,29 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
       case YEARS ->
           String.format(
               "(date_part('year',age(cast(%s as date), cast(%s as date))))", endDate, startDate);
-      case WEEKS ->
-          String.format("((cast(%s as date) - cast(%s as date)) / 7)", endDate, startDate);
     };
+  }
+
+  @Override
+  public String ifThen(String condition, String result) {
+    return String.format("case when %s then %s end", condition, result);
+  }
+
+  @Override
+  public String ifThenElse(String condition, String thenResult, String elseResult) {
+    return String.format("case when %s then %s else %s end", condition, thenResult, elseResult);
+  }
+
+  @Override
+  public String ifThenElse(
+      String conditionA,
+      String thenResultA,
+      String conditionB,
+      String thenResultB,
+      String elseResult) {
+    return String.format(
+        "case when %s then %s when %s then %s else %s end",
+        conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
   // Statements
@@ -411,15 +431,5 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         : String.format(
             "create %sindex %s on %s using %s(%s %s);",
             unique, quote(index.getName()), quote(tableName), typeName, columns, sortOrder);
-  }
-
-  @Override
-  public String createCatalog(String connectionUrl, String username, String password) {
-    return notSupported();
-  }
-
-  @Override
-  public String dropCatalogIfExists() {
-    return notSupported();
   }
 }

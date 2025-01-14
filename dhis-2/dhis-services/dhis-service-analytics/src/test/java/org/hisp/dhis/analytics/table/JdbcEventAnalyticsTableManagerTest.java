@@ -357,7 +357,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program program = createProgram('A');
 
     DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
@@ -378,7 +377,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD2 =
         """
         case when eventdatavalues #>> '{deabcdefghP, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
-        then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) else null end as "deabcdefghP\"""";
+        then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) end as "deabcdefghP\"""";
     String aliasD3 =
         """
         case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
@@ -386,13 +385,13 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD4 =
         """
         case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
-        then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) else null end as "deabcdefghW\"""";
+        then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) end as "deabcdefghW\"""";
     String aliasD5 =
         "eventdatavalues #>> '{" + d5.getUid() + ", value}' as \"" + d5.getUid() + "\"";
     String aliasD6 =
         """
         case when eventdatavalues #>> '{deabcdefghH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
-        then cast(eventdatavalues #>> '{deabcdefghH, value}' as bigint) else null end as "deabcdefghH\"""";
+        then cast(eventdatavalues #>> '{deabcdefghH, value}' as bigint) end as "deabcdefghH\"""";
     String aliasD7 =
         """
         ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{deabcdefghU, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}') as "deabcdefghU\"""";
@@ -478,7 +477,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithTrackedEntityAttribute() {
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program program = createProgram('A');
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
@@ -552,7 +550,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
@@ -605,7 +602,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -661,7 +657,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -878,7 +873,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);

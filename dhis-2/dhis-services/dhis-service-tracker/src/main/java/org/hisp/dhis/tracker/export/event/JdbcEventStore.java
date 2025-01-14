@@ -132,7 +132,6 @@ class JdbcEventStore {
        n.created as note_created,\
        n.creator as note_creator,\
        n.uid as note_uid,\
-       n.lastupdated as note_lastupdated,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
        userinfo.uid as note_user_uid,\
@@ -466,8 +465,6 @@ class JdbcEventStore {
                 noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
-
-              note.setLastUpdated(resultSet.getTimestamp("note_lastupdated"));
 
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
@@ -1198,7 +1195,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createDescendantsSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
@@ -1211,7 +1208,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1234,7 +1231,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1615,7 +1612,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + " ";
+      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
     } else {
       return "order by " + DEFAULT_ORDER + " ";
     }

@@ -25,39 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.system.util;
 
-import java.io.InputStream;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MimeType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Slf4j
-@RequiredArgsConstructor
-@Service
-@Profile("!test")
-public class JobCreationHelperForProduction implements JobCreationHelper {
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
-  private final JobConfigurationStore jobConfigurationStore;
-  private final FileResourceService fileResourceService;
+class ListBuilderTest {
+  @Test
+  void testAdd() {
+    List<String> actual =
+        new ListBuilder<String>().add("one").addAll(List.of("two", "three")).build();
 
-  @Transactional
-  public String create(JobConfiguration config) throws ConflictException {
-    return createFromConfig(config, jobConfigurationStore);
+    List<String> expected = List.of("one", "two", "three");
+
+    assertEquals(expected, actual);
   }
 
-  @Transactional
-  public String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException {
-    return createFromConfigAndInputStream(
-        config, contentType, content, jobConfigurationStore, fileResourceService);
+  @Test
+  void testAddWithInitial() {
+    List<String> actual =
+        new ListBuilder<String>(List.of("one")).addAll(List.of("two", "three")).build();
+
+    List<String> expected = List.of("one", "two", "three");
+
+    assertEquals(expected, actual);
   }
 }

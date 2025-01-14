@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
-public class PostgresAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
+public class PostgreSqlAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
 
   /**
    * Returns a subquery that expand the event datavalue jsonb with two additional fields:

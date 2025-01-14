@@ -112,6 +112,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getUser()).thenReturn(user);
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
+    organisationUnit.updatePath();
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);

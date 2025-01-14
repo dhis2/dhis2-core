@@ -25,45 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasource.model;
+package org.hisp.dhis.tracker.imports.note;
 
-import java.util.Optional;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.imports.domain.Note;
 
-/**
- * Encapsulation of a database connection pool configuration.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Value
-@Builder
-public class PoolConfig {
-  private String dbPoolType;
+public interface NoteService {
+  void addNoteForEnrollment(Note note, UID enrollment)
+      throws ForbiddenException, NotFoundException, BadRequestException;
 
-  private DhisConfigurationProvider dhisConfig;
-
-  private String jdbcUrl;
-
-  private String username;
-
-  private String password;
-
-  private String maxPoolSize;
-
-  private String acquireIncrement;
-
-  private String acquireRetryAttempts;
-
-  private String acquireRetryDelay;
-
-  private String maxIdleTime;
-
-  private ConfigKeyMapper mapper;
-
-  public ConfigKeyMapper getMapper() {
-    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
-  }
+  void addNoteForEvent(Note note, UID event)
+      throws ForbiddenException, NotFoundException, BadRequestException;
 }

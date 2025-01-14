@@ -25,32 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.time.LocalDateTime;
+import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonList;
 
 /**
- * @author Luciano Fiandesio
+ * Web API equivalent of a {@link org.hisp.dhis.webapi.controller.user.MeDto}.
+ *
+ * @author Morten Svanæs
  */
-@Getter
-@AllArgsConstructor
-public class Function implements QueryElement {
-  private String function;
-
-  private String prefix;
-
-  private String column;
-
-  private String alias;
-
-  @Override
-  public String useInSelect() {
-    return this.function + "(" + prefix + "." + column + ") as " + alias;
+public interface JsonMeDto extends JsonIdentifiableObject {
+  default String getUsername() {
+    return getString("username").string();
   }
 
-  @Override
-  public String getResultsetValue() {
-    return alias == null ? column : alias;
+  default String getSurname() {
+    return getString("surname").string();
+  }
+
+  default String getFirstName() {
+    return getString("firstName").string();
+  }
+
+  default JsonList<JsonUserGroup> getUserGroups() {
+    return getList("userGroups", JsonUserGroup.class);
+  }
+
+  default boolean getEmailVerified() {
+    return get("emailVerified", JsonBoolean.class).booleanValue();
+  }
+
+  default JsonList<JsonOrganisationUnit> getOrganisationUnits() {
+    return getList("organisationUnits", JsonOrganisationUnit.class);
+  }
+
+  default JsonList<JsonOrganisationUnit> getDataViewOrganisationUnits() {
+    return getList("dataViewOrganisationUnits", JsonOrganisationUnit.class);
+  }
+
+  default JsonList<JsonOrganisationUnit> getTeiSearchOrganisationUnits() {
+    return getList("teiSearchOrganisationUnits", JsonOrganisationUnit.class);
+  }
+
+  default LocalDateTime getLastLogin() {
+    return get("lastLogin", JsonDate.class).date();
+  }
+
+  default LocalDateTime getAccountExpiry() {
+    return get("accountExpiry", JsonDate.class).date();
   }
 }

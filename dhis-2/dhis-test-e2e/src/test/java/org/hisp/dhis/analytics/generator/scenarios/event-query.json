@@ -16,9 +16,30 @@
     },
     {
       "name": "financialYear2023Sep",
-      "query": "/api/42/analytics/events/query/IpHINAT79UW?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&lastUpdated=2023Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&lastUpdated=2023Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR",
       "version": {
         "min": 42
+      }
+    },
+    {
+      "name": "programIndicatorMalariaCaseMicroscopyPv5_14YearsFemale",
+      "query": "/api/analytics/events/query/qDkgAbB5Jlk.json?dimension=TEmaOXaSPe7,ou:USER_ORGUNIT&headers=ouname,TEmaOXaSPe7&totalPages=false&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&outputType=EVENT&stage=hYyB7FUS5eR&enrollmentDate=MONTHS_THIS_YEAR&relativePeriodDate=2022-07-01&desc=lastupdated",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "programIndicatorNumberOfOrgUnitsWithOngoingArv",
+      "query": "/api/analytics/events/query/WSGAb5XwJ3Y.json?dimension=ou:USER_ORGUNIT,rxNjqzJ7dkK:GE:0&headers=ouname,rxNjqzJ7dkK,lastupdated&totalPages=false&displayProperty=NAME&includeMetadataDetails=true&outputType=EVENT&stage=PUZaKR0Jh2k&lastUpdated=LAST_YEAR&pageSize=10&page=1&relativePeriodDate=2019-07-01&desc=lastupdated",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "programIndicatorBMIFemaleUnder5y",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=hlPt8H4bUOQ,ou:USER_ORGUNIT&headers=ouname,lastupdated,hlPt8H4bUOQ&totalPages=false&lastUpdated=LAST_12_MONTHS&displayProperty=NAME&pageSize=5&page=1&includeMetadataDetails=true&outputType=EVENT&stage=Zj7UnCAulEk&relativePeriodDate=2019-02-01&desc=lastupdated",
+      "version": {
+        "min": 41
       }
     }
   ]

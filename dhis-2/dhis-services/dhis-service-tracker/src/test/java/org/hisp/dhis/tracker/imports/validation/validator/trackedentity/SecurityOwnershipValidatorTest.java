@@ -106,6 +106,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   public void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
+    organisationUnit.updatePath();
 
     User userA = makeUser("A");
     userA.addOrganisationUnit(organisationUnit);

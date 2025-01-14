@@ -57,9 +57,7 @@ class GridHeaderTest {
   void getWithRepeatableStageParamTest() {
     RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-    repeatableStageParams.setStartIndex(1);
-
-    repeatableStageParams.setCount(Integer.MAX_VALUE);
+    repeatableStageParams.setIndex(1);
 
     GridHeader gridHeader =
         new GridHeader(
@@ -74,7 +72,7 @@ class GridHeaderTest {
             repeatableStageParams);
 
     assertEquals(
-        "startIndex:1 count:all startDate:null endDate: null",
+        "index:1 startDate:null endDate: null dimension: null",
         gridHeader.getRepeatableStageParams());
   }
 
@@ -82,9 +80,7 @@ class GridHeaderTest {
   void getStageOffsetWithRepeatableStageParamTest() {
     RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-    repeatableStageParams.setStartIndex(1);
-
-    repeatableStageParams.setCount(Integer.MAX_VALUE);
+    repeatableStageParams.setIndex(1);
 
     GridHeader gridHeader =
         new GridHeader(

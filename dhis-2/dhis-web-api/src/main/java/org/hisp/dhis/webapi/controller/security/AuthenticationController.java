@@ -229,12 +229,12 @@ public class AuthenticationController {
       redirectUrl += "/";
     }
 
-    // Check enforce verified email, redirect to the account page if email is not verified
+    // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/dhis-web-user-profile/#/account";
+        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
       }
     }
 
