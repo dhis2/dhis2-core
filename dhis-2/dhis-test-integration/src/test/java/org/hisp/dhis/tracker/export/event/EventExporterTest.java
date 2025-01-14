@@ -48,7 +48,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -1053,9 +1052,11 @@ class EventExporterTest extends TrackerTest {
   private static void assertNotes(List<Note> expected, List<Note> actual) {
     assertContainsOnly(expected, actual);
     Map<String, Note> expectedNotes =
-        expected.stream().collect(Collectors.toMap(Note::getUid, Function.identity()));
+        expected.stream()
+            .collect(Collectors.toMap(Note::getUid, java.util.function.Function.identity()));
     Map<String, Note> actualNotes =
-        actual.stream().collect(Collectors.toMap(Note::getUid, Function.identity()));
+        actual.stream()
+            .collect(Collectors.toMap(Note::getUid, java.util.function.Function.identity()));
     List<Executable> assertions =
         expectedNotes.entrySet().stream()
             .map(
