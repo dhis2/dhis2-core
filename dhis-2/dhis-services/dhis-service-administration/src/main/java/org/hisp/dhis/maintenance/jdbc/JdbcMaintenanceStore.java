@@ -105,8 +105,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
   }
 
   @Override
-  public int hardDeleteEvents(
-      List<String> eventsToDelete, String eventSelect, String eventDeleteQuery) {
+  public int hardDeleteEvents(List<String> eventsToDelete, String eventSelect, String eventDelete) {
     String pmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
     /*
@@ -132,7 +131,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage where eventid in " + eventSelect,
           "delete from programnotificationinstance where eventid in " + eventSelect,
           // finally delete the events
-          eventDeleteQuery
+          eventDelete
         };
 
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];

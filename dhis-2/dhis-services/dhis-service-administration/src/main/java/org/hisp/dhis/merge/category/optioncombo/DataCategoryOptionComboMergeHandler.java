@@ -85,18 +85,12 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
-    log.info("Handling data values");
-
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info(
-          mergeRequest.getDataMergeStrategy()
-              + " dataMergeStrategy being used, deleting source data values");
+      log.info("Deleting source data values as dataMergeStrategy is DISCARD");
       dataValueStore.deleteDataValuesByCategoryOptionCombo(sources);
       dataValueStore.deleteDataValuesByAttributeOptionCombo(sources);
     } else {
-      log.info(
-          mergeRequest.getDataMergeStrategy()
-              + " dataMergeStrategy being used, merging source data values");
+      log.info("Merging source data values as dataMergeStrategy is LAST_UPDATED");
       dataValueStore.mergeDataValuesWithCategoryOptionCombos(target, sources);
       dataValueStore.mergeDataValuesWithAttributeOptionCombos(target, sources);
     }
@@ -108,10 +102,9 @@ public class DataCategoryOptionComboMergeHandler {
    */
   public void handleDataValueAudits(
       @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
-    log.info("Handling data values audits");
     if (mergeRequest.isDeleteSources()) {
       log.info(
-          "Deleting source data value audit records as source CategoryOptionCombos are being deleted");
+          "Deleting source data value audits as source CategoryOptionCombos are being deleted");
       sources.forEach(dataValueAuditStore::deleteDataValueAudits);
     } else {
       log.info(
@@ -123,13 +116,12 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
-    log.info("Handling data approvals");
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("deleting data approvals as DISCARD");
+      log.info("Deleting source data approvals as dataMergeStrategy is DISCARD");
       dataApprovalStore.deleteByCategoryOptionCombo(
           UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
     } else {
-      log.info("merging data approvals as LAST_UPDATED");
+      log.info("Merging source data approvals as dataMergeStrategy is LAST_UPDATED");
       List<DataApproval> sourceDas =
           dataApprovalStore.getByCategoryOptionCombo(
               UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
@@ -158,10 +150,9 @@ public class DataCategoryOptionComboMergeHandler {
    */
   public void handleDataApprovalAudits(
       @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
-    log.info("Handling data approval audits");
     if (mergeRequest.isDeleteSources()) {
       log.info(
-          "Deleting source data approval audit records as source CategoryOptionCombos are being deleted");
+          "Deleting source data approval audits as source CategoryOptionCombos are being deleted");
       sources.forEach(dataApprovalAuditStore::deleteDataApprovalAudits);
     } else {
       log.info(
@@ -179,9 +170,8 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
-    log.info("handling Events");
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("deleting events as DISCARD");
+      log.info("Deleting source events as dataMergeStrategy is DISCARD");
       String aocIds =
           sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
 
@@ -199,7 +189,7 @@ public class DataCategoryOptionComboMergeHandler {
           eventSelect,
           "delete from event where attributeoptioncomboid in (%s)".formatted(aocIds));
     } else {
-      log.info("merging events as LAST_UPDATED");
+      log.info("Merging source events as dataMergeStrategy is LAST_UPDATED");
 
       eventStore.setAttributeOptionCombo(
           sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
@@ -217,12 +207,12 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
-    log.info("Handling complete data set registrations");
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("deleting complete data set registrations as DELETED");
+      log.info("Deleting source complete data set registrations as dataMergeStrategy is DISCARD");
       completeDataSetRegistrationStore.deleteByCategoryOptionCombo(sources);
     } else if (LAST_UPDATED == mergeRequest.getDataMergeStrategy()) {
-      log.info("merging complete data set registrations as LAST_UPDATED");
+      log.info(
+          "Merging source complete data set registrations as dataMergeStrategy is LAST_UPDATED");
       // get CDSRs from sources
       List<CompleteDataSetRegistration> sourceCdsr =
           completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
@@ -253,7 +243,7 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull Map<String, CompleteDataSetRegistration> targetCdsr,
       @Nonnull CategoryOptionCombo target,
       @Nonnull List<CategoryOptionCombo> sources) {
-    log.info("merging complete data set registration duplicates");
+    log.info("Merging source complete data set registration duplicates");
     // group CompleteDataSetRegistration by key, so we can deal with each duplicate correctly
     Map<String, List<CompleteDataSetRegistration>> sourceCdsrGroupedByKey =
         sourceCdsrDuplicates.stream().collect(Collectors.groupingBy(getCdsrKey));
@@ -294,7 +284,7 @@ public class DataCategoryOptionComboMergeHandler {
    */
   private void handleCdsrNonDuplicates(
       @Nonnull List<CompleteDataSetRegistration> sourceCdsr, @Nonnull CategoryOptionCombo target) {
-    log.info("merging complete data set registration non-duplicates");
+    log.info("Merging source complete data set registration non-duplicates");
     sourceCdsr.forEach(
         cdsr -> {
           CompleteDataSetRegistration copyWithNewAoc =
