@@ -207,7 +207,8 @@ public class PredictionDataValueFetcher implements Runnable {
     this.outputDataElementOperand = outputDataElementOperand;
 
     orgUnitLookup =
-        orgUnits.stream().collect(Collectors.toMap(OrganisationUnit::getPath, Function.identity()));
+        orgUnits.stream()
+            .collect(Collectors.toMap(OrganisationUnit::getStoredPath, Function.identity()));
     dataElementLookup =
         dataElements.stream()
             .collect(toMap(DataElement::getId, Function.identity(), (de1, de2) -> de1));
@@ -359,7 +360,7 @@ public class PredictionDataValueFetcher implements Runnable {
         addValueToMap(dv, map);
       }
 
-      if (ddv.getSourcePath().equals(dv.getSource().getPath())
+      if (ddv.getSourcePath().equals(dv.getSource().getStoredPath())
           && ddv.getDataElementId() == outputDataElementOperand.getDataElement().getId()
           && (outputDataElementOperand.getCategoryOptionCombo() == null
               || ddv.getCategoryOptionComboId()

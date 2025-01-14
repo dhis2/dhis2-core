@@ -883,7 +883,7 @@ class DataValueSetImportValidatorTest {
       ou.setUid(ouId);
       // we set the path here just for the tests. This is usually done by the persistence layer
       // but there is no interaction with that in these tests.
-      ou.setPath(ou.getPath());
+      ou.updatePath();
       builder.orgUnit(ou);
     }
     if (coId != null) {
