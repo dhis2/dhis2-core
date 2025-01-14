@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import org.hisp.dhis.common.CodeGenerator;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
-
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Integrity check to identify users who have the ALL authority. {@see
@@ -45,56 +45,81 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityUsersWithAllAuthorityControllerTest extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityUsersWithAllAuthorityControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
   private static final String CHECK_NAME = "users_with_all_authority";
 
   private static final String DETAILS_ID_TYPE = "users";
 
-
   @Test
   void testCanIdentifyUsersWithAllAuthority() {
 
-    List<String> auths = List.of("ALL");
-    UserRole role = new UserRole();
-    role.setName("Role_" + CodeGenerator.generateCode(5));
-    auths.forEach(auth -> role.getAuthorities().add(auth));
+    String orgunitAUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-    //Create a user with the ALL authority
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    user.setFirstName("Bobby");
-    user.setSurname("Tables");
-    user.setUsername(DEFAULT_USERNAME + "_no_role_" + CodeGenerator.generateUid());
-    user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.setDisabled(false);
-    user.setLastUpdated(new Date());
-    user.getUserRoles().add(role);
-    manager.persist(user);
-    dbmsManager.clearSession();
+    String userRoleUidA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'ALL role', 'authorities': ['ALL'] }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + userRoleUidA
+                + "'}]}"));
 
     // Note that there is already one user which exists due to the overall test setup, thus, two
     // users in total.
-    Integer userCount = userService.getUserCount();
-    assertEquals(2, userCount);
+    List<User> allUsers = userService.getAllUsers();
+    assertEquals(2, allUsers.size());
+    Set<String> userNames = new HashSet<>();
+    for (User user : allUsers) {
+      userNames.add(user.getUsername());
+    }
+    Set<String> userUids = new HashSet<>();
+    for (User user : allUsers) {
+      userUids.add(user.getUid());
+    }
+    Set<String> userComments = new HashSet<>();
+    // Each user should be active, so just create a set of "Active" for each user
+    allUsers.forEach(user -> userComments.add("Active"));
 
+    // Add a non-ALL authority user
+
+    String userRoleUidB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Not all role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/users",
+            "{ 'username': 'bobbytables2' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
+                + orgunitAUid
+                + "'}], 'userRoles' : [{'id' : '"
+                + userRoleUidB
+                + "'}]}"));
+
+    // Note the expected percentage is 2/3 = 66%
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE,
-        CHECK_NAME,
-        100 / userCount,
-        user.getUid(),
-        user.getUsername(),
-        "disabled:false",
-        true);
+        DETAILS_ID_TYPE, CHECK_NAME, 66, userUids, userNames, userComments, true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-    assertEquals(1, issues.size());
-  }
-
-  @Test
-  void testDoNotFlagUsersWithRoles() {
-
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+    assertEquals(2, issues.size());
   }
 }

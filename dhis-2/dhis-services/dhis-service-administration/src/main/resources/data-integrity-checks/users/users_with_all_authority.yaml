@@ -40,8 +40,8 @@ summary_sql: >-
   );
 details_sql: >
   SELECT c.uid,
-  c.username,
-  c.disabled::text as comment,
+  c.username as name,
+  CASE WHEN c.disabled THEN 'Disabled' ELSE 'Active' END as comment,
   array_agg(b.role_name) as refs
   from userrolemembers a
   INNER JOIN (
