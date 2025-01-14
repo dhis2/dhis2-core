@@ -50,13 +50,6 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
   List<Event> getAllByAttributeOptionCombo(Collection<UID> uids);
 
   /**
-   * Delete all {@link Event}s with references to {@link CategoryOptionCombo} {@link UID}s
-   *
-   * @param uids {@link CategoryOptionCombo} {@link UID}s
-   */
-  void deleteAllByAttributeOptionCombo(Collection<UID> uids);
-
-  /**
    * Updates all {@link Event}s with references to {@link CategoryOptionCombo}s, to use the coc
    * reference.
    *
