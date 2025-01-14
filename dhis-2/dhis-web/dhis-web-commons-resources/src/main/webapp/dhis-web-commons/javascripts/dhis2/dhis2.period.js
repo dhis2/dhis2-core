@@ -766,7 +766,7 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 3 );
-    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 3 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -823,7 +823,7 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 4 );
-    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 4 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -882,7 +882,7 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 6 );
-    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 6 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -941,7 +941,7 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 7 );
-    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 7 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
