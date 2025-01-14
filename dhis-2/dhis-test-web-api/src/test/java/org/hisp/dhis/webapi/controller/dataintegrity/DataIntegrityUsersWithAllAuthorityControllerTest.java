@@ -117,14 +117,5 @@ class DataIntegrityUsersWithAllAuthorityControllerTest
     // Note the expected percentage is 2/3 = 66%
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE, CHECK_NAME, 66, userUids, userNames, userComments, true);
-
-    JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
-    JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-
-    Set<String> issueIds = new HashSet<>();
-    for (JsonDataIntegrityDetails.JsonDataIntegrityIssue issue : issues) {
-      issueIds.add(issue.getId());
-    }
-    assertEquals(userUids, issueIds);
   }
 }
