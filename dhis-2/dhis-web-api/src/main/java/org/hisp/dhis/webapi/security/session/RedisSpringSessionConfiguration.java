@@ -28,12 +28,24 @@
 package org.hisp.dhis.webapi.security.session;
 
 import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
+import org.springframework.session.web.http.CookieHttpSessionIdResolver;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /**
  * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
@@ -47,8 +59,57 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @EnableRedisHttpSession
 public class RedisSpringSessionConfiguration {
 
+  //  @Bean
+  //  public static ConfigureRedisAction configureRedisAction() {
+  //    return ConfigureRedisAction.NO_OP;
+  //  }
+
+  @Autowired private DhisConfigurationProvider config;
+
+  @Bean
+  public RedisIndexedSessionRepository sessionRepository(
+      @Autowired LettuceConnectionFactory lettuceConnectionFactory) {
+    RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
+    redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+    redisTemplate.setKeySerializer(new StringRedisSerializer());
+    redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+    redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer());
+    redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+    redisTemplate.afterPropertiesSet();
+    RedisIndexedSessionRepository repository = new RedisIndexedSessionRepository(redisTemplate);
+    repository.setDefaultSerializer(new JdkSerializationRedisSerializer());
+
+    int sessionTimeout =
+        Integer.parseInt(config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT));
+    repository.setDefaultMaxInactiveInterval(sessionTimeout);
+    return repository;
+  }
+
+  @Bean
+  public CookieHttpSessionIdResolver httpSessionIdResolver() {
+    CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
+    DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
+    cookieSerializer.setCookieName("JSESSIONID");
+    cookieSerializer.setSameSite("Lax");
+    cookieSerializer.setUseSecureCookie(false);
+    cookieSerializer.setUseHttpOnlyCookie(true);
+    resolver.setCookieSerializer(cookieSerializer);
+    return resolver;
+  }
+
+  @Bean
+  public SpringSessionBackedSessionRegistry sessionRegistry(
+      RedisIndexedSessionRepository sessionRepository) {
+    return new SpringSessionBackedSessionRegistry<>(sessionRepository);
+  }
+
   @Bean
   public static ConfigureRedisAction configureRedisAction() {
     return ConfigureRedisAction.NO_OP;
+  }
+
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
   }
 }
