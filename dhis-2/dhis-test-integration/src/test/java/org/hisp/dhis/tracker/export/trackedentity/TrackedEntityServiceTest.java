@@ -1686,6 +1686,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .trackedEntityParams(params)
             .build();
 
+    System.out.println(trackedEntityA.getUid());
+    System.out.println(eventA.getUid());
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
