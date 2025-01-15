@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.test.api;
 
-import java.util.Collection;
-import java.util.List;
-import javax.annotation.Nonnull;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-/**
- * @author Kristian Nordal
- */
-public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> {
-  String ID = MinMaxDataElementStore.class.getName();
-
-  MinMaxDataElement get(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
-
-  List<MinMaxDataElement> get(OrganisationUnit source, Collection<DataElement> dataElements);
-
-  List<MinMaxDataElement> query(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void delete(OrganisationUnit organisationUnit);
-
-  void delete(DataElement dataElement);
-
-  void delete(CategoryOptionCombo optionCombo);
-
-  void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
-
-  /**
-   * Retrieve all {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link
-   * UID}s
-   *
-   * @param uids {@link CategoryOptionCombo} {@link UID}s
-   * @return {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link UID}
-   *     passed in
-   */
-  List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
-}
+public record TestCategoryMetadata(
+    CategoryCombo cc1,
+    CategoryCombo cc2,
+    Category c1,
+    Category c2,
+    Category c3,
+    Category c4,
+    CategoryOption co1,
+    CategoryOption co2,
+    CategoryOption co3,
+    CategoryOption co4,
+    CategoryOption co5,
+    CategoryOption co6,
+    CategoryOption co7,
+    CategoryOption co8,
+    CategoryOptionCombo coc1,
+    CategoryOptionCombo coc2,
+    CategoryOptionCombo coc3,
+    CategoryOptionCombo coc4) {}

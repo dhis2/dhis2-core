@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.category.option;
+package org.hisp.dhis.merge.category.optioncombo;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -33,9 +33,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
@@ -45,37 +46,50 @@ import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 
 /**
- * Main class for a {@link CategoryOption} merge.
+ * Main class for a {@link CategoryOptionCombo} merge.
  *
  * @author david mackessy
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CategoryOptionMergeService implements MergeService {
+public class CategoryOptionComboMergeService implements MergeService {
 
   private final CategoryService categoryService;
-  private final CategoryOptionMergeHandler categoryOptionMergeHandler;
+  private final MetadataCategoryOptionComboMergeHandler metadataMergeHandler;
+  private final DataCategoryOptionComboMergeHandler dataMergeHandler;
   private final MergeValidator validator;
   private final EntityManager entityManager;
   private List<MetadataMergeHandler> metadataMergeHandlers;
+  private List<DataMergeHandler> dataMergeHandlers;
+  private List<DataMergeHandlerNoTarget> auditMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION);
+    MergeRequest request =
+        validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION_COMBO);
+
+    // merge-specific validation
+    if (params.getDataMergeStrategy() == null) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
+    }
+    return request;
   }
 
   @Override
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
-    log.info("Performing CategoryOption merge");
+    log.info("Performing CategoryOptionCombo merge");
 
-    List<CategoryOption> sources =
-        categoryService.getCategoryOptionsByUid(UID.toValueList(request.getSources()));
-    CategoryOption target = categoryService.getCategoryOption(request.getTarget().getValue());
+    List<CategoryOptionCombo> sources =
+        categoryService.getCategoryOptionCombosByUid(request.getSources());
+    CategoryOptionCombo target =
+        categoryService.getCategoryOptionCombo(request.getTarget().getValue());
 
     // merge metadata
-    log.info("Handling CategoryOption reference associations and merges");
+    log.info("Handling CategoryOptionCombo reference associations and merges");
     metadataMergeHandlers.forEach(h -> h.merge(sources, target));
+    dataMergeHandlers.forEach(h -> h.merge(sources, target, request));
+    auditMergeHandlers.forEach(h -> h.merge(sources, request));
 
     // a flush is required here to bring the system into a consistent state. This is required so
     // that the deletion handler hooks, which are usually done using JDBC (non-Hibernate), can
@@ -88,11 +102,11 @@ public class CategoryOptionMergeService implements MergeService {
     return mergeReport;
   }
 
-  private void handleDeleteSources(List<CategoryOption> sources, MergeReport mergeReport) {
-    log.info("Deleting source CategoryOptions");
-    for (CategoryOption source : sources) {
+  private void handleDeleteSources(List<CategoryOptionCombo> sources, MergeReport mergeReport) {
+    log.info("Deleting source CategoryOptionCombos");
+    for (CategoryOptionCombo source : sources) {
       mergeReport.addDeletedSource(source.getUid());
-      categoryService.deleteCategoryOption(source);
+      categoryService.deleteCategoryOptionCombo(source);
     }
   }
 
@@ -100,20 +114,45 @@ public class CategoryOptionMergeService implements MergeService {
   private void initMergeHandlers() {
     metadataMergeHandlers =
         List.of(
-            categoryOptionMergeHandler::handleCategories,
-            categoryOptionMergeHandler::handleCategoryOptionCombos,
-            categoryOptionMergeHandler::handleOrganisationUnits,
-            categoryOptionMergeHandler::handleCategoryOptionGroups,
-            categoryOptionMergeHandler::handleCategoryDimensions);
+            metadataMergeHandler::handleCategoryOptions,
+            metadataMergeHandler::handleCategoryCombos,
+            metadataMergeHandler::handlePredictors,
+            metadataMergeHandler::handleDataElementOperands,
+            metadataMergeHandler::handleMinMaxDataElements,
+            metadataMergeHandler::handleSmsCodes);
+
+    dataMergeHandlers =
+        List.of(
+            dataMergeHandler::handleDataValues,
+            dataMergeHandler::handleDataApprovals,
+            dataMergeHandler::handleEvents,
+            dataMergeHandler::handleCompleteDataSetRegistrations);
+
+    auditMergeHandlers =
+        List.of(
+            dataMergeHandler::handleDataValueAudits, dataMergeHandler::handleDataApprovalAudits);
   }
 
   /**
-   * Functional interface representing a {@link CategoryOption} data merge operation.
+   * Functional interface representing a {@link CategoryOptionCombo} data merge operation.
    *
    * @author david mackessy
    */
   @FunctionalInterface
   public interface MetadataMergeHandler {
-    void merge(@Nonnull List<CategoryOption> sources, @Nonnull CategoryOption target);
+    void merge(@Nonnull List<CategoryOptionCombo> sources, @Nonnull CategoryOptionCombo target);
+  }
+
+  @FunctionalInterface
+  public interface DataMergeHandler {
+    void merge(
+        @Nonnull List<CategoryOptionCombo> sources,
+        @Nonnull CategoryOptionCombo target,
+        @Nonnull MergeRequest request);
+  }
+
+  @FunctionalInterface
+  public interface DataMergeHandlerNoTarget {
+    void merge(@Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest request);
   }
 }
