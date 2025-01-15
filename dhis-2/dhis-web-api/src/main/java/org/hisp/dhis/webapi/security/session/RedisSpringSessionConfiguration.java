@@ -59,11 +59,6 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @EnableRedisHttpSession
 public class RedisSpringSessionConfiguration {
 
-  //  @Bean
-  //  public static ConfigureRedisAction configureRedisAction() {
-  //    return ConfigureRedisAction.NO_OP;
-  //  }
-
   @Autowired private DhisConfigurationProvider config;
 
   @Bean
