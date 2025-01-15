@@ -664,7 +664,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new StringBuilder(
             replace(
                 """
-                select distinct(year) \
+                select distinct(extract(year from pe.enddate)) \
                 from datavalue dv \
                 inner join period pe on dv.periodid=pe.periodid \
                 where pe.startdate is not null \
