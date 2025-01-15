@@ -158,7 +158,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     if (program.isProtected()) {
       if (!isOwnerInUserSearchScope(user, trackedEntity, program)) {
         throw new ForbiddenException(
-            "The owner of the entity-program combination is not in the user's search scope");
+            "The owner of the entity-program combination is not in the user's search scope.");
       }
 
       if (config.isEnabled(CHANGELOG_TRACKER)) {
@@ -179,7 +179,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     } else {
       throw new ForbiddenException(
           String.format(
-              "It's only possible to grant temporary ownership to protected programs, and %s access level is %s",
+              "Temporary ownership can only be granted to protected programs. %s access level is %s.",
               program.getUid(), program.getAccessLevel().name()));
     }
   }

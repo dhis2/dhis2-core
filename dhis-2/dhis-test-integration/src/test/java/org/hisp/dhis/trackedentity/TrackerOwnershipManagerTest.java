@@ -364,8 +364,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, program, userDetailsB, "test temporary ownership"));
 
     assertContains(
-        "It's only possible to grant temporary ownership to protected programs",
-        exception.getMessage());
+        "Temporary ownership can only be granted to protected programs.", exception.getMessage());
   }
 
   @Test
