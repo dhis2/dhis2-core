@@ -154,7 +154,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       throws ForbiddenException {
     if (canSkipOwnershipCheck(user, program)) {
       throw new ForbiddenException(
-          "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.");
+          "Temporary ownership not created. Either current user is a superuser, program supplied does not exist or program supplied is not a tracker program.");
     }
 
     if (!program.isProtected()) {
