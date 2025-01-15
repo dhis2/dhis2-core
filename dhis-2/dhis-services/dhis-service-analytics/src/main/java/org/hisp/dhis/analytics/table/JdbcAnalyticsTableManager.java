@@ -542,7 +542,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
-        "select distinct(extract(year from pe.startdate)) "
+        "select distinct(extract(year from pe.enddate)) "
             + "from datavalue dv "
             + "inner join period pe on dv.periodid=pe.periodid "
             + "where pe.startdate is not null "
