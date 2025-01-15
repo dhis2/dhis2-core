@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 
 import com.google.common.collect.ImmutableList;
@@ -40,6 +41,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.data.OptionSetFacade;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -51,7 +53,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -61,6 +62,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultEventQueryPlanner implements EventQueryPlanner {
   private final QueryPlanner queryPlanner;
+
+  private final OptionSetFacade optionSetQueryPlanner;
 
   private final PartitionManager partitionManager;
 
@@ -211,22 +214,26 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
     if (params.isAggregateData()) {
       for (QueryItem item : params.getItemsAndItemFilters()) {
-        AnalyticsAggregationType aggregationType =
-            ObjectUtils.firstNonNull(
-                params.getAggregationType(), fromAggregationType(item.getAggregationType()));
+        if (params.hasOptionSetSelections()) {
+          optionSetQueryPlanner.handleAggregatedOptionSet(params, queries, item);
+        } else {
+          AnalyticsAggregationType aggregationType =
+              firstNonNull(
+                  params.getAggregationType(), fromAggregationType(item.getAggregationType()));
 
-        EventQueryParams.Builder query =
-            new EventQueryParams.Builder(params)
-                .removeItems()
-                .removeItemProgramIndicators()
-                .withValue(item.getItem())
-                .withAggregationType(aggregationType);
+          EventQueryParams.Builder query =
+              new EventQueryParams.Builder(params)
+                  .removeItems()
+                  .removeItemProgramIndicators()
+                  .withValue(item.getItem())
+                  .withAggregationType(aggregationType);
 
-        if (item.hasProgram()) {
-          query.withProgram(item.getProgram());
+          if (item.hasProgram()) {
+            query.withProgram(item.getProgram());
+          }
+
+          queries.add(query.build());
         }
-
-        queries.add(query.build());
       }
 
       for (ProgramIndicator programIndicator : params.getItemProgramIndicators()) {
@@ -243,6 +250,8 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
         queries.add(query);
       }
+
+      optionSetQueryPlanner.handleDisaggregatedOptionSet(params, queries);
     } else if (params.isCollapseDataDimensions() && !params.getItems().isEmpty()) {
       for (QueryItem item : params.getItems()) {
         EventQueryParams.Builder query =

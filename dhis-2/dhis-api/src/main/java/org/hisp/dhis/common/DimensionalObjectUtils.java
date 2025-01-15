@@ -394,7 +394,7 @@ public class DimensionalObjectUtils {
     }
 
     if (param.split(DIMENSION_NAME_SEP).length > 1) {
-      // Extracts dimension items by removing dimension name and separator
+      // Extracts dimension items by removing dimension name and separator.
       String dimensionItems = param.substring(param.indexOf(DIMENSION_NAME_SEP) + 1);
 
       return Arrays.asList(DX_REGEX_PATTERN.split(dimensionItems));

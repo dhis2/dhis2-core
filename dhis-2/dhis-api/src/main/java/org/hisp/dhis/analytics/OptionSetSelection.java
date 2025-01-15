@@ -28,12 +28,13 @@
 package org.hisp.dhis.analytics;
 
 import java.util.Set;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Builder
+@AllArgsConstructor
 @Getter
 public class OptionSetSelection {
+  private String qualifiedUid;
   private String optionSetUid;
   private Set<String> options;
   private OptionSetSelectionMode optionSetSelectionMode;
@@ -41,6 +42,9 @@ public class OptionSetSelection {
   @Override
   public String toString() {
     return "OptionSetSelection{"
+        + "qualifiedUid='"
+        + qualifiedUid
+        + '\''
         + "optionSetUid='"
         + optionSetUid
         + '\''

@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.analytics.OptionSetSelectionMode.AGGREGATED;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
@@ -759,17 +760,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private AggregationType getAggregationType(EventQueryParams params) {
     if (params.getValue() instanceof DataElement dataElement
         && dataElement.hasOptionSet()
-        && params.hasOptionSetSelections()
-        && params
-                .getOptionSetSelectionCriteria()
-                .getOptionSetSelections()
-                .get(
-                    dataElement.getUid()
-                        + DIMENSION_IDENTIFIER_SEP
-                        + dataElement.getOptionSet().getUid())
-                .getOptionSetSelectionMode()
-            != OptionSetSelectionMode.AGGREGATED) {
-      return NONE;
+        && params.hasOptionSetSelections()) {
+      String key =
+          dataElement.getUid() + DIMENSION_IDENTIFIER_SEP + dataElement.getOptionSet().getUid();
+
+      OptionSetSelectionMode mode =
+          params
+              .getOptionSetSelectionCriteria()
+              .getOptionSetSelections()
+              .get(key)
+              .getOptionSetSelectionMode();
+
+      if (mode != AGGREGATED) {
+        return NONE;
+      }
     }
 
     return params.getAggregationTypeFallback().getAggregationType();

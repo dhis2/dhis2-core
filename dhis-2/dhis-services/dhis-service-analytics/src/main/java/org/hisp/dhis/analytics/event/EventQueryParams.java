@@ -320,6 +320,7 @@ public class EventQueryParams extends DataQueryParams {
     for (DimensionalItemObject object : dataQueryParams.getProgramDataElements()) {
       ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
       DataElement dataElement = element.getDataElement();
+
       QueryItem item =
           new QueryItem(
               dataElement,
@@ -1109,6 +1110,14 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder removeItemProgramIndicators() {
       this.params.itemProgramIndicators.clear();
+      return this;
+    }
+
+    public Builder removeOptionSetSelection() {
+      if (this.params.hasOptionSetSelections()) {
+        this.params.optionSetSelectionCriteria.getOptionSetSelections().clear();
+      }
+
       return this;
     }
 
