@@ -56,9 +56,9 @@ class CategoryOptionMergeTest extends ApiTest {
   private RestApiActions maintenanceApiActions;
   private UserActions userActions;
   private LoginActions loginActions;
-  private final String sourceUid1 = "CatOptUid1A";
-  private final String sourceUid2 = "CatOptUid2B";
-  private final String targetUid = "CatOptUid3A";
+  private String sourceUid1 = "CatOptUid1A";
+  private String sourceUid2 = "CatOptUid2B";
+  private String targetUid = "CatOptUid3A";
 
   @BeforeAll
   public void before() {
@@ -92,13 +92,9 @@ class CategoryOptionMergeTest extends ApiTest {
   void validCategoryOptionMergeTest() {
     // given
     // generate category option combos
-    String emptyParams = new QueryParamsBuilder().build();
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
-        .validateStatus(200);
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
-        .validateStatus(200);
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
     // confirm state before merge
     ValidatableResponse preMergeState =
