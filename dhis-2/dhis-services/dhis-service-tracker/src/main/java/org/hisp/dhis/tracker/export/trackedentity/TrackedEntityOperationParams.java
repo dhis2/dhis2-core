@@ -105,7 +105,8 @@ public class TrackedEntityOperationParams {
   /** Tracked entity type to fetch. */
   private UID trackedEntityType;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
   @Getter @Builder.Default
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
