@@ -30,6 +30,7 @@ package org.hisp.dhis.category;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
@@ -109,13 +110,6 @@ public interface CategoryService {
    * @return the Category.
    */
   Category getCategoryByName(String name, UserDetails userDetails);
-
-  /**
-   * Returns all DataElementCategories.
-   *
-   * @return a list of all DataElementCategories.
-   */
-  List<Category> getAllDataElementCategories();
 
   /**
    * Retrieves all DataElementCategories of dimension type disaggregation.
@@ -330,24 +324,6 @@ public interface CategoryService {
    */
   List<CategoryCombo> getAttributeCategoryCombos();
 
-  /**
-   * Validates the category combo. Possible return values are:
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>category_combo_is_null
-   *   <li>category_combo_must_have_at_least_one_category
-   *   <li>category_combo_cannot_have_duplicate_categories
-   *   <li>categories_must_have_at_least_one_category_option
-   *   <li>categories_cannot_share_category_options
-   * </ul>
-   *
-   * @param categoryCombo the category combo to validate.
-   * @return null if valid, non-empty string if invalid.
-   */
-  String validateCategoryCombo(CategoryCombo categoryCombo);
-
   // -------------------------------------------------------------------------
   // CategoryOptionCombo
   // -------------------------------------------------------------------------
@@ -478,7 +454,15 @@ public interface CategoryService {
    * @return categoryOptionCombos with refs to categoryOptions
    */
   List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<UID> categoryOptions);
+      @Nonnull Collection<UID> categoryOptions);
+
+  /**
+   * Retrieves all CategoryOptionCombos by {@link UID}.
+   *
+   * @param uids {@link UID}s to search for
+   * @return categoryOptionCombos with refs to {@link UID}s
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByUid(@Nonnull Collection<UID> uids);
 
   // -------------------------------------------------------------------------
   // DataElementOperand

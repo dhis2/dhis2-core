@@ -108,7 +108,7 @@ public class JdbcOrgUnitAssociationsStore {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     Set<String> allUserOrgUnitPaths =
         currentUser.getOrganisationUnits().stream()
-            .map(OrganisationUnit::getPath)
+            .map(OrganisationUnit::getStoredPath)
             .collect(Collectors.toSet());
 
     return allUserOrgUnitPaths.stream()

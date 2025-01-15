@@ -28,12 +28,10 @@
 package org.hisp.dhis.analytics.table.setting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -44,22 +42,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SqlBuilderSettingsTest {
+class AnalyticsTableSettingsTest {
   @Mock private DhisConfigurationProvider config;
 
   @Mock private SystemSettingsService systemSettings;
 
   @InjectMocks private AnalyticsTableSettings settings;
-
-  @Test
-  void testGetAndValidateDatabase() {
-    assertEquals(Database.POSTGRESQL, settings.getAndValidateDatabase("POSTGRESQL"));
-  }
-
-  @Test
-  void testGetAndValidateInvalidDatabase() {
-    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
-  }
 
   @Test
   void testGetSkipIndexDimensionsDefault() {

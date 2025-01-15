@@ -51,8 +51,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -106,9 +105,7 @@ public class TrackerImportController {
 
   private final Notifier notifier;
 
-  private final JobSchedulerService jobSchedulerService;
-
-  private final JobConfigurationService jobConfigurationService;
+  private final JobExecutionService jobExecutionService;
 
   private final ObjectMapper jsonMapper;
 
@@ -123,7 +120,7 @@ public class TrackerImportController {
       ImportRequestParams importRequestParams,
       @RequestBody Body body,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, NotFoundException, IOException {
+      throws ConflictException, IOException {
 
     TrackerImportParams trackerImportParams =
         TrackerImportParamsMapper.trackerImportParams(importRequestParams);
@@ -144,14 +141,14 @@ public class TrackerImportController {
       TrackerObjects trackerObjects,
       String userUid,
       HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     JobConfiguration config = new JobConfiguration(JobType.TRACKER_IMPORT_JOB);
     config.setExecutedBy(userUid);
     config.setJobParameters(params);
 
     byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
-    jobSchedulerService.createThenExecute(config, contentType, new ByteArrayInputStream(jsonInput));
+    jobExecutionService.executeOnceNow(config, contentType, new ByteArrayInputStream(jsonInput));
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
     return ok(TRACKER_JOB_ADDED)
@@ -191,7 +188,7 @@ public class TrackerImportController {
       ImportRequestParams importRequest,
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
       @CurrentUser UserDetails currentUser)
-      throws IOException, ParseException, ConflictException, NotFoundException {
+      throws IOException, ParseException, ConflictException {
 
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 

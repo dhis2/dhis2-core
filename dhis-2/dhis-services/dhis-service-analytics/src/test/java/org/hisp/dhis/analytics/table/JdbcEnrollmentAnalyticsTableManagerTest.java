@@ -110,7 +110,6 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
-    when(analyticsTableSettings.isSpatialSupport()).thenReturn(true);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
   }
 

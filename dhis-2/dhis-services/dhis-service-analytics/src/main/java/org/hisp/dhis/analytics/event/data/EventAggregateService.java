@@ -210,12 +210,12 @@ public class EventAggregateService {
       addHeaders(params, grid);
       addData(grid, params, maxLimit);
 
-      // Sort, done again due to potential multiple partitions.
+      // Sort grid, done again due to potential multiple partitions
       if (params.hasSortOrder() && grid.getHeight() > 0) {
         grid.sortGrid(1, params.getSortOrderAsInt());
       }
 
-      // Limit the grid, if asked for.
+      // Limit grid
       if (params.hasLimit() && grid.getHeight() > params.getLimit()) {
         grid.limitGrid(params.getLimit());
       }

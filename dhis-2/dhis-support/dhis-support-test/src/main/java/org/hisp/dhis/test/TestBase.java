@@ -78,6 +78,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -185,6 +186,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -303,6 +305,7 @@ public abstract class TestBase {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
+
   public User getCurrentUser() {
     return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
@@ -996,23 +999,19 @@ public abstract class TestBase {
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
     OrganisationUnit unit = new OrganisationUnit();
     unit.setAutoFields();
-
     unit.setUid(BASE_OU_UID + uniqueCharacter);
     unit.setName("OrganisationUnit" + uniqueCharacter);
     unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
-    //    unit.getSharing().setPublicAccess("--------");
-
+    unit.updatePath();
     return unit;
   }
 
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setGeometry(geometry);
-
     return unit;
   }
 
@@ -1025,37 +1024,36 @@ public abstract class TestBase {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
+    unit.updatePath();
     return unit;
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    */
   public static OrganisationUnit createOrganisationUnit(String name) {
-    OrganisationUnit unit = new OrganisationUnit();
-    unit.setAutoFields();
-
+    OrganisationUnit unit = createOrganisationUnit('Y');
     unit.setUid(CodeGenerator.generateUid());
     unit.setName(name);
     unit.setShortName(name);
     unit.setCode(name);
-    unit.setOpeningDate(date);
     unit.setComment("Comment " + name);
-
     return unit;
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    * @param parent The parent.
    */
   public static OrganisationUnit createOrganisationUnit(String name, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(name);
-
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
+    unit.updatePath();
     return unit;
   }
 
@@ -1065,12 +1063,10 @@ public abstract class TestBase {
   public static OrganisationUnitGroup createOrganisationUnitGroup(char uniqueCharacter) {
     OrganisationUnitGroup group = new OrganisationUnitGroup();
     group.setAutoFields();
-
     group.setUid(BASE_UID + uniqueCharacter);
     group.setName("OrganisationUnitGroup" + uniqueCharacter);
     group.setShortName("OrganisationUnitGroupShort" + uniqueCharacter);
     group.setCode("OrganisationUnitGroupCode" + uniqueCharacter);
-
     return group;
   }
 
@@ -1080,13 +1076,11 @@ public abstract class TestBase {
   public static OrganisationUnitGroupSet createOrganisationUnitGroupSet(char uniqueCharacter) {
     OrganisationUnitGroupSet groupSet = new OrganisationUnitGroupSet();
     groupSet.setAutoFields();
-
     groupSet.setName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setShortName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setCode("OrganisationUnitGroupSetCode" + uniqueCharacter);
     groupSet.setDescription("Description" + uniqueCharacter);
     groupSet.setCompulsory(true);
-
     return groupSet;
   }
 
@@ -3046,5 +3040,69 @@ public abstract class TestBase {
     entityManager.persist(user);
 
     return user;
+  }
+
+  protected TestCategoryMetadata setupCategoryMetadata() {
+    // 8 category options
+    CategoryOption co1A = createCategoryOption("1A", CodeGenerator.generateUid());
+    CategoryOption co1B = createCategoryOption("1B", CodeGenerator.generateUid());
+    CategoryOption co2A = createCategoryOption("2A", CodeGenerator.generateUid());
+    CategoryOption co2B = createCategoryOption("2B", CodeGenerator.generateUid());
+    CategoryOption co3A = createCategoryOption("3A", CodeGenerator.generateUid());
+    CategoryOption co3B = createCategoryOption("3B", CodeGenerator.generateUid());
+    CategoryOption co4A = createCategoryOption("4A", CodeGenerator.generateUid());
+    CategoryOption co4B = createCategoryOption("4B", CodeGenerator.generateUid());
+    categoryService.addCategoryOption(co1A);
+    categoryService.addCategoryOption(co1B);
+    categoryService.addCategoryOption(co2A);
+    categoryService.addCategoryOption(co2B);
+    categoryService.addCategoryOption(co3A);
+    categoryService.addCategoryOption(co3B);
+    categoryService.addCategoryOption(co4A);
+    categoryService.addCategoryOption(co4B);
+
+    // 4 categories (each with 2 category options)
+    Category cat1 = createCategory('1', co1A, co1B);
+    Category cat2 = createCategory('2', co2A, co2B);
+    Category cat3 = createCategory('3', co3A, co3B);
+    Category cat4 = createCategory('4', co4A, co4B);
+    categoryService.addCategory(cat1);
+    categoryService.addCategory(cat2);
+    categoryService.addCategory(cat3);
+    categoryService.addCategory(cat4);
+
+    CategoryCombo cc1 = createCategoryCombo('1', cat1, cat2);
+    CategoryCombo cc2 = createCategoryCombo('2', cat3, cat4);
+    categoryService.addCategoryCombo(cc1);
+    categoryService.addCategoryCombo(cc2);
+
+    categoryService.generateOptionCombos(cc1);
+    categoryService.generateOptionCombos(cc2);
+
+    CategoryOptionCombo coc1A2A = getCocWithOptions("1A", "2A");
+    CategoryOptionCombo coc1B2B = getCocWithOptions("1A", "2B");
+    CategoryOptionCombo coc3A4A = getCocWithOptions("3A", "4A");
+    CategoryOptionCombo coc3A4B = getCocWithOptions("3A", "4B");
+
+    return new TestCategoryMetadata(
+        cc1, cc2, cat1, cat2, cat3, cat4, co1A, co1B, co2A, co2B, co3A, co3B, co4A, co4B, coc1A2A,
+        coc1B2B, coc3A4A, coc3A4B);
+  }
+
+  private CategoryOptionCombo getCocWithOptions(String co1, String co2) {
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    return allCategoryOptionCombos.stream()
+        .filter(
+            coc -> {
+              Set<String> categoryOptions =
+                  coc.getCategoryOptions().stream()
+                      .map(BaseIdentifiableObject::getName)
+                      .collect(Collectors.toSet());
+              return categoryOptions.containsAll(List.of(co1, co2));
+            })
+        .toList()
+        .get(0);
   }
 }

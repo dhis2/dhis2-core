@@ -155,6 +155,9 @@ Get tracked entities with given UID(s).
 
 ### `*.parameter.TrackedEntityRequestParams.assignedUserMode`
 
+Get tracked entities with events assigned to users according to the specified user mode. By default,
+all events will be retrieved, regardless of whether a user is assigned.
+
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
 `<user1-uid>[,<user2-uid>...]`

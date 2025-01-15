@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +45,7 @@ class OrganisationUnitMapperTest {
 
     OrganisationUnit orgUnit =
         setIdSchemeFields(
-            new OrganisationUnit(),
+            createOrganisationUnit('A'),
             "HpSAvRWtdDR",
             "meet",
             "green",
@@ -60,11 +61,11 @@ class OrganisationUnitMapperTest {
 
   @Test
   void testParentFieldsAreMapped() {
-    OrganisationUnit rootOrgUnit = new OrganisationUnit();
+    OrganisationUnit rootOrgUnit = createOrganisationUnit('A');
     rootOrgUnit.setUid("root");
-    OrganisationUnit level1OrgUnit = new OrganisationUnit();
+    OrganisationUnit level1OrgUnit = createOrganisationUnit('B');
     level1OrgUnit.setUid("level1");
-    OrganisationUnit level2OrgUnit = new OrganisationUnit();
+    OrganisationUnit level2OrgUnit = createOrganisationUnit('C');
     level2OrgUnit.setUid("level2");
 
     level2OrgUnit.setParent(level1OrgUnit);

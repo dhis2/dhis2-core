@@ -231,13 +231,13 @@ class PredictionDataConsolidatorTest extends TestBase {
     // -- C ------ F
     // -- D ------ G
 
-    orgUnitA = createOrganisationUnit("A");
-    orgUnitB = createOrganisationUnit("B");
-    orgUnitC = createOrganisationUnit("C");
-    orgUnitD = createOrganisationUnit("D");
-    orgUnitE = createOrganisationUnit("E", orgUnitB);
-    orgUnitF = createOrganisationUnit("F", orgUnitC);
-    orgUnitG = createOrganisationUnit("G", orgUnitD);
+    orgUnitA = createOrganisationUnit('A');
+    orgUnitB = createOrganisationUnit('B');
+    orgUnitC = createOrganisationUnit('C');
+    orgUnitD = createOrganisationUnit('D');
+    orgUnitE = createOrganisationUnit('E', orgUnitB);
+    orgUnitF = createOrganisationUnit('F', orgUnitC);
+    orgUnitG = createOrganisationUnit('G', orgUnitD);
 
     orgUnitA.setId(20);
     orgUnitB.setId(21);

@@ -58,7 +58,8 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
     // Note! that the SQL here can be touching any table so we cannot sync it
-    Object summary = entityManager.createNativeQuery(sql).getSingleResult();
+    Object summary =
+        entityManager.createNativeQuery(sql).getResultStream().findFirst().orElse(null);
     return new DataIntegritySummary(
         check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
   }

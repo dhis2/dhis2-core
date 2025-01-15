@@ -29,7 +29,10 @@ package org.hisp.dhis.dataelement;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -37,5 +40,20 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface DataElementOperandStore extends IdentifiableObjectStore<DataElementOperand> {
   String ID = DataElementOperand.class.getName();
 
+  /**
+   * Retrieve all {@link DataElementOperand}s with {@link DataElement}s
+   *
+   * @param dataElements {@link DataElement}s
+   * @return {@link DataElementOperand}s with references to {@link DataElement}s passed in
+   */
   List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements);
+
+  /**
+   * Retrieve all {@link DataElementOperand}s with {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link DataElementOperand}s with references to {@link CategoryOptionCombo} {@link UID}s
+   *     passed in
+   */
+  List<DataElementOperand> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

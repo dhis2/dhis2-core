@@ -131,7 +131,7 @@ class CopyServiceTest extends TestBase {
   @Test
   void testCopyProgramFromUidWithValidProgram() throws NotFoundException, ForbiddenException {
 
-    OrganisationUnit orgUnit = createOrganisationUnit("New Org 1");
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     List<Enrollment> originalEnrollments =
         List.of(createEnrollment(original, createTrackedEntity(orgUnit), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
@@ -382,7 +382,7 @@ class CopyServiceTest extends TestBase {
         Set.of(createProgramNotificationTemplate("not1", 20, ENROLLMENT, WEB_HOOK)));
     p.setOnlyEnrollOnce(true);
     p.setOpenDaysAfterCoEndDate(20);
-    p.setOrganisationUnits(Set.of(createOrganisationUnit("Org 1")));
+    p.setOrganisationUnits(Set.of(createOrganisationUnit('A')));
     p.setProgramAttributes(createProgramAttributes(p));
     p.setProgramIndicators(createIndicators(p));
     p.setProgramRuleVariables(Set.of(createProgramRuleVariable('v', p)));

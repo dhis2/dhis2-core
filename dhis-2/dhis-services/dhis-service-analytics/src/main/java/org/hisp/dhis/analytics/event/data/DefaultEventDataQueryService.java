@@ -139,13 +139,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Program pr = programService.getProgram(request.getProgram());
 
-    List<String> coordinateFields =
-        getCoordinateFields(
-            request.getProgram(),
-            request.getCoordinateField(),
-            request.getFallbackCoordinateField(),
-            request.isDefaultCoordinateFallback());
-
     if (pr == null) {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
     }
@@ -155,6 +148,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
     }
+
+    List<String> coordinateFields = getCoordinateFields(request);
 
     addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
 
@@ -216,6 +211,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     EventQueryParams eventQueryParams = builder.build();
 
     // Partitioning applies only when default period is specified
+
     // Empty period dimension means default period
 
     if (hasPeriodDimension(eventQueryParams) && hasNotDefaultPeriod(eventQueryParams)) {
@@ -419,33 +415,32 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * @return the coordinate column list.
    */
   @Override
-  public List<String> getCoordinateFields(
-      String program,
-      String coordinateField,
-      String fallbackCoordinateField,
-      boolean defaultCoordinateFallback) {
-    List<String> coordinateFields = new ArrayList<>();
+  public List<String> getCoordinateFields(EventDataQueryRequest request) {
+    final String program = request.getProgram();
+    // TODO Remove when all web apps stop using old names of coordinate fields
+    final String coordinateField = mapCoordinateField(request.getCoordinateField());
+    final boolean defaultCoordinateFallback = request.isDefaultCoordinateFallback();
+    final String fallbackCoordinateField = mapCoordinateField(request.getFallbackCoordinateField());
 
-    // TODO!!! remove when all fe apps stop using old names of coordinate fields
-    coordinateField = mapCoordinateField(coordinateField);
-    fallbackCoordinateField = mapCoordinateField(fallbackCoordinateField);
+    List<String> coordinateFields = new ArrayList<>();
 
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
     } else if (COL_NAME_GEOMETRY_LIST.contains(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(program, coordinateField, ErrorCode.E7221));
+          eventCoordinateService.validateCoordinateField(
+              program, coordinateField, ErrorCode.E7221));
     } else if (EventQueryParams.EVENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               program, COL_NAME_EVENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               program, COL_NAME_ENROLLMENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.TRACKER_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               program, COL_NAME_TRACKED_ENTITY_GEOMETRY, ErrorCode.E7221));
     }
 
@@ -453,7 +448,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     if (dataElement != null) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               dataElement.getValueType(), coordinateField, ErrorCode.E7219));
     }
 
@@ -461,7 +456,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     if (attribute != null) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               attribute.getValueType(), coordinateField, ErrorCode.E7220));
     }
 

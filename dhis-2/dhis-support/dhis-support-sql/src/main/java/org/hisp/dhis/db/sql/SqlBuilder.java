@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -38,6 +39,13 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 public interface SqlBuilder {
+
+  // Database
+
+  /**
+   * @return the {@link Database}.
+   */
+  Database getDatabase();
 
   // Data types
 
@@ -475,19 +483,6 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
-
-  /**
-   * @param connectionUrl the JDBC connection URL.
-   * @param username the JDBC connection username.
-   * @param password the JDBC connection password.
-   * @return a create catalog statement.
-   */
-  String createCatalog(String connectionUrl, String username, String password);
-
-  /**
-   * @return a drop catalog if exists statement.
-   */
-  String dropCatalogIfExists();
 
   /** Enumeration of time units. */
   enum DateUnit {

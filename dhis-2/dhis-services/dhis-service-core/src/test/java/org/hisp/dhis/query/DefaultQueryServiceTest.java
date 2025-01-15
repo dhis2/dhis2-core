@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
@@ -96,7 +95,7 @@ class DefaultQueryServiceTest {
 
     List<OrganisationUnit> result = new ArrayList<>();
     for (int i = 0; i < size; i++) {
-      result.add(createOrganisationUnit(RandomStringUtils.randomAlphabetic(1)));
+      result.add(createOrganisationUnit((char) (i + 'A')));
     }
     return result;
   }

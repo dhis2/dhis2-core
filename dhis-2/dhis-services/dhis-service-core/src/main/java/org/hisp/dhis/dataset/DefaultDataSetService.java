@@ -45,7 +45,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -121,12 +120,6 @@ public class DefaultDataSetService implements DataSetService {
   @Transactional(readOnly = true)
   public List<DataSet> getAllDataSets() {
     return dataSetStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataSet> getDataSetsByPeriodType(PeriodType periodType) {
-    return dataSetStore.getDataSetsByPeriodType(periodType);
   }
 
   @Override

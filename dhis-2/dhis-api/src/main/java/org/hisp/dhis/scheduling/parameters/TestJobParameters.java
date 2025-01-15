@@ -66,6 +66,8 @@ public class TestJobParameters implements JobParameters {
   /** When true, an exception is used to fail, otherwise the progress tracking api is used */
   @JsonProperty private boolean failWithException;
 
+  @JsonProperty private boolean failWithPostCondition;
+
   /** Stage failure policy to use, when {@code null} it is the default policy */
   @JsonProperty private FailurePolicy failWithPolicy;
 

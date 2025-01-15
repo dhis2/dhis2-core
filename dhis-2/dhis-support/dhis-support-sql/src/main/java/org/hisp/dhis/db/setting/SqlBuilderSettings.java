@@ -28,19 +28,15 @@
 package org.hisp.dhis.db.setting;
 
 import static org.hisp.dhis.commons.util.TextUtils.format;
-import static org.hisp.dhis.db.model.Logged.LOGGED;
-import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
 
@@ -52,20 +48,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SqlBuilderSettings {
   private final DhisConfigurationProvider config;
-
-  /**
-   * Returns the setting indicating whether resource and analytics tables should be logged or
-   * unlogged.
-   *
-   * @return the {@link Logged} parameter.
-   */
-  public Logged getTableLogged() {
-    if (config.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
-      return UNLOGGED;
-    }
-
-    return LOGGED;
-  }
 
   /**
    * Returns the analytics database JDBC catalog name.

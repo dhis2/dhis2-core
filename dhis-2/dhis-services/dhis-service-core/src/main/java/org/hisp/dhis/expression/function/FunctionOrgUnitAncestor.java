@@ -65,7 +65,7 @@ public class FunctionOrgUnitAncestor implements ExpressionItem {
 
     if (orgUnit != null) {
       for (TerminalNode uid : ctx.UID()) {
-        if (orgUnit.getPath().contains(uid.getText() + "/")) {
+        if (orgUnit.getStoredPath().contains(uid.getText() + "/")) {
           return true;
         }
       }

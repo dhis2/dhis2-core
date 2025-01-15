@@ -100,8 +100,7 @@ public enum ConfigurationKey {
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
   /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS(
-      "analytics.connection.driver_class", "org.postgresql.Driver", false),
+  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
 
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),

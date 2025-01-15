@@ -35,7 +35,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -107,14 +106,6 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @return A list containing all DataSets.
    */
   List<DataSet> getAllDataSets();
-
-  /**
-   * Gets all DataSets associated with the given PeriodType.
-   *
-   * @param periodType the PeriodType.
-   * @return a list of DataSets.
-   */
-  List<DataSet> getDataSetsByPeriodType(PeriodType periodType);
 
   /**
    * Returns the data sets which given user have READ access. If the current user has the ALL

@@ -307,8 +307,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   Long getOrganisationUnitHierarchyMemberCount(
       OrganisationUnit parent, Object member, String collectionName) throws BadRequestException;
 
-  OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user);
-
   /**
    * Returns the level of the given org unit level. The level parameter string can either represent
    * a numerical level, or a UID referring to an {@link OrganisationUnitLevel} object.
@@ -384,19 +382,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    */
   @Deprecated(forRemoval = true)
   boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit);
-
-  /**
-   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User, OrganisationUnit)} except
-   * adds a caching layer on top. Use this method when performance is imperative and the risk of a
-   * stale result is tolerable.
-   *
-   * @param user the user to check for.
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
-   */
-  @Deprecated(forRemoval = true)
-  boolean isInUserSearchHierarchyCached(User user, OrganisationUnit organisationUnit);
 
   /**
    * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead

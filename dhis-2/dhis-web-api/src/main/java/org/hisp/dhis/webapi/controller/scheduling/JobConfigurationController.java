@@ -127,7 +127,7 @@ public class JobConfigurationController
   public ObjectReport executeNow(@PathVariable("uid") String uid)
       throws NotFoundException, ConflictException {
 
-    jobSchedulerService.runInTransaction(uid);
+    jobSchedulerService.executeNow(uid);
 
     // OBS! This response is kept for better backwards compatibility
     return new ObjectReport(JobConfiguration.class, 0);
@@ -236,11 +236,10 @@ public class JobConfigurationController
     JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
     if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
     boolean isAuthorized =
-        currentUser != null
-            && (currentUser.isSuper()
-                || (!read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
-                || (read && currentUser.isAuthorized(F_JOB_LOG_READ.toString()))
-                || currentUser.getUid().equals(obj.getExecutedBy()));
+        currentUser.isSuper()
+            || !read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
+            || read && currentUser.isAuthorized(F_JOB_LOG_READ.toString())
+            || currentUser.getUid().equals(obj.getExecutedBy());
     if (!isAuthorized) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }
 }

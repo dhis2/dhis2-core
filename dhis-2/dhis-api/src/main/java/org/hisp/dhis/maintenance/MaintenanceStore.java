@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.maintenance;
 
+import java.util.List;
+
 /**
  * @author Lars Helge Overland
  */
@@ -55,6 +57,8 @@ public interface MaintenanceStore {
    */
   int deleteSoftDeletedEvents();
 
+  int hardDeleteEvents(List<String> eventsToDelete, String eventSelect, String eventDeleteQuery);
+
   /**
    * Permanently deletes relationships which have been soft deleted, i.e. relationships where the
    * deleted property is true.
@@ -81,4 +85,6 @@ public interface MaintenanceStore {
 
   /** Deletes periods which are not associated with any other table. */
   void prunePeriods();
+
+  List<String> getDeletionEntities(String entitySql);
 }

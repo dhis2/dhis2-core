@@ -43,7 +43,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.datasource.model.ReadOnlyDataSourceConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -123,7 +123,7 @@ public class ReadOnlyDataSourceManager {
       String username = StringUtils.defaultIfEmpty(dataSourceConfig.getUsername(), mainUser);
       String password = StringUtils.defaultIfEmpty(dataSourceConfig.getPassword(), mainPassword);
 
-      PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
+      DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder();
       builder.dhisConfig(config);
       builder.password(password);
       builder.username(username);

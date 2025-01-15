@@ -35,14 +35,12 @@ import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.SchedulingController}.
  *
  * @author Jan Bernitt
  */
-@Transactional
 class JobSchedulingControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
@@ -65,14 +63,14 @@ class JobSchedulingControllerTest extends PostgresControllerIntegrationTestBase 
 
   @Test
   void testGetRunningProgress() {
-    JsonObject progress = GET("/scheduling/running/DATA_INTEGRITY").content();
+    JsonObject progress = GET("/scheduling/running/PUSH_ANALYSIS").content();
     assertTrue(progress.isObject());
     assertTrue(progress.isEmpty());
   }
 
   @Test
   void testGetCompletedProgress() {
-    JsonObject progress = GET("/scheduling/completed/DATA_INTEGRITY").content();
+    JsonObject progress = GET("/scheduling/completed/PUSH_ANALYSIS").content();
     assertTrue(progress.isObject());
     assertTrue(progress.isEmpty());
   }

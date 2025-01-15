@@ -528,7 +528,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(
         whereClause,
-        containsString("and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
+        containsString("and ax.\"uidlevel1\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
   }
 
   @Test

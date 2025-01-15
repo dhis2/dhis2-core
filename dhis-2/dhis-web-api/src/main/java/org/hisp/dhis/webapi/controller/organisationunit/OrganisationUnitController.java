@@ -252,7 +252,8 @@ public class OrganisationUnitController
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
-    List<Criterion> childrenWithLevel = List.of(like("path", parent.getPath(), MatchMode.START));
+    List<Criterion> childrenWithLevel =
+        List.of(like("path", parent.getStoredPath(), MatchMode.START));
     params.setParentLevel(parent.getLevel());
     return getObjectListWith(params, response, currentUser, childrenWithLevel);
   }
@@ -300,7 +301,7 @@ public class OrganisationUnitController
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit root = getEntity(uid);
-    List<String> ancestorsIds = List.of(root.getPath().split("/"));
+    List<String> ancestorsIds = List.of(root.getStoredPath().split("/"));
     List<Criterion> ancestorPaths = new ArrayList<>();
     for (int i = 0; i < ancestorsIds.size(); i++)
       ancestorPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
@@ -321,7 +322,7 @@ public class OrganisationUnitController
     // when parent is root => no matches by adding an impossible in filter
     if (parent.getLevel() == 1)
       return getObjectListWith(params, response, currentUser, List.of(in("id", List.<String>of())));
-    List<String> ancestorsIds = List.of(parent.getPath().split("/"));
+    List<String> ancestorsIds = List.of(parent.getStoredPath().split("/"));
     List<Criterion> parentPaths = new ArrayList<>();
     for (int i = 0; i < ancestorsIds.size() - 1; i++)
       parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));

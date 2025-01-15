@@ -28,7 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -123,7 +123,7 @@ class PredictionWriterTest extends TestBase {
     cocA.setId(++id);
     cocB.setId(++id);
 
-    orgUnitA = createOrganisationUnit("A");
+    orgUnitA = createOrganisationUnit('A');
 
     orgUnitA.setId(++id);
 

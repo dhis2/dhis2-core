@@ -166,6 +166,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   // -------------------------------------------------------------------------
 
   @Override
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @PropertyRange(min = 1)
@@ -178,6 +179,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   }
 
   @Override
+  @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "shortName", key = "SHORT_NAME")
@@ -186,6 +188,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   }
 
   @Override
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 1)
@@ -198,6 +201,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   }
 
   @Override
+  @Sortable(value = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "description", key = "DESCRIPTION")
@@ -206,6 +210,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   }
 
   @JsonProperty
+  @Sortable(whenPersisted = false)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
@@ -217,6 +222,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
     return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
   }
 
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFormName() {

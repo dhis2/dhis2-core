@@ -70,6 +70,24 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection contains exactly the given items in any order. Collections
+   * will be mapped by {@code map} before passing it to {@link #assertContainsOnly(Collection,
+   * Collection)}.
+   *
+   * @param expected the expected items.
+   * @param actual the actual collection.
+   * @param map map the items of expected and actual collections to the type that will be used for
+   *     comparison
+   */
+  public static <T, R> void assertContainsOnly(
+      Collection<T> expected, Collection<T> actual, Function<T, R> map) {
+    assertContainsOnly(
+        expected.stream().map(map).toList(),
+        actual.stream().map(map).toList(),
+        "assertContainsOnly found mismatch");
+  }
+
+  /**
    * Asserts that the given collection contains exactly the given items in any order.
    *
    * @param <E> the type.

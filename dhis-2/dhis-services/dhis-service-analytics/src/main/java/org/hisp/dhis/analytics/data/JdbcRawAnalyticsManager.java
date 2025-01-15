@@ -167,7 +167,7 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
           for (DimensionalItemObject item : dim.getItems()) {
             OrganisationUnit unit = (OrganisationUnit) item;
 
-            sql += DIM_NAME_OU + " like '" + unit.getPath() + "%' or ";
+            sql += DIM_NAME_OU + " like '" + unit.getStoredPath() + "%' or ";
           }
 
           sql = TextUtils.removeLastOr(sql) + ") ";

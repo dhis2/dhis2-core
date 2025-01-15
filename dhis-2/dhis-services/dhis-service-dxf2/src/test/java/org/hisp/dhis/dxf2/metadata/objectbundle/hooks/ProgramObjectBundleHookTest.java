@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,7 +46,6 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -112,7 +112,7 @@ class ProgramObjectBundleHookTest {
   @Test
   void verifyProgramInstanceIsSavedForEventProgram() {
     when(organisationUnitService.getRootOrganisationUnits())
-        .thenReturn(List.of(new OrganisationUnit()));
+        .thenReturn(List.of(createOrganisationUnit('A')));
     ArgumentCaptor<Enrollment> argument = ArgumentCaptor.forClass(Enrollment.class);
 
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);

@@ -324,7 +324,7 @@ public class EventQueryAnalyticsController {
       EndpointAction endpointAction) {
     criteria.definePageSize(settingsProvider.getCurrentSettings().getAnalyticsMaxLimit());
 
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(
         criteria, settingsProvider.getCurrentSettings().getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =

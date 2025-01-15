@@ -33,9 +33,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.function.Function;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -51,7 +49,6 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Torgeir Lorange Ostby
  */
-@Slf4j
 @Repository("org.hisp.dhis.dataelement.DataElementStore")
 public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<DataElement>
     implements DataElementStore {
@@ -68,24 +65,6 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
   // -------------------------------------------------------------------------
 
   @Override
-  public List<DataElement> getDataElementsByDomainType(DataElementDomain domainType) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("domainType"), domainType)));
-  }
-
-  @Override
-  public List<DataElement> getDataElementsByValueType(ValueType valueType) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("valueType"), valueType)));
-  }
-
-  @Override
   public List<DataElement> getDataElementByCategoryCombo(CategoryCombo categoryCombo) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -93,17 +72,6 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("categoryCombo"), categoryCombo)));
-  }
-
-  @Override
-  public List<DataElement> getDataElementsByZeroIsSignificant(boolean zeroIsSignificant) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("zeroIsSignificant"), zeroIsSignificant))
-            .addPredicate(root -> root.get("valueType").in(ValueType.NUMERIC_TYPES)));
   }
 
   @Override

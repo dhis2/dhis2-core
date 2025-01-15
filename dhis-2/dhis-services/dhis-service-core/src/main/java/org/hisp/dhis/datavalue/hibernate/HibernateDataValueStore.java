@@ -51,10 +51,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -127,6 +130,35 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     String hql = "delete from DataValue d where d.dataElement = :dataElement";
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValues(@Nonnull Collection<DataElement> dataElements) {
+    String hql = "delete from DataValue d where d.dataElement in :dataElements";
+
+    entityManager.createQuery(hql).setParameter("dataElements", dataElements).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValuesByCategoryOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos) {
+    String hql = "delete from DataValue d where d.categoryOptionCombo in :categoryOptionCombos";
+
+    entityManager
+        .createQuery(hql)
+        .setParameter("categoryOptionCombos", categoryOptionCombos)
+        .executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValuesByAttributeOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos) {
+    String hql = "delete from DataValue d where d.attributeOptionCombo in :attributeOptionCombos";
+
+    entityManager
+        .createQuery(hql)
+        .setParameter("attributeOptionCombos", attributeOptionCombos)
+        .executeUpdate();
   }
 
   @Override
@@ -276,6 +308,206 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .isEmpty();
   }
 
+  @Override
+  public List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select dv from DataValue dv
+            join dv.categoryOptionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
+  }
+
+  @Override
+  public List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select dv from DataValue dv
+            join dv.attributeOptionCombo aoc
+            where aoc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
+  }
+
+  @Override
+  public void mergeDataValuesWithCategoryOptionCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
+    String plpgsql =
+        """
+         do
+         $$
+         declare
+           source_dv record;
+           target_duplicate record;
+           target_coc bigint default %s;
+         begin
+
+           -- loop through each record with a source CategoryOptionCombo
+           for source_dv in
+             select * from datavalue where categoryoptioncomboid in (%s)
+             loop
+
+             -- check if target Data Value exists with same unique key
+             select dv.*
+               into target_duplicate
+               from datavalue dv
+               where dv.dataelementid = source_dv.dataelementid
+               and dv.periodid = source_dv.periodid
+               and dv.sourceid = source_dv.sourceid
+               and dv.attributeoptioncomboid = source_dv.attributeoptioncomboid
+               and dv.categoryoptioncomboid = target_coc;
+
+             -- target duplicate found and target has latest lastUpdated value
+             if (target_duplicate.categoryoptioncomboid is not null
+                 and target_duplicate.lastupdated >= source_dv.lastupdated)
+               then
+               -- delete source
+               delete from datavalue
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and source has latest lastUpdated value
+             elsif (target_duplicate.categoryoptioncomboid is not null
+                 and target_duplicate.lastupdated < source_dv.lastupdated)
+               then
+               -- delete target
+               delete from datavalue
+                 where dataelementid = target_duplicate.dataelementid
+                 and periodid = target_duplicate.periodid
+                 and sourceid = target_duplicate.sourceid
+                 and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
+
+               -- update source with target CategoryOptionCombo
+               update datavalue
+                 set categoryoptioncomboid = target_coc
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             else
+               -- no target duplicate found, update source with target CategoryOptionCombo
+               update datavalue
+                 set categoryoptioncomboid = target_coc
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             end if;
+
+             end loop;
+         end;
+         $$
+         language plpgsql;
+         """
+            .formatted(
+                target.getId(),
+                sources.stream()
+                    .map(s -> String.valueOf(s.getId()))
+                    .collect(Collectors.joining(",")));
+
+    jdbcTemplate.update(plpgsql);
+  }
+
+  @Override
+  public void mergeDataValuesWithAttributeOptionCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources) {
+    String plpgsql =
+        """
+         do
+         $$
+         declare
+           source_dv record;
+           target_duplicate record;
+           target_aoc bigint default %s;
+         begin
+
+           -- loop through each record with a source Attribute Option Combo
+           for source_dv in
+             select * from datavalue where attributeoptioncomboid in (%s)
+             loop
+
+             -- check if target DataValue exists with same unique key
+             select dv.*
+               into target_duplicate
+               from datavalue dv
+               where dv.dataelementid = source_dv.dataelementid
+               and dv.periodid = source_dv.periodid
+               and dv.sourceid = source_dv.sourceid
+               and dv.attributeoptioncomboid = target_aoc
+               and dv.categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and target has latest lastUpdated value
+             if (target_duplicate.attributeoptioncomboid is not null
+                 and target_duplicate.lastupdated >= source_dv.lastupdated)
+               then
+               -- delete source
+               delete from datavalue
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and source has latest lastUpdated value
+             elsif (target_duplicate.attributeoptioncomboid is not null
+                 and target_duplicate.lastupdated < source_dv.lastupdated)
+               then
+               -- delete target
+               delete from datavalue
+                 where dataelementid = target_duplicate.dataelementid
+                 and periodid = target_duplicate.periodid
+                 and sourceid = target_duplicate.sourceid
+                 and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
+
+               -- update source with target Attribute Option Combo
+               update datavalue
+                 set attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             else
+               -- no target duplicate found, update source with target Attribute Option Combo
+               update datavalue
+                 SET attributeoptioncomboid = target_aoc
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             end if;
+
+             end loop;
+         end;
+         $$
+         language plpgsql;
+         """
+            .formatted(
+                target.getId(),
+                sources.stream()
+                    .map(s -> String.valueOf(s.getId()))
+                    .collect(Collectors.joining(",")));
+
+    jdbcTemplate.update(plpgsql);
+  }
+
   // -------------------------------------------------------------------------
   // getDataValues and related supportive methods
   // -------------------------------------------------------------------------
@@ -334,7 +566,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
       hql.append(
           params.getOrganisationUnits().stream()
-              .map(OrganisationUnit::getPath)
+              .map(OrganisationUnit::getStoredPath)
               .map(p -> "ou.path like '" + p + "%'")
               .collect(joining(" or ")));
 
@@ -565,7 +797,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
           where
               .append(sqlHelper.or())
               .append("ou.path like '")
-              .append(parent.getPath())
+              .append(parent.getStoredPath())
               .append("%'");
         }
 

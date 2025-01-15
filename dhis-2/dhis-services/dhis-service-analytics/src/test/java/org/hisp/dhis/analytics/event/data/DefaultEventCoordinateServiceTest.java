@@ -69,7 +69,7 @@ class DefaultEventCoordinateServiceTest {
   void testGetCoordinateFieldOrFail(String geometry) {
     when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
 
-    assertEquals(geometry, service.getCoordinateField("A", geometry, ErrorCode.E7232));
+    assertEquals(geometry, service.validateCoordinateField("A", geometry, ErrorCode.E7232));
   }
 
   @Test

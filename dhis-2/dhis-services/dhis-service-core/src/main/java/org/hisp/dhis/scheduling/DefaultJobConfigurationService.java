@@ -63,8 +63,8 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -92,17 +92,30 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
   private final SystemSettingsProvider settingsProvider;
-  private final JobCreationHelper jobCreationHelper;
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config) throws ConflictException {
-    return jobCreationHelper.create(config);
+    config.setAutoFields();
+    jobConfigurationStore.save(config);
+    return config.getUid();
   }
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
-    return jobCreationHelper.create(config, contentType, content);
+    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
+      throw new ConflictException(
+          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
+    config.setAutoFields(); // ensure UID is set
+    FileResource fr =
+        FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType.toString());
+    fr.setUid(config.getUid());
+    fr.setAssigned(true);
+    fileResourceService.syncSaveFileResource(fr, content);
+    jobConfigurationStore.save(config);
+    return config.getUid();
   }
 
   @Override
@@ -138,43 +151,6 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public void createDefaultJob(JobType type) {
     createDefaultJob(type, CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public String createInTransaction(
-      JobConfiguration jobConfiguration, MimeType contentType, InputStream content)
-      throws ConflictException, NotFoundException {
-    String jobId = jobCreationHelper.create(jobConfiguration, contentType, content);
-
-    if (!jobConfigurationStore.executeNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
-      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (job.getJobStatus() == JobStatus.RUNNING)
-        throw new ConflictException("Job is already running.");
-      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
-        throw new ConflictException("Job did already run once.");
-      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
-    }
-    return jobId;
-  }
-
-  @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public String createInTransaction(JobConfiguration jobConfiguration)
-      throws ConflictException, NotFoundException {
-    String jobId = jobCreationHelper.create(jobConfiguration);
-
-    if (!jobConfigurationStore.executeNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
-      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (job.getJobStatus() == JobStatus.RUNNING)
-        throw new ConflictException("Job is already running.");
-      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
-        throw new ConflictException("Job did already run once.");
-      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
-    }
-    return jobId;
   }
 
   @Override

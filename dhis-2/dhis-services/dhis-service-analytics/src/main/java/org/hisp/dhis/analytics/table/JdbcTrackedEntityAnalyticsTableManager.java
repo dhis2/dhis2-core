@@ -213,7 +213,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                 tea ->
                     AnalyticsTableColumn.builder()
                         .name(tea.getUid())
-                        .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
+                        .dataType(getColumnType(tea.getValueType(), isGeospatialSupport()))
                         .selectExpression(
                             getColumnExpression(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())

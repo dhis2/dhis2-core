@@ -38,13 +38,11 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -72,8 +70,7 @@ public class ValidationController {
 
   private final ValidationService validationService;
   private final CategoryService categoryService;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
   private final DataValidator dataValidator;
 
   @GetMapping("/dataSet/{ds}")
@@ -109,11 +106,10 @@ public class ValidationController {
       value = "/sendNotifications",
       method = {RequestMethod.PUT, RequestMethod.POST})
   @RequiresAuthority(anyOf = Authorities.F_RUN_VALIDATION)
-  public WebMessage runValidationNotificationsTask()
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage runValidationNotificationsTask() throws ConflictException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
 
-    jobSchedulerService.createThenExecute(config);
+    jobExecutionService.executeOnceNow(config);
 
     return jobConfigurationReport(config);
   }

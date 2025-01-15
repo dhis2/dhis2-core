@@ -349,15 +349,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   // -------------------------------------------------------------------------
 
   /**
-   * Indicates whether spatial support is available.
+   * Indicates whether the DBMS supports geospatial data types and functions.
    *
-   * @return true if spatial support is available.
+   * @return true if the DBMS supports geospatial data types and functions.
    */
-  protected boolean isSpatialSupport() {
-    return analyticsTableSettings.isSpatialSupport() && sqlBuilder.supportsGeospatialData();
+  protected boolean isGeospatialSupport() {
+    return sqlBuilder.supportsGeospatialData();
   }
 
-  /** Returns the analytics table name. */
+  /**
+   * Returns the analytics table name.
+   *
+   * @return the analytics table name.
+   */
   protected String getTableName() {
     return getAnalyticsTableType().getTableName();
   }

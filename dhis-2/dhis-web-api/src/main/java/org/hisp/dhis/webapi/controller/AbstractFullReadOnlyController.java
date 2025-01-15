@@ -81,6 +81,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -242,7 +243,7 @@ public abstract class AbstractFullReadOnlyController<
   @Nonnull
   protected List<Criterion> getAdditionalFilters(P params) throws ConflictException {
     List<Criterion> filters = new ArrayList<>();
-    if (params.getQuery() != null && !params.getQuery().isEmpty())
+    if (params.getQuery() != null && !params.getQuery().isEmpty() && getEntityClass() != User.class)
       filters.add(Restrictions.query(getSchema(), params.getQuery()));
     List<UID> matches = getPreQueryMatches(params);
     // Note: null = no special filters, empty = no matches for special filters

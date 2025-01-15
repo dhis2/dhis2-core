@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalState;
@@ -795,6 +797,33 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     }
 
     return statusList;
+  }
+
+  @Override
+  public List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select da from DataApproval da
+            join da.attributeOptionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
+  }
+
+  @Override
+  public void deleteByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return;
+    String hql =
+        """
+        delete from DataApproval da
+        where da.attributeOptionCombo in
+          (select coc from CategoryOptionCombo coc
+          where coc.uid in :uids)
+        """;
+
+    entityManager.createQuery(hql).setParameter("uids", UID.toValueList(uids)).executeUpdate();
   }
 
   /**

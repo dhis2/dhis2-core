@@ -39,7 +39,7 @@ import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
 import static org.hisp.dhis.system.grid.GridUtils.toXls;
 import static org.hisp.dhis.system.grid.GridUtils.toXlsx;
 import static org.hisp.dhis.system.grid.GridUtils.toXml;
-import static org.hisp.dhis.util.PeriodCriteriaUtils.defineDefaultPeriodForCriteria;
+import static org.hisp.dhis.util.PeriodCriteriaUtils.addDefaultPeriodIfAbsent;
 import static org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy.INSTANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
@@ -256,7 +256,7 @@ public class EnrollmentAggregateAnalyticsController {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     criteria.definePageSize(settings.getAnalyticsMaxLimit());
 
-    defineDefaultPeriodForCriteria(criteria, settings.getAnalysisRelativePeriod());
+    addDefaultPeriodIfAbsent(criteria, settings.getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()

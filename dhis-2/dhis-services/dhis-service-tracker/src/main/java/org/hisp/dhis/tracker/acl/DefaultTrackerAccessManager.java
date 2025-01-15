@@ -282,7 +282,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     Program program = enrollment.getProgram();
     List<String> errors = new ArrayList<>();
     OrganisationUnit ou = enrollment.getOrganisationUnit();
-    if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+    if (ou != null && !user.isInUserHierarchy(ou.getStoredPath())) {
       errors.add("User has no create access to organisation unit: " + ou.getUid());
     }
 
@@ -336,7 +336,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     } else {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
-      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserHierarchy(ou.getStoredPath())) {
         errors.add("User has no write access to organisation unit: " + ou.getUid());
       }
     }
@@ -371,7 +371,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       }
     } else {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
-      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserHierarchy(ou.getStoredPath())) {
         errors.add("User has no delete access to organisation unit: " + ou.getUid());
       }
     }
@@ -447,8 +447,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     if (ou != null) {
       boolean isInHierarchy =
           event.isCreatableInSearchScope()
-              ? user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
-              : user.isInUserHierarchy(ou.getPath());
+              ? user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getStoredPath())
+              : user.isInUserHierarchy(ou.getStoredPath());
 
       if (!isInHierarchy) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
@@ -493,7 +493,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       canManageWithRegistration(errors, user, programStage, program);
 
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getStoredPath())) {
         errors.add("User has no update access to organisation unit: " + ou.getUid());
       }
 
@@ -528,7 +528,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     if (program.isWithoutRegistration()) {
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserHierarchy(ou.getStoredPath())) {
         errors.add("User has no delete access to organisation unit: " + ou.getUid());
       }
 
@@ -748,10 +748,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {
-      return user.isInUserHierarchy(orgUnit.getPath());
+      return user.isInUserHierarchy(orgUnit.getStoredPath());
     }
 
-    return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath());
+    return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
   }
 
   @Override

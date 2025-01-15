@@ -25,48 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.system.util;
 
-import java.io.InputStream;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.util.MimeType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public interface JobCreationHelper {
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
-  String create(JobConfiguration config) throws ConflictException;
+class ListBuilderTest {
+  @Test
+  void testAdd() {
+    List<String> actual =
+        new ListBuilder<String>().add("one").addAll(List.of("two", "three")).build();
 
-  String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException;
+    List<String> expected = List.of("one", "two", "three");
 
-  default String createFromConfig(JobConfiguration config, JobConfigurationStore store) {
-    config.setAutoFields();
-    store.save(config);
-    return config.getUid();
+    assertEquals(expected, actual);
   }
 
-  default String createFromConfigAndInputStream(
-      JobConfiguration config,
-      MimeType contentType,
-      InputStream content,
-      JobConfigurationStore store,
-      FileResourceService fileResourceService)
-      throws ConflictException {
-    if (config.getSchedulingType() != SchedulingType.ONCE_ASAP)
-      throw new ConflictException(
-          "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
-    config.setAutoFields(); // ensure UID is set
-    FileResource fr =
-        FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType.toString());
-    fr.setUid(config.getUid());
-    fr.setAssigned(true);
-    fileResourceService.syncSaveFileResource(fr, content);
-    store.save(config);
-    return config.getUid();
+  @Test
+  void testAddWithInitial() {
+    List<String> actual =
+        new ListBuilder<String>(List.of("one")).addAll(List.of("two", "three")).build();
+
+    List<String> expected = List.of("one", "two", "three");
+
+    assertEquals(expected, actual);
   }
 }

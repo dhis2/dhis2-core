@@ -161,22 +161,6 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetAll() {
-    categoryA = createCategory('A');
-    categoryB = createCategory('B');
-    categoryC = createCategory('C');
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    categoryService.addCategory(categoryC);
-    List<Category> categories = categoryService.getAllDataElementCategories();
-    // Including default
-    assertEquals(4, categories.size());
-    assertTrue(categories.contains(categoryA));
-    assertTrue(categories.contains(categoryB));
-    assertTrue(categories.contains(categoryC));
-  }
-
-  @Test
   void testAddGetCategoryGroup() {
     CategoryOptionGroup groupA = createCategoryOptionGroup('A');
     CategoryOptionGroup groupB = createCategoryOptionGroup('B');
@@ -302,18 +286,6 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     groupSetA.getMembers().add(groupC);
     categoryService.saveCategoryOptionGroupSet(groupSetA);
     assertEquals(1, categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().size());
-  }
-
-  @Test
-  void testGetDisaggregationCategories() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB, categoryOptionC);
-    categoryA.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-    categoryService.addCategory(categoryA);
-    // Default Category is created so count should be equal 2
-    assertEquals(2, categoryService.getDisaggregationCategories().size());
-    assertEquals(1, categoryStore.getCategories(DataDimensionType.DISAGGREGATION, true).size());
-    assertEquals(
-        1, categoryStore.getCategoriesNoAcl(DataDimensionType.DISAGGREGATION, true).size());
   }
 
   @Test

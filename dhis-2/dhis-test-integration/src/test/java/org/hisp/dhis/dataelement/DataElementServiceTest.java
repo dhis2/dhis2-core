@@ -251,31 +251,6 @@ class DataElementServiceTest extends PostgresIntegrationTestBase {
     assertTrue(dataElements.containsAll(dataElementsRef));
   }
 
-  @Test
-  void testGetAllDataElementsByType() {
-    assertEquals(0, dataElementService.getAllDataElements().size());
-    DataElement dataElementA = createDataElement('A');
-    DataElement dataElementB = createDataElement('B');
-    DataElement dataElementC = createDataElement('C');
-    DataElement dataElementD = createDataElement('D');
-    dataElementA.setValueType(ValueType.FILE_RESOURCE);
-    dataElementB.setValueType(ValueType.EMAIL);
-    dataElementC.setValueType(ValueType.BOOLEAN);
-    dataElementD.setValueType(ValueType.FILE_RESOURCE);
-    dataElementService.addDataElement(dataElementA);
-    dataElementService.addDataElement(dataElementB);
-    dataElementService.addDataElement(dataElementC);
-    dataElementService.addDataElement(dataElementD);
-    List<DataElement> dataElementsRef = new ArrayList<>();
-    dataElementsRef.add(dataElementA);
-    dataElementsRef.add(dataElementD);
-    List<DataElement> dataElements =
-        dataElementService.getAllDataElementsByValueType(ValueType.FILE_RESOURCE);
-    assertNotNull(dataElements);
-    assertEquals(dataElementsRef.size(), dataElements.size());
-    assertTrue(dataElements.containsAll(dataElementsRef));
-  }
-
   // -------------------------------------------------------------------------
   // DataElementGroup
   // -------------------------------------------------------------------------

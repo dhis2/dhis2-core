@@ -38,7 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +56,25 @@ import org.springframework.transaction.annotation.Transactional;
 class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
+
+  @Test
+  void testGetObjectList_QueryUsers() {
+    // this just simulates the normal setup with a system super-user
+    User user = switchToNewUser("system", "ALL");
+    // make sure "system" does not occur in any other property that might be searched by query=
+    user.setName("x");
+    user.setFirstName("y");
+    user.setSurname("z");
+    user.setCode("xyz");
+    userService.updateUser(user);
+
+    JsonList<JsonUser> users =
+        GET("/users?fields=id,name,username&query=system")
+            .content()
+            .getList("users", JsonUser.class);
+    assertEquals(1, users.size());
+    assertEquals("system", users.get(0).getUsername());
+  }
 
   @Test
   void testGetObjectListCsv() {

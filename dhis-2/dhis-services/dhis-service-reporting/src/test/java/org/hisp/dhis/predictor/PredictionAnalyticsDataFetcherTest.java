@@ -106,8 +106,8 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     periods = Sets.newHashSet(periodA, periodB);
 
-    orgUnitA = createOrganisationUnit("A");
-    orgUnitB = createOrganisationUnit("B");
+    orgUnitA = createOrganisationUnit('A');
+    orgUnitB = createOrganisationUnit('B');
 
     orgUnitA.setUid("orgUnitAuid");
     orgUnitB.setUid("orgUnitBuid");

@@ -565,14 +565,10 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
    */
   @Test
   void planQueryC() {
-    ouB.setParent(ouA);
-    ouC.setParent(ouA);
-    ouD.setParent(ouB);
-    ouE.setParent(ouC);
-    ouA.getChildren().add(ouB);
-    ouA.getChildren().add(ouC);
-    ouD.getChildren().add(ouB);
-    ouC.getChildren().add(ouE);
+    ouB.updateParent(ouA);
+    ouC.updateParent(ouA);
+    ouD.updateParent(ouB);
+    ouE.updateParent(ouC);
     organisationUnitService.updateOrganisationUnit(ouA);
     organisationUnitService.updateOrganisationUnit(ouB);
     organisationUnitService.updateOrganisationUnit(ouC);

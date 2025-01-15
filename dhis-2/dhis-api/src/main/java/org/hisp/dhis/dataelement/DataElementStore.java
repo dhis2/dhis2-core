@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.user.User;
 
 /**
@@ -52,30 +51,6 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
    * @return all DataElements with the given category combo.
    */
   List<DataElement> getDataElementByCategoryCombo(CategoryCombo categoryCombo);
-
-  /**
-   * Returns all DataElement which zeroIsSignificant property is true or false
-   *
-   * @param zeroIsSignificant is zeroIsSignificant property
-   * @return a collection of all DataElement
-   */
-  List<DataElement> getDataElementsByZeroIsSignificant(boolean zeroIsSignificant);
-
-  /**
-   * Returns all DataElements of the given domain type.
-   *
-   * @param domainType the domain type.
-   * @return all DataElements of the given domain type.
-   */
-  List<DataElement> getDataElementsByDomainType(DataElementDomain domainType);
-
-  /**
-   * Returns all DataElements of the given value type.
-   *
-   * @param valueType the value type.
-   * @return all DataElements of the given value type.
-   */
-  List<DataElement> getDataElementsByValueType(ValueType valueType);
 
   /**
    * Returns all DataElements which are not member of any DataElementGroups.

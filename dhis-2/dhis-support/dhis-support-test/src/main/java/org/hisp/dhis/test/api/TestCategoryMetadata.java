@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasource.model;
+package org.hisp.dhis.test.api;
 
-import java.util.Optional;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
-/**
- * Encapsulation of a database connection pool configuration.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Value
-@Builder
-public class PoolConfig {
-  private String dbPoolType;
-
-  private DhisConfigurationProvider dhisConfig;
-
-  private String jdbcUrl;
-
-  private String username;
-
-  private String password;
-
-  private String maxPoolSize;
-
-  private String acquireIncrement;
-
-  private String acquireRetryAttempts;
-
-  private String acquireRetryDelay;
-
-  private String maxIdleTime;
-
-  private ConfigKeyMapper mapper;
-
-  public ConfigKeyMapper getMapper() {
-    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
-  }
-}
+public record TestCategoryMetadata(
+    CategoryCombo cc1,
+    CategoryCombo cc2,
+    Category c1,
+    Category c2,
+    Category c3,
+    Category c4,
+    CategoryOption co1,
+    CategoryOption co2,
+    CategoryOption co3,
+    CategoryOption co4,
+    CategoryOption co5,
+    CategoryOption co6,
+    CategoryOption co7,
+    CategoryOption co8,
+    CategoryOptionCombo coc1,
+    CategoryOptionCombo coc2,
+    CategoryOptionCombo coc3,
+    CategoryOptionCombo coc4) {}

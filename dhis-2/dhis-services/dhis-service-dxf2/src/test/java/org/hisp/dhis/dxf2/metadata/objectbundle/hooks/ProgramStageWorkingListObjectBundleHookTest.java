@@ -35,6 +35,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E4066;
 import static org.hisp.dhis.feedback.ErrorCode.E4067;
 import static org.hisp.dhis.feedback.ErrorCode.E4068;
 import static org.hisp.dhis.feedback.ErrorCode.E7500;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertErrorReport;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -50,7 +51,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
@@ -136,7 +136,7 @@ class ProgramStageWorkingListObjectBundleHookTest {
             .build();
 
     when(organisationUnitService.getOrganisationUnit(anyString()))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(dataElementService.getDataElement(anyString())).thenReturn(new DataElement());
     when(attributeService.getTrackedEntityAttribute(anyString()))
         .thenReturn(new TrackedEntityAttribute());

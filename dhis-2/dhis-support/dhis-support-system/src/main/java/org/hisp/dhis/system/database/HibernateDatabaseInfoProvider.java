@@ -136,7 +136,7 @@ public class HibernateDatabaseInfoProvider implements DatabaseInfoProvider {
             .name(internalInfo.getDatabase())
             .user(StringUtils.defaultIfEmpty(internalInfo.getUser(), user))
             .url(url)
-            .spatialSupport(spatialSupport)
+            .spatialSupport(true) // Always true, for backwards compatibility
             .databaseVersion(internalInfo.getVersion())
             .build();
   }
