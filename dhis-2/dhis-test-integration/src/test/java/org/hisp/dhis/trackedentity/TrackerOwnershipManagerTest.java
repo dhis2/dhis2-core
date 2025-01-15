@@ -184,7 +184,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, programA, userDetailsB, "testing reason"));
 
     assertEquals(
-        "The owner of the entity-program combination is not in the user's search scope",
+        "The owner of the entity-program combination is not in the user's search scope.",
         exception.getMessage());
   }
 
