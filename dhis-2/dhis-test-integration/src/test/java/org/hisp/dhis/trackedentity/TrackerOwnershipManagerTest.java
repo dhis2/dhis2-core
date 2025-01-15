@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import static org.hisp.dhis.common.AccessLevel.AUDITED;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
+import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -55,6 +56,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -144,7 +146,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         createAndAddUserWithAuth("trackertestownership", organisationUnitA, Authorities.ALL);
 
     programA = createProgram('A');
-    programA.setAccessLevel(AccessLevel.PROTECTED);
+    programA.setAccessLevel(PROTECTED);
     programA.setTrackedEntityType(trackedEntityType);
     programA.setOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
     programService.addProgram(programA);
@@ -365,6 +367,54 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
     assertContains(
         "Temporary ownership can only be granted to protected programs.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserIsSuperuser() {
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1,
+                    programA,
+                    UserDetails.fromUser(superUser),
+                    "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNull() {
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, null, userDetailsB, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNotTrackerProgram() {
+    Program eventProgram = createProgram(PROTECTED);
+    eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, eventProgram, userDetailsB, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.",
+        exception.getMessage());
   }
 
   @Test
