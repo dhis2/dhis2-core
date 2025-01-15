@@ -50,8 +50,7 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
     this.items = new LinkedHashMap<>();
   }
 
-  private TrackedEntity getTei(ResultSet rs) throws SQLException {
-
+  private TrackedEntity getTrackedEntity(ResultSet rs) throws SQLException {
     TrackedEntity te = new TrackedEntity();
     te.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.UID)));
     TrackedEntityType trackedEntityType = new TrackedEntityType();
@@ -85,7 +84,7 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
 
   @Override
   public void processRow(ResultSet rs) throws SQLException {
-    this.items.put(rs.getString("te_uid"), getTei(rs));
+    this.items.put(rs.getString("te_uid"), getTrackedEntity(rs));
   }
 
   public Map<String, TrackedEntity> getItems() {
