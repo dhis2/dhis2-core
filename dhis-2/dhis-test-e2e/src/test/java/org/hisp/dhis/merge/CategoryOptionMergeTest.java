@@ -56,9 +56,9 @@ class CategoryOptionMergeTest extends ApiTest {
   private RestApiActions maintenanceApiActions;
   private UserActions userActions;
   private LoginActions loginActions;
-  private String sourceUid1 = "CatOptUid1A";
-  private String sourceUid2 = "CatOptUid2B";
-  private String targetUid = "CatOptUid3A";
+  private final String sourceUid1 = "CatOptUid1A";
+  private final String sourceUid2 = "CatOptUid2B";
+  private final String targetUid = "CatOptUid3A";
 
   @BeforeAll
   public void before() {

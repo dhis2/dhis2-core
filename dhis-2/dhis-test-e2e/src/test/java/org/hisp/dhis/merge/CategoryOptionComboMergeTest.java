@@ -575,7 +575,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
     return json;
   }
 
-  public String getCocWithOptions(String co1, String co2) {
+  private String getCocWithOptions(String co1, String co2) {
 
     return categoryOptionComboApiActions
         .get(
