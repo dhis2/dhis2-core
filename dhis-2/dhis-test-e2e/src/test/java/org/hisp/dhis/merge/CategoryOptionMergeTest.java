@@ -92,13 +92,9 @@ class CategoryOptionMergeTest extends ApiTest {
   void validCategoryOptionMergeTest() {
     // given
     // generate category option combos
-    String emptyParams = new QueryParamsBuilder().build();
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
-        .validateStatus(200);
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
-        .validateStatus(200);
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
     // confirm state before merge
     ValidatableResponse preMergeState =
