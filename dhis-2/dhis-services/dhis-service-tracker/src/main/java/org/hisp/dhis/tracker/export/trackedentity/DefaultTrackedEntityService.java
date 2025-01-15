@@ -297,10 +297,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     result.setCreatedByUserInfo(trackedEntity.getCreatedByUserInfo());
     result.setLastUpdatedByUserInfo(trackedEntity.getLastUpdatedByUserInfo());
     result.setGeometry(trackedEntity.getGeometry());
-    setRelationshipItems(result, trackedEntity, params, includeDeleted);
     if (params.isIncludeEnrollments()) {
       result.setEnrollments(getEnrollments(trackedEntity, user, includeDeleted, program));
     }
+    setRelationshipItems(result, trackedEntity, params, includeDeleted);
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
     }
@@ -437,34 +437,33 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void setRelationshipItems(
-      TrackedEntity target,
-      TrackedEntity source,
+      TrackedEntity targetTrackedEntity,
+      TrackedEntity sourceTrackedEntity,
       TrackedEntityParams params,
       boolean includeDeleted)
       throws NotFoundException {
     if (params.isIncludeRelationships()) {
-      target.setRelationshipItems(getRelationshipItems(source, includeDeleted));
+      targetTrackedEntity.setRelationshipItems(
+          getRelationshipItems(sourceTrackedEntity, includeDeleted));
     }
     if (params.getEnrollmentParams().isIncludeRelationships()) {
-      for (Enrollment enrollment : source.getEnrollments()) {
-        enrollment.setRelationshipItems(getRelationshipItems(enrollment, source, includeDeleted));
-      }
-    }
-    if (params.getEventParams().isIncludeRelationships()) {
-      for (Enrollment enrollment : source.getEnrollments()) {
-        for (Event event : enrollment.getEvents()) {
-          Set<RelationshipItem> relationshipItems =
-              getRelationshipItems(event, source, includeDeleted);
-          //          target.getEnrollments().stream()
-          //              .filter(e -> e.getUid().equals(enrollment.getUid()))
-          //              .findFirst()
-          //              .orElseThrow(() -> new NotFoundException(Enrollment.class,
-          // enrollment.getUid()))
-          //              .getEvents().stream()
-          //              .filter(ev->ev.getUid().equals(event.getUid()))
-          //              .findFirst().orElseThrow(() -> new NotFoundException(Enrollment.class,
-          // enrollment.getUid()));
-          event.setRelationshipItems(relationshipItems);
+      for (Enrollment sourceEnrollment : sourceTrackedEntity.getEnrollments()) {
+        for (Enrollment targetEnrollment : targetTrackedEntity.getEnrollments()) {
+          if (sourceEnrollment.getUid().equals(targetEnrollment.getUid())) {
+            targetEnrollment.setRelationshipItems(
+                getRelationshipItems(sourceEnrollment, sourceTrackedEntity, includeDeleted));
+
+            if (params.getEventParams().isIncludeRelationships()) {
+              for (Event sourceEvent : sourceEnrollment.getEvents()) {
+                for (Event targetEvent : targetEnrollment.getEvents()) {
+                  if (targetEvent.getUid().equals(sourceEvent.getUid())) {
+                    targetEvent.setRelationshipItems(
+                        getRelationshipItems(sourceEvent, sourceTrackedEntity, includeDeleted));
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
