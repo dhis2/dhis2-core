@@ -170,7 +170,7 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldOverrideOwnershipAccessWhenUsingDeprecateTrackedEntityInstanceParam() {
+  void shouldGrantTemporaryAccessWhenUsingDeprecateTrackedEntityInstanceParam() {
     assertWebMessage(
         "OK",
         200,
@@ -184,7 +184,7 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldOverrideOwnershipAccess() {
+  void shouldGrantTemporaryAccess() {
     assertWebMessage(
         "OK",
         200,

@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -149,61 +148,24 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   @Transactional
-  public void assignOwnership(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit organisationUnit,
-      boolean skipAccessValidation,
-      boolean overwriteIfExists) {
-    if (trackedEntity == null || program == null || organisationUnit == null) {
-      return;
-    }
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
-    if (hasAccess(currentUser, trackedEntity, program) || skipAccessValidation) {
-      TrackedEntityProgramOwner teProgramOwner =
-          trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
-
-      if (teProgramOwner != null) {
-        if (overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals(organisationUnit)) {
-          ProgramOwnershipHistory programOwnershipHistory =
-              new ProgramOwnershipHistory(
-                  program,
-                  trackedEntity,
-                  teProgramOwner.getOrganisationUnit(),
-                  teProgramOwner.getLastUpdated(),
-                  teProgramOwner.getCreatedBy());
-          programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
-          trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-              trackedEntity, program, organisationUnit);
-        }
-      } else {
-        trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
-            trackedEntity, program, organisationUnit);
-      }
-
-      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));
-    } else {
-      log.error("Unauthorized attempt to assign ownership");
-      throw new AccessDeniedException(
-          "User does not have access to assign ownership for the entity-program combination");
-    }
-  }
-
-  @Override
-  @Transactional
   public void grantTemporaryOwnership(
-      TrackedEntity trackedEntity, Program program, UserDetails user, String reason) {
+      TrackedEntity trackedEntity, Program program, UserDetails user, String reason)
+      throws ForbiddenException {
     if (canSkipOwnershipCheck(user, program) || trackedEntity == null) {
       return;
     }
 
     if (program.isProtected()) {
+      if (!isOwnerInUserSearchScope(user, trackedEntity, program)) {
+        throw new ForbiddenException(
+            "The owner of the entity-program combination is not in the user's search scope");
+      }
+
       if (config.isEnabled(CHANGELOG_TRACKER)) {
         programTempOwnershipAuditService.addProgramTempOwnershipAudit(
             new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
       }
+
       ProgramTempOwner programTempOwner =
           new ProgramTempOwner(
               program,
@@ -214,6 +176,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       programTempOwnerService.addProgramTempOwner(programTempOwner);
       tempOwnerCache.invalidate(
           getTempOwnershipCacheKey(trackedEntity.getUid(), program.getUid(), user.getUid()));
+    } else {
+      throw new ForbiddenException(
+          String.format(
+              "It's only possible to grant temporary ownership to protected programs, and %s access level is %s",
+              program.getUid(), program.getAccessLevel().name()));
     }
   }
 
