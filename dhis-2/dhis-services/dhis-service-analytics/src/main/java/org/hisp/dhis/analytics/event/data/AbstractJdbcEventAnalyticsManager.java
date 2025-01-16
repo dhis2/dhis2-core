@@ -122,6 +122,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -166,6 +167,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ExecutionPlanStore executionPlanStore;
 
   protected final SqlBuilder sqlBuilder;
+
+  protected final SystemSettingsService settingsService;
 
   /**
    * Returns a SQL paging clause.
@@ -1445,8 +1448,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
     // remove duplicates
-    var ded = columns.stream().distinct().toList();
-    return ded;
+    return columns.stream().distinct().toList();
+  }
+
+  protected boolean useExperimentalAnalyticsQueryEngine() {
+    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**
