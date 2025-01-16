@@ -30,6 +30,7 @@ package org.hisp.dhis.category;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
@@ -453,7 +454,15 @@ public interface CategoryService {
    * @return categoryOptionCombos with refs to categoryOptions
    */
   List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<UID> categoryOptions);
+      @Nonnull Collection<UID> categoryOptions);
+
+  /**
+   * Retrieves all CategoryOptionCombos by {@link UID}.
+   *
+   * @param uids {@link UID}s to search for
+   * @return categoryOptionCombos with refs to {@link UID}s
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByUid(@Nonnull Collection<UID> uids);
 
   // -------------------------------------------------------------------------
   // DataElementOperand

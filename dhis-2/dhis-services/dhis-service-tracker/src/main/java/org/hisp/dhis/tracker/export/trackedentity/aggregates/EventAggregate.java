@@ -105,7 +105,7 @@ public class EventAggregate implements Aggregate {
               Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
 
               for (Event event : events.values()) {
-                if (ctx.getParams().isIncludeRelationships()) {
+                if (ctx.getParams().getEventParams().isIncludeRelationships()) {
                   event.setRelationshipItems(new HashSet<>(relationships.get(event.getUid())));
                 }
 

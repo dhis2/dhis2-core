@@ -208,13 +208,13 @@ public class TrackedEntityAggregate implements Aggregate {
         supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
 
     /*
-     * Async fetch Owned Tei mapped to the provided program attributes by
+     * Async fetch Owned TE mapped to the provided program attributes by
      * TrackedEntity id
      */
     final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
             user.isPresent(),
-            () -> trackedEntityStore.getOwnedTeis(ids, ctx, orgUnitMode == ALL),
+            () -> trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL),
             getPool());
     /*
      * Execute all queries and merge the results

@@ -36,6 +36,7 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -83,6 +84,12 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
     String hql = "delete from DataApprovalAudit d where d.organisationUnit = :unit";
 
     entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataApprovalAudits(CategoryOptionCombo coc) {
+    String hql = "delete from DataApprovalAudit d where d.attributeOptionCombo = :coc";
+    entityManager.createQuery(hql).setParameter("coc", coc).executeUpdate();
   }
 
   @Override

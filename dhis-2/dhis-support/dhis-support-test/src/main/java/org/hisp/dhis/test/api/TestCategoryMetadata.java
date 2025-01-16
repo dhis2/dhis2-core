@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.test.api;
 
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.web.session.HttpSessionCreatedEvent;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Component
-@Slf4j
-@RequiredArgsConstructor
-public class DhisHttpSessionEventListener {
-  private final DhisConfigurationProvider config;
-
-  @EventListener
-  public void sessionCreated(HttpSessionCreatedEvent event) {
-    HttpSession session = event.getSession();
-    try {
-      String property = config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
-      session.setMaxInactiveInterval(Integer.parseInt(property));
-    } catch (Exception e) {
-      session.setMaxInactiveInterval(
-          Integer.parseInt(ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue()));
-      log.error("Could not read session timeout value from config", e);
-    }
-  }
-}
+public record TestCategoryMetadata(
+    CategoryCombo cc1,
+    CategoryCombo cc2,
+    Category c1,
+    Category c2,
+    Category c3,
+    Category c4,
+    CategoryOption co1,
+    CategoryOption co2,
+    CategoryOption co3,
+    CategoryOption co4,
+    CategoryOption co5,
+    CategoryOption co6,
+    CategoryOption co7,
+    CategoryOption co8,
+    CategoryOptionCombo coc1,
+    CategoryOptionCombo coc2,
+    CategoryOptionCombo coc3,
+    CategoryOptionCombo coc4) {}
