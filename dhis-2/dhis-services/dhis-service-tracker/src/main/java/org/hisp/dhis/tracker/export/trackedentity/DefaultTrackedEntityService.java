@@ -236,9 +236,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    UserDetails user = getCurrentUserDetails();
-    TrackedEntity trackedEntity = getTrackedEntity(trackedEntityUid, program, params, user, false);
-    return trackedEntity;
+    return getTrackedEntity(trackedEntityUid, program, params, getCurrentUserDetails());
   }
 
   /**
@@ -249,11 +247,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
    */
   private TrackedEntity getTrackedEntity(
-      UID uid,
-      Program program,
-      TrackedEntityParams params,
-      UserDetails user,
-      boolean includeDeleted)
+      UID uid, Program program, TrackedEntityParams params, UserDetails user)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
     if (trackedEntity == null) {
@@ -280,32 +274,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    TrackedEntity result = new TrackedEntity();
-    result.setId(trackedEntity.getId());
-    result.setUid(trackedEntity.getUid());
-    result.setOrganisationUnit(trackedEntity.getOrganisationUnit());
-    result.setTrackedEntityType(trackedEntity.getTrackedEntityType());
-    result.setCreated(trackedEntity.getCreated());
-    result.setCreatedAtClient(trackedEntity.getCreatedAtClient());
-    result.setLastUpdated(trackedEntity.getLastUpdated());
-    result.setLastUpdatedAtClient(trackedEntity.getLastUpdatedAtClient());
-    result.setInactive(trackedEntity.isInactive());
-    result.setGeometry(trackedEntity.getGeometry());
-    result.setDeleted(trackedEntity.isDeleted());
-    result.setPotentialDuplicate(trackedEntity.isPotentialDuplicate());
-    result.setStoredBy(trackedEntity.getStoredBy());
-    result.setCreatedByUserInfo(trackedEntity.getCreatedByUserInfo());
-    result.setLastUpdatedByUserInfo(trackedEntity.getLastUpdatedByUserInfo());
-    result.setGeometry(trackedEntity.getGeometry());
     if (params.isIncludeEnrollments()) {
-      result.setEnrollments(getEnrollments(trackedEntity, user, includeDeleted, program));
+      trackedEntity.setEnrollments(getEnrollments(trackedEntity, user, false, program));
     }
-    setRelationshipItems(result, trackedEntity, params, includeDeleted);
+    setRelationshipItems(trackedEntity, trackedEntity, params, false);
     if (params.isIncludeProgramOwners()) {
-      result.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
+      trackedEntity.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
     }
-    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity, program));
-    return result;
+    trackedEntity.setTrackedEntityAttributeValues(
+        getTrackedEntityAttributeValues(trackedEntity, program));
+    return trackedEntity;
   }
 
   private Set<Enrollment> getEnrollments(
