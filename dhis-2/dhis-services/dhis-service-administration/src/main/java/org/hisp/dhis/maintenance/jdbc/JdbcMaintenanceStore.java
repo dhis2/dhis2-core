@@ -101,6 +101,11 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
     String eventSelect = "(select eventid from event where deleted is true)";
 
+    return hardDeleteEvents(deletedEvents, eventSelect, "delete from event where deleted is true");
+  }
+
+  @Override
+  public int hardDeleteEvents(List<String> eventsToDelete, String eventSelect, String eventDelete) {
     String pmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
     /*
@@ -126,15 +131,14 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage where eventid in " + eventSelect,
           "delete from programnotificationinstance where eventid in " + eventSelect,
           // finally delete the events
-          "delete from event where deleted is true"
+          eventDelete
         };
 
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
 
-    if (result > 0 && !deletedEvents.isEmpty()) {
-      auditHardDeletedEntity(deletedEvents, Event.class);
+    if (result > 0 && !eventsToDelete.isEmpty()) {
+      auditHardDeletedEntity(eventsToDelete, Event.class);
     }
-
     return result;
   }
 
@@ -352,7 +356,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     jdbcTemplate.batchUpdate(sql);
   }
 
-  private List<String> getDeletionEntities(String entitySql) {
+  @Override
+  public List<String> getDeletionEntities(String entitySql) {
     /*
      * Get all soft deleted entities before they are hard deleted from
      * database

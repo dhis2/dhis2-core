@@ -28,13 +28,19 @@
 package org.hisp.dhis.webapi.security.session;
 
 import jakarta.servlet.Filter;
+import jakarta.servlet.http.HttpSession;
 import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -53,6 +59,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @Conditional(RedisDisabledCondition.class)
 public class NonRedisSessionConfig {
 
+  @Autowired private DhisConfigurationProvider config;
+
   @Bean
   public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
@@ -66,5 +74,12 @@ public class NonRedisSessionConfig {
   @Bean
   public Filter springSessionRepositoryFilter() {
     return new CharacterEncodingFilter();
+  }
+
+  @EventListener
+  public void sessionCreated(HttpSessionCreatedEvent event) {
+    HttpSession session = event.getSession();
+    int sessionTimeout = config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
+    session.setMaxInactiveInterval(sessionTimeout);
   }
 }

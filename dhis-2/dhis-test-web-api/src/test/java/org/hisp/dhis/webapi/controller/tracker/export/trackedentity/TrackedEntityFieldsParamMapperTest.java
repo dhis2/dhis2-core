@@ -129,11 +129,12 @@ class TrackedEntityFieldsParamMapperTest extends H2ControllerIntegrationTestBase
         map("enrollments[!uid,!relationships],relationships[relationship]");
 
     assertTrue(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertTrue(params.isIncludeEnrollments());
     assertTrue(params.getEnrollmentParams().isIncludeEvents());
     assertTrue(params.getEnrollmentParams().isIncludeAttributes());
     assertFalse(params.getEnrollmentParams().isIncludeRelationships());
-    assertFalse(params.isIncludeProgramOwners());
   }
 
   @Test
@@ -141,9 +142,12 @@ class TrackedEntityFieldsParamMapperTest extends H2ControllerIntegrationTestBase
     TrackedEntityParams params = map("enrollments[events,relationships]");
 
     assertFalse(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertTrue(params.isIncludeEnrollments());
     assertTrue(params.getTeEnrollmentParams().isIncludeEvents());
-    assertFalse(params.isIncludeProgramOwners());
+    assertTrue(params.getTeEnrollmentParams().isIncludeRelationships());
+    assertFalse(params.getTeEnrollmentParams().isIncludeAttributes());
   }
 
   @Test
@@ -152,9 +156,10 @@ class TrackedEntityFieldsParamMapperTest extends H2ControllerIntegrationTestBase
     TrackedEntityParams params = map("relationships,!relationships");
 
     assertFalse(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertFalse(params.isIncludeEnrollments());
     assertFalse(params.getTeEnrollmentParams().isIncludeEvents());
-    assertFalse(params.isIncludeProgramOwners());
 
     params = map("!relationships,relationships");
 
@@ -169,9 +174,12 @@ class TrackedEntityFieldsParamMapperTest extends H2ControllerIntegrationTestBase
     TrackedEntityParams params = map("enrollments,enrollments[!status]");
 
     assertFalse(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertTrue(params.isIncludeEnrollments());
     assertTrue(params.getTeEnrollmentParams().isIncludeEvents());
-    assertFalse(params.isIncludeProgramOwners());
+    assertTrue(params.getTeEnrollmentParams().isIncludeAttributes());
+    assertTrue(params.getTeEnrollmentParams().isIncludeRelationships());
   }
 
   static Stream<Arguments> mapEnrollmentsAndEvents() {

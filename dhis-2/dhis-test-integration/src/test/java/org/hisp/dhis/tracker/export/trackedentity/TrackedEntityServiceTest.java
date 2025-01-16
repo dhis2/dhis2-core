@@ -706,7 +706,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities, TrackedEntity::getUid);
     assertContainsOnly(
         Set.of("A", "B", "C"),
         attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
@@ -724,7 +724,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
 
-    assertContainsOnly(Set.of(enrollmentA), trackedEntity.getEnrollments());
+    assertContainsOnly(Set.of(enrollmentA), trackedEntity.getEnrollments(), Enrollment::getUid);
   }
 
   @Test
@@ -740,7 +740,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
 
     assertContainsOnly(
-        Set.of(enrollmentA, enrollmentB, enrollmentProgramB), trackedEntity.getEnrollments());
+        Set.of(enrollmentA, enrollmentB, enrollmentProgramB),
+        trackedEntity.getEnrollments(),
+        Enrollment::getUid);
   }
 
   @Test

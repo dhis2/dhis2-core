@@ -33,7 +33,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -87,5 +89,19 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
         .setParameter(
             "searchStrings", searchStrings.toArray(String[]::new), StringArrayType.INSTANCE)
         .getResultList();
+  }
+
+  @Override
+  public void setAttributeOptionCombo(Set<Long> cocs, long coc) {
+    if (cocs.isEmpty()) return;
+    String sql =
+        """
+        update event
+        set attributeoptioncomboid = %s
+        where attributeoptioncomboid in (%s)
+        """
+            .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));
+
+    entityManager.createNativeQuery(sql).executeUpdate();
   }
 }

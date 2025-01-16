@@ -192,21 +192,56 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and not empty.
+   *
+   * @param actual the collection.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertNotEmpty(Collection<?> actual, Supplier<String> messageSupplier) {
+    assertNotNull(actual, messageSupplier);
+    assertFalse(actual.isEmpty(), messageSupplier);
+  }
+
+  /**
    * Asserts that the given collection contains the expected number of elements.
    *
    * @param actual the collection.
    */
   public static void assertHasSize(int expected, Collection<?> actual) {
-    assert expected > 0 : "use assertIsEmpty";
-
-    assertNotEmpty(actual);
-    assertEquals(
+    assertHasSize(
         expected,
-        actual.size(),
+        actual,
         () ->
             String.format(
                 "expected collection to contain %d elements, it has %d instead: '%s'",
                 expected, actual.size(), actual));
+  }
+
+  /**
+   * Asserts that the given collection contains the expected number of elements.
+   *
+   * @param actual the collection.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertHasSize(
+      int expected, Collection<?> actual, Supplier<String> messageSupplier) {
+    assert expected > 0 : "use assertIsEmpty";
+
+    assertNotEmpty(actual);
+    assertEquals(expected, actual.size(), messageSupplier);
+  }
+
+  /**
+   * Asserts that the given collection contains the expected number of elements.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertHasSize(int expected, Collection<?> actual, String message) {
+    assert expected > 0 : "use assertIsEmpty";
+
+    assertNotEmpty(actual);
+    assertEquals(expected, actual.size(), message);
   }
 
   /**

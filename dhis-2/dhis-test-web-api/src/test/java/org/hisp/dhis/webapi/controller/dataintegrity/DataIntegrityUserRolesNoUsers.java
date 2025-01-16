@@ -56,6 +56,6 @@ class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
     assertEquals(1, summary.getCount());
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Test role", null, true);
+        DETAILS_ID_TYPE, CHECK_NAME, 50, userRoleUid, "Test role", null, true);
   }
 }
