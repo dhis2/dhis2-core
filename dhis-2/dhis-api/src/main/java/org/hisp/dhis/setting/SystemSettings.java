@@ -745,4 +745,8 @@ public non-sealed interface SystemSettings extends Settings {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
+
+  default boolean getUseExperimentalAnalyticsQueryEngine() {
+    return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
+  }
 }

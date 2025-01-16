@@ -76,6 +76,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,6 +111,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
+  @Mock private SystemSettingsService systemSettingsService;
+
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
@@ -139,6 +142,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
+            systemSettingsService,
             sqlBuilder);
   }
 

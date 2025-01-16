@@ -86,6 +86,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -116,6 +117,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private static final String TABLE_NAME = "analytics_event";
 
+  @Mock private SystemSettingsService systemSettingsService;
+
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
       "event,ps,occurreddate,storedby,"
           + "createdbydisplayname"
@@ -138,6 +141,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
+            systemSettingsService,
             sqlBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);

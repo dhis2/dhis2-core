@@ -100,6 +100,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -138,13 +139,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
+      SystemSettingsService settingsService,
       SqlBuilder sqlBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder);
+        sqlBuilder,
+        settingsService);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -152,14 +155,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
     String sql;
     if (params.isAggregatedEnrollments()) {
-      // LUCIANO //
-      sql = buildAggregatedEnrollmentQueryWithCte(grid.getHeaders(), params);
-      // sql = getAggregatedEnrollmentsSql(grid.getHeaders(), params);
+      sql =
+          useExperimentalAnalyticsQueryEngine()
+              ? buildAggregatedEnrollmentQueryWithCte(grid.getHeaders(), params)
+              : getAggregatedEnrollmentsSql(grid.getHeaders(), params);
     } else {
-      sql = buildEnrollmentQueryWithCte(params);
+      // getAggregatedEnrollmentsSql
+      sql =
+          useExperimentalAnalyticsQueryEngine()
+              ? buildEnrollmentQueryWithCte(params)
+              : getAggregatedEnrollmentsSql(params, maxLimit);
     }
-
-    System.out.println("SQL: " + sql); // FIXME: Remove debug line
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -1414,7 +1420,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String buildEnrollmentQueryWithCte(EventQueryParams params) {
-    // LUCIANO //
 
     // 1. Create the CTE context (collect all CTE definitions for program indicators, program
     // stages, etc.)
