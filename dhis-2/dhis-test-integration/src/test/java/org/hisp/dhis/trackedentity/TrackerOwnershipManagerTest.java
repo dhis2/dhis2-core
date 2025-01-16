@@ -382,7 +382,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     "test temporary ownership"));
 
     assertEquals(
-        "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.",
+        "Temporary ownership not created. Either current user is a superuser, program supplied does not exist or program supplied is not a tracker program.",
         exception.getMessage());
   }
 
@@ -396,7 +396,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, null, userDetailsB, "test temporary ownership"));
 
     assertEquals(
-        "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.",
+        "Temporary ownership not created. Either current user is a superuser, program supplied does not exist or program supplied is not a tracker program.",
         exception.getMessage());
   }
 
@@ -413,7 +413,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, eventProgram, userDetailsB, "test temporary ownership"));
 
     assertEquals(
-        "Temporary ownership not created. Either current user is a superuser, program supplied is does not exist or program supplied is not a tracker program.",
+        "Temporary ownership not created. Either current user is a superuser, program supplied does not exist or program supplied is not a tracker program.",
         exception.getMessage());
   }
 
