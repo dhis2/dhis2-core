@@ -69,6 +69,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
   private RestApiActions dataElementApiActions;
   private RestApiActions minMaxActions;
   private MetadataActions metadataActions;
+  private RestApiActions visualizationActions;
   private RestApiActions maintenanceApiActions;
   private RestApiActions dataValueSetActions;
   private UserActions userActions;
@@ -90,6 +91,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
     metadataActions = new MetadataActions();
     maintenanceApiActions = new RestApiActions("maintenance");
     dataValueSetActions = new RestApiActions("dataValueSets");
+    visualizationActions = new RestApiActions("visualizations");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
@@ -144,6 +146,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("categoryOptions", hasSize(equalTo(2)))
         .body("categoryOptions", hasItem(hasEntry("id", "CatOptUid4B")))
         .body("categoryOptions", hasItem(hasEntry("id", "CatOptUid3A")));
+
+    String dataElement = setupDataElement("test de 1");
+    // import visualization to persist data dimension item which has ref to source coc
+    visualizationActions.post(getViz(dataElement, sourceUid1)).validateStatus(201);
 
     // login as merge user
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -410,6 +416,49 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("response.importCount.updated", equalTo(4));
   }
 
+  private String getViz(String dataElement, String coc) {
+    return """
+
+          {
+            "name": "Test viz with data dimension item - DE operand",
+            "displayName": "Test 1",
+            "type": "PIVOT_TABLE",
+            "filters": [
+              {
+                "dimension": "ou",
+                "items": [
+                  {
+                    "id": "USER_ORGUNIT"
+                  }
+                ]
+              }
+            ],
+            "columns": [
+              {
+                "dimension": "dx",
+                "items": [
+                  {
+                    "id": "%s.%s",
+                    "dimensionItemType": "DATA_ELEMENT_OPERAND"
+                  }
+                ]
+              }
+            ],
+            "rows": [
+              {
+                "dimension": "pe",
+                "items": [
+                  {
+                    "id": "LAST_10_YEARS"
+                  }
+                ]
+              }
+            ]
+          }
+          """
+        .formatted(dataElement, coc);
+  }
+
   private QueryParamsBuilder getDataValueQueryParams() {
     return new QueryParamsBuilder()
         .add("async=false")
@@ -494,7 +543,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
     sourceUid2 = getCocWithOptions("1B", "2B");
     targetUid = getCocWithOptions("3A", "4B");
 
-    String dataElement = setupDataElement();
+    String dataElement = setupDataElement("DE test 2");
 
     setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, dataElement);
 
@@ -516,7 +565,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
   }
 
   private void setupMetadata() {
-    metadataActions.post(metadata()).validateStatus(200);
+    metadataActions.importMetadata(metadata()).validateStatus(200);
   }
 
   private void setupMinMaxDataElements(
@@ -546,19 +595,19 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .formatted(de, coc);
   }
 
-  private String setupDataElement() {
+  private String setupDataElement(String name) {
     return dataElementApiActions
         .post(
             """
             {
                "aggregationType": "DEFAULT",
                "domainType": "AGGREGATE",
-               "name": "source 19",
-               "shortName": "source 19",
-               "displayName": "source 19",
+               "name": "%s",
+               "shortName": "%s",
                "valueType": "TEXT"
              }
-             """)
+             """
+                .formatted(name, name))
         .validateStatus(201)
         .extractUid();
   }

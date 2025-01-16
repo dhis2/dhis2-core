@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
@@ -37,6 +38,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -60,6 +62,7 @@ public class MetadataCategoryOptionComboMergeHandler {
   private final CategoryOptionStore categoryOptionStore;
   private final CategoryComboStore categoryComboStore;
   private final DataElementOperandStore dataElementOperandStore;
+  private final DataDimensionItemStore dataDimensionItemStore;
   private final MinMaxDataElementStore minMaxDataElementStore;
   private final PredictorStore predictorStore;
   private final SMSCommandStore smsCommandStore;
@@ -116,6 +119,17 @@ public class MetadataCategoryOptionComboMergeHandler {
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 
     dataElementOperands.forEach(deo -> deo.setCategoryOptionCombo(target));
+
+    // A data element operand is also a data dimension item.
+    // The above update does not cascade the reference change though.
+    // The Data dimension item table also needs updating
+    int dataDimensionItemsUpdated =
+        dataDimensionItemStore.updateDeoCategoryOptionCombo(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    log.info(
+        "{} data dimension items updated as part of category option combo merge",
+        dataDimensionItemsUpdated);
   }
 
   /**
