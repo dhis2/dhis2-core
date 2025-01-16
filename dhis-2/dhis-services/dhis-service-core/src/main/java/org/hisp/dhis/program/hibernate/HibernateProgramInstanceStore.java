@@ -183,7 +183,10 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
 
         for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
           ouClause +=
-              orHlp.or() + "pi.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
+              orHlp.or()
+                  + "pi.organisationUnit.path LIKE '"
+                  + organisationUnit.getStoredPath()
+                  + "%'";
         }
 
         ouClause += ")";
