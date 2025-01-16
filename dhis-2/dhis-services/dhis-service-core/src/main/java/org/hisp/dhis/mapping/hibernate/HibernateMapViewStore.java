@@ -34,6 +34,7 @@ import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.mapping.MapViewStore")
 public class HibernateMapViewStore extends HibernateAnalyticalObjectStore<MapView>
     implements MapViewStore {
+
   public HibernateMapViewStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -61,5 +63,13 @@ public class HibernateMapViewStore extends HibernateAnalyticalObjectStore<MapVie
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("organisationUnitGroupSet"), groupSet)));
+  }
+
+  @Override
+  public List<MapView> findByProgram(Program program) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
   }
 }
