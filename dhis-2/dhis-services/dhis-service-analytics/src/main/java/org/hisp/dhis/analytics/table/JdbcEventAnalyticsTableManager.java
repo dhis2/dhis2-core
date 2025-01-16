@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -39,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -50,7 +53,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -362,7 +367,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
-                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
+                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
 
     populateTableInternal(partition, fromClause);
   }
@@ -462,11 +467,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    Set<DataElement> dataElements =
+        program.getAnalyticsDataElements().stream().filter(Objects::nonNull).collect(toSet());
+
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        dataElements.stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
+    columns.addAll(
+        dataElements.stream()
+            .filter(DataElement::hasOptionSet)
+            .map(this::getColumnFromDataElementOptionSet)
+            .flatMap(Collection::stream)
+            .toList());
+
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
@@ -787,5 +802,122 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
+  }
+
+  private List<AnalyticsTableColumn> getColumnFromDataElementOptionSet(DataElement dataElement) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    if (!dataElement.hasOptionSet()) {
+      return columns;
+    }
+
+    String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
+    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    String select = getSelectClause(dataElement.getValueType(), columnName);
+    String sql = selectOptionValueCodeForInsert(dataElement, select, dataClause);
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(dataElement.getUid() + ".optionvalueuid")
+            .dataType(DataType.VARCHAR_255)
+            .selectExpression(sql)
+            .skipIndex(Skip.INCLUDE)
+            .build());
+
+    return columns;
+  }
+
+  private String getDataClause(String uid, ValueType valueType) {
+    if (valueType.isNumeric() || valueType.isDate()) {
+      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
+
+      return replace(
+          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
+          Map.of("uid", uid, "regex", regex));
+    }
+
+    return "";
+  }
+
+  private String selectOptionValueCodeForInsert(
+      DataElement dataElement, String fromType, String dataClause) {
+    String innerSql =
+        replaceQualify(
+            """
+                    (select ${fromType} from ${event} \
+                    where eventid=ev.eventid ${dataClause})${closingParentheses}""",
+            Map.of(
+                "fromType",
+                fromType,
+                "dataClause",
+                dataClause,
+                "closingParentheses",
+                getClosingParentheses(fromType),
+                "dataElementUid",
+                quote(dataElement.getUid())));
+
+    return replaceQualify(
+        """
+                (select optionvalueuid \
+                 from analytics_rs_dataelementoption \
+                 where dataelementuid = ${dataElementUid} \
+                 and optionvaluecode = ${selectForInsert}::varchar) as ${alias}""",
+        Map.of(
+            "dataElementUid",
+            singleQuote(dataElement.getUid()),
+            "selectForInsert",
+            innerSql,
+            "alias",
+            quote(dataElement.getUid() + ".optionvalueuid")));
+  }
+
+  private String getClosingParentheses(String str) {
+    if (StringUtils.isEmpty(str)) {
+      return EMPTY;
+    }
+
+    int open = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == '(') {
+        open++;
+      } else if ((str.charAt(i) == ')') && open >= 1) {
+        open--;
+      }
+    }
+
+    return StringUtils.repeat(")", open);
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  private String getSelectClause(ValueType valueType, String columnName) {
+    String doubleType = sqlBuilder.dataTypeDouble();
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as " + doubleType + ")";
+    } else if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    } else if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 else null end";
+    } else if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    } else if (valueType.isGeo() && isGeospatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    } else if (valueType.isOrganisationUnit()) {
+      return replaceQualify(
+          "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
+          Map.of("columnName", columnName));
+    } else {
+      return columnName;
+    }
   }
 }

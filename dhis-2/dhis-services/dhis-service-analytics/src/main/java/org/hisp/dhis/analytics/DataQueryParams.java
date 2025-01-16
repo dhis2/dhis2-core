@@ -33,6 +33,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -233,6 +234,9 @@ public class DataQueryParams {
 
   /** The aggregation type. */
   protected AnalyticsAggregationType aggregationType;
+
+  /** The option set selection criteria. */
+  protected OptionSetSelectionCriteria optionSetSelectionCriteria;
 
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
@@ -498,6 +502,7 @@ public class DataQueryParams {
     params.dimensions = DimensionalObjectUtils.getCopies(this.dimensions);
     params.filters = DimensionalObjectUtils.getCopies(this.filters);
     params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
+    params.optionSetSelectionCriteria = this.optionSetSelectionCriteria;
     params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.preAggregateMeasureCriteria = new HashMap<>(this.preAggregateMeasureCriteria);
     params.skipMeta = this.skipMeta;
@@ -591,6 +596,7 @@ public class DataQueryParams {
         (k, v) -> key.add("preAggregateMeasureCriteria", (String.valueOf(k) + v)));
 
     return key.add("aggregationType", aggregationType)
+        .add("optionSetSelectionCriteria", optionSetSelectionCriteria)
         .add("skipMeta", skipMeta)
         .add("skipData", skipData)
         .add("skipHeaders", skipHeaders)
@@ -746,6 +752,18 @@ public class DataQueryParams {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
   }
 
+  /** Indicates whether an option set selection criteria is present as param in this object. */
+  public boolean hasOptionSetSelectionCriteria() {
+    return optionSetSelectionCriteria != null;
+  }
+
+  /** Indicates whether option set selections are present as param ins this objct. */
+  public boolean hasOptionSetSelections() {
+    return hasOptionSetSelectionCriteria()
+        && optionSetSelectionCriteria.getOptionSetSelections() != null
+        && !optionSetSelectionCriteria.getOptionSetSelections().isEmpty();
+  }
+
   /**
    * Returns the period type of the first period specified as filter, or null if there is no period
    * filter.
@@ -859,6 +877,25 @@ public class DataQueryParams {
   /** Indicates whether the this parameters has the given output format specified. */
   public boolean isOutputFormat(OutputFormat format) {
     return this.outputFormat != null && this.outputFormat == format;
+  }
+
+  /**
+   * Checks if there is an {@OptionSet} object inside data elements present in the current
+   * "dimensions" attribute of this class.
+   *
+   * @return boolean if found, false otherwise.
+   */
+  public boolean hasOptionSetInDimensionItemsTypeDataElement() {
+    for (DimensionalObject d : dimensions) {
+      for (DimensionalItemObject it : d.getItems()) {
+        if (it.getDimensionItemType() == DATA_ELEMENT
+            && ((DataElement) it).getOptionSet() != null) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -1952,6 +1989,10 @@ public class DataQueryParams {
     return aggregationType;
   }
 
+  public OptionSetSelectionCriteria getOptionSetSelectionCriteria() {
+    return optionSetSelectionCriteria;
+  }
+
   public Map<MeasureFilter, Double> getMeasureCriteria() {
     return measureCriteria;
   }
@@ -2793,6 +2834,12 @@ public class DataQueryParams {
 
     public Builder withAggregationType(AnalyticsAggregationType aggregationType) {
       this.params.aggregationType = aggregationType;
+      return this;
+    }
+
+    public Builder withOptionSetSelectionCriteria(
+        OptionSetSelectionCriteria optionSetSelectionCriteria) {
+      this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
 
