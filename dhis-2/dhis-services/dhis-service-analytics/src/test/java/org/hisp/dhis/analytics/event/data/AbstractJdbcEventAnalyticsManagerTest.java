@@ -104,6 +104,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,9 +130,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
+  @Mock private SystemSettingsService systemSettingsService;
+
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 

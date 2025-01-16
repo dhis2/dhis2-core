@@ -447,6 +447,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
+    // Query items and filters
+    // ---------------------------------------------------------------------
+    if (!useExperimentalAnalyticsQueryEngine()) {
+      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
+    }
+
+    // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
 

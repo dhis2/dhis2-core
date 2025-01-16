@@ -97,6 +97,7 @@ class SystemSettingsTest {
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
+    assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
   }
 
   @Test
