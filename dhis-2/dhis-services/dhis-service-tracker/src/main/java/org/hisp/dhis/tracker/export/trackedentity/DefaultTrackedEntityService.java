@@ -33,8 +33,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -60,7 +58,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -76,7 +73,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -364,11 +360,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
     for (TrackedEntity trackedEntity : trackedEntities) {
+      if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
+        trackedEntity.setProgramOwners(
+            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
+      }
       trackedEntity.setTrackedEntityAttributeValues(
           getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
     }
 
-    addSearchAudit(trackedEntities);
+    // TODO how can I bring the audits together for the single vs multiple TEs?
+    // how can I merge the two paths getting multiple TEs together? and make the audit type a param
+    // then reuse that in the single path with audit READ
+    addSearchAudit(trackedEntities, user);
 
     return trackedEntities;
   }
@@ -393,10 +396,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
     for (TrackedEntity trackedEntity : trackedEntities) {
+      if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
+        trackedEntity.setProgramOwners(
+            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
+      }
       getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram());
     }
 
-    addSearchAudit(trackedEntities);
+    addSearchAudit(trackedEntities, user);
 
     return ids.withItems(trackedEntities);
   }
@@ -572,38 +579,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     UserDetails user = getCurrentUserDetails();
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
-
     if (!trackerAccessManager.canRead(user, trackedEntity).isEmpty()) {
       return null;
     }
+
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), SEARCH);
 
     relationshipItem.setTrackedEntity(trackedEntity);
     return relationshipItem;
   }
 
-  private void addSearchAudit(List<TrackedEntity> trackedEntities) {
-    if (trackedEntities.isEmpty()) {
-      return;
-    }
-    Map<String, TrackedEntityType> tetMap =
-        trackedEntityTypeService.getAllTrackedEntityType().stream()
-            .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
-
-    List<TrackedEntityAudit> auditable =
-        trackedEntities.stream()
-            .filter(Objects::nonNull)
-            .filter(te -> te.getTrackedEntityType() != null)
-            .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(
-                te ->
-                    new TrackedEntityAudit(
-                        te.getUid(), CurrentUserUtil.getCurrentUsername(), SEARCH))
-            .toList();
-
-    if (!auditable.isEmpty()) {
-      trackedEntityAuditService.addTrackedEntityAudit(auditable);
-    }
+  private void addSearchAudit(List<TrackedEntity> trackedEntities, UserDetails user) {
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntities, user.getUsername(), SEARCH);
   }
 
   @Override

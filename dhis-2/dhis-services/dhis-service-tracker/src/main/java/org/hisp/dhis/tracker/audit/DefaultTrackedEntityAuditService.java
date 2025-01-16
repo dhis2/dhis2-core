@@ -28,9 +28,11 @@
 package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
@@ -57,13 +59,13 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Async
   @Transactional
   public void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, AuditOperationType auditOperationType) {
+      TrackedEntity trackedEntity, String username, AuditOperationType type) {
     if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), username, auditOperationType);
+          new TrackedEntityAudit(trackedEntity.getUid(), username, type);
       trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
     }
   }
@@ -71,8 +73,19 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits) {
-    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudits);
+  public void addTrackedEntityAudit(
+      @Nonnull List<TrackedEntity> trackedEntities, String username, AuditOperationType type) {
+    List<TrackedEntityAudit> audits =
+        trackedEntities.stream()
+            .filter(te -> te.getTrackedEntityType().isAllowAuditLog())
+            .map(te -> new TrackedEntityAudit(te.getUid(), username, type))
+            .toList();
+
+    if (CollectionUtils.isEmpty(audits)) {
+      return;
+    }
+
+    trackedEntityAuditStore.addTrackedEntityAudit(audits);
   }
 
   @Override

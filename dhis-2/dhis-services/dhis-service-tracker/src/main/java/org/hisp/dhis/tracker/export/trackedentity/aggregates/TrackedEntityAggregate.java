@@ -335,7 +335,7 @@ public class TrackedEntityAggregate implements Aggregate {
    * @return an instance of {@see Context} populated with ACL-related info
    */
   private Context getSecurityContext(String userUID, List<String> userGroupUIDs) {
-    final CompletableFuture<List<Long>> getTeiTypes =
+    final CompletableFuture<List<Long>> getTrackedEntityTypes =
         supplyAsync(
             () -> aclStore.getAccessibleTrackedEntityTypes(userUID, userGroupUIDs), getPool());
 
@@ -349,11 +349,11 @@ public class TrackedEntityAggregate implements Aggregate {
         supplyAsync(
             () -> aclStore.getAccessibleRelationshipTypes(userUID, userGroupUIDs), getPool());
 
-    return allOf(getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes)
+    return allOf(getTrackedEntityTypes, getPrograms, getProgramStages, getRelationshipTypes)
         .thenApplyAsync(
             fn ->
                 Context.builder()
-                    .trackedEntityTypes(getTeiTypes.join())
+                    .trackedEntityTypes(getTrackedEntityTypes.join())
                     .programs(getPrograms.join())
                     .programStages(getProgramStages.join())
                     .relationshipTypes(getRelationshipTypes.join())
