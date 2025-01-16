@@ -378,60 +378,42 @@ class CategoryOptionComboMergeTest extends ApiTest {
     assertFalse(dvAocs.contains(sourceUid2), "Source COC 2 should not be present");
   }
 
-  @Test
-  @DisplayName("CategoryOptionCombo merge fails when user has not got the required authority")
-  void categoryOptionComboMergeNoRequiredAuthTest() {
-    userActions.addUserFull("basic", "User", "basicUser", "Test1234!", "NO_AUTH");
-    loginActions.loginAsUser("basicUser", "Test1234!");
-
-    // when
-    ApiResponse response =
-        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(403);
-
-    // then
-    response
+  private void addDataValuesCoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportCoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            getDataValueQueryParams())
+        .validateStatus(200)
         .validate()
-        .statusCode(403)
-        .body("httpStatus", equalTo("Forbidden"))
-        .body("status", equalTo("ERROR"))
-        .body(
-            "message",
-            equalTo(
-                "Access is denied, requires one Authority from [F_CATEGORY_OPTION_COMBO_MERGE]"));
+        .body("response.importCount.imported", equalTo(14));
   }
 
-  @Test
-  @DisplayName("Category Option Combo merge fails when min max DE DB unique key constraint met")
-  void dbConstraintMinMaxTest() {
-    // given
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
+  private void addDataValuesAoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportAoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            getDataValueQueryParams())
+        .validateStatus(200);
+  }
 
-    // get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1B", "2B");
-    targetUid = getCocWithOptions("3A", "4B");
-
-    String dataElement = setupDataElement("DE test");
-
-    setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, dataElement);
-
-    // login as user with merge auth
-    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
-
-    // when
-    ApiResponse response =
-        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(409);
-
-    // then
-    response
+  private void updateDataValuesCoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportUpdateCoc(sourceUid1, sourceUid2, targetUid),
+            getDataValueQueryParams())
+        .validateStatus(200)
         .validate()
-        .statusCode(409)
-        .body("httpStatus", equalTo("Conflict"))
-        .body("status", equalTo("ERROR"))
-        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
-        .body("message", containsString("minmaxdataelement_unique_key"));
+        .body("response.importCount.updated", equalTo(4));
+  }
+
+  private void updateDataValuesAoc() {
+    dataValueSetActions
+        .post(
+            dataValueSetImportUpdateAoc(sourceUid1, sourceUid2, targetUid),
+            getDataValueQueryParams())
+        .validateStatus(200)
+        .validate()
+        .body("response.importCount.updated", equalTo(4));
   }
 
   private String getViz(String dataElement, String coc) {
@@ -526,42 +508,60 @@ class CategoryOptionComboMergeTest extends ApiTest {
     userActions.patch(loggedInUserId, Collections.singletonList(userPatch)).validateStatus(200);
   }
 
-  private void addDataValuesCoc() {
-    dataValueSetActions
-        .post(
-            dataValueSetImportCoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
-            getDataValueQueryParams())
-        .validateStatus(200)
+  @Test
+  @DisplayName("CategoryOptionCombo merge fails when user has not got the required authority")
+  void categoryOptionComboMergeNoRequiredAuthTest() {
+    userActions.addUserFull("basic", "User", "basicUser", "Test1234!", "NO_AUTH");
+    loginActions.loginAsUser("basicUser", "Test1234!");
+
+    // when
+    ApiResponse response =
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(403);
+
+    // then
+    response
         .validate()
-        .body("response.importCount.imported", equalTo(14));
+        .statusCode(403)
+        .body("httpStatus", equalTo("Forbidden"))
+        .body("status", equalTo("ERROR"))
+        .body(
+            "message",
+            equalTo(
+                "Access is denied, requires one Authority from [F_CATEGORY_OPTION_COMBO_MERGE]"));
   }
 
-  private void addDataValuesAoc() {
-    dataValueSetActions
-        .post(
-            dataValueSetImportAoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
-            getDataValueQueryParams())
-        .validateStatus(200);
-  }
+  @Test
+  @DisplayName("Category Option Combo merge fails when min max DE DB unique key constraint met")
+  void dbConstraintMinMaxTest() {
+    // given
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
-  private void updateDataValuesCoc() {
-    dataValueSetActions
-        .post(
-            dataValueSetImportUpdateCoc(sourceUid1, sourceUid2, targetUid),
-            getDataValueQueryParams())
-        .validateStatus(200)
-        .validate()
-        .body("response.importCount.updated", equalTo(4));
-  }
+    // get cat opt combo uids for sources and target, after generating
+    sourceUid1 = getCocWithOptions("1A", "2A");
+    sourceUid2 = getCocWithOptions("1B", "2B");
+    targetUid = getCocWithOptions("3A", "4B");
 
-  private void updateDataValuesAoc() {
-    dataValueSetActions
-        .post(
-            dataValueSetImportUpdateAoc(sourceUid1, sourceUid2, targetUid),
-            getDataValueQueryParams())
-        .validateStatus(200)
+    String dataElement = setupDataElement("DE test 2");
+
+    setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, dataElement);
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when
+    ApiResponse response =
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validateStatus(409);
+
+    // then
+    response
         .validate()
-        .body("response.importCount.updated", equalTo(4));
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
+        .body("message", containsString("minmaxdataelement_unique_key"));
   }
 
   private void setupMetadata() {
