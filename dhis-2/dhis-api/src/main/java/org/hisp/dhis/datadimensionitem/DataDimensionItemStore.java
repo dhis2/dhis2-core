@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datadimensionitem;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.GenericStore;
@@ -47,4 +48,14 @@ public interface DataDimensionItemStore extends GenericStore<DataDimensionItem> 
   List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators);
 
   List<DataDimensionItem> getDataElementDataDimensionItems(List<DataElement> dataElements);
+
+  /**
+   * Update the entities with refs to the category option combo ids passed in, with the new category
+   * option combo id passed in.
+   *
+   * @param cocIds category option combo ids to be used to update linked data dimension items
+   * @param newCocId new category option combo id to use
+   * @return number of entities updated
+   */
+  int updateDeoCategoryOptionCombo(Collection<Long> cocIds, long newCocId);
 }
