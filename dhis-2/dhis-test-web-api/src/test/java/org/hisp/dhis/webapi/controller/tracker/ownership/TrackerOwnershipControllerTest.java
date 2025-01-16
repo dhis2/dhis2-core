@@ -57,6 +57,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   private String pId;
 
+  private User regularUser;
+
   @BeforeEach
   void setUp() {
     orgUnitAUid =
@@ -74,11 +76,19 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
     OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
     OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
-    User user =
-        createAndAddUser(true, "user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
-    injectSecurityContextUser(user);
+    regularUser =
+        createAndAddUser(
+            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    User superuser =
+        createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    injectSecurityContextUser(superuser);
 
-    String tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+    String tetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/trackedEntityTypes/",
+                "{'name': 'A', 'sharing':{'external':false,'public':'rwrw----'}}"));
 
     teUid = CodeGenerator.generateUid();
     assertStatus(
@@ -107,11 +117,14 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
                     {
                       'name':'P1',
                       'shortName':'P1',
-                      'programType':'WITHOUT_REGISTRATION',
-                      'organisationUnits': [{'id':'%s'},{'id':'%s'}]
+                      'programType':'WITH_REGISTRATION',
+                      'accessLevel':'PROTECTED',
+                      'trackedEntityType': {'id': '%s'},
+                      'organisationUnits': [{'id':'%s'},{'id':'%s'}],
+                      'sharing':{'external':false,'public':'rwrw----'}
                     }
                     """
-                    .formatted(orgUnitAUid, orgUnitBUid)));
+                    .formatted(tetId, orgUnitAUid, orgUnitBUid)));
   }
 
   @Test
@@ -171,6 +184,7 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   @Test
   void shouldGrantTemporaryAccessWhenUsingDeprecateTrackedEntityInstanceParam() {
+    injectSecurityContextUser(regularUser);
     assertWebMessage(
         "OK",
         200,
@@ -185,6 +199,7 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   @Test
   void shouldGrantTemporaryAccess() {
+    injectSecurityContextUser(regularUser);
     assertWebMessage(
         "OK",
         200,
