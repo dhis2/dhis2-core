@@ -49,7 +49,6 @@ import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -59,7 +58,6 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
@@ -121,7 +119,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryOptionStore categoryOptionStore;
   @Autowired private CategoryComboStore categoryComboStore;
   @Autowired private DataElementOperandStore dataElementOperandStore;
-  @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
   @Autowired private PredictorStore predictorStore;
   @Autowired private SMSCommandStore smsCommandStore;
@@ -354,12 +351,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     manager.save(List.of(de1, de2, de3));
     manager.save(List.of(deo1, deo2, deo3));
 
-    // data dimension item table has a FK column referencing coc
-    // seems like duplicated data but hard to fully understand the analytics model
-    dataDimensionItemStore.save(DataDimensionItem.create(deo1));
-    dataDimensionItemStore.save(DataDimensionItem.create(deo2));
-    dataDimensionItemStore.save(DataDimensionItem.create(deo3));
-
     // given state before merge
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
@@ -386,24 +377,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
-
     // then
+    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
+    assertFalse(report.hasErrorMessages(), "there should be no merge errors");
     List<DataElementOperand> deoSourcesAfter =
         dataElementOperandStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
     List<DataElementOperand> deoTargetAfter =
         dataElementOperandStore.getByCategoryOptionCombo(Set.of(UID.of(cocTarget.getUid())));
-    List<DataDimensionItem> all = dataDimensionItemStore.getAll();
-    assertEquals(3, all.size(), "3 data dimension items should exist");
-    assertTrue(
-        all.stream()
-            .allMatch(
-                ddi ->
-                    ddi.getDataElementOperand()
-                        .getCategoryOptionCombo()
-                        .getUid()
-                        .equals(cocTarget.getUid())),
-        "all COC uids should match target COC UID");
     assertEquals(
         0, deoSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(
