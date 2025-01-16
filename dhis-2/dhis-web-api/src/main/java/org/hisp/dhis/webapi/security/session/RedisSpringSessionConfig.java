@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.security.session;
 
 import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -56,6 +58,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @Conditional(RedisEnabledCondition.class)
 @EnableRedisHttpSession
 public class RedisSpringSessionConfig {
+  @Autowired private DhisConfigurationProvider config;
 
   @Bean
   public RedisIndexedSessionRepository sessionRepository(
@@ -69,6 +72,9 @@ public class RedisSpringSessionConfig {
     redisTemplate.afterPropertiesSet();
     RedisIndexedSessionRepository repository = new RedisIndexedSessionRepository(redisTemplate);
     repository.setDefaultSerializer(new JdkSerializationRedisSerializer());
+
+    int sessionTimeout = config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
+    repository.setDefaultMaxInactiveInterval(sessionTimeout);
     return repository;
   }
 
