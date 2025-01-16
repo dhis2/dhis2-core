@@ -267,7 +267,10 @@ public class SelectBuilder {
   }
 
   public SelectBuilder addColumnIfNotExist(String expression) {
-    if (!columns.contains(Column.of(unquote(expression)))) {
+    String flattenedColumns =
+        columns.stream().map(Column::expression).collect(Collectors.joining(","));
+
+    if (!flattenedColumns.contains(unquote(expression))) {
       columns.add(Column.of(expression));
     }
     return this;
