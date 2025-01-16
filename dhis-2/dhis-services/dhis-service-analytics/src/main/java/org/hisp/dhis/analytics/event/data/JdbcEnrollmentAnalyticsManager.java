@@ -60,6 +60,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
@@ -1085,46 +1086,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Quoted column name for the item (e.g. "ax"."my_column").
     String colName = quote(item.getItemName());
+
     if (params.isAggregatedEnrollments()) {
-
-      CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
-      assert baseAggregatedCte != null;
-
-      String cteSql =
-          """
-              select
-                    evt.enrollment,
-                    evt.%s as value
-              from (
-              select
-                  evt.enrollment,
-                  evt.%s,
-                  row_number() over (
-                      partition by evt.enrollment
-                      order by occurreddate desc, created desc
-                  ) as rn
-              from %s evt
-              join %s eb ON eb.enrollment = evt.enrollment
-              where evt.eventstatus != 'SCHEDULE'
-                and evt.ps = '%s' and %s) evt
-                where evt.rn = 1
-              """
-              .formatted(
-                  colName,
-                  colName,
-                  eventTableName,
-                  ENROLLMENT_AGGR_BASE,
-                  item.getProgramStage().getUid(),
-                  baseAggregatedCte.getAggregateWhereClause().replaceAll("%s", "eb"));
-
-      System.out.println(cteSql);
-
-      cteContext.addCte(
-          item.getProgramStage(),
-          item,
-          cteSql,
-          computeRowNumberOffset(item.getProgramStageOffset()),
-          false);
+      handleAggregatedEnrollments(cteContext, item, params, eventTableName, colName);
       return;
     }
 
@@ -1132,29 +1096,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     boolean hasRowContext = rowContextAllowedAndNeeded(params, item);
 
     // Build the main CTE SQL.
-    // If hasRowContext == true, we'll also include the eventstatus column.
-    String cteSql =
-        """
-        select
-            enrollment,
-            %s as value,%s
-            row_number() over (
-                partition by enrollment
-                order by occurreddate desc, created desc
-            ) as rn
-        from %s
-        where eventstatus != 'SCHEDULE'
-          and ps = '%s'
-        """
-            .formatted(
-                colName,
-                hasRowContext ? " eventstatus," : "",
-                eventTableName,
-                item.getProgramStage().getUid());
+    String cteSql = buildMainCteSql(eventTableName, colName, item, hasRowContext);
 
     // Register this CTE in the context.
-    // The createOffset2(...) method calculates the row offset based on
-    // item.getProgramStageOffset().
     cteContext.addCte(
         item.getProgramStage(),
         item,
@@ -1164,20 +1108,141 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // If row context is needed, we add an extra "exists" CTE for event checks.
     if (hasRowContext) {
-      String existCte =
-          """
-            select distinct
-                enrollment
-            from
-                %s
-            where
-                eventstatus != 'SCHEDULE'
-                and ps = '%s'
-            """
-              .formatted(eventTableName, item.getProgramStage().getUid());
-
-      cteContext.addExistsCte(item.getProgramStage(), item, existCte);
+      addExistsCte(cteContext, item, eventTableName);
     }
+  }
+
+  /**
+   * Builds the main CTE SQL.
+   *
+   * @param eventTableName the event table name
+   * @param colName the quoted column name for the item
+   * @param item the {@link QueryItem} containing program-stage details
+   * @param hasRowContext whether row context is needed
+   * @return the main CTE SQL
+   */
+  private String buildMainCteSql(
+      String eventTableName, String colName, QueryItem item, boolean hasRowContext) {
+    String template =
+        """
+        select
+            enrollment,
+            ${colName} as value,${rowContext}
+            row_number() over (
+                partition by enrollment
+                order by occurreddate desc, created desc
+            ) as rn
+        from ${eventTableName}
+        where eventstatus != 'SCHEDULE'
+          and ps = '${programStageUid}'
+        """;
+
+    Map<String, String> values = new HashMap<>();
+    values.put("colName", colName);
+    values.put("rowContext", hasRowContext ? " eventstatus," : "");
+    values.put("eventTableName", eventTableName);
+    values.put("programStageUid", item.getProgramStage().getUid());
+
+    return new StringSubstitutor(values).replace(template);
+  }
+
+  /**
+   * Handles the case when aggregated enrollments are enabled.
+   *
+   * @param cteContext the {@link CteContext} to which the new CTE definition(s) will be added
+   * @param item the {@link QueryItem} containing program-stage details
+   * @param params the {@link EventQueryParams}, used for checking row-context eligibility, offsets,
+   *     etc.
+   * @param eventTableName the event table name
+   * @param colName the quoted column name for the item
+   */
+  private void handleAggregatedEnrollments(
+      CteContext cteContext,
+      QueryItem item,
+      EventQueryParams params,
+      String eventTableName,
+      String colName) {
+    CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
+    assert baseAggregatedCte != null;
+
+    String cteSql = buildAggregatedCteSql(eventTableName, colName, item, baseAggregatedCte);
+
+    cteContext.addCte(
+        item.getProgramStage(),
+        item,
+        cteSql,
+        computeRowNumberOffset(item.getProgramStageOffset()),
+        false);
+  }
+
+  /**
+   * Builds the aggregated CTE SQL.
+   *
+   * @param eventTableName the event table name
+   * @param colName the quoted column name for the item
+   * @param item the {@link QueryItem} containing program-stage details
+   * @param baseAggregatedCte the base aggregated CTE
+   * @return the aggregated CTE SQL
+   */
+  private String buildAggregatedCteSql(
+      String eventTableName, String colName, QueryItem item, CteDefinition baseAggregatedCte) {
+    String template =
+        """
+        select
+            evt.enrollment,
+            evt.${colName} as value
+        from (
+            select
+                evt.enrollment,
+                evt.${colName},
+                row_number() over (
+                    partition by evt.enrollment
+                    order by occurreddate desc, created desc
+                ) as rn
+            from ${eventTableName} evt
+            join ${enrollmentAggrBase} eb ON eb.enrollment = evt.enrollment
+            where evt.eventstatus != 'SCHEDULE'
+              and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
+        where evt.rn = 1
+        """;
+
+    Map<String, String> values = new HashMap<>();
+    values.put("colName", colName);
+    values.put("eventTableName", eventTableName);
+    values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
+    values.put("programStageUid", item.getProgramStage().getUid());
+    values.put(
+        "aggregateWhereClause", baseAggregatedCte.getAggregateWhereClause().replaceAll("%s", "eb"));
+
+    return new StringSubstitutor(values).replace(template);
+  }
+
+  /**
+   * Adds an "exists" CTE for event checks.
+   *
+   * @param cteContext the {@link CteContext} to which the new CTE definition(s) will be added
+   * @param item the {@link QueryItem} containing program-stage details
+   * @param eventTableName the event table name
+   */
+  private void addExistsCte(CteContext cteContext, QueryItem item, String eventTableName) {
+    String template =
+        """
+        select distinct
+            enrollment
+        from
+            ${eventTableName}
+        where
+            eventstatus != 'SCHEDULE'
+            and ps = '${programStageUid}'
+        """;
+
+    Map<String, String> values = new HashMap<>();
+    values.put("eventTableName", eventTableName);
+    values.put("programStageUid", item.getProgramStage().getUid());
+
+    String existCte = new StringSubstitutor(values).replace(template);
+
+    cteContext.addExistsCte(item.getProgramStage(), item, existCte);
   }
 
   private void addCteJoins(SelectBuilder builder, CteContext cteContext) {
