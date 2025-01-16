@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
+import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
@@ -1000,18 +1001,49 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getCteDefinitions(params, null);
   }
 
-  private List<String> addBaseAggregationCte(CteContext cteContext, EventQueryParams params) {
+  /**
+   * Constructs the SQL query for the `enrollment_aggr_base` Common Table Expression (CTE).
+   *
+   * <p>The `enrollment_aggr_base` CTE is a foundational component of an analytical query. It
+   * extracts a filtered subset of enrollment data from the target `analytics_enrollment_*` table
+   * based on specific criteria.
+   *
+   * <p>This CTE serves as the "base" dataset for subsequent operations in the query, such as
+   * event-level processing and aggregations. By applying these filters early, the CTE ensures that
+   * only relevant records are passed to downstream processes, improving query efficiency.
+   *
+   * <h3>Purpose</h3>
+   *
+   * The primary purpose of this CTE is to:
+   *
+   * <ul>
+   *   <li>Reduce the size of the dataset by applying restrictive filters.
+   *   <li>Serve as a starting point for analytics queries requiring enrollment-specific data.
+   *   <li>Facilitate joins with event data while minimizing unnecessary computation.
+   * </ul>
+   *
+   * @param cteContext the {@link CteContext} containing all CTE definitions
+   * @param params the {@link EventQueryParams} describing the query parameters
+   * @param headers the {@link GridHeader} list defining the query columns
+   * @return a {@link List} of column names included in the `enrollment_aggr_base` CTE
+   */
+  private List<String> addBaseAggregationCte(
+      CteContext cteContext, EventQueryParams params, List<GridHeader> headers) {
     // create base enrollment context
     List<String> columns = new ArrayList<>();
     List<String> rootColumns;
     columns.add("enrollment");
 
     addDimensionSelectColumns(columns, params, true);
-
+    Set<String> headersCols = getHeaderColumns(headers, params);
     SelectBuilder sb = new SelectBuilder();
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
+    for (String column : headersCols) {
+      sb.addColumnIfNotExist(quote(SqlColumnParser.removeTableAlias(column)));
+    }
+
     // return the name of the columns that are part
     // of the original params, no need to return also
     // the columns that are part of the filters
@@ -1026,8 +1058,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     for (String col : cols) {
       sb.addColumnIfNotExist(col);
     }
+
     // Add the base aggregate CTE along with the original where
-    // condition, that have to be propagated in every other CTE
+    // condition, that have to be propagated in every other CTE for
+    // performance reasons
     cteContext.addBaseAggregateCte(
         sb.build(), SqlAliasReplacer.replaceTableAliases(sb.getWhereClause(), cols));
 
@@ -1262,24 +1296,32 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private String buildAggregatedEnrollmentQueryWithCte(
       List<GridHeader> headers, EventQueryParams params) {
+
     CteContext cteContext = new CteContext();
+
     // add base aggregation CTE
-    List<String> rootQueryColumns = addBaseAggregationCte(cteContext, params);
+    // and retain the columns from the root query
+    List<String> rootQueryColumns = addBaseAggregationCte(cteContext, params, headers);
 
     // Add CTE definitions for program indicators, program stages, etc.
     getCteDefinitions(params, cteContext);
 
     SelectBuilder sb = new SelectBuilder();
+
     // add the CTE with clause based on the CTE definitions accumulated so far
     addCteClause(sb, cteContext);
 
     // add select clause
     sb.addColumn("count(eb.enrollment) as value");
+
     // add the columns from the root CTE query
+    // excluding the enrollment column
+    // note that the columns are also added to the group by clause
     rootQueryColumns.stream()
         .filter(col -> !col.equals("enrollment"))
         .peek(sb::groupBy)
         .forEach(sb::addColumn);
+
     // add the columns from the CTE definitions
     cteContext
         .getCteKeys(ENROLLMENT_AGGR_BASE)
