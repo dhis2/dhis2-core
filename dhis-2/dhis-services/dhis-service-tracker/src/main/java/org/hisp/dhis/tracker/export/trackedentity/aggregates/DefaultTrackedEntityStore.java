@@ -158,7 +158,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
   }
 
   @Override
-  public Multimap<String, String> getOwnedTeis(
+  public Multimap<String, String> getOwnedTrackedEntities(
       List<Long> ids, Context ctx, boolean skipUserScopeValidation) {
     List<List<Long>> teds = Lists.partition(ids, PARITITION_SIZE);
 
