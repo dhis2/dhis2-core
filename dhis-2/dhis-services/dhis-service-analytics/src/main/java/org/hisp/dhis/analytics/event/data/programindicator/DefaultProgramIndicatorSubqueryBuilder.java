@@ -45,6 +45,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,6 +59,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private static final String SUBQUERY_TABLE_ALIAS = "subax";
 
   private final ProgramIndicatorService programIndicatorService;
+  private final SystemSettingsService settingsService;
 
   @Override
   public String getAggregateClauseForProgramIndicator(
@@ -247,14 +249,12 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
           RelationshipTypeJoinGenerator.generate(
               SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
     } else {
-      // Remove the reference to the outer query's enrollment
-      // We'll handle the join in the main query
-      if (AnalyticsType.ENROLLMENT == programIndicator.getAnalyticsType()) {
-        // No condition needed, we'll join on enrollment in the main query
-        condition = "";
-      } else if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-        // Handle event type if needed
-        condition = "";
+      if (AnalyticsType.ENROLLMENT == outerSqlEntity) {
+        condition = useExperimentalAnalyticsQueryEngine() ? "" : "enrollment = ax.enrollment";
+      } else {
+        if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
+          condition = useExperimentalAnalyticsQueryEngine() ? "" : "event = ax.event";
+        }
       }
     }
 
@@ -284,5 +284,9 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         earliestStartDate,
         latestDate,
         SUBQUERY_TABLE_ALIAS);
+  }
+
+  protected boolean useExperimentalAnalyticsQueryEngine() {
+    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 }
