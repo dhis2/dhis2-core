@@ -47,6 +47,7 @@ public class DefaultPasswordValidationService implements PasswordValidationServi
             .then(new PasswordLengthValidationRule(settingsProvider))
             .then(new DigitPatternValidationRule())
             .then(new UpperCasePatternValidationRule())
+            .then(new LowerCasePatternValidationRule())
             .then(new SpecialCharacterValidationRule())
             .then(new PasswordDictionaryValidationRule())
             .then(new UserParameterValidationRule())

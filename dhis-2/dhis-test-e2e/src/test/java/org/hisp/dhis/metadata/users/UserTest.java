@@ -109,7 +109,12 @@ public class UserTest extends ApiTest {
               password,
               "Testtest?",
               "Password must have at least one digit",
-              "newPassword doesn't contain a digit")
+              "newPassword doesn't contain a digit"),
+          Arguments.of(
+              password,
+              "TESTTEST1",
+              "Password must have at least one lower case",
+              "newPassword doesn't contain lowercase")
         });
   }
 

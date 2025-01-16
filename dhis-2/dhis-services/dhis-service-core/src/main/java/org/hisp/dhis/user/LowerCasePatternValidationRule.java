@@ -27,43 +27,18 @@
  */
 package org.hisp.dhis.user;
 
-/**
- * Possible reasons for passwords to be invalid.
- *
- * @author Jan Bernitt
- */
-public enum PasswordValidationError {
-  PASSWORD_IS_MANDATORY("mandatory_parameter_missing", "Username or Password is missing"),
-  PASSWORD_TOO_LONG_TOO_SHORT(
-      "password_length_validation", "Password must have at least %d, and at most %d characters"),
-  PASSWORD_MUST_HAVE_DIGIT("password_digit_validation", "Password must have at least one digit"),
-  PASSWORD_MUST_HAVE_UPPER(
-      "password_uppercase_validation", "Password must have at least one upper case"),
-  PASSWORD_MUST_HAVE_LOWER(
-      "password_lowercase_validation", "Password must have at least one lower case"),
-  PASSWORD_MUST_HAVE_SPECIAL(
-      "password_specialcharacter_validation", "Password must have at least one special character"),
-  PASSWORD_CONTAINS_RESERVED_WORD(
-      "password_dictionary_validation", "Password must not have any generic word"),
-  PASSWORD_CONTAINS_NAME_OR_EMAIL(
-      "password_username_validation", "Username/Email must not be a part of password"),
-  PASSWORD_ALREADY_USED_BEFORE(
-      "password_history_validation", "Password must not be one of the previous %d passwords");
+import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_LOWER;
 
-  private final String message;
+import java.util.regex.Pattern;
 
-  private final String i18nKey;
+/** Created by zubair on 08.03.17. */
+public class LowerCasePatternValidationRule implements PasswordValidationRule {
+  private static final Pattern LOWERCASE_PATTERN = Pattern.compile(".*[a-z].*");
 
-  PasswordValidationError(String i18nKey, String message) {
-    this.message = message;
-    this.i18nKey = i18nKey;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public String getI18nKey() {
-    return i18nKey;
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentialsInfo) {
+    return !LOWERCASE_PATTERN.matcher(credentialsInfo.getPassword()).matches()
+        ? new PasswordValidationResult(PASSWORD_MUST_HAVE_LOWER)
+        : PasswordValidationResult.VALID;
   }
 }

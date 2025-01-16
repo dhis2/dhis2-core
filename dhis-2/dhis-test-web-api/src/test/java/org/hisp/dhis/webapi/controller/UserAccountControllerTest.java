@@ -576,6 +576,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
         arguments(null, "Password is not specified"),
         arguments("tester-dhis", "Password must have at least one digit"),
         arguments("samewisegamgee1", "Password must have at least one upper case"),
+        arguments("SAMEWISEGAMGEE1", "Password must have at least one lower case"),
         arguments("samewisegamgeE1", "Password must have at least one special character"),
         arguments("samewisegamgeE1@", "Username/Email must not be a part of password"),
         arguments("samewise@dhis2.orG1@", "Username/Email must not be a part of password"),
