@@ -124,13 +124,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
   void validCategoryOptionComboMergeTest() {
     // given
     // generate category option combos
-    String emptyParams = new QueryParamsBuilder().build();
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
-        .validateStatus(200);
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
-        .validateStatus(200);
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
     // get cat opt combo uids for sources and target, after generating
     sourceUid1 = getCocWithOptions("1A", "2A");
