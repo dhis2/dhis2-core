@@ -1,0 +1,42 @@
+name: Update instance manager
+
+on:
+  pull_request:
+# For this to work, this workflow needs to be on master https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#workflow_run
+#  workflow_run:
+#    workflows: ["Check formatting"]
+#    types:
+#      - completed
+
+jobs:
+  update-instance-manager:
+    runs-on: ubuntu-latest
+    env:
+      GIT_COMMIT: ${{ github.sha }} # Declare GIT_COMMIT, to be used on the entire job
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      # Set up Maven
+      - name: Set up Maven
+        run: |
+          sudo apt-get install maven
+          echo "On branch: $GITHUB_HEAD_REF"
+          echo "Git commit: $GIT_COMMIT"
+
+      # Run Maven build
+      - name: Build with Maven
+        run: mvn --threads 4 --batch-mode --no-transfer-progress clean install --update-snapshots --file ./dhis-2/pom.xml -DskipTests
+
+      #curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O
+      - name: Sync war
+        run: |
+          echo "Syncing WAR ..."
+          echo "Version: ${GITHUB_REF#refs/heads/}"
+          chmod +x ./dhis-2/gha-copy-war-s3.sh
+          ./dhis-2/gha-copy-war-s3.sh dev $GITHUB_HEAD_REF
