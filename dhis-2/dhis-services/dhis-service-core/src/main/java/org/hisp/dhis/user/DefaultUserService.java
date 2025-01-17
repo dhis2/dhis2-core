@@ -1077,19 +1077,12 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void invalidateUserSessions(String userUid) {
-    UserDetails principal = getPrincipalFromSessionRegistry(userUid);
-    if (principal != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
+    User user = getUser(userUid);
+    UserDetails userDetails = createUserDetails(user);
+    if (userDetails != null) {
+      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
       allSessions.forEach(SessionInformation::expireNow);
     }
-  }
-
-  private UserDetails getPrincipalFromSessionRegistry(String userUid) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .map(UserDetails.class::cast)
-        .filter(principal -> userUid.equals(principal.getUid()))
-        .findFirst()
-        .orElse(null);
   }
 
   @Override
