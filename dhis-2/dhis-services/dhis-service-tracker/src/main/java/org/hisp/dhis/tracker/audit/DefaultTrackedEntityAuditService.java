@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
@@ -81,7 +80,7 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
             .map(te -> new TrackedEntityAudit(te.getUid(), username, type))
             .toList();
 
-    if (CollectionUtils.isEmpty(audits)) {
+    if (audits.isEmpty()) {
       return;
     }
 

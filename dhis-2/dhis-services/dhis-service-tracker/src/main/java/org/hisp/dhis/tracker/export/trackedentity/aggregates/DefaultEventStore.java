@@ -49,7 +49,7 @@ import org.springframework.stereotype.Repository;
  * @author Luciano Fiandesio
  */
 @Repository("org.hisp.dhis.tracker.trackedentity.aggregates.EventStore")
-public class DefaultEventStore extends AbstractStore implements EventStore {
+class DefaultEventStore extends AbstractStore implements EventStore {
   private static final String GET_EVENTS_SQL = EventQuery.getQuery();
 
   private static final String GET_DATAVALUES_SQL =

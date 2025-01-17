@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Lists;
@@ -74,7 +75,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityAggregate implements Aggregate {
+public class TrackedEntityAggregate {
   @Nonnull private final TrackedEntityStore trackedEntityStore;
 
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")

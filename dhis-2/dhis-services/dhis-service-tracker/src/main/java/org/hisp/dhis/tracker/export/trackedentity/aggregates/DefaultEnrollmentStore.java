@@ -47,7 +47,7 @@ import org.springframework.stereotype.Repository;
  * @author Luciano Fiandesio
  */
 @Repository("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore")
-public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore {
+class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore {
   private static final String GET_ENROLLMENT_SQL_BY_TE = EnrollmentQuery.getQuery();
 
   private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();

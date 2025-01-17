@@ -351,6 +351,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     return getTrackedEntities(ids, operationParams, queryParams, user);
   }
+
   @Override
   public @Nonnull Page<TrackedEntity> getTrackedEntities(
       @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
@@ -365,12 +366,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   // TODO can I only pass in query params?
-  private List<TrackedEntity> getTrackedEntities(List<Long> ids, TrackedEntityOperationParams operationParams,
-      TrackedEntityQueryParams queryParams, UserDetails user) throws NotFoundException {
+  private List<TrackedEntity> getTrackedEntities(
+      List<Long> ids,
+      TrackedEntityOperationParams operationParams,
+      TrackedEntityQueryParams queryParams,
+      UserDetails user)
+      throws NotFoundException {
 
     List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(ids,
-            operationParams.getTrackedEntityParams(), queryParams,
+        this.trackedEntityAggregate.find(
+            ids,
+            operationParams.getTrackedEntityParams(),
+            queryParams,
             queryParams.getOrgUnitMode());
     setRelationshipItems(
         trackedEntities,
@@ -387,7 +394,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     addSearchAudit(trackedEntities, user);
     return trackedEntities;
   }
-
 
   /**
    * We need to return the full models for relationship items (i.e. trackedEntity, enrollment and
@@ -571,7 +577,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void addSearchAudit(List<TrackedEntity> trackedEntities, UserDetails user) {
-      trackedEntityAuditService.addTrackedEntityAudit(trackedEntities, user.getUsername(), SEARCH);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntities, user.getUsername(), SEARCH);
   }
 
   @Override

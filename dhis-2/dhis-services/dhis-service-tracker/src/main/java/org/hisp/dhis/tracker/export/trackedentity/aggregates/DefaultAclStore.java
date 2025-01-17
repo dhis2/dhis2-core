@@ -40,7 +40,7 @@ import org.springframework.stereotype.Repository;
  * @author Luciano Fiandesio
  */
 @Repository("org.hisp.dhis.tracker.trackedentity.aggregates.AclStore")
-public class DefaultAclStore implements AclStore {
+class DefaultAclStore implements AclStore {
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   private static final String USER_SQL_PARAM_NAME = "userId";
