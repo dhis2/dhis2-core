@@ -349,12 +349,29 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
     final List<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
+    return getTrackedEntities(ids, operationParams, queryParams, user);
+  }
+  @Override
+  public @Nonnull Page<TrackedEntity> getTrackedEntities(
+      @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
+      throws BadRequestException, ForbiddenException, NotFoundException {
+    UserDetails user = getCurrentUserDetails();
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+    final Page<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
+
     List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(
-            ids,
-            operationParams.getTrackedEntityParams(),
-            queryParams,
-            operationParams.getOrgUnitMode());
+        getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
+    return ids.withItems(trackedEntities);
+  }
+
+  // TODO can I only pass in query params?
+  private List<TrackedEntity> getTrackedEntities(List<Long> ids, TrackedEntityOperationParams operationParams,
+      TrackedEntityQueryParams queryParams, UserDetails user) throws NotFoundException {
+
+    List<TrackedEntity> trackedEntities =
+        this.trackedEntityAggregate.find(ids,
+            operationParams.getTrackedEntityParams(), queryParams,
+            queryParams.getOrgUnitMode());
     setRelationshipItems(
         trackedEntities,
         operationParams.getTrackedEntityParams(),
@@ -367,46 +384,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       trackedEntity.setTrackedEntityAttributeValues(
           getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
     }
-
-    // TODO how can I bring the audits together for the single vs multiple TEs?
-    // how can I merge the two paths getting multiple TEs together? and make the audit type a param
-    // then reuse that in the single path with audit READ
     addSearchAudit(trackedEntities, user);
-
     return trackedEntities;
   }
 
-  @Override
-  public @Nonnull Page<TrackedEntity> getTrackedEntities(
-      @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
-    UserDetails user = getCurrentUserDetails();
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
-    final Page<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
-
-    List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(
-            ids.getItems(),
-            operationParams.getTrackedEntityParams(),
-            queryParams,
-            operationParams.getOrgUnitMode());
-
-    setRelationshipItems(
-        trackedEntities,
-        operationParams.getTrackedEntityParams(),
-        operationParams.isIncludeDeleted());
-    for (TrackedEntity trackedEntity : trackedEntities) {
-      if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
-        trackedEntity.setProgramOwners(
-            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
-      }
-      getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram());
-    }
-
-    addSearchAudit(trackedEntities, user);
-
-    return ids.withItems(trackedEntities);
-  }
 
   /**
    * We need to return the full models for relationship items (i.e. trackedEntity, enrollment and
@@ -590,7 +571,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void addSearchAudit(List<TrackedEntity> trackedEntities, UserDetails user) {
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntities, user.getUsername(), SEARCH);
+      trackedEntityAuditService.addTrackedEntityAudit(trackedEntities, user.getUsername(), SEARCH);
   }
 
   @Override
