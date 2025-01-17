@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.List;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -52,7 +53,11 @@ class ProgramServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private ProgramStageService programStageService;
+
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private MappingService mappingService;
 
   private OrganisationUnit organisationUnitA;
 
@@ -153,16 +158,18 @@ class ProgramServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteProgramWithMapView() {
-    entityManager.persist(programA);
+    programService.addProgram(programA);
     ProgramStage programStageA = createProgramStage('A', programA);
-    entityManager.persist(programStageA);
+    programStageService.saveProgramStage(programStageA);
     programA.getProgramStages().add(programStageA);
     MapView mapView = createMapView("Test");
     mapView.setProgram(programA);
     mapView.setProgramStage(programStageA);
-    entityManager.persist(mapView);
-
+    mappingService.addMapView(mapView);
     assertDoesNotThrow(() -> programService.deleteProgram(programA));
+
+    entityManager.flush();
+    mapView = mappingService.getMapView(mapView.getId());
     assertNull(mapView.getProgram());
     assertNull(mapView.getProgramStage());
   }
