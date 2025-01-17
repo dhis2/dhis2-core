@@ -272,34 +272,6 @@ public class DataValue implements Serializable {
     this.deleted = other.isDeleted();
   }
 
-  /**
-   * Method that creates a new {@link DataValue}. All the old values are used from the supplied old
-   * {@link DataValue} except for the {@link DataElement} field, which uses the supplied {@link
-   * DataElement}.
-   *
-   * @param oldDv old {@link DataValue} whose values will be used in the new {@link DataValue}
-   * @param newDataElement {@link DataElement} to be used in the new {@link DataValue}
-   * @return new {@link DataValue}
-   */
-  public static DataValue dataValueWithNewDataElement(DataValue oldDv, DataElement newDataElement) {
-    DataValue newValue =
-        DataValue.builder()
-            .dataElement(newDataElement)
-            .period(oldDv.getPeriod())
-            .source(oldDv.getSource())
-            .categoryOptionCombo(oldDv.getCategoryOptionCombo())
-            .attributeOptionCombo(oldDv.getAttributeOptionCombo())
-            .value(oldDv.getValue())
-            .storedBy(oldDv.getStoredBy())
-            .lastUpdated(oldDv.getLastUpdated())
-            .comment(oldDv.getComment())
-            .followup(oldDv.isFollowup())
-            .deleted(oldDv.isDeleted())
-            .build();
-    newValue.setCreated(oldDv.getCreated());
-    return newValue;
-  }
-
   // -------------------------------------------------------------------------
   // hashCode and equals
   // -------------------------------------------------------------------------

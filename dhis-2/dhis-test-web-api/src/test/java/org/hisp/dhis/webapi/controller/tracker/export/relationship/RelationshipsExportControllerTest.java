@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationship;
@@ -652,7 +653,11 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntityAndEnrollmentWithAttributes() {
+  void getRelationshipsByTrackedEntityAndEnrollmentWithAttributesIsEmpty() {
+    // Tracked entity attribute values are owned by the tracked entity and only mapped onto the
+    // enrollment on export. Program tracked entity attributes are only returned by the underlying
+    // TE service if a program is
+    // provided which is not possible on the relationship endpoint.
     TrackedEntity to = trackedEntity(orgUnit);
     to.setTrackedEntityAttributeValues(
         Set.of(attributeValue(tea, to, "12"), attributeValue(tea2, to, "24")));
@@ -689,13 +694,13 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     JsonList<JsonAttribute> enrollmentAttr =
         relationships.get(0).getFrom().getEnrollment().getAttributes();
-    assertContainsAll(List.of(tea2.getUid()), enrollmentAttr, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("24"), enrollmentAttr, JsonAttribute::getValue);
+    assertIsEmpty(
+        enrollmentAttr.toList(JsonAttribute::getAttribute),
+        "program attributes should not be returned as no program can be provided");
     JsonList<JsonAttribute> teAttributes =
         relationships.get(0).getTo().getTrackedEntity().getAttributes();
-    assertContainsAll(
-        List.of(tea.getUid(), tea2.getUid()), teAttributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("12", "24"), teAttributes, JsonAttribute::getValue);
+    assertContainsAll(List.of(tea.getUid()), teAttributes, JsonAttribute::getAttribute);
+    assertContainsAll(List.of("12"), teAttributes, JsonAttribute::getValue);
   }
 
   @Test

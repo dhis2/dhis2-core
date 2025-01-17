@@ -33,6 +33,7 @@ import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.PeriodService;
@@ -124,5 +125,18 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
             """
                 .formatted(multiLike))
         .getResultList();
+  }
+
+  @Override
+  public List<Predictor> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct p from  Predictor p
+            join p.outputCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .list();
   }
 }
