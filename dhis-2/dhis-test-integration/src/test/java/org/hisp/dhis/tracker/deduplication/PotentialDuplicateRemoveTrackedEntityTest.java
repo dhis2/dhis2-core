@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -52,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,6 +148,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
+    User user = createAndAddUser(false, "user", Set.of(ou), Set.of(ou), ALL.toString());
+    injectSecurityContextUser(user);
     TrackedEntity original = createTrackedEntity(ou);
     TrackedEntity duplicate = createTrackedEntity(ou);
     TrackedEntity control1 = createTrackedEntity(ou);

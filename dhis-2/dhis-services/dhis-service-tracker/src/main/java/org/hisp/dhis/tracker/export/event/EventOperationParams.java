@@ -125,10 +125,6 @@ public class EventOperationParams {
    */
   private List<Order> order;
 
-  private boolean includeAttributes;
-
-  private boolean includeAllDataElements;
-
   @Builder.Default private Set<UID> events = new HashSet<>();
 
   /** Data element filters per data element UID. */
