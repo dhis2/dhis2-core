@@ -1076,8 +1076,8 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public void invalidateUserSessions(String username) {
-    User user = getUserByUsername(username);
+  public void invalidateUserSessions(String userUid) {
+    User user = getUser(userUid);
     UserDetails userDetails = createUserDetails(user);
     if (userDetails != null) {
       List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
