@@ -39,14 +39,14 @@ public class CteDefinition {
   // The program stage uid
   @Getter private final String programStageUid;
   // The program indicator uid
-  private String programIndicatorUid;
+  @Getter private String programIndicatorUid;
   // The CTE definition (the SQL query)
   @Getter private final String cteDefinition;
   // The calculated offset
   @Getter private final List<Integer> offsets = new ArrayList<>();
   // The alias of the CTE
   private final String alias;
-  // Whether the CTE is a row context (TODO this need a better explanation)
+  // Whether the CTE is a row context
   @Getter private boolean rowContext;
   // Whether the CTE is a program indicator
   @Getter private boolean programIndicator = false;
@@ -60,9 +60,6 @@ public class CteDefinition {
   @Getter private boolean requiresCoalesce = false;
 
   @Getter private String aggregateWhereClause;
-
-  private static final String PS_PREFIX = "ps";
-  private static final String PI_PREFIX = "pi";
 
   public CteDefinition setExists(boolean exists) {
     this.isExists = exists;
@@ -109,7 +106,6 @@ public class CteDefinition {
     this(null, null, cteDefinition, 0, false);
     this.rowContext = false;
     this.aggregationBase = true;
-    assert aggregateWhereClause != null;
     this.aggregateWhereClause = aggregateWhereClause;
   }
 
@@ -135,24 +131,6 @@ public class CteDefinition {
     this.rowContext = false;
     this.programIndicator = false;
     this.filter = isFilter;
-  }
-
-  /**
-   * @param uid the uid of an dimension item or ProgramIndicator
-   * @return the name of the CTE
-   */
-  public String asCteName(String uid) {
-    if (isExists) {
-      return uid.toLowerCase();
-    }
-    if (programIndicator) {
-      return "%s_%s".formatted(PI_PREFIX, programIndicatorUid.toLowerCase());
-    }
-    if (filter) {
-      return uid.toLowerCase();
-    }
-
-    return "%s_%s_%s".formatted(PS_PREFIX, programStageUid.toLowerCase(), uid.toLowerCase());
   }
 
   public boolean isProgramStage() {

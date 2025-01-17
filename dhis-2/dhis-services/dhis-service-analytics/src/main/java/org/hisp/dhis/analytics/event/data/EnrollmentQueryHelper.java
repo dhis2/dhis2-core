@@ -114,10 +114,9 @@ public class EnrollmentQueryHelper {
 
       if (!headerName.equalsIgnoreCase(COL_VALUE)
           && !headerName.equalsIgnoreCase(PERIOD_DIM_ID)
-          && !headerName.equalsIgnoreCase(ORGUNIT_DIM_ID)) {
-        if (!itemsToSkip.contains(headerName)) {
-          headerColumns.add(headerName);
-        }
+          && !headerName.equalsIgnoreCase(ORGUNIT_DIM_ID)
+          && !itemsToSkip.contains(headerName)) {
+        headerColumns.add(headerName);
       }
     }
 

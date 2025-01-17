@@ -1101,7 +1101,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     String colName = quote(item.getItemName());
 
     if (params.isAggregatedEnrollments()) {
-      handleAggregatedEnrollments(cteContext, item, params, eventTableName, colName);
+      handleAggregatedEnrollments(cteContext, item, eventTableName, colName);
       return;
     }
 
@@ -1170,11 +1170,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param colName the quoted column name for the item
    */
   private void handleAggregatedEnrollments(
-      CteContext cteContext,
-      QueryItem item,
-      EventQueryParams params,
-      String eventTableName,
-      String colName) {
+      CteContext cteContext, QueryItem item, String eventTableName, String colName) {
     CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
     assert baseAggregatedCte != null;
 
@@ -1225,7 +1221,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
     values.put(
-        "aggregateWhereClause", baseAggregatedCte.getAggregateWhereClause().replaceAll("%s", "eb"));
+        "aggregateWhereClause", baseAggregatedCte.getAggregateWhereClause().replace("%s", "eb"));
 
     return new StringSubstitutor(values).replace(template);
   }
@@ -1531,6 +1527,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
+  @Override
   protected String getSortClause(EventQueryParams params) {
     if (params.isSorting()) {
       return super.getSortClause(params);

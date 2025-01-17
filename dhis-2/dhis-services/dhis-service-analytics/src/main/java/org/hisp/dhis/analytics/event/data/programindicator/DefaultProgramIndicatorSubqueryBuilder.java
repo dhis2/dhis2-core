@@ -116,7 +116,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
                   earliestStartDate,
                   latestDate)
               // FIXME this is a bit of an hack
-              .replaceAll("subax\\.", "");
+              .replace("subax\\.", "");
       filter = "where " + piResolvedSqlFilter;
     }
 
@@ -128,7 +128,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
                 earliestStartDate,
                 latestDate)
             // FIXME this is a bit of an hack
-            .replaceAll("subax\\.", "");
+            .replace("subax\\.", "");
 
     String cteSql =
         "select enrollment, %s(%s) as value from %s %s group by enrollment"
