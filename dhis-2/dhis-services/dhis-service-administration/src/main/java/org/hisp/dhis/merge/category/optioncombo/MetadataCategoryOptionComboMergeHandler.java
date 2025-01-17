@@ -41,6 +41,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
+import org.hisp.dhis.indicator.IndicatorStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.predictor.Predictor;
@@ -66,6 +67,7 @@ public class MetadataCategoryOptionComboMergeHandler {
   private final MinMaxDataElementStore minMaxDataElementStore;
   private final PredictorStore predictorStore;
   private final SMSCommandStore smsCommandStore;
+  private final IndicatorStore indicatorStore;
 
   /**
    * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}
@@ -176,5 +178,22 @@ public class MetadataCategoryOptionComboMergeHandler {
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 
     smsCodes.forEach(smsCode -> smsCode.setOptionId(target));
+  }
+
+  /**
+   * Set target to {@link SMSCode}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleIndicators(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source indicators");
+    int totalUpdates = 0;
+    for (CategoryOptionCombo source : sources) {
+      totalUpdates +=
+          indicatorStore.updateNumeratorDenominatorContaining(source.getUid(), target.getUid());
+    }
+
+    log.info("{} indicators updated", totalUpdates);
   }
 }
