@@ -108,7 +108,7 @@ class TrackedEntityStore extends AbstractStore {
     return sql;
   }
 
-  public TrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+  TrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
@@ -117,7 +117,7 @@ class TrackedEntityStore extends AbstractStore {
     return "trackedentityid";
   }
 
-  public Map<String, TrackedEntity> getTrackedEntities(List<Long> ids, Context ctx) {
+  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids, Context ctx) {
     List<List<Long>> idPartitions = Lists.partition(ids, PARITITION_SIZE);
 
     Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
@@ -146,15 +146,15 @@ class TrackedEntityStore extends AbstractStore {
     return handler.getItems();
   }
 
-  public Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids) {
+  Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids) {
     return fetch(GET_TE_ATTRIBUTES, new TrackedEntityAttributeRowCallbackHandler(), ids);
   }
 
-  public Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
+  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
     return fetch(GET_PROGRAM_OWNERS, new ProgramOwnerRowCallbackHandler(), ids);
   }
 
-  public Multimap<String, String> getOwnedTrackedEntities(
+  Multimap<String, String> getOwnedTrackedEntities(
       List<Long> ids, Context ctx, boolean skipUserScopeValidation) {
     List<List<Long>> teds = Lists.partition(ids, PARITITION_SIZE);
 
