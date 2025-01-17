@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.DefaultUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
   public static final String INVALIDATE_SESSION_KEY = "shouldInvalidateUserSessions";
 
   private final CurrentUserService currentUserService;
+  private final DefaultUserService userService;
 
   @Override
   public void preUpdate(UserRole update, UserRole existing, ObjectBundle bundle) {
@@ -68,7 +70,7 @@ public class UserRoleBundleHook extends AbstractObjectBundleHook<UserRole> {
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
       for (User user : updatedUserRole.getUsers()) {
-        currentUserService.invalidateUserSessions(user.getUid());
+        userService.invalidateUserSessions(user.getUid());
       }
     }
 

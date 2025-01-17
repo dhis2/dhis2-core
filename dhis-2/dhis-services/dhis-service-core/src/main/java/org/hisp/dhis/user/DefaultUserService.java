@@ -82,6 +82,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,6 +116,8 @@ public class DefaultUserService implements UserService {
 
   private final Cache<Integer> twoFaDisableFailedAttemptCache;
 
+  private final SessionRegistry sessionRegistry;
+
   public DefaultUserService(
       UserStore userStore,
       UserGroupService userGroupService,
@@ -124,7 +128,8 @@ public class DefaultUserService implements UserService {
       @Lazy PasswordManager passwordManager,
       @Lazy SecurityService securityService,
       AclService aclService,
-      @Lazy OrganisationUnitService organisationUnitService) {
+      @Lazy OrganisationUnitService organisationUnitService,
+      SessionRegistry sessionRegistry) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -133,6 +138,7 @@ public class DefaultUserService implements UserService {
     checkNotNull(securityService);
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
+    checkNotNull(sessionRegistry);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -145,6 +151,7 @@ public class DefaultUserService implements UserService {
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
     this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
+    this.sessionRegistry = sessionRegistry;
   }
 
   @Override
@@ -817,7 +824,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public void expireActiveSessions(User user) {
-    currentUserService.invalidateUserSessions(user.getUid());
+    invalidateUserSessions(user.getUid());
   }
 
   @Override
@@ -1016,5 +1023,15 @@ public class DefaultUserService implements UserService {
   @Override
   public void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername) {
     userStore.setActiveLinkedAccounts(actingUser, activeUsername);
+  }
+
+  @Override
+  public void invalidateUserSessions(String userUid) {
+    User user = userStore.getByUid(userUid);
+    CurrentUserDetailsImpl userDetails = createUserDetails(user, true, true);
+    if (userDetails != null) {
+      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
+      allSessions.forEach(SessionInformation::expireNow);
+    }
   }
 }
