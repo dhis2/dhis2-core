@@ -167,8 +167,6 @@ class ProgramServiceTest extends PostgresIntegrationTestBase {
     mapView.setProgramStage(programStageA);
     mappingService.addMapView(mapView);
     assertDoesNotThrow(() -> programService.deleteProgram(programA));
-
-    entityManager.flush();
     mapView = mappingService.getMapView(mapView.getId());
     assertNull(mapView.getProgram());
     assertNull(mapView.getProgramStage());

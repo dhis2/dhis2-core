@@ -187,6 +187,7 @@ public class DefaultMappingService extends GenericAnalyticalObjectService<MapVie
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<MapView> findByProgram(Program program) {
     return mapViewStore.findByProgram(program);
   }
