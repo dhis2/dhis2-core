@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -94,6 +95,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -250,6 +252,8 @@ class JdbcEventStore {
   private final IdentifiableObjectManager manager;
 
   private final RelationshipStore relationshipStore;
+
+  private final TrackerAccessManager trackerAccessManager;
 
   public List<Event> getEvents(EventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -474,8 +478,11 @@ class JdbcEventStore {
           List<Relationship> relationships = relationshipStore.getById(relationshipIds);
 
           Multimap<String, RelationshipItem> map = LinkedListMultimap.create();
-
           for (Relationship relationship : relationships) {
+            if (!trackerAccessManager.canRead(getCurrentUserDetails(), relationship).isEmpty()) {
+              continue;
+            }
+
             if (relationship.getFrom().getEvent() != null) {
               map.put(relationship.getFrom().getEvent().getUid(), relationship.getFrom());
             }

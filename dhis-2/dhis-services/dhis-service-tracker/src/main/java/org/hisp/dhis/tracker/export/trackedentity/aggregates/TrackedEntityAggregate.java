@@ -62,6 +62,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -111,18 +112,20 @@ public class TrackedEntityAggregate {
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
    *
-   * @param ids a List of {@see TrackedEntity} Primary Keys
+   * @param identifiers a List of {@see TrackedEntity} primary key and uid tuples
    * @param params an instance of {@see TrackedEntityParams}
    * @return a List of {@see TrackedEntity} objects
    */
   public List<TrackedEntity> find(
-      List<Long> ids,
+      List<TrackedEntityIdentifiers> identifiers,
       TrackedEntityParams params,
       TrackedEntityQueryParams queryParams,
       OrganisationUnitSelectionMode orgUnitMode) {
-    if (ids.isEmpty()) {
+    if (identifiers.isEmpty()) {
       return Collections.emptyList();
     }
+    List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
+
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     final Optional<User> user = Optional.ofNullable(currentUser);
 
@@ -184,7 +187,7 @@ public class TrackedEntityAggregate {
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityIds(ids, ctx),
+            () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
             getPool());
 
     /*

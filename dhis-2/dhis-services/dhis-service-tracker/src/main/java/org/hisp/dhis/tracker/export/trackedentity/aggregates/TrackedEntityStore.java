@@ -163,12 +163,12 @@ class TrackedEntityStore extends AbstractStore {
     teds.forEach(
         partition ->
             ownedTeisMultiMap.putAll(
-                getOwnedTeisPartitioned(partition, ctx, skipUserScopeValidation)));
+                getOwnedTrackedEntitiesPartitioned(partition, ctx, skipUserScopeValidation)));
 
     return ownedTeisMultiMap;
   }
 
-  private Multimap<String, String> getOwnedTeisPartitioned(
+  private Multimap<String, String> getOwnedTrackedEntitiesPartitioned(
       List<Long> ids, Context ctx, boolean skipUserScopeValidation) {
     OwnedTeMapper handler = new OwnedTeMapper();
 

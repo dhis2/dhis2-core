@@ -27,25 +27,19 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
-import static java.util.concurrent.CompletableFuture.allOf;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.asyncFetch;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
-
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.note.Note;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,13 +48,8 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")
 @RequiredArgsConstructor
 class EnrollmentAggregate {
-  @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore")
-  @Nonnull
-  private final EnrollmentStore enrollmentStore;
-
-  @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EventAggregate")
-  @Nonnull
-  private final EventAggregate eventAggregate;
+  private final AuthenticationService authenticationService;
+  private final EnrollmentService enrollmentService;
 
   /**
    * Key: te uid , value Enrollment
@@ -69,66 +58,37 @@ class EnrollmentAggregate {
    * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
    *     Enrollment} objects
    */
-  Multimap<String, Enrollment> findByTrackedEntityIds(List<Long> ids, Context ctx) {
-    Multimap<String, Enrollment> enrollments =
-        enrollmentStore.getEnrollmentsByTrackedEntityIds(ids, ctx);
+  Multimap<String, Enrollment> findByTrackedEntityIds(
+      List<TrackedEntityIdentifiers> ids, Context ctx) {
+    Multimap<String, Enrollment> result = ArrayListMultimap.create();
 
-    if (enrollments.isEmpty()) {
-      return enrollments;
+    try {
+      authenticationService.obtainAuthentication(ctx.getUserUid());
+      ids.forEach(
+          id -> {
+            EnrollmentOperationParams params =
+                EnrollmentOperationParams.builder()
+                    .enrollmentParams(ctx.getParams().getEnrollmentParams())
+                    .trackedEntity(UID.of(id.uid()))
+                    .build();
+            try {
+              result.putAll(id.uid(), enrollmentService.getEnrollments(params));
+            } catch (BadRequestException e) {
+              throw new IllegalArgumentException(
+                  "this must be a bug in how the EnrollmentOperationParams are built");
+            } catch (ForbiddenException e) {
+              // ForbiddenExceptions are caused when mapping the EnrollmentOperationParams. These
+              // params should already have been validated as they are coming from the
+              // TrackedEntityQueryParams. Other reasons the user does not have access to data will
+              // not be shown as such items are simply not returned in collections.
+            }
+          });
+    } catch (NotFoundException e) {
+      throw new IllegalArgumentException(
+          "this must be called within a context where the user is known to exist");
+    } finally {
+      authenticationService.clearAuthentication();
     }
-
-    List<Long> enrollmentIds = enrollments.values().stream().map(Enrollment::getId).toList();
-
-    final CompletableFuture<Multimap<String, Event>> eventAsync =
-        conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeEvents(),
-            () -> eventAggregate.findByEnrollmentIds(enrollmentIds, ctx),
-            getPool());
-
-    final CompletableFuture<Multimap<String, RelationshipItem>> relationshipAsync =
-        conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeRelationships(),
-            () -> enrollmentStore.getRelationships(enrollmentIds, ctx),
-            getPool());
-
-    final CompletableFuture<Multimap<String, Note>> notesAsync =
-        asyncFetch(() -> enrollmentStore.getNotes(enrollmentIds), getPool());
-
-    final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
-        conditionalAsyncFetch(
-            ctx.getParams().getTeEnrollmentParams().isIncludeAttributes(),
-            () -> enrollmentStore.getAttributes(enrollmentIds, ctx),
-            getPool());
-
-    return allOf(eventAsync, notesAsync, relationshipAsync, attributesAsync)
-        .thenApplyAsync(
-            fn -> {
-              Multimap<String, Event> events = eventAsync.join();
-              Multimap<String, Note> notes = notesAsync.join();
-              Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-
-              for (Enrollment enrollment : enrollments.values()) {
-                if (ctx.getParams().getTeEnrollmentParams().isIncludeEvents()) {
-                  enrollment.setEvents(new HashSet<>(events.get(enrollment.getUid())));
-                }
-                if (ctx.getParams().getTeEnrollmentParams().isIncludeRelationships()) {
-                  enrollment.setRelationshipItems(
-                      new HashSet<>(relationships.get(enrollment.getUid())));
-                }
-                if (ctx.getParams().getTeEnrollmentParams().isIncludeAttributes()) {
-                  enrollment
-                      .getTrackedEntity()
-                      .setTrackedEntityAttributeValues(
-                          new LinkedHashSet<>(attributes.get(enrollment.getUid())));
-                }
-
-                enrollment.setNotes(new ArrayList<>(notes.get(enrollment.getUid())));
-              }
-
-              return enrollments;
-            },
-            getPool())
-        .join();
+    return result;
   }
 }
