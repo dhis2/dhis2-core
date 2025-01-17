@@ -58,7 +58,7 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Async
   @Transactional
   public void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, AuditOperationType type) {
+      AuditOperationType type, String username, TrackedEntity trackedEntity) {
     if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
@@ -73,7 +73,7 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Async
   @Transactional
   public void addTrackedEntityAudit(
-      @Nonnull List<TrackedEntity> trackedEntities, String username, AuditOperationType type) {
+      AuditOperationType type, String username, @Nonnull List<TrackedEntity> trackedEntities) {
     List<TrackedEntityAudit> audits =
         trackedEntities.stream()
             .filter(te -> te.getTrackedEntityType().isAllowAuditLog())

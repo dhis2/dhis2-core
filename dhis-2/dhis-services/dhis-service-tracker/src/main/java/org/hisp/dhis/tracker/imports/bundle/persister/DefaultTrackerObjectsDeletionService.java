@@ -180,7 +180,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       if (entity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
-      trackedEntityAuditService.addTrackedEntityAudit(entity, getCurrentUsername(), DELETE);
+      trackedEntityAuditService.addTrackedEntityAudit(DELETE, getCurrentUsername(), entity);
 
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 

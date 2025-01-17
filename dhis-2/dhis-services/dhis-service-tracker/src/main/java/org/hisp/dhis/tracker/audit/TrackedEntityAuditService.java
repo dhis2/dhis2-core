@@ -41,11 +41,11 @@ public interface TrackedEntityAuditService {
 
   String ID = TrackedEntityAuditService.class.getName();
 
-  void addTrackedEntityAudit(TrackedEntity trackedEntity, String username, AuditOperationType type);
+  void addTrackedEntityAudit(AuditOperationType type, String username, TrackedEntity trackedEntity);
 
   /** Adds multiple tracked entity audit */
   void addTrackedEntityAudit(
-      @Nonnull List<TrackedEntity> trackedEntity, String username, AuditOperationType type);
+      AuditOperationType type, String username, @Nonnull List<TrackedEntity> trackedEntity);
 
   /**
    * Returns tracked entity audits matching query params

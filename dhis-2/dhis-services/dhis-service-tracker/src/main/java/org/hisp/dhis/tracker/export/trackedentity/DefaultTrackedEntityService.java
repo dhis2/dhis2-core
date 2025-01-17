@@ -250,7 +250,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
 
     if (program != null) {
       List<String> errors =
@@ -365,7 +365,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return ids.withItems(trackedEntities);
   }
 
-  // TODO can I only pass in query params?
   private List<TrackedEntity> getTrackedEntities(
       List<Long> ids,
       TrackedEntityOperationParams operationParams,
@@ -391,7 +390,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       trackedEntity.setTrackedEntityAttributeValues(
           getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
     }
-    addSearchAudit(trackedEntities, user);
+    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
     return trackedEntities;
   }
 
@@ -570,14 +569,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       return null;
     }
 
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), SEARCH);
+    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntity);
 
     relationshipItem.setTrackedEntity(trackedEntity);
     return relationshipItem;
-  }
-
-  private void addSearchAudit(List<TrackedEntity> trackedEntities, UserDetails user) {
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntities, user.getUsername(), SEARCH);
   }
 
   @Override
