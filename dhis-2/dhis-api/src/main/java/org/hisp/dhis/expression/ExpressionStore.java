@@ -34,5 +34,13 @@ import org.hisp.dhis.common.GenericStore;
  */
 public interface ExpressionStore extends GenericStore<Expression> {
 
+  /**
+   * Update all expressions whose expression property contains the 'find' value. When updating, it
+   * replaces all occurrences of 'find' with 'replace'.
+   *
+   * @param find text to search for
+   * @param replace text used to replace 'find'
+   * @return number of entities updated
+   */
   int updateExpressionContaining(String find, String replace);
 }
