@@ -40,8 +40,6 @@ public class CteUtils {
     } else if (queryItem.isProgramIndicator()) {
       return queryItem.getItemId();
     }
-
-    // TODO continue with the rest of the method
     return "";
   }
 

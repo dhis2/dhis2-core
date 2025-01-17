@@ -239,7 +239,7 @@ public class SelectBuilder {
   }
 
   public List<String> getColumnNames() {
-    return columns.stream().map(Column::expression).collect(Collectors.toList());
+    return columns.stream().map(Column::expression).toList();
   }
 
   /**

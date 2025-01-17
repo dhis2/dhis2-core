@@ -33,8 +33,12 @@ import java.util.List;
 import java.util.Set;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.operators.relational.Between;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
+import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -71,6 +75,13 @@ public class SqlWhereClauseExtractor {
     if (expression instanceof net.sf.jsqlparser.schema.Column column) {
       // Add the column name without table alias to the set
       String columnName = column.getColumnName();
+      // Remove surrounding quotes if present and handle escaped quotes
+      if (columnName.startsWith("\"") && columnName.endsWith("\"")) {
+        columnName =
+            columnName
+                .substring(1, columnName.length() - 1)
+                .replace("\"\"", "\""); // Handle escaped quotes
+      }
       columns.add(columnName);
     } else if (expression instanceof BinaryExpression binaryExpression) {
       // Recursively process left and right expressions
@@ -82,6 +93,22 @@ public class SqlWhereClauseExtractor {
     } else if (expression instanceof Parenthesis parenthesis) {
       // Process the expression inside parentheses
       extractColumnsFromExpression(parenthesis.getExpression(), columns);
+    } else if (expression instanceof IsNullExpression isNullExpression) {
+      // Process IS NULL expressions
+      extractColumnsFromExpression(isNullExpression.getLeftExpression(), columns);
+    } else if (expression instanceof Function function) {
+      // Process function parameters to extract column names
+      ExpressionList parameters = function.getParameters();
+      if (parameters != null) {
+        for (Expression parameter : parameters.getExpressions()) {
+          extractColumnsFromExpression(parameter, columns);
+        }
+      }
+    } else if (expression instanceof Between between) {
+      // Process BETWEEN expressions
+      extractColumnsFromExpression(between.getLeftExpression(), columns);
+      extractColumnsFromExpression(between.getBetweenExpressionStart(), columns);
+      extractColumnsFromExpression(between.getBetweenExpressionEnd(), columns);
     }
   }
 }

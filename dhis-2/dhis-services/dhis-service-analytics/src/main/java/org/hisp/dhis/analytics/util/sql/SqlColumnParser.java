@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.analytics.util.sql;
 
+import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 
+@UtilityClass
 public class SqlColumnParser {
 
   /**

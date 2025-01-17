@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.util.sql;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.Function;
@@ -40,6 +41,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+@UtilityClass
 public class SqlAliasReplacer {
 
   public static String replaceTableAliases(String whereClause, List<String> columns) {
