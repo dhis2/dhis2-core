@@ -224,23 +224,13 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder, UserDetails userDetails) {
-
     if (userDetails == null) {
       return List.of();
     }
 
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
     if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              userDetails.getUsername(),
-              userDetails.getUserGroupIds().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      RuntimeException runtimeException = new RuntimeException(msg);
-      log.error(msg, runtimeException);
-      throw runtimeException;
+      aclService.invalidateCurrentUserGroupInfoCache();
     }
 
     return getDataSharingPredicates(
@@ -254,21 +244,9 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
       return List.of();
     }
 
-    // TODO: MAS: we need to keep this for the special case when the acting user's UserGroups are
-    // changed in the request.
-    // See tests in AbstractCrudControllerTest#testMergeCollectionItemsJson()
-    // If it was not the acting user, we could easily invalidate the changed user if they are
-    // logged in.
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
     if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              userDetails.getUsername(),
-              userDetails.getUserGroupIds().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      log.error(msg, new RuntimeException(msg));
+      aclService.invalidateCurrentUserGroupInfoCache();
     }
 
     return getSharingPredicates(
@@ -343,8 +321,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return aclService.getCurrentUserGroupInfo(userUid, this::fetchCurrentUserGroupInfo);
   }
 
-  // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
-  // users are get invalidated when group changes
   private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUid) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
