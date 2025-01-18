@@ -307,6 +307,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   private boolean canCapture(OrganisationUnit captureTarget) {
     return currentUserService.currentUserIsSuper()
         || currentUserService.getCurrentUserOrganisationUnits().stream()
-            .anyMatch(ou -> captureTarget.getPath().startsWith(ou.getPath()));
+            .anyMatch(ou -> captureTarget.getPath().startsWith(ou.getStoredPath()));
   }
 }

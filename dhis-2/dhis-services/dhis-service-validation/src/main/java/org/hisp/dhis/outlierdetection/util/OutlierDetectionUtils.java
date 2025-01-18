@@ -48,7 +48,7 @@ public class OutlierDetectionUtils {
     String sql = "(";
 
     for (OrganisationUnit ou : orgUnits) {
-      sql += "ou.\"path\" like '" + ou.getPath() + "%' or ";
+      sql += "ou.\"path\" like '" + ou.getStoredPath() + "%' or ";
     }
 
     return StringUtils.trim(TextUtils.removeLastOr(sql)) + ")";
