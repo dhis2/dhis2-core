@@ -48,7 +48,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.ws.rs.ForbiddenException;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
@@ -212,7 +211,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() throws ForbiddenException {
+  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
 
