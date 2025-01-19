@@ -100,7 +100,8 @@ public class TrackerOwnershipController {
   public WebMessage overrideOwnershipAccess(
       @RequestParam String trackedEntityInstance,
       @RequestParam String reason,
-      @RequestParam String program) {
+      @RequestParam String program)
+      throws ForbiddenException {
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance),
         programService.getProgram(program),
