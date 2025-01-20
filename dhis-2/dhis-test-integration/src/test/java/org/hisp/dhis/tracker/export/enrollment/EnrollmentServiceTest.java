@@ -94,7 +94,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private User admin;
 
-  private User userWithoutOrgUnit;
+  private User userWithOrgUnitZ;
 
   private User authorizedUser;
 
@@ -146,8 +146,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     User user =
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
-    userWithoutOrgUnit = createUserWithAuth("userWithoutOrgUnit");
-    userWithoutOrgUnit.setTeiSearchOrganisationUnits(Set.of(orgUnitZ));
+    userWithOrgUnitZ = createUserWithAuth("userWithoutOrgUnit");
+    userWithOrgUnitZ.setTeiSearchOrganisationUnits(Set.of(orgUnitZ));
     authorizedUser =
         createAndAddUser(
             false,
@@ -407,7 +407,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
     NotFoundException exception =
         assertThrows(
@@ -423,7 +423,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
 
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
     NotFoundException exception =
         assertThrows(
@@ -682,7 +682,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserCanSearchEverywhereModeDescendantsAndOrgUnitNotInSearchScope() {
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(DESCENDANTS).orgUnits(orgUnitA).build();
@@ -762,7 +762,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenRequestingListOfEnrollmentsAndAtLeastOneNotAccessible()
+  void shouldReturnEmptyListFailWhenRequestingEnrollmentsAndTheyAreNotAccessible()
       throws ForbiddenException {
     injectSecurityContextUser(admin);
     programA.getSharing().setPublicAccess("rw------");
