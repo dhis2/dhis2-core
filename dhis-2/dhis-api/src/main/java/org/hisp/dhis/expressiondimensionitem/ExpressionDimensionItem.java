@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.expressiondimensionitem;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -37,6 +34,10 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * An Expression is the expression of e.g. a validation rule. It consist of a String representation
@@ -60,7 +61,7 @@ public class ExpressionDimensionItem extends BaseDataDimensionalItemObject
 
   public static final String SEPARATOR = ".";
 
-  /** The Expression. */
+  /** The expression. */
   private String expression;
 
   /** This expression should be given sliding window based data */
