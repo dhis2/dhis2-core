@@ -1008,7 +1008,8 @@ public class EventQueryTest extends AnalyticsApiTest {
             "g8upMTyEZGZ",
             "LEVEL-H1KlN4QIauv",
             "OU_GROUP-nlX2VoouN63",
-            "USER_ORGUNIT;USER_ORGUNIT_CHILDREN",
+            "USER_ORGUNIT",
+            "USER_ORGUNIT_CHILDREN",
             "USER_ORGUNIT_GRANDCHILDREN");
 
     String dimensionOrgUnitDataElement = "Ge7Eo3FNnbl.rypjN8CV02V:IN:" + dimensionItems;
