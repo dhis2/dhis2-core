@@ -36,8 +36,10 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +69,8 @@ class RedisNotifierTest extends TestBase {
    */
   @Test
   void getNotificationsByJobIdTest_OrderedByTime() {
-    notifier = new RedisNotifier(redisTemplate, new ObjectMapper());
+    notifier =
+        new RedisNotifier(redisTemplate, new ObjectMapper(), () -> SystemSettings.of(Map.of()));
     JobType jobType = JobType.ANALYTICS_TABLE;
     String jobId = "job1d1";
     Set<String> dataFromRedis = new HashSet<>();
@@ -108,7 +111,8 @@ class RedisNotifierTest extends TestBase {
 
   @Test
   void getNotificationsByJobIdTest_OrderedByTimeAndCompleted() {
-    notifier = new RedisNotifier(redisTemplate, new ObjectMapper());
+    notifier =
+        new RedisNotifier(redisTemplate, new ObjectMapper(), () -> SystemSettings.of(Map.of()));
     JobType jobType = JobType.ANALYTICS_TABLE;
     String jobId = "job1d1";
     Set<String> dataFromRedis = new HashSet<>();

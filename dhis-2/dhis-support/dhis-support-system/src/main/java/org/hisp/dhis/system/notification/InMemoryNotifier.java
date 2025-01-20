@@ -32,18 +32,25 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
+@RequiredArgsConstructor
 public class InMemoryNotifier implements Notifier {
-  public static final int MAX_POOL_TYPE_SIZE = 500;
 
-  private final NotificationMap notificationMap = new NotificationMap(MAX_POOL_TYPE_SIZE);
+  private final NotificationMap notificationMap;
+
+  public InMemoryNotifier(SystemSettingsProvider settingsProvider) {
+    this.notificationMap =
+        new NotificationMap(settingsProvider.getCurrentSettings().getNotifierMessageLimit());
+  }
 
   @Override
   public Notifier notify(
@@ -66,7 +73,7 @@ public class InMemoryNotifier implements Notifier {
   }
 
   @Override
-  public Map<JobType, Map<String, Deque<Notification>>> getNotifications() {
+  public Map<JobType, Map<String, Deque<Notification>>> getNotifications(Boolean gist) {
     return notificationMap.getNotifications();
   }
 
@@ -76,7 +83,7 @@ public class InMemoryNotifier implements Notifier {
   }
 
   @Override
-  public Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType) {
+  public Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType, Boolean gist) {
     return notificationMap.getNotificationsWithType(jobType);
   }
 

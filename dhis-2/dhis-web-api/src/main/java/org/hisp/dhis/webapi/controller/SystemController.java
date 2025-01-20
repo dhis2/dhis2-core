@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Collections.emptyMap;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -166,17 +165,16 @@ public class SystemController {
   // -------------------------------------------------------------------------
 
   @GetMapping(value = "/tasks", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksJson() {
-    return ResponseEntity.ok().cacheControl(noStore()).body(notifier.getNotifications());
+  public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksAllJobTypes(
+      @RequestParam(required = false) Boolean gist) {
+    return ResponseEntity.ok().cacheControl(noStore()).body(notifier.getNotifications(gist));
   }
 
   @GetMapping(value = "/tasks/{jobType}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
-      @PathVariable("jobType") String jobType) {
+  public ResponseEntity<Map<String, Deque<Notification>>> getTasksByJobType(
+      @PathVariable("jobType") JobType jobType, @RequestParam(required = false) Boolean gist) {
     Map<String, Deque<Notification>> notifications =
-        jobType == null
-            ? emptyMap()
-            : notifier.getNotificationsByJobType(JobType.valueOf(jobType.toUpperCase()));
+        jobType == null ? Map.of() : notifier.getNotificationsByJobType(jobType, gist);
 
     return ResponseEntity.ok().cacheControl(noStore()).body(notifications);
   }

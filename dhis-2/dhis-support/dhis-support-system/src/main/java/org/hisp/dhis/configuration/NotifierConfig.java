@@ -30,6 +30,7 @@ package org.hisp.dhis.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.notification.InMemoryNotifier;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.notification.RedisNotifier;
@@ -53,13 +54,15 @@ public class NotifierConfig {
   @SuppressWarnings("unchecked")
   @Bean("notifier")
   @Conditional(RedisEnabledCondition.class)
-  public Notifier redisNotifier(ObjectMapper objectMapper) {
-    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
+  public Notifier redisNotifier(
+      ObjectMapper objectMapper, SystemSettingsProvider settingsProvider) {
+    return new RedisNotifier(
+        (RedisTemplate<String, String>) redisTemplate, objectMapper, settingsProvider);
   }
 
   @Bean("notifier")
   @Conditional(RedisDisabledCondition.class)
-  public Notifier inMemoryNotifier() {
-    return new InMemoryNotifier();
+  public Notifier inMemoryNotifier(SystemSettingsProvider settingsProvider) {
+    return new InMemoryNotifier(settingsProvider);
   }
 }

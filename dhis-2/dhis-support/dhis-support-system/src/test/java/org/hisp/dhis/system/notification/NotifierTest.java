@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,8 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class NotifierTest extends TestBase {
-  private Notifier notifier = new InMemoryNotifier();
+
+  private final Notifier notifier = new InMemoryNotifier(() -> SystemSettings.of(Map.of()));
 
   private final User user = makeUser("A");
 
@@ -91,7 +93,8 @@ class NotifierTest extends TestBase {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
-    Map<JobType, Map<String, Deque<Notification>>> notificationsMap = notifier.getNotifications();
+    Map<JobType, Map<String, Deque<Notification>>> notificationsMap =
+        notifier.getNotifications(false);
     assertNotNull(notificationsMap);
     assertEquals(
         3,
@@ -164,12 +167,14 @@ class NotifierTest extends TestBase {
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
     Deque<Notification> notifications =
-        notifier.getNotificationsByJobType(DATAVALUE_IMPORT).get(dataValueImportJobConfig.getUid());
+        notifier
+            .getNotificationsByJobType(DATAVALUE_IMPORT, false)
+            .get(dataValueImportJobConfig.getUid());
     assertNotNull(notifications);
     assertEquals(4, notifications.size());
     notifier.notify(dataValueImportThirdJobConfig, "Completed1");
     Map<String, Deque<Notification>> notificationsByJobType =
-        notifier.getNotificationsByJobType(DATAVALUE_IMPORT);
+        notifier.getNotificationsByJobType(DATAVALUE_IMPORT, false);
     assertNotNull(notificationsByJobType);
     assertEquals(3, notificationsByJobType.size());
     assertEquals(4, notificationsByJobType.get(dataValueImportJobConfig.getUid()).size());
@@ -179,7 +184,7 @@ class NotifierTest extends TestBase {
         "Completed1",
         notificationsByJobType.get(dataValueImportThirdJobConfig.getUid()).getFirst().getMessage());
     notifier.notify(dataValueImportFourthConfig, "Completed2");
-    notificationsByJobType = notifier.getNotificationsByJobType(DATAVALUE_IMPORT);
+    notificationsByJobType = notifier.getNotificationsByJobType(DATAVALUE_IMPORT, false);
     assertNotNull(notificationsByJobType);
     assertEquals(4, notificationsByJobType.get(dataValueImportJobConfig.getUid()).size());
     assertEquals(1, notificationsByJobType.get(dataValueImportSecondJobConfig.getUid()).size());
@@ -232,14 +237,17 @@ class NotifierTest extends TestBase {
         .forEach(
             i -> {
               for (Notification notification :
-                  notifier.getNotificationsByJobType(METADATA_IMPORT).get(jobConfig.getUid())) {
+                  notifier
+                      .getNotificationsByJobType(METADATA_IMPORT, false)
+                      .get(jobConfig.getUid())) {
                 // Iterate over notifications when new notification are added
                 assertNotNull(notification.getUid());
               }
             });
     awaitTermination(e);
     assertEquals(
-        101, notifier.getNotificationsByJobType(METADATA_IMPORT).get(jobConfig.getUid()).size());
+        101,
+        notifier.getNotificationsByJobType(METADATA_IMPORT, false).get(jobConfig.getUid()).size());
   }
 
   @Test
@@ -255,7 +263,7 @@ class NotifierTest extends TestBase {
                   });
             });
     awaitTermination(e);
-    int actualSize = notifier.getNotificationsByJobType(METADATA_IMPORT).size();
+    int actualSize = notifier.getNotificationsByJobType(METADATA_IMPORT, false).size();
     int delta = actualSize - 500;
     assertTrue(delta <= 5, "delta should not be larger than number of workers but was: " + delta);
   }

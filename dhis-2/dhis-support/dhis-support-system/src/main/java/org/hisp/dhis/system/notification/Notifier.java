@@ -30,9 +30,11 @@ package org.hisp.dhis.system.notification;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Deque;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SystemSettings;
 
 /**
  * @author Lars Helge Overland
@@ -84,11 +86,23 @@ public interface Notifier {
     return this;
   }
 
-  Map<JobType, Map<String, Deque<Notification>>> getNotifications();
+  /**
+   * @param gist when true, only the first and last message are included for each job. When {@code
+   *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
+   * @return a map with notifications for all job types and jobs
+   */
+  Map<JobType, Map<String, Deque<Notification>>> getNotifications(@CheckForNull Boolean gist);
 
   Deque<Notification> getNotificationsByJobId(JobType jobType, String jobId);
 
-  Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType);
+  /**
+   * @param jobType include jobs of this type in the result
+   * @param gist when true, only the first and last message are included for each job. When {@code
+   *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
+   * @return a map with notifications for all jobs of the provided type
+   */
+  Map<String, Deque<Notification>> getNotificationsByJobType(
+      JobType jobType, @CheckForNull Boolean gist);
 
   Notifier clear(JobConfiguration id);
 

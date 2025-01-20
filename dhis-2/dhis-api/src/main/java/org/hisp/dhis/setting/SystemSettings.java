@@ -745,4 +745,23 @@ public non-sealed interface SystemSettings extends Settings {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
+
+  /**
+   * When the limit is exceeded the oldest message is dropped (FIFO).
+   *
+   * @since 2.42
+   * @return the maximum number of messages kept for each job.
+   */
+  default int getNotifierMessageLimit() {
+    return asInt("notifierMessageLimit", 500);
+  }
+
+  /**
+   * @since 2.42
+   * @return when true, only the first and last message are included in the message stack when
+   *     listing multiple jobs in the single or all job types overview.
+   */
+  default boolean isNotifierGistOverview() {
+    return asBoolean("notifierGistOverview", true);
+  }
 }
