@@ -269,6 +269,31 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
+  void shouldSortChangeLogsByNameWhenOrderingByChangeAndDataElementDoesNotHaveFormName()
+      throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
+    Event event = getEvent("pTzf9KYMk72");
+
+    updateDataValues(event, "DATAEL00001", "value00002", "value00003");
+
+    List<EventChangeLog> changeLogs =
+        eventChangeLogService
+            .getEventChangeLog(UID.of("pTzf9KYMk72"), params, defaultPageParams)
+            .getItems();
+
+    assertNumberOfChanges(7, changeLogs);
+    assertAll(
+        () -> assertDataElementCreate("DATAEL00005", "option1", changeLogs.get(0)),
+        () -> assertDataElementCreate("DATAEL00006", "88", changeLogs.get(1)),
+        () -> assertDataElementUpdate("DATAEL00001", "value00002", "value00003", changeLogs.get(2)),
+        () -> assertDataElementUpdate("DATAEL00001", "value00001", "value00002", changeLogs.get(3)),
+        () -> assertDataElementCreate("DATAEL00001", "value00001", changeLogs.get(4)),
+        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:32:38.100", changeLogs.get(5)),
+        () -> assertFieldCreate("occurredAt", "2019-01-25 12:10:38.100", changeLogs.get(6)));
+  }
+
+  @Test
   void shouldFilterChangeLogsWhenFilteringByUser() throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
