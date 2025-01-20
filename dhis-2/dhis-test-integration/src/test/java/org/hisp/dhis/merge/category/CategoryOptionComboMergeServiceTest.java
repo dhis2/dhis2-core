@@ -95,6 +95,7 @@ import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -1385,7 +1386,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Event attributeOptionCombo references to source COCs are replaced with target COC when using LAST_UPDATED, source COCs are not deleted")
   void eventMergeTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType entityType = createTrackedEntityType('T');
+    manager.save(entityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, entityType);
     manager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     manager.save(enrollment);
@@ -1437,7 +1440,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references to source COCs are deleted using DISCARD, source COCs are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType entityType = createTrackedEntityType('T');
+    manager.save(entityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, entityType);
     manager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     manager.save(enrollment);
