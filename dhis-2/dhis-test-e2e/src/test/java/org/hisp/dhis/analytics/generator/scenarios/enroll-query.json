@@ -27,6 +27,27 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "programIndicatorMalariaCaseComplex",
+      "query": "/api/analytics/enrollments/query/qDkgAbB5Jlk.json?dimension=Ym2kI6k1I5e:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT&headers=ouname,lastupdated,Ym2kI6k1I5e&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=Ym2kI6k1I5e&relativePeriodDate=2025-01-20",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programIndicatorTBProgramComplex",
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n.json?dimension=ou:USER_ORGUNIT,tzjB2D6SvQZ:GT:404:NE:NV&headers=ouname,tzjB2D6SvQZ,lastupdated&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=tzjB2D6SvQZ&relativePeriodDate=2025-01-20",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programIndicatorChildProgramComplex",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,qZOBw051LSf&headers=ouname,lastupdated,qZOBw051LSf,programstatus&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&programStatus=COMPLETED&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&desc=lastupdated&relativePeriodDate=2025-01-20",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }
