@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.analytics.util.sql;
 
+import static org.hisp.dhis.analytics.util.sql.QuoteUtils.unquote;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +71,7 @@ public class SelectBuilder {
   private final List<OrderByClause> orderByClauses = new ArrayList<>();
   private Integer limit;
   private Integer offset;
+  private static final Pattern ORDER_BY_PATTERN = Pattern.compile("^(?i)order\\s+by\\s+");
 
   /**
    * Represents a column in the SELECT clause of a SQL query. Handles column expressions with
@@ -428,7 +432,7 @@ public class SelectBuilder {
     }
 
     // Remove "order by" prefix if present
-    String cleaned = rawSortClause.trim().replaceFirst("(?i)^order\\s+by\\s+", "");
+    String cleaned = ORDER_BY_PATTERN.matcher(rawSortClause.trim()).replaceFirst("");
 
     // Split by commas, but not commas within CASE statements
     List<String> parts = splitPreservingCaseStatements(cleaned);
@@ -727,27 +731,5 @@ public class SelectBuilder {
     }
 
     return sanitized;
-  }
-
-  private static String unquote(String quoted) {
-    // Handle null or empty
-    if (quoted == null || quoted.isEmpty()) {
-      return "";
-    }
-
-    // Check minimum length (needs at least 2 chars for quotes)
-    if (quoted.length() < 2) {
-      return quoted;
-    }
-
-    char firstChar = quoted.charAt(0);
-    char lastChar = quoted.charAt(quoted.length() - 1);
-
-    // Check if quotes match
-    if ((firstChar == '"' && lastChar == '"') || (firstChar == '`' && lastChar == '`')) {
-      return quoted.substring(1, quoted.length() - 1);
-    }
-
-    return quoted;
   }
 }

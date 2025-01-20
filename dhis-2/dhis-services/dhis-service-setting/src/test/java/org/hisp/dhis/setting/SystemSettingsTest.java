@@ -93,11 +93,36 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(140, keys.size());
+    assertEquals(141, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
+  }
+
+  @Test
+  void testPasswordValidationPattern() {
+    // Test with default settings (min=8, max=72)
+    SystemSettings settings = SystemSettings.of(Map.of());
+    String pattern = settings.getPasswordValidationPattern();
+
+    // Test pattern structure
+    assertTrue(pattern.startsWith("^"));
+    assertTrue(pattern.endsWith("$"));
+    assertTrue(pattern.contains("(?=.*[A-Z])")); // At least one uppercase
+    assertTrue(pattern.contains("(?=.*[a-z])")); // At least one lowercase
+    assertTrue(pattern.contains("(?=.*\\d)")); // At least one digit
+    assertTrue(pattern.contains("(?=.*[\\W_])")); // At least one special char
+    assertTrue(pattern.contains("{8,72}")); // Default length constraints
+
+    // Test with custom settings
+    settings =
+        SystemSettings.of(
+            Map.of(
+                "minPasswordLength", "10",
+                "maxPasswordLength", "50"));
+    pattern = settings.getPasswordValidationPattern();
+    assertTrue(pattern.contains("{10,50}"));
   }
 
   @Test

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
@@ -40,11 +41,11 @@ public interface TrackedEntityAuditService {
 
   String ID = TrackedEntityAuditService.class.getName();
 
-  void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, AuditOperationType auditOperationType);
+  void addTrackedEntityAudit(AuditOperationType type, String username, TrackedEntity trackedEntity);
 
   /** Adds multiple tracked entity audit */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
+  void addTrackedEntityAudit(
+      AuditOperationType type, String username, @Nonnull List<TrackedEntity> trackedEntity);
 
   /**
    * Returns tracked entity audits matching query params

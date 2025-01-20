@@ -41,9 +41,47 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+/**
+ * Utility class for handling SQL where clause transformations by replacing table aliases with
+ * standardized placeholders.
+ *
+ * <p>The class handles various SQL constructs including:
+ *
+ * <ul>
+ *   <li>Basic column references with and without table aliases
+ *   <li>Quoted identifiers (using ", `, or ')
+ *   <li>Complex SQL functions and expressions
+ *   <li>Subqueries with correlated references
+ *   <li>Case expressions and mathematical operations
+ * </ul>
+ *
+ * <p>Example usage:
+ *
+ * <pre>
+ * List<String> columns = Arrays.asList("employee", "country");
+ * String whereClause = "ax.employee = 10 AND by.country = 'US'";
+ * String result = SqlAliasReplacer.replaceTableAliases(whereClause, columns);
+ * // Result: "%s.employee = 10 AND %s.country = 'US'"
+ * </pre>
+ */
 @UtilityClass
 public class SqlAliasReplacer {
 
+  /**
+   * Replaces table aliases in a SQL where clause with standardized placeholders for specified
+   * columns. The method performs case-insensitive matching of column names and preserves the
+   * original SQL structure. For regular column references, it uses the "%s" placeholder. For outer
+   * table references in subqueries, it uses the "%z" placeholder.
+   *
+   * @param whereClause the SQL where clause to process. Must not be null.
+   * @param columns a list of column names to process. Must not be null.
+   * @return the processed where clause with replaced table aliases
+   * @throws IllegalArgumentException if whereClause or columns is null
+   * @throws RuntimeException if there is an error parsing the SQL where clause
+   *     <p>Example Input: whereClause: "ax.salary > 1000 AND (SELECT COUNT(*) FROM emp WHERE
+   *     emp.dept = ax.dept) > 0" columns: ["salary", "dept"] Output: "%s.salary > 1000 AND (SELECT
+   *     COUNT(*) FROM emp WHERE emp.dept = %z.dept) > 0"
+   */
   public static String replaceTableAliases(String whereClause, List<String> columns) {
     if (whereClause == null || columns == null) {
       throw new IllegalArgumentException("Where clause and columns list cannot be null");
@@ -59,13 +97,14 @@ public class SqlAliasReplacer {
       expr.accept(visitor);
       return expr.toString();
     } catch (Exception e) {
-      throw new RuntimeException("Error parsing SQL where clause: " + e.getMessage(), e);
+      throw new IllegalArgumentException("Error parsing SQL where clause: " + e.getMessage(), e);
     }
   }
 
   private static class ColumnReplacementVisitor extends ExpressionVisitorAdapter {
     private final Set<String> columns;
     private static final Table PLACEHOLDER_TABLE = new Table("%s");
+
     private boolean inSubQuery = false;
 
     public ColumnReplacementVisitor(List<String> columns) {
@@ -99,17 +138,14 @@ public class SqlAliasReplacer {
       boolean wasInSubQuery = inSubQuery;
       inSubQuery = true;
 
-      if (subSelect.getSelectBody() instanceof PlainSelect) {
-        PlainSelect plainSelect = (PlainSelect) subSelect.getSelectBody();
+      if (subSelect.getSelectBody() instanceof PlainSelect plainSelect) {
         plainSelect
             .getSelectItems()
             .forEach(
                 selectItem -> {
-                  if (selectItem instanceof SelectExpressionItem) {
-                    SelectExpressionItem sei = (SelectExpressionItem) selectItem;
+                  if (selectItem instanceof SelectExpressionItem sei) {
                     Expression expression = sei.getExpression();
-                    if (expression instanceof Function) {
-                      Function function = (Function) expression;
+                    if (expression instanceof Function function) {
                       function.accept(this);
                     }
                   }

@@ -746,6 +746,17 @@ public non-sealed interface SystemSettings extends Settings {
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
 
+  /**
+   * @return A regex pattern string that enforces the current password validation rules
+   */
+  default String getPasswordValidationPattern() {
+    return asString(
+        "passwordValidationPattern",
+        String.format(
+            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
+            getMinPasswordLength(), getMaxPasswordLength()));
+  }
+
   default boolean getUseExperimentalAnalyticsQueryEngine() {
     return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
   }

@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.asyncFetch;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Multimap;
@@ -51,7 +53,7 @@ import org.springframework.stereotype.Component;
  */
 @Component("org.hisp.dhis.tracker.trackedentity.aggregates.EventAggregate")
 @RequiredArgsConstructor
-public class EventAggregate implements Aggregate {
+class EventAggregate {
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EventStore")
   @Nonnull
   private final EventStore eventStore;

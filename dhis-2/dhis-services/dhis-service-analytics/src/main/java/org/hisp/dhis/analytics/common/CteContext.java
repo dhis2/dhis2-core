@@ -134,7 +134,7 @@ public class CteContext {
     return cteDefinitions.keySet();
   }
 
-  public Set<String> getCteKeys(String... exclude) {
+  public Set<String> getCteKeysExcluding(String... exclude) {
     final List<String> toExclude = List.of(exclude);
     return cteDefinitions.keySet().stream()
         .filter(key -> !toExclude.contains(key))

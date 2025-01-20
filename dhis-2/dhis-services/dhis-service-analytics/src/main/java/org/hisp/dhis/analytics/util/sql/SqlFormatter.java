@@ -28,8 +28,13 @@
 package org.hisp.dhis.analytics.util.sql;
 
 import java.util.Set;
+import java.util.regex.Pattern;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class SqlFormatter {
+  private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+
   private static final Set<String> MAIN_CLAUSES =
       Set.of(
           "with",
@@ -121,7 +126,7 @@ public class SqlFormatter {
     }
 
     // Replace all whitespace sequences (including newlines) with a single space
-    result = result.replaceAll("\\s+", " ");
+    result = WHITESPACE_PATTERN.matcher(result).replaceAll(" ");
 
     return result.trim();
   }
@@ -132,9 +137,7 @@ public class SqlFormatter {
     boolean inString = false;
     char[] chars = sql.toCharArray();
 
-    for (int i = 0; i < chars.length; i++) {
-      char c = chars[i];
-
+    for (char c : chars) {
       // Handle string literals
       if (c == '\'') {
         inString = !inString;

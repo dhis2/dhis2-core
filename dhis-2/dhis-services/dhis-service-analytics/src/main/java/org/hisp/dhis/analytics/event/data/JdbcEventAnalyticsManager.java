@@ -396,7 +396,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   @Override
-  protected String getColumnWithCte(QueryItem item, String suffix, CteContext cteContext) {
+  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
     // TODO: Implement
     return "";
   }

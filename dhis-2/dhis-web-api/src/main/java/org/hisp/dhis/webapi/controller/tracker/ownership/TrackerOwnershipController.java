@@ -43,6 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -97,7 +98,8 @@ public class TrackerOwnershipController {
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid),
+        trackedEntityService.getTrackedEntity(
+            trackedEntityUid, UID.of(program), TrackedEntityParams.FALSE),
         programService.getProgram(program),
         organisationUnitService.getOrganisationUnit(ou));
     return ok("Ownership transferred");
@@ -105,7 +107,7 @@ public class TrackerOwnershipController {
 
   @PostMapping(value = "/override", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage overrideOwnershipAccess(
+  public WebMessage grantTemporaryAccess(
       @Deprecated(since = "2.41") @RequestParam(required = false) UID trackedEntityInstance,
       @RequestParam(required = false) UID trackedEntity,
       @RequestParam String reason,

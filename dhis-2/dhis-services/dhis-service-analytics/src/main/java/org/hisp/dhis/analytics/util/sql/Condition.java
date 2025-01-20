@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +47,10 @@ public sealed interface Condition
         Condition.Raw,
         NotCondition,
         SimpleCondition {
+
+  Pattern WHERE_AND_PATTERN = Pattern.compile("^(?i)(where|and)\\b.*");
+  Pattern WHERE_AND_REPLACE_PATTERN = Pattern.compile("^(?i)(where|and)\\s+");
+
   /**
    * Converts the condition to its SQL string representation.
    *
@@ -82,8 +88,8 @@ public sealed interface Condition
 
       // Remove only the first occurrence of WHERE or AND
       String cleaned = sql.trim();
-      if (cleaned.toLowerCase().matches("^(where|and)\\b.*")) {
-        cleaned = cleaned.replaceFirst("(?i)^(where|and)\\s+", "");
+      if (WHERE_AND_PATTERN.matcher(cleaned.toLowerCase()).matches()) {
+        cleaned = WHERE_AND_REPLACE_PATTERN.matcher(cleaned).replaceFirst("");
       }
 
       return cleaned.trim();
@@ -145,7 +151,7 @@ public sealed interface Condition
    * @return a new And condition containing all provided conditions
    */
   static Condition and(Condition... conditions) {
-    return new And(Arrays.asList(conditions));
+    return new And(Arrays.asList(conditions).stream().filter(Objects::nonNull).toList());
   }
 
   /**

@@ -71,7 +71,8 @@ public class EventOperationParams {
 
   private UID orgUnit;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
   private AssignedUserSelectionMode assignedUserMode;
 
