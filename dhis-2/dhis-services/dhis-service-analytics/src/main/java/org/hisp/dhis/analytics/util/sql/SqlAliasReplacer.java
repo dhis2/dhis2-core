@@ -97,14 +97,13 @@ public class SqlAliasReplacer {
       expr.accept(visitor);
       return expr.toString();
     } catch (Exception e) {
-      throw new RuntimeException("Error parsing SQL where clause: " + e.getMessage(), e);
+      throw new IllegalArgumentException("Error parsing SQL where clause: " + e.getMessage(), e);
     }
   }
 
   private static class ColumnReplacementVisitor extends ExpressionVisitorAdapter {
     private final Set<String> columns;
     private static final Table PLACEHOLDER_TABLE = new Table("%s");
-    private static final Table OUTER_REFERENCE_TABLE = new Table("%z"); // New constant
 
     private boolean inSubQuery = false;
 
@@ -120,7 +119,6 @@ public class SqlAliasReplacer {
     public void visit(Column column) {
       String columnName = column.getColumnName();
       String rawColumnName = stripQuotes(columnName);
-      Table currentTable = column.getTable();
 
       if (columns.contains(rawColumnName.toLowerCase())) {
         String quoteType = getQuoteType(columnName);

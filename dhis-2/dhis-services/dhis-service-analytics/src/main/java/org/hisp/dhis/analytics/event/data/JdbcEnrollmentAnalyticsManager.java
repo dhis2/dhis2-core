@@ -167,7 +167,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? buildEnrollmentQueryWithCte(params)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
-    System.out.println(sql); // FIXME remove
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -593,7 +592,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private List<Condition> buildItemConditions(QueryItem item, CteDefinition cteDef) {
     return item.getFilters().stream()
         .map(filter -> buildFilterCondition(filter, item, cteDef))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

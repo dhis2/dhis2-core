@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.util.sql;
 
+import static org.hisp.dhis.analytics.util.sql.QuoteUtils.unquote;
+
 import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -60,30 +62,7 @@ public class SqlColumnParser {
       // Extract the column name
       return unquote(column.getColumnName());
     } catch (Exception e) {
-      throw new RuntimeException("Error parsing SQL: " + e.getMessage(), e);
+      throw new IllegalArgumentException("Error parsing SQL: " + e.getMessage(), e);
     }
-  }
-
-  // FIXME - this method is duplicated in SqlWhereClauseExtractor
-  private static String unquote(String quoted) {
-    // Handle null or empty
-    if (quoted == null || quoted.isEmpty()) {
-      return "";
-    }
-
-    // Check minimum length (needs at least 2 chars for quotes)
-    if (quoted.length() < 2) {
-      return quoted;
-    }
-
-    char firstChar = quoted.charAt(0);
-    char lastChar = quoted.charAt(quoted.length() - 1);
-
-    // Check if quotes match
-    if ((firstChar == '"' && lastChar == '"') || (firstChar == '`' && lastChar == '`')) {
-      return quoted.substring(1, quoted.length() - 1);
-    }
-
-    return quoted;
   }
 }
