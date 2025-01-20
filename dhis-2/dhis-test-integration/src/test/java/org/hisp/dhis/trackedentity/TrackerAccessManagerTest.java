@@ -62,6 +62,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -81,6 +82,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerAccessManager trackerAccessManager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -268,7 +271,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
         "User has no create access to organisation unit:");
     enrollment.setOrganisationUnit(orgUnitA);
     // Transferring ownership to orgUnitB. user is no longer owner
-    trackerOwnershipManager.assignOwnership(trackedEntity, programA, orgUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, programA, orgUnitA);
     trackerOwnershipManager.transferOwnership(trackedEntity, programA, orgUnitB);
     // Cannot create enrollment if not owner
     assertHasError(
@@ -385,7 +389,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     assertNoErrors(trackerAccessManager.canUpdate(userDetails, eventB, false));
     // Can delete events if user is owner irrespective of eventOU
     assertNoErrors(trackerAccessManager.canDelete(userDetails, eventB, false));
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programA, orgUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA, programA, orgUnitA);
     trackerOwnershipManager.transferOwnership(trackedEntityA, programA, orgUnitB);
     // Cannot create events anywhere if user is not owner
     assertHasErrors(2, trackerAccessManager.canCreate(userDetails, eventB, false));

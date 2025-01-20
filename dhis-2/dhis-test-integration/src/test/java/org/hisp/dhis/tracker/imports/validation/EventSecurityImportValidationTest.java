@@ -201,7 +201,8 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(enrollmentA);
     maleA.getEnrollments().add(enrollmentA);
     manager.update(maleA);
-    trackerOwnershipAccessManager.assignOwnership(maleA, programA, organisationUnitA, false, false);
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        maleA, programA, organisationUnitA);
 
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         maleA, programA, organisationUnitA);

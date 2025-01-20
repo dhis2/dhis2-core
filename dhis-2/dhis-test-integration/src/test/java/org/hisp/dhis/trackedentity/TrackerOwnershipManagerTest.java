@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.common.AccessLevel.AUDITED;
+import static org.hisp.dhis.common.AccessLevel.CLOSED;
+import static org.hisp.dhis.common.AccessLevel.OPEN;
+import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
@@ -39,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -50,9 +56,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
@@ -61,8 +69,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -82,6 +93,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private TrackedEntity trackedEntityA1;
 
@@ -131,7 +144,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         createAndAddUserWithAuth("trackertestownership", organisationUnitA, Authorities.ALL);
 
     programA = createProgram('A');
-    programA.setAccessLevel(AccessLevel.PROTECTED);
+    programA.setAccessLevel(PROTECTED);
     programA.setTrackedEntityType(trackedEntityType);
     programA.setOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
     programService.addProgram(programA);
@@ -160,25 +173,19 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAssignOwnership() {
+  void shouldFailWhenGrantingTemporaryOwnershipAndUserNotInSearchScope() {
     assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
     assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityB1, programA));
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitB, false, true);
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-  }
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, programA, userDetailsB, "testing reason"));
 
-  @Test
-  void testGrantTemporaryOwnershipWithAudit() {
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-    trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityA1, programA, userDetailsB, "testing reason");
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
+    assertEquals(
+        "The owner of the entity-program combination is not in the user's search scope.",
+        exception.getMessage());
   }
 
   @Test
@@ -186,8 +193,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
       throws ForbiddenException {
     userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
     userService.updateUser(userA);
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userA);
@@ -203,8 +210,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToOwnOrgUnit()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userB);
@@ -217,8 +224,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessToEnrollmentWithSuperUserWhenTransferredToOwnOrgUnit()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
     superUser.setOrganisationUnits(Set.of(organisationUnitB));
     userService.updateUser(superUser);
@@ -243,8 +250,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotHaveAccessToTEWhenProgramNotProvidedAndUserHasNoAccessToAnyProgram() {
     injectSecurityContextUser(userA);
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitB, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitB);
 
     ForbiddenException exception =
         assertThrows(
@@ -270,9 +277,14 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() {
+  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() throws ForbiddenException {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+    userDetailsB = UserDetails.fromUser(userB);
+
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         trackedEntityA1, programA, userDetailsB, "test protected program");
+
     assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
     assertTrue(
         trackerOwnershipAccessManager.hasAccess(
@@ -336,32 +348,76 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             programB));
   }
 
-  @Test
-  void shouldNotHaveAccessWhenProgramClosedAndUserHasTemporaryAccess() {
-    trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityA1, programB, userDetailsB, "test closed program");
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programB));
-    assertFalse(
-        trackerOwnershipAccessManager.hasAccess(
-            UserDetails.fromUser(userB),
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programB));
+  private static Stream<Program> providePrograms() {
+    return Stream.of(createProgram(OPEN), createProgram(AUDITED), createProgram(CLOSED));
+  }
 
-    injectSecurityContextUser(userB);
-    ForbiddenException exception =
-        assertThrows(
+  @ParameterizedTest
+  @MethodSource("providePrograms")
+  void shouldFailWhenGrantingTemporaryOwnershipToProgramWithAccessLevelOtherThanProtected(
+      Program program) {
+    Exception exception =
+        Assertions.assertThrows(
             ForbiddenException.class,
             () ->
-                trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA1), UID.of(programB), defaultParams));
-    assertEquals(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED, exception.getMessage());
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, program, userDetailsB, "test temporary ownership"));
+
+    assertContains(
+        "Temporary ownership can only be granted to protected programs.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserIsSuperuser() {
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1,
+                    programA,
+                    UserDetails.fromUser(superUser),
+                    "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Current user is a superuser.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNull() {
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, null, userDetailsB, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Program supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNotTrackerProgram() {
+    Program eventProgram = createProgram(PROTECTED);
+    eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, eventProgram, userDetailsB, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Program supplied is not a tracker program.",
+        exception.getMessage());
   }
 
   @Test
   void shouldHaveAccessWhenProgramOpenAndUserInScope()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    programA.setAccessLevel(AccessLevel.OPEN);
+    programA.setAccessLevel(OPEN);
     programService.updateProgram(programA);
 
     assertEquals(
@@ -372,11 +428,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() throws ForbiddenException {
-    programA.setAccessLevel(AccessLevel.OPEN);
+    programA.setAccessLevel(OPEN);
     programService.updateProgram(programA);
 
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userA);
@@ -392,8 +448,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldHaveAccessWhenProgramNotProvidedAndTEEnrolledButHaveAccessToTEOwner()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userB);
@@ -445,8 +501,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnit()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
     TrackedEntityOperationParams operationParams = createOperationParams(null);
     injectSecurityContext(userDetailsB);
@@ -459,8 +515,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnitAndSuperUser()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
     superUser.setOrganisationUnits(Set.of(organisationUnitB));
     userService.updateUser(superUser);
@@ -475,8 +531,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotFindTrackedEntityWhenTransferredToInaccessibleOrgUnit()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     TrackedEntityOperationParams operationParams = createOperationParams(null);
@@ -529,7 +585,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFindTrackedEntityWhenProgramSuppliedAndUserIsOwner()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    assignOwnership(trackedEntityA1, programA, organisationUnitA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     TrackedEntityOperationParams operationParams = createOperationParams(UID.of(programA));
     injectSecurityContext(userDetailsA);
 
@@ -541,7 +598,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotFindTrackedEntityWhenProgramSuppliedAndUserIsNotOwner()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    assignOwnership(trackedEntityA1, programA, organisationUnitA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
     TrackedEntityOperationParams operationParams = createOperationParams(UID.of(programA));
     injectSecurityContext(userDetailsB);
 
@@ -552,11 +610,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
       throws ForbiddenException {
     trackerOwnershipAccessManager.transferOwnership(trackedEntity, program, orgUnit);
-  }
-
-  private void assignOwnership(
-      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
-    trackerOwnershipAccessManager.assignOwnership(trackedEntity, program, orgUnit, false, true);
   }
 
   private TrackedEntityOperationParams createOperationParams(UID programUid) {
@@ -570,5 +623,12 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(trackedEntityService.getTrackedEntities(params));
+  }
+
+  private static Program createProgram(AccessLevel accessLevel) {
+    Program program = new Program();
+    program.setAccessLevel(accessLevel);
+
+    return program;
   }
 }
