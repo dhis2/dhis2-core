@@ -35,6 +35,8 @@ import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
+import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
+import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
@@ -165,7 +167,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? buildEnrollmentQueryWithCte(params)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
-    System.out.println(sql);
+    System.out.println(sql); // FIXME remove
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -1118,11 +1120,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param headers the {@link GridHeader} list defining the query columns
    * @return a {@link List} of column names included in the `enrollment_aggr_base` CTE
    */
-  private List<String> addBaseAggregationCte(
+  private void addBaseAggregationCte(
       CteContext cteContext, EventQueryParams params, List<GridHeader> headers) {
     // create base enrollment context
     List<String> columns = new ArrayList<>();
-    List<String> rootColumns;
     columns.add("enrollment");
 
     addDimensionSelectColumns(columns, params, true);
@@ -1131,14 +1132,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
+    List<String> programIndicators =
+        params.getItems().stream()
+            .filter(QueryItem::isProgramIndicator)
+            .map(QueryItem::getItemId)
+            .toList();
     for (String column : headersCols) {
-      sb.addColumnIfNotExist(quote(SqlColumnParser.removeTableAlias(column)));
+      String colToAdd = SqlColumnParser.removeTableAlias(column);
+      if (!programIndicators.contains(colToAdd)) {
+        sb.addColumnIfNotExist(quote(colToAdd));
+      }
     }
 
     // return the name of the columns that are part
     // of the original params, no need to return also
     // the columns that are part of the filters
-    rootColumns = sb.getColumnNames();
     sb.from(getFromClause(params));
     sb.where(
         Condition.and(
@@ -1155,8 +1163,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // performance reasons
     cteContext.addBaseAggregateCte(
         sb.build(), SqlAliasReplacer.replaceTableAliases(sb.getWhereClause(), cols));
-
-    return rootColumns;
   }
 
   /**
@@ -1296,7 +1302,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
     values.put(
-        "aggregateWhereClause", baseAggregatedCte.getAggregateWhereClause().replace("%s", "eb"));
+        "aggregateWhereClause",
+        baseAggregatedCte
+            .getAggregateWhereClause()
+            // Replace the "ax." alias (from subqueries) with empty string
+            .replace("ax.", "")
+            .replace("%s", "eb"));
 
     return new StringSubstitutor(values).replace(template);
   }
@@ -1450,7 +1461,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // add base aggregation CTE
     // and retain the columns from the root query
-    List<String> rootQueryColumns = addBaseAggregationCte(cteContext, params, headers);
+    addBaseAggregationCte(cteContext, params, headers);
 
     // Add CTE definitions for program indicators, program stages, etc.
     getCteDefinitions(params, cteContext);
@@ -1460,41 +1471,79 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // add the CTE with clause based on the CTE definitions accumulated so far
     addCteClause(sb, cteContext);
 
-    // add select clause
+    // SELECT columns in following order:
+    //    1) count(eb.enrollment) as value
+    //    2) org unit columns (orgColumns)
+    //    3) period columns (periodColumns)
+    //    4) header columns (headerColumns)
     sb.addColumn("count(eb.enrollment) as value");
-
-    // add the columns from the root CTE query
-    // excluding the enrollment column
-    // note that the columns are also added to the group by clause
-    rootQueryColumns.stream()
-        .filter(col -> !col.equals("enrollment"))
-        .peek(sb::groupBy)
-        .forEach(sb::addColumn);
-
-    // add the columns from the CTE definitions
-    cteContext
-        .getCteKeys(ENROLLMENT_AGGR_BASE)
-        .forEach(
-            itemUid -> {
-              CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
-              if (cteDef.isProgramStage()) {
-                String columnAlias = quote(cteDef.getProgramStageUid() + "." + cteDef.getItemId());
-                sb.addColumn(cteDef.getAlias() + ".value", "", columnAlias);
-                sb.groupBy(columnAlias);
-              }
-            });
+    addOrgUnitAggregateColumns(sb, params);
+    addPeriodAggregateColumns(params, sb);
+    addHeaderAggregateColumns(headers, cteContext, sb);
 
     // add from
     sb.from(ENROLLMENT_AGGR_BASE, "eb");
 
     // Add join statements for each CTE definition
-    for (String itemUid : cteContext.getCteKeys(ENROLLMENT_AGGR_BASE)) {
+    for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
       sb.leftJoin(
           itemUid, cteDef.getAlias(), tableAlias -> tableAlias + ".enrollment = eb.enrollment");
     }
-
     return sb.build();
+  }
+
+  /**
+   * Add the columns specified in the headers to the SelectBuilder. The columns are added in the
+   * order specified in the headers and are based on existing CTE definitions.
+   *
+   * @param headers List of GridHeader objects
+   * @param cteContext CteContext object containing all CTE definitions
+   * @param sb SelectBuilder object to which the columns are added
+   */
+  private void addHeaderAggregateColumns(
+      List<GridHeader> headers, CteContext cteContext, SelectBuilder sb) {
+    // Collect all columns from the headers
+    Set<String> headerColumns = getHeaderColumns(headers, "");
+    // Collect all CTE definitions for program indicators and program stages
+    Map<String, CteDefinition> cteDefinitionMap =
+        cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE).stream()
+            .map(cteContext::getDefinitionByItemUid)
+            .filter(def -> def.isProgramStage() || def.isProgramIndicator())
+            .collect(
+                Collectors.toMap(
+                    cteDef ->
+                        quote(
+                            cteDef.isProgramIndicator()
+                                ? cteDef.getProgramIndicatorUid()
+                                : cteDef.getProgramStageUid() + "." + cteDef.getItemId()),
+                    cteDef -> cteDef));
+
+    // Iterate over headerColumns and add the columns to SelectBuilder based on the order specified
+    // in the original GridHeader list
+    headerColumns.forEach(
+        headerColumn -> {
+          boolean foundMatch = false;
+          String columnWithoutAlias = SqlColumnParser.removeTableAlias(headerColumn);
+
+          // First, check if there's any match in the CTE definitions
+          // If there is a match, the column is added with the alias from the CTE definition
+          for (Map.Entry<String, CteDefinition> entry : cteDefinitionMap.entrySet()) {
+            if (entry.getKey().contains(columnWithoutAlias)) {
+              CteDefinition cteDef = entry.getValue();
+              sb.addColumn(cteDef.getAlias() + ".value", "", entry.getKey());
+              sb.groupBy(entry.getKey());
+              foundMatch = true;
+              break;
+            }
+          }
+
+          if (!foundMatch) {
+            // Otherwise, add the column as is
+            sb.addColumn(quote(columnWithoutAlias));
+            sb.groupBy(quote(columnWithoutAlias));
+          }
+        });
   }
 
   private String buildEnrollmentQueryWithCte(EventQueryParams params) {
@@ -1608,5 +1657,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return super.getSortClause(params);
     }
     return "";
+  }
+
+  private void addOrgUnitAggregateColumns(SelectBuilder sb, EventQueryParams params) {
+    Set<String> orgColumns = getOrgUnitLevelColumns(params);
+    if (!orgColumns.isEmpty()) {
+      // Add them *exactly in the old order*, then group by them
+      for (String orgColumn : orgColumns) {
+        sb.addColumn(orgColumn.trim());
+        sb.groupBy(orgColumn.trim());
+      }
+    } else {
+      // The old code always ensures we at least include ORGUNIT_DIM_ID if orgColumns is blank
+      sb.addColumn(ORGUNIT_DIM_ID);
+      sb.groupBy(ORGUNIT_DIM_ID);
+    }
+  }
+
+  private static void addPeriodAggregateColumns(EventQueryParams params, SelectBuilder sb) {
+    Set<String> periodColumns = getPeriodColumns(params);
+    if (!periodColumns.isEmpty()) {
+      for (String periodColumn : periodColumns) {
+        var col = SqlColumnParser.removeTableAlias(periodColumn.trim());
+        sb.addColumn(col);
+        sb.groupBy(col);
+      }
+    }
   }
 }
