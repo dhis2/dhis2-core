@@ -30,7 +30,10 @@ package org.hisp.dhis.analytics.common;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.QueryFilter;
 
 /** Mimics the logic of @{@link org.hisp.dhis.common.InQueryFilter} to be used in CTEs */
@@ -59,10 +62,15 @@ public class InQueryCteFilter {
     StringBuilder condition = new StringBuilder();
     String alias = cteDefinition.getAlias(offset);
     if (hasNonMissingValue(filterItems)) {
-      // TODO GIUSEPPE!
-
+      condition
+          .append("%s.%s in".formatted(alias, field))
+          .append(
+              streamOfNonMissingValues(filterItems)
+                  .filter(Objects::nonNull)
+                  .map(this::quoteIfNecessary)
+                  .collect(Collectors.joining(",", " (", ")")));
       if (hasMissingValue(filterItems)) {
-
+        throw new UnsupportedOperationException("Not implemented yet");
         // TODO GIUSEPPE!
       }
     } else {
@@ -123,5 +131,17 @@ public class InQueryCteFilter {
    */
   private boolean hasMissingValue(List<String> filterItems) {
     return anyMatch(filterItems, this::isMissingItem);
+  }
+
+  private Stream<String> streamOfNonMissingValues(List<String> filterItems) {
+    return filterItems.stream().filter(this::isNotMissingItem);
+  }
+
+  private String quoteIfNecessary(String item) {
+    return isText ? quote(item) : item;
+  }
+
+  protected String quote(String filterItem) {
+    return "'" + filterItem + "'";
   }
 }

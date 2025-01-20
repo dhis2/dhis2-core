@@ -1440,7 +1440,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       } else if (queryItem.hasProgramStage()) {
         // Handle program stage items with CTE
-        columns.add(getColumnWithCte(queryItem, "", cteContext));
+        columns.add(getColumnWithCte(queryItem, cteContext));
       } else {
         // Handle other types as before
         ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
@@ -1462,7 +1462,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected abstract String getSelectClause(EventQueryParams params);
 
-  protected abstract String getColumnWithCte(QueryItem item, String suffix, CteContext cteContext);
+  /** Returns the column name associated with the CTE */
+  protected abstract String getColumnWithCte(QueryItem item, CteContext cteContext);
 
   /**
    * Generates the SQL for the from-clause. Generally this means which analytics table to get data

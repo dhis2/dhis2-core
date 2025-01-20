@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -145,7 +146,7 @@ public sealed interface Condition
    * @return a new And condition containing all provided conditions
    */
   static Condition and(Condition... conditions) {
-    return new And(Arrays.asList(conditions));
+    return new And(Arrays.asList(conditions).stream().filter(Objects::nonNull).toList());
   }
 
   /**
