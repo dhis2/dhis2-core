@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -183,6 +184,12 @@ public class DefaultMappingService extends GenericAnalyticalObjectService<MapVie
   @Transactional(readOnly = true)
   public int countMapViewMaps(MapView mapView) {
     return mapStore.countMapViewMaps(mapView);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<MapView> findByProgram(Program program) {
+    return mapViewStore.findByProgram(program);
   }
 
   // -------------------------------------------------------------------------

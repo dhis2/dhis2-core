@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
@@ -37,8 +38,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
+import org.hisp.dhis.expression.ExpressionStore;
+import org.hisp.dhis.indicator.IndicatorStore;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.predictor.Predictor;
@@ -60,9 +64,12 @@ public class MetadataCategoryOptionComboMergeHandler {
   private final CategoryOptionStore categoryOptionStore;
   private final CategoryComboStore categoryComboStore;
   private final DataElementOperandStore dataElementOperandStore;
+  private final DataDimensionItemStore dataDimensionItemStore;
   private final MinMaxDataElementStore minMaxDataElementStore;
   private final PredictorStore predictorStore;
   private final SMSCommandStore smsCommandStore;
+  private final IndicatorStore indicatorStore;
+  private final ExpressionStore expressionStore;
 
   /**
    * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}
@@ -116,6 +123,17 @@ public class MetadataCategoryOptionComboMergeHandler {
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 
     dataElementOperands.forEach(deo -> deo.setCategoryOptionCombo(target));
+
+    // A data element operand is also a data dimension item.
+    // The above update does not cascade the reference change though.
+    // The Data dimension item table also needs updating
+    int dataDimensionItemsUpdated =
+        dataDimensionItemStore.updateDeoCategoryOptionCombo(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    log.info(
+        "{} data dimension items updated as part of category option combo merge",
+        dataDimensionItemsUpdated);
   }
 
   /**
@@ -162,5 +180,39 @@ public class MetadataCategoryOptionComboMergeHandler {
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 
     smsCodes.forEach(smsCode -> smsCode.setOptionId(target));
+  }
+
+  /**
+   * Update each Indicator numerator and denominator values, replacing any source ref with the
+   * target ref.
+   *
+   * @param sources to be replaced
+   * @param target to replace source refs
+   */
+  public void handleIndicators(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source indicators");
+    int totalUpdates = 0;
+    for (CategoryOptionCombo source : sources) {
+      totalUpdates +=
+          indicatorStore.updateNumeratorDenominatorContaining(source.getUid(), target.getUid());
+    }
+
+    log.info("{} indicators updated", totalUpdates);
+  }
+
+  /**
+   * Update each Expression expression value, replacing any source ref with the target ref.
+   *
+   * @param sources to be replaced
+   * @param target to replace source refs
+   */
+  public void handleExpressions(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    log.info("Merging source expressions");
+    int totalUpdates = 0;
+    for (CategoryOptionCombo source : sources) {
+      totalUpdates += expressionStore.updateExpressionContaining(source.getUid(), target.getUid());
+    }
+
+    log.info("{} expressions updated", totalUpdates);
   }
 }

@@ -25,37 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
-
-  List<Indicator> getIndicatorsWithGroupSets();
-
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
-
-  List<Indicator> getIndicatorsWithNumeratorContaining(String search);
-
-  List<Indicator> getIndicatorsWithDenominatorContaining(String search);
+class AsyncUtils {
+  AsyncUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
   /**
-   * Updates any indicator that has the 'find' param in either its numerator or denominator. The
-   * update involves updating numerator and denominator, replacing all occurrences of 'find' with
-   * 'replace'.
+   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
    *
-   * @param find text to search for
-   * @param replace text used to replace
-   * @return number of rows updated
+   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
+   *     Multimap
+   * @param supplier The Supplier to execute
+   * @param executor an Executor instance
+   * @return A CompletableFuture with the result of the Supplier
    */
-  int updateNumeratorDenominatorContaining(String find, String replace);
+  static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
+      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
+    return (condition
+        ? supplyAsync(supplier, executor)
+        : supplyAsync(ArrayListMultimap::create, executor));
+  }
+
+  /**
+   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+   *
+   * @param supplier The Supplier to execute
+   * @return A CompletableFuture with the result of the Supplier
+   */
+  static <T> CompletableFuture<Multimap<String, T>> asyncFetch(
+      Supplier<Multimap<String, T>> supplier, Executor executor) {
+    return supplyAsync(supplier, executor);
+  }
 }

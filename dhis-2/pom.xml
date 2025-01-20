@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.2.2</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.0</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -115,7 +115,7 @@
     <lettuce.version>6.5.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.1.1</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.2.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -169,7 +169,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
-    <netty-all.version>4.1.116.Final</netty-all.version>
+    <netty-all.version>4.1.117.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -1985,7 +1985,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.6</version>
+              <version>4.9.0</version>
             </dependency>
           </dependencies>
         </plugin>

@@ -32,6 +32,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -41,6 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
@@ -72,6 +74,7 @@ public class MapViewDeletionHandler
     whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSetSpecial);
     whenDeleting(ExpressionDimensionItem.class, this::deleteExpressionDimensionItem);
     whenVetoing(MapView.class, this::allowDeleteMapView);
+    whenDeleting(Program.class, this::deleteProgram);
   }
 
   private void deleteLegendSet(LegendSet legendSet) {
@@ -80,6 +83,21 @@ public class MapViewDeletionHandler
     for (MapView mapView : mapViews) {
       mapView.setLegendSet(null);
       service.update(mapView);
+    }
+  }
+
+  private void deleteProgram(Program program) {
+    List<MapView> mapViews = service.findByProgram(program);
+    for (MapView mapView : mapViews) {
+      mapView.setProgram(null);
+      if (mapView.getProgramStage() != null
+          && program.getProgramStages().stream()
+              .map(IdentifiableObject::getUid)
+              .toList()
+              .contains(mapView.getProgramStage().getUid())) {
+        mapView.setProgramStage(null);
+        service.update(mapView);
+      }
     }
   }
 

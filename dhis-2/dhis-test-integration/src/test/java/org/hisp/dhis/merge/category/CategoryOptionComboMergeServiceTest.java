@@ -377,15 +377,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
-
     // then
+    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
+    assertFalse(report.hasErrorMessages(), "there should be no merge errors");
     List<DataElementOperand> deoSourcesAfter =
         dataElementOperandStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
     List<DataElementOperand> deoTargetAfter =
         dataElementOperandStore.getByCategoryOptionCombo(Set.of(UID.of(cocTarget.getUid())));
-
-    assertFalse(report.hasErrorMessages());
     assertEquals(
         0, deoSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.expression;
 
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.web.session.HttpSessionCreatedEvent;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author david mackessy
  */
-@Component
-@Slf4j
-@RequiredArgsConstructor
-public class DhisHttpSessionEventListener {
-  private final DhisConfigurationProvider config;
+@Repository
+public class HibernateExpressionStore extends HibernateGenericStore<Expression>
+    implements org.hisp.dhis.expression.ExpressionStore {
 
-  @EventListener
-  public void sessionCreated(HttpSessionCreatedEvent event) {
-    HttpSession session = event.getSession();
-    try {
-      String property = config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
-      session.setMaxInactiveInterval(Integer.parseInt(property));
-    } catch (Exception e) {
-      session.setMaxInactiveInterval(
-          Integer.parseInt(ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue()));
-      log.error("Could not read session timeout value from config", e);
-    }
+  public HibernateExpressionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Expression.class, false);
+  }
+
+  @Override
+  public int updateExpressionContaining(String find, String replace) {
+    String sql =
+        """
+        update expression
+        set expression = replace(expression, '%s', '%s')
+        where expression like '%s';
+        """
+            .formatted(find, replace, "%" + find + "%");
+    return jdbcTemplate.update(sql);
   }
 }
