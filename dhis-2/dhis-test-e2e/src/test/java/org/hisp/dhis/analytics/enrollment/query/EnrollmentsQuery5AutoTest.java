@@ -266,8 +266,8 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=Ym2kI6k1I5e")
-            .add("headers=ouname,lastupdated,Ym2kI6k1I5e")
+            .add("asc=NL89wvU7Rqa")
+            .add("headers=ouname,lastupdated,NL89wvU7Rqa")
             .add("lastUpdated=LAST_10_YEARS")
             .add("displayProperty=NAME")
             .add("totalPages=false")
@@ -275,7 +275,7 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("outputType=ENROLLMENT")
             .add("page=1")
-            .add("dimension=Ym2kI6k1I5e:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT")
+            .add("dimension=NL89wvU7Rqa:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT")
             .add("relativePeriodDate=2025-01-20");
 
     // When
@@ -293,7 +293,7 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"Ym2kI6k1I5e\":{\"uid\":\"Ym2kI6k1I5e\",\"name\":\"Malaria Case PI Complex\",\"description\":\"http://localhost:8080/dhis/api/42/analytics/enrollments/query/qDkgAbB5Jlk?dimension=Ym2kI6k1I5e:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT&headers=ouname,lastupdated,Ym2kI6k1I5e&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=Ym2kI6k1I5e\",\"legendSet\":\"TiOkbpGEud4\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"qDkgAbB5Jlk\":{\"uid\":\"qDkgAbB5Jlk\",\"name\":\"Malaria case diagnosis, treatment and investigation\",\"description\":\"All cases in an elimination setting should be registered in this program. Includes relevant case identifiers/details including the ID, Name, Index, Age, Gender, Location,etc..\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"eHvTba5ijAh\":{\"uid\":\"eHvTba5ijAh\",\"name\":\"Case outcome\",\"description\":\"This stage details the final outcome of the case\"},\"wYTF0YCHMWr\":{\"uid\":\"wYTF0YCHMWr\",\"name\":\"Case investigation & classification\",\"description\":\"This includes the investigation of the index case (including the confirmation of symptoms, previous malaria history, LLIN usage details, IRS details), and the summary of the results for the case investigation including the final case classification (both the species type and the case classification). \"},\"hYyB7FUS5eR\":{\"uid\":\"hYyB7FUS5eR\",\"name\":\"Diagnosis & treatment\",\"description\":\"This stage is used to identify initial diagnosis and treatment. This includes the method of case detection, information about the case include travel history, method of diagnosis, malaria species type and treatment details. \"},\"C0aLZo75dgJ\":{\"uid\":\"C0aLZo75dgJ\",\"name\":\"Household investigation\",\"description\":\"Nearby household investigations occur when an index case is identified within a specific geographical area.\"}},\"dimensions\":{\"Ym2kI6k1I5e\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"NL89wvU7Rqa\":{\"uid\":\"NL89wvU7Rqa\",\"name\":\"Malaria Case PI Complex\",\"description\":\"http://localhost:8080/dhis/api/42/analytics/enrollments/query/qDkgAbB5Jlk?dimension=Ym2kI6k1I5e:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT&headers=ouname,lastupdated,Ym2kI6k1I5e&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=Ym2kI6k1I5e\",\"legendSet\":\"TiOkbpGEud4\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"qDkgAbB5Jlk\":{\"uid\":\"qDkgAbB5Jlk\",\"name\":\"Malaria case diagnosis, treatment and investigation\",\"description\":\"All cases in an elimination setting should be registered in this program. Includes relevant case identifiers/details including the ID, Name, Index, Age, Gender, Location,etc..\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"eHvTba5ijAh\":{\"uid\":\"eHvTba5ijAh\",\"name\":\"Case outcome\",\"description\":\"This stage details the final outcome of the case\"},\"wYTF0YCHMWr\":{\"uid\":\"wYTF0YCHMWr\",\"name\":\"Case investigation & classification\",\"description\":\"This includes the investigation of the index case (including the confirmation of symptoms, previous malaria history, LLIN usage details, IRS details), and the summary of the results for the case investigation including the final case classification (both the species type and the case classification). \"},\"hYyB7FUS5eR\":{\"uid\":\"hYyB7FUS5eR\",\"name\":\"Diagnosis & treatment\",\"description\":\"This stage is used to identify initial diagnosis and treatment. This includes the method of case detection, information about the case include travel history, method of diagnosis, malaria species type and treatment details. \"},\"C0aLZo75dgJ\":{\"uid\":\"C0aLZo75dgJ\",\"name\":\"Household investigation\",\"description\":\"Nearby household investigations occur when an index case is identified within a specific geographical area.\"}},\"dimensions\":{\"NL89wvU7Rqa\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -312,7 +312,7 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         2,
-        "Ym2kI6k1I5e",
+        "NL89wvU7Rqa",
         "Malaria Case PI Complex",
         "NUMBER",
         "java.lang.Double",
@@ -330,8 +330,8 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=tzjB2D6SvQZ")
-            .add("headers=ouname,tzjB2D6SvQZ,lastupdated")
+            .add("asc=hgTNuHSqBmL")
+            .add("headers=ouname,hgTNuHSqBmL,lastupdated")
             .add("lastUpdated=LAST_10_YEARS")
             .add("displayProperty=NAME")
             .add("totalPages=false")
@@ -339,7 +339,7 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("outputType=ENROLLMENT")
             .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,tzjB2D6SvQZ:GT:404:NE:NV")
+            .add("dimension=ou:USER_ORGUNIT,hgTNuHSqBmL:GT:404:NE:NV")
             .add("relativePeriodDate=2025-01-20");
 
     // When
@@ -357,7 +357,7 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"EPEcjy3FWmI\":{\"uid\":\"EPEcjy3FWmI\",\"name\":\"Lab monitoring\",\"description\":\"Laboratory monitoring\"},\"tzjB2D6SvQZ\":{\"uid\":\"tzjB2D6SvQZ\",\"name\":\"TB PI Complex\",\"description\":\"http://localhost:8080/dhis/api/42/analytics/enrollments/query/ur1Edk5Oe2n?dimension=ou:USER_ORGUNIT,tzjB2D6SvQZ:GT:404:NE:NV&headers=ouname,tzjB2D6SvQZ,lastupdated&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=tzjB2D6SvQZ\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"ur1Edk5Oe2n\":{\"uid\":\"ur1Edk5Oe2n\",\"name\":\"TB program\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"jdRD35YwbRH\":{\"uid\":\"jdRD35YwbRH\",\"name\":\"Sputum smear microscopy test\",\"description\":\"Sputum smear microscopy test\"},\"ZkbAXlQUYJG\":{\"uid\":\"ZkbAXlQUYJG\",\"name\":\"TB visit\",\"description\":\"Routine TB visit\"}},\"dimensions\":{\"tzjB2D6SvQZ\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"EPEcjy3FWmI\":{\"uid\":\"EPEcjy3FWmI\",\"name\":\"Lab monitoring\",\"description\":\"Laboratory monitoring\"},\"hgTNuHSqBmL\":{\"uid\":\"hgTNuHSqBmL\",\"name\":\"TB PI Complex\",\"description\":\"http://localhost:8080/dhis/api/42/analytics/enrollments/query/ur1Edk5Oe2n?dimension=ou:USER_ORGUNIT,tzjB2D6SvQZ:GT:404:NE:NV&headers=ouname,tzjB2D6SvQZ,lastupdated&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=tzjB2D6SvQZ\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"ur1Edk5Oe2n\":{\"uid\":\"ur1Edk5Oe2n\",\"name\":\"TB program\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"jdRD35YwbRH\":{\"uid\":\"jdRD35YwbRH\",\"name\":\"Sputum smear microscopy test\",\"description\":\"Sputum smear microscopy test\"},\"ZkbAXlQUYJG\":{\"uid\":\"ZkbAXlQUYJG\",\"name\":\"TB visit\",\"description\":\"Routine TB visit\"}},\"dimensions\":{\"hgTNuHSqBmL\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -365,7 +365,7 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 1, "tzjB2D6SvQZ", "TB PI Complex", "NUMBER", "java.lang.Double", false, true);
+        response, 1, "hgTNuHSqBmL", "TB PI Complex", "NUMBER", "java.lang.Double", false, true);
     validateHeader(
         response,
         2,
