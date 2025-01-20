@@ -74,8 +74,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -146,11 +144,6 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
   @Autowired private RequestCache requestCache;
-
-  @Bean
-  public SessionRegistry sessionRegistry() {
-    return new SessionRegistryImpl();
-  }
 
   private static class CustomRequestMatcher implements RequestMatcher {
 
@@ -250,7 +243,6 @@ public class DhisWebApiWebSecurityConfig {
     http.requestCache().requestCache(requestCache);
 
     configureMatchers(http);
-    configureFormLogin(http);
     configureCspFilter(http, dhisConfig, configurationService);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
@@ -258,18 +250,6 @@ public class DhisWebApiWebSecurityConfig {
     setHttpHeaders(http);
 
     return http.build();
-  }
-
-  private void configureFormLogin(HttpSecurity http) throws Exception {
-    http.formLogin()
-        .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-        .loginPage("/dhis-web-login/")
-        .usernameParameter("j_username")
-        .passwordParameter("j_password")
-        .loginProcessingUrl("/api/authentication/login")
-        .failureUrl("/dhis-web-login/?error=true")
-        .defaultSuccessUrl("/dhis-web-dashboard/", true)
-        .permitAll();
   }
 
   public static void setHttpHeaders(HttpSecurity http) throws Exception {
@@ -367,6 +347,9 @@ public class DhisWebApiWebSecurityConfig {
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/login.html"))
+                  .permitAll()
+                  .requestMatchers(
+                      new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
                   .permitAll()
 
                   /////////////////////////////////////////////////////////////////////////////////////////////////

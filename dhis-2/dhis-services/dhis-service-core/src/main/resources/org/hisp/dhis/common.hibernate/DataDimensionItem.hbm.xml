@@ -21,7 +21,7 @@
     <component name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand">
       <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
         column="dataelementoperand_dataelementid" foreign-key="fk_datadimensionitem_dataelementoperand_dataelementid" />
-        
+
       <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
         column="dataelementoperand_categoryoptioncomboid" foreign-key="fk_datadimensionitem_dataelementoperand_categoryoptioncomboid" />
     </component>
@@ -43,7 +43,7 @@
       column="programindicatorid" foreign-key="fk_datadimensionitem_programindicatorid" />
 
     <component name="programDataElement" class="org.hisp.dhis.program.ProgramDataElementDimensionItem">
-      <many-to-one name="program"  class="org.hisp.dhis.program.Program"
+      <many-to-one name="program" class="org.hisp.dhis.program.Program"
         column="programdataelement_programid" foreign-key="fk_datadimensionitem_programdataelement_programid" />
         
       <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
@@ -56,11 +56,13 @@
     
       <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
         column="programattribute_attributeid" foreign-key="fk_datadimensionitem_programattribute_attributeid" />
-
     </component>
 
     <many-to-one name="expressionDimensionItem" class="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem"
-                 column="expressiondimensionitemid" foreign-key="fk_datadimensionitem_expressiondimensionitemid" />
+        column="expressiondimensionitemid" foreign-key="fk_datadimensionitem_expressiondimensionitemid" />
 
+    <component name="attributes">
+      <property name="optionSetItem" type="jbOptionSetItem"/>
+    </component>
   </class>
 </hibernate-mapping>

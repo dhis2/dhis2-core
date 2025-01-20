@@ -1,0 +1,15 @@
+$object.i18n.getString( "email_2fa_1_greeting" ) ${object.fullName},
+
+$object.i18n.getString(
+    "email_2fa_1_1st_paragraph_application_title" )
+
+$object.i18n.getString( "email_2fa_1_2nd_paragraph" )
+${object.code}
+
+$object.i18n.getString( "email_2fa_1_3rd_paragraph" )
+
+$object.i18n.getString( "email_2fa_1_4th_paragraph" )
+
+
+$object.i18n.getString( "email_2fa_1_ending" )
+${object.applicationTitle}

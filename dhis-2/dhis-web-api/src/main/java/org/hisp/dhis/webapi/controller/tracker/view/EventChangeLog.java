@@ -38,15 +38,15 @@ public record EventChangeLog(
     @JsonProperty Change change) {
 
   public record Change(
-      @JsonProperty DataValueChange dataValue, @JsonProperty PropertyChange eventProperty) {}
+      @JsonProperty DataValueChange dataValue, @JsonProperty FieldChange eventField) {}
 
   public record DataValueChange(
       @JsonProperty UID dataElement,
       @JsonProperty String previousValue,
       @JsonProperty String currentValue) {}
 
-  public record PropertyChange(
-      @JsonProperty String property,
+  public record FieldChange(
+      @JsonProperty String field,
       @JsonProperty String previousValue,
       @JsonProperty String currentValue) {}
 }

@@ -132,7 +132,6 @@ class JdbcEventStore {
        n.created as note_created,\
        n.creator as note_creator,\
        n.uid as note_uid,\
-       n.lastupdated as note_lastupdated,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
        userinfo.uid as note_user_uid,\
@@ -467,8 +466,6 @@ class JdbcEventStore {
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getTimestamp("note_lastupdated"));
-
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
             }
@@ -609,14 +606,12 @@ class JdbcEventStore {
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       User user) {
-    StringBuilder sqlBuilder = new StringBuilder("select ");
+    StringBuilder sqlBuilder = new StringBuilder("select *");
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
-          "event.*, cm.*,eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
+          ", eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
               + " de_code, de.name as de_name, de.attributevalues as de_attributevalues");
-    } else {
-      sqlBuilder.append("*");
     }
     sqlBuilder.append(" from (");
 
@@ -1085,27 +1080,17 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.occurreddate >= ")
-          .append(":startDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate >= ")
-          .append(":startDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", params.getOccurredEndDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.occurreddate <= ")
-          .append(":endDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate <=")
-          .append(":endDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
     if (params.getProgramType() != null) {
@@ -1210,7 +1195,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createDescendantsSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
@@ -1223,7 +1208,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1246,7 +1231,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1627,7 +1612,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + " ";
+      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
     } else {
       return "order by " + DEFAULT_ORDER + " ";
     }

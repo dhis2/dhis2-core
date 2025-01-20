@@ -29,10 +29,13 @@ package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
@@ -52,6 +55,19 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, CategoryOption.class, aclService, true);
+  }
+
+  @Override
+  public int getCategoryOptionsCount(UID category) {
+    if (category == null) return 0;
+    String sql =
+        """
+      select count(*) from categories_categoryoptions co
+        left join category c on c.categoryid = co.categoryid
+        where c.uid = :id""";
+    Object count =
+        nativeSynchronizedQuery(sql).setParameter("id", category.getValue()).getSingleResult();
+    return count instanceof Number n ? n.intValue() : 0;
   }
 
   @Override
@@ -78,5 +94,18 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
                 getDataSharingPredicates(builder, userDetails, AclService.LIKE_WRITE_DATA))
             .addPredicate(
                 root -> builder.equal(root.join("categories").get("id"), category.getId())));
+  }
+
+  @Override
+  public List<CategoryOption> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct co from CategoryOption co
+            join co.categoryOptionCombos coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
   }
 }

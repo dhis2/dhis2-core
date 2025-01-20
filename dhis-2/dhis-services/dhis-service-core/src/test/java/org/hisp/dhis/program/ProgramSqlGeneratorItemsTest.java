@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -51,6 +50,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -64,6 +64,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -99,6 +100,8 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private DimensionService dimensionService;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   @BeforeEach
   public void setUp() {
@@ -244,10 +247,11 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
             .constantMap(constantMap)
-            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(sqlBuilder)
             .build();
 
     visitor.setExpressionLiteral(exprLiteral);

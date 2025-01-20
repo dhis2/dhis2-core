@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -91,6 +93,29 @@ public interface DataValueStore {
    * @param dataElement the data element.
    */
   void deleteDataValues(DataElement dataElement);
+
+  /**
+   * Deletes all data values for the given data element.
+   *
+   * @param dataElement the dataElement.
+   */
+  void deleteDataValues(@Nonnull Collection<DataElement> dataElement);
+
+  /**
+   * Deletes all data values for the given category option combos.
+   *
+   * @param categoryOptionCombos the categoryOptionCombos.
+   */
+  void deleteDataValuesByCategoryOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos);
+
+  /**
+   * Deletes all data values for the given attribute option combos.
+   *
+   * @param attributeOptionCombos the attributeOptionCombos.
+   */
+  void deleteDataValuesByAttributeOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
   void deleteDataValue(DataValue dataValue);
 
@@ -165,6 +190,12 @@ public interface DataValueStore {
    */
   List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
 
+  /**
+   * Retrieve all {@link DataValue}s with references to {@link DataElement}s
+   *
+   * @param dataElements {@link DataElement}s
+   * @return {@link DataValue}s with references to {@link DataElement}s passed in
+   */
   List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements);
 
   /**
@@ -193,4 +224,54 @@ public interface DataValueStore {
    * @return true, if any values exist, otherwise false
    */
   boolean dataValueExistsForDataElement(String uid);
+
+  List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids);
+
+  List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids);
+
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#categoryOptionCombo} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#categoryOptionCombo} updated to that of the target.
+   *
+   * @param target target {@link CategoryOptionCombo}
+   * @param sources source {@link CategoryOptionCombo}s
+   */
+  void mergeDataValuesWithCategoryOptionCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources);
+
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#attributeOptionCombo} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#attributeOptionCombo} updated to that of the target.
+   *
+   * @param target target {@link CategoryOptionCombo}
+   * @param sources source {@link CategoryOptionCombo}s
+   */
+  void mergeDataValuesWithAttributeOptionCombos(
+      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources);
 }

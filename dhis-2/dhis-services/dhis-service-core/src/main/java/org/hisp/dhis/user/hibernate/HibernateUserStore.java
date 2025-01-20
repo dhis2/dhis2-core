@@ -72,6 +72,7 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
@@ -304,6 +305,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.selfRegistered = true ";
     }
 
+    // TODO(JB) shoundn't UserInvitationStatus.NONE match "u.invitation = false" and null mean no
+    // filter at all?
     if (UserInvitationStatus.ALL.equals(params.getInvitationStatus())) {
       hql += hlp.whereAnd() + " u.invitation = true ";
     }
@@ -633,12 +636,12 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               ? Date.from(oneHourInTheFuture)
               : Date.from(oneHourAgo));
 
-      update(user);
+      update(user, new SystemUser());
     }
   }
 
   @Override
-  public User getUserByVerificationToken(String token) {
+  public User getUserByEmailVerificationToken(String token) {
     Query<User> query =
         getSession()
             .createQuery("from User u where u.emailVerificationToken like :token", User.class);

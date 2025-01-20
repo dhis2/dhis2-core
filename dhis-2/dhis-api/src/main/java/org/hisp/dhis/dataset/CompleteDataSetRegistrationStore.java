@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -43,6 +46,13 @@ public interface CompleteDataSetRegistrationStore {
    * @param registration the CompleteDataSetRegistration to save.
    */
   void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration);
+
+  /**
+   * Saves a CompleteDataSetRegistration without updating its lastUpdated value
+   *
+   * @param registration reg to update
+   */
+  void saveWithoutUpdatingLastUpdated(@Nonnull CompleteDataSetRegistration registration);
 
   /**
    * Updates a CompleteDataSetRegistration.
@@ -102,4 +112,20 @@ public interface CompleteDataSetRegistrationStore {
    * @return the number of completed DataSets.
    */
   int getCompleteDataSetCountLastUpdatedAfter(Date lastUpdated);
+
+  /**
+   * Retrieve all {@link CompleteDataSetRegistration}s with {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link CompleteDataSetRegistration}s with references to {@link CategoryOptionCombo}
+   *     {@link UID}s passed in
+   */
+  List<CompleteDataSetRegistration> getAllByCategoryOptionCombo(@Nonnull Collection<UID> uids);
+
+  /**
+   * Delete all {@link CompleteDataSetRegistration}s with references to {@link CategoryOptionCombo}s
+   *
+   * @param cocs {@link CategoryOptionCombo}s
+   */
+  void deleteByCategoryOptionCombo(@Nonnull Collection<CategoryOptionCombo> cocs);
 }

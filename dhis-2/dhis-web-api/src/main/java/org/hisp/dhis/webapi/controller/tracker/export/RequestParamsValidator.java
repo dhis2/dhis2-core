@@ -313,7 +313,7 @@ public class RequestParamsValidator {
     for (Pair<String, Class<?>> filterField : supportedFields) {
       if (filterField.getKey().equalsIgnoreCase(split[0])
           && filterField.getValue() == UID.class
-          && !CodeGenerator.isValidUid(filterField.getKey())) {
+          && !CodeGenerator.isValidUid(split[2])) {
         throw new BadRequestException(
             String.format(
                 "Incorrect filter value provided as UID: %s. UID must be an alphanumeric string of 11 characters starting with a letter.",

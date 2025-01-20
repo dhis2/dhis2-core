@@ -241,7 +241,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit unit3 = createOrganisationUnit('C', unit2);
     OrganisationUnit unit4 = createOrganisationUnit('D');
     long id1 = organisationUnitService.addOrganisationUnit(unit1);
-    unit1.getChildren().add(unit2);
     organisationUnitService.addOrganisationUnit(unit2);
     organisationUnitService.addOrganisationUnit(unit3);
     organisationUnitService.addOrganisationUnit(unit4);
@@ -308,12 +307,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit unit5 = createOrganisationUnit('E', unit2);
     OrganisationUnit unit6 = createOrganisationUnit('F', unit3);
     OrganisationUnit unit7 = createOrganisationUnit('G', unit3);
-    unit1.getChildren().add(unit2);
-    unit1.getChildren().add(unit3);
-    unit2.getChildren().add(unit4);
-    unit2.getChildren().add(unit5);
-    unit3.getChildren().add(unit6);
-    unit3.getChildren().add(unit7);
     long id1 = organisationUnitService.addOrganisationUnit(unit1);
     long id2 = organisationUnitService.addOrganisationUnit(unit2);
     organisationUnitService.addOrganisationUnit(unit3);
@@ -415,23 +408,18 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnitLevel(levelC);
     organisationUnitService.addOrganisationUnitLevel(levelD);
     OrganisationUnit unit1 = createOrganisationUnit('1');
-    organisationUnitService.addOrganisationUnit(unit1);
     OrganisationUnit unit2 = createOrganisationUnit('2', unit1);
-    unit1.getChildren().add(unit2);
-    organisationUnitService.addOrganisationUnit(unit2);
     OrganisationUnit unit3 = createOrganisationUnit('3', unit2);
-    unit2.getChildren().add(unit3);
-    organisationUnitService.addOrganisationUnit(unit3);
     OrganisationUnit unit4 = createOrganisationUnit('4', unit2);
-    unit2.getChildren().add(unit4);
-    organisationUnitService.addOrganisationUnit(unit4);
     OrganisationUnit unit5 = createOrganisationUnit('5', unit2);
-    unit2.getChildren().add(unit5);
-    organisationUnitService.addOrganisationUnit(unit5);
     OrganisationUnit unit6 = createOrganisationUnit('6', unit3);
-    unit3.getChildren().add(unit6);
-    organisationUnitService.addOrganisationUnit(unit6);
     OrganisationUnit unit7 = createOrganisationUnit('7');
+    organisationUnitService.addOrganisationUnit(unit1);
+    organisationUnitService.addOrganisationUnit(unit2);
+    organisationUnitService.addOrganisationUnit(unit3);
+    organisationUnitService.addOrganisationUnit(unit4);
+    organisationUnitService.addOrganisationUnit(unit5);
+    organisationUnitService.addOrganisationUnit(unit6);
     organisationUnitService.addOrganisationUnit(unit7);
     // unit1
     // unit1 . unit2
@@ -508,16 +496,13 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
   void testGetNumberOfOrganisationalLevels() {
     assertEquals(0, organisationUnitService.getNumberOfOrganisationalLevels());
     OrganisationUnit unit1 = createOrganisationUnit('1');
-    organisationUnitService.addOrganisationUnit(unit1);
     OrganisationUnit unit2 = createOrganisationUnit('2', unit1);
-    unit1.getChildren().add(unit2);
+    OrganisationUnit unit3 = createOrganisationUnit('3', unit2);
+    OrganisationUnit unit4 = createOrganisationUnit('4', unit2);
+    organisationUnitService.addOrganisationUnit(unit1);
     organisationUnitService.addOrganisationUnit(unit2);
     assertEquals(2, organisationUnitService.getNumberOfOrganisationalLevels());
-    OrganisationUnit unit3 = createOrganisationUnit('3', unit2);
-    unit2.getChildren().add(unit3);
     organisationUnitService.addOrganisationUnit(unit3);
-    OrganisationUnit unit4 = createOrganisationUnit('4', unit2);
-    unit2.getChildren().add(unit4);
     organisationUnitService.addOrganisationUnit(unit4);
     assertEquals(3, organisationUnitService.getNumberOfOrganisationalLevels());
   }
@@ -525,14 +510,12 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testIsDescendantSet() {
     OrganisationUnit unit1 = createOrganisationUnit('1');
-    organisationUnitService.addOrganisationUnit(unit1);
     OrganisationUnit unit2 = createOrganisationUnit('2', unit1);
-    unit1.getChildren().add(unit2);
-    organisationUnitService.addOrganisationUnit(unit2);
     OrganisationUnit unit3 = createOrganisationUnit('3', unit2);
-    unit2.getChildren().add(unit3);
-    organisationUnitService.addOrganisationUnit(unit3);
     OrganisationUnit unit4 = createOrganisationUnit('4');
+    organisationUnitService.addOrganisationUnit(unit1);
+    organisationUnitService.addOrganisationUnit(unit2);
+    organisationUnitService.addOrganisationUnit(unit3);
     organisationUnitService.addOrganisationUnit(unit4);
     assertTrue(unit1.isDescendant(Sets.newHashSet(unit1)));
     assertTrue(unit2.isDescendant(Sets.newHashSet(unit1)));
@@ -545,14 +528,12 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testIsDescendantOrgUnit() {
     OrganisationUnit ouA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(ouA);
     OrganisationUnit ouB = createOrganisationUnit('B', ouA);
-    ouA.getChildren().add(ouB);
-    organisationUnitService.addOrganisationUnit(ouB);
     OrganisationUnit ouC = createOrganisationUnit('C', ouB);
-    ouB.getChildren().add(ouC);
-    organisationUnitService.addOrganisationUnit(ouC);
     OrganisationUnit ouD = createOrganisationUnit('D');
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    organisationUnitService.addOrganisationUnit(ouC);
     organisationUnitService.addOrganisationUnit(ouD);
     assertTrue(ouA.isDescendant(Set.of(ouA)));
     assertTrue(ouB.isDescendant(Set.of(ouA)));
@@ -565,14 +546,12 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testIsDescendantObject() {
     OrganisationUnit unit1 = createOrganisationUnit('1');
-    organisationUnitService.addOrganisationUnit(unit1);
     OrganisationUnit unit2 = createOrganisationUnit('2', unit1);
-    unit1.getChildren().add(unit2);
-    organisationUnitService.addOrganisationUnit(unit2);
     OrganisationUnit unit3 = createOrganisationUnit('3', unit2);
-    unit2.getChildren().add(unit3);
-    organisationUnitService.addOrganisationUnit(unit3);
     OrganisationUnit unit4 = createOrganisationUnit('4');
+    organisationUnitService.addOrganisationUnit(unit1);
+    organisationUnitService.addOrganisationUnit(unit2);
+    organisationUnitService.addOrganisationUnit(unit3);
     organisationUnitService.addOrganisationUnit(unit4);
     assertTrue(unit1.isDescendant(unit1));
     assertTrue(unit2.isDescendant(unit1));
@@ -652,20 +631,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit unitM = createOrganisationUnit('M', unitF);
     OrganisationUnit unitN = createOrganisationUnit('N', unitG);
     OrganisationUnit unitO = createOrganisationUnit('O', unitG);
-    unitA.getChildren().add(unitB);
-    unitA.getChildren().add(unitC);
-    unitB.getChildren().add(unitD);
-    unitB.getChildren().add(unitE);
-    unitC.getChildren().add(unitF);
-    unitC.getChildren().add(unitG);
-    unitD.getChildren().add(unitH);
-    unitD.getChildren().add(unitI);
-    unitE.getChildren().add(unitJ);
-    unitE.getChildren().add(unitK);
-    unitF.getChildren().add(unitL);
-    unitF.getChildren().add(unitM);
-    unitG.getChildren().add(unitN);
-    unitG.getChildren().add(unitO);
     organisationUnitService.addOrganisationUnit(unitA);
     organisationUnitService.addOrganisationUnit(unitB);
     organisationUnitService.addOrganisationUnit(unitC);
@@ -884,9 +849,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit unitB = createOrganisationUnit('B', unitA);
     OrganisationUnit unitC = createOrganisationUnit('C', unitB);
     OrganisationUnit unitD = createOrganisationUnit('D', unitC);
-    unitA.getChildren().add(unitB);
-    unitB.getChildren().add(unitC);
-    unitC.getChildren().add(unitD);
     organisationUnitService.addOrganisationUnit(unitA);
     organisationUnitService.addOrganisationUnit(unitB);
     organisationUnitService.addOrganisationUnit(unitC);
@@ -944,12 +906,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit ouE = createOrganisationUnit('E', ouB);
     OrganisationUnit ouF = createOrganisationUnit('F', ouC);
     OrganisationUnit ouG = createOrganisationUnit('G', ouC);
-    ouA.getChildren().add(ouB);
-    ouA.getChildren().add(ouC);
-    ouB.getChildren().add(ouD);
-    ouB.getChildren().add(ouE);
-    ouC.getChildren().add(ouF);
-    ouC.getChildren().add(ouG);
     organisationUnitService.addOrganisationUnit(ouA);
     organisationUnitService.addOrganisationUnit(ouB);
     organisationUnitService.addOrganisationUnit(ouC);
@@ -975,9 +931,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit ouB = createOrganisationUnit('B', ouA);
     OrganisationUnit ouC = createOrganisationUnit('C', ouB);
     OrganisationUnit ouD = createOrganisationUnit('D', ouC);
-    ouA.getChildren().add(ouB);
-    ouA.getChildren().add(ouC);
-    ouB.getChildren().add(ouD);
     organisationUnitService.addOrganisationUnit(ouA);
     organisationUnitService.addOrganisationUnit(ouB);
     organisationUnitService.addOrganisationUnit(ouC);
@@ -995,9 +948,6 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit ouB = createOrganisationUnit('B', ouA);
     OrganisationUnit ouC = createOrganisationUnit('C', ouB);
     OrganisationUnit ouD = createOrganisationUnit('D', ouC);
-    ouA.getChildren().add(ouB);
-    ouA.getChildren().add(ouC);
-    ouB.getChildren().add(ouD);
     organisationUnitService.addOrganisationUnit(ouA);
     organisationUnitService.addOrganisationUnit(ouB);
     organisationUnitService.addOrganisationUnit(ouC);
@@ -1007,6 +957,22 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     assertEquals(expected, ouD.getParentGraph(Sets.newHashSet(ouA)));
     expected = ouB.getUid() + "/" + ouC.getUid();
     assertEquals(expected, ouD.getParentGraph(Sets.newHashSet(ouB)));
+  }
+
+  @Test
+  void testGetStoredPath() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B', ouA);
+    OrganisationUnit ouC = createOrganisationUnit('C', ouB);
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    organisationUnitService.addOrganisationUnit(ouC);
+    String expectedA = String.format("/%s", ouA.getUid());
+    String expectedB = String.format("/%s/%s", ouA.getUid(), ouB.getUid());
+    String expectedC = String.format("/%s/%s/%s", ouA.getUid(), ouB.getUid(), ouC.getUid());
+    assertEquals(expectedA, ouA.getStoredPath());
+    assertEquals(expectedB, ouB.getStoredPath());
+    assertEquals(expectedC, ouC.getStoredPath());
   }
 
   @Test

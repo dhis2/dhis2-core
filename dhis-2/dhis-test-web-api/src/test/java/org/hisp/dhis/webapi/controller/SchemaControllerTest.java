@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -144,5 +148,36 @@ class SchemaControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(name.isReadable());
     assertFalse(name.isWritable());
     assertFalse(name.isRequired());
+  }
+
+  @Test
+  void testSortableProperties() {
+    JsonSchema de = GET("/schemas/dataElement").content().as(JsonSchema.class);
+    JsonList<JsonProperty> properties = de.getProperties();
+    Set<String> expected =
+        Set.of(
+            "fieldMask",
+            "aggregationType",
+            "code",
+            "domainType",
+            "displayName",
+            "created",
+            "description",
+            "zeroIsSignificant",
+            "displayFormName",
+            "displayShortName",
+            "url",
+            "lastUpdated",
+            "valueType",
+            "formName",
+            "name",
+            "id",
+            "shortName");
+    Set<String> actual =
+        properties.stream()
+            .filter(JsonProperty::isSortable)
+            .map(JsonProperty::getName)
+            .collect(toSet());
+    assertEquals(expected, actual);
   }
 }

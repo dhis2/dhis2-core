@@ -685,7 +685,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       orgUnits
           .append(orHlp.or())
           .append("OU.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'");
     }
 
@@ -704,7 +704,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       orgUnits
           .append(orHlp.or())
           .append(" OU.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'")
           .append(" AND (ou.hierarchylevel = ")
           .append(organisationUnit.getHierarchyLevel())
@@ -1007,10 +1007,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (!orderFields.isEmpty()) {
-      return "ORDER BY " + StringUtils.join(orderFields, ',') + SPACE;
+      return "ORDER BY " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + SPACE;
     }
 
-    return "ORDER BY " + DEFAULT_ORDER + " ";
+    return "ORDER BY " + DEFAULT_ORDER + SPACE;
   }
 
   /**

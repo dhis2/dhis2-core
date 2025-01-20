@@ -95,6 +95,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
+    context
+        .addFilter(
+            "SpringSessionRepositoryFilter",
+            new DelegatingFilterProxy("springSessionRepositoryFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
@@ -148,7 +154,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    context.addServlet("RootPageServlet", LoginFallbackServlet.class).addMapping("/login.html");
+    context
+        .addServlet("RootPageServlet", LoginFallbackServlet.class)
+        .addMapping("/login.html", "/dhis-web-commons/security/login.action");
 
     String profile = System.getProperty("spring.profiles.active");
     if (profile == null || !profile.equals("embeddedJetty")) {

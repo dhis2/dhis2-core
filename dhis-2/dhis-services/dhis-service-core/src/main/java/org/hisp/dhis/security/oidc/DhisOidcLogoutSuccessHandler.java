@@ -29,6 +29,7 @@ package org.hisp.dhis.security.oidc;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_LOGOUT_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_RELOGIN_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED;
@@ -40,7 +41,7 @@ import java.io.IOException;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.user.UserStore;
+import org.hisp.dhis.user.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -55,8 +56,8 @@ import org.springframework.stereotype.Component;
 public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
 
   private final DhisConfigurationProvider config;
-  private final UserStore userStore;
   private final DhisOidcProviderRepository dhisOidcProviderRepository;
+  private final UserService userService;
 
   private SimpleUrlLogoutSuccessHandler handler;
 
@@ -101,15 +102,22 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException {
 
-    String currentUsername = request.getParameter("current");
     String usernameToSwitchTo = request.getParameter("switch");
+    String linkedAccountsLogoutUrl = config.getProperty(LINKED_ACCOUNTS_LOGOUT_URL);
+    if (isNullOrEmpty(linkedAccountsLogoutUrl)) {
+      // Fallback if not defined in config
+      linkedAccountsLogoutUrl = "/";
+    }
 
-    if (isNullOrEmpty(currentUsername) || isNullOrEmpty(usernameToSwitchTo)) {
-      setOidcLogoutUrl();
+    if (isNullOrEmpty(usernameToSwitchTo)) {
+      // No switch parameter present: redirect to linked_accounts.logout_url
+      this.handler.setDefaultTargetUrl(linkedAccountsLogoutUrl);
     } else {
-
-      userStore.setActiveLinkedAccounts(currentUsername, usernameToSwitchTo);
-
+      // switch parameter present: switch accounts and then redirect to re-login URL
+      String currentUsername = request.getParameter("current");
+      if (!isNullOrEmpty(currentUsername)) {
+        userService.setActiveLinkedAccounts(currentUsername, usernameToSwitchTo);
+      }
       this.handler.setDefaultTargetUrl(config.getProperty(LINKED_ACCOUNTS_RELOGIN_URL));
     }
 

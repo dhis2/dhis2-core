@@ -179,7 +179,7 @@ public class JobScheduler implements Runnable, JobRunner {
       String jobId = jobIds.poll();
       while (jobId != null) {
         JobConfiguration config = service.getJobConfiguration(jobId);
-        if (config != null && config.getJobStatus() == JobStatus.SCHEDULED) {
+        if (config != null && (config.getJobStatus() == JobStatus.SCHEDULED)) {
           Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
           Instant dueTime = dueTime(now, config);
           runDueJob(config, dueTime);
@@ -225,7 +225,7 @@ public class JobScheduler implements Runnable, JobRunner {
     JobProgress progress = null;
     try {
       settingsProvider.clearCurrentSettings(); // ensure working with recent settings
-      AtomicLong lastAlive = new AtomicLong(currentTimeMillis());
+      AtomicLong lastAlive = new AtomicLong(0L);
       progress = service.startRun(jobId, config.getExecutedBy(), () -> alive(jobId, lastAlive));
 
       jobService.getJob(config.getJobType()).execute(config, progress);

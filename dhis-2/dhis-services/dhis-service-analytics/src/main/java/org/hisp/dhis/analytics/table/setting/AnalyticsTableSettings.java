@@ -28,28 +28,20 @@
 package org.hisp.dhis.analytics.table.setting;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
-import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import com.google.common.collect.Lists;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
@@ -109,37 +101,8 @@ public class AnalyticsTableSettings {
    *
    * @return true if an analytics database instance is configured.
    */
-  public boolean isAnalyticsDatabaseConfigured() {
+  public boolean isAnalyticsDatabase() {
     return config.isAnalyticsDatabaseConfigured();
-  }
-
-  /**
-   * Returns the configured analytics {@link Database}. The default is {@link Database#POSTGRESQL}.
-   *
-   * @return the analytics {@link Database}.
-   */
-  public Database getAnalyticsDatabase() {
-    String value = config.getProperty(ANALYTICS_DATABASE);
-    String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
-    return getAndValidateDatabase(valueUpperCase);
-  }
-
-  /**
-   * Returns the analytics database JDBC catalog name.
-   *
-   * @return the analytics database JDBC catalog name.
-   */
-  public String getAnalyticsDatabaseCatalog() {
-    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
-  }
-
-  /**
-   * Returns the analytics database JDBC driver filename.
-   *
-   * @return the analytics database JDBC driver filename.
-   */
-  public String getAnalyticsDatabaseDriverFilename() {
-    return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
   }
 
   /**
@@ -159,29 +122,6 @@ public class AnalyticsTableSettings {
    */
   public Set<String> getSkipColumnDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
-  }
-
-  /**
-   * Returns the {@link Database} matching the given value.
-   *
-   * @param value the string value.
-   * @return the {@link Database}.
-   * @throws IllegalArgumentException if the value does not match a valid option.
-   */
-  Database getAndValidateDatabase(String value) {
-    Database database = EnumUtils.getEnum(Database.class, value);
-
-    if (isNull(database)) {
-      String message =
-          format(
-              "Property '{}' has illegal value: '{}', allowed options: {}",
-              ANALYTICS_DATABASE.getKey(),
-              value,
-              StringUtils.join(Database.values(), ','));
-      throw new IllegalArgumentException(message);
-    }
-
-    return database;
   }
 
   /**

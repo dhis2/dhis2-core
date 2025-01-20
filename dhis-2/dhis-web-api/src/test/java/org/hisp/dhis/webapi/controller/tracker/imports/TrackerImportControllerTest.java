@@ -53,12 +53,12 @@ import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
+import org.hisp.dhis.tracker.imports.note.NoteService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -94,11 +94,11 @@ class TrackerImportControllerTest {
 
   @Mock private Notifier notifier;
 
-  @Mock private JobSchedulerService jobSchedulerService;
-
-  @Mock private JobConfigurationService jobConfigurationService;
+  @Mock private JobExecutionService jobExecutionService;
 
   @Mock private UserService userService;
+
+  @Mock private NoteService noteService;
 
   private RenderService renderService;
 
@@ -118,9 +118,9 @@ class TrackerImportControllerTest {
             trackerImportService,
             csvEventService,
             notifier,
-            jobSchedulerService,
-            jobConfigurationService,
-            new ObjectMapper());
+            jobExecutionService,
+            new ObjectMapper(),
+            noteService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)

@@ -29,7 +29,9 @@ package org.hisp.dhis.sms.command.hibernate;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -44,4 +46,6 @@ public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
   int countDataSetSmsCommands(DataSet dataSet);
 
   List<SMSCode> getCodesByDataElement(Collection<DataElement> dataElements);
+
+  List<SMSCode> getCodesByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

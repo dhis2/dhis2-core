@@ -222,14 +222,14 @@
       }
 
       @media (max-width: 600px) {
-        .nav-right img{
+        .nav-right img {
           max-height: 34px;
           width: 50px;
         }
-        .right-content{
+        .right-content {
           display: none;
         }
-        .logo{
+        .logo {
           max-height: 30px;
           width: 60px;
         }
@@ -250,7 +250,7 @@
           </div>
           <img
             class="logo"
-            src="/dhis-web-commons/security/logo_front.png"
+            src="./dhis-web-commons/security/logo_front.png"
             alt="DHIS2 Logo"
           />
         </div>
@@ -284,11 +284,7 @@
             </div>
 
             <div id="twoFAContainer" style="display: none">
-              <input
-                type="text"
-                id="twoFA"
-                placeholder="TFA code"
-              />
+              <input type="text" id="twoFA" placeholder="TFA code" />
             </div>
 
             <input type="submit" value="Log in" />
@@ -299,10 +295,18 @@
         </div>
 
         <!-- Notification  -->
-        <div
-          class="notification-container"
-        >
-        <svg height="24" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="m12 2c5.5228475 0 10 4.4771525 10 10s-4.4771525 10-10 10-10-4.4771525-10-10 4.4771525-10 10-10zm1 9h-2v6h2zm-1-4c-.5522847 0-1 .44771525-1 1s.4477153 1 1 1 1-.44771525 1-1-.4477153-1-1-1z" fill="#093371"/></svg>
+        <div class="notification-container">
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m12 2c5.5228475 0 10 4.4771525 10 10s-4.4771525 10-10 10-10-4.4771525-10-10 4.4771525-10 10-10zm1 9h-2v6h2zm-1-4c-.5522847 0-1 .44771525-1 1s.4477153 1 1 1 1-.44771525 1-1-.4477153-1-1-1z"
+              fill="#093371"
+            />
+          </svg>
           <div class="notification-content">
             You are logging in using the fallback login page.
           </div>
@@ -321,9 +325,10 @@
     </div>
 
     <script>
+      // Fetch the login configuration dynamically
       async function fetchLoginConfig() {
         try {
-          const response = await fetch("/api/loginConfig");
+          const response = await fetch("./api/loginConfig");
 
           if (!response.ok) {
             let errorMessage = "Login failed: " + response.status;
@@ -344,13 +349,11 @@
             config.applicationTitle || "DHIS2 Login";
           document.getElementById("appWelcomeMessage").innerText =
             config.applicationDescription || "Welcome to the DHIS2 application";
-
           if (config.countryFlag) {
             const flag = document.getElementById("flag");
-            flag.src = `/dhis-web-commons/flags/${config.countryFlag}.png`;
+            flag.src = `./dhis-web-commons/flags/${config.countryFlag}.png`;
             flag.style.display = "block";
           }
-
         } catch (error) {
           console.error("Error:", error);
         }
@@ -360,7 +363,6 @@
         const twoFAToggle = document.getElementById("twoFAToggle");
         const twoFAContainer = document.getElementById("twoFAContainer");
 
-        // Function to toggle visibility based on checkbox state
         const toggleTwoFAInput = () => {
           if (twoFAToggle.checked) {
             twoFAContainer.style.display = "block";
@@ -384,7 +386,7 @@
           const submitButton = document.querySelector('input[type="submit"]');
           const spinner = document.getElementById("spinner");
           const errorMessage = document.getElementById("errorMessage");
-          const twoFA = document.getElementById("twoFA").value.trim(); // Trim whitespace
+          const twoFA = document.getElementById("twoFA").value.trim();
 
           spinner.style.display = "block";
           errorMessage.innerText = "";
@@ -398,7 +400,7 @@
           }
 
           try {
-            const response = await fetch("/api/auth/login", {
+            const response = await fetch("./api/auth/login", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -423,7 +425,7 @@
             const user = await response.json();
 
             if (user.loginStatus === "SUCCESS") {
-              const redirectUrl = user.redirectUrl || "/";
+              const redirectUrl = user.redirectUrl || "./";
               window.location.href = redirectUrl;
             } else {
               throw new Error("Login failed. Status: " + user.loginStatus);

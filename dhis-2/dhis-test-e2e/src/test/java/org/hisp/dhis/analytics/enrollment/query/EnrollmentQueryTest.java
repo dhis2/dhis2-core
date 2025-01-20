@@ -178,8 +178,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "2022-04-02 02:00:00.0",
             "2022-04-02 02:00:00.0",
             "",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "2017-11-16 12:26:42.851",
             "",
             "",
@@ -200,8 +200,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "2022-01-09 12:05:00.0",
             "2022-01-09 12:05:00.0",
             "",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "2018-08-06 21:15:40.207",
             "",
             "",
@@ -222,8 +222,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "2022-07-18 12:05:00.0",
             "2022-07-18 12:05:00.0",
             "",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "2018-08-06 21:15:41.333",
             "",
             "",
@@ -283,7 +283,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true,
         "edqlbukwRfQ",
-        "startIndex:-2 count:1 startDate:null endDate: null",
+        "index:-2 startDate:null endDate: null dimension: edqlbukwRfQ[-2].vANAXwtLwcT",
         -2);
     validateHeader(
         response,
@@ -295,7 +295,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true,
         "edqlbukwRfQ",
-        "startIndex:10 count:1 startDate:null endDate: null",
+        "index:10 startDate:null endDate: null dimension: edqlbukwRfQ[10].vANAXwtLwcT",
         10);
 
     validateRowContext(response, 0, 3, "ND");

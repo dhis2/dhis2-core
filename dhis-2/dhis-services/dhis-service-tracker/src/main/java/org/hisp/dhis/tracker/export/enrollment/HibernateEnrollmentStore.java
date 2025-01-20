@@ -57,6 +57,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
@@ -192,6 +193,9 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql += hlp.whereAnd() + "en.program.uid = '" + params.getProgram().getUid() + "'";
     }
 
+    // TODO(DHIS2-17961) This will be removed when dummy enrollments will not exist anymore
+    hql += hlp.whereAnd() + "en.program.programType = '" + ProgramType.WITH_REGISTRATION + "'";
+
     if (params.hasEnrollmentStatus()) {
       hql += hlp.whereAnd() + "en." + STATUS + " = '" + params.getEnrollmentStatus() + "'";
     }
@@ -233,7 +237,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       ouClause
           .append(orHlp.or())
           .append("en.organisationUnit.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'");
     }
 
@@ -248,7 +252,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       orgUnits
           .append(hlp.or())
           .append("en.organisationUnit.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'")
           .append(" AND (en.organisationUnit.hierarchyLevel = ")
           .append(organisationUnit.getHierarchyLevel())
@@ -275,7 +279,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       orderJoiner.add(
           order.getField() + " " + (order.getDirection().isAscending() ? "asc" : "desc"));
     }
-    return " order by " + orderJoiner;
+    return " order by " + orderJoiner + ", " + DEFAULT_ORDER;
   }
 
   @Getter

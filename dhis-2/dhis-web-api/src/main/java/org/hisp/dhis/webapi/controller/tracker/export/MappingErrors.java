@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -51,7 +51,8 @@ public class MappingErrors {
   // metadata if such large numbers do not have identifiers for the requested idScheme.
   private static final int DISPLAY_MAX_UIDS = 20;
 
-  private final Map<Class<?>, Set<IdentifiableObject>> errors = new HashMap<>();
+  private final Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> errors =
+      new HashMap<>();
   private final TrackerIdSchemeParams idSchemeParams;
 
   /**
@@ -77,43 +78,25 @@ public class MappingErrors {
             "Following metadata listed using their UIDs is missing identifiers for the requested"
                 + " idScheme:\n");
 
-    AtomicBoolean hasDefaultCategory = new AtomicBoolean();
+    boolean hasDefaultCategory = false;
 
-    errors.forEach(
-        (metadataClass, metadatas) -> {
-          if (metadatas.isEmpty()) {
-            return;
-          }
+    for (Entry<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> entry :
+        errors.entrySet()) {
+      Set<IdentifiableObject> metadatas = entry.getValue();
+      if (metadatas.isEmpty()) {
+        continue;
+      }
 
-          result.append("\n");
-          result.append(metadataClass.getSimpleName());
-          result.append("[");
-          result.append(idSchemeParams.getByClass(metadataClass));
-          result.append("]=");
+      appendMetadataPrefix(result, entry);
 
-          int count = 1;
-          int size = metadatas.size();
-          for (IdentifiableObject metadata : metadatas) {
-            if (count > DISPLAY_MAX_UIDS) {
-              result.append("...");
-              return;
-            }
-
-            result.append(metadata.getUid());
-            if (isDefaultCategory(metadata)) {
-              hasDefaultCategory.set(true);
-              result.append("(default)");
-            }
-            if (count < size) {
-              result.append(",");
-            }
-            count++;
-          }
-        });
+      if (appendUids(result, metadatas)) {
+        hasDefaultCategory = true;
+      }
+    }
 
     // default category option (combo) are guaranteed to have a UID, name and code but no attribute
     // values
-    if (hasDefaultCategory.get()) {
+    if (hasDefaultCategory) {
       result.append(
           """
 
@@ -124,11 +107,45 @@ Data linked to default category option (combo)s cannot be exported using\
     return result.toString();
   }
 
+  private void appendMetadataPrefix(
+      StringBuilder result,
+      Entry<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> entry) {
+    Class<? extends IdentifiableObject> metadataClass = entry.getKey();
+    result.append("\n");
+    result.append(metadataClass.getSimpleName());
+    result.append("[");
+    result.append(idSchemeParams.getByClass(metadataClass));
+    result.append("]=");
+  }
+
+  private boolean appendUids(StringBuilder result, Set<IdentifiableObject> metadatas) {
+    int count = 1;
+    int size = metadatas.size();
+    boolean hasDefaultCategory = false;
+    for (IdentifiableObject metadata : metadatas) {
+      if (count > DISPLAY_MAX_UIDS) {
+        result.append("...");
+        continue;
+      }
+
+      result.append(metadata.getUid());
+
+      if (isDefaultCategory(metadata)) {
+        hasDefaultCategory = true;
+        result.append("(default)");
+      }
+
+      if (count < size) {
+        result.append(",");
+      }
+      count++;
+    }
+    return hasDefaultCategory;
+  }
+
   private static boolean isDefaultCategory(IdentifiableObject metadata) {
     return metadata instanceof CategoryOptionCombo categoryOptionCombo
-            && CategoryOptionCombo.DEFAULT_NAME.equals(
-                categoryOptionCombo.getName()) // CategoryOptionCombo.isDefault
-        // checks the CategoryCombo.name and we might not have mapped the CategoryCombo
+            && categoryOptionCombo.isDefault()
         || metadata instanceof CategoryOption categoryOption && categoryOption.isDefault();
   }
 }

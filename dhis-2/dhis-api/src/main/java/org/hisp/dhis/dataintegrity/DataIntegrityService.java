@@ -34,25 +34,9 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * @author Jan Bernitt
  */
 public interface DataIntegrityService {
-  /*
-   * Old API
-   */
-
-  /**
-   * @deprecated Replaced by {@link #getSummaries(Set, long)} and {@link #getDetails(Set, long)},
-   *     kept for backwards compatibility until new UI exists
-   */
-  @Deprecated(since = "2.38", forRemoval = true)
-  @Nonnull
-  FlattenedDataIntegrityReport getReport(Set<String> checks, JobProgress progress);
-
-  /*
-   * New generic API
-   */
 
   default @Nonnull Collection<DataIntegrityCheck> getDataIntegrityChecks() {
     return getDataIntegrityChecks(Set.of());

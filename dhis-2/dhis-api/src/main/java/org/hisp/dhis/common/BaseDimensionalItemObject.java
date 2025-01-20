@@ -51,6 +51,9 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
   /** The aggregation type for this dimension. */
   protected AggregationType aggregationType;
 
+  /** The client's OptionSet for this dimension item. */
+  protected OptionSetItem optionSetItem;
+
   /** Query modifiers for this object. */
   protected transient QueryModifiers queryMods;
 
@@ -90,6 +93,17 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
     return (queryMods != null && queryMods.getAggregationType() != null)
         ? queryMods.getAggregationType()
         : aggregationType;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OptionSetItem getOptionSetItem() {
+    return optionSetItem;
+  }
+
+  public void setOptionSetItem(OptionSetItem optionSetItem) {
+    this.optionSetItem = optionSetItem;
   }
 
   // -------------------------------------------------------------------------

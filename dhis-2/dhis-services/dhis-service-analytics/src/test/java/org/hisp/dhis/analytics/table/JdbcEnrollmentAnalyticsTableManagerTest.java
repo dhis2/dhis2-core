@@ -36,7 +36,6 @@ import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,15 +61,15 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -81,7 +80,21 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class JdbcEnrollmentAnalyticsTableManagerTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
+  @Mock private OrganisationUnitService organisationUnitService;
+
+  @Mock private CategoryService categoryService;
+
+  @Mock private SystemSettingsProvider settingsProvider;
+
+  @Mock private SystemSettings settings;
+
+  @Mock private DataApprovalLevelService dataApprovalLevelService;
+
+  @Mock private ResourceTableService resourceTableService;
+
+  @Mock private AnalyticsTableHookService analyticsTableHookService;
+
+  @Mock private PartitionManager partitionManager;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -89,39 +102,20 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcEnrollmentAnalyticsTableManager subject;
+  @InjectMocks private JdbcEnrollmentAnalyticsTableManager subject;
 
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   @BeforeEach
   public void setUp() {
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
-    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
-    subject =
-        new JdbcEnrollmentAnalyticsTableManager(
-            idObjectManager,
-            mock(OrganisationUnitService.class),
-            mock(CategoryService.class),
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            mock(ResourceTableService.class),
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            databaseInfoProvider,
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
   }
 
   @Test
   void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program p1 = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -144,13 +138,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        format(
-            """
-        (select ou.%s from \"organisationunit\" ou where ou.uid = \
-        (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
-        trackedentityattributeid=9999)) as %s""",
-            "uid", quote(tea.getUid()));
+    String ouQuery = format("%s.value", quote(tea.getUid()));
 
     assertThat(sql.getValue(), containsString(ouQuery));
   }

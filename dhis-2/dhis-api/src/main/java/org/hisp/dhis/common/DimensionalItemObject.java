@@ -54,6 +54,9 @@ public interface DimensionalItemObject extends NameableObject {
   /** Gets the legend sets. */
   List<LegendSet> getLegendSets();
 
+  /** Option set saved for client usage. */
+  OptionSetItem getOptionSetItem();
+
   /**
    * Gets the first legend set in the legend set list. This field is derived from {@link
    * DimensionalObject#getLegendSet()} and is not persisted.

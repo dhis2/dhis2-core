@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -77,13 +78,13 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -107,7 +108,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Spy
+  private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
+      new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
   @Captor private ArgumentCaptor<String> sql;
 
@@ -132,7 +137,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
+            enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             sqlBuilder);
   }
@@ -379,7 +384,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     // Given
     mockEmptyRowSet();
     EventQueryParams params = createRequestParamsWithMultipleQueries();
-    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(BadSqlGrammarException.class);
+    SQLException sqlException = new SQLException("Some exception", "HY000");
+    BadSqlGrammarException badSqlGrammarException =
+        new BadSqlGrammarException("task", "select * from nothing", sqlException);
+    when(jdbcTemplate.queryForRowSet(anyString())).thenThrow(badSqlGrammarException);
 
     // Then
     assertDoesNotThrow(() -> subject.getEnrollments(params, new ListGrid(), 10000));
@@ -761,40 +769,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue() {
-    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
-
-    QueryItem item = new QueryItem(dio);
-    item.setValueType(ValueType.COORDINATE);
-    item.setProgramStage(repeatableProgramStage);
-    item.setProgram(programB);
-    RepeatableStageParams params = new RepeatableStageParams();
-
-    params.setStartIndex(0);
-    params.setCount(100);
-    params.setStartDate(DateUtils.parseDate("2022-01-01"));
-    params.setEndDate(DateUtils.parseDate("2022-01-31"));
-    item.setRepeatableStageParams(params);
-
-    String columnSql = subject.getColumn(item);
-
-    assertThat(
-        columnSql,
-        is(
-            "(select json_agg(t1) from (select \""
-                + dataElementA.getUid()
-                + "\", enrollmentoccurreddate, scheduleddate, occurreddate from analytics_event_"
-                + programB.getUid()
-                + " where analytics_event_"
-                + programB.getUid()
-                + ".eventstatus != 'SCHEDULE' and analytics_event_"
-                + programB.getUid()
-                + ".enrollment = ax.enrollment and ps = '"
-                + repeatableProgramStage.getUid()
-                + "' and occurreddate >= '2022-01-01'  and occurreddate <= '2022-01-31' order by occurreddate desc, created desc   LIMIT 100 ) as t1)"));
-  }
-
-  @Test
   void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue() {
     DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
@@ -804,8 +778,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setProgram(programB);
     RepeatableStageParams params = new RepeatableStageParams();
 
-    params.setStartIndex(0);
-    params.setCount(1);
+    params.setIndex(0);
     item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);

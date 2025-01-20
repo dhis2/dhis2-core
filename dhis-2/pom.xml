@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.1.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.0</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -98,13 +98,13 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.46</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.0.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>6.1.12</spring.version>
-    <spring-session-core.version>3.4.0</spring-session-core.version>
+    <spring-session-core.version>3.4.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -112,10 +112,10 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.0.RELEASE</lettuce.version>
+    <lettuce.version>6.5.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.21.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.2.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -123,21 +123,21 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.10.1</c3p0.version>
     <HikariCP.version>6.2.1</HikariCP.version>
-    <postgresql-driver.version>42.7.4</postgresql-driver.version>
+    <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
     <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.7.1-patch1</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.7.2</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
     <!-- Velocity -->
-    <velocity.version>2.4</velocity.version>
+    <velocity.version>2.4.1</velocity.version>
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.18.1</jackson.version>
+    <jackson.version>2.18.2</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -157,7 +157,7 @@
     <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.3.0</poi.version>
+    <poi.version>5.4.0</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
@@ -169,7 +169,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
-    <netty-all.version>4.1.115.Final</netty-all.version>
+    <netty-all.version>4.1.117.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -178,49 +178,49 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.18.1</jsoup.version>
+    <jsoup.version>1.18.3</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.3.1-jre</guava.version>
+    <guava.version>33.4.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.7.0</google-api-client.version>
+    <google-api-client.version>2.7.1</google-api-client.version>
     <lombok.version>1.18.36</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.13.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <commons-beanutils.version>1.10.0</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
-    <commons-text.version>1.12.0</commons-text.version>
+    <commons-text.version>1.13.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.18.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
+    <httpcomponents-core.version>5.3.2</httpcomponents-core.version>
     <httpcomponents-client5.version>5.4.1</httpcomponents-client5.version>
     <kafka.version>3.9.0</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.14.0</micrometer.version>
+    <micrometer.version>1.14.3</micrometer.version>
     <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
-    <log4j.version>2.24.2</log4j.version>
+    <log4j.version>2.24.3</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.3</junit.version>
+    <junit.version>5.11.4</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <testcontainers.version>1.20.4</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
-    <swagger.version>2.1.24</swagger.version>
+    <swagger.version>2.1.25</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
@@ -229,25 +229,25 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-    <maven-exec-plugin.version>3.4.1</maven-exec-plugin.version>
+    <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>11.1.0</dependency-check-maven.version>
+    <dependency-check-maven.version>12.0.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
-    <spotless.version>2.43.0</spotless.version>
+    <spotless.version>2.44.2</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.10.0</opentelemetry.version>
+    <opentelemetry.version>2.12.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -350,6 +350,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-sql</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-hibernate</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -423,16 +428,6 @@
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine-jvm</artifactId>
         <version>${dhis2-rule-engine.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <!-- Spring -->
@@ -1875,7 +1870,29 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>4.0.0.4121</version>
+          <version>5.0.0.4389</version>
+        </plugin>
+        <plugin>
+          <groupId>org.cyclonedx</groupId>
+          <artifactId>cyclonedx-maven-plugin</artifactId>
+          <configuration>
+            <projectType>library</projectType>
+            <schemaVersion>1.6</schemaVersion>
+            <includeBomSerialNumber>true</includeBomSerialNumber>
+            <includeCompileScope>true</includeCompileScope>
+            <includeProvidedScope>true</includeProvidedScope>
+            <includeRuntimeScope>true</includeRuntimeScope>
+            <includeSystemScope>true</includeSystemScope>
+            <includeTestScope>false</includeTestScope>
+            <includeLicenseText>false</includeLicenseText>
+            <outputReactorProjects>true</outputReactorProjects>
+            <outputFormat>all</outputFormat>
+            <outputName>dxbom</outputName>
+            <outputDirectory>${project.build.directory}</outputDirectory>
+            <!-- usually target, if not redefined in pom.xml -->
+            <verbose>false</verbose>
+            <!-- = ${cyclonedx.verbose} -->
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1968,7 +1985,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.6</version>
+              <version>4.9.0</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -2063,6 +2080,7 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-cql</ignoredUnusedDeclaredDependency>
@@ -2081,7 +2099,9 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.hibernate:hibernate-micrometer</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-spring-legacy</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
               <!-- Needed by dhis-web-server modules -->
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.velocity.tools:velocity-tools-generic</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
@@ -2115,6 +2135,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
@@ -2130,11 +2151,13 @@ jasperreports.version=${jasperreports.version}
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
+              <ignoredNonTestScopedDependency>org.springframework.data:spring-data-redis:jar</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-databind</ignoredNonTestScopedDependency>
               <!-- Needed by dhis-web-server module -->
+              <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-system</ignoredUnusedDeclaredDependency>
             </ignoredNonTestScopedDependencies>

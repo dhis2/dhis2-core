@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,11 +51,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,20 +65,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OperationsParamsValidatorTest {
-
-  private static final String PARENT_ORG_UNIT_UID = "parent-org-unit";
-
-  private final OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid3");
-
-  private final OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-
   private final Program program = new Program("program");
 
   private final TrackedEntity trackedEntity = new TrackedEntity();
 
   private final TrackedEntityType trackedEntityType = new TrackedEntityType();
 
-  private final OrganisationUnit orgUnit = new OrganisationUnit();
+  private final OrganisationUnit orgUnit = createOrganisationUnit('A');
 
   private static final UID PROGRAM_UID = UID.generate();
 
@@ -103,12 +96,6 @@ class OperationsParamsValidatorTest {
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
   private final UserDetails user = UserDetails.fromUser(new User());
-
-  @BeforeEach
-  public void setUp() {
-    OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
-    organisationUnit.setChildren(Set.of(captureScopeOrgUnit, searchScopeOrgUnit));
-  }
 
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
@@ -384,11 +371,5 @@ class OperationsParamsValidatorTest {
         paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithRoles));
 
     assertEquals(Set.of(orgUnit), orgUnits);
-  }
-
-  private OrganisationUnit createOrgUnit(String name, String uid) {
-    OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(uid);
-    return orgUnit;
   }
 }

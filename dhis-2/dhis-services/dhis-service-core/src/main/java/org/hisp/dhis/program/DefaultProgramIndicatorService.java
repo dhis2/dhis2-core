@@ -34,36 +34,7 @@ import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
 import static org.hisp.dhis.parser.expression.ProgramExpressionParams.DEFAULT_PROGRAM_EXPRESSION_PARAMS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_CONDITION;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_CONDITION;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_DAYS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_HAS_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MAX_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MINUTES_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MIN_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MONTHS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_OIZP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_RELATIONSHIP_COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_WEEKS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_YEARS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZING;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZPVC;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PS_EVENTDATE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STAGE_OFFSET;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_BRACE;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -74,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
@@ -84,6 +56,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nManager;
@@ -91,35 +64,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.parser.expression.function.RepeatableProgramStageOffset;
-import org.hisp.dhis.parser.expression.function.VectorAvg;
-import org.hisp.dhis.parser.expression.function.VectorCount;
-import org.hisp.dhis.parser.expression.function.VectorMax;
-import org.hisp.dhis.parser.expression.function.VectorMin;
-import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
-import org.hisp.dhis.parser.expression.function.VectorSum;
-import org.hisp.dhis.parser.expression.function.VectorVariance;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
-import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
-import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
-import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
-import org.hisp.dhis.program.function.D2Condition;
-import org.hisp.dhis.program.function.D2Count;
-import org.hisp.dhis.program.function.D2CountIfCondition;
-import org.hisp.dhis.program.function.D2CountIfValue;
-import org.hisp.dhis.program.function.D2DaysBetween;
-import org.hisp.dhis.program.function.D2HasValue;
-import org.hisp.dhis.program.function.D2MaxValue;
-import org.hisp.dhis.program.function.D2MinValue;
-import org.hisp.dhis.program.function.D2MinutesBetween;
-import org.hisp.dhis.program.function.D2MonthsBetween;
-import org.hisp.dhis.program.function.D2Oizp;
-import org.hisp.dhis.program.function.D2RelationshipCount;
-import org.hisp.dhis.program.function.D2WeeksBetween;
-import org.hisp.dhis.program.function.D2YearsBetween;
-import org.hisp.dhis.program.function.D2Zing;
-import org.hisp.dhis.program.function.D2Zpvc;
-import org.hisp.dhis.program.variable.ProgramVariableItem;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -146,6 +91,10 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
   private final Cache<String> analyticsSqlCache;
 
+  private final SqlBuilder sqlBuilder;
+
+  @Getter private final ImmutableMap<Integer, ExpressionItem> programIndicatorItems;
+
   public DefaultProgramIndicatorService(
       ProgramIndicatorStore programIndicatorStore,
       @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore")
@@ -155,7 +104,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       ExpressionService expressionService,
       DimensionService dimensionService,
       I18nManager i18nManager,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      SqlBuilder sqlBuilder) {
     checkNotNull(programIndicatorStore);
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
@@ -164,6 +114,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
+    checkNotNull(sqlBuilder);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;
@@ -173,57 +124,10 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.dimensionService = dimensionService;
     this.i18nManager = i18nManager;
     this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
+    this.sqlBuilder = sqlBuilder;
+
+    this.programIndicatorItems = new ExpressionMapBuilder().getExpressionItemMap();
   }
-
-  public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS =
-      ImmutableMap.<Integer, ExpressionItem>builder()
-
-          // Common functions
-
-          .putAll(COMMON_EXPRESSION_ITEMS)
-
-          // Program functions
-
-          .put(D2_CONDITION, new D2Condition())
-          .put(D2_COUNT, new D2Count())
-          .put(D2_COUNT_IF_CONDITION, new D2CountIfCondition())
-          .put(D2_COUNT_IF_VALUE, new D2CountIfValue())
-          .put(D2_DAYS_BETWEEN, new D2DaysBetween())
-          .put(D2_HAS_VALUE, new D2HasValue())
-          .put(D2_MAX_VALUE, new D2MaxValue())
-          .put(D2_MINUTES_BETWEEN, new D2MinutesBetween())
-          .put(D2_MIN_VALUE, new D2MinValue())
-          .put(D2_MONTHS_BETWEEN, new D2MonthsBetween())
-          .put(D2_OIZP, new D2Oizp())
-          .put(D2_RELATIONSHIP_COUNT, new D2RelationshipCount())
-          .put(D2_WEEKS_BETWEEN, new D2WeeksBetween())
-          .put(D2_YEARS_BETWEEN, new D2YearsBetween())
-          .put(D2_ZING, new D2Zing())
-          .put(D2_ZPVC, new D2Zpvc())
-
-          // Program functions for custom aggregation
-
-          .put(AVG, new VectorAvg())
-          .put(COUNT, new VectorCount())
-          .put(MAX, new VectorMax())
-          .put(MIN, new VectorMin())
-          .put(STDDEV, new VectorStddevSamp())
-          .put(SUM, new VectorSum())
-          .put(VARIANCE, new VectorVariance())
-
-          // Data items
-
-          .put(HASH_BRACE, new ProgramItemStageElement())
-          .put(A_BRACE, new ProgramItemAttribute())
-          .put(PS_EVENTDATE, new ProgramItemPsEventdate())
-
-          // Program variables
-
-          .put(V_BRACE, new ProgramVariableItem())
-
-          // . functions
-          .put(STAGE_OFFSET, new RepeatableProgramStageOffset())
-          .build();
 
   // -------------------------------------------------------------------------
   // ProgramIndicator CRUD
@@ -515,10 +419,11 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .programStageService(programStageService)
         .i18nSupplier(Suppliers.memoize(i18nManager::getI18n))
         .constantMap(expressionService.getConstantMap())
-        .itemMap(PROGRAM_INDICATOR_ITEMS)
+        .itemMap(programIndicatorItems)
         .itemMethod(itemMethod)
         .params(params)
         .progParams(progParams)
+        .sqlBuilder(sqlBuilder)
         .build();
   }
 

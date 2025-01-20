@@ -90,6 +90,7 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -145,6 +146,8 @@ public class UserController
 
   @Autowired private PasswordValidationService passwordValidationService;
 
+  @Autowired private TwoFactorAuthService twoFactorAuthService;
+
   // -------------------------------------------------------------------------
   // GET
   // -------------------------------------------------------------------------
@@ -152,26 +155,70 @@ public class UserController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetUserObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        "Limits results to users with the given phone number (shorthand for `filter=phoneNumber:eq:{value}`)")
     String phoneNumber;
+
+    @OpenApi.Description(
+        "Limits results to users that are members of a group the current user can manage.")
     boolean canManage;
+
+    @OpenApi.Description(
+        "Limits result to users that have no authority the current user doesn't have as well.")
     boolean authSubset;
+
+    @OpenApi.Description(
+        "Limits results to users that were logged in on or after the given date(-time) (shorthand for `filter=lastLogin:ge:{date}`).")
     Date lastLogin;
+
+    @OpenApi.Description(
+        "Limits results to users that haven't logged in for at least this number of months.")
     Integer inactiveMonths;
+
+    @OpenApi.Description(
+        "Limits results to users that haven't logged in since this date(-time) (shorthand for `filter=lastLogin:lt:{date}`).")
     Date inactiveSince;
+
+    @OpenApi.Description(
+        "Limits results to users that have self registered (shorthand for `filter=selfRegistered:eq:true`)")
     boolean selfRegistered;
+
+    @OpenApi.Description(
+        """
+      Limits results to users that with the provided invitation status
+      (`ALL` equals `filter=invitation:eq:true`, `EXPIRED` also requires the invitation to have expired by now).""")
     UserInvitationStatus invitationStatus;
+
+    @OpenApi.Description("Shorthand for `orgUnitBoundary=DATA_CAPTURE`")
     boolean userOrgUnits;
-    boolean includeChildren;
+
+    @OpenApi.Description(
+        """
+      Limits results to users that have a common organisation unit connection with the current user.
+      The `orgUnitBoundary` determines if the data capture, data view or search sets are considered.
+      When `includeChildren=true` is used the comparison includes the subtree of all units in the compared set.
+      """)
     UserOrgUnitType orgUnitBoundary;
 
+    @OpenApi.Description("See `orgUnitBoundary`")
+    boolean includeChildren;
+
+    @OpenApi.Description(
+        """
+      Limits results to users that have data capture connection to the given organisation unit.
+      The compared set can be changed using `orgUnitBoundary`.
+      """)
     @OpenApi.Property({UID.class, OrganisationUnit.class})
     String ou;
 
+    @OpenApi.Description(
+        "Shorthand for `canManage=true` + `authSubset=true` (takes precedence over individual parameters)")
     boolean manage;
 
     @JsonIgnore
     boolean isUsingAnySpecialFilters() {
-      return phoneNumber != null
+      return getQuery() != null
+          || phoneNumber != null
           || canManage
           || authSubset
           || lastLogin != null
@@ -191,11 +238,6 @@ public class UserController
   protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
     if (!params.isUsingAnySpecialFilters()) return null;
     UserQueryParams queryParams = toUserQueryParams(params);
-
-    String ou = params.getOu();
-    if (ou != null) {
-      queryParams.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
-    }
 
     if (params.isManage()) {
       queryParams.setCanManage(true);
@@ -217,7 +259,12 @@ public class UserController
     res.setInvitationStatus(params.getInvitationStatus());
     res.setUserOrgUnits(params.isUserOrgUnits());
     res.setIncludeOrgUnitChildren(params.isIncludeChildren());
-    res.setOrgUnitBoundary(params.getOrgUnitBoundary());
+    String ou = params.getOu();
+    if (ou != null) {
+      res.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
+    }
+    UserOrgUnitType boundary = params.getOrgUnitBoundary();
+    if (boundary != null) res.setOrgUnitBoundary(boundary);
     return res;
   }
 
@@ -503,20 +550,18 @@ public class UserController
   }
 
   /**
-   * "Disable two-factor authentication for the user with the given uid."
+   * Disable 2FA for the user with the given uid.
    *
-   * <p>
-   *
-   * @param uid The uid of the user to disable two-factor authentication for.
-   * @param currentUser This is the user that is currently logged in.
+   * @param uid The uid of the user to disable 2FA for.
+   * @param currentUser This is the user currently logged in.
    * @return A WebMessage object.
    */
   @PostMapping("/{uid}/twoFA/disabled")
   @ResponseBody
   public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(currentUser, uid, errors::add);
+    twoFactorAuthService.privileged2FADisable(currentUser, uid, errors::add);
 
     if (errors.isEmpty()) {
       return WebMessageUtils.ok();
@@ -590,7 +635,7 @@ public class UserController
       // We chose to expire the special case if password is set to the
       // same. i.e. no before & after equals pw check
       if (isPasswordChangeAttempt) {
-        userService.invalidateUserSessions(inputUser.getUid());
+        userService.invalidateUserSessions(inputUser.getUsername());
       }
     }
 
@@ -622,7 +667,7 @@ public class UserController
     // Make sure we always expire all the user's active sessions if we
     // have disabled the user.
     if (entityAfter != null && entityAfter.isDisabled()) {
-      userService.invalidateUserSessions(entityAfter.getUid());
+      userService.invalidateUserSessions(entityAfter.getUsername());
     }
 
     updateUserGroups(patch, entityAfter);
@@ -792,7 +837,7 @@ public class UserController
     }
 
     if (disable) {
-      userService.invalidateUserSessions(userToModify.getUid());
+      userService.invalidateUserSessions(userToModify.getUsername());
     }
   }
 
@@ -822,7 +867,7 @@ public class UserController
     userService.updateUser(userToModify);
 
     if (!userToModify.isAccountNonExpired()) {
-      userService.invalidateUserSessions(userToModify.getUid());
+      userService.invalidateUserSessions(userToModify.getUsername());
     }
   }
 
