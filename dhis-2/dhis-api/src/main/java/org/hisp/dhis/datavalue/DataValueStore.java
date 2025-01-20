@@ -117,8 +117,6 @@ public interface DataValueStore {
   void deleteDataValuesByAttributeOptionCombo(
       @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
-  void deleteDataValue(DataValue dataValue);
-
   /**
    * Returns a DataValue.
    *
@@ -191,14 +189,6 @@ public interface DataValueStore {
   List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
 
   /**
-   * Retrieve all {@link DataValue}s with references to {@link DataElement}s
-   *
-   * @param dataElements {@link DataElement}s
-   * @return {@link DataValue}s with references to {@link DataElement}s passed in
-   */
-  List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements);
-
-  /**
    * Gets the number of DataValues which have been updated between the given start and end date.
    * Either the start or end date can be null, but they cannot both be null.
    *
@@ -224,10 +214,6 @@ public interface DataValueStore {
    * @return true, if any values exist, otherwise false
    */
   boolean dataValueExistsForDataElement(String uid);
-
-  List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids);
-
-  List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids);
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}

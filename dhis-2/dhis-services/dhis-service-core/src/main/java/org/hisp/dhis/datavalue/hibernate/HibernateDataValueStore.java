@@ -57,7 +57,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -162,13 +161,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public void deleteDataValue(DataValue dataValue) {
-    getQuery("delete from DataValue dv where dv = :dataValue")
-        .setParameter("dataValue", dataValue)
-        .executeUpdate();
-  }
-
-  @Override
   public DataValue getDataValue(
       DataElement dataElement,
       Period period,
@@ -246,13 +238,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements) {
-    return getQuery("from DataValue dv where dv.dataElement in :dataElements")
-        .setParameter("dataElements", dataElements)
-        .getResultList();
-  }
-
-  @Override
   public int getDataValueCountLastUpdatedBetween(
       Date startDate, Date endDate, boolean includeDeleted) {
     if (startDate == null && endDate == null) {
@@ -306,32 +291,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .setMaxResults(1)
         .getResultList()
         .isEmpty();
-  }
-
-  @Override
-  public List<DataValue> getAllDataValuesByCatOptCombo(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return List.of();
-    return getQuery(
-            """
-            select dv from DataValue dv
-            join dv.categoryOptionCombo coc
-            where coc.uid in :uids
-            """)
-        .setParameter("uids", UID.toValueList(uids))
-        .getResultList();
-  }
-
-  @Override
-  public List<DataValue> getAllDataValuesByAttrOptCombo(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return List.of();
-    return getQuery(
-            """
-            select dv from DataValue dv
-            join dv.attributeOptionCombo aoc
-            where aoc.uid in :uids
-            """)
-        .setParameter("uids", UID.toValueList(uids))
-        .getResultList();
   }
 
   @Override

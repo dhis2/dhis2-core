@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.merge.dataelement.handler;
 
-import static org.hisp.dhis.datavalue.DataValueUtil.dataValueWithNewDataElement;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +39,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
-import org.hisp.dhis.merge.CommonDataMergeHandler;
-import org.hisp.dhis.merge.CommonDataMergeHandler.DataValueMergeParams;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
 import org.springframework.stereotype.Component;
@@ -60,7 +55,6 @@ public class DataDataElementMergeHandler {
 
   private final DataValueStore dataValueStore;
   private final DataValueAuditStore dataValueAuditStore;
-  private final CommonDataMergeHandler commonDataMergeHandler;
 
   /**
    * Method retrieving {@link DataValue}s by source {@link DataElement} references. All retrieved
@@ -81,27 +75,7 @@ public class DataDataElementMergeHandler {
               + " dataMergeStrategy being used, deleting source data values");
       dataValueStore.deleteDataValues(sources);
     } else {
-      // get DVs from sources
-      List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
-      log.info("{} data values retrieved for source DataElements", sourceDataValues.size());
-
-      // get map of target data values, using the duplicate key constraints as the key
-      Map<String, DataValue> targetDataValues =
-          dataValueStore.getAllDataValuesByDataElement(List.of(target)).stream()
-              .collect(Collectors.toMap(getDataValueKey, dv -> dv));
-      log.info("{} data values retrieved for target DataElement", targetDataValues.size());
-
-      commonDataMergeHandler.handleDataValues(
-          new DataValueMergeParams<>(
-              mergeRequest,
-              sources,
-              target,
-              sourceDataValues,
-              targetDataValues,
-              dataValueStore::deleteDataValues,
-              dataValueDuplicates,
-              dataValueWithNewDataElement,
-              getDataValueKey));
+      // TODO dv store merge DEs
     }
   }
 

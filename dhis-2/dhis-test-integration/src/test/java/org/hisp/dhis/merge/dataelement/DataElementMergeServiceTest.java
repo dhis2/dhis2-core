@@ -2318,8 +2318,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(deSource1.getUid(), deSource2.getUid())
+                        .contains(dv.getDataElement().getUid()))
+            .toList();
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+            .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2355,9 +2363,17 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then there should be no source data values present
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(deSource1.getUid(), deSource2.getUid())
+                        .contains(dv.getDataElement().getUid()))
+            .toList();
     // and only 1 target data value (as 3 duplicates merged using last updated value)
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+            .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2404,8 +2420,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(deSource1.getUid(), deSource2.getUid())
+                        .contains(dv.getDataElement().getUid()))
+            .toList();
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+            .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2448,8 +2472,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(deSource1.getUid(), deSource2.getUid())
+                        .contains(dv.getDataElement().getUid()))
+            .toList();
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+            .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
