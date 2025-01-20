@@ -79,6 +79,8 @@ class DimensionalObjectUtilsTest {
     assertTrue(DimensionalObjectUtils.isCompositeDimensionalObject("d4HjsAHkj42.G142kJ2k3Gj"));
     assertTrue(
         DimensionalObjectUtils.isCompositeDimensionalObject("d4HjsAHkj42.G142kJ2k3Gj.BoaSg2GopVn"));
+    assertTrue(
+        DimensionalObjectUtils.isCompositeDimensionalObject("d4HjsAHkj42.G142kJ2k3Gj.BoaSg2GopVn.AGGREGATED"));
     assertTrue(DimensionalObjectUtils.isCompositeDimensionalObject("d4HjsAHkj42.*.BoaSg2GopVn"));
     assertTrue(DimensionalObjectUtils.isCompositeDimensionalObject("d4HjsAHkj42.G142kJ2k3Gj.*"));
     assertTrue(DimensionalObjectUtils.isCompositeDimensionalObject("d4HjsAHkj42.*"));
