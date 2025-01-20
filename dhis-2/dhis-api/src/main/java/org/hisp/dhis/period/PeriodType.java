@@ -594,7 +594,7 @@ public abstract class PeriodType implements Serializable {
     final DateTimeUnit from = cal.toIso(dateInterval.getFrom());
     final DateTimeUnit to = cal.toIso(dateInterval.getTo());
 
-    return new Period(this, from.toJdkDate(), to.toJdkDate(), getIsoDate(from));
+    return new Period(this, from.toJdkDate(), to.toJdkDate(), getIsoDate(dateInterval.getFrom()));
   }
 
   /**
