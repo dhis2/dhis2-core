@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.expression;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+@Repository
+public class HibernateExpressionStore extends HibernateGenericStore<Expression>
+    implements org.hisp.dhis.expression.ExpressionStore {
 
-  List<Indicator> getIndicatorsWithGroupSets();
+  public HibernateExpressionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Expression.class, false);
+  }
 
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
-
-  List<Indicator> getIndicatorsWithNumeratorContaining(String search);
-
-  List<Indicator> getIndicatorsWithDenominatorContaining(String search);
-
-  /**
-   * Updates any indicator that has the 'find' param in either its numerator or denominator. The
-   * update involves updating numerator and denominator, replacing all occurrences of 'find' with
-   * 'replace'.
-   *
-   * @param find text to search for
-   * @param replace text used to replace
-   * @return number of rows updated
-   */
-  int updateNumeratorDenominatorContaining(String find, String replace);
+  @Override
+  public int updateExpressionContaining(String find, String replace) {
+    String sql =
+        """
+        update expression
+        set expression = replace(expression, '%s', '%s')
+        where expression like '%s';
+        """
+            .formatted(find, replace, "%" + find + "%");
+    return jdbcTemplate.update(sql);
+  }
 }
