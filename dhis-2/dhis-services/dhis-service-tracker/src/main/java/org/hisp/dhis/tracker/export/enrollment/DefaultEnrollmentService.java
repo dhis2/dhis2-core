@@ -53,6 +53,9 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
+
+  private final EventService eventService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -130,7 +135,9 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
-      result.setEvents(getEvents(user, enrollment, includeDeleted));
+      result.setEvents(
+          getEvents(
+              enrollment, params.getEnrollmentEventsParams().getEventParams(), includeDeleted));
     }
     if (params.isIncludeRelationships()) {
       result.setRelationshipItems(getRelationshipItems(user, enrollment, includeDeleted));
@@ -145,8 +152,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  public RelationshipItem getEnrollmentInRelationshipItem(
-      @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
+  public RelationshipItem getEnrollmentInRelationshipItem(@Nonnull UID uid, boolean includeDeleted)
       throws NotFoundException {
 
     RelationshipItem relationshipItem = new RelationshipItem();
@@ -162,20 +168,29 @@ class DefaultEnrollmentService implements EnrollmentService {
       return null;
     }
 
-    relationshipItem.setEnrollment(getEnrollment(enrollment, params, includeDeleted, currentUser));
+    relationshipItem.setEnrollment(
+        getEnrollment(
+            enrollment,
+            EnrollmentParams.FALSE.withIncludeAttributes(true),
+            includeDeleted,
+            currentUser));
     return relationshipItem;
   }
 
-  private Set<Event> getEvents(UserDetails user, Enrollment enrollment, boolean includeDeleted) {
-    Set<Event> events = new HashSet<>();
-
-    for (Event event : enrollment.getEvents()) {
-      if ((includeDeleted || !event.isDeleted())
-          && trackerAccessManager.canRead(user, event, true).isEmpty()) {
-        events.add(event);
-      }
+  private Set<Event> getEvents(
+      Enrollment enrollment, EventParams eventParams, boolean includeDeleted) {
+    EventOperationParams eventOperationParams =
+        EventOperationParams.builder()
+            .enrollments(Set.of(UID.of(enrollment)))
+            .eventParams(eventParams)
+            .includeDeleted(includeDeleted)
+            .build();
+    try {
+      return Set.copyOf(eventService.getEvents(eventOperationParams));
+    } catch (BadRequestException | ForbiddenException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the EventOperationParams are built");
     }
-    return events;
   }
 
   private Set<RelationshipItem> getRelationshipItems(

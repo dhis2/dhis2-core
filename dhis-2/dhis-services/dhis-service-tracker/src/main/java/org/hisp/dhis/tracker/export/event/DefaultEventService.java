@@ -238,6 +238,7 @@ class DefaultEventService implements EventService {
     return event;
   }
 
+  @Nonnull
   @Override
   public List<Event> getEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
@@ -245,6 +246,7 @@ class DefaultEventService implements EventService {
     return eventStore.getEvents(queryParams);
   }
 
+  @Nonnull
   @Override
   public Page<Event> getEvents(
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
