@@ -57,7 +57,7 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 @NoArgsConstructor
-@JacksonXmlRootElement(localName = "programAttributeDimension", namespace = DXF_2_0)
+@JacksonXmlRootElement(localName = "programAttributeOptionDimension", namespace = DXF_2_0)
 public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimensionalItemObject
     implements EmbeddedObject {
   private Program program;
@@ -120,6 +120,7 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
     return attribute.getAggregationType();
   }
 
+  @Override
   public String toString() {
     return toStringHelper(this)
         .add("program", program)
@@ -131,18 +132,21 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(program, attribute);
+    return Objects.hashCode(program, attribute, option, aggregation);
   }
 
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof ProgramTrackedEntityAttributeOptionDimensionItem
-            && objectEquals((ProgramTrackedEntityAttributeOptionDimensionItem) obj);
+        || obj instanceof ProgramTrackedEntityAttributeOptionDimensionItem item
+            && objectEquals(item);
   }
 
   private boolean objectEquals(ProgramTrackedEntityAttributeOptionDimensionItem other) {
-    return Objects.equal(attribute, other.attribute) && Objects.equal(program, other.program);
+    return Objects.equal(attribute, other.attribute)
+        && Objects.equal(program, other.program)
+        && Objects.equal(option, other.option)
+        && Objects.equal(aggregation, other.aggregation);
   }
 
   @JsonProperty

@@ -42,6 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.Objects;
 import java.util.List;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.Aggregation;
@@ -60,7 +61,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.Property;
 
 @NoArgsConstructor
-@JacksonXmlRootElement(localName = "programDataElement", namespace = DXF_2_0)
+@JacksonXmlRootElement(localName = "programDataElementOptionDimension", namespace = DXF_2_0)
 public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemObject
     implements EmbeddedObject, ValueTypedDimensionalItemObject {
   private Program program;
@@ -116,6 +117,24 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
         .add("option", option)
         .add("aggregation", aggregation)
         .toString();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(program, dataElement, option, aggregation);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof ProgramDataElementOptionDimensionItem item && objectEquals(item);
+  }
+
+  private boolean objectEquals(ProgramDataElementOptionDimensionItem other) {
+    return Objects.equal(program, other.program)
+        && Objects.equal(dataElement, other.dataElement)
+        && Objects.equal(option, other.option)
+        && Objects.equal(aggregation, other.aggregation);
   }
 
   @Override

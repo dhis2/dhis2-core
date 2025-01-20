@@ -45,9 +45,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
@@ -82,8 +81,8 @@ public class DataDimensionItem {
           ProgramDataElementOptionDimensionItem.class,
           ProgramTrackedEntityAttributeOptionDimensionItem.class);
 
-  public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
-      DATA_DIM_TYPE_CLASS_MAP = new HashMap<>();
+  public static final EnumMap<DataDimensionItemType, Class<? extends DimensionalItemObject>>
+      DATA_DIM_TYPE_CLASS_MAP = new EnumMap<>(DataDimensionItemType.class);
 
   private int id;
 
