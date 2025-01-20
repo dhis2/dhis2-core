@@ -94,7 +94,8 @@ public interface TrackerOwnershipManager {
    * @param reason The reason for requesting temporary ownership
    */
   void grantTemporaryOwnership(
-      TrackedEntityInstance entityInstance, Program program, User user, String reason);
+      TrackedEntityInstance entityInstance, Program program, User user, String reason)
+      throws ForbiddenException;
 
   /**
    * Ownership check can be skipped if the user is super user or if the program type is without

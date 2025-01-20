@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.util.Set;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,36 +45,66 @@ import org.junit.jupiter.api.Test;
  */
 class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
 
-  private String ouId;
-
-  private String teiId;
+  private String orgUnitAUid;
 
   private String pId;
 
+  private String teiId;
+
+  private User regularUser;
+
   @BeforeEach
   void setUp() {
-    ouId =
+    orgUnitAUid =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
-    String tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+    String orgUnitBUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+
+    OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
+    OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
+
+    regularUser =
+        createAndAddUser(
+            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    User superuser =
+        createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    injectSecurityContext(superuser);
+
+    String tetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/trackedEntityTypes/",
+                "{'name': 'A', 'sharing':{'external':false,'public':'rwrw----'}}"));
 
     teiId =
         assertStatus(
             HttpStatus.OK,
             POST(
                 "/trackedEntityInstances",
-                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}"));
+                "{'name':'A', 'trackedEntityType':'"
+                    + tetId
+                    + "', 'orgUnit':'"
+                    + orgUnitAUid
+                    + "'}"));
     pId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/programs/",
-                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION', 'organisationUnits': [{'id':'"
-                    + ouId
-                    + "'}]}"));
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITH_REGISTRATION', 'accessLevel':'PROTECTED', 'trackedEntityType': {'id': '"
+                    + tetId
+                    + "'}, 'organisationUnits': [{'id':'"
+                    + orgUnitAUid
+                    + "'}], 'sharing':{'external':false,'public':'rwrw----'}}"));
   }
 
   @Test
@@ -85,12 +118,13 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}",
                 teiId,
                 pId,
-                ouId)
+                orgUnitAUid)
             .content(HttpStatus.OK));
   }
 
   @Test
   void testOverrideOwnershipAccess() {
+    injectSecurityContext(regularUser);
     assertWebMessage(
         "OK",
         200,
