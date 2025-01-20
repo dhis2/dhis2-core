@@ -238,7 +238,7 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.0.0</dependency-check-maven.version>
+    <dependency-check-maven.version>12.0.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
     <spotless.version>2.44.2</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
