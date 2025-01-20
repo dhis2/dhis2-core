@@ -38,7 +38,11 @@ import java.util.function.Supplier;
 /**
  * @author Luciano Fiandesio
  */
-interface Aggregate {
+class AsyncUtils {
+  AsyncUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
   /**
    * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
    *
@@ -48,7 +52,7 @@ interface Aggregate {
    * @param executor an Executor instance
    * @return A CompletableFuture with the result of the Supplier
    */
-  default <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
+  static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
       boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
     return (condition
         ? supplyAsync(supplier, executor)
@@ -61,7 +65,7 @@ interface Aggregate {
    * @param supplier The Supplier to execute
    * @return A CompletableFuture with the result of the Supplier
    */
-  default <T> CompletableFuture<Multimap<String, T>> asyncFetch(
+  static <T> CompletableFuture<Multimap<String, T>> asyncFetch(
       Supplier<Multimap<String, T>> supplier, Executor executor) {
     return supplyAsync(supplier, executor);
   }
