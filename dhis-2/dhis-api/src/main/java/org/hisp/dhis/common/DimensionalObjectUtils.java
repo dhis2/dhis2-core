@@ -86,7 +86,8 @@ public class DimensionalObjectUtils {
    * metric, program data element option, etc. ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf
    */
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
-      Pattern.compile("(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*)(\\.(?<id4>\\w+|\\*))?)?");
+      Pattern.compile(
+          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*)(\\.(?<id4>\\w+|\\*))?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);
