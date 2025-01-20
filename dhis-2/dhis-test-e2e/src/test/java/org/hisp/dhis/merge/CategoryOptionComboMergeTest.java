@@ -72,6 +72,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
   private RestApiActions visualizationActions;
   private RestApiActions maintenanceApiActions;
   private RestApiActions dataValueSetActions;
+  private RestApiActions indicatorActions;
+  private RestApiActions indicatorTypeActions;
+  private RestApiActions validationRuleActions;
   private UserActions userActions;
   private LoginActions loginActions;
   private String sourceUid1;
@@ -92,6 +95,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
     maintenanceApiActions = new RestApiActions("maintenance");
     dataValueSetActions = new RestApiActions("dataValueSets");
     visualizationActions = new RestApiActions("visualizations");
+    indicatorActions = new RestApiActions("indicators");
+    indicatorTypeActions = new RestApiActions("indicatorTypes");
+    validationRuleActions = new RestApiActions("validationRules");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
@@ -560,6 +566,129 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("message", containsString("minmaxdataelement_unique_key"));
   }
 
+  @Test
+  @DisplayName(
+      "Indicators with COC source refs in their numerator or denominator are updated with target COC ref")
+  void indicatorsNumeratorDenominatorTest() {
+    // given
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
+
+    // get cat opt combo uids for sources and target, after generating
+    sourceUid1 = getCocWithOptions("1A", "2A");
+    sourceUid2 = getCocWithOptions("1B", "2B");
+    targetUid = getCocWithOptions("3A", "4B");
+
+    // indicators with mix of source COC in numerator, denominator
+    String indicatorType = setupIndicatorType("1");
+    String indicator1 = setupIndicator("1", indicatorType, sourceUid1, "num2", "denom1", "denom2");
+    String indicator2 = setupIndicator("2", indicatorType, "num1", "num2", sourceUid2, sourceUid2);
+    String indicator3 =
+        setupIndicator("3", indicatorType, sourceUid1, sourceUid2, sourceUid1, sourceUid2);
+    String indicator4 = setupIndicator("4", indicatorType, targetUid, "num2", targetUid, "denom2");
+    String indicator5 =
+        setupIndicator("5", indicatorType, "randomUID1", "randomUID2", "randomUID3", "randomUID4");
+
+    // when
+    ValidatableResponse response =
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validate();
+
+    // then
+    response
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("response.mergeReport.message", equalTo("CategoryOptionCombo merge complete"))
+        .body("response.mergeReport.mergeErrors", empty())
+        .body("response.mergeReport.mergeType", equalTo("CategoryOptionCombo"))
+        .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
+
+    // and source COC refs have been replaced
+    checkIndicatorValues(1, indicator1, targetUid, "num2", "denom1", "denom2");
+    checkIndicatorValues(2, indicator2, "num1", "num2", targetUid, targetUid);
+    checkIndicatorValues(3, indicator3, targetUid, targetUid, targetUid, targetUid);
+    checkIndicatorValues(4, indicator4, targetUid, "num2", targetUid, "denom2");
+    checkIndicatorValues(5, indicator5, "randomUID1", "randomUID2", "randomUID3", "randomUID4");
+  }
+
+  @Test
+  @DisplayName(
+      "Expressions with COC source refs in their expression are updated with target COC ref")
+  void expressionTest() {
+    // given
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
+
+    // get cat opt combo uids for sources and target, after generating
+    sourceUid1 = getCocWithOptions("1A", "2A");
+    sourceUid2 = getCocWithOptions("1B", "2B");
+    targetUid = getCocWithOptions("3A", "4B");
+
+    // indicators with mix of source COC in numerator, denominator
+    String validationRule1 =
+        setupExpressionInValidationRule("1", sourceUid1, "leftSide2", "rightSide1", "rightSide2");
+    String validationRule2 =
+        setupExpressionInValidationRule("2", "leftSide1", "leftSide2", "rightSide1", sourceUid2);
+    String validationRule3 =
+        setupExpressionInValidationRule("3", sourceUid1, sourceUid1, sourceUid2, "rightSide2");
+    String validationRule4 =
+        setupExpressionInValidationRule("4", targetUid, "leftSide2", "rightSide1", "rightSide2");
+    String validationRule5 =
+        setupExpressionInValidationRule("5", "leftSide1", "leftSide2", "rightSide1", "rightSide2");
+
+    // when
+    ValidatableResponse response =
+        categoryOptionComboApiActions.post("merge", getMergeBody("DISCARD")).validate();
+
+    // then
+    response
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("response.mergeReport.message", equalTo("CategoryOptionCombo merge complete"))
+        .body("response.mergeReport.mergeErrors", empty())
+        .body("response.mergeReport.mergeType", equalTo("CategoryOptionCombo"))
+        .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
+
+    // and source COC refs have been replaced with target COC refs
+    checkExpressionValues(1, validationRule1, targetUid, "leftSide2", "rightSide1", "rightSide2");
+    checkExpressionValues(2, validationRule2, "leftSide1", "leftSide2", "rightSide1", targetUid);
+    checkExpressionValues(3, validationRule3, targetUid, targetUid, targetUid, "rightSide2");
+    checkExpressionValues(4, validationRule4, targetUid, "leftSide2", "rightSide1", "rightSide2");
+    checkExpressionValues(5, validationRule5, "leftSide1", "leftSide2", "rightSide1", "rightSide2");
+  }
+
+  private void checkIndicatorValues(
+      int name, String indicator, String num1, String num2, String denom1, String denom2) {
+    indicatorActions
+        .get("/" + indicator)
+        .validate()
+        .statusCode(200)
+        .body("numerator", equalTo("#{%s.RanDOmUID01}.%s".formatted(num1, num2)))
+        .body("denominator", equalTo("#{h0xKKjijTdI.%s}.%s".formatted(denom1, denom2)))
+        .body("name", equalTo("test indicator %d".formatted(name)));
+  }
+
+  private void checkExpressionValues(
+      int name,
+      String rule,
+      String leftSide1,
+      String leftSide2,
+      String rightSide1,
+      String rightSide2) {
+    validationRuleActions
+        .get("/" + rule)
+        .validate()
+        .statusCode(200)
+        .body(
+            "leftSide.expression",
+            equalTo("#{%s.RandomUid01}+#{RandomUid02.%s}".formatted(leftSide1, leftSide2)))
+        .body(
+            "rightSide.expression",
+            equalTo("#{%s.RandomUid03}+#{RandomUid04.%s}".formatted(rightSide1, rightSide2)))
+        .body("name", equalTo("test val rule %d".formatted(name)));
+  }
+
   private void setupMetadata() {
     metadataActions.importMetadata(metadata()).validateStatus(200);
   }
@@ -604,6 +733,66 @@ class CategoryOptionComboMergeTest extends ApiTest {
              }
              """
                 .formatted(name, name))
+        .validateStatus(201)
+        .extractUid();
+  }
+
+  private String setupIndicator(
+      String name, String indType, String num1, String num2, String denom1, String denom2) {
+    return indicatorActions
+        .post(
+            """
+            {
+                "name": "test indicator %s",
+                "shortName": "test short %s",
+                "dimensionItemType": "INDICATOR",
+                "numerator": "#{%s.RanDOmUID01}.%s",
+                "denominator": "#{h0xKKjijTdI.%s}.%s",
+                "indicatorType": {
+                    "id": "%s"
+                }
+            }
+            """
+                .formatted(name, name, num1, num2, denom1, denom2, indType))
+        .validateStatus(201)
+        .extractUid();
+  }
+
+  private String setupExpressionInValidationRule(
+      String name, String leftSide1, String leftSide2, String rightSide1, String rightSide2) {
+    return validationRuleActions
+        .post(
+            """
+            {
+                 "name": "test val rule %s",
+                 "leftSide": {
+                     "expression": "#{%s.RandomUid01}+#{RandomUid02.%s}",
+                     "description": "expression 1"
+                 },
+                 "rightSide": {
+                     "expression": "#{%s.RandomUid03}+#{RandomUid04.%s}",
+                     "description": "expression 2"
+                 },
+                 "operator": "less_than_or_equal_to",
+                 "periodType": "Monthly"
+             }
+            """
+                .formatted(name, leftSide1, leftSide2, rightSide1, rightSide2))
+        .validateStatus(201)
+        .extractUid();
+  }
+
+  private String setupIndicatorType(String name) {
+    return indicatorTypeActions
+        .post(
+            """
+            {
+               "name": "test indicator %s",
+               "factor": 12,
+               "number": true
+            }
+            """
+                .formatted(name))
         .validateStatus(201)
         .extractUid();
   }

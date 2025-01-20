@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
-import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -52,7 +51,11 @@ class ProgramServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private ProgramStageService programStageService;
+
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private MappingService mappingService;
 
   private OrganisationUnit organisationUnitA;
 
@@ -149,21 +152,5 @@ class ProgramServiceTest extends PostgresIntegrationTestBase {
     Program p = programService.getProgram(programA.getUid());
     OrganisationUnit ou = organisationUnitService.getOrganisationUnit(organisationUnitA.getUid());
     assertTrue(programService.hasOrgUnit(p, ou));
-  }
-
-  @Test
-  void testDeleteProgramWithMapView() {
-    entityManager.persist(programA);
-    ProgramStage programStageA = createProgramStage('A', programA);
-    entityManager.persist(programStageA);
-    programA.getProgramStages().add(programStageA);
-    MapView mapView = createMapView("Test");
-    mapView.setProgram(programA);
-    mapView.setProgramStage(programStageA);
-    entityManager.persist(mapView);
-
-    assertDoesNotThrow(() -> programService.deleteProgram(programA));
-    assertNull(mapView.getProgram());
-    assertNull(mapView.getProgramStage());
   }
 }

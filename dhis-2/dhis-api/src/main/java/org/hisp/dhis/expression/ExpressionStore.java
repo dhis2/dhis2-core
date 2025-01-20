@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.expression;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericStore;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
-
-  List<Indicator> getIndicatorsWithGroupSets();
-
-  List<Indicator> getIndicatorsWithoutGroups();
-
-  List<Indicator> getIndicatorsWithDataSets();
-
-  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
-
-  List<Indicator> getIndicatorsWithNumeratorContaining(String search);
-
-  List<Indicator> getIndicatorsWithDenominatorContaining(String search);
+public interface ExpressionStore extends GenericStore<Expression> {
 
   /**
-   * Updates any indicator that has the 'find' param in either its numerator or denominator. The
-   * update involves updating numerator and denominator, replacing all occurrences of 'find' with
-   * 'replace'.
+   * Update all expressions whose expression property contains the 'find' value. When updating, it
+   * replaces all occurrences of 'find' with 'replace'.
    *
    * @param find text to search for
-   * @param replace text used to replace
-   * @return number of rows updated
+   * @param replace text used to replace 'find'
+   * @return number of entities updated
    */
-  int updateNumeratorDenominatorContaining(String find, String replace);
+  int updateExpressionContaining(String find, String replace);
 }

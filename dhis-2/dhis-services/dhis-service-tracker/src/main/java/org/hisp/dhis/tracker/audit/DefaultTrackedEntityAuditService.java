@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,13 +58,13 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Async
   @Transactional
   public void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, AuditOperationType auditOperationType) {
+      AuditOperationType type, String username, TrackedEntity trackedEntity) {
     if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), username, auditOperationType);
+          new TrackedEntityAudit(trackedEntity.getUid(), username, type);
       trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
     }
   }
@@ -71,8 +72,19 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits) {
-    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudits);
+  public void addTrackedEntityAudit(
+      AuditOperationType type, String username, @Nonnull List<TrackedEntity> trackedEntities) {
+    List<TrackedEntityAudit> audits =
+        trackedEntities.stream()
+            .filter(te -> te.getTrackedEntityType().isAllowAuditLog())
+            .map(te -> new TrackedEntityAudit(te.getUid(), username, type))
+            .toList();
+
+    if (audits.isEmpty()) {
+      return;
+    }
+
+    trackedEntityAuditStore.addTrackedEntityAudit(audits);
   }
 
   @Override

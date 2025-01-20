@@ -100,7 +100,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -123,7 +123,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private User user;
 
@@ -402,8 +402,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programA, orgUnitA, true, true);
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programB, orgUnitA, true, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA, programA, orgUnitA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA, programB, orgUnitA);
 
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
@@ -595,7 +597,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnTrackedEntityIncludingAllAttributesEnrollmentsEventsRelationshipsOwners()
       throws ForbiddenException, NotFoundException, BadRequestException {
     // this was declared as "remove ownership"; unclear to me how this is removing ownership
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programB, orgUnitB, true, true);
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityA, programB, orgUnitB);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1532,8 +1535,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.save(inaccessibleOrgUnit);
     makeProgramMetadataInaccessible(programB);
     makeProgramMetadataInaccessible(programC);
-    trackerOwnershipManager.assignOwnership(
-        trackedEntityA, programA, inaccessibleOrgUnit, true, true);
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityA, programA, inaccessibleOrgUnit);
     TrackedEntityOperationParams operationParams = createOperationParams(orgUnitB, trackedEntityB);
 
     injectSecurityContextUser(user);
@@ -1555,8 +1558,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.save(inaccessibleOrgUnit);
     makeProgramMetadataInaccessible(programB);
     makeProgramMetadataInaccessible(programC);
-    trackerOwnershipManager.assignOwnership(
-        trackedEntityB, programA, inaccessibleOrgUnit, true, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programA, inaccessibleOrgUnit);
     TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
 
     injectSecurityContextUser(user);
@@ -1595,8 +1598,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
     manager.save(inaccessibleOrgUnit);
     makeProgramMetadataInaccessible(programC);
-    trackerOwnershipManager.assignOwnership(
-        trackedEntityB, programB, inaccessibleOrgUnit, true, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, inaccessibleOrgUnit);
     TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
 
     injectSecurityContextUser(user);
@@ -1635,8 +1638,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
     manager.save(inaccessibleOrgUnit);
     makeProgramMetadataInaccessible(programC);
-    trackerOwnershipManager.assignOwnership(
-        trackedEntityB, programB, inaccessibleOrgUnit, true, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, inaccessibleOrgUnit);
     TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
     injectSecurityContextUser(user);
 

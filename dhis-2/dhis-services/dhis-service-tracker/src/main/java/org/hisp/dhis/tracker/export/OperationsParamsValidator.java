@@ -186,7 +186,7 @@ public class OperationsParamsValidator {
     if (trackedEntity == null) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
     }
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
