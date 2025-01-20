@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.legend.LegendSet;
@@ -56,6 +57,12 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+/**
+ * This class represents the junction of a {@link Program}, {@link TrackedEntityAttribute}, {@link
+ * Option} and the respective {@link Aggregation}. It's mainly used as a dimensional item ({@link
+ * DimensionalItemObject}), in visualization objects. ie: {@link
+ * org.hisp.dhis.visualization.Visualization}
+ */
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "programAttributeOptionDimension", namespace = DXF_2_0)
 public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimensionalItemObject
