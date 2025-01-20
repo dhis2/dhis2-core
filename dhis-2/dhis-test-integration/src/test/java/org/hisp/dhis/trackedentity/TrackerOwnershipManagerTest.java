@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.common.AccessLevel.AUDITED;
+import static org.hisp.dhis.common.AccessLevel.CLOSED;
+import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -48,6 +53,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -61,6 +67,8 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -148,7 +156,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     programService.updateProgram(programA);
     programB = createProgram('B');
-    programB.setAccessLevel(AccessLevel.CLOSED);
+    programB.setAccessLevel(CLOSED);
     programB.setTrackedEntityType(trackedEntityType);
     programService.addProgram(programB);
     programB.setSharing(
@@ -168,25 +176,20 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void testAssignOwnership() {
+  void shouldFailWhenGrantingTemporaryOwnershipAndUserNotInSearchScope() {
     assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
     assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceB1, programA));
-    trackerOwnershipAccessManager.assignOwnership(
-        entityInstanceA1, programA, organisationUnitB, false, true);
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
-  }
 
-  @Test
-  void testGrantTemporaryOwnershipWithAudit() {
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
-    trackerOwnershipAccessManager.grantTemporaryOwnership(
-        entityInstanceA1, programA, userB, "testing reason");
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, programA, userB, "testing reason"));
+
+    assertEquals(
+        "The owner of the entity-program combination is not in the user's search scope.",
+        exception.getMessage());
   }
 
   @Test
@@ -279,9 +282,13 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() {
+  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess() throws ForbiddenException {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         entityInstanceA1, programA, userB, "test protected program");
+
     assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
     assertTrue(
         trackerOwnershipAccessManager.hasAccess(
@@ -333,29 +340,73 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
             userB, entityInstanceB1.getUid(), entityInstanceB1.getOrganisationUnit(), programB));
   }
 
-  @Test
-  void shouldNotHaveAccessWhenProgramClosedAndUserHasTemporaryAccess() {
-    trackerOwnershipAccessManager.grantTemporaryOwnership(
-        entityInstanceA1, programB, userB, "test closed program");
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programB));
-    assertFalse(
-        trackerOwnershipAccessManager.hasAccess(
-            userB, entityInstanceA1.getUid(), entityInstanceA1.getOrganisationUnit(), programB));
+  private static Stream<Program> providePrograms() {
+    return Stream.of(createProgram(OPEN), createProgram(AUDITED), createProgram(CLOSED));
+  }
 
-    injectSecurityContextUser(userB);
-    ForbiddenException exception =
+  @ParameterizedTest
+  @MethodSource("providePrograms")
+  void shouldFailWhenGrantingTemporaryOwnershipToProgramWithAccessLevelOtherThanProtected(
+      Program program) {
+    Exception exception =
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackedEntityService.getTrackedEntity(
-                    entityInstanceA1.getUid(), programB.getUid(), defaultParams, false));
-    assertEquals(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED, exception.getMessage());
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, program, userB, "test temporary ownership"));
+
+    assertContains(
+        "Temporary ownership can only be granted to protected programs.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserIsSuperuser() {
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, programA, superUser, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Current user is a superuser.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNull() {
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, null, userB, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Program supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNotTrackerProgram() {
+    Program eventProgram = createProgram(AccessLevel.PROTECTED);
+    eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, eventProgram, userB, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Program supplied is not a tracker program.",
+        exception.getMessage());
   }
 
   @Test
   void shouldHaveAccessWhenProgramOpenAndUserInScope()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    programA.setAccessLevel(AccessLevel.OPEN);
+    programA.setAccessLevel(OPEN);
     programService.updateProgram(programA);
 
     assertEquals(
@@ -366,7 +417,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Test
   void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() throws ForbiddenException {
-    programA.setAccessLevel(AccessLevel.OPEN);
+    programA.setAccessLevel(OPEN);
     programService.updateProgram(programA);
     trackerOwnershipAccessManager.transferOwnership(
         entityInstanceA1, programA, organisationUnitB, true, true);
@@ -556,5 +607,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(trackedEntityService.getTrackedEntities(params));
+  }
+
+  private static Program createProgram(AccessLevel accessLevel) {
+    Program program = new Program();
+    program.setAccessLevel(accessLevel);
+
+    return program;
   }
 }

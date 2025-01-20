@@ -107,12 +107,12 @@ public class TrackerOwnershipController {
 
   @PostMapping(value = "/override", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage overrideOwnershipAccess(
+  public WebMessage grantTemporaryAccess(
       @Deprecated(since = "2.41") @RequestParam(required = false) UID trackedEntityInstance,
       @RequestParam(required = false) UID trackedEntity,
       @RequestParam String reason,
       @RequestParam String program)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     UID trackedEntityUid =
         validateMandatoryDeprecatedUidParameter(
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);

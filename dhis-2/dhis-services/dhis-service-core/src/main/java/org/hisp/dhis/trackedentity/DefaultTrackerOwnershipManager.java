@@ -234,22 +234,50 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Override
   @Transactional
   public void grantTemporaryOwnership(
-      TrackedEntity entityInstance, Program program, User user, String reason) {
-    if (canSkipOwnershipCheck(user, program) || entityInstance == null) {
-      return;
+      TrackedEntity entityInstance, Program program, User user, String reason)
+      throws ForbiddenException {
+
+    validateGrantTemporaryOwnershipInputs(entityInstance, program, user);
+
+    if (config.isEnabled(CHANGELOG_TRACKER)) {
+      programTempOwnershipAuditService.addProgramTempOwnershipAudit(
+          new ProgramTempOwnershipAudit(program, entityInstance, reason, user.getUsername()));
     }
 
-    if (program.isProtected()) {
-      if (config.isEnabled(CHANGELOG_TRACKER)) {
-        programTempOwnershipAuditService.addProgramTempOwnershipAudit(
-            new ProgramTempOwnershipAudit(program, entityInstance, reason, user.getUsername()));
-      }
-      ProgramTempOwner programTempOwner =
-          new ProgramTempOwner(
-              program, entityInstance, reason, user, TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS);
-      programTempOwnerService.addProgramTempOwner(programTempOwner);
-      tempOwnerCache.invalidate(
-          getTempOwnershipCacheKey(entityInstance.getUid(), program.getUid(), user.getUid()));
+    ProgramTempOwner programTempOwner =
+        new ProgramTempOwner(
+            program, entityInstance, reason, user, TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS);
+    programTempOwnerService.addProgramTempOwner(programTempOwner);
+    tempOwnerCache.invalidate(
+        getTempOwnershipCacheKey(entityInstance.getUid(), program.getUid(), user.getUid()));
+  }
+
+  private void validateGrantTemporaryOwnershipInputs(
+      TrackedEntity entityInstance, Program program, User user) throws ForbiddenException {
+    if (program == null) {
+      throw new ForbiddenException(
+          "Temporary ownership not created. Program supplied does not exist.");
+    }
+
+    if (user.isSuper()) {
+      throw new ForbiddenException("Temporary ownership not created. Current user is a superuser.");
+    }
+
+    if (ProgramType.WITHOUT_REGISTRATION == program.getProgramType()) {
+      throw new ForbiddenException(
+          "Temporary ownership not created. Program supplied is not a tracker program.");
+    }
+
+    if (!program.isProtected()) {
+      throw new ForbiddenException(
+          String.format(
+              "Temporary ownership can only be granted to protected programs. %s access level is %s.",
+              program.getUid(), program.getAccessLevel().name()));
+    }
+
+    if (!isOwnerInUserSearchScope(user, entityInstance, program)) {
+      throw new ForbiddenException(
+          "The owner of the entity-program combination is not in the user's search scope.");
     }
   }
 
