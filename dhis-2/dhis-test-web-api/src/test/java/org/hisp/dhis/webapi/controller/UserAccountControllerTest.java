@@ -351,7 +351,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   void selfRegInvalidPassword(String input, String expectedError) {
     disableRecaptcha();
     enableSelfRegistration();
-
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertWebMessage(
         "Bad Request",
         400,
@@ -527,7 +527,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName("Invite registration error when invalid password data")
   void inviteRegInvalidPassword(String password, String expectedError) {
     disableRecaptcha();
-
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertWebMessage(
         "Bad Request",
         400,
