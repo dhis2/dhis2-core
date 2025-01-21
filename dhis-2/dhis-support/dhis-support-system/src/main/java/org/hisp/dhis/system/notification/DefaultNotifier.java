@@ -50,6 +50,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 
 /**
@@ -65,6 +66,7 @@ public class DefaultNotifier implements Notifier {
   private final ObjectMapper jsonMapper;
   private final SystemSettingsProvider settingsProvider;
   private final BlockingQueue<Entry<UID, Notification>> pushToStore;
+  private NotificationLevel logLevel;
   private int messageLimit;
   private long settingsSince;
 
@@ -76,17 +78,23 @@ public class DefaultNotifier implements Notifier {
     this.messageLimit = settingsProvider.getCurrentSettings().getNotifierMaxMessages();
     this.pushToStore = new ArrayBlockingQueue<>(2048);
     this.settingsSince = currentTimeMillis();
-    Executors.newSingleThreadExecutor().execute(this::pushToStore);
+    Executors.newSingleThreadExecutor().execute(this::asyncPushToStore);
   }
 
-  private void pushToStore() {
+  private void asyncPushToStore() {
     while (true) {
       try {
-        Entry<UID, Notification> n = pushToStore.take();
-        while (n.getValue().getLevel() == NotificationLevel.LOOP && !pushToStore.isEmpty()) {
-          n = pushToStore.take(); // skip pushing LOOP which are already outdated
+        Entry<UID, Notification> e = pushToStore.poll(1, TimeUnit.MINUTES);
+        while (e != null
+            && e.getValue().getLevel() == NotificationLevel.LOOP
+            && !pushToStore.isEmpty()) {
+          e = pushToStore.take(); // skip pushing LOOP which are already outdated
         }
-        pushToStore(n.getKey(), n.getValue());
+        if (e != null) {
+          asyncPushToStore(e.getKey(), e.getValue());
+        } else {
+          store.capStoresByAge(settingsProvider.getCurrentSettings().getNotifierMaxAgeDays());
+        }
       } catch (Exception ex) {
         log.warn("Notification lost due to: " + ex.getMessage());
       }
@@ -97,7 +105,9 @@ public class DefaultNotifier implements Notifier {
   private int getMessageLimit() {
     long now = currentTimeMillis();
     if (now - settingsSince > 10_000) {
-      messageLimit = settingsProvider.getCurrentSettings().getNotifierMaxMessages();
+      SystemSettings settings = settingsProvider.getCurrentSettings();
+      messageLimit = settings.getNotifierMaxMessages();
+      logLevel = settings.getNotifierLogLevel();
       settingsSince = now;
     }
     return messageLimit;
@@ -112,6 +122,8 @@ public class DefaultNotifier implements Notifier {
       NotificationDataType dataType,
       JsonValue data) {
     if (id == null || level.isOff()) return this;
+    // not logged due to level?
+    if (!completed && dataType == null && level.ordinal() < logLevel.ordinal()) return this;
 
     Notification n =
         new Notification(level, id.getJobType(), new Date(), message, completed, dataType, data);
@@ -125,7 +137,7 @@ public class DefaultNotifier implements Notifier {
     return this;
   }
 
-  private void pushToStore(UID job, Notification n) {
+  private void asyncPushToStore(UID job, Notification n) {
     NotifierStore.NotificationStore list = store.getNotificationStore(n.getCategory(), job);
 
     boolean limit = true;
@@ -138,7 +150,7 @@ public class DefaultNotifier implements Notifier {
       int size = list.size();
       int maxSize = getMessageLimit();
       if (size >= maxSize) {
-        list.removeEarliest(size - maxSize);
+        list.removeOldest(size - maxSize);
       }
     }
     list.add(n);
@@ -175,8 +187,8 @@ public class DefaultNotifier implements Notifier {
     if (newest == null) return res;
     // newest goes first
     res.addFirst(newest);
-    Notification earliest = notifications.getEarliest();
-    if (earliest != null && !newest.getId().equals(earliest.getId())) res.addLast(earliest);
+    Notification oldest = notifications.getOldest();
+    if (oldest != null && !newest.getId().equals(oldest.getId())) res.addLast(oldest);
     return res;
   }
 
@@ -187,22 +199,54 @@ public class DefaultNotifier implements Notifier {
         gist ? this::getGistNotificationsByJobId : this::getAllNotificationsByJobId;
     Map<String, Deque<Notification>> res = new LinkedHashMap<>();
     store.getNotificationStores(jobType).stream()
-        .sorted(comparing(NotifierStore.NotificationStore::ageTimestamp))
+        .sorted(comparing(NotifierStore.NotificationStore::ageTimestamp).reversed())
         .forEach(s -> res.put(s.job().getValue(), read.apply(s.type(), s.job())));
     return res;
   }
 
   @Override
-  public Notifier clear(JobConfiguration id) {
-    if (id != null) store.clearStore(id.getJobType(), UID.of(id.getUid()));
-    return this;
+  public void clear() {
+    store.clearStores();
+  }
+
+  @Override
+  public void clear(JobType type) {
+    store.clearStore(type);
+  }
+
+  @Override
+  public void clear(JobType type, UID job) {
+    store.clearStore(type, job);
+  }
+
+  @Override
+  public void capMaxAge(int maxAge) {
+    store.capStoresByAge(maxAge);
+  }
+
+  @Override
+  public void capMaxCount(int maxCount) {
+    store.capStoresByCount(maxCount);
+  }
+
+  @Override
+  public void capMaxAge(JobType type, int maxAge) {
+    store.capStoresByAge(maxAge, type);
+  }
+
+  @Override
+  public void capMaxCount(JobType type, int maxCount) {
+    store.capStoresByCount(maxCount, type);
   }
 
   @Override
   public <T> Notifier addJobSummary(
       JobConfiguration id, NotificationLevel level, T summary, Class<T> type) {
-    if (id == null || level == null || level.isOff() || !type.equals(summary.getClass()))
-      return this;
+    if (id == null
+        || level == null
+        || level.isOff()
+        || !type.equals(summary.getClass())
+        || level.ordinal() < logLevel.ordinal()) return this;
 
     try {
       store

@@ -31,6 +31,7 @@ import java.util.Deque;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -104,18 +105,33 @@ public interface Notifier {
   Map<String, Deque<Notification>> getNotificationsByJobType(
       JobType jobType, @CheckForNull Boolean gist);
 
-  Notifier clear(JobConfiguration id);
-
-  default <T> Notifier addJobSummary(JobConfiguration id, T jobSummary, Class<T> jobSummaryType) {
-    return addJobSummary(id, NotificationLevel.INFO, jobSummary, jobSummaryType);
+  default <T> Notifier addJobSummary(JobConfiguration id, T summary, Class<T> type) {
+    return addJobSummary(id, NotificationLevel.INFO, summary, type);
   }
 
   <T> Notifier addJobSummary(
-      JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType);
-
-  // TODO change Object to JsonValue
+      JobConfiguration id, NotificationLevel level, T summary, Class<T> type);
 
   Map<String, JsonValue> getJobSummariesForJobType(JobType jobType);
 
   JsonValue getJobSummaryByJobId(JobType jobType, String jobId);
+
+  void clear(JobType type, UID job);
+
+  void clear(JobType type);
+
+  void clear();
+
+  void capMaxAge(JobType type, int maxAge);
+
+  void capMaxAge(int maxAge);
+
+  void capMaxCount(JobType type, int maxCount);
+
+  void capMaxCount(int maxCount);
+
+  default Notifier clear(JobConfiguration id) {
+    if (id != null) clear(id.getJobType(), UID.of(id.getUid()));
+    return this;
+  }
 }

@@ -159,7 +159,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
     }
 
     @Override
-    public void removeEarliest(int n) {
+    public void removeOldest(int n) {
       Notification n0 = collection.pollLast();
       for (int i = 0; i < n; i++) collection.pollLast();
       if (n0 != null) collection.addLast(n0);
@@ -178,7 +178,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
     @CheckForNull
     @Override
-    public Notification getEarliest() {
+    public Notification getOldest() {
       return collection.peekLast();
     }
 

@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.translation.Translatable;
 
 /**
@@ -744,6 +745,14 @@ public non-sealed interface SystemSettings extends Settings {
   default boolean isHideUnapprovedDataInAnalytics() {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
+  }
+
+  /**
+   * @since 2.42
+   * @return the minimum level required to include a notification in the list
+   */
+  default NotificationLevel getNotifierLogLevel() {
+    return asEnum("notifierLogLevel", NotificationLevel.DEBUG);
   }
 
   /**

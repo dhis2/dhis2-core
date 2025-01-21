@@ -114,7 +114,7 @@ public interface NotifierStore {
      *
      * @param n number of messages to remove from the start (oldest) (but not the 1st)
      */
-    void removeEarliest(int n);
+    void removeOldest(int n);
 
     void add(@Nonnull Notification n);
 
@@ -122,7 +122,7 @@ public interface NotifierStore {
     Notification getNewest();
 
     @CheckForNull
-    Notification getEarliest();
+    Notification getOldest();
 
     @Nonnull
     Stream<Notification> listNewestFirst();

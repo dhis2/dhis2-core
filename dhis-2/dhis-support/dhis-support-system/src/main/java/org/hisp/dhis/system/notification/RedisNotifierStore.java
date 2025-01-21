@@ -153,7 +153,7 @@ public class RedisNotifierStore implements NotifierStore {
     }
 
     @Override
-    public void removeEarliest(int n) {
+    public void removeOldest(int n) {
       collection.removeRange(1, n); // keep the first
     }
 
@@ -170,7 +170,7 @@ public class RedisNotifierStore implements NotifierStore {
 
     @CheckForNull
     @Override
-    public Notification getEarliest() {
+    public Notification getOldest() {
       return getEntry(0); // first in zset
     }
 
