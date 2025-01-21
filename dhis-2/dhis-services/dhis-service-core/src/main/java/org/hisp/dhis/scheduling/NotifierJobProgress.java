@@ -29,12 +29,12 @@ package org.hisp.dhis.scheduling;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.system.notification.NotificationDataType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -133,13 +133,13 @@ public class NotifierJobProgress implements JobProgress {
     }
   }
 
-  private JsonNode getJobParameterData() {
+  private JsonValue getJobParameterData() {
     JobParameters params = jobId.getJobParameters();
     if (params == null) {
       return null;
     }
     try {
-      return new ObjectMapper().valueToTree(params);
+      return JsonValue.of(new ObjectMapper().writeValueAsString(params));
     } catch (Exception ex) {
       return null;
     }

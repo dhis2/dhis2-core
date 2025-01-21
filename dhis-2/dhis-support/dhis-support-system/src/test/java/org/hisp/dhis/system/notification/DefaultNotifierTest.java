@@ -41,9 +41,9 @@ import java.util.Set;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.TestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.BoundZSetOperations;
@@ -53,13 +53,22 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author David Mackessy
  */
 @ExtendWith(MockitoExtension.class)
-class RedisNotifierTest extends TestBase {
+class DefaultNotifierTest extends TestBase {
 
   @Mock private RedisTemplate<String, String> redisTemplate;
 
   @Mock private BoundZSetOperations<String, String> boundZSetOperations;
 
-  @InjectMocks private RedisNotifier notifier;
+  private DefaultNotifier notifier;
+
+  @BeforeEach
+  void setUp() {
+    this.notifier =
+        new DefaultNotifier(
+            new RedisNotifierStore(redisTemplate),
+            new ObjectMapper(),
+            () -> SystemSettings.of(Map.of()));
+  }
 
   /**
    * When Redis is enabled, the APP UI relies on specific ordered data to know when generating
@@ -69,10 +78,8 @@ class RedisNotifierTest extends TestBase {
    */
   @Test
   void getNotificationsByJobIdTest_OrderedByTime() {
-    notifier =
-        new RedisNotifier(redisTemplate, new ObjectMapper(), () -> SystemSettings.of(Map.of()));
     JobType jobType = JobType.ANALYTICS_TABLE;
-    String jobId = "job1d1";
+    String jobId = "job1d178901";
     Set<String> dataFromRedis = new HashSet<>();
 
     // 3 Notifications, each with a different 'time' value
@@ -111,10 +118,8 @@ class RedisNotifierTest extends TestBase {
 
   @Test
   void getNotificationsByJobIdTest_OrderedByTimeAndCompleted() {
-    notifier =
-        new RedisNotifier(redisTemplate, new ObjectMapper(), () -> SystemSettings.of(Map.of()));
     JobType jobType = JobType.ANALYTICS_TABLE;
-    String jobId = "job1d1";
+    String jobId = "job1d178901";
     Set<String> dataFromRedis = new HashSet<>();
 
     // 3 Notifications, 2 with the same 'time' value (1 of which is 'complete')

@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -53,6 +54,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
@@ -77,6 +79,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -164,6 +167,26 @@ public class SystemController {
   // Tasks
   // -------------------------------------------------------------------------
 
+  @Data
+  public static class DeleteTasksParams {
+    private Integer n;
+    private Integer age;
+  }
+
+  @DeleteMapping("/tasks")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteNotifications(DeleteTasksParams params) {}
+
+  @DeleteMapping("/tasks/{jobType}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteNotificationsByJobType(
+      @PathVariable("jobType") JobType jobType, DeleteTasksParams params) {}
+
+  @DeleteMapping("/tasks/{jobType}/{jobId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteNotificationsByJobId(
+      @PathVariable("jobType") JobType jobType, @PathVariable("jobId") String jobId) {}
+
   @GetMapping(value = "/tasks", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksAllJobTypes(
       @RequestParam(required = false) Boolean gist) {
@@ -210,10 +233,10 @@ public class SystemController {
   // -------------------------------------------------------------------------
 
   @GetMapping(value = "/taskSummaries/{jobType}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson(
+  public ResponseEntity<Map<String, JsonValue>> getTaskSummaryExtendedJson(
       @PathVariable("jobType") String jobType) {
     if (jobType != null) {
-      Map<String, Object> summary =
+      Map<String, JsonValue> summary =
           notifier.getJobSummariesForJobType(JobType.valueOf(jobType.toUpperCase()));
       if (summary != null) {
         return ResponseEntity.ok().cacheControl(noStore()).body(summary);

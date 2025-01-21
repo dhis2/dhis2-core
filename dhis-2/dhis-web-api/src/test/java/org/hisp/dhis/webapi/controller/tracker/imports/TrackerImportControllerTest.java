@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobExecutionService;
@@ -328,7 +329,8 @@ class TrackerImportControllerTest {
             new HashMap<>());
 
     // When
-    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(importReport);
+    JsonValue report = JsonValue.of(new ObjectMapper().writeValueAsString(importReport));
+    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(report);
 
     when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);
 

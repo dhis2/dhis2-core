@@ -40,9 +40,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
  */
 class NotifierTest extends TestBase {
 
-  private final Notifier notifier = new InMemoryNotifier(() -> SystemSettings.of(Map.of()));
+  private final Notifier notifier = null; // FIXME
 
   private final User user = makeUser("A");
 
@@ -201,11 +201,11 @@ class NotifierTest extends TestBase {
     notifier.addJobSummary(analyticsTableJobConfig, "somethingid2", String.class);
     notifier.addJobSummary(dataValueImportSecondJobConfig, "somethingid4", String.class);
     notifier.addJobSummary(metadataImportJobConfig, "somethingid3", String.class);
-    Map<String, Object> jobSummariesForAnalyticsType =
+    Map<String, JsonValue> jobSummariesForAnalyticsType =
         notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);
     assertEquals(2, jobSummariesForAnalyticsType.size());
-    Map<String, Object> jobSummariesForMetadataImportType =
+    Map<String, JsonValue> jobSummariesForMetadataImportType =
         notifier.getJobSummariesForJobType(METADATA_IMPORT);
     assertNotNull(jobSummariesForMetadataImportType);
     assertEquals(1, jobSummariesForMetadataImportType.size());

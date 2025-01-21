@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.system.notification;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Deque;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
@@ -64,7 +64,7 @@ public interface Notifier {
       String message,
       boolean completed,
       NotificationDataType dataType,
-      JsonNode data);
+      JsonValue data);
 
   default Notifier update(JobConfiguration id, String message) {
     return update(id, NotificationLevel.INFO, message, false);
@@ -113,7 +113,9 @@ public interface Notifier {
   <T> Notifier addJobSummary(
       JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType);
 
-  Map<String, Object> getJobSummariesForJobType(JobType jobType);
+  // TODO change Object to JsonValue
 
-  Object getJobSummaryByJobId(JobType jobType, String jobId);
+  Map<String, JsonValue> getJobSummariesForJobType(JobType jobType);
+
+  JsonValue getJobSummaryByJobId(JobType jobType, String jobId);
 }

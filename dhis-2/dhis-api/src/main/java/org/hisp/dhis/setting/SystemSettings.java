@@ -747,13 +747,20 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * When the limit is exceeded the oldest message is dropped (FIFO).
-   *
    * @since 2.42
-   * @return the maximum number of messages kept for each job.
+   * @return the maximum number of messages kept for each job. When the limit is exceeded the oldest
+   *     message is dropped (FIFO).
    */
-  default int getNotifierMessageLimit() {
-    return asInt("notifierMessageLimit", 500);
+  default int getNotifierMaxMessages() {
+    return asInt("notifierMaxMessages", 500);
+  }
+
+  /**
+   * @since 2.42
+   * @return notifications and summaries older than this number of days are discarded automatically
+   */
+  default int getNotifierMaxAgeDays() {
+    return asInt("notifierMaxAgeDays", 7);
   }
 
   /**
