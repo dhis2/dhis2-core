@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.QueryFilter;
 
-/** Mimics the logic of @{@link org.hisp.dhis.common.InQueryFilter} to be used in CTEs */
+/** Mimics the logic of {@link org.hisp.dhis.common.InQueryFilter} to be used in CTEs */
 public class InQueryCteFilter {
 
   private final String filter;
@@ -55,8 +55,46 @@ public class InQueryCteFilter {
     this.cteDefinition = cteDefinition;
   }
 
+  /**
+   * Generates a "IN" SQL filter condition based on the configured filter parameters and CTE (Common
+   * Table Expression) definition. The method handles three main scenarios:
+   *
+   * <p>1. Regular values (non-missing): - For numeric fields: generates "alias_offset.field in
+   * (value1,value2,...)" - For text fields: generates "alias_offset.field in
+   * ('value1','value2',...)"
+   *
+   * <p>2. Missing values only (NV): - Generates "alias_offset.enrollment is not null and
+   * alias_offset.field is null"
+   *
+   * <p>3. Mixed values (regular values and NV): - Currently throws UnsupportedOperationException
+   *
+   * @param offset An integer value used to generate the unique CTE alias in the form
+   *     "alias_offset". This allows for multiple references to the same CTE in different parts of
+   *     the query.
+   * @return A String containing the SQL filter condition. The exact format depends on the filter
+   *     type: - For regular values with numeric field: "alias_0.field in (10,11,12)" - For regular
+   *     values with text field: "alias_0.field in ('value1','value2')" - For missing values (NV):
+   *     "alias_0.enrollment is not null and alias_0.field is null"
+   * @throws UnsupportedOperationException when the filter contains both regular values and NV
+   *     (missing values)
+   * @see org.hisp.dhis.analytics.QueryKey#NV
+   * @see CteDefinition#getAlias(int)
+   *     <p>Example usage:
+   *     <pre>
+   * // For numeric fields
+   * InQueryCteFilter filter1 = new InQueryCteFilter("age", "10;11;12", false, cteDef);
+   * String sql1 = filter1.getSqlFilter(0); // Returns: "alias_0.age in (10,11,12)"
+   *
+   * // For text fields
+   * InQueryCteFilter filter2 = new InQueryCteFilter("name", "john;jack", true, cteDef);
+   * String sql2 = filter2.getSqlFilter(1); // Returns: "alias_1.name in ('john','jack')"
+   *
+   * // For missing values
+   * InQueryCteFilter filter3 = new InQueryCteFilter("name", "NV", true, cteDef);
+   * String sql3 = filter3.getSqlFilter(0); // Returns: "alias_0.enrollment is not null and alias_0.name is null"
+   * </pre>
+   */
   public String getSqlFilter(int offset) {
-
     List<String> filterItems = QueryFilter.getFilterItems(this.filter);
 
     StringBuilder condition = new StringBuilder();
@@ -67,6 +105,7 @@ public class InQueryCteFilter {
           .append(
               streamOfNonMissingValues(filterItems)
                   .filter(Objects::nonNull)
+                  .map(String::trim)
                   .map(this::quoteIfNecessary)
                   .collect(Collectors.joining(",", " (", ")")));
       if (hasMissingValue(filterItems)) {
@@ -142,6 +181,7 @@ public class InQueryCteFilter {
   }
 
   protected String quote(String filterItem) {
-    return "'" + filterItem + "'";
+    // Make sure to escape single quotes in the filter item
+    return "'" + filterItem.replace("'", "''") + "'";
   }
 }

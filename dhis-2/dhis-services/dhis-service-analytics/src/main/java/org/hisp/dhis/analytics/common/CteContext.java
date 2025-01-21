@@ -37,6 +37,13 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 
+/**
+ * This class collects the CTE definitions that are generated during the SQL generation process for
+ * enrollment and event analytics. The CTE definitions are stored in a map where the key is the CTE
+ * name and the value is the CTE definition (the SQL query). Each CteDefinition object contains
+ * additional information such as the program stage UID and other identifiers that are used to
+ * generate the SQL query.
+ */
 public class CteContext {
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
@@ -71,11 +78,30 @@ public class CteContext {
     }
   }
 
-  /** Adds a aggregated base CTE definition to the context. */
+  /**
+   * Adds a aggregated base CTE definition to the context. An aggregated base CTE definition is used
+   * when creating enrollment and events aggregated queries. The `enrollment_base` CTE isolates and
+   * pre-filters the core enrollment data based on specific conditions such as enrollment date,
+   * organization level, and demographic attributes. This improves query readability, avoids
+   * redundant filtering in multiple query sections, and ensures consistent filtering criteria
+   * across the query, especially when joining with event data later in the query.
+   *
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param whereClauses The where clause that is used to filter the data (required for later
+   *     processing)
+   */
   public void addBaseAggregateCte(String cteDefinition, String whereClauses) {
     cteDefinitions.put(ENROLLMENT_AGGR_BASE, new CteDefinition(cteDefinition, whereClauses));
   }
 
+  /**
+   * Adds a special "exists" CTE definition to the context. This CTE definition is required when a
+   * non-aggregated query has the flag "rowContext" set to true
+   *
+   * @param programStage the ProgramStage object
+   * @param item the QueryItem object
+   * @param cteDefinition the CTE definition (the SQL query)
+   */
   public void addExistsCte(ProgramStage programStage, QueryItem item, String cteDefinition) {
     var cteDef =
         new CteDefinition(programStage.getUid(), item.getItemId(), cteDefinition, -999, false)

@@ -32,27 +32,42 @@ import java.util.List;
 import lombok.Getter;
 import org.apache.commons.text.RandomStringGenerator;
 
+/**
+ * This class represents a CTE (Common Table Expression) definition that is generated during the
+ * analytics enrollment and event SQL generation process. CTE definitions are generated based on the
+ * query items or program indicators that are used in the analytics request and are processed to
+ * build the final analytics SQL query.
+ */
 public class CteDefinition {
 
-  // Query item id
+  /** Query item id * */
   @Getter private String itemId;
-  // The program stage uid
+
+  /** The program stage uid * */
   @Getter private final String programStageUid;
-  // The program indicator uid
+
+  /** The program indicator uid * */
   @Getter private String programIndicatorUid;
-  // The CTE definition (the SQL query)
+
+  /** The CTE definition (the SQL query) * */
   @Getter private final String cteDefinition;
-  // The calculated offset
+
+  /** The calculated offset * */
   @Getter private final List<Integer> offsets = new ArrayList<>();
-  // The alias of the CTE
+
+  /** The alias of the CTE * */
   private final String alias;
-  // Whether the CTE is a row context
+
+  /** Whether the CTE is a row context * */
   @Getter private boolean rowContext;
-  // Whether the CTE is a program indicator
+
+  /** Whether the CTE is a program indicator * */
   @Getter private boolean programIndicator = false;
-  // Whether the CTE is a filter
+
+  /** Whether the CTE is a filter * */
   @Getter private boolean filter = false;
-  // Whether the CTE is a exists, used for checking if the enrollment exists
+
+  /** Whether the CTE is a exists, used for checking if the enrollment exists * */
   private boolean isExists = false;
 
   @Getter private boolean aggregationBase = false;

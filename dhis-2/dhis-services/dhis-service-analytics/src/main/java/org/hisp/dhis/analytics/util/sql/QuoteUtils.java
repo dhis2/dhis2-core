@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.util.sql;
 
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
 public class QuoteUtils {
@@ -64,22 +65,18 @@ public class QuoteUtils {
    *     Returns an empty string if the input is <code>null</code> or empty.
    */
   static String unquote(String quoted) {
-    // Handle null or empty
-    if (quoted == null || quoted.isEmpty()) {
+    if (StringUtils.isBlank(quoted)) {
       return "";
     }
 
-    // Check minimum length (needs at least 2 chars for quotes)
-    if (quoted.length() < 2) {
-      return quoted;
+    String betweenDoubleQuotes = StringUtils.substringBetween(quoted, "\"", "\"");
+    if (betweenDoubleQuotes != null) {
+      return betweenDoubleQuotes;
     }
 
-    char firstChar = quoted.charAt(0);
-    char lastChar = quoted.charAt(quoted.length() - 1);
-
-    // Check if quotes match
-    if ((firstChar == '"' && lastChar == '"') || (firstChar == '`' && lastChar == '`')) {
-      return quoted.substring(1, quoted.length() - 1);
+    String betweenBackticks = StringUtils.substringBetween(quoted, "`", "`");
+    if (betweenBackticks != null) {
+      return betweenBackticks;
     }
 
     return quoted;

@@ -34,7 +34,6 @@ import org.hisp.dhis.common.QueryItem;
 public class CteUtils {
 
   public static String computeKey(QueryItem queryItem) {
-
     if (queryItem.hasProgramStage()) {
       return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
     } else if (queryItem.isProgramIndicator()) {

@@ -107,7 +107,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     String filter = "";
     if (programIndicator.hasFilter()) {
-
       String piResolvedSqlFilter =
           getProgramIndicatorSql(
                   programIndicator.getFilter(),

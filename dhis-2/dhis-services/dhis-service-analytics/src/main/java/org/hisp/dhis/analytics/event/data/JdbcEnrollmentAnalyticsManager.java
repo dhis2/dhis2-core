@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -710,7 +711,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                       """
                   .formatted(columnName, columnName, tableName, programStageCondition);
             })
-        .collect(Collectors.joining("\nUNION ALL\n"));
+        .collect(Collectors.joining("\nunion all\n"));
   }
 
   @Override
@@ -804,7 +805,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
-    List<String> columns = new ArrayList<>();
+    Set<String> columns = new LinkedHashSet<>();
 
     // Get the CTE definition for the item
     CteDefinition cteDef = cteContext.getDefinitionByItemUid(computeKey(item));
@@ -820,7 +821,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (cteDef.isRowContext()) {
       // Add additional status and exists columns for row context
       columns.add(
-          "COALESCE(%s.rn = %s, false) as %s"
+          "coalesce(%s.rn = %s, false) as %s"
               .formatted(
                   cteDef.getAlias(programStageOffset),
                   programStageOffset + 1,
@@ -1146,7 +1147,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       }
     }
 
-    // return the name of the columns that are part
+    // Returns the name of the columns that are part
     // of the original params, no need to return also
     // the columns that are part of the filters
     sb.from(getFromClause(params));
@@ -1292,7 +1293,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                     order by occurreddate desc, created desc
                 ) as rn
             from ${eventTableName} evt
-            join ${enrollmentAggrBase} eb ON eb.enrollment = evt.enrollment
+            join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
             where evt.eventstatus != 'SCHEDULE'
               and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
         where evt.rn = 1
@@ -1417,6 +1418,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
+  /**
+   * Add to the {@link CteContext} the CTE definitions that are specified in the filters of {@link
+   * EventQueryParams}.
+   *
+   * @param params the {@link EventQueryParams} object
+   * @param cteContext the {@link CteContext} object
+   */
   private void generateFilterCTEs(EventQueryParams params, CteContext cteContext) {
     // Combine items and item filters
     List<QueryItem> queryItems =
@@ -1508,18 +1516,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Collect all columns from the headers
     Set<String> headerColumns = getHeaderColumns(headers, "");
     // Collect all CTE definitions for program indicators and program stages
-    Map<String, CteDefinition> cteDefinitionMap =
-        cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE).stream()
-            .map(cteContext::getDefinitionByItemUid)
-            .filter(def -> def.isProgramStage() || def.isProgramIndicator())
-            .collect(
-                Collectors.toMap(
-                    cteDef ->
-                        quote(
-                            cteDef.isProgramIndicator()
-                                ? cteDef.getProgramIndicatorUid()
-                                : cteDef.getProgramStageUid() + "." + cteDef.getItemId()),
-                    cteDef -> cteDef));
+    Map<String, CteDefinition> cteDefinitionMap = collectCteDefinitions(cteContext);
 
     // Iterate over headerColumns and add the columns to SelectBuilder based on the order specified
     // in the original GridHeader list
@@ -1546,6 +1543,30 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             sb.groupBy(quote(columnWithoutAlias));
           }
         });
+  }
+
+  private Map<String, CteDefinition> collectCteDefinitions(CteContext cteContext) {
+
+    Map<String, CteDefinition> cteDefinitionMap = new HashMap<>();
+
+    // Get all CTE keys excluding ENROLLMENT_AGGR_BASE
+    Set<String> cteKeys = cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE);
+
+    for (String key : cteKeys) {
+      CteDefinition def = cteContext.getDefinitionByItemUid(key);
+
+      // Only process if it's a program stage or program indicator
+      if (def.isProgramStage() || def.isProgramIndicator()) {
+        String mapKey =
+            quote(
+                def.isProgramIndicator()
+                    ? def.getProgramIndicatorUid()
+                    : def.getProgramStageUid() + "." + def.getItemId());
+
+        cteDefinitionMap.put(mapKey, def);
+      }
+    }
+    return cteDefinitionMap;
   }
 
   private String buildEnrollmentQueryWithCte(EventQueryParams params) {

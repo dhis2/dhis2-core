@@ -1451,7 +1451,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         columns.add(columnAndAlias.asSql());
       }
     }
-    // remove duplicates
+    // Remove duplicates
     return columns.stream().distinct().toList();
   }
 
