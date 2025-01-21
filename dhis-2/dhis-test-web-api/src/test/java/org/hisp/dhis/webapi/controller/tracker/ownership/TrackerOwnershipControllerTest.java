@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +56,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   private String teUid;
 
+  private String tetId;
+
   private String pId;
 
   private User regularUser;
@@ -76,37 +79,19 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
     OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
     OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
-    regularUser =
-        createAndAddUser(
-            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    regularUser = createAndAddUser(false, "regular-user", emptySet(), emptySet());
+    regularUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(regularUser);
     User superuser =
         createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
     injectSecurityContextUser(superuser);
 
-    String tetId =
+    tetId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/trackedEntityTypes/",
                 "{'name': 'A', 'sharing':{'external':false,'public':'rwrw----'}}"));
-
-    teUid = CodeGenerator.generateUid();
-    assertStatus(
-        HttpStatus.OK,
-        POST(
-            "/tracker?async=false",
-            """
-            {
-             "trackedEntities": [
-               {
-                 "trackedEntity": "%s",
-                 "trackedEntityType": "%s",
-                 "orgUnit": "%s"
-               }
-             ]
-            }
-            """
-                .formatted(teUid, tetId, orgUnitAUid)));
 
     pId =
         assertStatus(
@@ -125,6 +110,24 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
                     }
                     """
                     .formatted(tetId, orgUnitAUid, orgUnitBUid)));
+
+    teUid = CodeGenerator.generateUid();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/tracker?async=false",
+            """
+            {
+             "trackedEntities": [
+               {
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s"
+               }
+             ]
+            }
+            """
+                .formatted(teUid, tetId, orgUnitAUid)));
   }
 
   @Test
@@ -199,6 +202,45 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   @Test
   void shouldGrantTemporaryAccess() {
+    injectSecurityContextUser(regularUser);
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Temporary Ownership granted",
+        POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teUid, pId)
+            .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldGrantTemporaryAccessWhenTEEnrolledInProgram() {
+    teUid = CodeGenerator.generateUid();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/tracker?async=false",
+            """
+            {
+             "trackedEntities": [
+               {
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s",
+                 "enrollments": [
+                   {
+                    "program": "%s",
+                    "orgUnit": "%s",
+                    "status": "ACTIVE",
+                    "enrolledAt": "2023-06-16",
+                    "occurredAt': "2023-06-16"
+                   }
+                  ]
+               }
+             ]
+            }
+            """
+                .formatted(teUid, tetId, orgUnitAUid, pId, orgUnitAUid)));
+
     injectSecurityContextUser(regularUser);
     assertWebMessage(
         "OK",
