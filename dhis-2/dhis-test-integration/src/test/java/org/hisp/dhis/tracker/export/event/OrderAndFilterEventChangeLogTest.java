@@ -288,10 +288,10 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
     assertEquals(
         List.of(
             "with-option-set",
+            "test-dataelement9",
+            "test-dataelement9",
+            "test-dataelement9",
             "test-dataelement6",
-            "test-dataelement1",
-            "test-dataelement1",
-            "test-dataelement1",
             "scheduledAt",
             "occurredAt"),
         changeLogs);
