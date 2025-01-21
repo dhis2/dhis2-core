@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
@@ -53,6 +55,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   private String teUid;
 
+  private String tetId;
+
   private String pId;
 
   private User regularUser;
@@ -74,14 +78,14 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
     OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
     OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
-    regularUser =
-        createAndAddUser(
-            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    regularUser = createAndAddUser(false, "regular-user", emptySet(), emptySet());
+    regularUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(regularUser);
     User superuser =
         createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
     injectSecurityContextUser(superuser);
 
-    String tetId =
+    tetId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -197,6 +201,60 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
         "Temporary Ownership granted",
         POST("/tracker/ownership/override?trackedEntity={te}&program={prog}&reason=42", teUid, pId)
             .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldGrantTemporaryAccessWhenTEEnrolledInProgram() {
+    teUid = CodeGenerator.generateUid();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/tracker?async=false",
+            """
+            {
+             "trackedEntities": [
+               {
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s",
+                 "enrollments": [
+                   {
+                    "program": "%s",
+                    "orgUnit": "%s",
+                    "status": "ACTIVE",
+                    "enrolledAt": "2023-06-16",
+                    "occurredAt': "2023-06-16"
+                   }
+                  ]
+               }
+             ]
+            }
+            """
+                .formatted(teUid, tetId, orgUnitAUid, pId, orgUnitAUid)));
+
+    injectSecurityContextUser(regularUser);
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Temporary Ownership granted",
+        POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teUid, pId)
+            .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldFailToOverrideWhenGivenTrackedEntityAndTrackedEntityInstanceParameters() {
+    assertEquals(
+        "Only one parameter of 'trackedEntityInstance' and 'trackedEntity' must be specified. "
+            + "Prefer 'trackedEntity' as 'trackedEntityInstance' will be removed.",
+        POST(
+                "/tracker/ownership/override?trackedEntity={tei}&"
+                    + "trackedEntityInstance={tei}&program={prog}&&reason=42",
+                teUid,
+                teUid,
+                pId)
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test
