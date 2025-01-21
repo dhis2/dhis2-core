@@ -493,6 +493,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Test
   void getRelationshipsByEnrollmentNotFound() {
+    switchContextToUser(user);
     assertStartsWith(
         "Enrollment with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?enrollment=Hq3Kc6HK4OZ")

@@ -40,8 +40,10 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface EnrollmentService {
+  @Nonnull
   Enrollment getEnrollment(UID uid) throws ForbiddenException, NotFoundException;
 
+  @Nonnull
   Enrollment getEnrollment(UID uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
@@ -62,6 +64,7 @@ public interface EnrollmentService {
    * Get event matching given {@code UID} under the privileges the user in the context. This method
    * does not get the events relationships.
    */
+  @Nonnull
   List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException;
 
   /**
