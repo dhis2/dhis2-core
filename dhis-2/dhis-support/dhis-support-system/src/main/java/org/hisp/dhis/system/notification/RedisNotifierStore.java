@@ -28,11 +28,13 @@
 package org.hisp.dhis.system.notification;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.Comparator.comparingLong;
 import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -124,10 +126,28 @@ public class RedisNotifierStore implements NotifierStore {
   }
 
   @Override
-  public void capStoresByCount(int n, @Nonnull JobType type) {}
+  public void capStoresByCount(int n, @Nonnull JobType type) {
+    if (n <= 0) {
+      clearStore(type);
+      return;
+    }
+    List<? extends NotificationStore> stores = getNotificationStores(type);
+    if (stores.size() <= n) return;
+    int remove = stores.size() - n;
+    stores.stream()
+        .sorted(comparingLong(NotificationStore::ageTimestamp))
+        .limit(remove)
+        .forEach(s -> clearStore(s.type(), s.job()));
+  }
 
   @Override
-  public void capStoresByAge(int days, @Nonnull JobType type) {}
+  public void capStoresByAge(int days, @Nonnull JobType type) {
+    List<? extends NotificationStore> stores = getNotificationStores(type);
+    long removeBefore = currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
+    stores.stream()
+        .filter(s -> s.ageTimestamp() < removeBefore)
+        .forEach(s -> clearStore(s.type(), s.job()));
+  }
 
   private record RedisNotificationStore(
       JobType type, UID job, BoundZSetOperations<String, String> collection)

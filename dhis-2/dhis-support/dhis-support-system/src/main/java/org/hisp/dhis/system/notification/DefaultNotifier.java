@@ -56,6 +56,15 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 /**
  * Implements the {@link Notifier} API on to of a {@link NotifierStore}.
  *
+ * <p>Incoming {@link Notification} messages are decoupled from the caller thread by pushing them
+ * into a {@link BlockingQueue}. If the queue is full the message is dropped after a short timeout
+ * to not block the source thread. A worker thread constantly takes massages from the queue and
+ * pushes them into the {@link NotifierStore.NotificationStore}. This has the big advantage that
+ * only one thread ever writes to the store preventing any issues caused by concurrent writes. Also,
+ * this removes the burden from the source thread to be slowed down by the cost of storing the
+ * messages. Last but not least it also makes sure that any error from persisting messages does not
+ * affect the source thread.
+ *
  * @since 2.42
  * @author Jan Bernitt
  */
@@ -66,6 +75,7 @@ public class DefaultNotifier implements Notifier {
   private final ObjectMapper jsonMapper;
   private final SystemSettingsProvider settingsProvider;
   private final BlockingQueue<Entry<UID, Notification>> pushToStore;
+
   private NotificationLevel logLevel;
   private int messageLimit;
   private long settingsSince;
@@ -88,17 +98,39 @@ public class DefaultNotifier implements Notifier {
         while (e != null
             && e.getValue().getLevel() == NotificationLevel.LOOP
             && !pushToStore.isEmpty()) {
-          e = pushToStore.take(); // skip pushing LOOP which are already outdated
+          e = pushToStore.take(); // skip pushing LOOP entries which are already outdated
         }
         if (e != null) {
           asyncPushToStore(e.getKey(), e.getValue());
         } else {
+          // when there hasn't been any notifications lately
+          // the poll times out; it is a good time to run some cleanup
           store.capStoresByAge(settingsProvider.getCurrentSettings().getNotifierMaxAgeDays());
         }
       } catch (Exception ex) {
         log.warn("Notification lost due to: " + ex.getMessage());
       }
     }
+  }
+
+  private void asyncPushToStore(UID job, Notification n) {
+    NotifierStore.NotificationStore list = store.getNotificationStore(n.getCategory(), job);
+
+    boolean limit = true;
+    Notification newest = list.getNewest();
+    if (newest != null && newest.getLevel() == NotificationLevel.LOOP) {
+      list.removeNewest();
+      limit = false; // we deleted one so there is room for one
+    }
+    if (limit) {
+      int size = list.size();
+      int maxSize = getMessageLimit();
+      if (size >= maxSize) {
+        list.removeOldest(size - maxSize);
+      }
+    }
+    list.add(n);
+    NotificationLoggerUtil.log(log, n.getLevel(), n.getMessage());
   }
 
   /** This is potentially called so often that it is cached here refreshing it every 10 seconds. */
@@ -129,32 +161,12 @@ public class DefaultNotifier implements Notifier {
         new Notification(level, id.getJobType(), new Date(), message, completed, dataType, data);
 
     try {
-      if (!pushToStore.offer(Map.entry(UID.of(id.getUid()), n), 100, TimeUnit.MILLISECONDS))
+      if (!pushToStore.offer(Map.entry(UID.of(id.getUid()), n), 50, TimeUnit.MILLISECONDS))
         log.warn("Notification lost due to timeout: " + n);
     } catch (InterruptedException e) {
       log.warn("Notification lost due to interruption: " + n);
     }
     return this;
-  }
-
-  private void asyncPushToStore(UID job, Notification n) {
-    NotifierStore.NotificationStore list = store.getNotificationStore(n.getCategory(), job);
-
-    boolean limit = true;
-    Notification newest = list.getNewest();
-    if (newest != null && newest.getLevel() == NotificationLevel.LOOP) {
-      list.removeNewest();
-      limit = false; // we deleted one so there is room for one
-    }
-    if (limit) {
-      int size = list.size();
-      int maxSize = getMessageLimit();
-      if (size >= maxSize) {
-        list.removeOldest(size - maxSize);
-      }
-    }
-    list.add(n);
-    NotificationLoggerUtil.log(log, n.getLevel(), n.getMessage());
   }
 
   @Override
@@ -262,7 +274,7 @@ public class DefaultNotifier implements Notifier {
   public Map<String, JsonValue> getJobSummariesForJobType(JobType jobType) {
     Map<String, JsonValue> res = new LinkedHashMap<>();
     store.getSummaryStores(jobType).stream()
-        .sorted(comparing(NotifierStore.SummaryStore::ageTimestamp))
+        .sorted(comparing(NotifierStore.SummaryStore::ageTimestamp).reversed())
         .forEach(s -> res.put(s.job().getValue(), s.get()));
     return res;
   }
