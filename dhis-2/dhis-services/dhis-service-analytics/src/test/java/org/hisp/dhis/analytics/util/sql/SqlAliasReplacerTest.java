@@ -248,8 +248,4 @@ class SqlAliasReplacerTest {
         "%s.salary > (SELECT AVG(CASE WHEN status = 'ACTIVE' THEN salary ELSE 0 END) FROM employees)";
     assertEquals(expected, SqlAliasReplacer.replaceTableAliases(input, columns));
   }
-
-  private String noEof(String sql) {
-    return sql.replaceAll("\\s+", " ").trim();
-  }
 }

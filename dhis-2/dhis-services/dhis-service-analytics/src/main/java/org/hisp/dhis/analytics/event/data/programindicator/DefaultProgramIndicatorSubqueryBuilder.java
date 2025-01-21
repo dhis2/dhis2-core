@@ -115,7 +115,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
                   programIndicator,
                   earliestStartDate,
                   latestDate)
-              // FIXME this is a bit of an hack
+              // this is a bit of an hack
               .replace("subax.", "");
       filter = "where " + piResolvedSqlFilter;
     }
@@ -127,7 +127,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
                 programIndicator,
                 earliestStartDate,
                 latestDate)
-            // FIXME this is a bit of an hack
+            // this is a bit of an hack
             .replace("subax.", "");
 
     String cteSql =
