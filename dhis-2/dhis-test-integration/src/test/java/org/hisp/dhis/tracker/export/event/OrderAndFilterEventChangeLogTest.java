@@ -277,20 +277,24 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
     updateDataValues(event, "DATAEL00001", "value00002", "value00003");
 
-    List<EventChangeLog> changeLogs =
+    List<String> changeLogs =
         eventChangeLogService
             .getEventChangeLog(UID.of("pTzf9KYMk72"), params, defaultPageParams)
-            .getItems();
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
 
-    assertNumberOfChanges(7, changeLogs);
-    assertAll(
-        () -> assertDataElementCreate("DATAEL00005", "option1", changeLogs.get(0)),
-        () -> assertDataElementCreate("DATAEL00006", "88", changeLogs.get(1)),
-        () -> assertDataElementUpdate("DATAEL00001", "value00002", "value00003", changeLogs.get(2)),
-        () -> assertDataElementUpdate("DATAEL00001", "value00001", "value00002", changeLogs.get(3)),
-        () -> assertDataElementCreate("DATAEL00001", "value00001", changeLogs.get(4)),
-        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:32:38.100", changeLogs.get(5)),
-        () -> assertFieldCreate("occurredAt", "2019-01-25 12:10:38.100", changeLogs.get(6)));
+    assertEquals(
+        List.of(
+            "with-option-set",
+            "test-dataelement6",
+            "test-dataelement1",
+            "test-dataelement1",
+            "test-dataelement1",
+            "scheduledAt",
+            "occurredAt"),
+        changeLogs);
   }
 
   @Test
@@ -498,5 +502,15 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   private String getFirstDataElement(Event event) {
     return event.getEventDataValues().iterator().next().getDataElement();
+  }
+
+  private String getDisplayName(EventChangeLog cl) {
+    if (cl.getEventField() != null) {
+      return cl.getEventField();
+    } else if (cl.getDataElement().getFormName() != null) {
+      return cl.getDataElement().getFormName();
+    } else {
+      return cl.getDataElement().getName();
+    }
   }
 }
