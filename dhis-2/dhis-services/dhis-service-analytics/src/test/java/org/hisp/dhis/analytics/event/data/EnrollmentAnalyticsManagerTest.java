@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -70,6 +71,7 @@ import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -119,6 +121,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
   @Spy private SystemSettings systemSettings;
+  @Mock private DhisConfigurationProvider config;
 
   @Captor private ArgumentCaptor<String> sql;
 
@@ -135,6 +138,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   public void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
@@ -146,6 +150,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
+            config,
             sqlBuilder);
   }
 

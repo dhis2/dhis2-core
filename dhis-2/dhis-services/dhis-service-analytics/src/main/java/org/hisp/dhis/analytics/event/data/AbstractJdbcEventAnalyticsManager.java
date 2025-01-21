@@ -61,6 +61,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -116,6 +117,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
@@ -169,6 +171,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final SqlBuilder sqlBuilder;
 
   protected final SystemSettingsService settingsService;
+
+  private final DhisConfigurationProvider config;
 
   /**
    * Returns a SQL paging clause.
@@ -1451,8 +1455,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return columns.stream().distinct().toList();
   }
 
+  /**
+   * Determines if the experimental analytics query engine should be used. The experimental
+   * analytics query engine is used when the analytics database is set to Doris or when the setting
+   * is enabled. When the experimental analytics query engine is used, all enrollment and event
+   * queries are constructed using CTE (Common Table Expressions) instead of subqueries.
+   *
+   * @return true if the experimental analytics query engine should be used, false otherwise.
+   */
   protected boolean useExperimentalAnalyticsQueryEngine() {
-    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+    return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
+        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**
