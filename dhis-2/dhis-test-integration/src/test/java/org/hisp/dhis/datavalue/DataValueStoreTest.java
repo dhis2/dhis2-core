@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -366,7 +367,8 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   private void mergeDataValues(CategoryOptionCombo target, List<CategoryOptionCombo> sources) {
-    dataValueStore.mergeDataValuesWithCategoryOptionCombos(target, sources);
+    dataValueStore.mergeDataValuesWithCategoryOptionCombos(
+        target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     entityManager.flush();
     entityManager.clear();
   }

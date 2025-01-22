@@ -164,6 +164,17 @@ public class IdentifiableObjectUtils {
   }
 
   /**
+   * Returns a list of internal identifiers for the given collection of IdentifiableObjects.
+   *
+   * @param objects the list of IdentifiableObjects.
+   * @return a list of identifiers.
+   */
+  public static <T extends IdentifiableObject> Set<Long> getIdentifiersSet(
+      @Nonnull Collection<T> objects) {
+    return objects.stream().map(PrimaryKeyObject::getId).collect(Collectors.toSet());
+  }
+
+  /**
    * Returns a map from internal identifiers to IdentifiableObjects, for the given collection of
    * IdentifiableObjects.
    *

@@ -34,6 +34,7 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
@@ -75,7 +76,8 @@ public class DataDataElementMergeHandler {
               + " dataMergeStrategy being used, deleting source data values");
       dataValueStore.deleteDataValues(sources);
     } else {
-      dataValueStore.mergeDataValuesWithDataElements(target, sources);
+      dataValueStore.mergeDataValuesWithDataElements(
+          target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     }
   }
 

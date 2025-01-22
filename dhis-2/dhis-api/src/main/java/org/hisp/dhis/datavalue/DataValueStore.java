@@ -30,6 +30,7 @@ package org.hisp.dhis.datavalue;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
@@ -235,8 +236,7 @@ public interface DataValueStore {
    * @param target target {@link CategoryOptionCombo}
    * @param sources source {@link CategoryOptionCombo}s
    */
-  void mergeDataValuesWithCategoryOptionCombos(
-      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources);
+  void mergeDataValuesWithCategoryOptionCombos(long target, @Nonnull Set<Long> sources);
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
@@ -255,11 +255,10 @@ public interface DataValueStore {
    * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
    * has its {@link DataValue#attributeOptionCombo} updated to that of the target.
    *
-   * @param target target {@link CategoryOptionCombo}
-   * @param sources source {@link CategoryOptionCombo}s
+   * @param target target {@link CategoryOptionCombo} id
+   * @param sources source {@link CategoryOptionCombo} ids
    */
-  void mergeDataValuesWithAttributeOptionCombos(
-      @Nonnull CategoryOptionCombo target, @Nonnull Collection<CategoryOptionCombo> sources);
+  void mergeDataValuesWithAttributeOptionCombos(long target, @Nonnull Set<Long> sources);
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
@@ -278,9 +277,8 @@ public interface DataValueStore {
    * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
    * has its {@link DataValue#dataElement} updated to that of the target.
    *
-   * @param target target {@link DataElement}
-   * @param sources source {@link DataElement}s
+   * @param target target {@link DataElement} id
+   * @param sources source {@link DataElement} ids
    */
-  void mergeDataValuesWithDataElements(
-      @Nonnull DataElement target, @Nonnull Collection<DataElement> sources);
+  void mergeDataValuesWithDataElements(long target, @Nonnull Set<Long> sources);
 }
