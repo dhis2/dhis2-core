@@ -56,10 +56,8 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -85,8 +83,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 public class ResourceTableController {
 
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequestMapping(
       value = "/analytics",
@@ -103,7 +100,7 @@ public class ResourceTableController {
       @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
       @RequestParam(required = false) Integer lastYears,
       @RequestParam(defaultValue = "false") Boolean skipOutliers)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
 
@@ -147,8 +144,7 @@ public class ResourceTableController {
   @RequestMapping(method = {PUT, POST})
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
-  public WebMessage resourceTables(@CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage resourceTables(@CurrentUser UserDetails currentUser) throws ConflictException {
     JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
     config.setExecutedBy(currentUser.getUid());
     return execute(config);
@@ -159,17 +155,16 @@ public class ResourceTableController {
       method = {PUT, POST})
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
-  public WebMessage monitoring() throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage monitoring() throws ConflictException {
     JobConfiguration config = new JobConfiguration(MONITORING);
     config.setJobParameters(new MonitoringJobParameters());
     return execute(config);
   }
 
-  private WebMessage execute(JobConfiguration configuration)
-      throws ConflictException, NotFoundException {
+  private WebMessage execute(JobConfiguration configuration) throws ConflictException {
     log.debug("Executing requested job of type: '{}'", configuration.getJobType());
 
-    jobSchedulerService.createThenExecute(configuration);
+    jobExecutionService.executeOnceNow(configuration);
 
     return jobConfigurationReport(configuration);
   }

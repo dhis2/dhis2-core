@@ -53,6 +53,9 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
+  private final EventService eventService;
+
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -71,29 +76,68 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private final EnrollmentOperationParamsMapper paramsMapper;
 
+  @Nonnull
   @Override
   public Enrollment getEnrollment(@Nonnull UID uid) throws ForbiddenException, NotFoundException {
     return getEnrollment(uid, EnrollmentParams.FALSE, false);
   }
 
+  @Nonnull
   @Override
   public Enrollment getEnrollment(
       @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    UserDetails currentUser = getCurrentUserDetails();
-    Enrollment enrollment = enrollmentStore.getByUid(uid.getValue());
+    Page<Enrollment> enrollments;
+    try {
+      EnrollmentOperationParams operationParams =
+          EnrollmentOperationParams.builder()
+              .enrollments(Set.of(uid))
+              .enrollmentParams(params)
+              .includeDeleted(includeDeleted)
+              .build();
+      enrollments = getEnrollments(operationParams, new PageParams(1, 1, false));
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the EnrollmentOperationParams are built");
+    }
 
-    if (enrollment == null) {
+    if (enrollments.getItems().isEmpty()) {
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
+    return enrollments.getItems().get(0);
+  }
 
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+  @Override
+  public RelationshipItem getEnrollmentInRelationshipItem(
+      @Nonnull UID uid, boolean includeDeleted) {
+    Enrollment enrollment;
+    try {
+      enrollment = getEnrollment(uid);
+    } catch (NotFoundException | ForbiddenException e) {
+      // enrollments are not shown in relationships if the user has no access to them
+      return null;
     }
 
-    return getEnrollment(enrollment, params, includeDeleted, currentUser);
+    RelationshipItem relationshipItem = new RelationshipItem();
+    relationshipItem.setEnrollment(enrollment);
+    return relationshipItem;
+  }
+
+  private Set<Event> getEvents(
+      Enrollment enrollment, EventParams eventParams, boolean includeDeleted) {
+    EventOperationParams eventOperationParams =
+        EventOperationParams.builder()
+            .enrollments(Set.of(UID.of(enrollment)))
+            .eventParams(eventParams)
+            .includeDeleted(includeDeleted)
+            .build();
+    try {
+      return Set.copyOf(eventService.getEvents(eventOperationParams));
+    } catch (BadRequestException | ForbiddenException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the EventOperationParams are built");
+    }
   }
 
   private Enrollment getEnrollment(
@@ -130,7 +174,9 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
-      result.setEvents(getEvents(user, enrollment, includeDeleted));
+      result.setEvents(
+          getEvents(
+              enrollment, params.getEnrollmentEventsParams().getEventParams(), includeDeleted));
     }
     if (params.isIncludeRelationships()) {
       result.setRelationshipItems(getRelationshipItems(user, enrollment, includeDeleted));
@@ -142,40 +188,6 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
 
     return result;
-  }
-
-  @Override
-  public RelationshipItem getEnrollmentInRelationshipItem(
-      @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
-      throws NotFoundException {
-
-    RelationshipItem relationshipItem = new RelationshipItem();
-    Enrollment enrollment = enrollmentStore.getByUid(uid.getValue());
-
-    if (enrollment == null) {
-      throw new NotFoundException(Enrollment.class, uid);
-    }
-
-    UserDetails currentUser = getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
-    if (!errors.isEmpty()) {
-      return null;
-    }
-
-    relationshipItem.setEnrollment(getEnrollment(enrollment, params, includeDeleted, currentUser));
-    return relationshipItem;
-  }
-
-  private Set<Event> getEvents(UserDetails user, Enrollment enrollment, boolean includeDeleted) {
-    Set<Event> events = new HashSet<>();
-
-    for (Event event : enrollment.getEvents()) {
-      if ((includeDeleted || !event.isDeleted())
-          && trackerAccessManager.canRead(user, event, true).isEmpty()) {
-        events.add(event);
-      }
-    }
-    return events;
   }
 
   private Set<RelationshipItem> getRelationshipItems(
@@ -210,24 +222,28 @@ class DefaultEnrollmentService implements EnrollmentService {
     return attributeValues;
   }
 
+  @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
-    List<Enrollment> enrollments = enrollmentStore.getByUid(UID.toValueList(uids));
-    UserDetails user = getCurrentUserDetails();
-    List<String> errors =
-        enrollments.stream()
-            .flatMap(e -> trackerAccessManager.canRead(user, e, false).stream())
-            .toList();
-
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+    EnrollmentQueryParams queryParams;
+    try {
+      queryParams =
+          paramsMapper.map(
+              EnrollmentOperationParams.builder().enrollments(uids).build(),
+              getCurrentUserDetails());
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the EventOperationParams are built");
     }
 
-    return enrollments.stream()
-        .map(e -> getEnrollment(e, EnrollmentParams.FALSE, false, user))
-        .toList();
+    return getEnrollments(
+        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+        EnrollmentParams.FALSE,
+        false,
+        queryParams.getOrganisationUnitMode());
   }
 
+  @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
@@ -240,6 +256,7 @@ class DefaultEnrollmentService implements EnrollmentService {
         queryParams.getOrganisationUnitMode());
   }
 
+  @Nonnull
   @Override
   public Page<Enrollment> getEnrollments(
       @Nonnull EnrollmentOperationParams params, PageParams pageParams)

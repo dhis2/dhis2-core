@@ -71,6 +71,8 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @NoArgsConstructor(access = PRIVATE)
 public class DimensionalObjectUtils {
+  public static final String COMPOSITE_DIM_OBJECT_ESCAPED_SEP = "\\.";
+
   public static final String COMPOSITE_DIM_OBJECT_PLAIN_SEP = ".";
 
   public static final String TITLE_ITEM_SEP = ", ";
@@ -90,11 +92,11 @@ public class DimensionalObjectUtils {
 
   /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
-   * metric. ie: Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
+   * metric, program data element option, etc. ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf
    */
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
-          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?(\\[(?<list>[^\\]]*?)\\])?(-(?<suffix>AGGREGATED|DISAGGREGATED)?)?");
+          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*)(\\.(?<id4>\\w+|\\*))?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.scheduling;
 
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.web.session.HttpSessionCreatedEvent;
-import org.springframework.stereotype.Component;
+import java.io.InputStream;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ConflictException;
+import org.springframework.util.MimeType;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Component
-@Slf4j
-@RequiredArgsConstructor
-public class DhisHttpSessionEventListener {
-  private final DhisConfigurationProvider config;
+public interface JobExecutionService {
 
-  @EventListener
-  public void sessionCreated(HttpSessionCreatedEvent event) {
-    HttpSession session = event.getSession();
-    try {
-      String property = config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
-      session.setMaxInactiveInterval(Integer.parseInt(property));
-    } catch (Exception e) {
-      session.setMaxInactiveInterval(
-          Integer.parseInt(ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue()));
-      log.error("Could not read session timeout value from config", e);
-    }
-  }
+  /**
+   * Creates and runs a new job for one-off operations executed via the scheduler.
+   *
+   * @param config a new job that does not exist yet
+   * @param contentType of the provided content data
+   * @param content the data that should be processed by the job which is stored as file
+   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
+   *     configured correctly
+   */
+  void executeOnceNow(
+      @Nonnull JobConfiguration config, @Nonnull MimeType contentType, @Nonnull InputStream content)
+      throws ConflictException;
+
+  /**
+   * Creates and runs a new job for one-off operations executed via the scheduler.
+   *
+   * @param config a new job that does not exist yet
+   * @throws ConflictException in case the config belongs to an existing job or when the job isn't
+   *     configured correctly
+   */
+  void executeOnceNow(@Nonnull JobConfiguration config) throws ConflictException;
 }

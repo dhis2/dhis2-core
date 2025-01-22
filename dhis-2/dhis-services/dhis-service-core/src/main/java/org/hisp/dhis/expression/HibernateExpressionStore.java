@@ -25,39 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.expression;
 
-import java.io.InputStream;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MimeType;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author david mackessy
  */
-@Slf4j
-@RequiredArgsConstructor
-@Service
-@Profile("test")
-public class JobCreationHelperForTests implements JobCreationHelper {
+@Repository
+public class HibernateExpressionStore extends HibernateGenericStore<Expression>
+    implements org.hisp.dhis.expression.ExpressionStore {
 
-  private final JobConfigurationStore jobConfigurationStore;
-  private final FileResourceService fileResourceService;
-
-  @Transactional
-  public String create(JobConfiguration config) throws ConflictException {
-    return createFromConfig(config, jobConfigurationStore);
+  public HibernateExpressionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Expression.class, false);
   }
 
-  @Transactional
-  public String create(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException {
-    return createFromConfigAndInputStream(
-        config, contentType, content, jobConfigurationStore, fileResourceService);
+  @Override
+  public int updateExpressionContaining(String find, String replace) {
+    String sql =
+        """
+        update expression
+        set expression = replace(expression, '%s', '%s')
+        where expression like '%s';
+        """
+            .formatted(find, replace, "%" + find + "%");
+    return jdbcTemplate.update(sql);
   }
 }

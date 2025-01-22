@@ -56,9 +56,9 @@ class CategoryOptionMergeTest extends ApiTest {
   private RestApiActions maintenanceApiActions;
   private UserActions userActions;
   private LoginActions loginActions;
-  private final String sourceUid1 = "CatOptUid1A";
-  private final String sourceUid2 = "CatOptUid2B";
-  private final String targetUid = "CatOptUid3A";
+  private final String sourceUid1 = "UIDCatOpt1A";
+  private final String sourceUid2 = "UIDCatOpt2B";
+  private final String targetUid = "UIDCatOpt3A";
 
   @BeforeAll
   public void before() {
@@ -92,13 +92,9 @@ class CategoryOptionMergeTest extends ApiTest {
   void validCategoryOptionMergeTest() {
     // given
     // generate category option combos
-    String emptyParams = new QueryParamsBuilder().build();
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
-        .validateStatus(200);
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
-        .validateStatus(200);
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
 
     // confirm state before merge
     ValidatableResponse preMergeState =
@@ -108,7 +104,7 @@ class CategoryOptionMergeTest extends ApiTest {
         .body("organisationUnits", hasSize(equalTo(1)))
         .body("organisationUnits", hasItem(hasEntry("id", "OrgUnitUid3")))
         .body("categories", hasSize(equalTo(1)))
-        .body("categories", hasItem(hasEntry("id", "CategoUid03")))
+        .body("categories", hasItem(hasEntry("id", "UIDCatego03")))
         .body("categoryOptionCombos", hasSize(equalTo(2)))
         .body("categoryOptionGroups", hasSize(equalTo(1)))
         .body("categoryOptionGroups", hasItem(hasEntry("id", "CatOptGrp03")));
@@ -145,9 +141,9 @@ class CategoryOptionMergeTest extends ApiTest {
         .body(
             "categories",
             hasItems(
-                hasEntry("id", "CategoUid01"),
-                hasEntry("id", "CategoUid02"),
-                hasEntry("id", "CategoUid03")))
+                hasEntry("id", "UIDCatego01"),
+                hasEntry("id", "UIDCatego02"),
+                hasEntry("id", "UIDCatego03")))
         .body("categoryOptionCombos", hasSize(equalTo(5)))
         .body(
             "categoryOptionGroups",
@@ -158,7 +154,7 @@ class CategoryOptionMergeTest extends ApiTest {
   }
 
   private void setupMetadata() {
-    metadataActions.post(metadata()).validateStatus(200);
+    metadataActions.importMetadata(metadata()).validateStatus(200);
   }
 
   @Test
@@ -198,9 +194,9 @@ class CategoryOptionMergeTest extends ApiTest {
           {
               "categoryOptions": [
                   {
-                      "id": "CatOptUid1A",
-                      "name": "cat opt 1A",
-                      "shortName": "cat opt 1A",
+                      "id": "UIDCatOpt1A",
+                      "name": "cat option 1A",
+                      "shortName": "cat option 1A",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
@@ -208,9 +204,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid1B",
-                      "name": "cat opt 1B",
-                      "shortName": "cat opt 1B",
+                      "id": "UIDCatOpt1B",
+                      "name": "cat option 1B",
+                      "shortName": "cat option 1B",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
@@ -218,9 +214,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid2A",
-                      "name": "cat opt 2A",
-                      "shortName": "cat opt 2A",
+                      "id": "UIDCatOpt2A",
+                      "name": "cat option 2A",
+                      "shortName": "cat option 2A",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid2"
@@ -228,9 +224,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid2B",
-                      "name": "cat opt 2B",
-                      "shortName": "cat opt 2B",
+                      "id": "UIDCatOpt2B",
+                      "name": "cat option 2B",
+                      "shortName": "cat option 2B",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid2"
@@ -238,9 +234,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid3A",
-                      "name": "cat opt 3A",
-                      "shortName": "cat opt 3A",
+                      "id": "UIDCatOpt3A",
+                      "name": "cat option 3A",
+                      "shortName": "cat option 3A",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid3"
@@ -248,9 +244,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid3B",
-                      "name": "cat opt 3B",
-                      "shortName": "cat opt 3B",
+                      "id": "UIDCatOpt3B",
+                      "name": "cat option 3B",
+                      "shortName": "cat option 3B",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid3"
@@ -258,9 +254,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid4A",
-                      "name": "cat opt 4A",
-                      "shortName": "cat opt 4A",
+                      "id": "UIDCatOpt4A",
+                      "name": "cat option 4A",
+                      "shortName": "cat option 4A",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid4"
@@ -268,9 +264,9 @@ class CategoryOptionMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid4B",
-                      "name": "cat opt 4B",
-                      "shortName": "cat opt 4B",
+                      "id": "UIDCatOpt4B",
+                      "name": "cat option 4B",
+                      "shortName": "cat option 4B",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid4"
@@ -280,58 +276,58 @@ class CategoryOptionMergeTest extends ApiTest {
               ],
               "categories": [
                   {
-                      "id": "CategoUid01",
-                      "name": "cat 1",
-                      "shortName": "cat 1",
+                      "id": "UIDCatego01",
+                      "name": "category 1",
+                      "shortName": "category 1",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid1A"
+                              "id": "UIDCatOpt1A"
                           },
                           {
-                              "id": "CatOptUid1B"
+                              "id": "UIDCatOpt1B"
                           }
                       ]
                   },
                   {
-                      "id": "CategoUid02",
-                      "name": "cat 2",
-                      "shortName": "cat 2",
+                      "id": "UIDCatego02",
+                      "name": "category 2",
+                      "shortName": "category 2",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid2A"
+                              "id": "UIDCatOpt2A"
                           },
                           {
-                              "id": "CatOptUid2B"
+                              "id": "UIDCatOpt2B"
                           }
                       ]
                   },
                   {
-                      "id": "CategoUid03",
-                      "name": "cat 3",
-                      "shortName": "cat 3",
+                      "id": "UIDCatego03",
+                      "name": "category 3",
+                      "shortName": "category 3",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid3A"
+                              "id": "UIDCatOpt3A"
                           },
                           {
-                              "id": "CatOptUid3B"
+                              "id": "UIDCatOpt3B"
                           }
                       ]
                   },
                   {
-                      "id": "CategoUid04",
-                      "name": "cat 4",
-                      "shortName": "cat 4",
+                      "id": "UIDCatego04",
+                      "name": "category 4",
+                      "shortName": "category 4",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid4A"
+                              "id": "UIDCatOpt4A"
                           },
                           {
-                              "id": "CatOptUid4B"
+                              "id": "UIDCatOpt4B"
                           }
                       ]
                   }
@@ -365,85 +361,85 @@ class CategoryOptionMergeTest extends ApiTest {
               "categoryOptionGroups": [
                   {
                       "id": "CatOptGrp01",
-                      "name": "cog 1",
-                      "shortName": "cog 1",
+                      "name": "co group 1",
+                      "shortName": "co group 1",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid1A"
+                              "id": "UIDCatOpt1A"
                           },
                           {
-                              "id": "CatOptUid1B"
+                              "id": "UIDCatOpt1B"
                           }
                       ]
                   },
                   {
                       "id": "CatOptGrp02",
-                      "name": "cog 2",
-                      "shortName": "cog 2",
+                      "name": "co group 2",
+                      "shortName": "co group 2",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid2A"
+                              "id": "UIDCatOpt2A"
                           },
                           {
-                              "id": "CatOptUid2B"
+                              "id": "UIDCatOpt2B"
                           }
                       ]
                   },
                   {
                       "id": "CatOptGrp03",
-                      "name": "cog 3",
-                      "shortName": "cog 3",
+                      "name": "co group 3",
+                      "shortName": "co group 3",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid3A"
+                              "id": "UIDCatOpt3A"
                           },
                           {
-                              "id": "CatOptUid3B"
+                              "id": "UIDCatOpt3B"
                           }
                       ]
                   },
                   {
                       "id": "CatOptGrp04",
-                      "name": "cog 4",
-                      "shortName": "cog 4",
+                      "name": "co group 4",
+                      "shortName": "co group 4",
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid4A"
+                              "id": "UIDCatOpt4A"
                           },
                           {
-                              "id": "CatOptUid4B"
+                              "id": "UIDCatOpt4B"
                           }
                       ]
                   }
               ],
               "categoryCombos": [
                   {
-                      "id": "CatComUid01",
-                      "name": "cat combo 1",
+                      "id": "UIDCatCom01",
+                      "name": "category combo 1",
                       "dataDimensionType": "DISAGGREGATION",
                       "categories": [
                           {
-                              "id": "CategoUid01"
+                              "id": "UIDCatego01"
                           },
                           {
-                              "id": "CategoUid02"
+                              "id": "UIDCatego02"
                           }
                       ]
                   },
                   {
-                      "id": "CatComUid02",
-                      "name": "cat combo 2",
+                      "id": "UIDCatCom02",
+                      "name": "category combo 2",
                       "dataDimensionType": "DISAGGREGATION",
                       "categories": [
                           {
-                              "id": "CategoUid03"
+                              "id": "UIDCatego03"
                           },
                           {
-                              "id": "CategoUid04"
+                              "id": "UIDCatego04"
                           }
                       ]
                   }

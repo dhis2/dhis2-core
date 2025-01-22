@@ -163,8 +163,6 @@ class EventRequestParamsMapper {
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(attributeCategoryCombo)
             .attributeCategoryOptions(attributeCategoryOptions)
-            .includeAttributes(false)
-            .includeAllDataElements(false)
             .dataElementFilters(dataElementFilters)
             .attributeFilters(attributeFilters)
             .events(eventUids)

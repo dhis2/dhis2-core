@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
@@ -476,7 +477,7 @@ class PredictorStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Retrieving Predictors whose sample skit test contains DataElements returns expected results")
+      "Retrieving Predictors whose sample skip test contains DataElements returns expected results")
   void sampleSkipTestWithDataElementTest() {
     // given
     DataElement de1 = createDataElement('1');
@@ -522,6 +523,76 @@ class PredictorStoreTest extends PostgresIntegrationTestBase {
     assertEquals(2, allWithSampleSkipTestDEs.size());
     assertTrue(
         allWithSampleSkipTestDEs.containsAll(List.of(p1, p2)),
+        "Retrieved result set should contain both Predictors");
+  }
+
+  @Test
+  @DisplayName("Retrieving Predictors by CategoryOptionCombo returns expected results")
+  void getByCocTest() {
+    // given
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('1');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc1);
+
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('2');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc2);
+
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('3');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc3);
+
+    Predictor p1 =
+        createPredictor(
+            dataElementA,
+            coc1,
+            "A",
+            expressionC,
+            createExpression2('a', "#{test123}"),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p2 =
+        createPredictor(
+            dataElementX,
+            coc2,
+            "B",
+            expressionD,
+            createExpression2('a', "#{test123}"),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p3 =
+        createPredictor(
+            dataElementB,
+            coc3,
+            "C",
+            expressionB,
+            createExpression2('a', "#{test123}"),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(p1);
+    predictorStore.save(p2);
+    predictorStore.save(p3);
+
+    // when
+    List<Predictor> allByCoc =
+        predictorStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
+
+    // then
+    assertEquals(2, allByCoc.size());
+    assertTrue(
+        allByCoc.containsAll(List.of(p1, p2)),
         "Retrieved result set should contain both Predictors");
   }
 }

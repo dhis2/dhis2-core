@@ -186,7 +186,7 @@ public class HibernateOrganisationUnitStore
             + ")";
 
     Query<Long> query = getTypedQuery(hql);
-    query.setParameter("path", parent.getPath() + "%").setParameter("object", member);
+    query.setParameter("path", parent.getStoredPath() + "%").setParameter("object", member);
 
     return query.getSingleResult();
   }
@@ -244,7 +244,7 @@ public class HibernateOrganisationUnitStore
 
     if (params.hasParents()) {
       for (OrganisationUnit parent : params.getParents()) {
-        query.setParameter(parent.getUid(), parent.getPath() + "%");
+        query.setParameter(parent.getUid(), parent.getStoredPath() + "%");
       }
     }
 
@@ -319,7 +319,7 @@ public class HibernateOrganisationUnitStore
     String hql = "select max(ou.hierarchyLevel) from OrganisationUnit ou";
 
     Query<Integer> query = getTypedQuery(hql);
-    Integer maxLength = query.getSingleResult();
+    Integer maxLength = getSingleResult(query);
 
     return maxLength != null ? maxLength : 0;
   }

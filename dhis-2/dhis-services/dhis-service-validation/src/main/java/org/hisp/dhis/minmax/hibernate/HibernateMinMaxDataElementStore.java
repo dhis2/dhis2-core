@@ -37,8 +37,10 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -177,7 +179,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     getQuery(hql)
         .setParameterList("dataElements", dataElements)
-        .setParameter("path", parent.getPath() + "%")
+        .setParameter("path", parent.getStoredPath() + "%")
         .executeUpdate();
   }
 
@@ -190,6 +192,19 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
             """,
             MinMaxDataElement.class)
         .setParameter("dataElements", dataElements)
+        .list();
+  }
+
+  @Override
+  public List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct mmde from  MinMaxDataElement mmde
+            join mmde.optionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
         .list();
   }
 

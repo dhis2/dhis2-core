@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
+import static org.hisp.dhis.audit.AuditOperationType.DELETE;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
@@ -180,7 +180,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       if (entity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
-      trackedEntityAuditService.addTrackedEntityAudit(entity, getCurrentUsername(), READ);
+      trackedEntityAuditService.addTrackedEntityAudit(DELETE, getCurrentUsername(), entity);
 
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 

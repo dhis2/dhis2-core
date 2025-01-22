@@ -175,8 +175,6 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    */
   boolean tryRevertNow(@Nonnull String jobId);
 
-  boolean executeNow(@Nonnull String jobId);
-
   /**
    * A successful update means the DB state flipped from {@link JobStatus#SCHEDULED} to {@link
    * JobStatus#RUNNING}.

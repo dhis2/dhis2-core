@@ -31,11 +31,14 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -44,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -249,5 +253,44 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
         dataApprovalStore.getDataApproval(
             level2, workflowB12, periodB, sourceB, categoryOptionCombo);
     assertNull(dataApprovalB);
+  }
+
+  @Test
+  @DisplayName("Retrieving DataApprovals by CategoryOptionCombo returns expected results")
+  void getByCocTest() {
+    // given
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('1');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc1);
+
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('2');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc2);
+
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('3');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc3);
+
+    Date date = new Date();
+    DataApproval dataApprovalA =
+        new DataApproval(level1, workflowA12, periodA, sourceA, coc1, false, date, userA);
+    DataApproval dataApprovalB =
+        new DataApproval(level2, workflowA12, periodA, sourceB, coc2, false, date, userA);
+    DataApproval dataApprovalC =
+        new DataApproval(level1, workflowA12, periodB, sourceA, coc3, false, date, userA);
+
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
+    dataApprovalStore.addDataApproval(dataApprovalC);
+
+    // when
+    List<DataApproval> allByCoc =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
+
+    // then
+    assertEquals(2, allByCoc.size());
+    assertTrue(
+        allByCoc.containsAll(List.of(dataApprovalA, dataApprovalB)),
+        "Retrieved result set should contain both DataApprovals");
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.expression;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import org.hisp.dhis.common.GenericStore;
 
 /**
- * @author Luciano Fiandesio
+ * @author david mackessy
  */
-interface Aggregate {
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
-   *     Multimap
-   * @param supplier The Supplier to execute
-   * @param executor an Executor instance
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  default <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
-  }
+public interface ExpressionStore extends GenericStore<Expression> {
 
   /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+   * Update all expressions whose expression property contains the 'find' value. When updating, it
+   * replaces all occurrences of 'find' with 'replace'.
    *
-   * @param supplier The Supplier to execute
-   * @return A CompletableFuture with the result of the Supplier
+   * @param find text to search for
+   * @param replace text used to replace 'find'
+   * @return number of entities updated
    */
-  default <T> CompletableFuture<Multimap<String, T>> asyncFetch(
-      Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return supplyAsync(supplier, executor);
-  }
+  int updateExpressionContaining(String find, String replace);
 }

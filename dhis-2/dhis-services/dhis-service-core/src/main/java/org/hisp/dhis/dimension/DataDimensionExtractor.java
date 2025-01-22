@@ -29,6 +29,8 @@ package org.hisp.dhis.dimension;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
+import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -53,10 +56,13 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
@@ -273,6 +279,35 @@ public class DataDimensionExtractor {
   }
 
   /**
+   * Returns a {@link ProgramTrackedEntityAttributeDimensionItem}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param programId the program identifier.
+   * @param attributeId the attribute identifier.
+   */
+  @Transactional(readOnly = true)
+  public ProgramTrackedEntityAttributeOptionDimensionItem getProgramAttributeOptionDimensionItem(
+      IdScheme idScheme,
+      String programId,
+      String attributeId,
+      String optionId,
+      String aggregationId) {
+    Program program = idObjectManager.getObject(Program.class, idScheme, programId);
+    TrackedEntityAttribute attribute =
+        idObjectManager.getObject(TrackedEntityAttribute.class, idScheme, attributeId);
+    Option option = idObjectManager.getObject(Option.class, idScheme, optionId);
+    Aggregation aggregation =
+        isNotBlank(aggregationId) ? Aggregation.valueOf(aggregationId) : AGGREGATED;
+
+    if (program == null || attribute == null || option == null) {
+      return null;
+    }
+
+    return new ProgramTrackedEntityAttributeOptionDimensionItem(
+        program, attribute, option, aggregation);
+  }
+
+  /**
    * Returns a {@link ProgramDataElementDimensionItem}.
    *
    * @param idScheme the identifier scheme.
@@ -290,6 +325,34 @@ public class DataDimensionExtractor {
     }
 
     return new ProgramDataElementDimensionItem(program, dataElement);
+  }
+
+  /**
+   * Returns a {@link ProgramDataElementDimensionItem}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param programId the program identifier.
+   * @param dataElementId the data element identifier.
+   * @param optionId the option identifier.
+   */
+  @Transactional(readOnly = true)
+  public ProgramDataElementOptionDimensionItem getProgramDataElementOptionDimensionItem(
+      IdScheme idScheme,
+      String programId,
+      String dataElementId,
+      String optionId,
+      String aggregationId) {
+    Program program = idObjectManager.getObject(Program.class, idScheme, programId);
+    DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
+    Option option = idObjectManager.getObject(Option.class, idScheme, optionId);
+    Aggregation aggregation =
+        isNotBlank(aggregationId) ? Aggregation.valueOf(aggregationId) : AGGREGATED;
+
+    if (program == null || dataElement == null || option == null) {
+      return null;
+    }
+
+    return new ProgramDataElementOptionDimensionItem(program, dataElement, option, aggregation);
   }
 
   private DimensionalItemObject getDimensionalItemObject(

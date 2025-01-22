@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -75,7 +76,6 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.DataDimensionItem.Attributes;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -114,9 +114,11 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -348,9 +350,10 @@ public class DefaultDimensionService implements DimensionService {
   public DimensionalItemObject getDataDimensionalItemObject(
       IdScheme idScheme, String dimensionItem) {
     if (DimensionalObjectUtils.isCompositeDimensionalObject(dimensionItem)) {
-      String id0 = DimensionalObjectUtils.getFirstIdentifier(dimensionItem);
-      String id1 = DimensionalObjectUtils.getSecondIdentifier(dimensionItem);
-      String id2 = DimensionalObjectUtils.getThirdIdentifier(dimensionItem);
+      String id0 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0);
+      String id1 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1);
+      String id2 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2);
+      String id3 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 3);
 
       String optionSetSelectionMode = splitSafe(dimensionItem, ITEM_SEP, 1);
       if (optionSetSelectionMode != null && id2 != null) {
@@ -363,8 +366,22 @@ public class DefaultDimensionService implements DimensionService {
       DataElementOperand operand;
       ReportingRate reportingRate;
       ProgramDataElementDimensionItem programDataElement;
+      ProgramDataElementOptionDimensionItem programDataElementOption;
       ProgramTrackedEntityAttributeDimensionItem programAttribute;
+      ProgramTrackedEntityAttributeOptionDimensionItem programAttributeOption;
 
+      if ((programDataElementOption =
+              dataDimensionExtractor.getProgramDataElementOptionDimensionItem(
+                  idScheme, id0, id1, id2, id3))
+          != null) {
+        return programDataElementOption;
+      }
+      if ((programAttributeOption =
+              dataDimensionExtractor.getProgramAttributeOptionDimensionItem(
+                  idScheme, id0, id1, id2, id3))
+          != null) {
+        return programAttributeOption;
+      }
       if ((operand = getDataElementOperand(idScheme, id0, id1, id2)) != null) {
         return operand;
       }
@@ -381,13 +398,11 @@ public class DefaultDimensionService implements DimensionService {
           != null) {
         return programAttribute;
       }
-
       if ((dataElementWithOptionSet =
               dataDimensionExtractor.getOptionSetDataElementDimensionItem(idScheme, id0, id1))
           != null) {
         return dataElementWithOptionSet;
       }
-
     } else if (!idScheme.is(IdentifiableProperty.UID) || CodeGenerator.isValidUid(dimensionItem)) {
       return idObjectManager.get(DataDimensionItem.DATA_DIM_CLASSES, idScheme, dimensionItem);
     }
@@ -554,10 +569,6 @@ public class DefaultDimensionService implements DimensionService {
 
             if (dimItemObject != null) {
               DataDimensionItem dataItem = DataDimensionItem.create(dimItemObject);
-
-              // Adds attributes to the current data item object.
-              dataItem.setAttributes(new Attributes(item.getOptionSetItem()));
-
               object.getDataDimensionItems().add(dataItem);
             }
           }

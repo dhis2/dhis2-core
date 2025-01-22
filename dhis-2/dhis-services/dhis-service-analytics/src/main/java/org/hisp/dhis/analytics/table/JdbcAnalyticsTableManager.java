@@ -667,7 +667,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new StringBuilder(
             replaceQualify(
                 """
-                select distinct(extract(year from pes.startdate)) \
+                select distinct(year) \
                 from ${datavalue} dv \
                 inner join analytics_rs_periodstructure pes on dv.periodid=pes.periodid \
                 where pes.startdate is not null \
