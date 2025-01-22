@@ -119,6 +119,9 @@ public class DefaultNotifier implements Notifier {
           store.capMaxAge(settings.getNotifierMaxAgeDays());
           store.capMaxCount(settings.getNotifierMaxJobsPerType());
         }
+      } catch (InterruptedException ex) {
+        log.warn("Notification lost due interruption.");
+        Thread.currentThread().interrupt();
       } catch (Exception ex) {
         log.warn("Notification lost due to: " + ex.getMessage());
       }
@@ -174,6 +177,7 @@ public class DefaultNotifier implements Notifier {
         log.warn("Notification lost due to timeout: " + n);
     } catch (InterruptedException e) {
       log.warn("Notification lost due to interruption: " + n);
+      Thread.currentThread().interrupt();
     }
     return this;
   }

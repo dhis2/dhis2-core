@@ -70,12 +70,13 @@ public class Notification implements Comparable<Notification> {
 
   public Notification() {
     this.uid = CodeGenerator.generateUid();
+    this.time = new Date();
   }
 
   public Notification(
       NotificationLevel level,
       JobType category,
-      Date time,
+      @Nonnull Date time,
       String message,
       boolean completed,
       NotificationDataType dataType,

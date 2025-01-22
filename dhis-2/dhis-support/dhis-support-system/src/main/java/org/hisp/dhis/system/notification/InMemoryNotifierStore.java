@@ -76,7 +76,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public List<? extends NotificationStore> notifications(@Nonnull JobType type) {
+  public List<NotificationStore> notifications(@Nonnull JobType type) {
     Map<UID, NotificationStore> byId = notificationStores.get(type);
     return byId == null
         ? List.of()
@@ -85,7 +85,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public List<? extends SummaryStore> summaries(@Nonnull JobType type) {
+  public List<SummaryStore> summaries(@Nonnull JobType type) {
     Map<UID, SummaryStore> byId = summaryStores.get(type);
     return byId == null
         ? List.of()

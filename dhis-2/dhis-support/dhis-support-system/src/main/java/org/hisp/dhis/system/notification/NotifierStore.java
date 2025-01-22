@@ -51,13 +51,13 @@ public interface NotifierStore {
   NotificationStore notifications(@Nonnull JobType type, @Nonnull UID job);
 
   @Nonnull
-  List<? extends NotificationStore> notifications(@Nonnull JobType type);
+  List<NotificationStore> notifications(@Nonnull JobType type);
 
   @Nonnull
   SummaryStore summary(@Nonnull JobType type, @Nonnull UID job);
 
   @Nonnull
-  List<? extends SummaryStore> summaries(@Nonnull JobType type);
+  List<SummaryStore> summaries(@Nonnull JobType type);
 
   /**
    * Removes all data for the specified job (both notifications and summary)

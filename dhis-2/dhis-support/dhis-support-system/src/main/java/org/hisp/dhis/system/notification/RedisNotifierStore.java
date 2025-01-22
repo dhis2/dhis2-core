@@ -68,14 +68,14 @@ public class RedisNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public List<? extends NotificationStore> notifications(@Nonnull JobType type) {
+  public List<NotificationStore> notifications(@Nonnull JobType type) {
     Set<String> keys = redis.keys(notificationsKeyOf(type.name(), "*"));
     if (keys == null || keys.isEmpty()) return List.of();
     return keys.stream().map(key -> notifications(type, key)).toList();
   }
 
   @Nonnull
-  private RedisNotificationStore notifications(@Nonnull JobType type, String key) {
+  private NotificationStore notifications(@Nonnull JobType type, String key) {
     UID job = UID.of(key.substring(key.lastIndexOf(':') + 1));
     return new RedisNotificationStore(type, job, redis.boundZSetOps(key));
   }
@@ -88,12 +88,12 @@ public class RedisNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public List<? extends SummaryStore> summaries(@Nonnull JobType type) {
+  public List<SummaryStore> summaries(@Nonnull JobType type) {
     BoundHashOperations<String, String, String> table =
         redis.boundHashOps(summariesKeyOf(type.name()));
     Set<String> keys = table.keys();
     if (keys == null || keys.isEmpty()) return List.of();
-    return keys.stream().map(job -> new RedisSummaryStore(type, UID.of(job), table)).toList();
+    return keys.stream().map(job -> summary(type, UID.of(job))).toList();
   }
 
   @Override
