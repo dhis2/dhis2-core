@@ -748,6 +748,8 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
+   * <<<<<<< HEAD
+   *
    * @since 2.42
    * @return the minimum level required to include a notification in the list
    */
@@ -779,5 +781,17 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default boolean isNotifierGistOverview() {
     return asBoolean("notifierGistOverview", true);
+  }
+
+  /**
+   * @since 2.42
+   * @return A regex pattern string that enforces the current password validation rules
+   */
+  default String getPasswordValidationPattern() {
+    return asString(
+        "passwordValidationPattern",
+        String.format(
+            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
+            getMinPasswordLength(), getMaxPasswordLength()));
   }
 }

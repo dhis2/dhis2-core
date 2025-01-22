@@ -347,6 +347,12 @@
           },
           "value": "Frank PTEA"
         }
+      ],
+      "notes": [
+        {
+          "note": "f9423652692",
+          "value": "enrollment comment value"
+        }
       ]
     },
     {
@@ -1149,6 +1155,19 @@
       },
       "to": {
         "trackedEntity": "QesgJkTyTCk"
+      }
+    },
+    {
+      "relationship": "p53a6314631",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
+      "from": {
+        "trackedEntity": "dUE514NMOlo"
+      },
+      "to": {
+        "enrollment": "nxP7UnKhomJ"
       }
     }
   ],

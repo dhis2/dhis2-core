@@ -33,8 +33,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -60,7 +58,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -71,12 +68,10 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -254,7 +249,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
 
     if (program != null) {
       List<String> errors =
@@ -353,24 +348,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
     final List<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
-    List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(
-            ids,
-            operationParams.getTrackedEntityParams(),
-            queryParams,
-            operationParams.getOrgUnitMode());
-    setRelationshipItems(
-        trackedEntities,
-        operationParams.getTrackedEntityParams(),
-        operationParams.isIncludeDeleted());
-    for (TrackedEntity trackedEntity : trackedEntities) {
-      trackedEntity.setTrackedEntityAttributeValues(
-          getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
-    }
-
-    addSearchAudit(trackedEntities);
-
-    return trackedEntities;
+    return getTrackedEntities(ids, operationParams, queryParams, user);
   }
 
   @Override
@@ -382,23 +360,37 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     final Page<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
+        getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
+    return ids.withItems(trackedEntities);
+  }
+
+  private List<TrackedEntity> getTrackedEntities(
+      List<Long> ids,
+      TrackedEntityOperationParams operationParams,
+      TrackedEntityQueryParams queryParams,
+      UserDetails user)
+      throws NotFoundException {
+
+    List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids.getItems(),
+            ids,
             operationParams.getTrackedEntityParams(),
             queryParams,
-            operationParams.getOrgUnitMode());
-
+            queryParams.getOrgUnitMode());
     setRelationshipItems(
         trackedEntities,
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
     for (TrackedEntity trackedEntity : trackedEntities) {
-      getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram());
+      if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
+        trackedEntity.setProgramOwners(
+            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
+      }
+      trackedEntity.setTrackedEntityAttributeValues(
+          getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
     }
-
-    addSearchAudit(trackedEntities);
-
-    return ids.withItems(trackedEntities);
+    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
+    return trackedEntities;
   }
 
   /**
@@ -543,9 +535,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     } else if (item.getEnrollment() != null) {
       result =
           enrollmentService.getEnrollmentInRelationshipItem(
-              UID.of(item.getEnrollment()),
-              EnrollmentParams.TRUE.withIncludeRelationships(false),
-              includeDeleted);
+              UID.of(item.getEnrollment()), includeDeleted);
     } else if (item.getEvent() != null) {
       result =
           eventService.getEventInRelationshipItem(
@@ -572,38 +562,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     UserDetails user = getCurrentUserDetails();
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
-
     if (!trackerAccessManager.canRead(user, trackedEntity).isEmpty()) {
       return null;
     }
 
+    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntity);
+
     relationshipItem.setTrackedEntity(trackedEntity);
     return relationshipItem;
-  }
-
-  private void addSearchAudit(List<TrackedEntity> trackedEntities) {
-    if (trackedEntities.isEmpty()) {
-      return;
-    }
-    Map<String, TrackedEntityType> tetMap =
-        trackedEntityTypeService.getAllTrackedEntityType().stream()
-            .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
-
-    List<TrackedEntityAudit> auditable =
-        trackedEntities.stream()
-            .filter(Objects::nonNull)
-            .filter(te -> te.getTrackedEntityType() != null)
-            .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(
-                te ->
-                    new TrackedEntityAudit(
-                        te.getUid(), CurrentUserUtil.getCurrentUsername(), SEARCH))
-            .toList();
-
-    if (!auditable.isEmpty()) {
-      trackedEntityAuditService.addTrackedEntityAudit(auditable);
-    }
   }
 
   @Override

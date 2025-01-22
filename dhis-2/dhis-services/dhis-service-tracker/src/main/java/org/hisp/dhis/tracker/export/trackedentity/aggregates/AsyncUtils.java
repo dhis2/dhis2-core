@@ -25,45 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
- * Possible reasons for passwords to be invalid.
- *
- * @author Jan Bernitt
+ * @author Luciano Fiandesio
  */
-public enum PasswordValidationError {
-  PASSWORD_IS_MANDATORY("mandatory_parameter_missing", "Username or Password is missing"),
-  PASSWORD_TOO_LONG_TOO_SHORT(
-      "password_length_validation", "Password must have at least %d, and at most %d characters"),
-  PASSWORD_MUST_HAVE_DIGIT("password_digit_validation", "Password must have at least one digit"),
-  PASSWORD_MUST_HAVE_UPPER(
-      "password_uppercase_validation", "Password must have at least one upper case"),
-  PASSWORD_MUST_HAVE_LOWER(
-      "password_lowercase_validation", "Password must have at least one lower case"),
-  PASSWORD_MUST_HAVE_SPECIAL(
-      "password_specialcharacter_validation", "Password must have at least one special character"),
-  PASSWORD_CONTAINS_RESERVED_WORD(
-      "password_dictionary_validation", "Password must not have any generic word"),
-  PASSWORD_CONTAINS_NAME_OR_EMAIL(
-      "password_username_validation", "Username/Email must not be a part of password"),
-  PASSWORD_ALREADY_USED_BEFORE(
-      "password_history_validation", "Password must not be one of the previous %d passwords");
-
-  private final String message;
-
-  private final String i18nKey;
-
-  PasswordValidationError(String i18nKey, String message) {
-    this.message = message;
-    this.i18nKey = i18nKey;
+class AsyncUtils {
+  AsyncUtils() {
+    throw new IllegalStateException("Utility class");
   }
 
-  public String getMessage() {
-    return message;
+  /**
+   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+   *
+   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
+   *     Multimap
+   * @param supplier The Supplier to execute
+   * @param executor an Executor instance
+   * @return A CompletableFuture with the result of the Supplier
+   */
+  static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
+      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
+    return (condition
+        ? supplyAsync(supplier, executor)
+        : supplyAsync(ArrayListMultimap::create, executor));
   }
 
-  public String getI18nKey() {
-    return i18nKey;
+  /**
+   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+   *
+   * @param supplier The Supplier to execute
+   * @return A CompletableFuture with the result of the Supplier
+   */
+  static <T> CompletableFuture<Multimap<String, T>> asyncFetch(
+      Supplier<Multimap<String, T>> supplier, Executor executor) {
+    return supplyAsync(supplier, executor);
   }
 }

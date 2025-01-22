@@ -27,47 +27,91 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import java.util.List;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EnrollmentRowCallbackHandler;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.NoteRowCallbackHandler;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramAttributeRowCallbackHandler;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EnrollmentQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface EnrollmentStore {
-  /**
-   * @param ids a list of {@see TrackedEntity} Primary Keys
-   * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
-   *     Enrollment} objects
-   */
-  Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds(List<Long> ids, Context ctx);
+@Repository("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore")
+class EnrollmentStore extends AbstractStore {
+  private static final String GET_ENROLLMENT_SQL_BY_TE = EnrollmentQuery.getQuery();
 
-  /**
-   * @param ids a list of {@see Enrollment} Primary Keys
-   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Note}
-   *     objects
-   */
-  Multimap<String, Note> getNotes(List<Long> ids);
+  private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
-  /**
-   * Fetches all the relationships having the enrollment id specified in the arg as "left" or
-   * "right" relationship
-   *
-   * @param ids a list of {@see Enrollment} Primary Keys
-   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see
-   *     Relationship} objects
-   */
-  Multimap<String, RelationshipItem> getRelationships(List<Long> ids, Context ctx);
+  private static final String GET_NOTES_SQL =
+      "select en.uid as key, n.uid, n.notetext, "
+          + "n.creator, n.created "
+          + "from note n join enrollment_notes enn "
+          + "on n.noteid = enn.noteid "
+          + "join enrollment en on enn.enrollmentid = en.enrollmentid "
+          + "where enn.enrollmentid in (:ids)";
 
-  /**
-   * Fetches all the attributes
-   *
-   * @param ids a list of enrollment ids
-   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Attribute}
-   *     objects
-   */
-  Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids, Context ctx);
+  private static final String FILTER_OUT_DELETED_ENROLLMENTS = "en.deleted=false";
+
+  EnrollmentStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds(List<Long> ids, Context ctx) {
+    List<List<Long>> teIds = Lists.partition(ids, PARITITION_SIZE);
+
+    Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
+
+    teIds.forEach(
+        partition ->
+            enrollmentMultimap.putAll(getEnrollmentsByTrackedEntityIdsPartitioned(partition, ctx)));
+
+    return enrollmentMultimap;
+  }
+
+  private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIdsPartitioned(
+      List<Long> ids, Context ctx) {
+    EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
+
+    jdbcTemplate.query(
+        getQuery(
+            GET_ENROLLMENT_SQL_BY_TE,
+            ctx,
+            " en.programid IN (:programIds)",
+            FILTER_OUT_DELETED_ENROLLMENTS),
+        createIdsParam(ids).addValue("programIds", ctx.getPrograms()),
+        handler);
+
+    return handler.getItems();
+  }
+
+  Multimap<String, Note> getNotes(List<Long> ids) {
+    return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), ids);
+  }
+
+  Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids, Context ctx) {
+    ProgramAttributeRowCallbackHandler handler = new ProgramAttributeRowCallbackHandler();
+
+    jdbcTemplate.query(
+        getQuery(
+            GET_ATTRIBUTES, ctx, " pa.programid IN (:programIds)", FILTER_OUT_DELETED_ENROLLMENTS),
+        createIdsParam(ids).addValue("programIds", ctx.getPrograms()),
+        handler);
+
+    return handler.getItems();
+  }
+
+  @Override
+  String getRelationshipEntityColumn() {
+    return "enrollmentid";
+  }
 }

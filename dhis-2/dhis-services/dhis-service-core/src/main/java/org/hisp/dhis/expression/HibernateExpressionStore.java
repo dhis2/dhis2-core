@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.expression;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Luciano Fiandesio
+ * @author david mackessy
  */
-interface Aggregate {
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
-   *     Multimap
-   * @param supplier The Supplier to execute
-   * @param executor an Executor instance
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  default <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
+@Repository
+public class HibernateExpressionStore extends HibernateGenericStore<Expression>
+    implements org.hisp.dhis.expression.ExpressionStore {
+
+  public HibernateExpressionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Expression.class, false);
   }
 
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param supplier The Supplier to execute
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  default <T> CompletableFuture<Multimap<String, T>> asyncFetch(
-      Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return supplyAsync(supplier, executor);
+  @Override
+  public int updateExpressionContaining(String find, String replace) {
+    String sql =
+        """
+        update expression
+        set expression = replace(expression, '%s', '%s')
+        where expression like '%s';
+        """
+            .formatted(find, replace, "%" + find + "%");
+    return jdbcTemplate.update(sql);
   }
 }

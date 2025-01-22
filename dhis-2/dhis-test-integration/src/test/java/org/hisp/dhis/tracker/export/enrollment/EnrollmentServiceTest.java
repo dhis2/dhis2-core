@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
@@ -95,7 +94,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private User admin;
 
-  private User userWithoutOrgUnit;
+  private User userWithOrgUnitZ;
 
   private User authorizedUser;
 
@@ -141,17 +140,20 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.save(orgUnitChildA, false);
     OrganisationUnit orgUnitGrandchildA = createOrganisationUnit('E', orgUnitChildA);
     manager.save(orgUnitGrandchildA, false);
+    OrganisationUnit orgUnitZ = createOrganisationUnit('Z');
+    manager.save(orgUnitZ, false);
 
     User user =
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
-    userWithoutOrgUnit = createUserWithAuth("userWithoutOrgUnit");
+    userWithOrgUnitZ = createUserWithAuth("userWithoutOrgUnit");
+    userWithOrgUnitZ.setTeiSearchOrganisationUnits(Set.of(orgUnitZ));
     authorizedUser =
         createAndAddUser(
             false,
             "test user",
-            emptySet(),
-            emptySet(),
+            Set.of(orgUnitA),
+            Set.of(orgUnitA),
             "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
     trackedEntityTypeA = createTrackedEntityType('A');
@@ -373,13 +375,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 enrollmentService.getEnrollment(
                     UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("access to tracked entity type", exception.getMessage());
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -405,15 +407,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 enrollmentService.getEnrollment(
                     UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -421,15 +423,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
 
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 enrollmentService.getEnrollment(
                     UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -437,13 +439,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programA);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 enrollmentService.getEnrollment(
                     UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("access to program", exception.getMessage());
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -680,7 +682,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserCanSearchEverywhereModeDescendantsAndOrgUnitNotInSearchScope() {
-    injectSecurityContextUser(authorizedUser);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(DESCENDANTS).orgUnits(orgUnitA).build();
@@ -760,19 +762,16 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenRequestingListOfEnrollmentsAndAtLeastOneNotAccessible() {
+  void shouldReturnEmptyListFailWhenRequestingEnrollmentsAndTheyAreNotAccessible()
+      throws ForbiddenException {
     injectSecurityContextUser(admin);
     programA.getSharing().setPublicAccess("rw------");
     manager.update(programA);
 
     injectSecurityContextUser(authorizedUser);
-    ForbiddenException exception =
-        assertThrows(
-            ForbiddenException.class,
-            () -> enrollmentService.getEnrollments(UID.of(enrollmentA, enrollmentB)));
-    assertContains(
-        String.format("User has no data read access to program: %s", programA.getUid()),
-        exception.getMessage());
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(UID.of(enrollmentA, enrollmentB));
+    assertIsEmpty(enrollments);
   }
 
   @Test
