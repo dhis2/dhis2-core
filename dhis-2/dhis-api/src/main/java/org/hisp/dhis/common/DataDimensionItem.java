@@ -37,6 +37,8 @@ import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DataDimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.common.DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM;
+import static org.hisp.dhis.common.DataDimensionItemType.VALIDATION_RULE;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -45,7 +47,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +61,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
+import org.hisp.dhis.util.MapBuilder;
 import org.hisp.dhis.validation.ValidationRule;
 
 /**
@@ -83,7 +85,21 @@ public class DataDimensionItem {
           ProgramTrackedEntityAttributeOptionDimensionItem.class);
 
   public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
-      DATA_DIM_TYPE_CLASS_MAP = new EnumMap<>(DataDimensionItemType.class);
+      DATA_DIM_TYPE_CLASS_MAP =
+          new MapBuilder<DataDimensionItemType, Class<? extends DimensionalItemObject>>()
+              .put(INDICATOR, Indicator.class)
+              .put(DATA_ELEMENT, DataElement.class)
+              .put(DATA_ELEMENT_OPERAND, DataElementOperand.class)
+              .put(REPORTING_RATE, ReportingRate.class)
+              .put(PROGRAM_INDICATOR, ProgramIndicator.class)
+              .put(PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class)
+              .put(PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class)
+              .put(EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class)
+              .put(SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class)
+              .put(VALIDATION_RULE, ValidationRule.class)
+              .put(PROGRAM_DATA_ELEMENT_OPTION, ProgramDataElementOptionDimensionItem.class)
+              .put(PROGRAM_ATTRIBUTE_OPTION, ProgramTrackedEntityAttributeOptionDimensionItem.class)
+              .build();
 
   private int id;
 
@@ -116,25 +132,6 @@ public class DataDimensionItem {
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
-
-  static {
-    DATA_DIM_TYPE_CLASS_MAP.put(INDICATOR, Indicator.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(DATA_ELEMENT, DataElement.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(DATA_ELEMENT_OPERAND, DataElementOperand.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(REPORTING_RATE, ReportingRate.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(PROGRAM_INDICATOR, ProgramIndicator.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(
-        PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(
-        DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(DataDimensionItemType.VALIDATION_RULE, ValidationRule.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(
-        PROGRAM_DATA_ELEMENT_OPTION, ProgramDataElementOptionDimensionItem.class);
-    DATA_DIM_TYPE_CLASS_MAP.put(
-        PROGRAM_ATTRIBUTE_OPTION, ProgramTrackedEntityAttributeOptionDimensionItem.class);
-  }
 
   public DataDimensionItem() {}
 
