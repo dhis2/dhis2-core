@@ -55,6 +55,7 @@ public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
   @Mapping(target = "lastUpdatedByUserInfo")
   TrackedEntity map(TrackedEntity trackedEntity);
 
+  @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "name")

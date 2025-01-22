@@ -52,6 +52,8 @@ public interface RelationshipItemMapper {
   @Mapping(target = "event")
   RelationshipItem map(RelationshipItem relationshipItem);
 
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "relationshipType")
   @Mapping(
       target = "from",
       source = "from",
