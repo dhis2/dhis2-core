@@ -35,16 +35,16 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityTypeMapper;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
-@Mapper(uses = { TrackedEntityTypeMapper.class, EnrollmentMapper.class, AttributeValuesMapper.class})
+// TODO(DHIS2-18883) move this into the relationship service/store
+// double-check that we only map whats needed!
+@Mapper(uses = {EnrollmentMapper.class, TrackedEntityTypeMapper.class,  AttributeValuesMapper.class})
 public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
   @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "user")
-  @Mapping(target = "organisationUnit", qualifiedByName = "organisationUnit")
+  @Mapping(target = "organisationUnit")
   @Mapping(target = "trackedEntityType")
   @Mapping(target = "inactive")
   @Mapping(target = "enrollments")
@@ -55,14 +55,11 @@ public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
   @Mapping(target = "lastUpdatedByUserInfo")
   TrackedEntity map(TrackedEntity trackedEntity);
 
-  @Named("organisationUnit")
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "name")
   @Mapping(target = "attributeValues")
   @Mapping(target = "user")
-  @Mapping(target = "parent", qualifiedByName = "organisationUnit")
+  @Mapping(target = "parent")
   OrganisationUnit map(OrganisationUnit organisationUnit);
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.preheat.mappers.OrganisationUnitMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
@@ -34,7 +35,10 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageMapper;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
+// TODO(DHIS2-18883) move this into the relationship service/store
+// double-check that we only map whats needed!
 @Mapper(
     uses = {
       ProgramStageMapper.class,
@@ -42,11 +46,10 @@ import org.mapstruct.Mapping;
     })
 public interface EventMapper extends PreheatMapper<Event> {
   @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "user")
-  @Mapping(target = "enrollment")
+  @Mapping(target = "enrollment", qualifiedByName = "mapEnrollmentUidOnly")
   @Mapping(target = "programStage")
   @Mapping(target = "status")
   @Mapping(target = "organisationUnit")
@@ -62,4 +65,10 @@ public interface EventMapper extends PreheatMapper<Event> {
   @Mapping(target = "lastUpdatedByUserInfo")
   @Mapping(target = "geometry")
   Event map(Event event);
+
+  // relationshipItem.event.enrollment is only exported as UID
+  @Named("mapEnrollmentUidOnly")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  Enrollment map(Enrollment enrollment);
 }

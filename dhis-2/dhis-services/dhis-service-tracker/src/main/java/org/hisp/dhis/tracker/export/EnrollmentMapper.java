@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.mappers.AttributeValuesMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.OrganisationUnitMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
@@ -37,26 +38,23 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(
-    uses = {
-        EventMapper.class,
-      OrganisationUnitMapper.class,
-      AttributeValuesMapper.class
-    })
+// TODO(DHIS2-18883) move this into the relationship service/store
+// double-check that we only map whats needed!
+@Mapper(uses = {EventMapper.class, OrganisationUnitMapper.class, AttributeValuesMapper.class})
 public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "user")
   @Mapping(target = "completedBy")
   @Mapping(target = "completedDate")
-  @Mapping(target = "program", qualifiedByName = "program")
-  @Mapping(target = "trackedEntity")
+  @Mapping(target = "program")
+  @Mapping(target = "trackedEntity", qualifiedByName = "mapTrackedEntityUidOnly")
   @Mapping(target = "organisationUnit")
   @Mapping(target = "created")
   @Mapping(target = "occurredDate")
   @Mapping(target = "enrollmentDate")
+  @Mapping(target = "events")
   @Mapping(target = "notes")
   @Mapping(target = "deleted")
   @Mapping(target = "createdByUserInfo")
@@ -64,9 +62,13 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "status")
   Enrollment map(Enrollment enrollment);
 
-  @Named("program")
+  // relationshipItem.enrollment.trackedEntity is only exported as UID
+  @Named("mapTrackedEntityUidOnly")
   @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  TrackedEntity mapTrackedEntityUidOnly(TrackedEntity trackedEntity);
+
+  @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "name")
@@ -75,5 +77,5 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "programType")
   @Mapping(target = "sharing")
   @Mapping(target = "accessLevel")
-  Program mapProgram(Program p);
+  Program map(Program p);
 }
