@@ -76,7 +76,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .body(
             "message",
             equalTo(
-                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter."));
+                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter, but was: invalid"));
   }
 
   @Test
@@ -97,7 +97,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .body(
             "message",
             equalTo(
-                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter."));
+                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter, but was: invalid"));
   }
 
   @Test
