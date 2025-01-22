@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -82,9 +83,11 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -115,13 +118,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
+      SystemSettingsService settingsService,
+      DhisConfigurationProvider config,
       SqlBuilder sqlBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder);
+        sqlBuilder,
+        settingsService,
+        config);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -389,6 +396,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
+  }
+
+  @Override
+  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+    // TODO: Implement
+    return "";
   }
 
   /**

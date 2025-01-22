@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
@@ -38,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -45,6 +45,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,6 +59,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private static final String SUBQUERY_TABLE_ALIAS = "subax";
 
   private final ProgramIndicatorService programIndicatorService;
+  private final SystemSettingsService settingsService;
 
   @Override
   public String getAggregateClauseForProgramIndicator(
@@ -75,6 +77,82 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date latestDate) {
     return getAggregateClauseForPIandRelationshipType(
         programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate);
+  }
+
+  @Override
+  public void addCte(
+      ProgramIndicator programIndicator,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext) {
+    addCte(programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
+  }
+
+  @Override
+  public void addCte(
+      ProgramIndicator programIndicator,
+      RelationshipType relationshipType,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext) {
+
+    // Define aggregation function
+    String function =
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
+
+    String filter = "";
+    if (programIndicator.hasFilter()) {
+      String piResolvedSqlFilter =
+          getProgramIndicatorSql(
+                  programIndicator.getFilter(),
+                  NUMERIC,
+                  programIndicator,
+                  earliestStartDate,
+                  latestDate)
+              // this is a bit of an hack
+              .replace("subax.", "");
+      filter = "where " + piResolvedSqlFilter;
+    }
+
+    String piResolvedSql =
+        getProgramIndicatorSql(
+                programIndicator.getExpression(),
+                NUMERIC,
+                programIndicator,
+                earliestStartDate,
+                latestDate)
+            // this is a bit of an hack
+            .replace("subax.", "");
+
+    String cteSql =
+        "select enrollment, %s(%s) as value from %s %s group by enrollment"
+            .formatted(function, piResolvedSql, getTableName(programIndicator), filter);
+
+    // Register the CTE and its column mapping
+    cteContext.addProgramIndicatorCte(programIndicator, cteSql, requireCoalesce(function));
+  }
+
+  /**
+   * Determine if the aggregation function requires a COALESCE function to handle NULL values.
+   *
+   * @param function the aggregation function
+   * @return true if the function requires a COALESCE function, false otherwise
+   */
+  private boolean requireCoalesce(String function) {
+    return switch (function.toLowerCase()) {
+      // removed "avg" from list because it seems that it does not require COALESCE
+      // even though it is an aggregation function
+      case "count", "sum", "min", "max" -> true;
+      default -> false;
+    };
+  }
+
+  private String getTableName(ProgramIndicator programIndicator) {
+    return "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
   }
 
   /**
@@ -170,15 +248,15 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
               SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
     } else {
       if (AnalyticsType.ENROLLMENT == outerSqlEntity) {
-        condition = "enrollment = ax.enrollment";
+        condition = useExperimentalAnalyticsQueryEngine() ? "" : "enrollment = ax.enrollment";
       } else {
         if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-          condition = "event = ax.event";
+          condition = useExperimentalAnalyticsQueryEngine() ? "" : "event = ax.event";
         }
       }
     }
 
-    return isNotBlank(condition) ? " WHERE " + condition : condition;
+    return !condition.isEmpty() ? " WHERE " + condition : "";
   }
 
   /**
@@ -204,5 +282,9 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         earliestStartDate,
         latestDate,
         SUBQUERY_TABLE_ALIAS);
+  }
+
+  protected boolean useExperimentalAnalyticsQueryEngine() {
+    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 }
