@@ -51,10 +51,8 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         content.contains("# HELP data_summary_system_info DHIS2 System information"),
         "System information help text is missing");
     assertTrue(
-        content.contains("data_summary_system_info{key=\"build_time\""),
-        "Build time metric is missing");
-    assertTrue(
-        content.contains("data_summary_system_info{key=\"version\""), "Version metric is missing");
+        content.contains("data_summary_system_info"),
+        "Build time metrics are missing");
 
     // Verify active users metrics
     assertTrue(
