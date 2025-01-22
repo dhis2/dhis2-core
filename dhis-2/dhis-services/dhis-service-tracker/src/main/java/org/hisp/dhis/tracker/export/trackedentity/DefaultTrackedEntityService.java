@@ -408,27 +408,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       targetTrackedEntity.setRelationshipItems(
           getRelationshipItems(sourceTrackedEntity, includeDeleted));
     }
-    if (params.getEnrollmentParams().isIncludeRelationships()) {
-      for (Enrollment sourceEnrollment : sourceTrackedEntity.getEnrollments()) {
-        for (Enrollment targetEnrollment : targetTrackedEntity.getEnrollments()) {
-          if (sourceEnrollment.getUid().equals(targetEnrollment.getUid())) {
-            targetEnrollment.setRelationshipItems(
-                getRelationshipItems(sourceEnrollment, sourceTrackedEntity, includeDeleted));
-
-            if (params.getEventParams().isIncludeRelationships()) {
-              for (Event sourceEvent : sourceEnrollment.getEvents()) {
-                for (Event targetEvent : targetEnrollment.getEvents()) {
-                  if (targetEvent.getUid().equals(sourceEvent.getUid())) {
-                    targetEvent.setRelationshipItems(
-                        getRelationshipItems(sourceEvent, sourceTrackedEntity, includeDeleted));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
   private Set<RelationshipItem> getRelationshipItems(
