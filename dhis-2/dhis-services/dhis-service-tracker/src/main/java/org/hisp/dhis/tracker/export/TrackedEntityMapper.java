@@ -32,7 +32,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.mappers.AttributeValuesMapper;
-import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityTypeMapper;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -41,7 +40,7 @@ import org.mapstruct.Mapping;
 // TODO(DHIS2-18883) move this into the relationship service/store
 // double-check that we only map whats needed!
 @Mapper(uses = {EnrollmentMapper.class, TrackedEntityTypeMapper.class, AttributeValuesMapper.class})
-public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
+public interface TrackedEntityMapper {
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   @Mapping(target = "code")

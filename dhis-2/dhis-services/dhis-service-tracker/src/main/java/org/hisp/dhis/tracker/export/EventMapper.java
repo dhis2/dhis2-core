@@ -33,7 +33,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.preheat.mappers.OrganisationUnitMapper;
-import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageMapper;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -47,7 +46,7 @@ import org.mapstruct.Named;
       ProgramStageMapper.class,
       OrganisationUnitMapper.class,
     })
-public interface EventMapper extends PreheatMapper<Event> {
+public interface EventMapper {
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   @Mapping(target = "code")
