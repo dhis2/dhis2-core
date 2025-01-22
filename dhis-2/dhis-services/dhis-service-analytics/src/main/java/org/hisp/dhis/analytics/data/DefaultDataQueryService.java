@@ -342,6 +342,21 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   /**
+   * Based on the given parameters, this method will return a list of {@link OrganisationUnit} UIDs
+   * based on the given items and user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  @Override
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items, List<OrganisationUnit> userOrgUnits) {
+    return dimensionalObjectProducer.getOrgUnitDimensionUid(items, userOrgUnits);
+  }
+
+  /**
    * Returns a {@link DimensionalObject}.
    *
    * @param dimension the dimension identifier.
