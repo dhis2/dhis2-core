@@ -43,10 +43,12 @@ import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * dataSummary endpoint to access System Statistics
@@ -71,11 +73,16 @@ public class DataSummaryController {
 
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
-  public @ResponseBody String getPrometheusMetrics() throws IOException {
-    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
-    DataSummaryPrometheusMetrics.updateMetrics(summary);
-    Writer writer = new StringWriter();
-    TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
-    return writer.toString();
+  public @ResponseBody String getPrometheusMetrics() {
+    try {
+      DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+      DataSummaryPrometheusMetrics.updateMetrics(summary);
+      Writer writer = new StringWriter();
+      TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+      return writer.toString();
+    } catch (IOException e) {
+      throw new ResponseStatusException(
+          HttpStatus.INTERNAL_SERVER_ERROR, "Unable to produce metrics", e);
+    }
   }
 }

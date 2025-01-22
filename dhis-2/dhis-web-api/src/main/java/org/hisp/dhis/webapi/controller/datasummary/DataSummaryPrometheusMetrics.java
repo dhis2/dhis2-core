@@ -30,7 +30,12 @@ package org.hisp.dhis.webapi.controller.datasummary;
 import io.prometheus.client.Gauge;
 import org.hisp.dhis.datasummary.DataSummary;
 
-public class DataSummaryPrometheusMetrics {
+class DataSummaryPrometheusMetrics {
+
+  private DataSummaryPrometheusMetrics() {
+    throw new IllegalStateException("Utility class");
+  }
+
   public static final Gauge objectCountsGauge =
       Gauge.build()
           .name("data_summary_object_counts")
