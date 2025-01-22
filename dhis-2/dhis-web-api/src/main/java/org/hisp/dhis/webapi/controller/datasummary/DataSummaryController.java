@@ -29,7 +29,14 @@ package org.hisp.dhis.webapi.controller.datasummary;
 
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Gauge;
+import io.prometheus.client.exporter.common.TextFormat;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
@@ -55,11 +62,110 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSummaryController {
 
-  @Autowired private DataStatisticsService dataStatisticsService;
+  private static final Gauge objectCountsGauge =
+      Gauge.build()
+          .name("data_summary_object_counts")
+          .help("Count of objects by type")
+          .labelNames("type")
+          .register();
+
+  private static final Gauge activeUsersGauge =
+      Gauge.build()
+          .name("data_summary_active_users")
+          .help("Active users over days")
+          .labelNames("days")
+          .register();
+
+  private static final Gauge userInvitationsGauge =
+      Gauge.build()
+          .name("data_summary_user_invitations")
+          .help("Count of user invitations")
+          .labelNames("type")
+          .register();
+
+  private static final Gauge dataValueCountGauge =
+      Gauge.build()
+          .name("data_summary_data_value_count")
+          .help("Data value counts over time")
+          .labelNames("time")
+          .register();
+
+  private static final Gauge eventCountGauge =
+      Gauge.build()
+          .name("data_summary_event_count")
+          .help("Event counts over time")
+          .labelNames("time")
+          .register();
+
+  private static final Gauge systemInfoGauge =
+      Gauge.build()
+          .name("data_summary_system_info")
+          .help("DHIS2 System information")
+          .labelNames("key", "value")
+          .register();
+
+  @Autowired public DataStatisticsService dataStatisticsService;
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody DataSummary getStatistics() {
     return dataStatisticsService.getSystemStatisticsSummary();
+  }
+
+  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  public @ResponseBody String getPrometheusMetrics() throws IOException {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+
+    // Update object counts
+    summary.getObjectCounts().forEach((type, count) -> objectCountsGauge.labels(type).set(count));
+
+    // Update active users
+    summary
+        .getActiveUsers()
+        .forEach((days, count) -> activeUsersGauge.labels(days.toString()).set(count));
+
+    // Update user invitations
+    summary
+        .getUserInvitations()
+        .forEach((type, count) -> userInvitationsGauge.labels(type).set(count));
+
+    // Update data value count
+    summary
+        .getDataValueCount()
+        .forEach((time, count) -> dataValueCountGauge.labels(time.toString()).set(count));
+
+    // Update event count
+    summary
+        .getEventCount()
+        .forEach((time, count) -> eventCountGauge.labels(time.toString()).set(count));
+
+    // Update system info as static gauges
+    if (summary.getSystem() != null) {
+      if (summary.getSystem().getVersion() != null) {
+        systemInfoGauge.labels("version", summary.getSystem().getVersion()).set(1);
+      }
+      if (summary.getSystem().getRevision() != null) {
+        systemInfoGauge.labels("revision", summary.getSystem().getRevision()).set(1);
+      }
+      if (summary.getSystem().getBuildTime() != null) {
+        systemInfoGauge
+            .labels("build_time", String.valueOf(summary.getSystem().getBuildTime()))
+            .set(1);
+      }
+      if (summary.getSystem().getSystemId() != null) {
+        systemInfoGauge.labels("system_id", summary.getSystem().getSystemId()).set(1);
+      }
+      if (summary.getSystem().getServerDate() != null) {
+        systemInfoGauge
+            .labels("server_date", String.valueOf(summary.getSystem().getServerDate()))
+            .set(1);
+      }
+    }
+
+    // Generate Prometheus metrics as plain text
+    Writer writer = new StringWriter();
+    TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+    return writer.toString();
   }
 }
