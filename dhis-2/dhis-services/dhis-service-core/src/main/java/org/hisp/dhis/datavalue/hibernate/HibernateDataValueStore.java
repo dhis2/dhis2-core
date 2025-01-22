@@ -865,7 +865,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
               and dv.categoryoptioncomboid = catOptCombo;
 
             -- target duplicate found and target has latest lastUpdated value
-            if (target_duplicate.source_column is not null
+            if (target_duplicate.sourceColumn is not null
                 and target_duplicate.lastupdated >= source_dv.lastupdated)
               then
               -- delete source
@@ -877,7 +877,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
             -- target duplicate found and source has latest lastUpdated value
-            elsif (target_duplicate.source_column is not null
+            elsif (target_duplicate.sourceColumn is not null
                 and target_duplicate.lastupdated < source_dv.lastupdated)
               then
               -- delete target
@@ -890,7 +890,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
               -- update source with target
               update datavalue
-                set source_column = target_id
+                set sourceColumn = target_id
                 where dataelementid = source_dv.dataelementid
                 and periodid = source_dv.periodid
                 and sourceid = source_dv.sourceid
@@ -900,7 +900,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             else
               -- no target duplicate found, update source with target id
               update datavalue
-                set source_column = target_id
+                set sourceColumn = target_id
                 where dataelementid = source_dv.dataelementid
                 and periodid = source_dv.periodid
                 and sourceid = source_dv.sourceid
@@ -918,17 +918,17 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 targetId, sourceIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
     if (mergeType.equals(DataValueMergeType.DATA_ELEMENT)) {
-      return sql.replace("source_column", "dataelementid")
+      return sql.replace("sourceColumn", "dataelementid")
           .replace("dataElement", "target_id")
           .replace("catOptCombo", "source_dv.categoryoptioncomboid")
           .replace("attrOptCombo", "source_dv.attributeoptioncomboid");
     } else if (mergeType.equals(DataValueMergeType.CATEGORY_OPTION_COMBO)) {
-      return sql.replace("source_column", "categoryoptioncomboid")
+      return sql.replace("sourceColumn", "categoryoptioncomboid")
           .replace("dataElement", "source_dv.dataelementid")
           .replace("catOptCombo", "target_id")
           .replace("attrOptCombo", "source_dv.attributeoptioncomboid");
     } else if (mergeType.equals(DataValueMergeType.ATTRIBUTE_OPTION_COMBO)) {
-      return sql.replace("source_column", "attributeoptioncomboid")
+      return sql.replace("sourceColumn", "attributeoptioncomboid")
           .replace("dataElement", "source_dv.dataelementid")
           .replace("catOptCombo", "source_dv.categoryoptioncomboid")
           .replace("attrOptCombo", "target_id");
