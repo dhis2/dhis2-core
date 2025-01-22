@@ -33,8 +33,6 @@ import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -68,7 +66,6 @@ import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -149,10 +146,6 @@ class DataValueSetServiceImportTest {
     DataValueAuditBatchHandler auditBatchHandler = mock(DataValueAuditBatchHandler.class);
     when(batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class))
         .thenReturn(auditBatchHandler);
-
-    when(notifier.clear(any(JobConfiguration.class))).thenReturn(notifier);
-    when(notifier.notify(any(), any(), anyString())).thenReturn(notifier);
-    when(notifier.notify(any(), any(), anyString(), anyBoolean())).thenReturn(notifier);
 
     DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
     dataSet.setUid("pBOMPrpg1QX");
