@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.hisp.dhis.analytics.AggregationType.SUM;
-import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.CONFLICT;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
@@ -49,8 +47,8 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -320,76 +318,18 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testPostOptionSetItemInProgramAttribute() {
+  void testPostOptionItemAggregatedInProgramAttribute() {
     // Given
-    TrackedEntityAttribute trackedEntityAttribute =
-        new TrackedEntityAttribute("tea", "tea-desc", TEXT, false, false);
-    trackedEntityAttribute.setShortName("tea-shortName");
-    trackedEntityAttribute.setAggregationType(SUM);
-    manager.save(trackedEntityAttribute);
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    manager.save(attribute);
 
-    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
-        new ProgramTrackedEntityAttribute(mockProgram, trackedEntityAttribute);
-    manager.save(programTrackedEntityAttribute);
+    Option option = createOption('O');
+    manager.save(option);
 
-    String programUid = programTrackedEntityAttribute.getProgram().getUid();
-    String attributeUid = programTrackedEntityAttribute.getAttribute().getUid();
-    String jsonBody =
-        """
-{
-    "type": "PIVOT_TABLE",
-    "columns": [
-        {
-            "dimension": "dx",
-            "items": [
-                {
-                    "id": "${program}.${attribute}",
-                    "name": "Program Attribute - OptionSet",
-                    "dimensionItemType": "PROGRAM_ATTRIBUTE",
-                    "optionSetItem": {
-                        "aggregation": "DISAGGREGATED",
-                        "options": [
-                            "BFhv3jQZ8Cw"
-                        ]
-                    }
-                }
-            ]
-        }
-    ],
-    "name": "OptionSetItem - Test"
-}
-"""
-            .replace("${program}", programUid)
-            .replace("${attribute}", attributeUid);
-
-    // When
-    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
-
-    // Then
-    String getParams =
-        "?fields=dataDimensionItems[programAttribute[attribute[optionSet[options[:all]]]]],attributeValues[:all,attribute[id,name,displayName]],columns[:all,items[:all,optionSetItem[options,aggregation]]";
-    JsonObject response = GET("/visualizations/" + uid + getParams).content();
-
-    JsonNode columnNode = response.get("columns").node().element(0);
-    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
-
-    assertEquals("DATA_X", columnNode.get("dimensionType").value());
-    assertTrue((boolean) columnNode.get("dataDimension").value());
-    assertEquals("PROGRAM_ATTRIBUTE", itemsNode.get("dimensionItemType").value());
-    assertEquals("SUM", itemsNode.get("aggregationType").value());
-    assertEquals(programUid + "." + attributeUid, itemsNode.get("dimensionItem").value());
-    assertEquals("DISAGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
-    assertEquals(
-        "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
-  }
-
-  @Test
-  void testPostOptionSetItemInDataElement() {
-    // Given
-    DataElement dataElement = createDataElement('A');
-    manager.save(dataElement);
-
-    String dataElementUid = dataElement.getUid();
+    String programUid = mockProgram.getUid();
+    String attributeUid = attribute.getUid();
+    String optionUid = option.getUid();
+    String dimUid = programUid + "." + attributeUid + "." + optionUid + ".AGGREGATED";
     String jsonBody =
         """
 {
@@ -399,51 +339,49 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
             "dimension": "dx",
             "items": [
                 {
-                    "id": "${dataElement}",
-                    "name": "Data Element - OptionSet",
-                    "dimensionItemType": "DATA_ELEMENT",
-                    "optionSetItem": {
-                        "aggregation": "AGGREGATED",
-                        "options": [
-                            "BFhv3jQZ8Cw"
-                        ]
-                    }
+                    "id": "${dimUid}",
+                    "name": "Program Attribute - Option",
+                    "dimensionItemType": "PROGRAM_ATTRIBUTE_OPTION"
                 }
             ]
         }
     ],
-    "name": "OptionSetItem - Test"
+    "name": "OptionItem - Test"
 }
 """
-            .replace("${dataElement}", dataElementUid);
+            .replace("${dimUid}", dimUid);
 
     // When
     String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
 
     // Then
-    String getParams = "?fields=columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    String getParams = "?fields=columns[:all,items[:all]]";
     JsonObject response = GET("/visualizations/" + uid + getParams).content();
 
     JsonNode columnNode = response.get("columns").node().element(0);
     JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
 
+    assertEquals("dx", columnNode.get("id").value());
     assertEquals("DATA_X", columnNode.get("dimensionType").value());
     assertTrue((boolean) columnNode.get("dataDimension").value());
-    assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
-    assertEquals("SUM", itemsNode.get("aggregationType").value());
-    assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
-    assertEquals("AGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
-    assertEquals(
-        "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
+    assertEquals("PROGRAM_ATTRIBUTE_OPTION", itemsNode.get("dimensionItemType").value());
+    assertEquals("NONE", itemsNode.get("aggregationType").value());
+    assertEquals(dimUid, itemsNode.get("dimensionItem").value());
   }
 
   @Test
-  void testPostWithoutOptionSetItemAndLoadDefaults() {
+  void testPostOptionItemDisaggregatedInProgramAttribute() {
     // Given
-    DataElement dataElement = createDataElement('A');
-    manager.save(dataElement);
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    manager.save(attribute);
 
-    String dataElementUid = dataElement.getUid();
+    Option option = createOption('O');
+    manager.save(option);
+
+    String programUid = mockProgram.getUid();
+    String attributeUid = attribute.getUid();
+    String optionUid = option.getUid();
+    String dimUid = programUid + "." + attributeUid + "." + optionUid + ".DISAGGREGATED";
     String jsonBody =
         """
 {
@@ -453,44 +391,49 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
             "dimension": "dx",
             "items": [
                 {
-                    "id": "${dataElement}",
-                    "name": "Data Element - OptionSet",
-                    "dimensionItemType": "DATA_ELEMENT"
+                    "id": "${dimUid}",
+                    "name": "Program Attribute - Option",
+                    "dimensionItemType": "PROGRAM_ATTRIBUTE_OPTION"
                 }
             ]
         }
     ],
-    "name": "OptionSetItem - Test"
+    "name": "OptionItem - Test"
 }
 """
-            .replace("${dataElement}", dataElementUid);
+            .replace("${dimUid}", dimUid);
 
     // When
     String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
 
     // Then
-    String getParams = "?fields=columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    String getParams = "?fields=columns[:all,items[:all]]";
     JsonObject response = GET("/visualizations/" + uid + getParams).content();
 
     JsonNode columnNode = response.get("columns").node().element(0);
     JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
 
+    assertEquals("dx", columnNode.get("id").value());
     assertEquals("DATA_X", columnNode.get("dimensionType").value());
     assertTrue((boolean) columnNode.get("dataDimension").value());
-    assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
-    assertEquals("SUM", itemsNode.get("aggregationType").value());
-    assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
-    assertEquals("AGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
-    assertEquals("[]", itemsNode.get("optionSetItem").get("options").value().toString());
+    assertEquals("PROGRAM_ATTRIBUTE_OPTION", itemsNode.get("dimensionItemType").value());
+    assertEquals("NONE", itemsNode.get("aggregationType").value());
+    assertEquals(dimUid, itemsNode.get("dimensionItem").value());
   }
 
   @Test
-  void testPostOptionSetItemWithNoAggregation() {
+  void testPostOptionItemWithNoAggregationAndLoadDefault() {
     // Given
     DataElement dataElement = createDataElement('A');
     manager.save(dataElement);
 
+    Option option = createOption('O');
+    manager.save(option);
+
+    String programUid = mockProgram.getUid();
     String dataElementUid = dataElement.getUid();
+    String optionUid = option.getUid();
+    String dimUid = programUid + "." + dataElementUid + "." + optionUid;
     String jsonBody =
         """
 {
@@ -500,40 +443,33 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
             "dimension": "dx",
             "items": [
                 {
-                    "id": "${dataElement}",
-                    "name": "Data Element - OptionSet",
-                    "dimensionItemType": "DATA_ELEMENT",
-                    "optionSetItem": {
-                        "options": [
-                            "BFhv3jQZ8Cw"
-                        ]
-                    }
+                    "id": "${dimUid}",
+                    "name": "Program Data Element - Option",
+                    "dimensionItemType": "PROGRAM_DATA_ELEMENT_OPTION"
                 }
             ]
         }
     ],
-    "name": "OptionSetItem - Test"
+    "name": "OptionItem - Test"
 }
 """
-            .replace("${dataElement}", dataElementUid);
+            .replace("${dimUid}", dimUid);
 
     // When
     String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
 
     // Then
-    String getParams = "?fields=columns[:all,items[:all,optionSetItem[options,aggregation]]";
+    String getParams = "?fields=columns[:all,items[:all]]";
     JsonObject response = GET("/visualizations/" + uid + getParams).content();
 
     JsonNode columnNode = response.get("columns").node().element(0);
     JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
 
+    assertEquals("dx", columnNode.get("id").value());
     assertEquals("DATA_X", columnNode.get("dimensionType").value());
     assertTrue((boolean) columnNode.get("dataDimension").value());
-    assertEquals("DATA_ELEMENT", itemsNode.get("dimensionItemType").value());
+    assertEquals("PROGRAM_DATA_ELEMENT_OPTION", itemsNode.get("dimensionItemType").value());
     assertEquals("SUM", itemsNode.get("aggregationType").value());
-    assertEquals(dataElementUid, itemsNode.get("dimensionItem").value());
-    assertEquals("AGGREGATED", itemsNode.get("optionSetItem").get("aggregation").value());
-    assertEquals(
-        "[\"BFhv3jQZ8Cw\"]", itemsNode.get("optionSetItem").get("options").value().toString());
+    assertEquals(dimUid + ".AGGREGATED", itemsNode.get("dimensionItem").value());
   }
 }
