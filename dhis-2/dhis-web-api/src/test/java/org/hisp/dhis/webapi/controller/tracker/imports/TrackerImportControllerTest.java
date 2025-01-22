@@ -332,8 +332,6 @@ class TrackerImportControllerTest {
     JsonValue report = JsonValue.of(new ObjectMapper().writeValueAsString(importReport));
     when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(report);
 
-    when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);
-
     // Then
     String contentAsString =
         mockMvc
@@ -343,14 +341,12 @@ class TrackerImportControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").doesNotExist())
             .andExpect(content().contentType("application/json"))
             .andReturn()
             .getResponse()
             .getContentAsString();
 
     verify(notifier).getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid);
-    verify(trackerImportService).buildImportReport(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);
