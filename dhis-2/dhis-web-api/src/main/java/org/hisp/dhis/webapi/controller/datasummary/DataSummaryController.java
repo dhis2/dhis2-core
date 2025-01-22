@@ -57,7 +57,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSummaryController {
 
-  @Autowired public DataStatisticsService dataStatisticsService;
+  private final DataStatisticsService dataStatisticsService;
+
+  @Autowired
+  public DataSummaryController(DataStatisticsService dataStatisticsService) {
+    this.dataStatisticsService = dataStatisticsService;
+  }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
@@ -112,18 +117,23 @@ public class DataSummaryController {
     metrics.helpLine("data_summary_system_info", "System information");
     metrics.typeLine("data_summary_system_info", "gauge");
     if (summary.getSystem() != null) {
-      metrics.appendStaticKeyValue(
-          "data_summary_system_info", "version", summary.getSystem().getVersion());
-      metrics.appendStaticKeyValue(
-          "data_summary_system_info", "revision", summary.getSystem().getRevision());
-      metrics.appendStaticKeyValue(
-          "data_summary_system_info", "build_time", summary.getSystem().getBuildTime().toString());
-      metrics.appendStaticKeyValue(
-          "data_summary_system_info", "system_id", summary.getSystem().getSystemId());
-      metrics.appendStaticKeyValue(
-          "data_summary_system_info",
-          "server_date",
-          summary.getSystem().getServerDate().toString());
+      if (summary.getSystem() != null) {
+        if (summary.getSystem().getVersion() != null) {
+          metrics.appendStaticKeyValue("data_summary_system_info", "version", summary.getSystem().getVersion());
+        }
+        if (summary.getSystem().getRevision() != null) {
+          metrics.appendStaticKeyValue("data_summary_system_info", "revision", summary.getSystem().getRevision());
+        }
+        if (summary.getSystem().getBuildTime() != null) {
+          metrics.appendStaticKeyValue("data_summary_system_info", "build_time", summary.getSystem().getBuildTime().toString());
+        }
+        if (summary.getSystem().getSystemId() != null) {
+          metrics.appendStaticKeyValue("data_summary_system_info", "system_id", summary.getSystem().getSystemId());
+        }
+        if (summary.getSystem().getServerDate() != null) {
+          metrics.appendStaticKeyValue("data_summary_system_info", "server_date", summary.getSystem().getServerDate().toString());
+        }
+      }
     }
 
     return metrics.getMetrics();
