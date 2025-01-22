@@ -117,6 +117,13 @@ public interface Notifier {
 
   JsonValue getJobSummaryByJobId(JobType jobType, String jobId);
 
+  /**
+   * @since 2.42
+   * @return true, when no messages are being processed currently in the notifier. This is mainly
+   *     needed for test to know when all messages have been stored.
+   */
+  boolean isIdle();
+
   /*
   Cleanup API
    */

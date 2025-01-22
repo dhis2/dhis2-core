@@ -748,10 +748,9 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * <<<<<<< HEAD
-   *
    * @since 2.42
-   * @return the minimum level required to include a notification in the list
+   * @return the minimum level required to include a notification in the list for notifications
+   *     forwarded from scheduling.
    */
   default NotificationLevel getNotifierLogLevel() {
     return asEnum("notifierLogLevel", NotificationLevel.DEBUG);
@@ -762,8 +761,8 @@ public non-sealed interface SystemSettings extends Settings {
    * @return the maximum number of messages kept for each job. When the limit is exceeded the oldest
    *     message is dropped (FIFO).
    */
-  default int getNotifierMaxMessages() {
-    return asInt("notifierMaxMessages", 500);
+  default int getNotifierMaxMessagesPerJob() {
+    return asInt("notifierMaxMessagesPerJob", 500);
   }
 
   /**
@@ -772,6 +771,15 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default int getNotifierMaxAgeDays() {
     return asInt("notifierMaxAgeDays", 7);
+  }
+
+  /**
+   * @since 2.42
+   * @return notifications and summaries from this number of jobs per job type are kept (youngest
+   *     remain). The oldest jobs exceeding this number per type are discarded.
+   */
+  default int getNotifierMaxJobsPerType() {
+    return asInt("notifierMaxJobsPerType", 500);
   }
 
   /**

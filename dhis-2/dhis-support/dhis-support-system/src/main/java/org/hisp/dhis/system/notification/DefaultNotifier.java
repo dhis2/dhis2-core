@@ -90,10 +90,15 @@ public class DefaultNotifier implements Notifier {
     this.store = store;
     this.jsonMapper = jsonMapper;
     this.settingsProvider = settingsProvider;
-    this.messageLimit = settingsProvider.getCurrentSettings().getNotifierMaxMessages();
+    this.messageLimit = settingsProvider.getCurrentSettings().getNotifierMaxMessagesPerJob();
     this.pushToStore = new ArrayBlockingQueue<>(2048);
     this.settingsSince = currentTimeMillis();
     Executors.newSingleThreadExecutor().execute(this::asyncPushToStore);
+  }
+
+  @Override
+  public boolean isIdle() {
+    return pushToStore.isEmpty();
   }
 
   private void asyncPushToStore() {
@@ -110,7 +115,9 @@ public class DefaultNotifier implements Notifier {
         } else {
           // when there hasn't been any notifications lately
           // the poll times out; it is a good time to run some cleanup
-          store.capMaxAge(settingsProvider.getCurrentSettings().getNotifierMaxAgeDays());
+          SystemSettings settings = settingsProvider.getCurrentSettings();
+          store.capMaxAge(settings.getNotifierMaxAgeDays());
+          store.capMaxCount(settings.getNotifierMaxJobsPerType());
         }
       } catch (Exception ex) {
         log.warn("Notification lost due to: " + ex.getMessage());
@@ -143,7 +150,7 @@ public class DefaultNotifier implements Notifier {
     long now = currentTimeMillis();
     if (now - settingsSince > 10_000) {
       SystemSettings settings = settingsProvider.getCurrentSettings();
-      messageLimit = settings.getNotifierMaxMessages();
+      messageLimit = settings.getNotifierMaxMessagesPerJob();
       settingsSince = now;
     }
     return messageLimit;
