@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.notification;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.function.Predicate.not;
 
 import java.util.Deque;
 import java.util.List;
@@ -77,14 +78,18 @@ public final class InMemoryNotifierStore implements NotifierStore {
   @Override
   public List<? extends NotificationStore> notifications(@Nonnull JobType type) {
     Map<UID, NotificationStore> byId = notificationStores.get(type);
-    return byId == null ? List.of() : List.copyOf(byId.values());
+    return byId == null
+        ? List.of()
+        : byId.values().stream().filter(not(NotificationStore::isEmpty)).toList();
   }
 
   @Nonnull
   @Override
   public List<? extends SummaryStore> summaries(@Nonnull JobType type) {
     Map<UID, SummaryStore> byId = summaryStores.get(type);
-    return byId == null ? List.of() : List.copyOf(byId.values());
+    return byId == null
+        ? List.of()
+        : byId.values().stream().filter(SummaryStore::isPresent).toList();
   }
 
   @Override
@@ -109,6 +114,11 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   private record InMemoryNotificationStore(JobType type, UID job, Deque<Notification> collection)
       implements NotificationStore {
+
+    @Override
+    public boolean isEmpty() {
+      return collection.isEmpty();
+    }
 
     @Override
     public int size() {

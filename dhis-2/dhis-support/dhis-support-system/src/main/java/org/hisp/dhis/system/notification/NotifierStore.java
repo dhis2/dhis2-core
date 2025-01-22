@@ -164,6 +164,10 @@ public interface NotifierStore {
    */
   non-sealed interface NotificationStore extends PerJobStore {
 
+    default boolean isEmpty() {
+      return size() == 0;
+    }
+
     /**
      * @return number of {@link Notification}s in the collection of this store
      */
@@ -220,6 +224,10 @@ public interface NotifierStore {
    * org.hisp.dhis.scheduling.JobConfiguration}.
    */
   non-sealed interface SummaryStore extends PerJobStore {
+
+    default boolean isPresent() {
+      return get() != null;
+    }
 
     /**
      * @return the stored summary value, or {@code null} when no such summary was set, or when it

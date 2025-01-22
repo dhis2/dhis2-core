@@ -54,7 +54,7 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 
 /**
- * Implements the {@link Notifier} API on to of a {@link NotifierStore}.
+ * Implements the {@link Notifier} API on top of a {@link NotifierStore}.
  *
  * <p>Incoming {@link Notification} messages are decoupled from the caller thread by pushing them
  * into a {@link BlockingQueue}. If the queue is full the message is dropped after a short timeout
