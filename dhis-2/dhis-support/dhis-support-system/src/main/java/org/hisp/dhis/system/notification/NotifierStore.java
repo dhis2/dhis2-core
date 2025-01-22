@@ -43,73 +43,114 @@ import org.hisp.dhis.scheduling.JobType;
  * Persistence API for {@link Notification}s.
  *
  * @author Jan Bernitt
+ * @since 2.42
  */
 public interface NotifierStore {
 
   @Nonnull
-  NotificationStore getNotificationStore(@Nonnull JobType type, @Nonnull UID job);
+  NotificationStore notifications(@Nonnull JobType type, @Nonnull UID job);
+
+  @Nonnull
+  List<? extends NotificationStore> notifications(@Nonnull JobType type);
+
+  @Nonnull
+  SummaryStore summary(@Nonnull JobType type, @Nonnull UID job);
+
+  @Nonnull
+  List<? extends SummaryStore> summaries(@Nonnull JobType type);
 
   /**
-   * @param type for which to list existing {@link NotificationStore}s
-   * @return a list containing all existing {@link NotificationStore}s for a specific job.
-   */
-  @Nonnull
-  List<? extends NotificationStore> getNotificationStores(@Nonnull JobType type);
-
-  @Nonnull
-  SummaryStore getSummaryStore(@Nonnull JobType type, @Nonnull UID job);
-
-  @Nonnull
-  List<? extends SummaryStore> getSummaryStores(@Nonnull JobType type);
-
-  void clearStore(@Nonnull JobType type, @Nonnull UID job);
-
-  void clearStore(@Nonnull JobType type);
-
-  void clearStores();
-
-  /**
-   * Retains the n stores for each {@link JobType} which have the most recent notifications. Must
-   * only be called when not calling {@link NotificationStore#add(Notification)} concurrently.
+   * Removes all data for the specified job (both notifications and summary)
    *
-   * @param n number of stores to retain
+   * @param type of the job to clear
+   * @param job ID of the job to clear
    */
-  default void capStoresByCount(int n) {
-    Stream.of(JobType.values()).forEach(type -> capStoresByCount(n, type));
-  }
+  void clear(@Nonnull JobType type, @Nonnull UID job);
 
-  default void capStoresByAge(int days) {
-    Stream.of(JobType.values()).forEach(type -> capStoresByAge(days, type));
-  }
+  /**
+   * Removes all data for all jobs of the specified type.
+   *
+   * @param type of the jobs to clear
+   */
+  void clear(@Nonnull JobType type);
 
-  default void capStoresByCount(int n, @Nonnull JobType type) {
-    if (n <= 0) {
-      clearStore(type);
+  /** Removes all data (of all jobs and job types). */
+  void clear();
+
+  /**
+   * Removes all data for jobs except for the most recent n ones for each type.
+   *
+   * @param maxCount number to keep (most recent first)
+   */
+  default void capMaxCount(int maxCount) {
+    if (maxCount <= 0) {
+      clear();
       return;
     }
-    List<? extends NotificationStore> stores = getNotificationStores(type);
-    if (stores.size() <= n) return;
-    int remove = stores.size() - n;
+    Stream.of(JobType.values()).forEach(type -> capMaxCount(maxCount, type));
+  }
+
+  /**
+   * Removes all data unless the job is younger than the given max age in days
+   *
+   * @param maxAge keep the data for jobs from the most recent days
+   */
+  default void capMaxAge(int maxAge) {
+    Stream.of(JobType.values()).forEach(type -> capMaxAge(maxAge, type));
+  }
+
+  /**
+   * Removes all data for jobs of the given type except for the most recent n ones.
+   *
+   * @param type of jobs to check
+   * @param maxCount number to keep (most recent first)
+   */
+  default void capMaxCount(int maxCount, @Nonnull JobType type) {
+    if (maxCount <= 0) {
+      clear(type);
+      return;
+    }
+    List<? extends NotificationStore> stores = notifications(type);
+    if (stores.size() <= maxCount) return;
+    int remove = stores.size() - maxCount;
     stores.stream()
         .sorted(comparingLong(NotificationStore::ageTimestamp))
         .limit(remove)
-        .forEach(s -> clearStore(s.type(), s.job()));
+        .forEach(s -> clear(s.type(), s.job()));
   }
 
-  default void capStoresByAge(int days, @Nonnull JobType type) {
-    List<? extends NotificationStore> stores = getNotificationStores(type);
-    long removeBefore = currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
+  /**
+   * Removes all data for jobs of the given type unless they are younger than the given max age in
+   * days
+   *
+   * @param type of jobs to check
+   * @param maxAge keep the data for jobs from the most recent days
+   */
+  default void capMaxAge(int maxAge, @Nonnull JobType type) {
+    List<? extends NotificationStore> stores = notifications(type);
+    long removeBefore = currentTimeMillis() - TimeUnit.DAYS.toMillis(maxAge);
     stores.stream()
         .filter(s -> s.ageTimestamp() < removeBefore)
-        .forEach(s -> clearStore(s.type(), s.job()));
+        .forEach(s -> clear(s.type(), s.job()));
   }
 
+  /** The common API for {@link NotificationStore} and {@link SummaryStore}. */
   sealed interface PerJobStore {
 
+    /**
+     * @return the {@link JobType} the store deals with
+     */
     JobType type();
 
+    /**
+     * @return the ID of the {@link org.hisp.dhis.scheduling.JobConfiguration} the store contains
+     *     data for
+     */
     UID job();
 
+    /**
+     * @return the most recent timestamp the data in this store was touched
+     */
     long ageTimestamp();
   }
 
@@ -123,8 +164,12 @@ public interface NotifierStore {
    */
   non-sealed interface NotificationStore extends PerJobStore {
 
+    /**
+     * @return number of {@link Notification}s in the collection of this store
+     */
     int size();
 
+    /** Removes the {@link Notification} most recently added */
     void removeNewest();
 
     /**
@@ -134,34 +179,60 @@ public interface NotifierStore {
      */
     void removeOldest(int n);
 
+    /**
+     * Adds a new {@link Notification} which is expected to be younger in terms of {@link
+     * Notification#getTime()} as any entry already added before.
+     *
+     * @param n the entry to add
+     */
     void add(@Nonnull Notification n);
 
+    /**
+     * @return the entry most recently added, or null if the store is empty
+     */
     @CheckForNull
     Notification getNewest();
 
+    /**
+     * @return the entry added first (when the store was empty) or null if it still is empty
+     */
     @CheckForNull
     Notification getOldest();
 
+    /**
+     * @return a stream of the store entries starting with the one most recently added and ending
+     *     with the one added first, when the store was empty
+     */
     @Nonnull
     Stream<Notification> listNewestFirst();
 
+    /**
+     * @return the timestamp to use when comparing the age of this store to the age of other stores
+     */
     default long ageTimestamp() {
       Notification newest = getNewest();
-      // removing empty collections is fine
-      // because this never happens while adding
       return newest == null ? 0L : newest.getTime().getTime();
     }
   }
 
+  /**
+   * API for a store containing the summary value associated with a specific {@link
+   * org.hisp.dhis.scheduling.JobConfiguration}.
+   */
   non-sealed interface SummaryStore extends PerJobStore {
 
     /**
-     * @return the stored summary value, or {@code null} when no such summary was set, or it did
-     *     expire
+     * @return the stored summary value, or {@code null} when no such summary was set, or when it
+     *     did expire (got cleaned)
      */
     @CheckForNull
     JsonValue get();
 
-    void set(@Nonnull JsonValue value);
+    /**
+     * Set a new summary for a {@link org.hisp.dhis.scheduling.JobConfiguration} run.
+     *
+     * @param summary the value to store
+     */
+    void set(@Nonnull JsonValue summary);
   }
 }

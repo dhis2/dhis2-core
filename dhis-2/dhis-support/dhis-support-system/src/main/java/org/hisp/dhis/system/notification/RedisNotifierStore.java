@@ -62,56 +62,56 @@ public class RedisNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public NotificationStore getNotificationStore(@Nonnull JobType type, @Nonnull UID job) {
-    return getNotificationStore(type, getNotificationsKey(type.name(), job.getValue()));
+  public NotificationStore notifications(@Nonnull JobType type, @Nonnull UID job) {
+    return notifications(type, notificationsKeyOf(type.name(), job.getValue()));
   }
 
   @Nonnull
   @Override
-  public List<? extends NotificationStore> getNotificationStores(@Nonnull JobType type) {
-    Set<String> keys = redis.keys(getNotificationsKey(type.name(), "*"));
+  public List<? extends NotificationStore> notifications(@Nonnull JobType type) {
+    Set<String> keys = redis.keys(notificationsKeyOf(type.name(), "*"));
     if (keys == null || keys.isEmpty()) return List.of();
-    return keys.stream().map(key -> getNotificationStore(type, key)).toList();
+    return keys.stream().map(key -> notifications(type, key)).toList();
   }
 
   @Nonnull
-  private RedisNotificationStore getNotificationStore(@Nonnull JobType type, String key) {
+  private RedisNotificationStore notifications(@Nonnull JobType type, String key) {
     UID job = UID.of(key.substring(key.lastIndexOf(':') + 1));
     return new RedisNotificationStore(type, job, redis.boundZSetOps(key));
   }
 
   @Nonnull
   @Override
-  public SummaryStore getSummaryStore(@Nonnull JobType type, @Nonnull UID job) {
-    return new RedisSummaryStore(type, job, redis.boundHashOps(getSummariesKey(type.name())));
+  public SummaryStore summary(@Nonnull JobType type, @Nonnull UID job) {
+    return new RedisSummaryStore(type, job, redis.boundHashOps(summariesKeyOf(type.name())));
   }
 
   @Nonnull
   @Override
-  public List<? extends SummaryStore> getSummaryStores(@Nonnull JobType type) {
+  public List<? extends SummaryStore> summaries(@Nonnull JobType type) {
     BoundHashOperations<String, String, String> table =
-        redis.boundHashOps(getSummariesKey(type.name()));
+        redis.boundHashOps(summariesKeyOf(type.name()));
     Set<String> keys = table.keys();
     if (keys == null || keys.isEmpty()) return List.of();
     return keys.stream().map(job -> new RedisSummaryStore(type, UID.of(job), table)).toList();
   }
 
   @Override
-  public void clearStores() {
-    clear(getNotificationsKey("*", null));
-    clear(getSummariesKey("*"));
+  public void clear() {
+    clear(notificationsKeyOf("*", null));
+    clear(summariesKeyOf("*"));
   }
 
   @Override
-  public void clearStore(@Nonnull JobType type) {
-    clear(getNotificationsKey(type.name(), "*"));
-    clear(getSummariesKey(type.name()));
+  public void clear(@Nonnull JobType type) {
+    clear(notificationsKeyOf(type.name(), "*"));
+    clear(summariesKeyOf(type.name()));
   }
 
   @Override
-  public void clearStore(@Nonnull JobType type, @Nonnull UID job) {
-    redis.delete(getNotificationsKey(type.name(), job.getValue()));
-    redis.boundHashOps(getSummariesKey(type.name())).delete(job.getValue());
+  public void clear(@Nonnull JobType type, @Nonnull UID job) {
+    redis.delete(notificationsKeyOf(type.name(), job.getValue()));
+    redis.boundHashOps(summariesKeyOf(type.name())).delete(job.getValue());
   }
 
   private void clear(String pattern) {
@@ -127,12 +127,6 @@ public class RedisNotifierStore implements NotifierStore {
   private record RedisNotificationStore(
       JobType type, UID job, BoundZSetOperations<String, String> collection)
       implements NotificationStore {
-
-    @Override
-    public long ageTimestamp() {
-      Notification newest = getNewest();
-      return newest == null ? 0L : newest.getTime().getTime();
-    }
 
     @Override
     public int size() {
@@ -260,24 +254,24 @@ public class RedisNotifierStore implements NotifierStore {
     }
 
     @Override
-    public void set(@Nonnull JsonValue value) {
+    public void set(@Nonnull JsonValue summary) {
       table.put(
           job().getValue(),
           Json.object(
                   obj ->
-                      obj.addMember("value", value.node())
+                      obj.addMember("value", summary.node())
                           .addNumber("ageTimestamp", currentTimeMillis()))
               .toJson());
     }
   }
 
-  private static String getNotificationsKey(@Nonnull String jobType, @CheckForNull String jobUid) {
+  private static String notificationsKeyOf(@Nonnull String jobType, @CheckForNull String jobUid) {
     return jobUid == null
         ? "notifications:%s".formatted(jobType)
         : "notifications:%s:%s".formatted(jobType, jobUid);
   }
 
-  private static String getSummariesKey(@Nonnull String jobType) {
+  private static String summariesKeyOf(@Nonnull String jobType) {
     return "summaries:%s".formatted(jobType);
   }
 }

@@ -42,6 +42,7 @@ import org.hisp.dhis.setting.SystemSettings;
  * @author Jan Bernitt (pulled up default methods)
  */
 public interface Notifier {
+
   default Notifier notify(JobConfiguration id, String message) {
     return notify(id, NotificationLevel.INFO, message, false);
   }
@@ -125,19 +126,58 @@ public interface Notifier {
    *
    * @param type of the job to clear
    * @param job ID of the job to clear
+   * @since 2.42
    */
   void clear(@Nonnull JobType type, @Nonnull UID job);
 
+  /**
+   * Removes all data for all jobs of the specified type.
+   *
+   * @param type of the jobs to clear
+   * @since 2.42
+   */
   void clear(@Nonnull JobType type);
 
+  /**
+   * Removes all data (of all jobs and job types).
+   *
+   * @since 2.42
+   */
   void clear();
 
-  void capMaxAge(@Nonnull JobType type, int maxAge);
+  /**
+   * Removes all data for jobs of the given type unless they are younger than the given max age in
+   * days
+   *
+   * @param maxAge keep the data for jobs from the most recent days
+   * @param type of jobs to check
+   * @since 2.42
+   */
+  void capMaxAge(int maxAge, @Nonnull JobType type);
 
+  /**
+   * Removes all data unless the job is younger than the given max age in days
+   *
+   * @param maxAge keep the data for jobs from the most recent days
+   * @since 2.42
+   */
   void capMaxAge(int maxAge);
 
-  void capMaxCount(@Nonnull JobType type, int maxCount);
+  /**
+   * Removes all data for jobs of the given type except for the most recent n ones.
+   *
+   * @param maxCount number to keep (most recent first)
+   * @param type of jobs to check
+   * @since 2.42
+   */
+  void capMaxCount(int maxCount, @Nonnull JobType type);
 
+  /**
+   * Removes all data for jobs except for the most recent n ones for each type.
+   *
+   * @param maxCount number to keep (most recent first)
+   * @since 2.42
+   */
   void capMaxCount(int maxCount);
 
   /**

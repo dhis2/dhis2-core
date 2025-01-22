@@ -58,7 +58,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public NotificationStore getNotificationStore(@Nonnull JobType type, @Nonnull UID job) {
+  public NotificationStore notifications(@Nonnull JobType type, @Nonnull UID job) {
     return notificationStores
         .computeIfAbsent(type, k -> new ConcurrentHashMap<>())
         .computeIfAbsent(
@@ -67,7 +67,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public SummaryStore getSummaryStore(@Nonnull JobType type, @Nonnull UID job) {
+  public SummaryStore summary(@Nonnull JobType type, @Nonnull UID job) {
     return summaryStores
         .computeIfAbsent(type, k -> new ConcurrentHashMap<>())
         .computeIfAbsent(job, k -> new InMemorySummaryStore(type, job, new AtomicReference<>()));
@@ -75,32 +75,32 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   @Nonnull
   @Override
-  public List<? extends NotificationStore> getNotificationStores(@Nonnull JobType type) {
+  public List<? extends NotificationStore> notifications(@Nonnull JobType type) {
     Map<UID, NotificationStore> byId = notificationStores.get(type);
     return byId == null ? List.of() : List.copyOf(byId.values());
   }
 
   @Nonnull
   @Override
-  public List<? extends SummaryStore> getSummaryStores(@Nonnull JobType type) {
+  public List<? extends SummaryStore> summaries(@Nonnull JobType type) {
     Map<UID, SummaryStore> byId = summaryStores.get(type);
     return byId == null ? List.of() : List.copyOf(byId.values());
   }
 
   @Override
-  public void clearStores() {
+  public void clear() {
     notificationStores.clear();
     summaryStores.clear();
   }
 
   @Override
-  public void clearStore(@Nonnull JobType type) {
+  public void clear(@Nonnull JobType type) {
     notificationStores.remove(type);
     summaryStores.remove(type);
   }
 
   @Override
-  public void clearStore(@Nonnull JobType type, @Nonnull UID job) {
+  public void clear(@Nonnull JobType type, @Nonnull UID job) {
     Map<UID, ?> map = notificationStores.get(type);
     if (map != null) map.remove(job);
     map = summaryStores.get(type);
@@ -170,8 +170,8 @@ public final class InMemoryNotifierStore implements NotifierStore {
     }
 
     @Override
-    public void set(@Nonnull JsonValue value) {
-      summary.set(new Summary(currentTimeMillis(), value));
+    public void set(@Nonnull JsonValue summary) {
+      this.summary.set(new Summary(currentTimeMillis(), summary));
     }
   }
 }

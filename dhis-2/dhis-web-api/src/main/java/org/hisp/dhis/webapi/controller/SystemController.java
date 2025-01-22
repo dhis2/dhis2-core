@@ -193,8 +193,8 @@ public class SystemController {
       @PathVariable("jobType") JobType jobType, DeleteTasksParams params) {
     Integer maxAge = params.getMaxAge();
     Integer maxCount = params.getMaxCount();
-    if (maxAge != null) notifier.capMaxAge(jobType, maxAge);
-    if (maxCount != null) notifier.capMaxCount(jobType, maxCount);
+    if (maxAge != null) notifier.capMaxAge(maxAge, jobType);
+    if (maxCount != null) notifier.capMaxCount(maxCount, jobType);
     if (maxCount == null && maxAge == null) notifier.clear(jobType);
   }
 

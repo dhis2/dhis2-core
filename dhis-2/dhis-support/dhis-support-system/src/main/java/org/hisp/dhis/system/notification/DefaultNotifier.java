@@ -110,7 +110,7 @@ public class DefaultNotifier implements Notifier {
         } else {
           // when there hasn't been any notifications lately
           // the poll times out; it is a good time to run some cleanup
-          store.capStoresByAge(settingsProvider.getCurrentSettings().getNotifierMaxAgeDays());
+          store.capMaxAge(settingsProvider.getCurrentSettings().getNotifierMaxAgeDays());
         }
       } catch (Exception ex) {
         log.warn("Notification lost due to: " + ex.getMessage());
@@ -119,7 +119,7 @@ public class DefaultNotifier implements Notifier {
   }
 
   private void asyncPushToStore(UID job, Notification n) {
-    NotifierStore.NotificationStore list = store.getNotificationStore(n.getCategory(), job);
+    NotifierStore.NotificationStore list = store.notifications(n.getCategory(), job);
 
     boolean limit = true;
     Notification newest = list.getNewest();
@@ -189,14 +189,14 @@ public class DefaultNotifier implements Notifier {
   @Nonnull
   private Deque<Notification> getAllNotificationsByJobId(JobType jobType, UID job) {
     return store
-        .getNotificationStore(jobType, job)
+        .notifications(jobType, job)
         .listNewestFirst()
         .collect(toCollection(LinkedList::new));
   }
 
   private Deque<Notification> getGistNotificationsByJobId(JobType jobType, UID job) {
     Deque<Notification> res = new LinkedList<>();
-    NotifierStore.NotificationStore notifications = store.getNotificationStore(jobType, job);
+    NotifierStore.NotificationStore notifications = store.notifications(jobType, job);
     Notification newest = notifications.getNewest();
     if (newest == null) return res;
     // newest goes first
@@ -212,7 +212,7 @@ public class DefaultNotifier implements Notifier {
     BiFunction<JobType, UID, Deque<Notification>> read =
         gist ? this::getGistNotificationsByJobId : this::getAllNotificationsByJobId;
     Map<String, Deque<Notification>> res = new LinkedHashMap<>();
-    store.getNotificationStores(jobType).stream()
+    store.notifications(jobType).stream()
         .sorted(comparing(NotifierStore.NotificationStore::ageTimestamp).reversed())
         .forEach(s -> res.put(s.job().getValue(), read.apply(s.type(), s.job())));
     return res;
@@ -220,37 +220,37 @@ public class DefaultNotifier implements Notifier {
 
   @Override
   public void clear() {
-    store.clearStores();
+    store.clear();
   }
 
   @Override
   public void clear(@Nonnull JobType type) {
-    store.clearStore(type);
+    store.clear(type);
   }
 
   @Override
   public void clear(@Nonnull JobType type, @Nonnull UID job) {
-    store.clearStore(type, job);
+    store.clear(type, job);
   }
 
   @Override
   public void capMaxAge(int maxAge) {
-    store.capStoresByAge(maxAge);
+    store.capMaxAge(maxAge);
   }
 
   @Override
   public void capMaxCount(int maxCount) {
-    store.capStoresByCount(maxCount);
+    store.capMaxCount(maxCount);
   }
 
   @Override
-  public void capMaxAge(@Nonnull JobType type, int maxAge) {
-    store.capStoresByAge(maxAge, type);
+  public void capMaxAge(int maxAge, @Nonnull JobType type) {
+    store.capMaxAge(maxAge, type);
   }
 
   @Override
-  public void capMaxCount(@Nonnull JobType type, int maxCount) {
-    store.capStoresByCount(maxCount, type);
+  public void capMaxCount(int maxCount, @Nonnull JobType type) {
+    store.capMaxCount(maxCount, type);
   }
 
   @Override
@@ -261,7 +261,7 @@ public class DefaultNotifier implements Notifier {
 
     try {
       store
-          .getSummaryStore(id.getJobType(), UID.of(id.getUid()))
+          .summary(id.getJobType(), UID.of(id.getUid()))
           .set(JsonValue.of(jsonMapper.writeValueAsString(summary)));
     } catch (Exception ex) {
       log.warn("Summary lost due to: " + ex.getMessage());
@@ -272,7 +272,7 @@ public class DefaultNotifier implements Notifier {
   @Override
   public Map<String, JsonValue> getJobSummariesForJobType(JobType jobType) {
     Map<String, JsonValue> res = new LinkedHashMap<>();
-    store.getSummaryStores(jobType).stream()
+    store.summaries(jobType).stream()
         .sorted(comparing(NotifierStore.SummaryStore::ageTimestamp).reversed())
         .forEach(s -> res.put(s.job().getValue(), s.get()));
     return res;
@@ -280,6 +280,6 @@ public class DefaultNotifier implements Notifier {
 
   @Override
   public JsonValue getJobSummaryByJobId(JobType jobType, String jobId) {
-    return store.getSummaryStore(jobType, UID.of(jobId)).get();
+    return store.summary(jobType, UID.of(jobId)).get();
   }
 }
