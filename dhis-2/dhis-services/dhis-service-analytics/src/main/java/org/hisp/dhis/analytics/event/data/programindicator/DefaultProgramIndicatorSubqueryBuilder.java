@@ -80,18 +80,17 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   @Override
-  public void contributeCte(
+  public void addCte(
       ProgramIndicator programIndicator,
       AnalyticsType outerSqlEntity,
       Date earliestStartDate,
       Date latestDate,
       CteContext cteContext) {
-    contributeCte(
-        programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
+    addCte(programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
   }
 
   @Override
-  public void contributeCte(
+  public void addCte(
       ProgramIndicator programIndicator,
       RelationshipType relationshipType,
       AnalyticsType outerSqlEntity,

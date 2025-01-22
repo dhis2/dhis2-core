@@ -87,6 +87,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -100,6 +101,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -810,7 +812,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Get the CTE definition for the item
     CteDefinition cteDef = cteContext.getDefinitionByItemUid(computeKey(item));
     if (cteDef == null) {
-      throw new IllegalArgumentException("CTE definition not found for item: " + item);
+      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
     }
     int programStageOffset = computeRowNumberOffset(item.getProgramStageOffset());
     // calculate the alias for the column
@@ -1042,7 +1044,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       QueryItem item, CteContext cteContext, EventQueryParams params) {
     ProgramIndicator pi = (ProgramIndicator) item.getItem();
     if (item.hasRelationshipType()) {
-      programIndicatorSubqueryBuilder.contributeCte(
+      programIndicatorSubqueryBuilder.addCte(
           pi,
           item.getRelationshipType(),
           getAnalyticsType(),
@@ -1050,7 +1052,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           params.getLatestEndDate(),
           cteContext);
     } else {
-      programIndicatorSubqueryBuilder.contributeCte(
+      programIndicatorSubqueryBuilder.addCte(
           pi,
           getAnalyticsType(),
           params.getEarliestStartDate(),

@@ -33,6 +33,8 @@ import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
 
 @UtilityClass
 public class SqlColumnParser {
@@ -55,14 +57,13 @@ public class SqlColumnParser {
 
       // Ensure the parsed expression is a Column
       if (!(expression instanceof Column column)) {
-        throw new IllegalArgumentException(
-            "Input is not a valid SQL column reference: " + columnReference);
+        throw new IllegalQueryException(ErrorCode.E7148, "column reference: " + columnReference);
       }
 
       // Extract the column name
       return unquote(column.getColumnName());
     } catch (Exception e) {
-      throw new IllegalArgumentException("Error parsing SQL: " + e.getMessage(), e);
+      throw new IllegalQueryException(ErrorCode.E7148, e.getMessage());
     }
   }
 }

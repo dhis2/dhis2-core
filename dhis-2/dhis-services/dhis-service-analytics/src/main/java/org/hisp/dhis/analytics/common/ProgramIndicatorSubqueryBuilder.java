@@ -102,14 +102,14 @@ public interface ProgramIndicatorSubqueryBuilder {
       Date earliestStartDate,
       Date latestDate);
 
-  void contributeCte(
+  void addCte(
       ProgramIndicator programIndicator,
       AnalyticsType outerSqlEntity,
       Date earliestStartDate,
       Date latestDate,
       CteContext cteContext);
 
-  void contributeCte(
+  void addCte(
       ProgramIndicator programIndicator,
       RelationshipType relationshipType,
       AnalyticsType outerSqlEntity,
