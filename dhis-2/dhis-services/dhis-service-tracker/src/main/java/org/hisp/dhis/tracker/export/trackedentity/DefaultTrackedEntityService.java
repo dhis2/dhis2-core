@@ -68,7 +68,6 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -536,9 +535,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     } else if (item.getEnrollment() != null) {
       result =
           enrollmentService.getEnrollmentInRelationshipItem(
-              UID.of(item.getEnrollment()),
-              EnrollmentParams.TRUE.withIncludeRelationships(false),
-              includeDeleted);
+              UID.of(item.getEnrollment()), includeDeleted);
     } else if (item.getEvent() != null) {
       result =
           eventService.getEventInRelationshipItem(
