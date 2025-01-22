@@ -41,11 +41,16 @@ import static org.hisp.dhis.common.DataDimensionItemType.SUBEXPRESSION_DIMENSION
 import static org.hisp.dhis.common.DataDimensionItemType.VALIDATION_RULE;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -58,13 +63,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.util.MapBuilder;
 import org.hisp.dhis.validation.ValidationRule;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -90,7 +88,7 @@ public class DataDimensionItem {
 
   public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
       Set.copyOf(DATA_DIM_TYPE_CLASS_MAP.values());
-  
+
   private int id;
 
   // -------------------------------------------------------------------------
@@ -261,12 +259,12 @@ public class DataDimensionItem {
 
   /**
    * Returns the class type for the given data dimension item type.
-   * 
+   *
    * @param itemType the {@link DataDimensionItemType}.
    * @return the class type.
    */
   public static Class<? extends DimensionalItemObject> getType(DataDimensionItemType itemType) {
-      return DATA_DIM_TYPE_CLASS_MAP.get(itemType);
+    return DATA_DIM_TYPE_CLASS_MAP.get(itemType);
   }
 
   // -------------------------------------------------------------------------
