@@ -490,10 +490,14 @@ class JdbcEventStore {
             }
 
             if (relationship.getFrom().getEvent() != null) {
-              map.put(relationship.getFrom().getEvent().getUid(), RELATIONSHIP_ITEM_MAPPER.map( relationship.getFrom()));
+              map.put(
+                  relationship.getFrom().getEvent().getUid(),
+                  RELATIONSHIP_ITEM_MAPPER.map(relationship.getFrom()));
             }
             if (relationship.getTo().getEvent() != null) {
-              map.put(relationship.getTo().getEvent().getUid(), RELATIONSHIP_ITEM_MAPPER.map( relationship.getTo()));
+              map.put(
+                  relationship.getTo().getEvent().getUid(),
+                  RELATIONSHIP_ITEM_MAPPER.map(relationship.getTo()));
             }
           }
 

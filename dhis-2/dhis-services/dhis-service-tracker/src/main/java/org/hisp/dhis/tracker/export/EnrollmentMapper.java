@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import java.util.Set;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.mappers.AttributeValuesMapper;
@@ -61,6 +63,8 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "lastUpdatedByUserInfo")
   @Mapping(target = "status")
   Enrollment map(Enrollment enrollment);
+
+  Set<Event> map(Set<Event> events);
 
   // relationshipItem.enrollment.trackedEntity is only exported as UID
   @Named("mapTrackedEntityUidOnly")
