@@ -37,13 +37,16 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.So
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -54,6 +57,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -318,7 +322,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           if (groupableItem != null) {
             params.addDimension((DimensionalObject) groupableItem);
           } else {
-            groupableItem = getQueryItem(dim, pr, request.getOutputType());
+            groupableItem = getQueryItem(dim, pr, request.getOutputType(), userOrgUnits);
             params.addItem((QueryItem) groupableItem);
           }
 
@@ -511,6 +515,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   @Override
   public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
+    return getQueryItem(dimensionString, program, type, Collections.emptyList());
+  }
+
+  private QueryItem getQueryItem(
+      String dimensionString,
+      Program program,
+      EventOutputType type,
+      List<OrganisationUnit> userOrgUnits) {
     String[] split = dimensionString.split(DIMENSION_NAME_SEP);
 
     if (split.length % 2 != 1) {
@@ -536,11 +548,23 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         // FE uses HH.MM time format instead of HH:MM. This is not
         // compatible with db table/cell values
         modifyFilterWhenTimeQueryItem(queryItem, filter);
+        resolveOrgUnitDimensionIfNecessary(queryItem, filter, userOrgUnits);
         queryItem.addFilter(filter);
       }
     }
 
     return queryItem;
+  }
+
+  @SneakyThrows
+  private void resolveOrgUnitDimensionIfNecessary(
+      QueryItem queryItem, QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits) {
+    if (queryItem.getValueType().equals(ORGANISATION_UNIT)) {
+      List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
+      List<String> orgUnitDimensionUid =
+          dataQueryService.getOrgUnitDimensionUid(filterItem, userOrgUnits);
+      queryFilter.setFilter(String.join(OPTION_SEP, orgUnitDimensionUid));
+    }
   }
 
   private static void modifyFilterWhenTimeQueryItem(QueryItem queryItem, QueryFilter filter) {

@@ -1264,13 +1264,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Creates a SQL statement for a single filter inside a query item.
+   * Creates a SQL statement for a single filter inside a query item. Made public for testing
+   * purposes.
    *
    * @param item the {@link QueryItem}.
    * @param filter the {@link QueryFilter}.
    * @param params the {@link EventQueryParams}.
    */
-  protected String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
+  public String toSql(QueryItem item, QueryFilter filter, EventQueryParams params) {
     String field =
         item.hasAggregationType()
             ? getSelectSql(filter, item, params)
@@ -1278,7 +1279,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), item.isText());
+          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), !item.isNumeric());
 
       return inQueryFilter.getSqlFilter();
     } else {

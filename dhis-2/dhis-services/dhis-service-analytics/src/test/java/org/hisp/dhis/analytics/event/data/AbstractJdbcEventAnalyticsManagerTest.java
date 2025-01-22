@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
@@ -853,6 +854,23 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals("select enrollment,Yearly ", select);
+  }
+
+  @Test
+  void testItemsInFilterAreQuotedForOrganisationUnit() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
   }
 
   @Test
