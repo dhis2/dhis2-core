@@ -31,88 +31,108 @@ import io.prometheus.client.Gauge;
 import org.hisp.dhis.datasummary.DataSummary;
 
 public class DataSummaryPrometheusMetrics {
-    public static final Gauge objectCountsGauge =
-            Gauge.build()
-                    .name("data_summary_object_counts")
-                    .help("Count of objects by type")
-                    .labelNames("type")
-                    .register();
-    public static final Gauge activeUsersGauge =
-            Gauge.build()
-                    .name("data_summary_active_users")
-                    .help("Active users over days")
-                    .labelNames("days")
-                    .register();
-    public static final Gauge userInvitationsGauge =
-            Gauge.build()
-                    .name("data_summary_user_invitations")
-                    .help("Count of user invitations")
-                    .labelNames("type")
-                    .register();
-    public static final Gauge dataValueCountGauge =
-            Gauge.build()
-                    .name("data_summary_data_value_count")
-                    .help("Data value counts over time")
-                    .labelNames("time")
-                    .register();
-    public static final Gauge eventCountGauge =
-            Gauge.build()
-                    .name("data_summary_event_count")
-                    .help("Event counts over time")
-                    .labelNames("time")
-                    .register();
-    public static final Gauge systemInfoGauge =
-            Gauge.build()
-                    .name("data_summary_system_info")
-                    .help("DHIS2 System information")
-                    .labelNames("key", "value")
-                    .register();
+  public static final Gauge objectCountsGauge =
+      Gauge.build()
+          .name("data_summary_object_counts")
+          .help("Count of objects by type")
+          .labelNames("type")
+          .register();
+  public static final Gauge activeUsersGauge =
+      Gauge.build()
+          .name("data_summary_active_users")
+          .help("Active users over days")
+          .labelNames("days")
+          .register();
+  public static final Gauge userInvitationsGauge =
+      Gauge.build()
+          .name("data_summary_user_invitations")
+          .help("Count of user invitations")
+          .labelNames("type")
+          .register();
+  public static final Gauge dataValueCountGauge =
+      Gauge.build()
+          .name("data_summary_data_value_count")
+          .help("Data value counts over time")
+          .labelNames("time")
+          .register();
+  public static final Gauge eventCountGauge =
+      Gauge.build()
+          .name("data_summary_event_count")
+          .help("Event counts over time")
+          .labelNames("time")
+          .register();
+  public static final Gauge systemInfoGauge =
+      Gauge.build()
+          .name("data_summary_system_info")
+          .help("DHIS2 System information")
+          .labelNames("key", "value")
+          .register();
 
-    public static void updateMetrics(DataSummary summary) {
-        // Update object counts
-        summary.getObjectCounts().forEach((type, count) -> DataSummaryPrometheusMetrics.objectCountsGauge.labels(type).set(count));
+  public static void updateMetrics(DataSummary summary) {
+    // Update object counts
+    summary
+        .getObjectCounts()
+        .forEach(
+            (type, count) ->
+                DataSummaryPrometheusMetrics.objectCountsGauge.labels(type).set(count));
 
-        // Update active users
-        summary
-                .getActiveUsers()
-                .forEach((days, count) -> DataSummaryPrometheusMetrics.activeUsersGauge.labels(days.toString()).set(count));
+    // Update active users
+    summary
+        .getActiveUsers()
+        .forEach(
+            (days, count) ->
+                DataSummaryPrometheusMetrics.activeUsersGauge.labels(days.toString()).set(count));
 
-        // Update user invitations
-        summary
-                .getUserInvitations()
-                .forEach((type, count) -> DataSummaryPrometheusMetrics.userInvitationsGauge.labels(type).set(count));
+    // Update user invitations
+    summary
+        .getUserInvitations()
+        .forEach(
+            (type, count) ->
+                DataSummaryPrometheusMetrics.userInvitationsGauge.labels(type).set(count));
 
-        // Update data value count
-        summary
-                .getDataValueCount()
-                .forEach((time, count) -> DataSummaryPrometheusMetrics.dataValueCountGauge.labels(time.toString()).set(count));
+    // Update data value count
+    summary
+        .getDataValueCount()
+        .forEach(
+            (time, count) ->
+                DataSummaryPrometheusMetrics.dataValueCountGauge
+                    .labels(time.toString())
+                    .set(count));
 
-        // Update event count
-        summary
-                .getEventCount()
-                .forEach((time, count) -> DataSummaryPrometheusMetrics.eventCountGauge.labels(time.toString()).set(count));
+    // Update event count
+    summary
+        .getEventCount()
+        .forEach(
+            (time, count) ->
+                DataSummaryPrometheusMetrics.eventCountGauge.labels(time.toString()).set(count));
 
-        // Update system info as static gauges
-        if (summary.getSystem() != null) {
-            if (summary.getSystem().getVersion() != null) {
-                DataSummaryPrometheusMetrics.systemInfoGauge.labels("version", summary.getSystem().getVersion()).set(1);
-            }
-            if (summary.getSystem().getRevision() != null) {
-                DataSummaryPrometheusMetrics.systemInfoGauge.labels("revision", summary.getSystem().getRevision()).set(1);
-            }
-            if (summary.getSystem().getBuildTime() != null) {
-                DataSummaryPrometheusMetrics.systemInfoGauge
-                        .labels("build_time", String.valueOf(summary.getSystem().getBuildTime()))
-                        .set(1);
-            }
-            if (summary.getSystem().getSystemId() != null) {
-                DataSummaryPrometheusMetrics.systemInfoGauge.labels("system_id", summary.getSystem().getSystemId()).set(1);
-            }
-            if (summary.getSystem().getServerDate() != null) {
-                DataSummaryPrometheusMetrics.systemInfoGauge
-                        .labels("server_date", String.valueOf(summary.getSystem().getServerDate()))
-                        .set(1);
-            }
-        }
+    // Update system info as static gauges
+    if (summary.getSystem() != null) {
+      if (summary.getSystem().getVersion() != null) {
+        DataSummaryPrometheusMetrics.systemInfoGauge
+            .labels("version", summary.getSystem().getVersion())
+            .set(1);
+      }
+      if (summary.getSystem().getRevision() != null) {
+        DataSummaryPrometheusMetrics.systemInfoGauge
+            .labels("revision", summary.getSystem().getRevision())
+            .set(1);
+      }
+      if (summary.getSystem().getBuildTime() != null) {
+        DataSummaryPrometheusMetrics.systemInfoGauge
+            .labels("build_time", String.valueOf(summary.getSystem().getBuildTime()))
+            .set(1);
+      }
+      if (summary.getSystem().getSystemId() != null) {
+        DataSummaryPrometheusMetrics.systemInfoGauge
+            .labels("system_id", summary.getSystem().getSystemId())
+            .set(1);
+      }
+      if (summary.getSystem().getServerDate() != null) {
+        DataSummaryPrometheusMetrics.systemInfoGauge
+            .labels("server_date", String.valueOf(summary.getSystem().getServerDate()))
+            .set(1);
+      }
     }
+  }
 }
