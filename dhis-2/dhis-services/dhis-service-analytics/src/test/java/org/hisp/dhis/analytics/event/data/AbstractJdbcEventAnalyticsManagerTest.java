@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationTy
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
@@ -793,6 +794,62 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertTrue(grid.getColumn(0).contains(EMPTY), "Should contain empty value");
   }
+
+  @Test
+  void testGetSelectClauseForAggregatedEnrollments() {
+    // Given
+    Period period = new Period(THIS_YEAR);
+    period.setPeriodType(new YearlyPeriodType());
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEndpointAction(AGGREGATE)
+            .withEndpointItem(ENROLLMENT)
+            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
+            .build();
+    // When
+    String select = enrollmentSubject.getSelectClause(params);
+    // Then
+    assertEquals("select enrollment,Yearly ", select);
+  }
+
+  @Test
+  void testItemsInFilterAreQuotedForOrganisationUnit() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
+  }
+
+  @Test
+  void testGetSelectClauseForQueryEnrollments() {
+    // Given
+    Period period = new Period(THIS_YEAR);
+    period.setPeriodType(new YearlyPeriodType());
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEndpointAction(QUERY)
+            .withEndpointItem(ENROLLMENT)
+            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
+            .build();
+    // When
+    String select = enrollmentSubject.getSelectClause(params);
+    // Then
+    assertEquals(
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
+        select);
+  }
+
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {
     return new QueryFilter(operator, filter);
