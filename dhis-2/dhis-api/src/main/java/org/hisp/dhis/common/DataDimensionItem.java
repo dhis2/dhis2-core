@@ -69,22 +69,7 @@ import org.hisp.dhis.validation.ValidationRule;
  */
 @JacksonXmlRootElement(localName = "dataDimensionItem", namespace = DXF_2_0)
 public class DataDimensionItem {
-  public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
-      Set.of(
-          Indicator.class,
-          DataElement.class,
-          DataElementOperand.class,
-          ReportingRate.class,
-          ProgramIndicator.class,
-          ProgramDataElementDimensionItem.class,
-          ProgramTrackedEntityAttributeDimensionItem.class,
-          ExpressionDimensionItem.class,
-          SubexpressionDimensionItem.class,
-          ValidationRule.class,
-          ProgramDataElementOptionDimensionItem.class,
-          ProgramTrackedEntityAttributeOptionDimensionItem.class);
-
-  public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
+  private static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
       DATA_DIM_TYPE_CLASS_MAP =
           new MapBuilder<DataDimensionItemType, Class<? extends DimensionalItemObject>>()
               .put(INDICATOR, Indicator.class)
@@ -100,6 +85,9 @@ public class DataDimensionItem {
               .put(PROGRAM_DATA_ELEMENT_OPTION, ProgramDataElementOptionDimensionItem.class)
               .put(PROGRAM_ATTRIBUTE_OPTION, ProgramTrackedEntityAttributeOptionDimensionItem.class)
               .build();
+
+  public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
+      Set.copyOf(DATA_DIM_TYPE_CLASS_MAP.values());
 
   private int id;
 
@@ -267,6 +255,16 @@ public class DataDimensionItem {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the class type for the given data dimension item type.
+   *
+   * @param itemType the {@link DataDimensionItemType}.
+   * @return the class type.
+   */
+  public static Class<? extends DimensionalItemObject> getType(DataDimensionItemType itemType) {
+    return DATA_DIM_TYPE_CLASS_MAP.get(itemType);
   }
 
   // -------------------------------------------------------------------------
