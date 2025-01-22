@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
@@ -76,5 +78,65 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         content.contains("# HELP data_summary_event_count Event counts over time"),
         "Event count help text is missing");
     assertTrue(content.contains("data_summary_event_count"), "Event count metric is missing");
+  }
+
+  @Test
+  void canGetSummaryStatistics() {
+
+    HttpResponse response = GET("/api/dataSummary");
+    assertEquals(HttpStatus.OK, response.status());
+    JsonMixed content = response.content();
+    assertFalse(content.isEmpty(), "Response content should not be empty");
+    assertTrue(content.has("system"), "System information is missing");
+    assertTrue(content.has("objectCounts"), "Object counts are missing");
+    // All values in each of the object count keys should be integers
+    content
+        .get("objectCounts")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(value -> assertTrue(value.isInteger(), "Object count values should be integers"));
+    assertTrue(content.has("activeUsers"), "Active users are missing");
+    // All values in each of the active user keys should be integers
+    content
+        .get("activeUsers")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(value -> assertTrue(value.isInteger(), "Active user values should be integers"));
+    content
+        .get("activeUsers")
+        .asMap(JsonValue.class)
+        .keys()
+        .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Active user keys should be integers"));
+    assertTrue(content.has("userInvitations"), "User invitations are missing");
+    content
+        .get("activeUsers")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(
+            value -> assertTrue(value.isInteger(), "User invitation values should be integers"));
+    assertTrue(content.has("dataValueCount"), "Data value counts are missing");
+    content
+        .get("dataValueCount")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(
+            value -> assertTrue(value.isInteger(), "Data value count values should be integers"));
+    content
+        .get("dataValueCount")
+        .asMap(JsonValue.class)
+        .keys()
+        .forEach(
+            key -> assertTrue(key.matches("\\d{1,2}"), "Data value count keys should be integers"));
+    assertTrue(content.has("eventCount"), "Event counts are missing");
+    content
+        .get("eventCount")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(value -> assertTrue(value.isInteger(), "Event count values should be integers"));
+    content
+        .get("eventCount")
+        .asMap(JsonValue.class)
+        .keys()
+        .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Event count keys should be integers"));
   }
 }
