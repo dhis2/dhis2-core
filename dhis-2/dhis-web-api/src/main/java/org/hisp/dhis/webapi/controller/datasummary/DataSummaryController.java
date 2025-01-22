@@ -31,24 +31,18 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.common.TextFormat;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * dataSummary endpoint to access System Statistics
@@ -74,15 +68,57 @@ public class DataSummaryController {
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody String getPrometheusMetrics() {
-    try {
-      DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
-      DataSummaryPrometheusMetrics.updateMetrics(summary);
-      Writer writer = new StringWriter();
-      TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
-      return writer.toString();
-    } catch (IOException e) {
-      throw new ResponseStatusException(
-          HttpStatus.INTERNAL_SERVER_ERROR, "Unable to produce metrics", e);
+    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+    final String PROMETHEUS_GAUGE_NAME = "gauge";
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
+
+    metrics.updateMetricsFromMap(
+        summary.getObjectCounts(),
+        "data_summary_object_counts",
+        "type",
+        "Count of metadata objects",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getActiveUsers(),
+        "data_summary_active_users",
+        "days",
+        "Count of active users",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getUserInvitations(),
+        "data_summary_user_invitations",
+        "type",
+        "Count of user invitations",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getDataValueCount(),
+        "data_summary_data_value_count",
+        "days",
+        "Count of updated data values by day",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getEventCount(),
+        "data_summary_event_count",
+        "days",
+        "Count of updated events by day",
+        PROMETHEUS_GAUGE_NAME);
+
+    // The system information is presented just as a static gauge with value 1.0
+    // The key is the field name and the value is the field value
+    metrics.createPrometheusHelpLine("data_summary_system_info", "System information");
+    metrics.createPrometheusTypeLine("data_summary_system_info", "gauge");
+    if (summary.getSystem() != null) {
+      metrics.appendSystemInfo("version", summary.getSystem().getVersion());
+      metrics.appendSystemInfo("revision", summary.getSystem().getRevision());
+      metrics.appendSystemInfo("build_time", summary.getSystem().getBuildTime().toString());
+      metrics.appendSystemInfo("system_id", summary.getSystem().getSystemId());
+      metrics.appendSystemInfo("server_date", summary.getSystem().getServerDate().toString());
     }
+
+    return metrics.getMetrics();
   }
 }
