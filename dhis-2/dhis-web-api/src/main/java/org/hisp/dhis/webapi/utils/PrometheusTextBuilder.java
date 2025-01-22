@@ -29,35 +29,43 @@ package org.hisp.dhis.webapi.utils;
 
 import java.util.Map;
 
+/**
+ * A simple utility class to build Prometheus text format metrics. Note that there is no validation
+ * of the input, so the user should make sure that the input is correct. The Prometheus text format
+ * is documented here: https://prometheus.io/docs/instrumenting/exposition_formats/
+ *
+ * @author Jason P. Pickering
+ */
 public class PrometheusTextBuilder {
 
   private StringBuilder metrics = new StringBuilder();
 
-  public void createPrometheusHelpLine(String metricName, String help) {
-    metrics.append("# HELP ").append(metricName).append(" ").append(help).append("\n");
+  public void helpLine(String metricName, String help) {
+    metrics.append("# HELP ").append(metricName).append(" ").append(help).append("%n");
   }
 
-  public void createPrometheusTypeLine(String metricName, String type) {
-    metrics.append("# TYPE ").append(metricName).append(" ").append(type).append("\n");
+  public void typeLine(String metricName, String type) {
+    metrics.append("# TYPE ").append(metricName).append(" ").append(type).append("%n");
   }
 
   public void updateMetricsFromMap(
       Map<?, ?> map, String metricName, String keyName, String help, String type) {
-    createPrometheusHelpLine(metricName, help);
-    createPrometheusTypeLine(metricName, type);
+    helpLine(metricName, help);
+    typeLine(metricName, type);
     map.forEach(
         (key, value) ->
-            metrics.append("%s{%s=\"%s\", } %s.0 \n".formatted(metricName, keyName, key, value)));
+            metrics.append("%s{%s=\"%s\" } %s%n".formatted(metricName, keyName, key, value)));
   }
 
-  public void appendSystemInfo(String key, String value) {
+  public void appendStaticKeyValue(String metricName, String key, String value) {
     if (value != null) {
       metrics
-          .append("data_summary_system_info{key=\"")
+          .append(metricName)
+          .append("{key=\"")
           .append(key)
           .append("\", value=\"")
           .append(value)
-          .append("\"} 1.0\n");
+          .append("\"} 1%n");
     }
   }
 

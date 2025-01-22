@@ -109,14 +109,21 @@ public class DataSummaryController {
 
     // The system information is presented just as a static gauge with value 1.0
     // The key is the field name and the value is the field value
-    metrics.createPrometheusHelpLine("data_summary_system_info", "System information");
-    metrics.createPrometheusTypeLine("data_summary_system_info", "gauge");
+    metrics.helpLine("data_summary_system_info", "System information");
+    metrics.typeLine("data_summary_system_info", "gauge");
     if (summary.getSystem() != null) {
-      metrics.appendSystemInfo("version", summary.getSystem().getVersion());
-      metrics.appendSystemInfo("revision", summary.getSystem().getRevision());
-      metrics.appendSystemInfo("build_time", summary.getSystem().getBuildTime().toString());
-      metrics.appendSystemInfo("system_id", summary.getSystem().getSystemId());
-      metrics.appendSystemInfo("server_date", summary.getSystem().getServerDate().toString());
+      metrics.appendStaticKeyValue(
+          "data_summary_system_info", "version", summary.getSystem().getVersion());
+      metrics.appendStaticKeyValue(
+          "data_summary_system_info", "revision", summary.getSystem().getRevision());
+      metrics.appendStaticKeyValue(
+          "data_summary_system_info", "build_time", summary.getSystem().getBuildTime().toString());
+      metrics.appendStaticKeyValue(
+          "data_summary_system_info", "system_id", summary.getSystem().getSystemId());
+      metrics.appendStaticKeyValue(
+          "data_summary_system_info",
+          "server_date",
+          summary.getSystem().getServerDate().toString());
     }
 
     return metrics.getMetrics();
