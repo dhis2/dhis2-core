@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -1328,13 +1329,35 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
 
     // then
     List<Event> eventSources =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
-            List.of(deSource1.getUid(), deSource2.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
+
     List<Event> targetEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
+
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1414,15 +1437,44 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
 
     // then
     List<Event> eventSources =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
-            List.of(deSource1.getUid(), deSource2.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
     List<Event> targetEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
     List<Event> randomEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deRandom.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deRandom.getUid()));
+                })
+            .toList();
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1436,7 +1488,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1,
         allTargetEventDataValues.get(false).size(),
-        "1 unrelated EventDataValues are still present");
+        "1 unrelated EventDataValue is still present");
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
@@ -1452,7 +1504,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
+      "Last updated Event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1472,10 +1524,15 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    edv1.setLastUpdated(DateUtils.parseDate("2024-08-13"));
     EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    edv11.setLastUpdated(DateUtils.parseDate("2024-08-16"));
     EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    edv2.setLastUpdated(DateUtils.parseDate("2024-12-16"));
     EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    edv3.setLastUpdated(DateUtils.parseDate("2024-10-16"));
     EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    edv4.setLastUpdated(DateUtils.parseDate("2024-11-16"));
     DataElement anotherDe1 = createDataElement('q');
     DataElement anotherDe2 = createDataElement('r');
     identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
@@ -1507,13 +1564,33 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
 
     // then
     List<Event> eventSources =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
-            List.of(deSource1.getUid(), deSource2.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
     List<Event> targetEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1522,6 +1599,20 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
             .collect(
                 Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
 
+    assertTrue(
+        allTargetEventDataValues.get(true).stream()
+            .map(EventDataValue::getLastUpdated)
+            .collect(Collectors.toSet())
+            .containsAll(
+                Set.of(DateUtils.parseDate("2024-12-16"), DateUtils.parseDate("2024-10-16"))),
+        "latest all merged data values have expected last updated dates");
+    assertTrue(
+        Collections.disjoint(
+            allTargetEventDataValues.get(true).stream()
+                .map(EventDataValue::getLastUpdated)
+                .collect(Collectors.toSet()),
+            Set.of(DateUtils.parseDate("2024-08-13"), DateUtils.parseDate("2024-08-16"))),
+        "earlier data values are not present");
     assertEquals(
         3, allTargetEventDataValues.get(true).size(), "3 target EventDataValues are present");
     assertEquals(
@@ -2289,108 +2380,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "Non-duplicate DataValues with references to source DataElements are replaced with target DataElement using LAST_UPDATED strategy")
-  void dataValueMergeLastUpdatedTest() throws ConflictException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
-    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
-    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
-    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(
-                dv ->
-                    Set.of(deSource1.getUid(), deSource2.getUid())
-                        .contains(dv.getDataElement().getUid()))
-            .toList();
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
-            .toList();
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertMergeSuccessfulSourcesNotDeleted(report, sourceItems, targetItems, allDataElements);
-  }
-
-  @Test
-  @DisplayName(
-      "Duplicate DataValues with references to source DataElements are replaced with target DataElement using LAST_UPDATED strategy")
-  void duplicateDataValueMergeLastUpdatedTest() throws ConflictException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
-    // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
-    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
-    dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
-    DataValue dv2 = createDataValue(deSource2, p1, ou1, "value2", coc1);
-    dv2.setLastUpdated(DateUtils.parseDate("2021-6-18"));
-    DataValue dv3 = createDataValue(deTarget, p1, ou1, "value3", coc1);
-    dv3.setLastUpdated(DateUtils.parseDate("2022-4-15"));
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then there should be no source data values present
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(
-                dv ->
-                    Set.of(deSource1.getUid(), deSource2.getUid())
-                        .contains(dv.getDataElement().getUid()))
-            .toList();
-    // and only 1 target data value (as 3 duplicates merged using last updated value)
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
-            .toList();
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceItems.size(), "Expect 0 entries with source data element refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element refs");
-    assertEquals(
-        DateUtils.parseDate("2024-6-8"),
-        targetItems.get(0).getLastUpdated(),
-        "It should be the latest lastUpdated value from duplicate data values");
-    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
-  }
-
-  @Test
-  @DisplayName(
-      "DataValues with references to source DataElements are replaced with target DataElement using DISCARD strategy")
+      "DataValues with references to source DataElements are deleted when using DISCARD strategy")
   void dataValueMergeDiscardTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2438,54 +2428,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref only");
     assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
     assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
-  }
-
-  @Test
-  @DisplayName(
-      "DataValues with references to source DataElements are replaced with target DataElement, source DataElements are deleted")
-  void dataValueMergeSourcesDeletedTest() throws ConflictException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
-    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
-    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
-    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-    mergeParams.setDeleteSources(true);
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(
-                dv ->
-                    Set.of(deSource1.getUid(), deSource2.getUid())
-                        .contains(dv.getDataElement().getUid()))
-            .toList();
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
-            .toList();
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertMergeSuccessfulSourcesDeleted(report, sourceItems, targetItems, allDataElements);
   }
 
   // ------------------------

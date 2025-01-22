@@ -27,17 +27,35 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Abyot Asalefew
  */
 public interface EventStore extends IdentifiableObjectStore<Event> {
 
-  List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
+  /**
+   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
+   * used to determine which event data value is kept when merging. Any remaining source
+   * eventDataValues are then deleted.
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to merge
+   * @param targetDataElement dataElement to use when merging source eventDataValues
+   */
+  void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
+
+  /**
+   * delete all eventDataValues which have any of the sourceDataElements
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to delete
+   */
+  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
 
   /**
    * Updates all {@link Event}s with references to {@link CategoryOptionCombo}s, to use the coc

@@ -467,6 +467,93 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     jdbcTemplate.update(plpgsql);
   }
 
+  @Override
+  public void mergeDataValuesWithDataElements(
+      @Nonnull DataElement target, @Nonnull Collection<DataElement> sources) {
+    String plpgsql =
+        """
+         do
+         $$
+         declare
+           source_dv record;
+           target_duplicate record;
+           target_de bigint default %s;
+         begin
+
+           -- loop through each record with a source Data Element
+           for source_dv in
+             select * from datavalue where dataelementid in (%s)
+             loop
+
+             -- check if target DataValue exists with same unique key
+             select dv.*
+               into target_duplicate
+               from datavalue dv
+               where dv.dataelementid = target_de
+               and dv.periodid = source_dv.periodid
+               and dv.sourceid = source_dv.sourceid
+               and dv.attributeoptioncomboid = source_dv.attributeoptioncomboid
+               and dv.categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and target has latest lastUpdated value
+             if (target_duplicate.dataelementid is not null
+                 and target_duplicate.lastupdated >= source_dv.lastupdated)
+               then
+               -- delete source
+               delete from datavalue
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             -- target duplicate found and source has latest lastUpdated value
+             elsif (target_duplicate.dataelementid is not null
+                 and target_duplicate.lastupdated < source_dv.lastupdated)
+               then
+               -- delete target
+               delete from datavalue
+                 where dataelementid = target_duplicate.dataelementid
+                 and periodid = target_duplicate.periodid
+                 and sourceid = target_duplicate.sourceid
+                 and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                 and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
+
+               -- update source with target Data Element
+               update datavalue
+                 set dataelementid = target_duplicate.dataelementid
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             else
+               -- no target duplicate found, update source with target Data Element
+               update datavalue
+                 SET dataelementid = target_de
+                 where dataelementid = source_dv.dataelementid
+                 and periodid = source_dv.periodid
+                 and sourceid = source_dv.sourceid
+                 and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+             end if;
+
+             end loop;
+         end;
+         $$
+         language plpgsql;
+         """
+            .formatted(
+                target.getId(),
+                sources.stream()
+                    .map(s -> String.valueOf(s.getId()))
+                    .collect(Collectors.joining(",")));
+
+    jdbcTemplate.update(plpgsql);
+  }
+
   // -------------------------------------------------------------------------
   // getDataValues and related supportive methods
   // -------------------------------------------------------------------------

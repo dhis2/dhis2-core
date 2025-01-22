@@ -75,7 +75,7 @@ public class DataDataElementMergeHandler {
               + " dataMergeStrategy being used, deleting source data values");
       dataValueStore.deleteDataValues(sources);
     } else {
-      // TODO dv store merge DEs
+      dataValueStore.mergeDataValuesWithDataElements(target, sources);
     }
   }
 
