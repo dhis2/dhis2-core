@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import java.util.Set;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.preheat.mappers.OrganisationUnitMapper;
@@ -52,6 +55,7 @@ public interface EventMapper extends PreheatMapper<Event> {
   @Mapping(target = "enrollment", qualifiedByName = "mapEnrollmentUidOnly")
   @Mapping(target = "programStage")
   @Mapping(target = "status")
+  @Mapping(target = "attributeOptionCombo")
   @Mapping(target = "organisationUnit")
   @Mapping(target = "created")
   @Mapping(target = "eventDataValues")
@@ -65,6 +69,17 @@ public interface EventMapper extends PreheatMapper<Event> {
   @Mapping(target = "lastUpdatedByUserInfo")
   @Mapping(target = "geometry")
   Event map(Event event);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "categoryOptions")
+  CategoryOptionCombo map(CategoryOptionCombo categoryOptionCombo);
+
+  Set<CategoryOption> map(Set<CategoryOption> categoryOption);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  CategoryOption map(CategoryOption categoryOption);
 
   // relationshipItem.event.enrollment is only exported as UID
   @Named("mapEnrollmentUidOnly")
