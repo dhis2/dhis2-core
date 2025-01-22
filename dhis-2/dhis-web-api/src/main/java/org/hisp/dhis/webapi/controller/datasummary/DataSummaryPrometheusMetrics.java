@@ -58,13 +58,13 @@ class DataSummaryPrometheusMetrics {
       Gauge.build()
           .name("data_summary_data_value_count")
           .help("Data value counts over time")
-          .labelNames("time")
+          .labelNames("days")
           .register();
   public static final Gauge eventCountGauge =
       Gauge.build()
           .name("data_summary_event_count")
           .help("Event counts over time")
-          .labelNames("time")
+          .labelNames("days")
           .register();
   public static final Gauge systemInfoGauge =
       Gauge.build()
