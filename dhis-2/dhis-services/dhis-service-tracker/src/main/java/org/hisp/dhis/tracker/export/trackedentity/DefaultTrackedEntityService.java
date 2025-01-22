@@ -49,7 +49,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
@@ -422,36 +421,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    return result;
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      Enrollment enrollment, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : enrollment.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, enrollment, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
-
-    return result;
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      Event event, TrackedEntity trackedEntity, boolean includeDeleted) throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : event.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, event, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
     return result;
   }
 
