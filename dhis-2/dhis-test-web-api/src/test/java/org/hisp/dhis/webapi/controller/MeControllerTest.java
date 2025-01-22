@@ -136,6 +136,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testChangePassword_WrongNew() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertEquals(
         "Password must have at least 8, and at most 72 characters",
         PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}")
@@ -203,6 +204,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testValidatePasswordText_TooShort() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     JsonPasswordValidation result =
         POST("/me/validatePassword", ContentType("text/plain"), Body("secret"))
             .content()
@@ -214,6 +216,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testValidatePasswordText_TooLong() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     JsonPasswordValidation result =
         POST(
                 "/me/validatePassword",

@@ -205,4 +205,37 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     response = GET("/loginConfig").content();
     assertEquals("test_recaptcha_stie", response.getString("recaptchaSite").string());
   }
+
+  @Test
+  void testPasswordValidationPattern() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals(
+        "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{8,72}$",
+        response.getString("passwordValidationPattern").string());
+
+    POST("/systemSettings/passwordValidationPattern", "test_password_validation_pattern")
+        .content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals(
+        "test_password_validation_pattern",
+        response.getString("passwordValidationPattern").string());
+  }
+
+  @Test
+  void testMinPasswordLength() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals("8", response.getString("minPasswordLength").string());
+    POST("/systemSettings/minPasswordLength", "10").content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals("10", response.getString("minPasswordLength").string());
+  }
+
+  @Test
+  void testMaxPasswordLength() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals("72", response.getString("maxPasswordLength").string());
+    POST("/systemSettings/maxPasswordLength", "100").content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals("100", response.getString("maxPasswordLength").string());
+  }
 }
