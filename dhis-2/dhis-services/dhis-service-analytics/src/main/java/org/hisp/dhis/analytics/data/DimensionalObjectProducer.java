@@ -432,7 +432,7 @@ public class DimensionalObjectProducer {
             items, userOrgUnits, IdScheme.UID, new ArrayList<>(), new ArrayList<>())
         .stream()
         .map(DimensionalItemObject::getUid)
-        .toList();
+        .collect(toList());
   }
 
   /**

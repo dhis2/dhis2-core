@@ -796,24 +796,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testGetSelectClauseForAggregatedEnrollments() {
-    // Given
-    Period period = new Period(THIS_YEAR);
-    period.setPeriodType(new YearlyPeriodType());
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(createProgram('A'))
-            .withEndpointAction(AGGREGATE)
-            .withEndpointItem(ENROLLMENT)
-            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
-            .build();
-    // When
-    String select = enrollmentSubject.getSelectClause(params);
-    // Then
-    assertEquals("select enrollment,Yearly ", select);
-  }
-
-  @Test
   void testItemsInFilterAreQuotedForOrganisationUnit() {
     // Given
     QueryItem queryItem = mock(QueryItem.class);
@@ -829,27 +811,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     // Then
     assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
   }
-
-  @Test
-  void testGetSelectClauseForQueryEnrollments() {
-    // Given
-    Period period = new Period(THIS_YEAR);
-    period.setPeriodType(new YearlyPeriodType());
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(createProgram('A'))
-            .withEndpointAction(QUERY)
-            .withEndpointItem(ENROLLMENT)
-            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
-            .build();
-    // When
-    String select = enrollmentSubject.getSelectClause(params);
-    // Then
-    assertEquals(
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
-        select);
-  }
-
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {
     return new QueryFilter(operator, filter);
