@@ -42,7 +42,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -177,12 +176,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
     result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
     result.setDeleted(enrollment.isDeleted());
-    List<Note> notes = new ArrayList<>();
-    // eagerly fetch notes
-    for (Note note : enrollment.getNotes()) {
-      notes.add(note);
-    }
-    result.setNotes(notes);
+    result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
       result.setEvents(
           getEvents(

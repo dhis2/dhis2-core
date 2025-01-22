@@ -29,10 +29,7 @@ package org.hisp.dhis.tracker.export;
 
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
-import org.hisp.dhis.tracker.imports.preheat.mappers.EventMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipTypeMapper;
-import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -44,7 +41,7 @@ import org.mapstruct.factory.Mappers;
     RelationshipTypeMapper.class,
     TrackedEntityMapper.class,
     EnrollmentMapper.class,
-    EventMapper.class,
+    EventMapper.class
 })
 public interface RelationshipItemMapper {
   RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
