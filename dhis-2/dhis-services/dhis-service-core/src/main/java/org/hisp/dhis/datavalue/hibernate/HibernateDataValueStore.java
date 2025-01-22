@@ -851,21 +851,21 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
           -- loop through each record with a matching source id
           for source_dv in
-            select * from datavalue where sourceColumn in (%s)
+            select * from datavalue where source_column in (%s)
             loop
 
             -- check if target Data Value exists with same unique key
             select dv.*
               into target_duplicate
               from datavalue dv
-              where dv.dataelementid = dataElement
+              where dv.dataelementid = data_element
               and dv.periodid = source_dv.periodid
               and dv.sourceid = source_dv.sourceid
-              and dv.attributeoptioncomboid = attrOptCombo
-              and dv.categoryoptioncomboid = catOptCombo;
+              and dv.attributeoptioncomboid = attr_opt_combo
+              and dv.categoryoptioncomboid = cat_opt_combo;
 
             -- target duplicate found and target has latest lastUpdated value
-            if (target_duplicate.sourceColumn is not null
+            if (target_duplicate.source_column is not null
                 and target_duplicate.lastupdated >= source_dv.lastupdated)
               then
               -- delete source
@@ -877,7 +877,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 and categoryoptioncomboid = source_dv.categoryoptioncomboid;
 
             -- target duplicate found and source has latest lastUpdated value
-            elsif (target_duplicate.sourceColumn is not null
+            elsif (target_duplicate.source_column is not null
                 and target_duplicate.lastupdated < source_dv.lastupdated)
               then
               -- delete target
@@ -890,7 +890,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
               -- update source with target
               update datavalue
-                set sourceColumn = target_id
+                set source_column = target_id
                 where dataelementid = source_dv.dataelementid
                 and periodid = source_dv.periodid
                 and sourceid = source_dv.sourceid
@@ -900,7 +900,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             else
               -- no target duplicate found, update source with target id
               update datavalue
-                set sourceColumn = target_id
+                set source_column = target_id
                 where dataelementid = source_dv.dataelementid
                 and periodid = source_dv.periodid
                 and sourceid = source_dv.sourceid
@@ -918,20 +918,20 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 targetId, sourceIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
     if (mergeType.equals(DataValueMergeType.DATA_ELEMENT)) {
-      return sql.replace("sourceColumn", "dataelementid")
-          .replace("dataElement", "target_id")
-          .replace("catOptCombo", "source_dv.categoryoptioncomboid")
-          .replace("attrOptCombo", "source_dv.attributeoptioncomboid");
+      return sql.replace("source_column", "dataelementid")
+          .replace("data_element", "target_id")
+          .replace("cat_opt_combo", "source_dv.categoryoptioncomboid")
+          .replace("attr_opt_combo", "source_dv.attributeoptioncomboid");
     } else if (mergeType.equals(DataValueMergeType.CATEGORY_OPTION_COMBO)) {
-      return sql.replace("sourceColumn", "categoryoptioncomboid")
-          .replace("dataElement", "source_dv.dataelementid")
-          .replace("catOptCombo", "target_id")
-          .replace("attrOptCombo", "source_dv.attributeoptioncomboid");
+      return sql.replace("source_column", "categoryoptioncomboid")
+          .replace("data_element", "source_dv.dataelementid")
+          .replace("cat_opt_combo", "target_id")
+          .replace("attr_opt_combo", "source_dv.attributeoptioncomboid");
     } else if (mergeType.equals(DataValueMergeType.ATTRIBUTE_OPTION_COMBO)) {
-      return sql.replace("sourceColumn", "attributeoptioncomboid")
-          .replace("dataElement", "source_dv.dataelementid")
-          .replace("catOptCombo", "source_dv.categoryoptioncomboid")
-          .replace("attrOptCombo", "target_id");
+      return sql.replace("source_column", "attributeoptioncomboid")
+          .replace("data_element", "source_dv.dataelementid")
+          .replace("cat_opt_combo", "source_dv.categoryoptioncomboid")
+          .replace("attr_opt_combo", "target_id");
     }
     // if SQL params haven't been replaced there's no point trying to execute a bad SQL query
     throw new IllegalArgumentException(
