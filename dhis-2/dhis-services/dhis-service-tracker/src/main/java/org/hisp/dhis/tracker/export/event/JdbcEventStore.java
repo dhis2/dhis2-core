@@ -99,6 +99,7 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.RelationshipItemMapper;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -108,6 +109,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.mapstruct.factory.Mappers;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -122,6 +124,9 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore {
+  private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
+      Mappers.getMapper(RelationshipItemMapper.class);
+
   private static final String RELATIONSHIP_IDS_QUERY =
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from"
           + " relationshipitem ri group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
@@ -475,6 +480,7 @@ class JdbcEventStore {
             }
           }
 
+          // TODO(DHIS2-18883) move this into the relationship service/store
           List<Relationship> relationships = relationshipStore.getById(relationshipIds);
 
           Multimap<String, RelationshipItem> map = LinkedListMultimap.create();
@@ -484,10 +490,10 @@ class JdbcEventStore {
             }
 
             if (relationship.getFrom().getEvent() != null) {
-              map.put(relationship.getFrom().getEvent().getUid(), relationship.getFrom());
+              map.put(relationship.getFrom().getEvent().getUid(), RELATIONSHIP_ITEM_MAPPER.map( relationship.getFrom()));
             }
             if (relationship.getTo().getEvent() != null) {
-              map.put(relationship.getTo().getEvent().getUid(), relationship.getTo());
+              map.put(relationship.getTo().getEvent().getUid(), RELATIONSHIP_ITEM_MAPPER.map( relationship.getTo()));
             }
           }
 
