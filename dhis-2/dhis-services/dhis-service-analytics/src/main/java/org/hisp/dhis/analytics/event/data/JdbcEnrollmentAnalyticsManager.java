@@ -670,6 +670,31 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
+    final String filterSql =
+        """
+            select
+              enrollment,
+              %s as value
+            from
+                (select
+                    enrollment,
+                    %s,
+                    row_number() over (
+                        partition by enrollment
+                        order by
+                            occurreddate desc,
+                            created desc
+                    ) as rn
+                from
+                    %s
+                where
+                    eventstatus != 'SCHEDULE'
+                    %s
+                ) ranked
+            where
+                rn = 1
+            """;
+
     return queryItems.stream()
         .map(
             item -> {
@@ -688,30 +713,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                       ? "AND ps = '" + item.getProgramStage().getUid() + "'"
                       : ""; // Add program stage filter if available
 
-              return """
-                      select
-                              enrollment,
-                              %s as value
-                          from
-                              (select
-                                  enrollment,
-                                  %s,
-                                  row_number() over (
-                                      partition by enrollment
-                                      order by
-                                          occurreddate desc,
-                                          created desc
-                                  ) as rn
-                              from
-                                  %s
-                              where
-                                  eventstatus != 'SCHEDULE'
-                                  %s
-                              ) ranked
-                          where
-                              rn = 1
-                      """
-                  .formatted(columnName, columnName, tableName, programStageCondition);
+              return filterSql.formatted(columnName, columnName, tableName, programStageCondition);
             })
         .collect(Collectors.joining("\nunion all\n"));
   }

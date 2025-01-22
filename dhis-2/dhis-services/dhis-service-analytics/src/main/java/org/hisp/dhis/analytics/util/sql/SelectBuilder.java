@@ -304,7 +304,6 @@ public class SelectBuilder {
    */
   public SelectBuilder from(String table, String alias) {
     this.fromTable = sanitizeFromClause(table);
-    ;
     this.fromAlias = alias;
     return this;
   }

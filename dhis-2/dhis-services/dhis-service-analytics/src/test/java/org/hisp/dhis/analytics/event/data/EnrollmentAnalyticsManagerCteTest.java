@@ -50,7 +50,6 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,8 +93,6 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Captor private ArgumentCaptor<String> sql;
 
-  private final BeanRandomizer rnd = BeanRandomizer.create();
-
   @BeforeEach
   public void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
@@ -136,8 +133,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     Collection<Consumer<String>> assertions =
         Arrays.asList(
-            (sql) -> assertThat(sql, containsString(cte)),
-            (sql) -> {
+            sql -> assertThat(sql, containsString(cte)),
+            sql -> {
               // check that the IN clause is in the root query where condition
               var whereToOrderBy =
                   sql.toLowerCase()
@@ -146,7 +143,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
                           sql.toLowerCase().lastIndexOf("limit"));
               assertThat(whereToOrderBy, containsString(inClause));
             },
-            (sql) -> assertThat(sql, containsString(inClause)));
+            sql -> assertThat(sql, containsString(inClause)));
 
     testIt(IN, numericValues, assertions);
   }

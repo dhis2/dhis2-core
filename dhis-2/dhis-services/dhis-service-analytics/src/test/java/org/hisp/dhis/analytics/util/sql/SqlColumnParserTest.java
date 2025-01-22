@@ -33,49 +33,49 @@ import org.junit.jupiter.api.Test;
 
 class SqlColumnParserTest {
   @Test
-  void testRemoveTableAlias_WithDoubleQuotes() throws Exception {
+  void testRemoveTableAlias_WithDoubleQuotes() {
     String result = SqlColumnParser.removeTableAlias("ax.\"uidlevel2\"");
     assertEquals("uidlevel2", result);
   }
 
   @Test
-  void testRemoveTableAlias_WithBackticks() throws Exception {
+  void testRemoveTableAlias_WithBackticks() {
     String result = SqlColumnParser.removeTableAlias("cc.`alfa`");
     assertEquals("alfa", result);
   }
 
   @Test
-  void testRemoveTableAlias_WithoutQuotes() throws Exception {
+  void testRemoveTableAlias_WithoutQuotes() {
     String result = SqlColumnParser.removeTableAlias("test1.uidlevel2");
     assertEquals("uidlevel2", result);
   }
 
   @Test
-  void testRemoveTableAlias_NoAlias() throws Exception {
+  void testRemoveTableAlias_NoAlias() {
     String result = SqlColumnParser.removeTableAlias("uidlevel2");
     assertEquals("uidlevel2", result);
   }
 
   @Test
-  void testRemoveTableAlias_EmptyString() throws Exception {
+  void testRemoveTableAlias_EmptyString() {
     String result = SqlColumnParser.removeTableAlias("");
     assertEquals("", result);
   }
 
   @Test
-  void testRemoveTableAlias_NullInput() throws Exception {
+  void testRemoveTableAlias_NullInput() {
     String result = SqlColumnParser.removeTableAlias(null);
     assertNull(result);
   }
 
   @Test
-  void testRemoveTableAlias_ComplexColumnName() throws Exception {
+  void testRemoveTableAlias_ComplexColumnName() {
     String result = SqlColumnParser.removeTableAlias("schema.table.\"complex.column.name\"");
     assertEquals("complex.column.name", result);
   }
 
   @Test
-  void testRemoveTableAlias_MultipleDots() throws Exception {
+  void testRemoveTableAlias_MultipleDots() {
     String result = SqlColumnParser.removeTableAlias("schema.table.column");
     assertEquals("column", result);
   }
