@@ -30,6 +30,19 @@ package org.hisp.dhis.util;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Builder of maps. Usage:
+ *
+ * <p><code><pre>
+ * Map<String, Integer> map = new MapBuilder<String, Integer>()
+ *   .put( "Height", 178 )
+ *   .put( "Weight", 72 )
+ *   .build();
+ * </pre></code>
+ *
+ * @param <K> key type.
+ * @param <V> value type.
+ */
 public class MapBuilder<K, V> {
   private final Map<K, V> map;
 
