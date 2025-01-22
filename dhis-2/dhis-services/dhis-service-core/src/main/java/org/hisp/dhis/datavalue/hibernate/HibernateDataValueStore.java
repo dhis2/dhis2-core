@@ -934,7 +934,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
           .replace("attrOptCombo", "target_id");
     }
     // if SQL params haven't been replaced there's no point trying to execute a bad SQL query
-    throw new IllegalArgumentException("Error while trying to construct SQL for data value merge");
+    throw new IllegalArgumentException(
+        "Error while trying to construct SQL for data value merge for " + mergeType);
   }
 
   enum DataValueMergeType {
