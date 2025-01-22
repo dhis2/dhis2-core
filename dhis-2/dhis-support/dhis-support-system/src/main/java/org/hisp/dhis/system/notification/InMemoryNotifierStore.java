@@ -28,14 +28,12 @@
 package org.hisp.dhis.system.notification;
 
 import static java.lang.System.currentTimeMillis;
-import static java.util.Comparator.comparingLong;
 
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -47,14 +45,16 @@ import org.hisp.dhis.scheduling.JobType;
 /**
  * A {@link NotifierStore} that stores values in memory.
  *
+ * @implNote The implementation does need to use concurrent collections because there can be
+ *     concurrent reads (in particular iteration) while writes are running.
  * @since 2.42
  * @author Jan Bernitt
  */
 public final class InMemoryNotifierStore implements NotifierStore {
 
+  private final Map<JobType, Map<UID, SummaryStore>> summaryStores = new ConcurrentHashMap<>();
   private final Map<JobType, Map<UID, NotificationStore>> notificationStores =
       new ConcurrentHashMap<>();
-  private final Map<JobType, Map<UID, SummaryStore>> summaryStores = new ConcurrentHashMap<>();
 
   @Nonnull
   @Override
@@ -101,48 +101,10 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
   @Override
   public void clearStore(@Nonnull JobType type, @Nonnull UID job) {
-    notificationStores.getOrDefault(type, Map.of()).remove(job);
-    summaryStores.getOrDefault(type, Map.of()).remove(job);
-  }
-
-  @Override
-  public void capStoresByCount(int n, @Nonnull JobType type) {
-    capStoresByCount(n, type, notificationStores);
-    capStoresByCount(n, type, summaryStores);
-  }
-
-  @Override
-  public void capStoresByAge(int days, @Nonnull JobType type) {
-    capStoresByAge(days, type, notificationStores);
-    capStoresByAge(days, type, summaryStores);
-  }
-
-  private static <T extends PerJobStore> void capStoresByCount(
-      int n, @Nonnull JobType type, Map<JobType, Map<UID, T>> stores) {
-    if (n <= 0) {
-      stores.remove(type);
-      return;
-    }
-    Map<UID, T> byId = stores.get(type);
-    if (byId != null && byId.size() > n) {
-      int remove = byId.size() - n;
-      byId.values().stream()
-          .sorted(comparingLong(PerJobStore::ageTimestamp))
-          .limit(remove)
-          .forEach(s -> byId.remove(s.job()));
-      if (byId.isEmpty()) stores.remove(type);
-    }
-  }
-
-  private <T extends PerJobStore> void capStoresByAge(
-      int days, @Nonnull JobType type, Map<JobType, Map<UID, T>> stores) {
-    Map<UID, T> byId = stores.get(type);
-    if (byId == null) return;
-    long removeBefore = currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
-    byId.values().stream()
-        .filter(s -> s.ageTimestamp() < removeBefore)
-        .forEach(s -> byId.remove(s.job()));
-    if (byId.isEmpty()) stores.remove(type);
+    Map<UID, ?> map = notificationStores.get(type);
+    if (map != null) map.remove(job);
+    map = summaryStores.get(type);
+    if (map != null) map.remove(job);
   }
 
   private record InMemoryNotificationStore(JobType type, UID job, Deque<Notification> collection)

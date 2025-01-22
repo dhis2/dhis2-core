@@ -28,13 +28,10 @@
 package org.hisp.dhis.system.notification;
 
 import static java.lang.System.currentTimeMillis;
-import static java.util.Comparator.comparingLong;
-import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -50,8 +47,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisOperations;
 
 /**
  * Provides Redis backed implementation of the {@link NotifierStore}.
@@ -62,7 +58,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 @RequiredArgsConstructor
 public class RedisNotifierStore implements NotifierStore {
 
-  private final RedisTemplate<String, String> redis;
+  private final RedisOperations<String, String> redis;
 
   @Nonnull
   @Override
@@ -73,10 +69,9 @@ public class RedisNotifierStore implements NotifierStore {
   @Nonnull
   @Override
   public List<? extends NotificationStore> getNotificationStores(@Nonnull JobType type) {
-    try (Cursor<String> keys =
-        redis.scan(scanOptions().match(getNotificationsKey(type.name(), "*")).build())) {
-      return keys.stream().map(key -> getNotificationStore(type, key)).toList();
-    }
+    Set<String> keys = redis.keys(getNotificationsKey(type.name(), "*"));
+    if (keys == null || keys.isEmpty()) return List.of();
+    return keys.stream().map(key -> getNotificationStore(type, key)).toList();
   }
 
   @Nonnull
@@ -125,30 +120,10 @@ public class RedisNotifierStore implements NotifierStore {
     redis.delete(keys);
   }
 
-  @Override
-  public void capStoresByCount(int n, @Nonnull JobType type) {
-    if (n <= 0) {
-      clearStore(type);
-      return;
-    }
-    List<? extends NotificationStore> stores = getNotificationStores(type);
-    if (stores.size() <= n) return;
-    int remove = stores.size() - n;
-    stores.stream()
-        .sorted(comparingLong(NotificationStore::ageTimestamp))
-        .limit(remove)
-        .forEach(s -> clearStore(s.type(), s.job()));
-  }
-
-  @Override
-  public void capStoresByAge(int days, @Nonnull JobType type) {
-    List<? extends NotificationStore> stores = getNotificationStores(type);
-    long removeBefore = currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
-    stores.stream()
-        .filter(s -> s.ageTimestamp() < removeBefore)
-        .forEach(s -> clearStore(s.type(), s.job()));
-  }
-
+  /**
+   * Stores {@link Notification}s (as JSON) in a redis ZSET with the {@link Notification#getTime()}
+   * used as score.
+   */
   private record RedisNotificationStore(
       JobType type, UID job, BoundZSetOperations<String, String> collection)
       implements NotificationStore {
@@ -156,8 +131,6 @@ public class RedisNotifierStore implements NotifierStore {
     @Override
     public long ageTimestamp() {
       Notification newest = getNewest();
-      // when it is empty it is fine to remove it,
-      // should it be active it will be added to anyhow
       return newest == null ? 0L : newest.getTime().getTime();
     }
 
@@ -260,6 +233,10 @@ public class RedisNotifierStore implements NotifierStore {
     }
   }
 
+  /**
+   * Stores summary objects as JSON ina redis H table. All summaries of a {@link JobType} are stored
+   * in the same table with the keys being the {@link UID} of the job.
+   */
   private record RedisSummaryStore(
       JobType type, UID job, BoundHashOperations<String, String, String> table)
       implements SummaryStore {

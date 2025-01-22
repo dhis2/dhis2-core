@@ -192,6 +192,9 @@ public enum JobType {
   }
 
   /**
+   * @implNote since 2.42 all jobs forward to the {@link org.eclipse.emf.common.notify.Notifier} but
+   *     those not included here use {@link
+   *     org.hisp.dhis.system.notification.NotificationLevel#ERROR}.
    * @return true, if {@link JobProgress} events should be forwarded to the {@link
    *     org.eclipse.emf.common.notify.Notifier} API, otherwise false
    */

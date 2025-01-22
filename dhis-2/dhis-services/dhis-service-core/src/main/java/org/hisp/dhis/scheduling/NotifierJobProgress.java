@@ -47,15 +47,26 @@ import org.hisp.dhis.system.notification.Notifier;
  */
 @RequiredArgsConstructor
 public class NotifierJobProgress implements JobProgress {
+
   private final Notifier notifier;
-
   private final JobConfiguration jobId;
-
+  private final NotificationLevel level;
   private final AtomicBoolean hasCleared = new AtomicBoolean();
 
   private int stageItems;
-
   private int stageItem;
+
+  private boolean isLoggedLoop() {
+    return NotificationLevel.LOOP.ordinal() >= level.ordinal();
+  }
+
+  private boolean isLoggedInfo() {
+    return NotificationLevel.INFO.ordinal() >= level.ordinal();
+  }
+
+  private boolean isLoggedError() {
+    return NotificationLevel.ERROR.ordinal() >= level.ordinal();
+  }
 
   @Override
   public void startingProcess(String description, Object... args) {
@@ -66,6 +77,7 @@ public class NotifierJobProgress implements JobProgress {
     if (hasCleared.compareAndSet(false, true)) {
       notifier.clear(jobId);
     }
+    // Note: intentionally no log level check - always log first
     notifier.notify(
         jobId,
         NotificationLevel.INFO,
@@ -77,11 +89,13 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void completedProcess(String summary, Object... args) {
+    // Note: intentionally no log level check - always log last
     notifier.notify(jobId, format(summary, args), true);
   }
 
   @Override
   public void failedProcess(@CheckForNull String error, Object... args) {
+    // Note: intentionally no log level check - always log last
     notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
   }
 
@@ -90,28 +104,28 @@ public class NotifierJobProgress implements JobProgress {
       @Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure) {
     stageItems = workItems;
     stageItem = 0;
-    if (isNotEmpty(description)) {
+    if (isLoggedInfo() && isNotEmpty(description)) {
       notifier.notify(jobId, description);
     }
   }
 
   @Override
   public void completedStage(String summary, Object... args) {
-    if (isNotEmpty(summary)) {
+    if (isLoggedInfo() && isNotEmpty(summary)) {
       notifier.notify(jobId, format(summary, args));
     }
   }
 
   @Override
   public void failedStage(@Nonnull String error, Object... args) {
-    if (isNotEmpty(error)) {
+    if (isLoggedError() && isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
   @Override
   public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
-    if (isNotEmpty(description)) {
+    if (isLoggedLoop() && isNotEmpty(description)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + description, false);
     }
@@ -120,7 +134,7 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void completedWorkItem(String summary, Object... args) {
-    if (isNotEmpty(summary)) {
+    if (isLoggedLoop() && isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + format(summary, args), false);
     }
@@ -128,7 +142,7 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void failedWorkItem(@Nonnull String error, Object... args) {
-    if (isNotEmpty(error)) {
+    if (isLoggedError() && isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }

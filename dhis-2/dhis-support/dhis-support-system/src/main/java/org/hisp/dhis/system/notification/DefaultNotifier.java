@@ -65,6 +65,12 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
  * messages. Last but not least it also makes sure that any error from persisting messages does not
  * affect the source thread.
  *
+ * <p>Please note that this implementation does not filter on {@link NotificationLevel} other than
+ * {@link NotificationLevel#OFF}. The {@link SystemSettings#getNotifierLogLevel()} is applied in the
+ * {@link org.hisp.dhis.scheduling.JobProgress} that forwards to the {@link Notifier} API. This is
+ * for backwards compatibility of usages of the {@link Notifier} API outside of job execution and to
+ * keep the {@link NotificationLevel} consistent over a job run.
+ *
  * @since 2.42
  * @author Jan Bernitt
  */
@@ -76,7 +82,6 @@ public class DefaultNotifier implements Notifier {
   private final SystemSettingsProvider settingsProvider;
   private final BlockingQueue<Entry<UID, Notification>> pushToStore;
 
-  private NotificationLevel logLevel;
   private int messageLimit;
   private long settingsSince;
 
@@ -139,7 +144,6 @@ public class DefaultNotifier implements Notifier {
     if (now - settingsSince > 10_000) {
       SystemSettings settings = settingsProvider.getCurrentSettings();
       messageLimit = settings.getNotifierMaxMessages();
-      logLevel = settings.getNotifierLogLevel();
       settingsSince = now;
     }
     return messageLimit;
@@ -154,8 +158,6 @@ public class DefaultNotifier implements Notifier {
       NotificationDataType dataType,
       JsonValue data) {
     if (id == null || level.isOff()) return this;
-    // not logged due to level?
-    if (!completed && dataType == null && level.ordinal() < logLevel.ordinal()) return this;
 
     Notification n =
         new Notification(level, id.getJobType(), new Date(), message, completed, dataType, data);
@@ -222,12 +224,12 @@ public class DefaultNotifier implements Notifier {
   }
 
   @Override
-  public void clear(JobType type) {
+  public void clear(@Nonnull JobType type) {
     store.clearStore(type);
   }
 
   @Override
-  public void clear(JobType type, UID job) {
+  public void clear(@Nonnull JobType type, @Nonnull UID job) {
     store.clearStore(type, job);
   }
 
@@ -242,23 +244,20 @@ public class DefaultNotifier implements Notifier {
   }
 
   @Override
-  public void capMaxAge(JobType type, int maxAge) {
+  public void capMaxAge(@Nonnull JobType type, int maxAge) {
     store.capStoresByAge(maxAge, type);
   }
 
   @Override
-  public void capMaxCount(JobType type, int maxCount) {
+  public void capMaxCount(@Nonnull JobType type, int maxCount) {
     store.capStoresByCount(maxCount, type);
   }
 
   @Override
   public <T> Notifier addJobSummary(
       JobConfiguration id, NotificationLevel level, T summary, Class<T> type) {
-    if (id == null
-        || level == null
-        || level.isOff()
-        || !type.equals(summary.getClass())
-        || level.ordinal() < logLevel.ordinal()) return this;
+    if (id == null || level == null || level.isOff() || !type.equals(summary.getClass()))
+      return this;
 
     try {
       store

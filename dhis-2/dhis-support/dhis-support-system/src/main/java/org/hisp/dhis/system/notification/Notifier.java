@@ -116,22 +116,38 @@ public interface Notifier {
 
   JsonValue getJobSummaryByJobId(JobType jobType, String jobId);
 
-  void clear(JobType type, UID job);
+  /*
+  Cleanup API
+   */
 
-  void clear(JobType type);
+  /**
+   * Removes all data for the specified job (both notifications and summary)
+   *
+   * @param type of the job to clear
+   * @param job ID of the job to clear
+   */
+  void clear(@Nonnull JobType type, @Nonnull UID job);
+
+  void clear(@Nonnull JobType type);
 
   void clear();
 
-  void capMaxAge(JobType type, int maxAge);
+  void capMaxAge(@Nonnull JobType type, int maxAge);
 
   void capMaxAge(int maxAge);
 
-  void capMaxCount(JobType type, int maxCount);
+  void capMaxCount(@Nonnull JobType type, int maxCount);
 
   void capMaxCount(int maxCount);
 
-  default Notifier clear(JobConfiguration id) {
-    if (id != null) clear(id.getJobType(), UID.of(id.getUid()));
+  /**
+   * For backwards compatibility (not having to update all callers)
+   *
+   * @param config the job to clear all data for
+   * @return itself for chaining
+   */
+  default Notifier clear(@CheckForNull JobConfiguration config) {
+    if (config != null) clear(config.getJobType(), UID.of(config.getUid()));
     return this;
   }
 }

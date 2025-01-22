@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.system.notification;
 
+import static java.lang.System.currentTimeMillis;
+import static java.util.Comparator.comparingLong;
+
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -58,19 +62,11 @@ public interface NotifierStore {
   @Nonnull
   List<? extends SummaryStore> getSummaryStores(@Nonnull JobType type);
 
-  void capStoresByCount(int n, @Nonnull JobType type);
-
-  void capStoresByAge(int days, @Nonnull JobType type);
-
   void clearStore(@Nonnull JobType type, @Nonnull UID job);
 
-  default void clearStore(@Nonnull JobType type) {
-    capStoresByCount(0, type);
-  }
+  void clearStore(@Nonnull JobType type);
 
-  default void clearStores() {
-    capStoresByCount(0);
-  }
+  void clearStores();
 
   /**
    * Retains the n stores for each {@link JobType} which have the most recent notifications. Must
@@ -84,6 +80,28 @@ public interface NotifierStore {
 
   default void capStoresByAge(int days) {
     Stream.of(JobType.values()).forEach(type -> capStoresByAge(days, type));
+  }
+
+  default void capStoresByCount(int n, @Nonnull JobType type) {
+    if (n <= 0) {
+      clearStore(type);
+      return;
+    }
+    List<? extends NotificationStore> stores = getNotificationStores(type);
+    if (stores.size() <= n) return;
+    int remove = stores.size() - n;
+    stores.stream()
+        .sorted(comparingLong(NotificationStore::ageTimestamp))
+        .limit(remove)
+        .forEach(s -> clearStore(s.type(), s.job()));
+  }
+
+  default void capStoresByAge(int days, @Nonnull JobType type) {
+    List<? extends NotificationStore> stores = getNotificationStores(type);
+    long removeBefore = currentTimeMillis() - TimeUnit.DAYS.toMillis(days);
+    stores.stream()
+        .filter(s -> s.ageTimestamp() < removeBefore)
+        .forEach(s -> clearStore(s.type(), s.job()));
   }
 
   sealed interface PerJobStore {
