@@ -28,6 +28,8 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -36,4 +38,13 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface EventStore extends IdentifiableObjectStore<Event> {
 
   List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
+
+  /**
+   * Updates all {@link Event}s with references to {@link CategoryOptionCombo}s, to use the coc
+   * reference.
+   *
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
+   */
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

@@ -27,7 +27,17 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
+import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT_OPERAND;
+import static org.hisp.dhis.common.DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
+import static org.hisp.dhis.common.DataDimensionItemType.INDICATOR;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DataDimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -35,28 +45,27 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
-import java.io.Serializable;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.validation.ValidationRule;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement(localName = "dataDimensionItem", namespace = DXF_2_0)
 public class DataDimensionItem {
   public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
       Set.of(
@@ -69,22 +78,12 @@ public class DataDimensionItem {
           ProgramTrackedEntityAttributeDimensionItem.class,
           ExpressionDimensionItem.class,
           SubexpressionDimensionItem.class,
-          ValidationRule.class);
+          ValidationRule.class,
+          ProgramDataElementOptionDimensionItem.class,
+          ProgramTrackedEntityAttributeOptionDimensionItem.class);
 
   public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
-      DATA_DIM_TYPE_CLASS_MAP =
-          Map.of(
-              DataDimensionItemType.INDICATOR, Indicator.class,
-              DataDimensionItemType.DATA_ELEMENT, DataElement.class,
-              DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class,
-              DataDimensionItemType.REPORTING_RATE, ReportingRate.class,
-              DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class,
-              DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class,
-              DataDimensionItemType.PROGRAM_ATTRIBUTE,
-                  ProgramTrackedEntityAttributeDimensionItem.class,
-              DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
-              DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class,
-              DataDimensionItemType.VALIDATION_RULE, ValidationRule.class);
+      DATA_DIM_TYPE_CLASS_MAP = new EnumMap<>(DataDimensionItemType.class);
 
   private int id;
 
@@ -110,43 +109,32 @@ public class DataDimensionItem {
 
   private SubexpressionDimensionItem subexpressionDimensionItem;
 
-  private Attributes attributes;
+  private ProgramDataElementOptionDimensionItem programDataElementOption;
 
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class Attributes implements Serializable {
-    /** The option item for this dimension item. * */
-    private OptionSetItem optionSetItem;
-
-    @JsonProperty
-    @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-    public OptionSetItem getOptionSetItem() {
-      return optionSetItem;
-    }
-
-    /**
-     * This method ensure that existing persisted items will return default values, case the current
-     * {@link OptionSetItem} is null or does not have an {@link Aggregation} defined.
-     *
-     * @return the correct version of an {@link OptionSetItem}.
-     */
-    public OptionSetItem getOptionSetItemOrDefault() {
-      if (optionSetItem != null) {
-        return new OptionSetItem(
-            optionSetItem.getOptions(), optionSetItem.getAggregationOrDefault());
-      }
-
-      return new OptionSetItem(Set.of(), AGGREGATED);
-    }
-
-    public void setOptionSetItem(OptionSetItem optionSetItem) {
-      this.optionSetItem = optionSetItem;
-    }
-  }
+  private ProgramTrackedEntityAttributeOptionDimensionItem programAttributeOption;
 
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
+
+  static {
+    DATA_DIM_TYPE_CLASS_MAP.put(INDICATOR, Indicator.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(DATA_ELEMENT, DataElement.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(DATA_ELEMENT_OPERAND, DataElementOperand.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(REPORTING_RATE, ReportingRate.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(PROGRAM_INDICATOR, ProgramIndicator.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(
+        PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(
+        DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(DataDimensionItemType.VALIDATION_RULE, ValidationRule.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(
+        PROGRAM_DATA_ELEMENT_OPTION, ProgramDataElementOptionDimensionItem.class);
+    DATA_DIM_TYPE_CLASS_MAP.put(
+        PROGRAM_ATTRIBUTE_OPTION, ProgramTrackedEntityAttributeOptionDimensionItem.class);
+  }
 
   public DataDimensionItem() {}
 
@@ -210,6 +198,12 @@ public class DataDimensionItem {
       dimension.setExpressionDimensionItem((ExpressionDimensionItem) object);
     } else if (SubexpressionDimensionItem.class.isAssignableFrom(object.getClass())) {
       dimension.setSubexpressionDimensionItem((SubexpressionDimensionItem) object);
+    } else if (ProgramDataElementOptionDimensionItem.class.isAssignableFrom(object.getClass())) {
+      dimension.setProgramDataElementOption((ProgramDataElementOptionDimensionItem) object);
+    } else if (ProgramTrackedEntityAttributeOptionDimensionItem.class.isAssignableFrom(
+        object.getClass())) {
+      dimension.setProgramAttributeOption(
+          (ProgramTrackedEntityAttributeOptionDimensionItem) object);
     } else {
       throw new IllegalArgumentException(
           "Not a valid data dimension: " + object.getClass().getSimpleName() + ", " + object);
@@ -226,7 +220,6 @@ public class DataDimensionItem {
     if (indicator != null) {
       return indicator;
     } else if (dataElement != null) {
-      loadAttributes(dataElement);
       return dataElement;
     } else if (dataElementOperand != null) {
       return dataElementOperand;
@@ -235,53 +228,45 @@ public class DataDimensionItem {
     } else if (programIndicator != null) {
       return programIndicator;
     } else if (programDataElement != null) {
-      loadAttributes(programDataElement);
       return programDataElement;
     } else if (programAttribute != null) {
-      loadAttributes(programAttribute);
       return programAttribute;
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
     } else if (subexpressionDimensionItem != null) {
       return subexpressionDimensionItem;
+    } else if (programDataElementOption != null) {
+      return programDataElementOption;
+    } else if (programAttributeOption != null) {
+      return programAttributeOption;
     }
 
     return null;
   }
 
-  /**
-   * Simply loads the internal attributes into the given item object. Some objects, when null, will
-   * be loaded with their respective defaults.
-   *
-   * @param itemObject the {@link BaseDimensionalItemObject}.
-   */
-  private void loadAttributes(BaseDimensionalItemObject itemObject) {
-    if (attributes == null) {
-      attributes = new Attributes();
-    }
-
-    itemObject.setOptionSetItem(attributes.getOptionSetItemOrDefault());
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public DataDimensionItemType getDataDimensionItemType() {
     if (indicator != null) {
-      return DataDimensionItemType.INDICATOR;
+      return INDICATOR;
     } else if (dataElement != null) {
-      return DataDimensionItemType.DATA_ELEMENT;
+      return DATA_ELEMENT;
     } else if (dataElementOperand != null) {
-      return DataDimensionItemType.DATA_ELEMENT_OPERAND;
+      return DATA_ELEMENT_OPERAND;
     } else if (reportingRate != null) {
-      return DataDimensionItemType.REPORTING_RATE;
+      return REPORTING_RATE;
     } else if (programIndicator != null) {
-      return DataDimensionItemType.PROGRAM_INDICATOR;
+      return PROGRAM_INDICATOR;
     } else if (programDataElement != null) {
-      return DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+      return PROGRAM_DATA_ELEMENT;
     } else if (programAttribute != null) {
-      return DataDimensionItemType.PROGRAM_ATTRIBUTE;
+      return PROGRAM_ATTRIBUTE;
     } else if (expressionDimensionItem != null) {
-      return DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
+      return EXPRESSION_DIMENSION_ITEM;
+    } else if (programDataElementOption != null) {
+      return PROGRAM_DATA_ELEMENT_OPTION;
+    } else if (programAttributeOption != null) {
+      return PROGRAM_ATTRIBUTE_OPTION;
     }
 
     return null;
@@ -343,17 +328,9 @@ public class DataDimensionItem {
     this.id = id;
   }
 
-  public Attributes getAttributes() {
-    return attributes;
-  }
-
-  public void setAttributes(Attributes attributes) {
-    this.attributes = attributes;
-  }
-
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public Indicator getIndicator() {
     return indicator;
   }
@@ -372,7 +349,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public DataElementOperand getDataElementOperand() {
     return dataElementOperand;
   }
@@ -383,7 +360,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ReportingRate getReportingRate() {
     return reportingRate;
   }
@@ -394,7 +371,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ProgramIndicator getProgramIndicator() {
     return programIndicator;
   }
@@ -405,7 +382,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ProgramDataElementDimensionItem getProgramDataElement() {
     return programDataElement;
   }
@@ -416,7 +393,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ProgramTrackedEntityAttributeDimensionItem getProgramAttribute() {
     return programAttribute;
   }
@@ -427,7 +404,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ExpressionDimensionItem getExpressionDimensionItem() {
     return expressionDimensionItem;
   }
@@ -438,9 +415,33 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public SubexpressionDimensionItem getSubexpressionDimensionItem() {
     return subexpressionDimensionItem;
+  }
+
+  public void setProgramDataElementOption(
+      ProgramDataElementOptionDimensionItem programDataElementOption) {
+    this.programDataElementOption = programDataElementOption;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseNameableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public ProgramDataElementOptionDimensionItem getProgramDataElementOption() {
+    return programDataElementOption;
+  }
+
+  public void setProgramAttributeOption(
+      ProgramTrackedEntityAttributeOptionDimensionItem programAttributeOption) {
+    this.programAttributeOption = programAttributeOption;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseNameableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public ProgramTrackedEntityAttributeOptionDimensionItem getProgramAttributeOption() {
+    return programAttributeOption;
   }
 
   public void setSubexpressionDimensionItem(SubexpressionDimensionItem subexpressionDimensionItem) {

@@ -131,7 +131,7 @@ class NoteServiceTest extends TrackerTest {
     Note note = note();
 
     assertThrows(
-        ForbiddenException.class,
+        NotFoundException.class,
         () -> noteService.addNoteForEnrollment(note, UID.of("nxP7UnKhomJ")));
   }
 

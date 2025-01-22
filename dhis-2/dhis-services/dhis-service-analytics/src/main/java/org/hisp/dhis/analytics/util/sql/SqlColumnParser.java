@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.analytics.util.sql;
 
-import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.web.session.HttpSessionCreatedEvent;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.analytics.util.sql.QuoteUtils.unquote;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Component
-@Slf4j
-@RequiredArgsConstructor
-public class DhisHttpSessionEventListener {
-  private final DhisConfigurationProvider config;
+import lombok.experimental.UtilityClass;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
 
-  @EventListener
-  public void sessionCreated(HttpSessionCreatedEvent event) {
-    HttpSession session = event.getSession();
+@UtilityClass
+public class SqlColumnParser {
+
+  /**
+   * Removes table alias from a SQL column reference using JSqlParser. Handles quoted column names
+   * and complex SQL expressions.
+   *
+   * @param columnReference The SQL column reference (e.g., "ax.uidlevel2", "test1.`alfa`")
+   * @return The column name without the table alias (e.g., "uidlevel2", "alfa")
+   */
+  public static String removeTableAlias(String columnReference) {
+    if (columnReference == null || columnReference.isEmpty()) {
+      return columnReference;
+    }
+
     try {
-      String property = config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
-      session.setMaxInactiveInterval(Integer.parseInt(property));
+      // Parse the column reference using JSqlParser
+      Expression expression = CCJSqlParserUtil.parseExpression(columnReference);
+
+      // Ensure the parsed expression is a Column
+      if (!(expression instanceof Column column)) {
+        throw new IllegalQueryException(ErrorCode.E7148, "column reference: " + columnReference);
+      }
+
+      // Extract the column name
+      return unquote(column.getColumnName());
     } catch (Exception e) {
-      session.setMaxInactiveInterval(
-          Integer.parseInt(ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue()));
-      log.error("Could not read session timeout value from config", e);
+      throw new IllegalQueryException(ErrorCode.E7148, e.getMessage());
     }
   }
 }

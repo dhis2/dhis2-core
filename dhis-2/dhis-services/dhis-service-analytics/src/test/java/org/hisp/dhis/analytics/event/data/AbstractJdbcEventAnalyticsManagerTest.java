@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
@@ -104,6 +105,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,9 +131,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
+  @Mock private SystemSettingsService systemSettingsService;
+
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -850,6 +854,23 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals("select enrollment,Yearly ", select);
+  }
+
+  @Test
+  void testItemsInFilterAreQuotedForOrganisationUnit() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
   }
 
   @Test

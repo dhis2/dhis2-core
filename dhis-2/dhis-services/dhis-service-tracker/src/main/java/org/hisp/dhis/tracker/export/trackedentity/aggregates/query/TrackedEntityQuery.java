@@ -46,6 +46,7 @@ public class TrackedEntityQuery {
     DELETED,
     GEOMETRY,
     TYPE_UID,
+    TYPE_ALLOW_AUDITLOG,
     ORGUNIT_UID,
     TRACKEDENTITYID,
 
@@ -65,6 +66,9 @@ public class TrackedEntityQuery {
           .put(COLUMNS.DELETED, new TableColumn("te", "deleted"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "te", "geometry", "geometry"))
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
+          .put(
+              COLUMNS.TYPE_ALLOW_AUDITLOG,
+              new TableColumn("tet", "allowauditlog", "type_allowauditlog"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(COLUMNS.TRACKEDENTITYID, new TableColumn("te", "trackedentityid", "trackedentityid"))
           .put(

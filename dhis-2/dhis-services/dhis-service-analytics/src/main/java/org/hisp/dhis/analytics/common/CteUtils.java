@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.analytics.common;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import lombok.experimental.UtilityClass;
+import org.hisp.dhis.common.QueryItem;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+@UtilityClass
+public class CteUtils {
 
-/**
- * @author Luciano Fiandesio
- */
-interface Aggregate {
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
-   *     Multimap
-   * @param supplier The Supplier to execute
-   * @param executor an Executor instance
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  default <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
+  public static String computeKey(QueryItem queryItem) {
+    if (queryItem.hasProgramStage()) {
+      return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
+    } else if (queryItem.isProgramIndicator()) {
+      return queryItem.getItemId();
+    }
+    return "";
   }
 
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param supplier The Supplier to execute
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  default <T> CompletableFuture<Multimap<String, T>> asyncFetch(
-      Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return supplyAsync(supplier, executor);
+  public static String getIdentifier(QueryItem queryItem) {
+    String stage = queryItem.hasProgramStage() ? queryItem.getProgramStage().getUid() : "default";
+    return stage + "." + queryItem.getItemId();
   }
 }

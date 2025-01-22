@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Lists;
@@ -74,7 +75,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityAggregate implements Aggregate {
+public class TrackedEntityAggregate {
   @Nonnull private final TrackedEntityStore trackedEntityStore;
 
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")
@@ -208,13 +209,13 @@ public class TrackedEntityAggregate implements Aggregate {
         supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
 
     /*
-     * Async fetch Owned Tei mapped to the provided program attributes by
+     * Async fetch Owned TE mapped to the provided program attributes by
      * TrackedEntity id
      */
     final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
             user.isPresent(),
-            () -> trackedEntityStore.getOwnedTeis(ids, ctx, orgUnitMode == ALL),
+            () -> trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL),
             getPool());
     /*
      * Execute all queries and merge the results
@@ -335,7 +336,7 @@ public class TrackedEntityAggregate implements Aggregate {
    * @return an instance of {@see Context} populated with ACL-related info
    */
   private Context getSecurityContext(String userUID, List<String> userGroupUIDs) {
-    final CompletableFuture<List<Long>> getTeiTypes =
+    final CompletableFuture<List<Long>> getTrackedEntityTypes =
         supplyAsync(
             () -> aclStore.getAccessibleTrackedEntityTypes(userUID, userGroupUIDs), getPool());
 
@@ -349,11 +350,11 @@ public class TrackedEntityAggregate implements Aggregate {
         supplyAsync(
             () -> aclStore.getAccessibleRelationshipTypes(userUID, userGroupUIDs), getPool());
 
-    return allOf(getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes)
+    return allOf(getTrackedEntityTypes, getPrograms, getProgramStages, getRelationshipTypes)
         .thenApplyAsync(
             fn ->
                 Context.builder()
-                    .trackedEntityTypes(getTeiTypes.join())
+                    .trackedEntityTypes(getTrackedEntityTypes.join())
                     .programs(getPrograms.join())
                     .programStages(getProgramStages.join())
                     .relationshipTypes(getRelationshipTypes.join())

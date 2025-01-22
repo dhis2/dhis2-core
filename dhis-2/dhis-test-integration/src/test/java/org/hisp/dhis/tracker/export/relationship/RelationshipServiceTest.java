@@ -58,6 +58,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -78,6 +79,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private Date enrollmentDate;
 
@@ -301,8 +304,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     manager.save(createEnrollment(program, trackedEntityFrom, orgUnitA));
 
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityFrom, program, orgUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityFrom, program, orgUnitA);
 
     trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
 

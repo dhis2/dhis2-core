@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author Luciano Fiandesio
  */
-public class ThreadPoolManager {
+class ThreadPoolManager {
   // Thread factory that sets a user-defined thread name (useful for debugging
   // purposes)
   private ThreadPoolManager() {
