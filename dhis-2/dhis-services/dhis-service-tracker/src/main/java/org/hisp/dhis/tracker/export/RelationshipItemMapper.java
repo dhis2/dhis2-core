@@ -27,20 +27,27 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipTypeMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityTypeMapper;
+import org.hisp.dhis.user.User;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -48,6 +55,8 @@ import org.mapstruct.Named;
 
 // TODO(DHIS2-18883) move this into the relationship service/store
 // double-check that we only map whats needed!
+// We need to ensure we map everything the
+// org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipItemMapper needs
 @Mapper(
     uses = {ProgramStageMapper.class, RelationshipTypeMapper.class, TrackedEntityTypeMapper.class})
 public interface RelationshipItemMapper {
@@ -82,6 +91,7 @@ public interface RelationshipItemMapper {
   // these are needed to make mapstruct map these collections using the entity @Mappers
   Set<Enrollment> mapEnrollments(Set<Enrollment> enrollments);
 
+  // these are needed to make mapstruct map these collections using the entity @Mappers
   Set<Event> mapEvents(Set<Event> events);
 
   @BeanMapping(ignoreByDefault = true)
@@ -108,63 +118,106 @@ public interface RelationshipItemMapper {
   @Mapping(target = "trackedEntity", qualifiedByName = "mapTrackedEntityUidOnly")
   TrackedEntityProgramOwner map(TrackedEntityProgramOwner programOwner);
 
+  // these are needed to make mapstruct map these collections using the entity @Mappers
   Set<TrackedEntityProgramOwner> mapTrackedEntityProgramOwners(
       Set<TrackedEntityProgramOwner> programOwners);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "user")
-  @Mapping(target = "completedBy")
-  @Mapping(target = "completedDate")
-  @Mapping(target = "program")
-  @Mapping(target = "trackedEntity", qualifiedByName = "mapTrackedEntityUidOnly")
-  @Mapping(target = "organisationUnit")
   @Mapping(target = "created")
-  @Mapping(target = "occurredDate")
+  @Mapping(target = "createdAtClient")
+  @Mapping(target = "lastUpdated")
+  @Mapping(target = "lastUpdatedAtClient")
+  @Mapping(target = "trackedEntity", qualifiedByName = "mapTrackedEntityForEnrollment")
+  @Mapping(target = "program")
+  @Mapping(target = "organisationUnit")
   @Mapping(target = "enrollmentDate")
-  @Mapping(target = "events")
-  @Mapping(target = "notes")
-  @Mapping(target = "deleted")
+  @Mapping(target = "occurredDate")
+  @Mapping(target = "followup")
+  @Mapping(target = "completedDate")
   @Mapping(target = "createdByUserInfo")
   @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "notes")
+  @Mapping(target = "events")
   @Mapping(target = "status")
+  @Mapping(target = "deleted")
+  @Mapping(target = "geometry")
+  @Mapping(target = "storedBy")
   Enrollment map(Enrollment enrollment);
+
+  @Named("mapTrackedEntityForEnrollment")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "trackedEntityAttributeValues")
+  TrackedEntity mapTrackedEntityForEnrollment(TrackedEntity trackedEntity);
+
+  // these are needed to make mapstruct map these collections using the entity @Mappers
+  Set<TrackedEntityAttributeValue> mapTrackedEntityAttributeValues(
+      Set<TrackedEntityAttributeValue> attributeValue);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "attribute")
+  @Mapping(target = "created")
+  @Mapping(target = "lastUpdated")
+  TrackedEntityAttributeValue map(TrackedEntityAttributeValue attributeValue);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   @Mapping(target = "code")
-  @Mapping(target = "user")
-  @Mapping(target = "enrollment", qualifiedByName = "mapEnrollmentUidOnly")
+  @Mapping(target = "name")
+  @Mapping(target = "valueType")
+  TrackedEntityAttribute map(TrackedEntityAttribute attribute);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "enrollment", qualifiedByName = "mapEnrollmentForEvent")
   @Mapping(target = "programStage")
-  @Mapping(target = "status")
-  @Mapping(target = "attributeOptionCombo")
   @Mapping(target = "organisationUnit")
-  @Mapping(target = "created")
-  @Mapping(target = "eventDataValues")
-  @Mapping(target = "notes")
-  @Mapping(target = "scheduledDate")
   @Mapping(target = "occurredDate")
+  @Mapping(target = "scheduledDate")
+  @Mapping(target = "created")
+  @Mapping(target = "createdAtClient")
+  @Mapping(target = "lastUpdated")
+  @Mapping(target = "lastUpdatedAtClient")
+  @Mapping(target = "attributeOptionCombo")
   @Mapping(target = "completedDate")
-  @Mapping(target = "completedBy")
-  @Mapping(target = "deleted")
   @Mapping(target = "createdByUserInfo")
   @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "status")
+  @Mapping(target = "eventDataValues")
+  @Mapping(target = "notes")
+  @Mapping(target = "storedBy")
+  @Mapping(target = "deleted")
+  @Mapping(target = "completedBy")
+  @Mapping(target = "assignedUser")
   @Mapping(target = "geometry")
   Event map(Event event);
 
   // relationshipItem.event.enrollment is only exported as UID
-  @Named("mapEnrollmentUidOnly")
+  @Named("mapEnrollmentForEvent")
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
-  Enrollment mapEnrollmentUidOnly(Enrollment enrollment);
+  @Mapping(target = "program")
+  @Mapping(target = "followup")
+  Enrollment mapEnrollmentForEvent(Enrollment enrollment);
+
+  // these are needed to make mapstruct map these collections using the entity @Mappers
+  Set<EventDataValue> mapEventDataValues(Set<EventDataValue> eventDataValues);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "created")
+  @Mapping(target = "lastUpdated")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  EventDataValue map(EventDataValue dataValue);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   @Mapping(target = "categoryOptions")
   CategoryOptionCombo map(CategoryOptionCombo categoryOptionCombo);
 
-  Set<CategoryOption> map(Set<CategoryOption> categoryOption);
+  // these are needed to make mapstruct map these collections using the entity @Mappers
+  Set<CategoryOption> mapCategoryOptions(Set<CategoryOption> categoryOptions);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
@@ -184,8 +237,7 @@ public interface RelationshipItemMapper {
   @Mapping(target = "programType")
   Program map(Program program);
 
-  // TODO can I make one mapper for these?
-  // relationshipItem.enrollment.trackedEntity or programOwner is only exported as UID
+  // programOwner is only exported as UID
   @Named("mapTrackedEntityUidOnly")
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
@@ -195,4 +247,29 @@ public interface RelationshipItemMapper {
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
   Program mapProgramUidOnly(Program program);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "username")
+  @Mapping(target = "firstName")
+  @Mapping(target = "surname")
+  User map(User user);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "username")
+  @Mapping(target = "firstName")
+  @Mapping(target = "surname")
+  User map(UserInfoSnapshot user);
+
+  // these are needed to make mapstruct map these collections using the entity @Mappers
+  List<Note> mapNotes(List<Note> notes);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "created")
+  @Mapping(target = "noteText")
+  @Mapping(target = "lastUpdatedBy")
+  @Mapping(target = "creator")
+  Note map(Note note);
 }
