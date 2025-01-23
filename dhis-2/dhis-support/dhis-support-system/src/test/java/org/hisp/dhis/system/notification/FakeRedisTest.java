@@ -28,7 +28,9 @@
 package org.hisp.dhis.system.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -88,25 +90,27 @@ class FakeRedisTest {
   }
 
   @Test
+  @SuppressWarnings("DataFlowIssue")
   void testDelete_NonExistingHasNoEffect() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("empty:s");
     assertEquals(0L, set1.zCard());
-    assertEquals(false, redis.delete("empty:s"));
-    assertEquals(false, redis.delete("x"));
+    assertFalse(redis.delete("empty:s"));
+    assertFalse(redis.delete("x"));
 
     BoundHashOperations<String, String, String> table1 = redis.boundHashOps("empty:t");
     assertNull(table1.get("x"));
-    assertEquals(false, redis.delete("empty:t"));
-    assertEquals(false, redis.delete("x"));
+    assertFalse(redis.delete("empty:t"));
+    assertFalse(redis.delete("x"));
   }
 
   @Test
+  @SuppressWarnings("DataFlowIssue")
   void testDelete_byKey() {
     BoundZSetOperations<String, String> set1 = redis.boundZSetOps("my:set");
     set1.add("val", 42);
     set1.add("val2", 43);
     assertEquals(Set.of("my:set"), redis.keys("*"));
-    assertEquals(true, redis.delete("my:set"));
+    assertTrue(redis.delete("my:set"));
     assertEquals(Set.of(), redis.keys("*"));
   }
 
