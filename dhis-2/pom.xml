@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.1</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -126,7 +126,7 @@
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
-    <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.7.2</clickhouse-jdbc.version>
 
     <!-- Servlet -->
@@ -1613,7 +1613,11 @@
         <artifactId>debezium-connector-postgres</artifactId>
         <version>${version.debezium}</version>
       </dependency>
-
+      <dependency>
+        <groupId>com.github.jsqlparser</groupId>
+        <artifactId>jsqlparser</artifactId>
+        <version>4.6</version>
+      </dependency>
       <!-- Test -->
       <dependency>
         <groupId>org.hamcrest</groupId>

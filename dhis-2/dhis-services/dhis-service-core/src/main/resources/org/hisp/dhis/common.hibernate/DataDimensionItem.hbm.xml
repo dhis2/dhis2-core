@@ -50,6 +50,25 @@
         column="programdataelement_dataelementid" foreign-key="fk_datadimensionitem_programdataelement_dataelementid" />
     </component>
 
+    <component name="programDataElementOption" class="org.hisp.dhis.program.ProgramDataElementOptionDimensionItem">
+      <many-to-one name="program" class="org.hisp.dhis.program.Program"
+        column="programdataelementoption_programid" foreign-key="fk_datadimensionitem_programdataelementoption_programid" />
+
+      <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+        column="programdataelementoption_dataelementid" foreign-key="fk_datadimensionitem_programdataelementoption_dataelementid" />
+
+      <many-to-one name="option" class="org.hisp.dhis.option.Option"
+        column="programdataelementoption_optionid" foreign-key="fk_datadimensionitem_programdataelementoption_optionid" />
+
+      <property name="aggregation" length="50" column="programdataelementoption_aggregation">
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.analytics.Aggregation</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+      </property>
+    </component>
+
     <component name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem">
       <many-to-one name="program" class="org.hisp.dhis.program.Program"
         column="programattribute_programid" foreign-key="fk_datadimensionitem_programattribute_programid" />
@@ -58,11 +77,26 @@
         column="programattribute_attributeid" foreign-key="fk_datadimensionitem_programattribute_attributeid" />
     </component>
 
+    <component name="programAttributeOption" class="org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem">
+      <many-to-one name="program" class="org.hisp.dhis.program.Program"
+        column="programattributeoption_programid" foreign-key="fk_datadimensionitem_programattributeoption_programid" />
+
+      <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+        column="programattributeoption_attributeid" foreign-key="fk_datadimensionitem_programattributeoption_attributeid" />
+
+      <many-to-one name="option" class="org.hisp.dhis.option.Option"
+        column="programattributeoption_optionid" foreign-key="fk_datadimensionitem_programattributeoption_optionid" />
+
+      <property name="aggregation" length="50" column="programattributeoption_aggregation">
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.analytics.Aggregation</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+      </property>
+    </component>
+
     <many-to-one name="expressionDimensionItem" class="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem"
         column="expressiondimensionitemid" foreign-key="fk_datadimensionitem_expressiondimensionitemid" />
-
-    <component name="attributes">
-      <property name="optionSetItem" type="jbOptionSetItem"/>
-    </component>
   </class>
 </hibernate-mapping>

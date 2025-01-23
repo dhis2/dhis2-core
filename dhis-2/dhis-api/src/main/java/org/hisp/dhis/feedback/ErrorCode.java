@@ -468,7 +468,7 @@ public enum ErrorCode {
   E7145("Query failed because of a syntax error"),
   E7146("A {0} date was not specified in periods, dimensions, filters"),
   E7147("Query failed because of a missing column: `{0}`"),
-
+  E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
   /* Analytics outliers */
 
   E7180(
