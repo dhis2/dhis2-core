@@ -28,13 +28,15 @@
 package org.hisp.dhis.util;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -54,22 +56,22 @@ public class OrganisationUnitCriteriaUtils {
       String userOrganisationUnitsCriteria) {
     List<AnalyticsMetaDataKey> keys = new ArrayList<>();
 
-    if (userOrganisationUnitsCriteria == null
-        || !userOrganisationUnitsCriteria.contains(ORGUNIT_DIM_ID + ":")) {
-      return keys;
+    // order matters, don't change unless you know what you're doing
+    AnalyticsMetaDataKey[] analyticsMetaDataKeys = {
+      USER_ORGUNIT_CHILDREN, USER_ORGUNIT_GRANDCHILDREN, USER_ORGUNIT
+    };
+    for (AnalyticsMetaDataKey key : analyticsMetaDataKeys) {
+      if (userOrganisationUnitsCriteria.contains(key.getKey())) {
+        keys.add(key);
+        // we need this hack, and the analyticsMetaDataKeys order, because otherwise it would match
+        // USER_ORGUNIT_CHILDREN even if we only get USER_ORGUNIT, since the latter contains the
+        // former
+        userOrganisationUnitsCriteria =
+            userOrganisationUnitsCriteria.replace(key.getKey(), StringUtils.EMPTY);
+      }
     }
 
-    userOrganisationUnitsCriteria =
-        userOrganisationUnitsCriteria.replace(ORGUNIT_DIM_ID + ":", StringUtils.EMPTY);
-    List<String> criteria = Arrays.stream(userOrganisationUnitsCriteria.split(";")).toList();
-    return criteria.stream()
-        .filter(
-            c ->
-                c.equalsIgnoreCase(AnalyticsMetaDataKey.USER_ORGUNIT.getKey())
-                    || c.equalsIgnoreCase(AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey())
-                    || c.equalsIgnoreCase(AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey()))
-        .map(AnalyticsMetaDataKey::valueOf)
-        .toList();
+    return keys;
   }
 
   /**
@@ -82,8 +84,16 @@ public class OrganisationUnitCriteriaUtils {
   public static String getAnalyticsQueryCriteria(Set<String> dimensions) {
     return isNotEmpty(dimensions)
         ? dimensions.stream()
-            .filter(d -> d.contains(ORGUNIT_DIM_ID))
+            .filter(OrganisationUnitCriteriaUtils::containsAnyUserOrgUnitKeyword)
             .collect(Collectors.joining(","))
         : StringUtils.EMPTY;
+  }
+
+  private static boolean containsAnyUserOrgUnitKeyword(String dimension) {
+    return Stream.of(
+            USER_ORGUNIT.getKey(),
+            AnalyticsMetaDataKey.USER_ORGUNIT_CHILDREN.getKey(),
+            AnalyticsMetaDataKey.USER_ORGUNIT_GRANDCHILDREN.getKey())
+        .anyMatch(dimension::contains);
   }
 }
