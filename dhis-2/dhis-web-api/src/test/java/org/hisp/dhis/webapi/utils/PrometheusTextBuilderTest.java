@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Date;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -82,7 +83,8 @@ class PrometheusTextBuilderTest {
   @Test
   void appendStaticKeyValueIgnoresNullValue() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.appendStaticKeyValue("test_metric", "key", null);
+    builder.appendStaticKeyValue("test_metric", "key", (String) null);
+    builder.appendStaticKeyValue("test_metric", "key", (Date) null);
     assertEquals("", builder.getMetrics());
   }
 }

@@ -88,6 +88,12 @@ public class PrometheusTextBuilder {
     }
   }
 
+  public void appendStaticKeyValue(String metricName, String key, java.util.Date value) {
+    if (value != null) {
+      metrics.append(String.format("%s{key=\"%s\", value=\"%s\"} 1%n", metricName, key, value));
+    }
+  }
+
   /**
    * Returns the Prometheus metrics as a string.
    *
