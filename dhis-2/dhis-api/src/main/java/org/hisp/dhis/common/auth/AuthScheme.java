@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.common.auth;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.Serializable;
+import java.util.function.Function;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
 
 /**
  * @author Morten Olav Hansen
  */
-class ApiTokenAuthTest {
+@Getter
+@Setter
+@EqualsAndHashCode
+@Accessors(chain = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = "http-basic"),
+  @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = "api-token"),
+  @JsonSubTypes.Type(value = ApiHeadersAuthScheme.class, name = "api-headers-auth"),
+  @JsonSubTypes.Type(value = ApiQueryParamsAuthScheme.class, name = "api-query-params-auth")
+})
+public abstract class AuthScheme implements Serializable {
+  @JsonProperty protected final String type;
 
-  @Test
-  void testAuthorizationHeaderSet() {
-    ApiTokenAuth auth = new ApiTokenAuth().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
-
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
-
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals(
-        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+  @JsonCreator
+  protected AuthScheme(@JsonProperty("type") String type) {
+    this.type = type;
   }
+
+  public abstract void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams);
+
+  public abstract AuthScheme encrypt(Function<String, String> encryptFunc);
+
+  public abstract AuthScheme decrypt(Function<String, String> decryptFunc);
 }

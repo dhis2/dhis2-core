@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,65 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Base64;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
-/**
- * @author Morten Olav Hansen
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class HttpBasicAuth extends Auth {
-  public static final String TYPE = "http-basic";
+public class ApiQueryParamsAuthScheme extends AuthScheme {
+  public static final String TYPE = "api-query-params-auth";
 
   @JsonProperty(required = true)
-  private String username;
+  private Map<String, String> queryParams = new HashMap<>();
 
-  @JsonProperty(required = true)
-  private String password;
-
-  public HttpBasicAuth() {
+  public ApiQueryParamsAuthScheme() {
     super(TYPE);
   }
 
   @Override
-  public void apply(MultiValueMap<String, String> headers) {
-    if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
+  public void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+    if (this.queryParams.isEmpty()) {
       return;
     }
 
-    headers.add("Authorization", getBasicAuth(username, password));
+    for (Map.Entry<String, String> suppliedQueryParam : this.queryParams.entrySet()) {
+      queryParams.set(suppliedQueryParam.getKey(), suppliedQueryParam.getValue());
+    }
   }
 
-  private String getBasicAuth(String username, String password) {
-    String string = String.format("%s:%s", username, password);
-    return "Basic " + Base64.getEncoder().encodeToString(string.getBytes());
+  @Override
+  public ApiQueryParamsAuthScheme encrypt(Function<String, String> encryptFunc) {
+    Map<String, String> encryptedSuppliedQueryParams =
+        queryParams.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return copy(encryptedSuppliedQueryParams);
+  }
+
+  @Override
+  public ApiQueryParamsAuthScheme decrypt(Function<String, String> decryptFunc) {
+    Map<String, String> encryptedSuppliedQueryParams =
+        queryParams.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return copy(encryptedSuppliedQueryParams);
+  }
+
+  protected ApiQueryParamsAuthScheme copy(Map<String, String> suppliedQueryParams) {
+    ApiQueryParamsAuthScheme apiQueryParamsAuth = new ApiQueryParamsAuthScheme();
+    apiQueryParamsAuth.setQueryParams(suppliedQueryParams);
+
+    return apiQueryParamsAuth;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,65 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
-/**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
- * access token, but can be used anywhere the format is accepted.
- *
- * @author Morten Olav Hansen
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class ApiTokenAuth extends Auth {
-  public static final String TYPE = "api-token";
+public class ApiHeadersAuthScheme extends AuthScheme {
+  public static final String TYPE = "api-headers-auth";
 
   @JsonProperty(required = true)
-  private String token;
+  private Map<String, String> headers = new HashMap<>();
 
-  public ApiTokenAuth() {
+  public ApiHeadersAuthScheme() {
     super(TYPE);
   }
 
   @Override
-  public void apply(MultiValueMap<String, String> headers) {
-    if (!StringUtils.hasText(token)) {
+  public void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+    if (this.headers.isEmpty()) {
       return;
     }
 
-    headers.set("Authorization", "ApiToken " + token);
+    for (Map.Entry<String, String> suppliedHeader : this.headers.entrySet()) {
+      headers.set(suppliedHeader.getKey(), suppliedHeader.getValue());
+    }
+  }
+
+  @Override
+  public ApiHeadersAuthScheme encrypt(Function<String, String> encryptFunc) {
+    Map<String, String> encryptedSuppliedHeaders =
+        headers.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return copy(encryptedSuppliedHeaders);
+  }
+
+  @Override
+  public ApiHeadersAuthScheme decrypt(Function<String, String> decryptFunc) {
+    Map<String, String> encryptedSuppliedHeaders =
+        headers.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return copy(encryptedSuppliedHeaders);
+  }
+
+  protected ApiHeadersAuthScheme copy(Map<String, String> suppliedQueryParams) {
+    ApiHeadersAuthScheme apiHeadersAuth = new ApiHeadersAuthScheme();
+    apiHeadersAuth.setHeaders(suppliedQueryParams);
+
+    return apiHeadersAuth;
   }
 }

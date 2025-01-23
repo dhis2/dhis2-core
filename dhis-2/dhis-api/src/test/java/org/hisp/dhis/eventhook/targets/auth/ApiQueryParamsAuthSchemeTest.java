@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
 import java.util.Map;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.auth.AuthScheme;
-import org.hisp.dhis.eventhook.Target;
+import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class WebhookTarget extends Target {
-  public static final String TYPE = "webhook";
+class ApiQueryParamsAuthSchemeTest extends AbstractAuthSchemeTest {
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiQueryParamsAuthScheme()
+            .setQueryParams(
+                Map.of(
+                    "token", "T5pvst37VedtsoD70KlbumzI30Mo4pzzyAY0M6Ia8uYyPBLPeXlYzr4d3LPQD6oS")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getQueryParams().get("token"));
+  }
 
-  @JsonProperty(required = true)
-  private String url;
-
-  @JsonProperty(required = true)
-  private String contentType = "application/json";
-
-  @JsonProperty private Map<String, String> headers = new HashMap<>();
-
-  @JsonProperty private AuthScheme auth;
-
-  public WebhookTarget() {
-    super(TYPE);
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiQueryParamsAuthScheme()
+            .setQueryParams(
+                Map.of(
+                    "token", "3PB06m2bcr0blf81OEpcIDUMUYQYHJcdQsBJyOwbmelTYBQ6fuskAGJReGgM30Cv")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getQueryParams().get("token"));
   }
 }

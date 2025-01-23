@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.function.Function;
 import org.hisp.dhis.common.auth.AuthScheme;
-import org.hisp.dhis.eventhook.Target;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class WebhookTarget extends Target {
-  public static final String TYPE = "webhook";
+public abstract class AbstractAuthSchemeTest {
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
+  protected <T extends AuthScheme> void assertEncrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T encryptedAuthScheme =
+        (T)
+            authScheme.encrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "bar";
+                });
+    assertEquals("bar", secretProvider.apply(encryptedAuthScheme));
+  }
 
-  @JsonProperty(required = true)
-  private String url;
-
-  @JsonProperty(required = true)
-  private String contentType = "application/json";
-
-  @JsonProperty private Map<String, String> headers = new HashMap<>();
-
-  @JsonProperty private AuthScheme auth;
-
-  public WebhookTarget() {
-    super(TYPE);
+  protected <T extends AuthScheme> void assertDecrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T decryptedAuthScheme =
+        (T)
+            authScheme.decrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "foo";
+                });
+    assertEquals("foo", secretProvider.apply(decryptedAuthScheme));
   }
 }
