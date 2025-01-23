@@ -67,7 +67,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         "Bad Request",
         400,
         "ERROR",
-        "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter.",
+        "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter, but was: invalid_uid",
         POST(
                 "/tracker?async=false",
                 """
