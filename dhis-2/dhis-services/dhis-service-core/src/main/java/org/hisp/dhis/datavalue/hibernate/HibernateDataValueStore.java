@@ -938,7 +938,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         "Error while trying to construct SQL for data value merge for " + mergeType);
   }
 
-  enum DataValueMergeType {
+  private enum DataValueMergeType {
     DATA_ELEMENT,
     CATEGORY_OPTION_COMBO,
     ATTRIBUTE_OPTION_COMBO
