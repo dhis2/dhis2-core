@@ -167,10 +167,10 @@ class DataElementMergeTest extends ApiTest {
     // generate category option combos
     String emptyParams = new QueryParamsBuilder().build();
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", emptyParams)
+        .post("categoryOptionComboUpdate/categoryCombo/CatComUid01", new QueryParamsBuilder().build())
         .validateStatus(200);
     maintenanceApiActions
-        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", emptyParams)
+        .post("categoryOptionComboUpdate/categoryCombo/CatComUid02", new QueryParamsBuilder().build())
         .validateStatus(200);
 
     // get cat opt combo ID to use in min max data elements
