@@ -63,7 +63,8 @@ class PrometheusTextBuilderTest {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
     Map<String, Integer> map = Map.of("key1", 1);
     builder.updateMetricsFromMap(map, "test_metric", "key", "Test help", "gauge");
-    String expected = """
+    String expected =
+        """
         # HELP test_metric Test help
         # TYPE test_metric gauge
         test_metric{key="key1"} 1
