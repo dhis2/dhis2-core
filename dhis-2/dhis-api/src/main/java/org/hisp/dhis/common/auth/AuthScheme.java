@@ -53,8 +53,8 @@ import org.springframework.util.MultiValueMap;
 @JsonSubTypes({
   @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = "http-basic"),
   @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = "api-token"),
-  @JsonSubTypes.Type(value = ApiHeadersAuthScheme.class, name = "api-headers-auth"),
-  @JsonSubTypes.Type(value = ApiQueryParamsAuthScheme.class, name = "api-query-params-auth")
+  @JsonSubTypes.Type(value = ApiHeadersAuthScheme.class, name = "api-headers"),
+  @JsonSubTypes.Type(value = ApiQueryParamsAuthScheme.class, name = "api-query-params")
 })
 public abstract class AuthScheme implements Serializable {
   @JsonProperty protected final String type;

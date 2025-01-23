@@ -44,7 +44,7 @@ import org.springframework.util.MultiValueMap;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class ApiQueryParamsAuthScheme extends AuthScheme {
-  public static final String TYPE = "api-query-params-auth";
+  public static final String TYPE = "api-query-params";
 
   @JsonProperty(required = true)
   private Map<String, String> queryParams = new HashMap<>();

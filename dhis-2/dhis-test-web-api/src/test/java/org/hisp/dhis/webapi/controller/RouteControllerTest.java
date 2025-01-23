@@ -171,7 +171,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         "foo",
         getHttpResponse.content().get("auth.headers.X-API-KEY").as(JsonString.class).string());
     assertEquals(
-        "api-headers-auth",
+        "api-headers",
         getHttpResponse.content().get("auth.type").as(JsonString.class).string());
   }
 
@@ -196,7 +196,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     assertNotEquals(
         "foo", getHttpResponse.content().get("auth.headers.token").as(JsonString.class).string());
     assertEquals(
-        "api-query-params-auth",
+        "api-query-params",
         getHttpResponse.content().get("auth.type").as(JsonString.class).string());
   }
 }
