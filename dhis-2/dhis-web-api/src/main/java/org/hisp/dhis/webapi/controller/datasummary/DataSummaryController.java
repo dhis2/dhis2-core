@@ -31,6 +31,7 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
@@ -68,6 +69,32 @@ public class DataSummaryController {
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody DataSummary getStatistics() {
     return dataStatisticsService.getSystemStatisticsSummary();
+  }
+
+  /**
+   * Appends system information metrics to the Prometheus metrics.
+   *
+   * @param systemInfo the system information containing version, commit, revision, and system ID
+   */
+  public void appendSystemInfoMetrics(PrometheusTextBuilder metrics, Dhis2Info systemInfo) {
+    String metricName = "data_summary_build_info";
+    if (systemInfo != null) {
+      metrics.helpLine(metricName, "Build information");
+      metrics.typeLine(metricName, "gauge");
+      long buildTime = 0L;
+      if (systemInfo.getBuildTime() != null) {
+        buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
+      }
+      metrics.append(
+          String.format(
+              "%s{version=\"%s\", commit=\"%s\"} %s%n",
+              metricName, systemInfo.getVersion(), systemInfo.getRevision(), buildTime));
+
+      metrics.helpLine("data_summary_system_id", "System ID");
+      metrics.typeLine("data_summary_system_id", "gauge");
+      metrics.append(
+          String.format("data_summary_system_id{system_id=\"%s\"} 1%n", systemInfo.getSystemId()));
+    }
   }
 
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
@@ -112,7 +139,7 @@ public class DataSummaryController {
         "Count of updated events by day",
         PROMETHEUS_GAUGE_NAME);
 
-    metrics.appendSystemInfoMetrics(summary.getSystem());
+    appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();
   }
 }

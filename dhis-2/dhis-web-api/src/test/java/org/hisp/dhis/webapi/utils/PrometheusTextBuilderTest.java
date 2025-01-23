@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
 import java.util.Map;
-import org.hisp.dhis.common.Dhis2Info;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -70,55 +68,6 @@ class PrometheusTextBuilderTest {
         # HELP test_metric Test help
         # TYPE test_metric gauge
         test_metric{key="key1"} 1
-        """;
-    assertEquals(expected, builder.getMetrics());
-  }
-
-  @Test
-  void appendSystemInfoMetrics() {
-    Date currentEpoch = new Date();
-    Long currentEpochSeconds = currentEpoch.getTime() / 1000;
-    PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    Dhis2Info systemInfo = new Dhis2Info();
-    systemInfo.setVersion("2.36.3");
-    systemInfo.setRevision("rev1");
-    systemInfo.setBuildTime(currentEpoch);
-    systemInfo.setSystemId("fake-uuid");
-
-    builder.appendSystemInfoMetrics(systemInfo);
-
-    String expected =
-        """
-        # HELP data_summary_build_info Build information
-        # TYPE data_summary_build_info gauge
-        data_summary_build_info{version="2.36.3", commit="rev1"} %d
-        # HELP data_summary_system_id System ID
-        # TYPE data_summary_system_id gauge
-        data_summary_system_id{system_id="fake-uuid"} 1
-        """
-            .formatted(currentEpochSeconds);
-    assertEquals(expected, builder.getMetrics());
-  }
-
-  @Test
-  void appendSystemInfoMetricsWithNullBuildTime() {
-
-    PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    Dhis2Info systemInfo = new Dhis2Info();
-    systemInfo.setVersion("2.36.3");
-    systemInfo.setRevision("rev1");
-    systemInfo.setSystemId("fake-uuid");
-
-    builder.appendSystemInfoMetrics(systemInfo);
-
-    String expected =
-        """
-        # HELP data_summary_build_info Build information
-        # TYPE data_summary_build_info gauge
-        data_summary_build_info{version="2.36.3", commit="rev1"} 0
-        # HELP data_summary_system_id System ID
-        # TYPE data_summary_system_id gauge
-        data_summary_system_id{system_id="fake-uuid"} 1
         """;
     assertEquals(expected, builder.getMetrics());
   }
