@@ -108,28 +108,23 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     if (programIndicator.hasFilter()) {
       String piResolvedSqlFilter =
           getProgramIndicatorSql(
-                  programIndicator.getFilter(),
-                  NUMERIC,
-                  programIndicator,
-                  earliestStartDate,
-                  latestDate)
-              // this is a bit of an hack
-              .replace("subax.", "");
+              programIndicator.getFilter(),
+              NUMERIC,
+              programIndicator,
+              earliestStartDate,
+              latestDate);
       filter = "where " + piResolvedSqlFilter;
     }
 
     String piResolvedSql =
         getProgramIndicatorSql(
-                programIndicator.getExpression(),
-                NUMERIC,
-                programIndicator,
-                earliestStartDate,
-                latestDate)
-            // this is a bit of an hack
-            .replace("subax.", "");
-
+            programIndicator.getExpression(),
+            NUMERIC,
+            programIndicator,
+            earliestStartDate,
+            latestDate);
     String cteSql =
-        "select enrollment, %s(%s) as value from %s %s group by enrollment"
+        "select enrollment, %s(%s) as value from %s as subax %s group by enrollment"
             .formatted(function, piResolvedSql, getTableName(programIndicator), filter);
 
     // Register the CTE and its column mapping
@@ -152,7 +147,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   private String getTableName(ProgramIndicator programIndicator) {
-    return "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
+    return AnalyticsTable.getTableName(
+        ANALYTICS_TYPE_MAP.get(programIndicator.getAnalyticsType()), programIndicator.getProgram());
   }
 
   /**
