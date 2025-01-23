@@ -1444,6 +1444,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             }
           }
         }
+      } else {
+        eventDataValuesWhereSql.append(hlp.whereAnd());
+        eventDataValuesWhereSql.append(" (ev.eventdatavalues ?? '");
+        eventDataValuesWhereSql.append(item.getKey().getUid());
+        eventDataValuesWhereSql.append("')");
       }
     }
 
