@@ -44,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -91,8 +92,10 @@ public class DataCategoryOptionComboMergeHandler {
       dataValueStore.deleteDataValuesByAttributeOptionCombo(sources);
     } else {
       log.info("Merging source data values as dataMergeStrategy is LAST_UPDATED");
-      dataValueStore.mergeDataValuesWithCategoryOptionCombos(target, sources);
-      dataValueStore.mergeDataValuesWithAttributeOptionCombos(target, sources);
+      dataValueStore.mergeDataValuesWithCategoryOptionCombos(
+          target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
+      dataValueStore.mergeDataValuesWithAttributeOptionCombos(
+          target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     }
   }
 

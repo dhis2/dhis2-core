@@ -101,4 +101,19 @@ public interface ProgramIndicatorSubqueryBuilder {
       AnalyticsType outerSqlEntity,
       Date earliestStartDate,
       Date latestDate);
+
+  void addCte(
+      ProgramIndicator programIndicator,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext);
+
+  void addCte(
+      ProgramIndicator programIndicator,
+      RelationshipType relationshipType,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext);
 }

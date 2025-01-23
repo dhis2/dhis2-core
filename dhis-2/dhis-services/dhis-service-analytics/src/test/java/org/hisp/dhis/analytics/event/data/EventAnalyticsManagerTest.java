@@ -43,6 +43,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
@@ -78,6 +79,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -86,6 +88,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -116,6 +119,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private static final String TABLE_NAME = "analytics_event";
 
+  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private DhisConfigurationProvider config;
+
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
       "event,ps,occurreddate,storedby,"
           + "createdbydisplayname"
@@ -129,7 +135,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(sqlBuilder);
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -138,9 +144,12 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
+            systemSettingsService,
+            config,
             sqlBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
   }
 
   @Test

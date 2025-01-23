@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -85,6 +86,37 @@ public class EnrollmentQueryHelper {
         }
 
         headerColumns.add(OUTER_SQL_ALIAS + DOT + headerName);
+      }
+    }
+
+    return headerColumns;
+  }
+
+  /**
+   * Based on the given headers and params, it returns a set of respective database columns. If the
+   * header contains an column name that references a program stage item, it will be skipped.
+   * Program Stage items are handled as separate CTE.
+   *
+   * @param headers the list of {@link GridHeader}.
+   * @param params the {@link EventQueryParams}.
+   * @return the set of database columns.
+   */
+  public static Set<String> getHeaderColumns(List<GridHeader> headers, EventQueryParams params) {
+    Set<String> headerColumns = new LinkedHashSet<>();
+    List<String> itemsToSkip =
+        params.getItems().stream()
+            .filter(QueryItem::hasProgramStage)
+            .map(item -> "%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()))
+            .toList();
+
+    for (GridHeader header : headers) {
+      String headerName = header.getName();
+
+      if (!headerName.equalsIgnoreCase(COL_VALUE)
+          && !headerName.equalsIgnoreCase(PERIOD_DIM_ID)
+          && !headerName.equalsIgnoreCase(ORGUNIT_DIM_ID)
+          && !itemsToSkip.contains(headerName)) {
+        headerColumns.add(headerName);
       }
     }
 
