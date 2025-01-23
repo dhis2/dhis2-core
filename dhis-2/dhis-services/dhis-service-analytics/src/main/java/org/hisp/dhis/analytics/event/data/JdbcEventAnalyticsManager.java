@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -49,6 +51,7 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
@@ -562,6 +566,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
+    sql += getWhereClauseOptions(params, hlp);
+
     // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
@@ -669,6 +675,35 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     return sql;
+  }
+
+  private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
+    if (params.hasOptionSetSelections()) {
+      StringBuilder sql = new StringBuilder();
+
+      params
+          .getOptionSetSelectionCriteria()
+          .getOptionSetSelections()
+          .forEach(
+              (key, value) -> {
+                List<String> uids = Arrays.stream(key.split("\\.")).toList();
+                Set<String> options = value.getOptions();
+
+                if (!uids.isEmpty() && isNotEmpty(options)) {
+                  sql.append(" ")
+                      .append(sqlHelper.whereAnd())
+                      .append(" ")
+                      .append(quote(uids.get(0) + ".optionvalueuid"))
+                      .append(" in ('")
+                      .append(String.join("','", options))
+                      .append("') ");
+                }
+              });
+
+      return sql.toString();
+    }
+
+    return EMPTY;
   }
 
   /** Generates a sub query which provides a filter by organisation descendant level. */

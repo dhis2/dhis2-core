@@ -426,6 +426,7 @@ public class DataHandler {
       EventQueryParams eventQueryParams =
           new EventQueryParams.Builder(fromDataQueryParams(dataSourceParams))
               .withSkipMeta(true)
+              .withOptionSetSelectionCriteria(params.getOptionSetSelectionCriteria())
               .build();
 
       Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);

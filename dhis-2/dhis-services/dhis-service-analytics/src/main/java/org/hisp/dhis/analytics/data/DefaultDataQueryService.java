@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -99,6 +100,8 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private final AnalyticsSecurityManager securityManager;
 
+  private final OptionSetFacade optionSetFacade;
+
   // -------------------------------------------------------------------------
   // DataQueryService implementation
   // -------------------------------------------------------------------------
@@ -114,6 +117,8 @@ public class DefaultDataQueryService implements DataQueryService {
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
+      params.withOptionSetSelectionCriteria(
+          optionSetFacade.getOptionSetSelectionCriteria(request.getDimension()));
     }
 
     if (isNotEmpty(request.getFilter())) {
@@ -174,7 +179,7 @@ public class DefaultDataQueryService implements DataQueryService {
   @Override
   @Transactional(readOnly = true)
   public DataQueryParams getFromAnalyticalObject(AnalyticalObject object) {
-    Objects.requireNonNull(object);
+    requireNonNull(object);
 
     DataQueryParams.Builder params = DataQueryParams.newBuilder();
 

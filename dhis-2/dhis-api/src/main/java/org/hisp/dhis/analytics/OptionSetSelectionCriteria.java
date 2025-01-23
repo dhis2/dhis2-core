@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics;
 
-import java.util.List;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-/**
- * @author Lars Helge Overland
- */
-public interface EventQueryPlanner {
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the event query parameters.
-   * @return a list of {@link EventQueryParams}.
-   */
-  List<EventQueryParams> planAggregateQuery(EventQueryParams params);
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the event query parameters.
-   * @return a list of {@link EventQueryParams}.
-   */
-  List<EventQueryParams> planQuery(EventQueryParams params);
+@Getter
+@AllArgsConstructor
+public class OptionSetSelectionCriteria {
+  private Map<String, OptionSetSelection> optionSetSelections;
 
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the event query parameters.
-   * @return an {@link EventQueryParams}.
-   */
-  EventQueryParams planEventQuery(EventQueryParams params);
+  @Override
+  public String toString() {
+    if (optionSetSelections == null || optionSetSelections.isEmpty()) {
+      return EMPTY;
+    }
 
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the enrollment query parameters.
-   * @return an {@link EventQueryParams}.
-   */
-  EventQueryParams planEnrollmentQuery(EventQueryParams params);
+    return "OptionSetSelectionCriteria{" + "optionSetSelections=" + optionSetSelections + '}';
+  }
 }

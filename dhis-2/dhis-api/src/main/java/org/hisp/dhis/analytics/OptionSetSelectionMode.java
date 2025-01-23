@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics;
 
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Lars Helge Overland
- */
-public interface EventQueryPlanner {
+/** The selection modes for dimension items with {@link OptionSet}. */
+public enum OptionSetSelectionMode {
   /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the event query parameters.
-   * @return a list of {@link EventQueryParams}.
+   * All options in an option set are chosen and aggregated into a single column. This selection is
+   * relative, so any new options added to the option set are included. This is the default mode.
    */
-  List<EventQueryParams> planAggregateQuery(EventQueryParams params);
+  AGGREGATED,
+  /**
+   * All options in an option set are chosen and displayed as data items. This selection is
+   * relative, so any new options added to the option set are included.
+   */
+  DISAGGREGATED;
 
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the event query parameters.
-   * @return a list of {@link EventQueryParams}.
-   */
-  List<EventQueryParams> planQuery(EventQueryParams params);
-
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the event query parameters.
-   * @return an {@link EventQueryParams}.
-   */
-  EventQueryParams planEventQuery(EventQueryParams params);
-
-  /**
-   * Plans the given parameters and returns a list of parameters.
-   *
-   * @param params the enrollment query parameters.
-   * @return an {@link EventQueryParams}.
-   */
-  EventQueryParams planEnrollmentQuery(EventQueryParams params);
+  public static List<String> getOptionSetSelectionModes() {
+    return Arrays.stream(OptionSetSelectionMode.values()).map(Enum::toString).toList();
+  }
 }
