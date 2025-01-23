@@ -47,13 +47,13 @@ import org.springframework.util.StringUtils;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class ApiTokenAuthScheme extends AuthScheme {
-  public static final String TYPE = "api-token";
+  public static final String API_TOKEN_TYPE = "api-token";
 
   @JsonProperty(required = true)
   private String token;
 
   public ApiTokenAuthScheme() {
-    super(TYPE);
+    super(API_TOKEN_TYPE);
   }
 
   @Override

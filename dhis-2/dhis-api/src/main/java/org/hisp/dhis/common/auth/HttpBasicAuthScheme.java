@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class HttpBasicAuthScheme extends AuthScheme {
-  public static final String TYPE = "http-basic";
+  public static final String HTTP_BASIC_TYPE = "http-basic";
 
   @JsonProperty(required = true)
   private String username;
@@ -54,7 +54,7 @@ public class HttpBasicAuthScheme extends AuthScheme {
   private String password;
 
   public HttpBasicAuthScheme() {
-    super(TYPE);
+    super(HTTP_BASIC_TYPE);
   }
 
   @Override

@@ -82,7 +82,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
 
     JsonObject auth = target.getObject("auth");
     assertFalse(auth.has("token"));
-    assertEquals(ApiTokenAuthScheme.TYPE, auth.getString("type").string());
+    assertEquals(ApiTokenAuthScheme.API_TOKEN_TYPE, auth.getString("type").string());
   }
 
   @Test
@@ -109,7 +109,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
     JsonObject auth = target.getObject("auth");
     assertTrue(auth.has("type", "username"));
     assertFalse(auth.has("password"));
-    assertEquals(HttpBasicAuthScheme.TYPE, auth.getString("type").string());
+    assertEquals(HttpBasicAuthScheme.HTTP_BASIC_TYPE, auth.getString("type").string());
     assertEquals("admin", auth.getString("username").string());
   }
 
@@ -138,7 +138,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
     JsonObject auth = target.getObject("auth");
     assertTrue(auth.has("type", "username"));
     assertFalse(auth.has("password"));
-    assertEquals(HttpBasicAuthScheme.TYPE, auth.getString("type").string());
+    assertEquals(HttpBasicAuthScheme.HTTP_BASIC_TYPE, auth.getString("type").string());
     assertEquals("admin", auth.getString("username").string());
   }
 
