@@ -60,32 +60,32 @@ public class ApiQueryParamsAuthScheme extends AuthScheme {
       return;
     }
 
-    for (Map.Entry<String, String> suppliedQueryParam : this.queryParams.entrySet()) {
-      queryParams.set(suppliedQueryParam.getKey(), suppliedQueryParam.getValue());
+    for (Map.Entry<String, String> queryParam : this.queryParams.entrySet()) {
+      queryParams.set(queryParam.getKey(), queryParam.getValue());
     }
   }
 
   @Override
   public ApiQueryParamsAuthScheme encrypt(Function<String, String> encryptFunc) {
-    Map<String, String> encryptedSuppliedQueryParams =
+    Map<String, String> encryptedQueryParams =
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedSuppliedQueryParams);
+    return copy(encryptedQueryParams);
   }
 
   @Override
   public ApiQueryParamsAuthScheme decrypt(Function<String, String> decryptFunc) {
-    Map<String, String> encryptedSuppliedQueryParams =
+    Map<String, String> encryptedQueryParams =
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedSuppliedQueryParams);
+    return copy(encryptedQueryParams);
   }
 
-  protected ApiQueryParamsAuthScheme copy(Map<String, String> suppliedQueryParams) {
+  protected ApiQueryParamsAuthScheme copy(Map<String, String> queryParams) {
     ApiQueryParamsAuthScheme apiQueryParamsAuth = new ApiQueryParamsAuthScheme();
-    apiQueryParamsAuth.setQueryParams(suppliedQueryParams);
+    apiQueryParamsAuth.setQueryParams(queryParams);
 
     return apiQueryParamsAuth;
   }

@@ -60,32 +60,32 @@ public class ApiHeadersAuthScheme extends AuthScheme {
       return;
     }
 
-    for (Map.Entry<String, String> suppliedHeader : this.headers.entrySet()) {
-      headers.set(suppliedHeader.getKey(), suppliedHeader.getValue());
+    for (Map.Entry<String, String> header : this.headers.entrySet()) {
+      headers.set(header.getKey(), header.getValue());
     }
   }
 
   @Override
   public ApiHeadersAuthScheme encrypt(Function<String, String> encryptFunc) {
-    Map<String, String> encryptedSuppliedHeaders =
+    Map<String, String> encryptedHeaders =
         headers.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedSuppliedHeaders);
+    return copy(encryptedHeaders);
   }
 
   @Override
   public ApiHeadersAuthScheme decrypt(Function<String, String> decryptFunc) {
-    Map<String, String> encryptedSuppliedHeaders =
+    Map<String, String> encryptedHeaders =
         headers.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedSuppliedHeaders);
+    return copy(encryptedHeaders);
   }
 
-  protected ApiHeadersAuthScheme copy(Map<String, String> suppliedQueryParams) {
+  protected ApiHeadersAuthScheme copy(Map<String, String> headers) {
     ApiHeadersAuthScheme apiHeadersAuth = new ApiHeadersAuthScheme();
-    apiHeadersAuth.setHeaders(suppliedQueryParams);
+    apiHeadersAuth.setHeaders(headers);
 
     return apiHeadersAuth;
   }
