@@ -53,7 +53,9 @@ public interface RelationshipItemMapper {
   RelationshipItem map(RelationshipItem relationshipItem);
 
   @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
   @Mapping(target = "relationshipType")
+  @Mapping(target = "createdAtClient")
   @Mapping(
       target = "from",
       source = "from",
