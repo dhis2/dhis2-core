@@ -56,10 +56,6 @@ public class ApiQueryParamsAuthScheme extends AuthScheme {
   @Override
   public void apply(
       MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
-    if (this.queryParams.isEmpty()) {
-      return;
-    }
-
     for (Map.Entry<String, String> queryParam : this.queryParams.entrySet()) {
       queryParams.set(queryParam.getKey(), queryParam.getValue());
     }

@@ -56,10 +56,6 @@ public class ApiHeadersAuthScheme extends AuthScheme {
   @Override
   public void apply(
       MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
-    if (this.headers.isEmpty()) {
-      return;
-    }
-
     for (Map.Entry<String, String> header : this.headers.entrySet()) {
       headers.set(header.getKey(), header.getValue());
     }
