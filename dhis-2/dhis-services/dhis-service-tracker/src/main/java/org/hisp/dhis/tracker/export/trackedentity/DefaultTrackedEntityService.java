@@ -49,7 +49,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
@@ -60,7 +59,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
@@ -68,7 +66,7 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -87,7 +85,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final TrackedEntityTypeStore trackedEntityTypeStore;
-  private final TrackedEntityTypeService trackedEntityTypeService;
+
   private final AclService aclService;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
@@ -213,7 +211,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Nonnull
   @Override
   public TrackedEntity getTrackedEntity(@Nonnull UID uid)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     return getTrackedEntity(uid, null, TrackedEntityParams.FALSE);
   }
 
@@ -223,7 +221,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @Nonnull UID trackedEntityUid,
       @CheckForNull UID programIdentifier,
       @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     Program program = null;
     if (programIdentifier != null) {
       program = programService.getProgram(programIdentifier.getValue());
@@ -244,7 +242,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    */
   private TrackedEntity getTrackedEntity(
       UID uid, Program program, TrackedEntityParams params, UserDetails user)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
@@ -271,7 +269,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     if (params.isIncludeEnrollments()) {
-      trackedEntity.setEnrollments(getEnrollments(trackedEntity, user, false, program));
+      EnrollmentOperationParams enrollmentOperationParams =
+          mapToEnrollmentParams(uid, program, params);
+      List<Enrollment> enrollments = enrollmentService.getEnrollments(enrollmentOperationParams);
+      trackedEntity.setEnrollments(new HashSet<>(enrollments));
     }
     setRelationshipItems(trackedEntity, trackedEntity, params, false);
     if (params.isIncludeProgramOwners()) {
@@ -282,25 +283,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntity;
   }
 
-  private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted, Program program) {
-    return trackedEntity.getEnrollments().stream()
-        .filter(e -> program == null || program.getUid().equals(e.getProgram().getUid()))
-        .filter(e -> includeDeleted || !e.isDeleted())
-        .filter(e -> trackerAccessManager.canRead(user, e, false).isEmpty())
-        .map(
-            e -> {
-              Set<Event> filteredEvents =
-                  e.getEvents().stream()
-                      .filter(
-                          event ->
-                              (includeDeleted || !event.isDeleted())
-                                  && trackerAccessManager.canRead(user, event, false).isEmpty())
-                      .collect(Collectors.toSet());
-              e.setEvents(filteredEvents);
-              return e;
-            })
-        .collect(Collectors.toSet());
+  private EnrollmentOperationParams mapToEnrollmentParams(
+      UID trackedEntity, Program program, TrackedEntityParams params) {
+    return EnrollmentOperationParams.builder()
+        .trackedEntity(trackedEntity)
+        .program(program)
+        .enrollmentParams(params.getEnrollmentParams())
+        .build();
   }
 
   private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
@@ -347,7 +336,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws ForbiddenException, NotFoundException, BadRequestException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
-    final List<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
+    final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
     return getTrackedEntities(ids, operationParams, queryParams, user);
   }
@@ -358,7 +347,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws BadRequestException, ForbiddenException, NotFoundException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
-    final Page<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
+    final Page<TrackedEntityIdentifiers> ids =
+        trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
         getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
@@ -366,7 +356,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private List<TrackedEntity> getTrackedEntities(
-      List<Long> ids,
+      List<TrackedEntityIdentifiers> ids,
       TrackedEntityOperationParams operationParams,
       TrackedEntityQueryParams queryParams,
       UserDetails user)
@@ -417,27 +407,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       targetTrackedEntity.setRelationshipItems(
           getRelationshipItems(sourceTrackedEntity, includeDeleted));
     }
-    if (params.getEnrollmentParams().isIncludeRelationships()) {
-      for (Enrollment sourceEnrollment : sourceTrackedEntity.getEnrollments()) {
-        for (Enrollment targetEnrollment : targetTrackedEntity.getEnrollments()) {
-          if (sourceEnrollment.getUid().equals(targetEnrollment.getUid())) {
-            targetEnrollment.setRelationshipItems(
-                getRelationshipItems(sourceEnrollment, sourceTrackedEntity, includeDeleted));
-
-            if (params.getEventParams().isIncludeRelationships()) {
-              for (Event sourceEvent : sourceEnrollment.getEvents()) {
-                for (Event targetEvent : targetEnrollment.getEvents()) {
-                  if (targetEvent.getUid().equals(sourceEvent.getUid())) {
-                    targetEvent.setRelationshipItems(
-                        getRelationshipItems(sourceEvent, sourceTrackedEntity, includeDeleted));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
   private Set<RelationshipItem> getRelationshipItems(
@@ -452,36 +421,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    return result;
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      Enrollment enrollment, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : enrollment.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, enrollment, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
-
-    return result;
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      Event event, TrackedEntity trackedEntity, boolean includeDeleted) throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : event.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, event, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
     return result;
   }
 
@@ -536,9 +475,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     } else if (item.getEnrollment() != null) {
       result =
           enrollmentService.getEnrollmentInRelationshipItem(
-              UID.of(item.getEnrollment()),
-              EnrollmentParams.TRUE.withIncludeRelationships(false),
-              includeDeleted);
+              UID.of(item.getEnrollment()), includeDeleted);
     } else if (item.getEvent() != null) {
       result =
           eventService.getEventInRelationshipItem(

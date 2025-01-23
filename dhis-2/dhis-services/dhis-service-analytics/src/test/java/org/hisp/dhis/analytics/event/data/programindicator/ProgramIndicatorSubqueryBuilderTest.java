@@ -43,18 +43,24 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class})
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ProgramIndicatorSubqueryBuilderTest {
   private static final String DUMMY_EXPRESSION = "#{1234567}";
 
@@ -70,13 +76,18 @@ class ProgramIndicatorSubqueryBuilderTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
+  @Mock private SystemSettingsService systemSettingsService;
+
   @InjectMocks private DefaultProgramIndicatorSubqueryBuilder subject;
+
+  @Spy private SystemSettings systemSettings;
 
   @BeforeEach
   public void setUp() {
     program = createProgram('A');
     startDate = getDate(2018, 1, 1);
     endDate = getDate(2018, 6, 30);
+    when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
   }
 
   @Test

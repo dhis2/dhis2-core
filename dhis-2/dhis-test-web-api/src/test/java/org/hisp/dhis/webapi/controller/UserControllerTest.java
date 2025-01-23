@@ -663,6 +663,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testReplicateUser_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertWebMessage(
         "Conflict",
         409,

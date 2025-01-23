@@ -997,4 +997,69 @@ public class EventQueryTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(response, 0, List.of("Ngelehun CHC", "1"));
   }
+
+  @Test
+  public void queryWithOrgUnitDataElement() throws JSONException {
+    // Given
+    String dimensionItems =
+        String.join(
+            ";",
+            "DiszpKrYNg8",
+            "g8upMTyEZGZ",
+            "LEVEL-H1KlN4QIauv",
+            "OU_GROUP-nlX2VoouN63",
+            "USER_ORGUNIT",
+            "USER_ORGUNIT_CHILDREN",
+            "USER_ORGUNIT_GRANDCHILDREN");
+
+    String dimensionOrgUnitDataElement = "Ge7Eo3FNnbl.rypjN8CV02V:IN:" + dimensionItems;
+    String dimensionOrgUnit = "ou:USER_ORGUNIT";
+
+    String dimension = dimensionOrgUnitDataElement + "," + dimensionOrgUnit;
+
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=" + dimension)
+            .add("headers=ouname,Ge7Eo3FNnbl.rypjN8CV02V")
+            .add("totalPages=false")
+            .add("displayProperty=NAME")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("includeMetadataDetails=true")
+            .add("outputType=EVENT");
+
+    // When
+    ApiResponse response = analyticsEventActions.query().get("MoUd5BTQ3lY", params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(0)))
+        .body("height", equalTo(0))
+        .body("width", equalTo(0))
+        .body("headerWidth", equalTo(2));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"Ge7Eo3FNnbl\":{\"uid\":\"Ge7Eo3FNnbl\",\"name\":\"XX MAL RDT - Case Registration\"},\"Ge7Eo3FNnbl.rypjN8CV02V\":{\"uid\":\"rypjN8CV02V\",\"aggregationType\":\"SUM\",\"valueType\":\"TEXT\",\"name\":\"XX MAL RDT TRK - Village of Residence\",\"style\":{\"icon\":\"nullapi\\/icons\\/star_medium_positive\\/icon.svg\"},\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"MoUd5BTQ3lY\":{\"uid\":\"MoUd5BTQ3lY\",\"name\":\"XX MAL RDT - Case Registration\"},\"USER_ORGUNIT_CHILDREN\":{\"organisationUnits\":[\"at6UHUQatSo\",\"TEQlaapDQoK\",\"PMa2VCrupOd\",\"qhqAxPSTUXp\",\"kJq2mPyFEHo\",\"jmIPBj66vD6\",\"Vth0fbpFcsO\",\"jUb8gELQApl\",\"fdc6uOvgoji\",\"eIQbndfxQMb\",\"O6uvpzGd5pu\",\"lc3eMKXaEfw\",\"bL4ooGhyHRQ\"]},\"rypjN8CV02V\":{\"uid\":\"rypjN8CV02V\",\"aggregationType\":\"SUM\",\"valueType\":\"TEXT\",\"name\":\"XX MAL RDT TRK - Village of Residence\",\"style\":{\"icon\":\"nullapi\\/icons\\/star_medium_positive\\/icon.svg\"},\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"Ge7Eo3FNnbl.rypjN8CV02V\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "Ge7Eo3FNnbl.rypjN8CV02V",
+        "XX MAL RDT TRK - Village of Residence",
+        "ORGANISATION_UNIT",
+        "org.hisp.dhis.organisationunit.OrganisationUnit",
+        false,
+        true);
+
+    // no rows to assert
+  }
 }

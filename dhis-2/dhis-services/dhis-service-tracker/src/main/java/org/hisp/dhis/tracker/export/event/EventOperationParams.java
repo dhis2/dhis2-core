@@ -71,7 +71,8 @@ public class EventOperationParams {
 
   private UID orgUnit;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
   private AssignedUserSelectionMode assignedUserMode;
 
@@ -123,10 +124,6 @@ public class EventOperationParams {
    * ordered by while storing the order in a single List of {@link Order}.
    */
   private List<Order> order;
-
-  private boolean includeAttributes;
-
-  private boolean includeAllDataElements;
 
   @Builder.Default private Set<UID> events = new HashSet<>();
 

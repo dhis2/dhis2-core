@@ -623,10 +623,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(cocSource1.getUid(), cocSource2.getUid())
+                        .contains(dv.getCategoryOptionCombo().getUid()))
+            .toList();
     List<DataValue> targetItems =
-        dataValueStore.getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)));
-
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .toList();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
@@ -660,9 +666,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByCatOptCombo(UID.of(cocSource1, cocSource2));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(cocSource1.getUid(), cocSource2.getUid())
+                        .contains(dv.getCategoryOptionCombo().getUid()))
+            .toList();
     List<DataValue> targetItems =
-        dataValueStore.getAllDataValuesByCatOptCombo(List.of(UID.of(cocTarget)));
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
@@ -701,9 +714,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(cocSource1, cocSource2));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(cocSource1.getUid(), cocSource2.getUid())
+                        .contains(dv.getAttributeOptionCombo().getUid()))
+            .toList();
     List<DataValue> targetItems =
-        dataValueStore.getAllDataValuesByAttrOptCombo(List.of(UID.of(cocTarget)));
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
@@ -738,9 +758,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByAttrOptCombo(UID.of(cocSource1, cocSource2));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(cocSource1.getUid(), cocSource2.getUid())
+                        .contains(dv.getAttributeOptionCombo().getUid()))
+            .toList();
     List<DataValue> targetItems =
-        dataValueStore.getAllDataValuesByAttrOptCombo(List.of(UID.of(cocTarget)));
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();

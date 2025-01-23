@@ -191,6 +191,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testValidatePasswordGet_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertMessage(
         "response",
         "error",
@@ -209,6 +210,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testValidatePasswordPost_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertMessage(
         "response",
         "error",

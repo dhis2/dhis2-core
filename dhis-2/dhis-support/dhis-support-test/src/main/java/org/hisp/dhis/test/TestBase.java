@@ -2690,7 +2690,7 @@ public abstract class TestBase {
     }
 
     user = userService.getUser(user.getUid());
-    UserDetails userDetails = userService.createUserDetails(user);
+    UserDetails userDetails = UserDetails.fromUser(user);
 
     injectSecurityContext(userDetails);
   }

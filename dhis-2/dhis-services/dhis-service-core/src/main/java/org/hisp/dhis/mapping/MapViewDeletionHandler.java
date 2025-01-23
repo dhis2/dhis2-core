@@ -89,15 +89,15 @@ public class MapViewDeletionHandler
   private void deleteProgram(Program program) {
     List<MapView> mapViews = service.findByProgram(program);
     for (MapView mapView : mapViews) {
-      mapView.setProgram(null);
       if (mapView.getProgramStage() != null
           && program.getProgramStages().stream()
               .map(IdentifiableObject::getUid)
               .toList()
               .contains(mapView.getProgramStage().getUid())) {
         mapView.setProgramStage(null);
-        service.update(mapView);
       }
+      mapView.setProgram(null);
+      service.update(mapView);
     }
   }
 

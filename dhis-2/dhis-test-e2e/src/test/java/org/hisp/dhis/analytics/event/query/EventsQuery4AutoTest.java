@@ -308,4 +308,68 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     validateRow(response, 3, List.of("Ngelehun CHC", "2018-08-04 15:17:10.722", ""));
     validateRow(response, 4, List.of("Ngelehun CHC", "2018-08-04 15:15:50.672", ""));
   }
+
+  @Test
+  public void programIndicatorChildProgramComplex() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=ouname,qZOBw051LSf,lastupdated,eventstatus")
+            .add("displayProperty=NAME")
+            .add("pageSize=100")
+            .add("outputType=EVENT")
+            .add("relativePeriodDate=2025-01-20")
+            .add("includeMetadataDetails=true")
+            .add("asc=lastupdated")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("stage=A03MvHHogjR")
+            .add("eventStatus=SCHEDULE")
+            .add("totalPages=false")
+            .add("page=1")
+            .add("dimension=ou:USER_ORGUNIT,qZOBw051LSf");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(4)))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
+        .body("width", equalTo(4))
+        .body("headerWidth", equalTo(4));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"qZOBw051LSf\":{\"uid\":\"qZOBw051LSf\",\"name\":\"Child PI Complex\",\"legendSet\":\"Yf6UHoPkdS6\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"qZOBw051LSf\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 1, "qZOBw051LSf", "Child PI Complex", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response, 3, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true);
+
+    // Assert rows.
+    validateRow(
+        response, 0, List.of("Ngelehun CHC", "18527.66", "2017-07-23 12:46:11.472", "SCHEDULE"));
+    validateRow(
+        response, 1, List.of("Ngelehun CHC", "18527.66", "2017-11-15 17:55:06.66", "SCHEDULE"));
+    validateRow(
+        response, 2, List.of("Ngelehun CHC", "18527.66", "2018-09-14 20:05:43.971", "SCHEDULE"));
+  }
 }

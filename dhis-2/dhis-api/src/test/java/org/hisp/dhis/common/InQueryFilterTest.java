@@ -64,11 +64,11 @@ class InQueryFilterTest {
     executeTest(field, "NV", true, "(" + field + " is null and exists((select * from xy))) ");
   }
 
-  private void executeTest(String filterValue, boolean isText, String expected) {
-    executeTest("aField", filterValue, isText, expected);
+  private void executeTest(String filterValue, boolean shouldQuote, String expected) {
+    executeTest("aField", filterValue, shouldQuote, expected);
   }
 
-  private void executeTest(String field, String filterValue, boolean isText, String expected) {
-    assertEquals(new InQueryFilter(field, filterValue, isText).getSqlFilter(), expected);
+  private void executeTest(String field, String filterValue, boolean shouldQuote, String expected) {
+    assertEquals(new InQueryFilter(field, filterValue, shouldQuote).getSqlFilter(), expected);
   }
 }

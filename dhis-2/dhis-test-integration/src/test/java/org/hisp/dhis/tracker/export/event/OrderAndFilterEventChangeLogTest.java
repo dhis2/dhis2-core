@@ -269,6 +269,35 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
   }
 
   @Test
+  void shouldSortChangeLogsByNameWhenOrderingByChangeAndDataElementDoesNotHaveFormName()
+      throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
+    Event event = getEvent("pTzf9KYMk72");
+
+    updateDataValues(event, "DATAEL00001", "value00002", "value00003");
+
+    List<String> changeLogs =
+        eventChangeLogService
+            .getEventChangeLog(UID.of("pTzf9KYMk72"), params, defaultPageParams)
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
+
+    assertEquals(
+        List.of(
+            "with-option-set",
+            "test-dataelement9",
+            "test-dataelement9",
+            "test-dataelement9",
+            "test-dataelement6",
+            "scheduledAt",
+            "occurredAt"),
+        changeLogs);
+  }
+
+  @Test
   void shouldFilterChangeLogsWhenFilteringByUser() throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
@@ -473,5 +502,15 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   private String getFirstDataElement(Event event) {
     return event.getEventDataValues().iterator().next().getDataElement();
+  }
+
+  private String getDisplayName(EventChangeLog cl) {
+    if (cl.getEventField() != null) {
+      return cl.getEventField();
+    } else if (cl.getDataElement().getFormName() != null) {
+      return cl.getDataElement().getFormName();
+    } else {
+      return cl.getDataElement().getName();
+    }
   }
 }
