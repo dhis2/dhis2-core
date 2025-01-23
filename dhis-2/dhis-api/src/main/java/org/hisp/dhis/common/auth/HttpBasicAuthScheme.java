@@ -29,7 +29,7 @@ package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Base64;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,12 +68,12 @@ public class HttpBasicAuthScheme extends AuthScheme {
   }
 
   @Override
-  public HttpBasicAuthScheme encrypt(Function<String, String> encryptFunc) {
+  public HttpBasicAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
     return copy(encryptFunc.apply(password));
   }
 
   @Override
-  public HttpBasicAuthScheme decrypt(Function<String, String> decryptFunc) {
+  public HttpBasicAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
     return copy(decryptFunc.apply(password));
   }
 

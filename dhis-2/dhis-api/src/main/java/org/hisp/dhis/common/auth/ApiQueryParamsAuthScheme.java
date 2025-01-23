@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -62,7 +62,7 @@ public class ApiQueryParamsAuthScheme extends AuthScheme {
   }
 
   @Override
-  public ApiQueryParamsAuthScheme encrypt(Function<String, String> encryptFunc) {
+  public ApiQueryParamsAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
     Map<String, String> encryptedQueryParams =
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
@@ -71,7 +71,7 @@ public class ApiQueryParamsAuthScheme extends AuthScheme {
   }
 
   @Override
-  public ApiQueryParamsAuthScheme decrypt(Function<String, String> decryptFunc) {
+  public ApiQueryParamsAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
     Map<String, String> encryptedQueryParams =
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))

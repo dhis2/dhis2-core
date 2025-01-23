@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.io.Serializable;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,7 +67,7 @@ public abstract class AuthScheme implements Serializable {
   public abstract void apply(
       MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams);
 
-  public abstract AuthScheme encrypt(Function<String, String> encryptFunc);
+  public abstract AuthScheme encrypt(UnaryOperator<String> encryptFunc);
 
-  public abstract AuthScheme decrypt(Function<String, String> decryptFunc);
+  public abstract AuthScheme decrypt(UnaryOperator<String> decryptFunc);
 }

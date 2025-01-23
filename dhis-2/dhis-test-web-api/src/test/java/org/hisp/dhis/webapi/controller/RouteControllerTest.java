@@ -76,8 +76,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRunRouteGivenApiQueryParamsAuthScheme()
       throws JsonProcessingException, MalformedURLException {
-    final ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
-    ;
+    ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
 
     RestTemplate mockRestTemplate = mock(RestTemplate.class);
     when(mockRestTemplate.exchange(
@@ -112,9 +111,8 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRunRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
-    final ArgumentCaptor<HttpEntity<?>> httpEntityArgumentCaptor =
+    ArgumentCaptor<HttpEntity<?>> httpEntityArgumentCaptor =
         ArgumentCaptor.forClass(HttpEntity.class);
-    ;
 
     RestTemplate mockRestTemplate = mock(RestTemplate.class);
     when(mockRestTemplate.exchange(

@@ -28,7 +28,7 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,12 +67,12 @@ public class ApiTokenAuthScheme extends AuthScheme {
   }
 
   @Override
-  public ApiTokenAuthScheme encrypt(Function<String, String> encryptFunc) {
+  public ApiTokenAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
     return copy(encryptFunc.apply(token));
   }
 
   @Override
-  public AuthScheme decrypt(Function<String, String> decryptFunc) {
+  public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
     return copy(decryptFunc.apply(token));
   }
 
