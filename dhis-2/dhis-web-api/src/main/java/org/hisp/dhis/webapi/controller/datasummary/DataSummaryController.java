@@ -28,12 +28,15 @@
 package org.hisp.dhis.webapi.controller.datasummary;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import org.hisp.dhis.common.Dhis2Info;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -53,11 +56,88 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataSummaryController {
   public static final String RESOURCE_PATH = "/dataSummary";
 
-  @Autowired private DataStatisticsService dataStatisticsService;
+  private final DataStatisticsService dataStatisticsService;
+
+  @Autowired
+  public DataSummaryController(DataStatisticsService dataStatisticsService) {
+    this.dataStatisticsService = dataStatisticsService;
+  }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   public @ResponseBody DataSummary getStatistics() {
     return dataStatisticsService.getSystemStatisticsSummary();
+  }
+
+  /**
+   * Appends system information metrics to the Prometheus metrics.
+   *
+   * @param systemInfo the system information containing version, commit, revision, and system ID
+   */
+  public void appendSystemInfoMetrics(PrometheusTextBuilder metrics, Dhis2Info systemInfo) {
+    String metricName = "data_summary_build_info";
+    if (systemInfo != null) {
+      metrics.helpLine(metricName, "Build information");
+      metrics.typeLine(metricName, "gauge");
+      long buildTime = 0L;
+      if (systemInfo.getBuildTime() != null) {
+        buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
+      }
+      metrics.append(
+          String.format(
+              "%s{version=\"%s\", commit=\"%s\"} %s%n",
+              metricName, systemInfo.getVersion(), systemInfo.getRevision(), buildTime));
+
+      metrics.helpLine("data_summary_system_id", "System ID");
+      metrics.typeLine("data_summary_system_id", "gauge");
+      metrics.append(
+          String.format("data_summary_system_id{system_id=\"%s\"} 1%n", systemInfo.getSystemId()));
+    }
+  }
+
+  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  public @ResponseBody String getPrometheusMetrics() {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+    final String PROMETHEUS_GAUGE_NAME = "gauge";
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
+
+    metrics.updateMetricsFromMap(
+        summary.getObjectCounts(),
+        "data_summary_object_counts",
+        "type",
+        "Count of metadata objects",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getActiveUsers(),
+        "data_summary_active_users",
+        "days",
+        "Count of active users by day",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getUserInvitations(),
+        "data_summary_user_invitations",
+        "type",
+        "Count of user invitations",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getDataValueCount(),
+        "data_summary_data_value_count",
+        "days",
+        "Count of updated data values by day",
+        PROMETHEUS_GAUGE_NAME);
+
+    metrics.updateMetricsFromMap(
+        summary.getEventCount(),
+        "data_summary_event_count",
+        "days",
+        "Count of updated events by day",
+        PROMETHEUS_GAUGE_NAME);
+
+    appendSystemInfoMetrics(metrics, summary.getSystem());
+    return metrics.getMetrics();
   }
 }
