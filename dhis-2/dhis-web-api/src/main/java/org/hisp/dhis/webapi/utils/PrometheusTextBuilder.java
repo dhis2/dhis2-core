@@ -30,9 +30,8 @@ package org.hisp.dhis.webapi.utils;
 import java.util.Map;
 
 /**
- * A simple utility class to build Prometheus text format metrics. Note that there is no validation
- * of the input, so the user should make sure that the input is correct. The Prometheus text format
- * is documented here: https://prometheus.io/docs/instrumenting/exposition_formats/
+ * A simple utility class to build Prometheus text format metrics. The Prometheus text format is
+ * documented here: https://prometheus.io/docs/instrumenting/exposition_formats/
  *
  * @author Jason P. Pickering
  */
@@ -41,34 +40,59 @@ public class PrometheusTextBuilder {
   private StringBuilder metrics = new StringBuilder();
 
   public void helpLine(String metricName, String help) {
-    metrics.append("# HELP ").append(metricName).append(" ").append(help).append("%n");
+    metrics.append(String.format("# HELP %s %s%n", metricName, help));
   }
 
+  /**
+   * Appends a Prometheus metric type line to the metrics.
+   *
+   * @param metricName the name of the metric
+   * @param type the type of the metric (e.g., counter, gauge)
+   */
   public void typeLine(String metricName, String type) {
-    metrics.append("# TYPE ").append(metricName).append(" ").append(type).append("%n");
+    metrics.append(String.format("# TYPE %s %s%n", metricName, type));
   }
 
+  /**
+   * Transform a Map<String, ?> into a Prometheus text format metric. Note that the key is assumed
+   * to be a string, and the value should be a number which is capable of being converted to a
+   * string.
+   *
+   * @param map the map containing the metrics data
+   * @param metricName the name of the metric
+   * @param keyName the name of the key in the metric
+   * @param help the help text for the metric
+   * @param type the type of the metric
+   */
   public void updateMetricsFromMap(
       Map<?, ?> map, String metricName, String keyName, String help, String type) {
     helpLine(metricName, help);
     typeLine(metricName, type);
     map.forEach(
         (key, value) ->
-            metrics.append("%s{%s=\"%s\" } %s%n".formatted(metricName, keyName, key, value)));
+            metrics.append("%s{%s=\"%s\"} %s%n".formatted(metricName, keyName, key, value)));
   }
 
+  /**
+   * Appends a static key-value pair to the Prometheus metrics. This is most useful for representing
+   * labels in the Prometheus text format such as build time, version, etc. This will produce a
+   * metric with a static value of 1.
+   *
+   * @param metricName the name of the metric
+   * @param key the key for the metric
+   * @param value the value for the metric
+   */
   public void appendStaticKeyValue(String metricName, String key, String value) {
     if (value != null) {
-      metrics
-          .append(metricName)
-          .append("{key=\"")
-          .append(key)
-          .append("\", value=\"")
-          .append(value)
-          .append("\"} 1%n");
+      metrics.append(String.format("%s{key=\"%s\", value=\"%s\"} 1%n", metricName, key, value));
     }
   }
 
+  /**
+   * Returns the Prometheus metrics as a string.
+   *
+   * @return the metrics in Prometheus text format
+   */
   public String getMetrics() {
     return metrics.toString();
   }
