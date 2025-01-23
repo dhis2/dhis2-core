@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.util.Collection;
 import java.util.Map;
@@ -58,6 +59,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,6 +82,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataIntegrityController {
 
   private final DataIntegrityService dataIntegrityService;
+
   private final JobExecutionService jobExecutionService;
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
@@ -150,6 +153,37 @@ public class DataIntegrityController {
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestParam(required = false, defaultValue = "0") long timeout) {
     return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
+  }
+
+  /**
+   * Handles the GET request to retrieve data integrity check metrics in Prometheus format. All
+   * checks present in the cache are returned.
+   *
+   * @return A string containing the metrics in Prometheus format.
+   */
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
+  @ResponseBody
+  public String getSummariesMetrics() {
+    // Just get whatever is in the cache
+    Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
+    final String metric_name = "dhis_data_integrity_check";
+    final String metric_format = "%s{check=\"%s\",type=\"%s\"} %s%n";
+
+    metrics.helpLine(metric_name, "Data integrity check metrics");
+    metrics.typeLine(metric_name, "gauge");
+    summaries.forEach(
+        (check, summary) -> {
+          metrics.append(metric_format.formatted(metric_name, check, "count", summary.getCount()));
+          if (summary.getPercentage() != null) {
+            metrics.append(
+                metric_format.formatted(metric_name, check, "percentage", summary.getPercentage()));
+          }
+          long runtime = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
+          metrics.append(metric_format.formatted(metric_name, check, "duration", runtime));
+        });
+    return metrics.getMetrics();
   }
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
