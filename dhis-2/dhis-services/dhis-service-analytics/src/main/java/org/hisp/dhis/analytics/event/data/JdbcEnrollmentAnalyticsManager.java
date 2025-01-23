@@ -653,8 +653,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           || filter.getOperator() == QueryOperator.NE) {
         operator = "is not";
       } else {
-        throw new IllegalQueryException(
-            ErrorCode.E7239, filter.getOperator().getValue());
+        throw new IllegalQueryException(ErrorCode.E7239, filter.getOperator().getValue());
       }
     }
 
