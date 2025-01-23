@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-public class PrometheusTextBuilderTest {
+class PrometheusTextBuilderTest {
   @Test
   void getMetricsReturnsEmptyStringWhenNoMetrics() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
@@ -63,10 +63,11 @@ public class PrometheusTextBuilderTest {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
     Map<String, Integer> map = Map.of("key1", 1);
     builder.updateMetricsFromMap(map, "test_metric", "key", "Test help", "gauge");
-    String expected =
-        "# HELP test_metric Test help\n"
-            + "# TYPE test_metric gauge\n"
-            + "test_metric{key=\"key1\"} 1\n";
+    String expected = """
+        # HELP test_metric Test help
+        # TYPE test_metric gauge
+        test_metric{key="key1"} 1
+        """;
     assertEquals(expected, builder.getMetrics());
   }
 
