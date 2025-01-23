@@ -50,7 +50,6 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(
         content.lines().anyMatch(line -> line.startsWith("data_summary_active_user")),
         "Active users metric is missing");
-    ;
     assertTrue(
         content.contains("# HELP data_summary_object_counts"),
         "Object counts help text is missing");
