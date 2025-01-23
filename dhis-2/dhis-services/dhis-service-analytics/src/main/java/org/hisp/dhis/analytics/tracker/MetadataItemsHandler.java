@@ -73,7 +73,6 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -222,7 +221,10 @@ public class MetadataItemsHandler {
         dimensionItems.put(
             itemUid,
             item.getFilters().stream()
-                .map(queryFilter -> organisationUnitResolver.resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
+                .map(
+                    queryFilter ->
+                        organisationUnitResolver.resolveOrgUnits(
+                            queryFilter, params.getUserOrgUnits()))
                 .map(s -> s.split(OPTION_SEP))
                 .flatMap(Arrays::stream)
                 .distinct()
