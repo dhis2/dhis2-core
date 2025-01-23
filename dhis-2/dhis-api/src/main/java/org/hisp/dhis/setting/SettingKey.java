@@ -53,6 +53,7 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.sms.config.SmsConfiguration;
+import org.hisp.dhis.system.notification.NotificationLevel;
 
 /**
  * @author Lars Helge Overland
@@ -295,7 +296,13 @@ public enum SettingKey {
    * the app does not exist *
    */
   GLOBAL_SHELL_APP_NAME("globalShellAppName", "global-app-shell", String.class, false, false),
-  ;
+
+  NOTIFIER_LOG_LEVEL("notifierLogLevel", NotificationLevel.DEBUG, NotificationLevel.class),
+  NOTIFIER_MAX_MESSAGES_PER_JOB("notifierMaxMessagesPerJob", 500, Integer.class),
+  NOTIFIER_MAX_AGE_DAYS("notifierMaxAgeDays", 7, Integer.class),
+  NOTIFIER_MAX_JOBS_PER_TYPE("notifierMaxJobsPerType", 500, Integer.class),
+  NOTIFIER_GIST_OVERVIEW("notifierGistOverview", true, Boolean.class),
+  NOTIFIER_CLEAN_AFTER_IDLE_TIME("notifierCleanAfterIdleTime", 60_000L, Long.class);
 
   private final String name;
 

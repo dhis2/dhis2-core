@@ -27,19 +27,21 @@
  */
 package org.hisp.dhis.system.notification;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 
 /**
- * Tests the {@link Notifier} API with the {@link RedisNotifierStore} implementation when Redis is
- * replaced by a {@link FakeRedis} which keep the data in memory.
+ * Tests the {@link Notifier} API for the {@link InMemoryNotifierStore} implementation.
  *
  * <p>The actual tests are in {@link NotifierStoreTest} as they are used for both stores.
  *
  * @author Jan Bernitt
  */
-class RedisNotifierTest extends NotifierStoreTest {
+class InMemoryNotifierTest extends NotifierStoreTest {
+
   @Override
   void setUpNotifier(SystemSettingsProvider settings) {
-    notifier = FakeRedis.notifier(settings, clock);
+    notifier =
+        new DefaultNotifier(new InMemoryNotifierStore(), new ObjectMapper(), settings, clock);
   }
 }

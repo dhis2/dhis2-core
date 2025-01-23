@@ -48,27 +48,8 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testGetTasksJson() {
     JsonObject tasks = GET("/system/tasks").content(HttpStatus.OK);
-    assertObjectMembers(
-        tasks,
-        "CONTINUOUS_ANALYTICS_TABLE",
-        "DATA_SYNC",
-        "TRACKER_PROGRAMS_DATA_SYNC",
-        "EVENT_PROGRAMS_DATA_SYNC",
-        "FILE_RESOURCE_CLEANUP",
-        "IMAGE_PROCESSING",
-        "META_DATA_SYNC",
-        "SMS_SEND",
-        "SEND_SCHEDULED_MESSAGE",
-        "PROGRAM_NOTIFICATIONS",
-        "VALIDATION_RESULTS_NOTIFICATION",
-        "CREDENTIALS_EXPIRY_ALERT",
-        "MONITORING",
-        "PUSH_ANALYSIS",
-        "PREDICTOR",
-        "DATA_STATISTICS",
-        "DATA_INTEGRITY",
-        "RESOURCE_TABLE",
-        "ANALYTICS_TABLE");
+    assertTrue(tasks.isObject());
+    tasks.values().forEach(m -> assertTrue(m.isObject(), m + " is not an object"));
   }
 
   @Test
@@ -81,7 +62,8 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testGetTaskJsonByUid() {
     JsonArray task =
-        GET("/system/tasks/{jobType}/{jobId}", "META_DATA_SYNC", "xyz").content(HttpStatus.OK);
+        GET("/system/tasks/{jobType}/{jobId}", "META_DATA_SYNC", "a1234567890")
+            .content(HttpStatus.OK);
     assertTrue(task.isArray());
     assertEquals(0, task.size());
   }
@@ -95,7 +77,8 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetTaskSummaryJson() {
-    JsonObject summary = GET("/system/taskSummaries/META_DATA_SYNC/xyz").content(HttpStatus.OK);
+    JsonObject summary =
+        GET("/system/taskSummaries/META_DATA_SYNC/a1234567890").content(HttpStatus.OK);
     assertTrue(summary.isObject());
     assertEquals(0, summary.size());
   }
@@ -115,12 +98,5 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
     // testing one sensitive and one non-sensitive property
     assertNull(info.getString("javaVersion").string());
     assertNotNull(info.getString("serverDate").string());
-  }
-
-  private static void assertObjectMembers(JsonObject root, String... members) {
-    for (String member : members) {
-      JsonObject memberObj = root.getObject(member);
-      assertTrue(memberObj.isObject(), member + " is not an object");
-    }
   }
 }

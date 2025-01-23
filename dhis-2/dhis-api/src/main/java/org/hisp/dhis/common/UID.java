@@ -54,14 +54,14 @@ import org.hisp.dhis.user.UserDetails;
 @Getter
 @EqualsAndHashCode
 public final class UID implements Serializable {
-  private static final String VALID_UID_FORMAT =
-      "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
   private final String value;
 
   private UID(String value) {
     if (!CodeGenerator.isValidUid(value)) {
-      throw new IllegalArgumentException(VALID_UID_FORMAT);
+      throw new IllegalArgumentException(
+          "UID must be an alphanumeric string of 11 characters starting with a letter, but was: "
+              + value);
     }
     this.value = value;
   }

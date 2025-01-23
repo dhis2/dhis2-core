@@ -25,21 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
+package org.hisp.dhis.setting;
 
-import org.hisp.dhis.setting.SystemSettingsProvider;
+import java.io.Serializable;
 
-/**
- * Tests the {@link Notifier} API with the {@link RedisNotifierStore} implementation when Redis is
- * replaced by a {@link FakeRedis} which keep the data in memory.
- *
- * <p>The actual tests are in {@link NotifierStoreTest} as they are used for both stores.
- *
- * @author Jan Bernitt
- */
-class RedisNotifierTest extends NotifierStoreTest {
-  @Override
-  void setUpNotifier(SystemSettingsProvider settings) {
-    notifier = FakeRedis.notifier(settings, clock);
-  }
+public interface SystemSettingsProvider {
+
+  <T extends Serializable> T getSystemSetting(SettingKey key, Class<T> type);
+
+  /**
+   * Returns the system setting value for the given key. If no value exists, returns the default
+   * value as defined by the given default value.
+   *
+   * @param key the system setting key.
+   * @return the setting value.
+   */
+  <T extends Serializable> T getSystemSetting(SettingKey key, T defaultValue);
+
+  String getStringSetting(SettingKey key);
+
+  Integer getIntegerSetting(SettingKey key);
+
+  int getIntSetting(SettingKey key);
+
+  Boolean getBooleanSetting(SettingKey key);
+
+  boolean getBoolSetting(SettingKey key);
 }
