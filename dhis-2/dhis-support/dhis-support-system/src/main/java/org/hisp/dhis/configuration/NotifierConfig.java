@@ -59,13 +59,14 @@ public class NotifierConfig {
   public Notifier redisNotifier(
       ObjectMapper objectMapper, SystemSettingsProvider settingsProvider) {
     NotifierStore store = new RedisNotifierStore((RedisTemplate<String, String>) redisTemplate);
-    return new DefaultNotifier(store, objectMapper, settingsProvider);
+    return new DefaultNotifier(store, objectMapper, settingsProvider, System::currentTimeMillis);
   }
 
   @Bean("notifier")
   @Conditional(RedisDisabledCondition.class)
   public Notifier inMemoryNotifier(
       ObjectMapper objectMapper, SystemSettingsProvider settingsProvider) {
-    return new DefaultNotifier(new InMemoryNotifierStore(), objectMapper, settingsProvider);
+    return new DefaultNotifier(
+        new InMemoryNotifierStore(), objectMapper, settingsProvider, System::currentTimeMillis);
   }
 }

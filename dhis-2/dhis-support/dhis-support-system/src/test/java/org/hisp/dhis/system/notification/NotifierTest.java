@@ -56,7 +56,10 @@ class NotifierTest {
 
   private final Notifier notifier =
       new DefaultNotifier(
-          new InMemoryNotifierStore(), new ObjectMapper(), () -> SystemSettings.of(Map.of()));
+          new InMemoryNotifierStore(),
+          new ObjectMapper(),
+          () -> SystemSettings.of(Map.of()),
+          System::currentTimeMillis);
 
   private final JobConfiguration analyticsTable;
   private final JobConfiguration metadataImport;
@@ -82,7 +85,7 @@ class NotifierTest {
     notifier.notify(dataImport1, "Import done");
     notifier.notify(analyticsTable, "Process started");
     notifier.notify(analyticsTable, "Process done");
-    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
+    awaitIdle();
     assertNotNull(notifier.getNotifications(false));
     assertEquals(3, getNotificationsCount(DATAVALUE_IMPORT, dataImport1.getUid()));
     assertEquals(2, getNotificationsCount(ANALYTICS_TABLE, analyticsTable.getUid()));
@@ -95,7 +98,7 @@ class NotifierTest {
     notifier.notify(dataImport1, "Import done");
     notifier.notify(analyticsTable, "Process started");
     notifier.notify(analyticsTable, "Process done");
-    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
+    awaitIdle();
     assertEquals(3, getNotificationsCount(DATAVALUE_IMPORT, dataImport1.getUid()));
     assertEquals(2, getNotificationsCount(ANALYTICS_TABLE, analyticsTable.getUid()));
     notifier.clear(dataImport1);
@@ -112,14 +115,14 @@ class NotifierTest {
     notifier.notify(dataImport1, "Import done");
     notifier.notify(analyticsTable, "Process started");
     notifier.notify(analyticsTable, "Process done");
-    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
+    awaitIdle();
     Deque<Notification> notifications =
         getNotifications(DATAVALUE_IMPORT).get(dataImport1.getUid());
     assertNotNull(notifications);
     assertEquals(4, notifications.size());
 
     notifier.notify(dataImport3, "Completed1");
-    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
+    awaitIdle();
     Map<String, Deque<Notification>> byJobId = getNotifications(DATAVALUE_IMPORT);
     assertNotNull(byJobId);
     assertEquals(3, byJobId.size());
@@ -129,7 +132,7 @@ class NotifierTest {
     assertEquals("Completed1", byJobId.get(dataImport3.getUid()).getFirst().getMessage());
 
     notifier.notify(dataImport4, "Completed2");
-    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
+    awaitIdle();
     byJobId = getNotifications(DATAVALUE_IMPORT);
     assertNotNull(byJobId);
     assertEquals(4, byJobId.get(dataImport1.getUid()).size());
@@ -137,6 +140,10 @@ class NotifierTest {
     assertEquals(1, byJobId.get(dataImport3.getUid()).size());
     assertEquals(1, byJobId.get(dataImport4.getUid()).size());
     assertEquals("Completed2", byJobId.get(dataImport4.getUid()).getFirst().getMessage());
+  }
+
+  private void awaitIdle() {
+    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
   }
 
   private Map<String, Deque<Notification>> getNotifications(JobType type) {
@@ -193,7 +200,7 @@ class NotifierTest {
               }
             });
     awaitTermination(e);
-    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
+    awaitIdle();
     assertEquals(101, getNotifications(METADATA_IMPORT).get(jobConfig.getUid()).size());
   }
 

@@ -213,6 +213,7 @@ public interface NotifierStore {
     /**
      * @return the timestamp to use when comparing the age of this store to the age of other stores
      */
+    @Override
     default long ageTimestamp() {
       Notification newest = getNewest();
       return newest == null ? 0L : newest.getTime().getTime();

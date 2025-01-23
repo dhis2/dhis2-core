@@ -43,7 +43,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.function.LongSupplier;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
@@ -80,44 +82,57 @@ public class DefaultNotifier implements Notifier {
   private final NotifierStore store;
   private final ObjectMapper jsonMapper;
   private final SystemSettingsProvider settingsProvider;
+  private final LongSupplier clock;
   private final BlockingQueue<Entry<UID, Notification>> pushToStore;
+  private final AtomicBoolean cleaning = new AtomicBoolean();
 
-  private int messageLimit;
+  private int maxMessagesPerJob;
+  private long cleanAfterIdleTime;
   private long settingsSince;
 
   public DefaultNotifier(
-      NotifierStore store, ObjectMapper jsonMapper, SystemSettingsProvider settingsProvider) {
+      NotifierStore store,
+      ObjectMapper jsonMapper,
+      SystemSettingsProvider settingsProvider,
+      LongSupplier clock) {
     this.store = store;
     this.jsonMapper = jsonMapper;
     this.settingsProvider = settingsProvider;
-    this.messageLimit = settingsProvider.getCurrentSettings().getNotifierMaxMessagesPerJob();
-    this.pushToStore = new ArrayBlockingQueue<>(2048);
+    this.clock = clock;
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    this.maxMessagesPerJob = settings.getNotifierMaxMessagesPerJob();
+    this.cleanAfterIdleTime = settings.getNotifierCleanAfterIdleTime();
     this.settingsSince = currentTimeMillis();
+    this.pushToStore = new ArrayBlockingQueue<>(2048);
     Executors.newSingleThreadExecutor().execute(this::asyncPushToStore);
   }
 
   @Override
   public boolean isIdle() {
-    return pushToStore.isEmpty();
+    return pushToStore.isEmpty() && !cleaning.get();
   }
 
   private void asyncPushToStore() {
+    long lastTime = 0;
     while (true) {
       try {
-        Entry<UID, Notification> e = pushToStore.poll(1, TimeUnit.MINUTES);
+        Entry<UID, Notification> e = pushToStore.poll(cleanAfterIdleTime, TimeUnit.MILLISECONDS);
         while (e != null
             && e.getValue().getLevel() == NotificationLevel.LOOP
             && !pushToStore.isEmpty()) {
           e = pushToStore.take(); // skip pushing LOOP entries which are already outdated
         }
         if (e != null) {
-          asyncPushToStore(e.getKey(), e.getValue());
+          Notification n = e.getValue();
+          // make sure notifications are at least 1ms apart
+          // also, make sure the time is actually reflecting the insert order
+          if (n.getTime().getTime() <= lastTime) n.setTime(new Date(lastTime + 1));
+          asyncPushToStore(e.getKey(), n);
+          lastTime = n.getTime().getTime();
         } else {
           // when there hasn't been any notifications lately
           // the poll times out; it is a good time to run some cleanup
-          SystemSettings settings = settingsProvider.getCurrentSettings();
-          store.capMaxAge(settings.getNotifierMaxAgeDays());
-          store.capMaxCount(settings.getNotifierMaxJobsPerType());
+          asyncAutomaticCleanup();
         }
       } catch (InterruptedException ex) {
         log.warn("Notification lost due interruption.");
@@ -139,24 +154,36 @@ public class DefaultNotifier implements Notifier {
     }
     if (limit) {
       int size = list.size();
-      int maxSize = getMessageLimit();
-      if (size >= maxSize) {
-        list.removeOldest(size - maxSize);
+      int maxSize = getMaxMessagesPerJob();
+      if (size + 1 > maxSize) {
+        list.removeOldest(size + 1 - maxSize);
       }
     }
     list.add(n);
     NotificationLoggerUtil.log(log, n.getLevel(), n.getMessage());
   }
 
+  private void asyncAutomaticCleanup() {
+    cleaning.set(true);
+    try {
+      SystemSettings settings = settingsProvider.getCurrentSettings();
+      store.capMaxAge(settings.getNotifierMaxAgeDays());
+      store.capMaxCount(settings.getNotifierMaxJobsPerType());
+    } finally {
+      cleaning.set(false);
+    }
+  }
+
   /** This is potentially called so often that it is cached here refreshing it every 10 seconds. */
-  private int getMessageLimit() {
+  private int getMaxMessagesPerJob() {
     long now = currentTimeMillis();
     if (now - settingsSince > 10_000) {
       SystemSettings settings = settingsProvider.getCurrentSettings();
-      messageLimit = settings.getNotifierMaxMessagesPerJob();
+      maxMessagesPerJob = settings.getNotifierMaxMessagesPerJob();
+      cleanAfterIdleTime = settings.getNotifierCleanAfterIdleTime();
       settingsSince = now;
     }
-    return messageLimit;
+    return maxMessagesPerJob;
   }
 
   @Override
@@ -169,8 +196,9 @@ public class DefaultNotifier implements Notifier {
       JsonValue data) {
     if (id == null || level.isOff()) return this;
 
+    Date now = new Date(clock.getAsLong());
     Notification n =
-        new Notification(level, id.getJobType(), new Date(), message, completed, dataType, data);
+        new Notification(level, id.getJobType(), now, message, completed, dataType, data);
 
     try {
       if (!pushToStore.offer(Map.entry(UID.of(id.getUid()), n), 50, TimeUnit.MILLISECONDS))

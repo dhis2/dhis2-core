@@ -793,6 +793,14 @@ public non-sealed interface SystemSettings extends Settings {
 
   /**
    * @since 2.42
+   * @return the duration the notifier has to be idle to run an automatic cleanup cycle
+   */
+  default long getNotifierCleanAfterIdleTime() {
+    return asInt("notifierCleanAfterIdleTime", 60_0000); // 1 minute
+  }
+
+  /**
+   * @since 2.42
    * @return A regex pattern string that enforces the current password validation rules
    */
   default String getPasswordValidationPattern() {

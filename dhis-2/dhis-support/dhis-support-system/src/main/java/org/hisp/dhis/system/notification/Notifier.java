@@ -119,8 +119,8 @@ public interface Notifier {
 
   /**
    * @since 2.42
-   * @return true, when no messages are being processed currently in the notifier. This is mainly
-   *     needed for test to know when all messages have been stored.
+   * @return true, when currently no messages are being processed and no automatic cleanup is
+   *     running in the background.
    */
   boolean isIdle();
 
