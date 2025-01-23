@@ -84,7 +84,7 @@ public class PrometheusTextBuilder {
     if (systemInfo != null) {
       helpLine(metricName, "Build information");
       typeLine(metricName, "gauge");
-      Long buildTime = 0L;
+      long buildTime = 0L;
       if (systemInfo.getBuildTime() != null) {
         buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
       }
