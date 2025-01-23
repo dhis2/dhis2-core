@@ -88,7 +88,7 @@ public class DataSummaryController {
         summary.getActiveUsers(),
         "data_summary_active_users",
         "days",
-        "Count of active users",
+        "Count of active users by day",
         PROMETHEUS_GAUGE_NAME);
 
     metrics.updateMetricsFromMap(

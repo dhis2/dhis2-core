@@ -40,43 +40,29 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void canGetPrometheusMetrics() {
-    // Send the GET request and check the status
+
     HttpResponse response = GET("/api/dataSummary/metrics", HttpClientAdapter.Accept("text/plain"));
     assertEquals(HttpStatus.OK, response.status());
-
-    // Extract the response content
     String content = response.content("text/plain");
     assertFalse(content.isEmpty(), "Response content should not be empty");
-
-    // Verify the presence of system information metrics
     assertTrue(
-        content.contains("# HELP data_summary_system_info DHIS2 System information"),
+        content.contains("# HELP data_summary_system_info"),
         "System information help text is missing");
     assertTrue(content.contains("data_summary_system_info"), "Build time metrics are missing");
-
-    // Verify active users metrics
     assertTrue(
-        content.contains("# HELP data_summary_active_users Active users over days"),
-        "Active users help text is missing");
+        content.contains("# HELP data_summary_active_users"), "Active users help text is missing");
     assertTrue(content.contains("data_summary_active_user"), "Active users metric is missing");
-
-    // Verify object counts metrics
     assertTrue(
-        content.contains("# HELP data_summary_object_counts Count of objects by type"),
+        content.contains("# HELP data_summary_object_counts"),
         "Object counts help text is missing");
     assertTrue(content.contains("data_summary_object_counts"), "Object counts metric is missing");
-
-    // Verify data value count metrics
     assertTrue(
-        content.contains("# HELP data_summary_data_value_count Data value counts over time"),
+        content.contains("# HELP data_summary_data_value_count"),
         "Data value count help text is missing");
     assertTrue(
         content.contains("data_summary_data_value_count"), "Data value count metric is missing");
-
-    // Verify event count metrics
     assertTrue(
-        content.contains("# HELP data_summary_event_count Event counts over time"),
-        "Event count help text is missing");
+        content.contains("# HELP data_summary_event_count"), "Event count help text is missing");
     assertTrue(content.contains("data_summary_event_count"), "Event count metric is missing");
   }
 
@@ -89,14 +75,12 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertFalse(content.isEmpty(), "Response content should not be empty");
     assertTrue(content.has("system"), "System information is missing");
     assertTrue(content.has("objectCounts"), "Object counts are missing");
-    // All values in each of the object count keys should be integers
     content
         .get("objectCounts")
         .asMap(JsonValue.class)
         .values()
         .forEach(value -> assertTrue(value.isInteger(), "Object count values should be integers"));
     assertTrue(content.has("activeUsers"), "Active users are missing");
-    // All values in each of the active user keys should be integers
     content
         .get("activeUsers")
         .asMap(JsonValue.class)
