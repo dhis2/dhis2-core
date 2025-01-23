@@ -643,7 +643,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private Condition buildStandardFilterCondition(
       QueryFilter filter, QueryItem item, CteDefinition cteDef) {
     String value = getSqlFilterValue(filter, item);
-    String operator = "NULL".equals(value) ? "is" : filter.getSqlOperator();
+    String operator = filter.getSqlOperator();
+
+    if (value.trim().equalsIgnoreCase("null")) {
+      if (filter.getOperator() == QueryOperator.EQ || filter.getOperator() == QueryOperator.IEQ) {
+        operator = "is";
+      } else if (filter.getOperator() == QueryOperator.NEQ
+          || filter.getOperator() == QueryOperator.NIEQ
+          || filter.getOperator() == QueryOperator.NE) {
+        operator = "is not";
+      } else {
+        throw new IllegalQueryException(
+            ErrorCode.E3000,
+            "Invalid operator for 'null' filter: " + filter.getOperator().getValue());
+      }
+    }
 
     return Condition.raw(String.format("%s.value %s %s", cteDef.getAlias(), operator, value));
   }
@@ -1660,7 +1674,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private void addSortingAndPaging(SelectBuilder builder, EventQueryParams params) {
     if (params.isSorting()) {
-      // Assuming getSortFields returns List<OrderByClause>
       builder.orderBy(getSortClause(params));
     }
 

@@ -442,6 +442,12 @@ public class SelectBuilder {
         // Extract direction and null handling from the end
         String[] directionParts = extractDirectionAndNulls(trimmed);
         String column = directionParts[0];
+        // check if order by column is part of a cte, if it is must be unquoted
+        String unquotedColumn = unquote(column);
+        List<String> cteNames = ctes.stream().map(c -> c.name).toList();
+        if (cteNames.contains(unquotedColumn)) {
+          column = unquotedColumn;
+        }
         String direction = directionParts[1];
         String nullHandling = directionParts[2];
 
