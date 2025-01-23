@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
@@ -643,9 +644,27 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private Condition buildStandardFilterCondition(
       QueryFilter filter, QueryItem item, CteDefinition cteDef) {
     String value = getSqlFilterValue(filter, item);
-    String operator = "NULL".equals(value) ? "is" : filter.getSqlOperator();
-
+    String operator = resolveOperator(filter, value);
     return Condition.raw(String.format("%s.value %s %s", cteDef.getAlias(), operator, value));
+  }
+
+  private String resolveOperator(QueryFilter filter, String value) {
+    String operator = filter.getSqlOperator();
+
+    if (value.trim().equalsIgnoreCase(NULL)) {
+      if (isEqualityOperator(filter.getOperator())) {
+        operator = "is";
+      } else if (filter.getOperator().isNotEqualTo()) {
+        operator = "is not";
+      } else {
+        throw new IllegalQueryException(ErrorCode.E7239, filter.getOperator().getValue());
+      }
+    }
+    return operator;
+  }
+
+  private boolean isEqualityOperator(QueryOperator operator) {
+    return operator == QueryOperator.EQ || operator == QueryOperator.IEQ;
   }
 
   private String getSqlFilterValue(QueryFilter filter, QueryItem item) {
@@ -1660,7 +1679,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private void addSortingAndPaging(SelectBuilder builder, EventQueryParams params) {
     if (params.isSorting()) {
-      // Assuming getSortFields returns List<OrderByClause>
       builder.orderBy(getSortClause(params));
     }
 
