@@ -38,10 +38,11 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   String ID = TrackedEntityStore.class.getName();
 
   /** Get all tracked entity ids matching given params. */
-  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
+  List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params);
 
   /** Get a page of tracked entities matching given params. */
-  Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams);
+  Page<TrackedEntityIdentifiers> getTrackedEntityIds(
+      TrackedEntityQueryParams params, PageParams pageParams);
 
   /**
    * Fields the {@link #getTrackedEntityIds(TrackedEntityQueryParams)})} can order tracked entities

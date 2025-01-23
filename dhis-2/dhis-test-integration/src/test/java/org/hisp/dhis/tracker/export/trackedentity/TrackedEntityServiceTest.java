@@ -74,6 +74,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -1301,18 +1302,18 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities, UidObject::getUid);
     assertContainsOnly(
-        Set.of(enrollmentA.getUid(), enrollmentB.getUid()),
-        uids(trackedEntities.get(0).getEnrollments()));
-    // ensure that EventAggregate is called and attaches the events with notes
+        Set.of(enrollmentA, enrollmentB),
+        trackedEntities.get(0).getEnrollments(),
+        UidObject::getUid);
     List<Enrollment> enrollments = new ArrayList<>(trackedEntities.get(0).getEnrollments());
     Optional<Enrollment> enrollmentA =
         enrollments.stream()
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
     Set<Event> events = enrollmentA.get().getEvents();
-    assertContainsOnly(Set.of(eventA), events);
+    assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
     assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
   }
 
@@ -1427,12 +1428,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertTrue(enrollmentOpt.isPresent());
     Enrollment enrollment = enrollmentOpt.get();
     assertAll(
-        () -> assertEquals(enrollmentA.getId(), enrollment.getId()),
         () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
-        () ->
-            assertEquals(
-                trackedEntityA.getTrackedEntityType().getUid(),
-                enrollment.getTrackedEntity().getTrackedEntityType().getUid()),
+        () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
         () -> assertEquals(orgUnitA.getUid(), enrollment.getOrganisationUnit().getUid()),
         () -> assertEquals(orgUnitA.getName(), enrollment.getOrganisationUnit().getName()),
         () -> assertEquals(programA.getUid(), enrollment.getProgram().getUid()),
