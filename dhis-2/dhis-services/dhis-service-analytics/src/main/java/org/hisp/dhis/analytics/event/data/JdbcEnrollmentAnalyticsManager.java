@@ -654,8 +654,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         operator = "is not";
       } else {
         throw new IllegalQueryException(
-            ErrorCode.E3000,
-            "Invalid operator for 'null' filter: " + filter.getOperator().getValue());
+            ErrorCode.E7239, filter.getOperator().getValue());
       }
     }
 
