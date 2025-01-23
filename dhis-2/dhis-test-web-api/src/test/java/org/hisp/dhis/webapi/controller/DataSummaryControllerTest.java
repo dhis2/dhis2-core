@@ -46,24 +46,40 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     String content = response.content("text/plain");
     assertFalse(content.isEmpty(), "Response content should not be empty");
     assertTrue(
-        content.contains("# HELP data_summary_system_info"),
-        "System information help text is missing");
-    assertTrue(content.contains("data_summary_system_info"), "Build time metrics are missing");
-    assertTrue(
         content.contains("# HELP data_summary_active_users"), "Active users help text is missing");
-    assertTrue(content.contains("data_summary_active_user"), "Active users metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_active_user")),
+        "Active users metric is missing");
+    ;
     assertTrue(
         content.contains("# HELP data_summary_object_counts"),
         "Object counts help text is missing");
-    assertTrue(content.contains("data_summary_object_counts"), "Object counts metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_object_counts")),
+        "Object counts metric is missing");
     assertTrue(
         content.contains("# HELP data_summary_data_value_count"),
         "Data value count help text is missing");
     assertTrue(
-        content.contains("data_summary_data_value_count"), "Data value count metric is missing");
+        content.lines().anyMatch(line -> line.startsWith("data_summary_data_value_count")),
+        "Data value count metric is missing");
     assertTrue(
         content.contains("# HELP data_summary_event_count"), "Event count help text is missing");
-    assertTrue(content.contains("data_summary_event_count"), "Event count metric is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_event_count")),
+        "Event count metric is missing");
+    assertTrue(
+        content.contains("# HELP data_summary_build_info"), "Build info help text is missing");
+    // data_summary_build_info should end with an integer representing the build time in seconds
+    // since epoch
+    assertTrue(
+        content.lines().anyMatch(line -> line.matches("data_summary_build_info\\{.*\\} \\d+")),
+        "Build info metric should end with an integer");
+    assertTrue(content.contains("# HELP data_summary_system_id"), "System ID help text is missing");
+    // data_summary_system_id metric should be a static value of 1
+    assertTrue(
+        content.lines().anyMatch(line -> line.matches("data_summary_system_id\\{.*\\} 1")),
+        "System ID metric should be a static value of 1");
   }
 
   @Test

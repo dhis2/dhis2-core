@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.utils;
 
 import java.util.Map;
+import org.hisp.dhis.common.Dhis2Info;
 
 /**
  * A simple utility class to build Prometheus text format metrics. The Prometheus text format is
@@ -74,23 +75,28 @@ public class PrometheusTextBuilder {
   }
 
   /**
-   * Appends a static key-value pair to the Prometheus metrics. This is most useful for representing
-   * labels in the Prometheus text format such as build time, version, etc. This will produce a
-   * metric with a static value of 1.
+   * Appends system information metrics to the Prometheus metrics.
    *
-   * @param metricName the name of the metric
-   * @param key the key for the metric
-   * @param value the value for the metric
+   * @param systemInfo the system information containing version, commit, revision, and system ID
    */
-  public void appendStaticKeyValue(String metricName, String key, String value) {
-    if (value != null) {
-      metrics.append(String.format("%s{key=\"%s\", value=\"%s\"} 1%n", metricName, key, value));
-    }
-  }
+  public void appendSystemInfoMetrics(Dhis2Info systemInfo) {
+    String metricName = "data_summary_build_info";
+    if (systemInfo != null) {
+      helpLine(metricName, "Build information");
+      typeLine(metricName, "gauge");
+      Long buildTime =
+          systemInfo.getBuildTime() != null
+              ? systemInfo.getBuildTime().toInstant().getEpochSecond()
+              : 0L; // Convert to seconds// Convert to seconds
+      metrics.append(
+          String.format(
+              "%s{version=\"%s\", commit=\"%s\"} %s%n",
+              metricName, systemInfo.getVersion(), systemInfo.getRevision(), buildTime));
 
-  public void appendStaticKeyValue(String metricName, String key, java.util.Date value) {
-    if (value != null) {
-      metrics.append(String.format("%s{key=\"%s\", value=\"%s\"} 1%n", metricName, key, value));
+      helpLine("data_summary_system_id", "System ID");
+      typeLine("data_summary_system_id", "gauge");
+      metrics.append(
+          String.format("data_summary_system_id{system_id=\"%s\"} 1%n", systemInfo.getSystemId()));
     }
   }
 
