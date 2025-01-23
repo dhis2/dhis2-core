@@ -59,6 +59,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.PrometheusMetricsConstants;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -172,7 +173,7 @@ public class DataIntegrityController {
     final String metric_format = "%s{check=\"%s\",type=\"%s\"} %s%n";
 
     metrics.helpLine(metric_name, "Data integrity check metrics");
-    metrics.typeLine(metric_name, "gauge");
+    metrics.typeLine(metric_name, PrometheusMetricsConstants.GAUGE );
     summaries.forEach(
         (check, summary) -> {
           metrics.append(metric_format.formatted(metric_name, check, "count", summary.getCount()));
