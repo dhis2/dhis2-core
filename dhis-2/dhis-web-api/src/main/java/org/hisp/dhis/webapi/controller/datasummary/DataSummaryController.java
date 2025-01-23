@@ -126,10 +126,6 @@ public class DataSummaryController {
           "data_summary_system_info", "build_time", summary.getSystem().getBuildTime());
       metrics.appendStaticKeyValue(
           "data_summary_system_info", "system_id", summary.getSystem().getSystemId());
-      metrics.appendStaticKeyValue(
-          "data_summary_system_info",
-          "server_date",
-          summary.getSystem().getServerDate().toString());
     }
 
     return metrics.getMetrics();
