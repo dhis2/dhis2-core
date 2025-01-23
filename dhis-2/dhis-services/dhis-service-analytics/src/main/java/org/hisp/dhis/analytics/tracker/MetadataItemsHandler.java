@@ -222,8 +222,8 @@ public class MetadataItemsHandler {
         dimensionItems.put(
             itemUid,
             item.getFilters().stream()
-                .map(QueryFilter::getFilter)
-                .map(f -> f.split(OPTION_SEP))
+                .map(queryFilter -> organisationUnitResolver.resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
+                .map(s -> s.split(OPTION_SEP))
                 .flatMap(Arrays::stream)
                 .distinct()
                 .toList());
