@@ -84,10 +84,10 @@ public class PrometheusTextBuilder {
     if (systemInfo != null) {
       helpLine(metricName, "Build information");
       typeLine(metricName, "gauge");
-      Long buildTime =
-          systemInfo.getBuildTime() != null
-              ? systemInfo.getBuildTime().toInstant().getEpochSecond()
-              : 0L; // Convert to seconds// Convert to seconds
+      Long buildTime = 0L;
+      if (systemInfo.getBuildTime() != null) {
+        buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
+      }
       metrics.append(
           String.format(
               "%s{version=\"%s\", commit=\"%s\"} %s%n",
