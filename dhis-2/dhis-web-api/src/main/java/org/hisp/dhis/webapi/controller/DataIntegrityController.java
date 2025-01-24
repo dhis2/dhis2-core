@@ -171,18 +171,18 @@ public class DataIntegrityController {
     final String metric_name = "dhis_data_integrity_check";
     final String metric_format = "%s{check=\"%s\",type=\"%s\"} %s%n";
 
-    metrics.HELP(metric_name, "Data integrity check metrics");
-    metrics.TYPE(metric_name);
+    metrics.addHelp(metric_name, "Data integrity check metrics");
+    metrics.addType(metric_name);
     summaries.forEach(
         (check, summary) -> {
-          //Count of the integrity checks
+          // Count of the integrity checks
           metrics.append(metric_format.formatted(metric_name, check, "count", summary.getCount()));
-          //Not every check has a percentage
+          // Not every check has a percentage
           if (summary.getPercentage() != null) {
             metrics.append(
                 metric_format.formatted(metric_name, check, "percentage", summary.getPercentage()));
           }
-          //Execution time of the query
+          // Execution time of the query
           long runtime = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
           metrics.append(metric_format.formatted(metric_name, check, "duration", runtime));
         });

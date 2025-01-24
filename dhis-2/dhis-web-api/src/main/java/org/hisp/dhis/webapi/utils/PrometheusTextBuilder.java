@@ -40,46 +40,44 @@ public class PrometheusTextBuilder {
   private StringBuilder metrics = new StringBuilder();
   public static final String GAUGE = "gauge";
 
-  public void HELP(String metricName, String help) {
+  public void addHelp(String metricName, String help) {
     metrics.append(String.format("# HELP %s %s%n", metricName, help));
   }
 
-    /**
-     * Appends a Prometheus metric type line to the metrics.
-     *
-     * @param metricName the name of the metric
-     */
-    public void TYPE(String metricName )
-    {
-        TYPE( metricName, GAUGE );
-    }
+  /**
+   * Appends a Prometheus metric type line to the metrics.
+   *
+   * @param metricName the name of the metric
+   */
+  public void addType(String metricName) {
+    addType(metricName, GAUGE);
+  }
 
-    /**
+  /**
    * Appends a Prometheus metric type line to the metrics.
    *
    * @param metricName the name of the metric
    * @param type the type of the metric (e.g., counter, gauge)
    */
-  public void TYPE(String metricName, String type) {
+  public void addType(String metricName, String type) {
     metrics.append(String.format("# TYPE %s %s%n", metricName, type));
   }
 
-    /**
-     * Transform a Map<String, ?> into a Prometheus text format metric. Note that the key is assumed to be a string, and
-     * the value should be a number which is capable of being converted to a string.
-     *
-     * @param map        the map containing the metrics data
-     * @param metricName the name of the metric
-     * @param keyName    the name of the key in the metric
-     * @param help       the help text for the metric
-     */
-    public void addMetrics(
-        Map<?, ?> map, String metricName, String keyName, String help )
-    {
-        addMetrics( map, metricName, keyName, help, GAUGE );
-    }
+  /**
+   * Transform a Map<String, ?> into a Prometheus text format metric. Note that the key is assumed
+   * to be a string, and the value should be a number which is capable of being converted to a
+   * string.
+   *
+   * @param map the map containing the metrics data
+   * @param metricName the name of the metric
+   * @param keyName the name of the key in the metric
+   * @param help the help text for the metric
+   */
+  public void addMetrics(Map<?, ?> map, String metricName, String keyName, String help) {
+    addMetrics(map, metricName, keyName, help, GAUGE);
+  }
 
-    /**
+  /**
    * Transform a Map<String, ?> into a Prometheus text format metric. Note that the key is assumed
    * to be a string, and the value should be a number which is capable of being converted to a
    * string. The type of the metric is assumed to be a gauge by default.
@@ -92,13 +90,12 @@ public class PrometheusTextBuilder {
    */
   public void addMetrics(
       Map<?, ?> map, String metricName, String keyName, String help, String type) {
-    HELP(metricName, help);
-    TYPE(metricName, type);
+    addHelp(metricName, help);
+    addType(metricName, type);
     map.forEach(
         (key, value) ->
             metrics.append("%s{%s=\"%s\"} %s%n".formatted(metricName, keyName, key, value)));
   }
-
 
   /**
    * Returns the Prometheus metrics as a string.

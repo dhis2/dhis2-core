@@ -47,14 +47,14 @@ class PrometheusTextBuilderTest {
   @Test
   void helpLineAppendsHelpText() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.HELP("test_metric", "This is a test metric");
+    builder.addHelp("test_metric", "This is a test metric");
     assertEquals("# HELP test_metric This is a test metric\n", builder.getMetrics());
   }
 
   @Test
   void typeLineAppendsTypeText() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.TYPE("test_metric", "counter");
+    builder.addType("test_metric", "counter");
     assertEquals("# TYPE test_metric counter\n", builder.getMetrics());
   }
 

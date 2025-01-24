@@ -79,8 +79,8 @@ public class DataSummaryController {
   public void appendSystemInfoMetrics(PrometheusTextBuilder metrics, Dhis2Info systemInfo) {
     String metricName = "data_summary_build_info";
     if (systemInfo != null) {
-      metrics.HELP(metricName, "Build information");
-      metrics.TYPE(metricName);
+      metrics.addHelp(metricName, "Build information");
+      metrics.addType(metricName);
       long buildTime = 0L;
       if (systemInfo.getBuildTime() != null) {
         buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
@@ -90,8 +90,8 @@ public class DataSummaryController {
               "%s{version=\"%s\", commit=\"%s\"} %s%n",
               metricName, systemInfo.getVersion(), systemInfo.getRevision(), buildTime));
 
-      metrics.HELP("data_summary_system_id", "System ID");
-      metrics.TYPE("data_summary_system_id");
+      metrics.addHelp("data_summary_system_id", "System ID");
+      metrics.addType("data_summary_system_id");
       metrics.append(
           String.format("data_summary_system_id{system_id=\"%s\"} 1%n", systemInfo.getSystemId()));
     }
