@@ -440,8 +440,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       return null;
     }
 
-    RelationshipItem from = getRelationshipItem(trackedEntity, rel.getFrom(), includeDeleted);
-    RelationshipItem to = getRelationshipItem(trackedEntity, rel.getTo(), includeDeleted);
+    RelationshipItem from = getRelationshipItem(trackedEntity, rel.getFrom());
+    RelationshipItem to = getRelationshipItem(trackedEntity, rel.getTo());
     if (from == null || to == null) {
       return null;
     }
@@ -458,8 +458,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return to;
   }
 
-  private RelationshipItem getRelationshipItem(
-      TrackedEntity trackedEntity, RelationshipItem item, boolean includeDeleted)
+  private RelationshipItem getRelationshipItem(TrackedEntity trackedEntity, RelationshipItem item)
       throws NotFoundException {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
@@ -473,9 +472,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         result = getTrackedEntityInRelationshipItem(item.getTrackedEntity().getUid());
       }
     } else if (item.getEnrollment() != null) {
-      result =
-          enrollmentService.getEnrollmentInRelationshipItem(
-              UID.of(item.getEnrollment()), includeDeleted);
+      result = enrollmentService.getEnrollmentInRelationshipItem(UID.of(item.getEnrollment()));
     } else if (item.getEvent() != null) {
       result =
           eventService.getEventInRelationshipItem(
