@@ -49,6 +49,75 @@ class OrganisationUnitCriteriaUtilsTest {
       "ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN";
 
   @Test
+  void testGetAnalyticsMetaDataKeys_Empty() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys("");
+    // then
+    assertEquals(0, keys.size());
+  }
+
+  @Test
+  void testGetAnalyticsMetaDataKeys_Invalid() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys("invalid");
+    // then
+    assertEquals(0, keys.size());
+  }
+
+  @Test
+  void testGetAnalyticsMetaDataKeys_USER_ORGUNIT_Only() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys("ou:USER_ORGUNIT");
+    // then
+    assertEquals(1, keys.size());
+    assertThat(keys, hasItems(USER_ORGUNIT));
+  }
+
+  @Test
+  void testGetAnalyticsMetaDataKeys_USER_ORGUNIT_CHILDREN_Only() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys("ou:USER_ORGUNIT_CHILDREN");
+    // then
+    assertEquals(1, keys.size());
+  }
+
+  @Test
+  void testGetAnalyticsMetaDataKeys_USER_ORGUNIT_GRANDCHILDREN_Only() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys = getAnalyticsMetaDataKeys("ou:USER_ORGUNIT_GRANDCHILDREN");
+    // then
+    assertEquals(1, keys.size());
+    assertThat(keys, hasItems(USER_ORGUNIT_GRANDCHILDREN));
+  }
+
+  @Test
+  void testGetAnalyticsMetaDataKeys_USER_ORGUNIT_And_USER_ORGUNIT_CHILDREN() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys =
+        getAnalyticsMetaDataKeys("ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN");
+    // then
+    assertEquals(2, keys.size());
+    assertThat(keys, hasItems(USER_ORGUNIT, USER_ORGUNIT_CHILDREN));
+  }
+
+  @Test
+  void testGetAnalyticsMetaDataKeys_USER_ORGUNIT_And_USER_ORGUNIT_GRANDCHILDREN() {
+    // given
+    // when
+    List<AnalyticsMetaDataKey> keys =
+        getAnalyticsMetaDataKeys("ou:USER_ORGUNIT;USER_ORGUNIT_GRANDCHILDREN");
+    // then
+    assertEquals(2, keys.size());
+    assertThat(keys, hasItems(USER_ORGUNIT, USER_ORGUNIT_GRANDCHILDREN));
+  }
+
+  @Test
   void testGetAnalyticsMetaDataKeys_All() {
     // given
     // when

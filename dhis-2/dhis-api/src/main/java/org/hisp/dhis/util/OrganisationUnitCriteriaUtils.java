@@ -56,16 +56,16 @@ public class OrganisationUnitCriteriaUtils {
       String userOrganisationUnitsCriteria) {
     List<AnalyticsMetaDataKey> keys = new ArrayList<>();
 
-    // order matters, don't change unless you know what you're doing
+    // Order matters, don't change unless you know what you're doing.
     AnalyticsMetaDataKey[] analyticsMetaDataKeys = {
       USER_ORGUNIT_CHILDREN, USER_ORGUNIT_GRANDCHILDREN, USER_ORGUNIT
     };
     for (AnalyticsMetaDataKey key : analyticsMetaDataKeys) {
       if (StringUtils.trimToEmpty(userOrganisationUnitsCriteria).contains(key.getKey())) {
         keys.add(key);
-        // we need this hack, and the analyticsMetaDataKeys order, because otherwise it would match
+        // We need this hack, and the analyticsMetaDataKeys order, because otherwise it would match
         // USER_ORGUNIT_CHILDREN even if we only get USER_ORGUNIT, since the latter contains the
-        // former
+        // former.
         userOrganisationUnitsCriteria =
             userOrganisationUnitsCriteria.replace(key.getKey(), StringUtils.EMPTY);
       }

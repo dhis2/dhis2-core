@@ -38,7 +38,6 @@ import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -49,7 +48,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -58,7 +56,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -76,7 +73,6 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -89,8 +85,6 @@ public class MetadataItemsHandler {
   protected final AnalyticsSecurityManager securityManager;
 
   protected final UserService userService;
-
-  protected final OrganisationUnitService organisationUnitService;
 
   protected final OrganisationUnitResolver organisationUnitResolver;
 
@@ -218,17 +212,8 @@ public class MetadataItemsHandler {
       String itemUid = getItemUid(item);
 
       if (item.getValueType().isOrganisationUnit()) {
-        dimensionItems.put(
-            itemUid,
-            item.getFilters().stream()
-                .map(
-                    queryFilter ->
-                        organisationUnitResolver.resolveOrgUnits(
-                            queryFilter, params.getUserOrgUnits()))
-                .map(s -> s.split(OPTION_SEP))
-                .flatMap(Arrays::stream)
-                .distinct()
-                .toList());
+        List<String> items = organisationUnitResolver.resolveOrgUnis(params, item);
+        dimensionItems.put(itemUid, items);
       } else if (item.hasOptionSet()) {
         if (itemOptions.isPresent()) {
           Map<String, List<Option>> itemOptionsMap = itemOptions.get();
@@ -445,53 +430,8 @@ public class MetadataItemsHandler {
       }
     }
 
-    metadataItemMap.putAll(getMetadataItemsForOrgUnitDataElements(params));
+    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
 
     return metadataItemMap;
-  }
-
-  /**
-   * Returns a map of metadata item identifiers and {@link MetadataItem} for organisation unit data
-   * elements.
-   *
-   * @param params the {@link EventQueryParams}.
-   * @return a map.
-   */
-  private Map<String, MetadataItem> getMetadataItemsForOrgUnitDataElements(
-      EventQueryParams params) {
-    List<String> orgUnitIds =
-        params.getItems().stream()
-            .filter(item -> item.getValueType().isOrganisationUnit())
-            .map(QueryItem::getFilters)
-            .flatMap(List::stream)
-            .map(
-                queryFilter ->
-                    organisationUnitResolver.resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
-            .map(s -> s.split(OPTION_SEP))
-            .flatMap(Arrays::stream)
-            .distinct()
-            .toList();
-
-    if (orgUnitIds.isEmpty()) {
-      return Map.of();
-    }
-
-    return organisationUnitService.getOrganisationUnitsByUid(orgUnitIds).stream()
-        .collect(
-            Collectors.toMap(OrganisationUnit::getUid, orgUnit -> toMetadataItem(orgUnit, params)));
-  }
-
-  /**
-   * Returns a {@link MetadataItem} based on the given organisation unit and query parameters.
-   *
-   * @param orgUnit the {@link OrganisationUnit}.
-   * @param params the {@link EventQueryParams}.
-   * @return a {@link MetadataItem}.
-   */
-  private MetadataItem toMetadataItem(OrganisationUnit orgUnit, EventQueryParams params) {
-    return new MetadataItem(
-        orgUnit.getDisplayProperty(params.getDisplayProperty()),
-        params.isIncludeMetadataDetails() ? orgUnit.getUid() : null,
-        orgUnit.getCode());
   }
 }

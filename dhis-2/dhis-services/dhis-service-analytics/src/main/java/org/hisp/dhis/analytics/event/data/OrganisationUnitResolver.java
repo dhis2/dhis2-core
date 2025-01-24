@@ -29,11 +29,20 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -41,6 +50,8 @@ import org.springframework.stereotype.Service;
 public class OrganisationUnitResolver {
 
   private final DimensionalObjectProvider dimensionalObjectProducer;
+
+  private final OrganisationUnitService organisationUnitService;
 
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
@@ -55,5 +66,65 @@ public class OrganisationUnitResolver {
     List<String> orgUnitDimensionUid =
         dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits);
     return String.join(OPTION_SEP, orgUnitDimensionUid);
+  }
+
+  /**
+   * Returns a map of metadata item identifiers and {@link MetadataItem} for organisation unit data
+   * elements.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a map.
+   */
+  public Map<String, MetadataItem> getMetadataItemsForOrgUnitDataElements(EventQueryParams params) {
+    List<String> orgUnitIds = new ArrayList<>();
+    for (QueryItem queryItem : params.getItems()) {
+      if (queryItem.getValueType().isOrganisationUnit()) {
+        for (QueryFilter queryFilter : queryItem.getFilters()) {
+          String resolveOrgUnits = resolveOrgUnits(queryFilter, params.getUserOrgUnits());
+          if (StringUtils.isNotBlank(resolveOrgUnits)) {
+            orgUnitIds.addAll(Arrays.asList(resolveOrgUnits.split(OPTION_SEP)));
+          }
+        }
+      }
+    }
+
+    if (orgUnitIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return organisationUnitService.getOrganisationUnitsByUid(orgUnitIds).stream()
+        .collect(
+            Collectors.toMap(OrganisationUnit::getUid, orgUnit -> toMetadataItem(orgUnit, params)));
+  }
+
+  /**
+   * Returns a {@link MetadataItem} based on the given organisation unit and query parameters.
+   *
+   * @param orgUnit the {@link OrganisationUnit}.
+   * @param params the {@link EventQueryParams}.
+   * @return a {@link MetadataItem}.
+   */
+  private MetadataItem toMetadataItem(OrganisationUnit orgUnit, EventQueryParams params) {
+    return new MetadataItem(
+        orgUnit.getDisplayProperty(params.getDisplayProperty()),
+        params.isIncludeMetadataDetails() ? orgUnit.getUid() : null,
+        orgUnit.getCode());
+  }
+
+  /**
+   * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
+   * into a list of organisation unit dimension uids.
+   *
+   * @param params the event query parameters
+   * @param item the query item
+   * @return the list of organisation unit dimension uids
+   */
+  public List<String> resolveOrgUnis(EventQueryParams params, QueryItem item) {
+    return item.getFilters().stream()
+        .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
+        .map(s -> s.split(OPTION_SEP))
+        .flatMap(Arrays::stream)
+        .distinct()
+        .toList();
   }
 }
