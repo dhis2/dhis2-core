@@ -56,6 +56,7 @@ public class D2Zpvc extends ProgramExpressionItem {
       sql += "case when " + visitor.visitAllowingNulls(c) + " >= 0 then 1 else 0 end + ";
     }
 
-    return TextUtils.removeLast(sql, "+").trim() + ") as double precision),0)";
+    return TextUtils.removeLast(sql, "+").trim()
+        + ") as %s),0)".formatted(visitor.getSqlBuilder().dataTypeDouble());
   }
 }
