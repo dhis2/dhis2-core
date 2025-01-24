@@ -1280,7 +1280,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : getSelectSql(filter, item, params.getEarliestStartDate(), params.getLatestEndDate());
 
     String filterString =
-        item.getValueType().isOrganisationUnit()
+        item.getValueType() == ValueType.ORGANISATION_UNIT
             ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
             : filter.getFilter();
 
