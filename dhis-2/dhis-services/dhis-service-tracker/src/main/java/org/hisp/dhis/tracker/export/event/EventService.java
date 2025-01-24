@@ -92,8 +92,7 @@ public interface EventService {
   Page<Event> getEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
-  RelationshipItem getEventInRelationshipItem(UID uid, EventParams eventParams)
-      throws NotFoundException;
+  RelationshipItem getEventInRelationshipItem(UID uid) throws NotFoundException;
 
   /**
    * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,

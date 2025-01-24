@@ -68,7 +68,6 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.UserDetails;
@@ -474,9 +473,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     } else if (item.getEnrollment() != null) {
       result = enrollmentService.getEnrollmentInRelationshipItem(UID.of(item.getEnrollment()));
     } else if (item.getEvent() != null) {
-      result =
-          eventService.getEventInRelationshipItem(
-              UID.of(item.getEvent()), EventParams.TRUE.withIncludeRelationships(false));
+      result = eventService.getEventInRelationshipItem(UID.of(item.getEvent()));
     }
 
     return result;
@@ -490,6 +487,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @return the TE object if found and accessible by the current user or null otherwise
    * @throws NotFoundException if uid does not exist
    */
+  // TODO(DHIS2-18883) Pass TrackedEntityParams as a parameter
   private RelationshipItem getTrackedEntityInRelationshipItem(String uid) throws NotFoundException {
     RelationshipItem relationshipItem = new RelationshipItem();
 

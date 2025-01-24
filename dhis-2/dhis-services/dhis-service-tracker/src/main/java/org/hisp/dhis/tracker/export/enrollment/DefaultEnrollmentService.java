@@ -112,6 +112,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollments.getItems().get(0);
   }
 
+  // TODO(DHIS2-18883) Pass EnrollmentParams as a parameter
   @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
@@ -167,7 +168,14 @@ class DefaultEnrollmentService implements EnrollmentService {
   public RelationshipItem getEnrollmentInRelationshipItem(@Nonnull UID uid) {
     Enrollment enrollment;
     try {
-      enrollment = getEnrollment(uid);
+      enrollment =
+          getEnrollment(
+              uid,
+              EnrollmentParams.TRUE
+                  .withIncludeRelationships(false)
+                  .withEnrollmentEventsParams(
+                      EnrollmentEventsParams.TRUE.withEventParams(EventParams.FALSE)),
+              false);
     } catch (NotFoundException | ForbiddenException e) {
       // enrollments are not shown in relationships if the user has no access to them
       return null;
