@@ -534,7 +534,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
 
-    // this.switchContextToUser(user);
     switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
@@ -566,6 +565,25 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
 
+    switchContextToUser(user);
+
+    assertEquals(
+        "Event " + event.getUid() + " with data element " + de.getUid() + " could not be found.",
+        GET(
+                "/tracker/events/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void getDataValuesFileByDataElementIfNoDataValueNull() {
+    Event event = event(enrollment(trackedEntity()));
+    DataElement de = dataElement(ValueType.IMAGE);
+
+    event.getEventDataValues().add(dataValue(de, null));
+    manager.flush();
     switchContextToUser(user);
 
     assertEquals(

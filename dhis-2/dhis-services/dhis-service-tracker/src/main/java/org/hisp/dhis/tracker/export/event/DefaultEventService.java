@@ -128,7 +128,12 @@ class DefaultEventService implements EventService {
           "this must be a bug in how the EventOperationParams are built");
     }
     if (events.getItems().isEmpty()) {
-      throw new NotFoundException(Event.class, eventUid);
+      throw new NotFoundException(
+          "Event "
+              + eventUid.getValue()
+              + " with data element "
+              + dataElementUid.getValue()
+              + " could not be found.");
     }
     Event event = events.getItems().get(0);
 
