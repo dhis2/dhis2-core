@@ -255,6 +255,7 @@ class DefaultEventService implements EventService {
     return eventStore.getEvents(queryParams, pageParams);
   }
 
+  // TODO(DHIS2-18883) Pass EventParams as a parameter
   @Override
   public RelationshipItem getEventInRelationshipItem(@Nonnull UID uid) {
     Event event;

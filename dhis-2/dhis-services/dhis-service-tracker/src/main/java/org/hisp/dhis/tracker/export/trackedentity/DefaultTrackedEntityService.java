@@ -487,6 +487,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @return the TE object if found and accessible by the current user or null otherwise
    * @throws NotFoundException if uid does not exist
    */
+  // TODO(DHIS2-18883) Pass TrackedEntityParams as a parameter
   private RelationshipItem getTrackedEntityInRelationshipItem(String uid) throws NotFoundException {
     RelationshipItem relationshipItem = new RelationshipItem();
 

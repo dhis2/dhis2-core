@@ -112,6 +112,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollments.getItems().get(0);
   }
 
+  // TODO(DHIS2-18883) Pass EnrollmentParams as a parameter
   @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
