@@ -116,6 +116,7 @@ import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
@@ -1278,7 +1279,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventMergeTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1385,7 +1388,10 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
   void eventMergeDiscardTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1507,7 +1513,10 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Last updated Event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -2533,7 +2542,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "EventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
   void eventChangeLogMergeTest() throws ConflictException, ForbiddenException, NotFoundException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -2587,7 +2598,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   void trackedEntityChangeLogMergeDeletedTest()
       throws ConflictException, ForbiddenException, NotFoundException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
