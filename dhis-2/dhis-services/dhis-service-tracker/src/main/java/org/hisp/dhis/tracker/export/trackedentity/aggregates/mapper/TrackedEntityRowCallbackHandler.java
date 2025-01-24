@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -61,6 +62,11 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
 
     OrganisationUnit orgUnit = new OrganisationUnit();
     orgUnit.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_UID)));
+    orgUnit.setCode(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_CODE)));
+    orgUnit.setName(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_NAME)));
+    orgUnit.setAttributeValues(
+        AttributeValues.of(
+            rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_ATTRIBUTE_VALUES))));
     te.setOrganisationUnit(orgUnit);
 
     te.setCreated(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.CREATED)));
