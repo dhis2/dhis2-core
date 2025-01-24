@@ -58,17 +58,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Tests the {@link DatastoreController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
 @Transactional
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
-  /**
-   * Only used directly to setup namespace protection as this is by intention not possible using the
-   * REST API.
-   */
+
   @Autowired private RouteService service;
 
   @Autowired private ObjectMapper jsonMapper;
@@ -96,7 +88,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Route route = new Route();
     route.setName("route-under-test");
     route.setAuth(queryParamsAuthScheme);
-    route.setUrl("https://postman-echo.com/post");
+    route.setUrl("http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -132,7 +124,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Route route = new Route();
     route.setName("route-under-test");
     route.setAuth(apiHeadersAuthScheme);
-    route.setUrl("https://postman-echo.com/post");
+    route.setUrl("http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -155,7 +147,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Route route = new Route();
     route.setName("route-under-test");
     route.setAuth(apiHeadersAuthScheme);
-    route.setUrl("https://postman-echo.com/post");
+    route.setUrl("http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CREATED, postHttpResponse);
@@ -181,7 +173,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Route route = new Route();
     route.setName("route-under-test");
     route.setAuth(queryParamsAuthScheme);
-    route.setUrl("https://postman-echo.com/post");
+    route.setUrl("http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CREATED, postHttpResponse);
