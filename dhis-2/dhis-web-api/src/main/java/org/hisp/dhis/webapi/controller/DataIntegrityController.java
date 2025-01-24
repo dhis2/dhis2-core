@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -168,24 +169,37 @@ public class DataIntegrityController {
     // Get everything which is in the cache
     Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
-    final String metric_name = "dhis_data_integrity_check";
-    final String metric_format = "%s{check=\"%s\",type=\"%s\"} %s%n";
 
-    metrics.addHelp(metric_name, "Data integrity check metrics");
-    metrics.addType(metric_name);
+    Map<String, Integer> countMetrics = new HashMap<>();
+    Map<String, Double> percentMetrics = new HashMap<>();
+    Map<String, Long> durationMetrics = new HashMap<>();
+
     summaries.forEach(
-        (check, summary) -> {
-          // Count of the integrity checks
-          metrics.append(metric_format.formatted(metric_name, check, "count", summary.getCount()));
-          // Not every check has a percentage
+        (key, summary) -> {
+          countMetrics.put(key, summary.getCount());
+          // Percentage might not be present
           if (summary.getPercentage() != null) {
-            metrics.append(
-                metric_format.formatted(metric_name, check, "percentage", summary.getPercentage()));
+            percentMetrics.put(key, summary.getPercentage());
           }
-          // Execution time of the query
-          long runtime = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
-          metrics.append(metric_format.formatted(metric_name, check, "duration", runtime));
+          long duration = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
+          durationMetrics.put(key, duration);
         });
+
+    metrics.addMetrics(
+        countMetrics, "dhis_data_integrity_check_count", "check", "Data integrity check counts");
+
+    metrics.addMetrics(
+        percentMetrics,
+        "dhis_data_integrity_check_percentage",
+        "check",
+        "Data integrity check percentages");
+
+    metrics.addMetrics(
+        durationMetrics,
+        "dhis_data_integrity_check_duration",
+        "check",
+        "Data integrity check durations");
+
     return metrics.getMetrics();
   }
 
