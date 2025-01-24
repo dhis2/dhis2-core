@@ -894,7 +894,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(", coc_agg.attributevalues as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
             .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ")
-            .append(addOrderFieldsToSelectClause(params));
+            .append(addOrderFieldsToSelectClause(params.getOrder()));
 
     return selectBuilder
         .append(
@@ -920,10 +920,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .toString();
   }
 
-  private String addOrderFieldsToSelectClause(EventQueryParams params) {
+  private String addOrderFieldsToSelectClause(List<Order> orders) {
     StringBuilder selectBuilder = new StringBuilder();
 
-    for (Order order : params.getOrder()) {
+    for (Order order : orders) {
       if (order.getField() instanceof TrackedEntityAttribute tea) {
         selectBuilder
             .append(quote(tea.getUid()))
