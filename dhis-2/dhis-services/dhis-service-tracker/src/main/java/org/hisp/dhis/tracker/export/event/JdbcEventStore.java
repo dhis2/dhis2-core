@@ -893,16 +893,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME)
             .append(", coc_agg.attributevalues as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
-            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ");
-
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof TrackedEntityAttribute tea)
-        selectBuilder
-            .append(quote(tea.getUid()))
-            .append(".value AS ")
-            .append(tea.getUid())
-            .append("_value, ");
-    }
+            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ")
+            .append(addOrderFieldsToSelectClause(params));
 
     return selectBuilder
         .append(
@@ -926,6 +918,32 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 hlp,
                 dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
         .toString();
+  }
+
+  private String addOrderFieldsToSelectClause(EventQueryParams params) {
+    StringBuilder selectBuilder = new StringBuilder();
+
+    for (Order order : params.getOrder()) {
+      if (order.getField() instanceof TrackedEntityAttribute tea) {
+        selectBuilder
+            .append(quote(tea.getUid()))
+            .append(".value AS ")
+            .append(tea.getUid())
+            .append("_value, ");
+      } else if (order.getField() instanceof DataElement de) {
+        final String dataValueValueSql = "ev.eventdatavalues #>> '{" + de.getUid() + ", value}'";
+        selectBuilder
+            .append(
+                de.getValueType().isNumeric()
+                    ? castToNumber(dataValueValueSql)
+                    : lower(dataValueValueSql))
+            .append(" as ")
+            .append(de.getUid())
+            .append(", ");
+      }
+    }
+
+    return selectBuilder.toString();
   }
 
   private boolean checkForOwnership(EventQueryParams params) {
@@ -1447,7 +1465,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       } else {
         eventDataValuesWhereSql.append(hlp.whereAnd());
         eventDataValuesWhereSql.append(" (ev.eventdatavalues ?? '");
-        eventDataValuesWhereSql.append(item.getKey().getUid());
+        eventDataValuesWhereSql.append(deUid);
         eventDataValuesWhereSql.append("')");
       }
     }
