@@ -28,39 +28,50 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.Date;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
+import java.util.function.Supplier;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -70,75 +81,77 @@ import org.springframework.transaction.annotation.Transactional;
  * the export controllers.
  */
 @Transactional
-class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBase {
+  @Autowired private RenderService renderService;
+
+  @Autowired private ObjectBundleService objectBundleService;
+
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
+
+  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private CategoryService categoryService;
+  private User importUser;
 
-  private CategoryOptionCombo coc;
+  private Event event;
+  private Set<RelationshipItem> relationshipItems;
 
-  private OrganisationUnit orgUnit;
+  protected ObjectBundle setUpMetadata(String path) throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertNoErrors(objectBundleValidationService.validate(bundle));
+    objectBundleService.commit(bundle);
+    return bundle;
+  }
 
-  private Program program;
+  protected TrackerObjects fromJson(String path) throws IOException {
+    return renderService.fromJson(
+        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
+  }
 
-  private ProgramStage programStage;
+  @BeforeAll
+  void setUp() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
 
-  private User owner;
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
 
-  private User user;
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
 
-  private TrackedEntityType trackedEntityType;
+    manager.flush();
+    manager.clear();
+
+    event = get(Event.class, "pTzf9KYMk72");
+    assertNotEmpty(event.getRelationshipItems(), "test expects an enrollment with one event");
+    relationshipItems = event.getRelationshipItems();
+  }
 
   @BeforeEach
-  void setUp() {
-    owner = makeUser("o");
-    manager.save(owner, false);
-
-    coc = categoryService.getDefaultCategoryOptionCombo();
-
-    orgUnit = createOrganisationUnit('A');
-    orgUnit.getSharing().setOwner(owner);
-    manager.save(orgUnit, false);
-
-    OrganisationUnit anotherOrgUnit = createOrganisationUnit('B');
-    anotherOrgUnit.getSharing().setOwner(owner);
-    manager.save(anotherOrgUnit, false);
-
-    user = createUserWithId("tester", CodeGenerator.generateUid());
-    user.addOrganisationUnit(orgUnit);
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
-    this.userService.updateUser(user);
-
-    program = createProgram('A');
-    program.addOrganisationUnit(orgUnit);
-    program.getSharing().setOwner(owner);
-    program.getSharing().addUserAccess(userAccess());
-    manager.save(program, false);
-
-    programStage = createProgramStage('A', program);
-    programStage.getSharing().setOwner(owner);
-    programStage.getSharing().addUserAccess(userAccess());
-    manager.save(programStage, false);
-
-    trackedEntityType = trackedEntityTypeAccessible();
+  void setUpUser() {
+    switchContextToUser(importUser);
   }
 
   @Test
   void shouldGetPaginatedItemsWithDefaults() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
-
     JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}", to.getUid())
+        GET("/tracker/relationships?event={uid}", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
+        relationshipItems.stream()
+            .map(RelationshipItem::getRelationship)
+            .map(UidObject::getUid)
+            .toList(),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
@@ -155,19 +168,16 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldGetPaginatedItemsWithPagingSetToTrue() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
-
     JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&paging=true", to.getUid())
+        GET("/tracker/relationships?event={uid}&paging=true", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
+        relationshipItems.stream()
+            .map(RelationshipItem::getRelationship)
+            .map(UidObject::getUid)
+            .toList(),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
@@ -184,19 +194,16 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldGetPaginatedItemsWithDefaultsAndTotals() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
-
     JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&totalPages=true", to.getUid())
+        GET("/tracker/relationships?event={uid}&totalPages=true", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
+        relationshipItems.stream()
+            .map(RelationshipItem::getRelationship)
+            .map(UidObject::getUid)
+            .toList(),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
@@ -213,14 +220,8 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldGetPaginatedItemsWithNonDefaults() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    relationship(from1, to);
-    relationship(from2, to);
-
     JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&page=2&pageSize=1", to.getUid())
+        GET("/tracker/relationships?event={uid}&page=2&pageSize=1", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -245,16 +246,9 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldGetPaginatedItemsWithNonDefaultsAndTotals() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    relationship(from1, to);
-    relationship(from2, to);
 
     JsonPage page =
-        GET(
-                "/tracker/relationships?trackedEntity={uid}&page=2&pageSize=1&totalPages=true",
-                to.getUid())
+        GET("/tracker/relationships?event={uid}&page=2&pageSize=1&totalPages=true", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -279,19 +273,17 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldGetNonPaginatedItemsWithSkipPaging() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
 
     JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
+        GET("/tracker/relationships?event={uid}&skipPaging=true", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
+        relationshipItems.stream()
+            .map(RelationshipItem::getRelationship)
+            .map(UidObject::getUid)
+            .toList(),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
@@ -305,19 +297,17 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
 
     JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&paging=false", to.getUid())
+        GET("/tracker/relationships?event={uid}&paging=false", event.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
+        relationshipItems.stream()
+            .map(RelationshipItem::getRelationship)
+            .map(UidObject::getUid)
+            .toList(),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
@@ -329,110 +319,46 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
     assertHasNoMember(page, "pageCount");
   }
 
-  private TrackedEntityType trackedEntityTypeAccessible() {
-    TrackedEntityType type = trackedEntityType();
-    type.getSharing().addUserAccess(userAccess());
-    manager.save(type, false);
-    return type;
+  private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
+    T t = manager.get(type, uid);
+    assertNotNull(
+        t,
+        () ->
+            String.format(
+                "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
+    return t;
   }
 
-  private TrackedEntityType trackedEntityType() {
-    TrackedEntityType type = createTrackedEntityType('A');
-    type.getSharing().setOwner(owner);
-    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    return type;
+  public static void assertNoErrors(ImportReport report) {
+    assertNotNull(report);
+    assertEquals(
+        Status.OK,
+        report.getStatus(),
+        errorMessage(
+            "Expected import with status OK, instead got:%n", report.getValidationReport()));
   }
 
-  private TrackedEntity trackedEntity() {
-    TrackedEntity te = trackedEntity(orgUnit);
-    manager.save(te, false);
-    return te;
+  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
+    return () -> {
+      StringBuilder msg = new StringBuilder(errorTitle);
+      report
+          .getErrors()
+          .forEach(
+              e -> {
+                msg.append(e.getErrorCode());
+                msg.append(": ");
+                msg.append(e.getMessage());
+                msg.append('\n');
+              });
+      return msg.toString();
+    };
   }
 
-  private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
-    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(te, false);
-    return te;
-  }
-
-  private TrackedEntity trackedEntity(
-      OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
-    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    te.getSharing().setOwner(owner);
-    return te;
-  }
-
-  private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, orgUnit);
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollment, false);
-    te.setEnrollments(Set.of(enrollment));
-    manager.save(te, false);
-    return enrollment;
-  }
-
-  private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, orgUnit, coc);
-    event.setAutoFields();
-    manager.save(event, false);
-    enrollment.setEvents(Set.of(event));
-    manager.save(enrollment, false);
-    return event;
-  }
-
-  private UserAccess userAccess() {
-    UserAccess a = new UserAccess();
-    a.setUser(user);
-    a.setAccess(AccessStringHelper.FULL);
-    return a;
-  }
-
-  private RelationshipType relationshipTypeAccessible() {
-    RelationshipType type = relationshipType();
-    type.getSharing().addUserAccess(userAccess());
-    manager.save(type, false);
-    return type;
-  }
-
-  private RelationshipType relationshipType() {
-    RelationshipType type = createRelationshipType('A');
-    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
-    type.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
-    type.getSharing().setOwner(owner);
-    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.save(type, false);
-    return type;
-  }
-
-  private Relationship relationship(Event from, TrackedEntity to) {
-    Relationship r = new Relationship();
-
-    RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setEvent(from);
-    from.getRelationshipItems().add(fromItem);
-    r.setFrom(fromItem);
-    fromItem.setRelationship(r);
-
-    RelationshipItem toItem = new RelationshipItem();
-    toItem.setTrackedEntity(to);
-    to.getRelationshipItems().add(toItem);
-    r.setTo(toItem);
-    toItem.setRelationship(r);
-
-    RelationshipType type = relationshipTypeAccessible();
-    r.setRelationshipType(type);
-    r.setKey(type.getUid());
-    r.setInvertedKey(type.getUid());
-
-    r.setAutoFields();
-    r.getSharing().setOwner(owner);
-    r.setCreatedAtClient(new Date());
-    manager.save(r, false);
-    return r;
+  public static void assertNoErrors(ObjectBundleValidationReport report) {
+    assertNotNull(report);
+    List<String> errors = new ArrayList<>();
+    report.forEachErrorReport(err -> errors.add(err.toString()));
+    assertFalse(
+        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }

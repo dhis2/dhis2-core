@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -48,7 +47,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
@@ -66,7 +64,6 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -222,111 +219,22 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @CheckForNull UID programIdentifier,
       @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException, BadRequestException {
-    Program program = null;
-    if (programIdentifier != null) {
-      program = programService.getProgram(programIdentifier.getValue());
-      if (program == null) {
-        throw new NotFoundException(Program.class, programIdentifier);
-      }
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntities(Set.of(trackedEntityUid))
+            .program(programIdentifier)
+            .trackedEntityParams(params)
+            .build();
+    // TODO(ivo) allow setting the audit to READ instead of SEARCH
+    //    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
+    Page<TrackedEntity> trackedEntities =
+        getTrackedEntities(operationParams, new PageParams(1, 1, false));
+
+    if (trackedEntities.getItems().isEmpty()) {
+      throw new NotFoundException(TrackedEntity.class, trackedEntityUid);
     }
 
-    return getTrackedEntity(trackedEntityUid, program, params, getCurrentUserDetails());
-  }
-
-  /**
-   * Gets a tracked entity based on the program and org unit ownership.
-   *
-   * @return the TE object if found and accessible by the current user
-   * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
-   */
-  private TrackedEntity getTrackedEntity(
-      UID uid, Program program, TrackedEntityParams params, UserDetails user)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
-    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
-
-    if (program != null) {
-      List<String> errors =
-          trackerAccessManager.canReadProgramAndTrackedEntityType(user, trackedEntity, program);
-      if (!errors.isEmpty()) {
-        throw new ForbiddenException(errors.toString());
-      }
-
-      String error =
-          trackerAccessManager.canAccessProgramOwner(user, trackedEntity, program, false);
-      if (error != null) {
-        throw new ForbiddenException(error);
-      }
-    } else {
-      if (!trackerAccessManager.canRead(user, trackedEntity).isEmpty()) {
-        throw new ForbiddenException(TrackedEntity.class, uid);
-      }
-    }
-
-    if (params.isIncludeEnrollments()) {
-      EnrollmentOperationParams enrollmentOperationParams =
-          mapToEnrollmentParams(uid, program, params);
-      List<Enrollment> enrollments = enrollmentService.getEnrollments(enrollmentOperationParams);
-      trackedEntity.setEnrollments(new HashSet<>(enrollments));
-    }
-    setRelationshipItems(trackedEntity, trackedEntity, params, false);
-    if (params.isIncludeProgramOwners()) {
-      trackedEntity.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
-    }
-    trackedEntity.setTrackedEntityAttributeValues(
-        getTrackedEntityAttributeValues(trackedEntity, program));
-    return trackedEntity;
-  }
-
-  private EnrollmentOperationParams mapToEnrollmentParams(
-      UID trackedEntity, Program program, TrackedEntityParams params) {
-    return EnrollmentOperationParams.builder()
-        .trackedEntity(trackedEntity)
-        .program(program)
-        .enrollmentParams(params.getEnrollmentParams())
-        .build();
-  }
-
-  private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
-      TrackedEntity trackedEntity, Program program) {
-    if (program == null) {
-      return trackedEntity.getProgramOwners();
-    }
-
-    return trackedEntity.getProgramOwners().stream()
-        .filter(te -> te.getProgram().getUid().equals(program.getUid()))
-        .collect(Collectors.toSet());
-  }
-
-  private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity, Program program) {
-    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-    if (CollectionUtils.isEmpty(trackedEntityType.getTrackedEntityTypeAttributes())) {
-      // the TrackedEntityAggregate does not fetch the TrackedEntityTypeAttributes at the moment
-      // TODO(DHIS2-18541) bypass ACL as our controller test as the user must have access to the TET
-      // if it has access to the TE.
-      trackedEntityType =
-          trackedEntityTypeStore.getByUidNoAcl(trackedEntity.getTrackedEntityType().getUid());
-    }
-
-    Set<String> teas = // tracked entity type attributes
-        trackedEntityType.getTrackedEntityAttributes().stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-    if (program != null) { // add program tracked entity attributes
-      teas.addAll(
-          program.getTrackedEntityAttributes().stream()
-              .map(IdentifiableObject::getUid)
-              .collect(Collectors.toSet()));
-    }
-    return trackedEntity.getTrackedEntityAttributeValues().stream()
-        .filter(av -> teas.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toSet());
+    return trackedEntities.getItems().get(0);
   }
 
   @Nonnull
@@ -368,6 +276,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             operationParams.getTrackedEntityParams(),
             queryParams,
             queryParams.getOrgUnitMode());
+    // TODO(ivo) clean this up
     setRelationshipItems(
         trackedEntities,
         operationParams.getTrackedEntityParams(),
@@ -382,6 +291,43 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
     return trackedEntities;
+  }
+
+  private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
+      TrackedEntity trackedEntity, Program program) {
+    if (program == null) {
+      return trackedEntity.getProgramOwners();
+    }
+
+    return trackedEntity.getProgramOwners().stream()
+        .filter(te -> te.getProgram().getUid().equals(program.getUid()))
+        .collect(Collectors.toSet());
+  }
+
+  private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
+      TrackedEntity trackedEntity, Program program) {
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    if (CollectionUtils.isEmpty(trackedEntityType.getTrackedEntityTypeAttributes())) {
+      // the TrackedEntityAggregate does not fetch the TrackedEntityTypeAttributes at the moment
+      // TODO(DHIS2-18541) bypass ACL as our controller test as the user must have access to the TET
+      // if it has access to the TE.
+      trackedEntityType =
+          trackedEntityTypeStore.getByUidNoAcl(trackedEntity.getTrackedEntityType().getUid());
+    }
+
+    Set<String> teas = // tracked entity type attributes
+        trackedEntityType.getTrackedEntityAttributes().stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+    if (program != null) { // add program tracked entity attributes
+      teas.addAll(
+          program.getTrackedEntityAttributes().stream()
+              .map(IdentifiableObject::getUid)
+              .collect(Collectors.toSet()));
+    }
+    return trackedEntity.getTrackedEntityAttributeValues().stream()
+        .filter(av -> teas.contains(av.getAttribute().getUid()))
+        .collect(Collectors.toSet());
   }
 
   /**
