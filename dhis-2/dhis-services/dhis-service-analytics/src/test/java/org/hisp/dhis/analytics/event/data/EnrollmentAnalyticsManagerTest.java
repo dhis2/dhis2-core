@@ -116,6 +116,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private SystemSettingsService systemSettingsService;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
@@ -151,7 +153,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             executionPlanStore,
             systemSettingsService,
             config,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
   }
 
   @Test

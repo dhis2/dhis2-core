@@ -58,6 +58,7 @@ import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -132,6 +133,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private SystemSettingsService systemSettingsService;
+
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
 
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
@@ -865,6 +868,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();

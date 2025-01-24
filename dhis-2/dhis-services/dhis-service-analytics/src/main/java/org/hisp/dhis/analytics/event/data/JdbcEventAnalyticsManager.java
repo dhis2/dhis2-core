@@ -120,7 +120,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -128,7 +129,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         executionPlanStore,
         sqlBuilder,
         settingsService,
-        config);
+        config,
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
