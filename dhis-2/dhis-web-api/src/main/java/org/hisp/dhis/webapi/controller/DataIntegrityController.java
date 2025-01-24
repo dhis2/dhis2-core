@@ -59,7 +59,6 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.PrometheusMetricsConstants;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -166,21 +165,24 @@ public class DataIntegrityController {
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
   @ResponseBody
   public String getSummariesMetrics() {
-    // Just get whatever is in the cache
+    // Get everything which is in the cache
     Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
     final String metric_name = "dhis_data_integrity_check";
     final String metric_format = "%s{check=\"%s\",type=\"%s\"} %s%n";
 
-    metrics.helpLine(metric_name, "Data integrity check metrics");
-    metrics.typeLine(metric_name, PrometheusMetricsConstants.GAUGE );
+    metrics.HELP(metric_name, "Data integrity check metrics");
+    metrics.TYPE(metric_name);
     summaries.forEach(
         (check, summary) -> {
+          //Count of the integrity checks
           metrics.append(metric_format.formatted(metric_name, check, "count", summary.getCount()));
+          //Not every check has a percentage
           if (summary.getPercentage() != null) {
             metrics.append(
                 metric_format.formatted(metric_name, check, "percentage", summary.getPercentage()));
           }
+          //Execution time of the query
           long runtime = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
           metrics.append(metric_format.formatted(metric_name, check, "duration", runtime));
         });
