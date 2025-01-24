@@ -256,11 +256,14 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public RelationshipItem getEventInRelationshipItem(
-      @Nonnull UID uid, @Nonnull EventParams eventParams) {
+  public RelationshipItem getEventInRelationshipItem(@Nonnull UID uid) {
     Event event;
     try {
-      event = getEvent(uid, TrackerIdSchemeParams.builder().build(), eventParams);
+      event =
+          getEvent(
+              uid,
+              TrackerIdSchemeParams.builder().build(),
+              EventParams.TRUE.withIncludeRelationships(false));
     } catch (NotFoundException | ForbiddenException e) {
       // events are not shown in relationships if the user has no access to them
       return null;
