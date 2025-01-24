@@ -96,7 +96,7 @@ public class DataSummaryController {
   }
 
   @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   public @ResponseBody String getPrometheusMetrics() {
     DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
     final String PROMETHEUS_GAUGE_NAME = "gauge";
