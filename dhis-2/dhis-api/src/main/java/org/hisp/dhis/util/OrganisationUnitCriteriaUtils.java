@@ -61,7 +61,7 @@ public class OrganisationUnitCriteriaUtils {
       USER_ORGUNIT_CHILDREN, USER_ORGUNIT_GRANDCHILDREN, USER_ORGUNIT
     };
     for (AnalyticsMetaDataKey key : analyticsMetaDataKeys) {
-      if (userOrganisationUnitsCriteria.contains(key.getKey())) {
+      if (StringUtils.trimToEmpty(userOrganisationUnitsCriteria).contains(key.getKey())) {
         keys.add(key);
         // we need this hack, and the analyticsMetaDataKeys order, because otherwise it would match
         // USER_ORGUNIT_CHILDREN even if we only get USER_ORGUNIT, since the latter contains the
