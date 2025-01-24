@@ -69,6 +69,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -79,6 +80,7 @@ import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
+import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -153,7 +155,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
-  void shouldExportMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+  void shouldExportEventMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
     Event event = get(Event.class, "QRYjLTiJTrA");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
@@ -332,7 +334,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @ParameterizedTest
   @ValueSource(strings = {"/{id}?", "?events={id}&paging=true&", "?events={id}&paging=false&"})
-  void shouldReportMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
+  void shouldReportEventMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
     Event event = get(Event.class, "QRYjLTiJTrA");
 
     JsonWebMessage msg =
@@ -352,6 +354,62 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         () ->
             assertContains(
                 "Program[ATTRIBUTE:" + UNUSED_METADATA_ATTRIBUTE + "]", msg.getDevMessage()));
+  }
+
+  // TODO(ivo) add test for single endpoint as well
+
+  // TODO(DHIS2-18541) remove this test as the test against the single endpoint should is enough
+  @ParameterizedTest
+  @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
+  void shouldExportTrackedEntitiesMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    //    TrackedEntityType trackedEntityType
+    //    OrganisationUnit orgUnit
+    //    List<org.hisp.dhis.webapi.controller.tracker.view.Attribute> attributes
+    // TODO(ivo) should we also export programOwners using the idScheme?
+    //    List<ProgramOwner> programOwners
+    // -> Program
+    // -> OrganisationUnit
+    TrackedEntity trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
+    assertNotEmpty(
+        trackedEntity.getTrackedEntityAttributeValues(),
+        "test expects a tracked entity with attribute values");
+
+    List<String> idSchemeRequestParams = List.of("orgUnit", "program");
+    String idSchemes =
+        idSchemeRequestParams.stream()
+            .map(p -> p + "IdScheme=" + idSchemeParam)
+            .collect(Collectors.joining("&"));
+
+    JsonList<JsonTrackedEntity> jsonTrackedEntities =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=trackedEntity,orgUnit,program&{idSchemes}",
+                trackedEntity.getUid(),
+                idSchemes)
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    JsonTrackedEntity actual =
+        jsonTrackedEntities.first(te -> trackedEntity.getUid().equals(te.getTrackedEntity()));
+
+    // TODO(ivo) add assertion for trackedEntityType
+    // TODO(ivo) add assertion for attributes
+    // only orgUnit and program have their own idScheme parameters that are relevant for TE right?
+    assertAll(
+        "event metadata assertions for idScheme=" + idSchemeParam,
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getOrganisationUnit()),
+                actual,
+                idSchemeParam,
+                "orgUnit")
+        //        () ->
+        //            assertIdScheme(
+        //                idSchemeParam.getIdentifier(event.getProgramStage().getProgram()),
+        //                actual,
+        //                idSchemeParam,
+        //                "program"),
+        //        () -> assertDataValues(actual, event, idSchemeParam)
+        );
   }
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {

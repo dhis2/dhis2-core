@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
@@ -80,7 +80,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -322,18 +321,6 @@ class EventsExportController {
             .toList();
     ensureNoMappingErrors(errors);
     return events;
-  }
-
-  private static void ensureNoMappingErrors(MappingErrors errors) throws WebMessageException {
-    if (errors.hasErrors()) {
-      throw new WebMessageException(
-          createWebMessage(
-              "Not all metadata has an identifier for the requested idScheme. Either change the"
-                  + " requested idScheme or add the missing identifiers to the metadata.",
-              errors.toString(),
-              org.hisp.dhis.feedback.Status.ERROR,
-              HttpStatus.UNPROCESSABLE_ENTITY));
-    }
   }
 
   @GetMapping("/{event}/dataValues/{dataElement}/file")

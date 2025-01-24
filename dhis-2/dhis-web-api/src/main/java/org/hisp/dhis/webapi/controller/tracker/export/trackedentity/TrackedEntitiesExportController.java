@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
@@ -49,6 +50,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -164,8 +166,10 @@ class TrackedEntitiesExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getTrackedEntities(
-      TrackedEntityRequestParams requestParams, @CurrentUser UserDetails currentUser)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      TrackedEntityRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
+      @CurrentUser UserDetails currentUser)
+      throws BadRequestException, ForbiddenException, NotFoundException, WebMessageException {
     validatePaginationParameters(requestParams);
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
@@ -177,13 +181,12 @@ class TrackedEntitiesExportController {
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
           trackedEntitiesPage =
               trackedEntityService.getTrackedEntities(operationParams, pageParams);
-      // only supports idScheme=UID
-      TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
       MappingErrors errors = new MappingErrors(idSchemeParams);
       List<TrackedEntity> trackedEntities =
           trackedEntitiesPage.getItems().stream()
               .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
               .toList();
+      ensureNoMappingErrors(errors);
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
@@ -192,13 +195,12 @@ class TrackedEntitiesExportController {
           .body(Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes)));
     }
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).stream()
             .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
             .toList();
+    ensureNoMappingErrors(errors);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
