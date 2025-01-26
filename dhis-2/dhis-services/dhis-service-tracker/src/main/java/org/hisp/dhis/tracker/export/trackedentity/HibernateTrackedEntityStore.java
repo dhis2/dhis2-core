@@ -149,46 +149,46 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   @Override
-  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
+  public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
     String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     checkMaxTrackedEntityCountReached(params, rowSet);
 
-    List<Long> ids = new ArrayList<>();
-
+    List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
-      ids.add(rowSet.getLong("trackedentityid"));
+      ids.add(
+          new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
     }
-
     return ids;
   }
 
   @Override
-  public Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
+  public Page<TrackedEntityIdentifiers> getTrackedEntityIds(
+      TrackedEntityQueryParams params, PageParams pageParams) {
     String sql = getQuery(params, pageParams);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     checkMaxTrackedEntityCountReached(params, rowSet);
 
-    List<Long> ids = new ArrayList<>();
-
+    List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
-      ids.add(rowSet.getLong("trackedentityid"));
+      ids.add(
+          new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
     }
 
     LongSupplier teCount = () -> getTrackedEntityCount(params);
     return getPage(pageParams, ids, teCount);
   }
 
-  private Page<Long> getPage(
-      PageParams pageParams, List<Long> teIds, LongSupplier enrollmentCount) {
+  private Page<TrackedEntityIdentifiers> getPage(
+      PageParams pageParams, List<TrackedEntityIdentifiers> ids, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
       return Page.withTotals(
-          teIds, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
+          ids, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
     }
 
-    return Page.withoutTotals(teIds, pageParams.getPage(), pageParams.getPageSize());
+    return Page.withoutTotals(ids, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override

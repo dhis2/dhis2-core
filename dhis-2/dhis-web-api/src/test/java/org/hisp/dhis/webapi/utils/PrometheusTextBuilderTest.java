@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.webapi.utils;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery.COLUMNS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ProgramAttributeRowCallbackHandler extends AbstractMapper<TrackedEntityAttributeValue>
-    implements AttributeMapper {
-  @Override
-  TrackedEntityAttributeValue getItem(ResultSet rs) throws SQLException {
-    return getAttribute(rs);
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Unit tests for the PrometheusTextBuilder class.
+ *
+ * @author Jason P. Pickering
+ */
+class PrometheusTextBuilderTest {
+  @Test
+  void getMetricsReturnsEmptyStringWhenNoMetrics() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    assertEquals("", builder.getMetrics());
   }
 
-  @Override
-  String getKeyColumn() {
-    return ProgramAttributeQuery.getColumnName(COLUMNS.PI_UID);
+  @Test
+  void helpLineAppendsHelpText() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    builder.helpLine("test_metric", "This is a test metric");
+    assertEquals("# HELP test_metric This is a test metric\n", builder.getMetrics());
+  }
+
+  @Test
+  void typeLineAppendsTypeText() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    builder.typeLine("test_metric", "counter");
+    assertEquals("# TYPE test_metric counter\n", builder.getMetrics());
+  }
+
+  @Test
+  void updateMetricsFromMapAppendsMetrics() {
+    PrometheusTextBuilder builder = new PrometheusTextBuilder();
+    Map<String, Integer> map = Map.of("key1", 1);
+    builder.updateMetricsFromMap(map, "test_metric", "key", "Test help", "gauge");
+    String expected =
+        """
+        # HELP test_metric Test help
+        # TYPE test_metric gauge
+        test_metric{key="key1"} 1
+        """;
+    assertEquals(expected, builder.getMetrics());
   }
 }

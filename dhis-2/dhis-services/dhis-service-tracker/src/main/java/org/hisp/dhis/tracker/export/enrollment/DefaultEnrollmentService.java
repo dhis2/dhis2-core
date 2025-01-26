@@ -53,10 +53,12 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.RelationshipItemMapper;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.UserDetails;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
+  private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
+      Mappers.getMapper(RelationshipItemMapper.class);
   private final EnrollmentStore enrollmentStore;
 
   private final EventService eventService;
@@ -108,9 +112,59 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollments.getItems().get(0);
   }
 
+  @Nonnull
   @Override
-  public RelationshipItem getEnrollmentInRelationshipItem(
-      @Nonnull UID uid, boolean includeDeleted) {
+  public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
+    EnrollmentQueryParams queryParams;
+    try {
+      queryParams =
+          paramsMapper.map(
+              EnrollmentOperationParams.builder().enrollments(uids).build(),
+              getCurrentUserDetails());
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the EnrollmentOperationParams are built");
+    }
+
+    return getEnrollments(
+        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+        EnrollmentParams.FALSE,
+        false,
+        queryParams.getOrganisationUnitMode());
+  }
+
+  @Nonnull
+  @Override
+  public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException {
+    EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
+
+    return getEnrollments(
+        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+        params.getEnrollmentParams(),
+        params.isIncludeDeleted(),
+        queryParams.getOrganisationUnitMode());
+  }
+
+  @Nonnull
+  @Override
+  public Page<Enrollment> getEnrollments(
+      @Nonnull EnrollmentOperationParams params, PageParams pageParams)
+      throws ForbiddenException, BadRequestException {
+    EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
+
+    Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
+    List<Enrollment> enrollments =
+        getEnrollments(
+            enrollmentsPage.getItems(),
+            params.getEnrollmentParams(),
+            params.isIncludeDeleted(),
+            queryParams.getOrganisationUnitMode());
+    return enrollmentsPage.withItems(enrollments);
+  }
+
+  @Override
+  public RelationshipItem getEnrollmentInRelationshipItem(@Nonnull UID uid) {
     Enrollment enrollment;
     try {
       enrollment = getEnrollment(uid);
@@ -134,9 +188,15 @@ class DefaultEnrollmentService implements EnrollmentService {
             .build();
     try {
       return Set.copyOf(eventService.getEvents(eventOperationParams));
-    } catch (BadRequestException | ForbiddenException e) {
+    } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
+    } catch (ForbiddenException e) {
+      // ForbiddenExceptions are caused when mapping the EventOperationParams.
+      // These params are not present in the EventOperationParams created in this method.
+      // Other reasons the user does not have access to data will
+      // not be shown as such items are simply not returned in collections.
+      return Set.of();
     }
   }
 
@@ -145,7 +205,6 @@ class DefaultEnrollmentService implements EnrollmentService {
       @Nonnull EnrollmentParams params,
       boolean includeDeleted,
       @Nonnull UserDetails user) {
-
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
     result.setUid(enrollment.getUid());
@@ -190,6 +249,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     return result;
   }
 
+  // TODO(DHIS2-18883) move this into the relationship service/store
   private Set<RelationshipItem> getRelationshipItems(
       UserDetails user, Enrollment enrollment, boolean includeDeleted) {
     Set<RelationshipItem> relationshipItems = new HashSet<>();
@@ -198,7 +258,7 @@ class DefaultEnrollmentService implements EnrollmentService {
       org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
       if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
           && (includeDeleted || !daoRelationship.isDeleted())) {
-        relationshipItems.add(relationshipItem);
+        relationshipItems.add(RELATIONSHIP_ITEM_MAPPER.map(relationshipItem));
       }
     }
 
@@ -220,57 +280,6 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
 
     return attributeValues;
-  }
-
-  @Nonnull
-  @Override
-  public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
-    EnrollmentQueryParams queryParams;
-    try {
-      queryParams =
-          paramsMapper.map(
-              EnrollmentOperationParams.builder().enrollments(uids).build(),
-              getCurrentUserDetails());
-    } catch (BadRequestException e) {
-      throw new IllegalArgumentException(
-          "this must be a bug in how the EventOperationParams are built");
-    }
-
-    return getEnrollments(
-        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        EnrollmentParams.FALSE,
-        false,
-        queryParams.getOrganisationUnitMode());
-  }
-
-  @Nonnull
-  @Override
-  public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
-    EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
-
-    return getEnrollments(
-        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        params.getEnrollmentParams(),
-        params.isIncludeDeleted(),
-        queryParams.getOrganisationUnitMode());
-  }
-
-  @Nonnull
-  @Override
-  public Page<Enrollment> getEnrollments(
-      @Nonnull EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException {
-    EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
-
-    Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
-    List<Enrollment> enrollments =
-        getEnrollments(
-            enrollmentsPage.getItems(),
-            params.getEnrollmentParams(),
-            params.isIncludeDeleted(),
-            queryParams.getOrganisationUnitMode());
-    return enrollmentsPage.withItems(enrollments);
   }
 
   private List<Enrollment> getEnrollments(

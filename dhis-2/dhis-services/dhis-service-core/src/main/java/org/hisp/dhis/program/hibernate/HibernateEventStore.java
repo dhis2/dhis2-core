@@ -27,21 +27,23 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -49,6 +51,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew
  */
+@Slf4j
 @Repository("org.hisp.dhis.program.EventStore")
 public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     implements EventStore {
@@ -72,23 +75,87 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     return (event == null || event.isDeleted()) ? null : event;
   }
 
-  /**
-   * Method which searches the `eventdatavalues` jsonb column. It checks if any of the root keys
-   * (which are {@link DataElement}) {@link UID}s, match any of the search strings passed in.
-   *
-   * @param searchStrings strings to search for, at the root key level
-   * @return all Events whose eventdatavalues contain any of the search strings passed in
-   */
   @Override
-  public List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings) {
-    return nativeSynchronizedTypedQuery(
-            """
-             select * from event e
-             where jsonb_exists_any(e.eventdatavalues, :searchStrings)
-              """)
-        .setParameter(
-            "searchStrings", searchStrings.toArray(String[]::new), StringArrayType.INSTANCE)
-        .getResultList();
+  public void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement) {
+    if (sourceDataElements.isEmpty()) return;
+    String sourceUidsInSingleQuotesString =
+        sourceDataElements.stream()
+            .map(uid -> SqlUtils.singleQuote(uid.getValue()))
+            .collect(Collectors.joining(","));
+    String sourceUidsString =
+        sourceDataElements.stream().map(UID::getValue).collect(Collectors.joining(","));
+
+    String sql =
+        """
+        do
+        $$
+        declare
+          source_event record;
+          lastupdated_dv jsonb;
+          target_de varchar default '%s';
+        begin
+
+          -- loop through each event that has a source DataElement in its event data values json
+          for source_event in
+            select eventid, eventdatavalues from event, jsonb_each(eventdatavalues)
+            where key in (%s)
+            loop
+
+            -- get last updated data value for the event data value set (sources + target)
+            select value
+              into lastupdated_dv
+              from jsonb_each(source_event.eventdatavalues)
+            WHERE key IN (%s)
+            order by DATE(value ->> 'lastUpdated') desc
+            limit 1;
+
+            -- use the last updated value as the new value for the target key
+            -- this will override any value for the target key if it is already present
+            update event
+            set eventdatavalues = jsonb_set(eventdatavalues, '{%s}', lastupdated_dv)
+            where event.eventid = source_event.eventid;
+
+            -- remove all source key values as no longer needed
+            update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
+            where event.eventid = source_event.eventid;
+
+          end loop;
+        end;
+        $$
+        language plpgsql;
+        """
+            .formatted(
+                targetDataElement.getValue(),
+                sourceUidsInSingleQuotesString,
+                sourceUidsInSingleQuotesString
+                    + ","
+                    + SqlUtils.singleQuote(targetDataElement.getValue()),
+                targetDataElement.getValue(),
+                sourceUidsString);
+
+    log.debug("Event data values merging SQL query to be used: \n{}", sql);
+    jdbcTemplate.update(sql);
+  }
+
+  @Override
+  public void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements) {
+    if (sourceDataElements.isEmpty()) return;
+    String sourceUidsInSingleQuotesString =
+        sourceDataElements.stream()
+            .map(uid -> SqlUtils.singleQuote(uid.getValue()))
+            .collect(Collectors.joining(","));
+    String sourceUidsString =
+        sourceDataElements.stream().map(UID::getValue).collect(Collectors.joining(","));
+
+    String sql =
+        """
+        update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
+        where eventdatavalues::jsonb ?| array[%s];
+        """
+            .formatted(sourceUidsString, sourceUidsInSingleQuotesString);
+    log.debug("Event data values deleting SQL query to be used: \n{}", sql);
+    jdbcTemplate.update(sql);
   }
 
   @Override

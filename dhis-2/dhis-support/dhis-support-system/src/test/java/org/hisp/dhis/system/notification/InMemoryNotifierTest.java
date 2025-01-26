@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
+package org.hisp.dhis.system.notification;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.setting.SystemSettings;
 
 /**
- * @author Luciano Fiandesio
+ * Tests the {@link Notifier} API for the {@link InMemoryNotifierStore} implementation.
+ *
+ * <p>The actual tests are in {@link NotifierStoreTest} as they are used for both stores.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@AllArgsConstructor
-class Subselect implements QueryElement {
-  private String query;
-
-  private String alias;
+class InMemoryNotifierTest extends NotifierStoreTest {
 
   @Override
-  public String useInSelect() {
-    return query + " as " + alias;
-  }
-
-  @Override
-  public String getResultsetValue() {
-    return alias;
+  void setUpNotifier(SystemSettings settings) {
+    notifier =
+        new DefaultNotifier(new InMemoryNotifierStore(), new ObjectMapper(), () -> settings, clock);
   }
 }

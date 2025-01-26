@@ -43,7 +43,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -81,6 +83,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,48 +156,42 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertDefaultResponse(enrollment, jsonEnrollment);
   }
 
-  @Test
-  void getEnrollmentByIdWithFields() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void getEnrollmentByIdWithFields(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
 
-    JsonEnrollment jsonEnrollment =
-        GET("/tracker/enrollments/{id}?fields=orgUnit,status", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEnrollment.class);
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "orgUnit,status");
 
     assertHasOnlyMembers(jsonEnrollment, "orgUnit", "status");
     assertEquals(enrollment.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit());
     assertEquals(enrollment.getStatus().toString(), jsonEnrollment.getStatus());
   }
 
-  @Test
-  void getEnrollmentByIdWithNotes() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithNotes(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
     assertNotEmpty(enrollment.getNotes(), "test expects an enrollment with notes");
 
-    JsonEnrollment jsonEnrollment =
-        GET("/tracker/enrollments/{uid}?fields=notes", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEnrollment.class);
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "notes");
 
     JsonNote note = jsonEnrollment.getNotes().get(0);
     assertEquals("f9423652692", note.getNote());
     assertEquals("enrollment comment value", note.getValue());
   }
 
-  @Test
-  void getEnrollmentByIdWithAttributes() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentsWithAttributes(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
     assertNotEmpty(
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues(),
         "test expects an enrollment with attribute values");
     TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
 
-    JsonEnrollment jsonEnrollment =
-        GET("/tracker/enrollments/{id}?fields=attributes", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEnrollment.class);
-
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributes");
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
@@ -204,8 +203,10 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasMember(attribute, "code");
   }
 
-  @Test
-  void getEnrollmentByIdWithRelationshipsFields() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithRelationshipsFields(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Relationship relationship = get(Relationship.class, "p53a6314631");
     assertNotNull(
         relationship.getTo().getEnrollment(),
@@ -213,8 +214,8 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     Enrollment enrollment = relationship.getTo().getEnrollment();
 
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/enrollments/{id}?fields=relationships", enrollment.getUid())
-            .content(HttpStatus.OK)
+        getEnrollment
+            .apply(enrollment, "relationships")
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
@@ -229,10 +230,34 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
             assertEquals(
                 relationship.getFrom().getTrackedEntity().getUid(),
                 jsonRelationship.getFrom().getTrackedEntity().getTrackedEntity()),
+        () -> assertHasNoMember(jsonRelationship.getFrom().getTrackedEntity(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getFrom().getTrackedEntity(), "enrollments"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0),
+                "relationships"),
+        () ->
+            assertHasMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship
+                    .getFrom()
+                    .getTrackedEntity()
+                    .getEnrollments()
+                    .get(0)
+                    .getEvents()
+                    .get(0),
+                "relationships"),
         () ->
             assertEquals(
                 relationship.getTo().getEnrollment().getUid(),
                 jsonRelationship.getTo().getEnrollment().getEnrollment()),
+        () -> assertHasNoMember(jsonRelationship.getTo().getEnrollment(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getTo().getEnrollment(), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getTo().getEnrollment().getEvents().get(0), "relationships"),
         () -> assertHasMember(jsonRelationship, "relationshipName"),
         () -> assertHasMember(jsonRelationship, "relationshipType"),
         () -> assertHasMember(jsonRelationship, "createdAt"),
@@ -240,17 +265,17 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         () -> assertHasMember(jsonRelationship, "bidirectional"));
   }
 
-  @Test
-  void getEnrollmentByIdWithEventsFields() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithEventsFields(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Event event = get(Event.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
     EventDataValue eventDataValue = event.getEventDataValues().iterator().next();
 
     JsonList<JsonEvent> jsonEvents =
-        GET("/tracker/enrollments/{id}?fields=events", event.getEnrollment().getUid())
-            .content(HttpStatus.OK)
-            .getList("events", JsonEvent.class);
+        getEnrollment.apply(event.getEnrollment(), "events").getList("events", JsonEvent.class);
 
     JsonEvent jsonEvent = jsonEvents.get(0);
     assertAll(
@@ -308,6 +333,28 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         GET("/tracker/enrollments?enrollment=IsdLBTOBzMi&enrollments=IsdLBTOBzMi")
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
+  }
+
+  private Stream<Arguments> getEnrollment() {
+    return Stream.of(
+        Arguments.of(getEnrollmentFromSingleEnrollmentEndpoint()),
+        Arguments.of(getEnrollmentFromEnrollmentsEndpoint()));
+  }
+
+  private BiFunction<Enrollment, String, JsonEnrollment> getEnrollmentFromEnrollmentsEndpoint() {
+    return (Enrollment enrollment, String fields) ->
+        GET("/tracker/enrollments?enrollments={id}&fields={fields}", enrollment.getUid(), fields)
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0);
+  }
+
+  private BiFunction<Enrollment, String, JsonEnrollment>
+      getEnrollmentFromSingleEnrollmentEndpoint() {
+    return (Enrollment enrollment, String fields) ->
+        GET("/tracker/enrollments/{id}?fields={fields}", enrollment.getUid(), fields)
+            .content(HttpStatus.OK)
+            .as(JsonEnrollment.class);
   }
 
   private void assertDefaultResponse(Enrollment expected, JsonEnrollment actual) {
