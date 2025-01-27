@@ -84,19 +84,30 @@ public class DimensionalObjectUtils {
   public static final String COL_SEP = " ";
 
   /**
-   * Regex to ignore splitting by ";" inside square brackets []. ie:
-   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg], splits into
-   * FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9[l8S7SjnQ58G;rexqxNDqUKg]
+   * Regex to ignore splitting by ";" when they are present between two "dots". ie:
+   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED, splits into
+   * FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED
    */
-  private static final Pattern DX_REGEX_PATTERN = Pattern.compile(";(?![^\\(\\[]*[\\]\\)])");
+  private static final Pattern DX_REGEX_PATTERN = Pattern.compile(";(?![^\\(\\.]*[\\.\\)])");
 
+  public static void main(String[] args) {
+    String exp = "DX_REGEX_PATTERN";
+
+    Pattern p = Pattern.compile(exp);
+
+    boolean match = DX_REGEX_PATTERN.matcher("dsfds.sfsfgfg.dsfdsf;gfhfgh.dfdsfdfs").matches();
+
+    System.out.println(match);
+  }
   /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
-   * metric, program data element option, etc. ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf
+   * metric, program data element option, etc.
+   *
+   * ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf # IpHINAT79UW.UuL3eX8KJHY.dsfdsfsf;dfdsfsdf.uODmvdTEeMr
    */
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
-          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*)(\\.(?<id4>\\w+|\\*))?)?");
+          "(?<id1>\\w+)\\.(?<id2>(\\w+|\\w+|;|\\*)*(\\.(?<id3>\\w+|\\w+|;|\\*)*)(\\.(?<id4>\\w+|\\*))?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);
@@ -399,6 +410,7 @@ public class DimensionalObjectUtils {
       // Extracts dimension items by removing dimension name and separator.
       String dimensionItems = param.substring(param.indexOf(DIMENSION_NAME_SEP) + 1);
 
+      //return Arrays.asList(dimensionItems.split(OPTION_SEP));
       return Arrays.asList(DX_REGEX_PATTERN.split(dimensionItems));
     }
 
@@ -601,7 +613,7 @@ public class DimensionalObjectUtils {
 
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(composedOptionSetId);
     if (matcher.matches()) {
-      String suffix = matcher.group("suffix");
+      String suffix = matcher.group("id4");
       return suffix != null ? OptionSetSelectionMode.valueOf(suffix) : AGGREGATED;
     }
 
@@ -616,7 +628,7 @@ public class DimensionalObjectUtils {
    */
   public static String getOptionsParam(String optionSetParam) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(optionSetParam);
-    return matcher.matches() ? matcher.group("list") : null;
+    return matcher.matches() ? matcher.group("id3") : null;
   }
 
   /**

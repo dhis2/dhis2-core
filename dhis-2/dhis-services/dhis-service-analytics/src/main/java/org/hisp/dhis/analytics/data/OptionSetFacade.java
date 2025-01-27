@@ -191,7 +191,7 @@ public class OptionSetFacade {
         if (mode == DISAGGREGATED && isEmpty(options)) {
           DataElement dataElement =
               this.idObjectManager.get(DataElement.class, substringBefore(dimIdentifier, "."));
-          if (dataElement.getOptionSet() != null) {
+          if (dataElement != null && dataElement.getOptionSet() != null) {
             options = dataElement.getOptionSet().getOptionUids();
           }
         }
