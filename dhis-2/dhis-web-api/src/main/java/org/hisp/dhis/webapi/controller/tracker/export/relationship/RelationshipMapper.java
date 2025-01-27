@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
@@ -66,7 +64,7 @@ public abstract class RelationshipMapper {
   /**
    * Maps a {@link org.hisp.dhis.relationship.RelationshipItem} to a {@link
    * org.hisp.dhis.relationship.Relationship} which is then mapped by {@link
-   * #map(TrackerIdSchemeParams, MappingErrors, org.hisp.dhis.relationship.Relationship)}.
+   * #map(org.hisp.dhis.relationship.Relationship)}.
    */
   public org.hisp.dhis.relationship.Relationship map(
       org.hisp.dhis.relationship.RelationshipItem relationshipItem) {

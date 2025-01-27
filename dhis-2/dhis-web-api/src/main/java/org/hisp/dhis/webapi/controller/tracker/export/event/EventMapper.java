@@ -93,6 +93,7 @@ public interface EventMapper {
           entry("updatedBy", "lastUpdatedBy"));
 
   default org.hisp.dhis.webapi.controller.tracker.view.Event map(Event event) {
+    // events as part of enrollments and relationships are always exported using idScheme=UID
     TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     return map(idSchemeParams, new MappingErrors(idSchemeParams), event);
   }
