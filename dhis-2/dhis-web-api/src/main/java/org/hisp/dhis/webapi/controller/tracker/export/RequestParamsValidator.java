@@ -429,12 +429,12 @@ public class RequestParamsValidator {
                 + input);
       }
 
-      if (operator.equalsIgnoreCase(QueryOperator.EX.name())) {
-        if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
-          throw new BadRequestException(
-              "A filter with the operator 'EX' can only have 'true' or 'false' as its value: "
-                  + input);
-        }
+      if (operator.equalsIgnoreCase(QueryOperator.EX.name())
+          && !"true".equalsIgnoreCase(value)
+          && !"false".equalsIgnoreCase(value)) {
+        throw new BadRequestException(
+            "A filter with the operator 'EX' can only have 'true' or 'false' as its value: "
+                + input);
       }
     }
   }
