@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -77,6 +76,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -223,7 +223,7 @@ public final class AnalyticsUtils {
     for (DimensionalItemObject object : dataDimensionOptions) {
       Class<?> type = HibernateProxyUtils.getRealClass(object);
 
-      if (type.equals(DATA_DIM_TYPE_CLASS_MAP.get(itemType))) {
+      if (type.equals(DataDimensionItem.getType(itemType))) {
         list.add(object);
       }
     }

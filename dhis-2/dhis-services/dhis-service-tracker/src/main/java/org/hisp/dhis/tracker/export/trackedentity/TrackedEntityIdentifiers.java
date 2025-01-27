@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.note.Note;
+package org.hisp.dhis.tracker.export.trackedentity;
 
 /**
- * @author Luciano Fiandesio
+ * Temporary solution: pair of primary key and uid needed by the aggregate store.
+ *
+ * @deprecated do not use this class! This is a temporary solution that will be removed.
  */
-public class NoteRowCallbackHandler extends AbstractMapper<Note> {
-  @Override
-  Note getItem(ResultSet rs) throws SQLException {
-    return getNote(rs);
-  }
-
-  @Override
-  String getKeyColumn() {
-    return "key";
-  }
-
-  private Note getNote(ResultSet rs) throws SQLException {
-    Note note = new Note();
-    note.setUid(rs.getString("uid"));
-    note.setNoteText(rs.getString("notetext"));
-    note.setCreator(rs.getString("creator"));
-    note.setCreated(rs.getTimestamp("created"));
-    return note;
-  }
-}
+public record TrackedEntityIdentifiers(Long id, String uid) {}

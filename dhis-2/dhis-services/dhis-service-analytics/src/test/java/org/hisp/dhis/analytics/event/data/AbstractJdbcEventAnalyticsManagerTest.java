@@ -58,6 +58,7 @@ import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -105,6 +106,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,9 +132,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
+  @Mock private SystemSettingsService systemSettingsService;
+
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -862,6 +868,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();

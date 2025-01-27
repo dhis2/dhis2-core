@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.analytics.common;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery.COLUMNS;
+import lombok.experimental.UtilityClass;
+import org.hisp.dhis.common.QueryItem;
 
-public class ProgramAttributeRowCallbackHandler extends AbstractMapper<TrackedEntityAttributeValue>
-    implements AttributeMapper {
-  @Override
-  TrackedEntityAttributeValue getItem(ResultSet rs) throws SQLException {
-    return getAttribute(rs);
+@UtilityClass
+public class CteUtils {
+
+  public static String computeKey(QueryItem queryItem) {
+    if (queryItem.hasProgramStage()) {
+      return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
+    } else if (queryItem.isProgramIndicator()) {
+      return queryItem.getItemId();
+    }
+    return "";
   }
 
-  @Override
-  String getKeyColumn() {
-    return ProgramAttributeQuery.getColumnName(COLUMNS.PI_UID);
+  public static String getIdentifier(QueryItem queryItem) {
+    String stage = queryItem.hasProgramStage() ? queryItem.getProgramStage().getUid() : "default";
+    return stage + "." + queryItem.getItemId();
   }
 }

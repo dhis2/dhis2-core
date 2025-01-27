@@ -64,6 +64,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -78,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -95,9 +97,12 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -117,12 +122,14 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -168,13 +175,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected final SqlBuilder sqlBuilder;
 
+  protected final SystemSettingsService settingsService;
+
+  private final DhisConfigurationProvider config;
+
+  private final OrganisationUnitResolver organisationUnitResolver;
+
   /**
    * Returns a SQL paging clause.
    *
    * @param params the {@link EventQueryParams}.
    * @param maxLimit the configurable max limit of records.
    */
-  private String getPagingClause(EventQueryParams params, int maxLimit) {
+  protected String getPagingClause(EventQueryParams params, int maxLimit) {
     String sql = "";
 
     if (params.isPaging()) {
@@ -196,7 +209,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param params the {@link EventQueryParams}.
    */
-  private String getSortClause(EventQueryParams params) {
+  protected String getSortClause(EventQueryParams params) {
     String sql = "";
 
     if (params.isSorting()) {
@@ -334,7 +347,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * period will not be present in the query, so add it to the select columns and skip it in the
    * group by columns.
    */
-  private void addDimensionSelectColumns(
+  protected void addDimensionSelectColumns(
       List<String> columns, EventQueryParams params, boolean isGroupByClause) {
     params
         .getDimensions()
@@ -418,7 +431,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param queryItem
    * @return true when eligible for row context
    */
-  private boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
+  protected boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
     return params.getEndpointItem() == ENROLLMENT
         && params.isRowContext()
         && queryItem.hasProgramStage()
@@ -937,6 +950,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()
+          .withSqlBuilder(sqlBuilder)
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
     } else {
       return quoteAlias(col);
@@ -976,7 +990,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+    sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
     String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
@@ -1111,13 +1127,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
+  protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper helper) {
+    return getQueryItemsAndFiltersWhereClause(params, Set.of(), helper);
+  }
+
   /**
    * Returns a SQL where clause string for query items and query item filters.
    *
    * @param params the {@link EventQueryParams}.
    * @param helper the {@link SqlHelper}.
    */
-  protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper helper) {
+  protected String getQueryItemsAndFiltersWhereClause(
+      EventQueryParams params, Set<QueryItem> exclude, SqlHelper helper) {
     if (params.isEnhancedCondition()) {
       return getItemsSqlForEnhancedConditions(params, helper);
     }
@@ -1128,6 +1149,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
+            .filter(queryItem -> !exclude.contains(queryItem))
             .collect(
                 groupingBy(
                     queryItem ->
@@ -1145,13 +1167,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     List<String> orConditions =
         repeatableConditionsByIdentifier.values().stream()
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
-            .collect(toList());
+            .toList();
 
     // Non-repeatable conditions
     List<String> andConditions =
         asSqlCollection(itemsByRepeatableFlag.get(false), params)
             .map(IdentifiableSql::getSql)
-            .collect(toList());
+            .toList();
 
     if (orConditions.isEmpty() && andConditions.isEmpty()) {
       return StringUtils.EMPTY;
@@ -1205,7 +1227,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return joinSql(conditions.collect(toList()), joiner);
   }
 
-  private String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+  protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1269,7 +1291,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   @Getter
   @Builder
-  private static class IdentifiableSql {
+  public static class IdentifiableSql {
     private final String identifier;
 
     private final String sql;
@@ -1289,9 +1311,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             ? getSelectSql(filter, item, params)
             : getSelectSql(filter, item, params.getEarliestStartDate(), params.getLatestEndDate());
 
+    String filterString =
+        item.getValueType() == ValueType.ORGANISATION_UNIT
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            : filter.getFilter();
+
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), !item.isNumeric());
+          new InQueryFilter(field, sqlBuilder.escape(filterString), !item.isNumeric());
 
       return inQueryFilter.getSqlFilter();
     } else {
@@ -1426,12 +1453,70 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return args.isEmpty() ? defaultColumnName : sql;
   }
 
+  protected List<String> getSelectColumnsWithCTE(EventQueryParams params, CteContext cteContext) {
+    List<String> columns = new ArrayList<>();
+
+    // Mirror the logic of addDimensionSelectColumns
+    addDimensionSelectColumns(columns, params, false);
+
+    // Mirror the logic of addItemSelectColumns but with CTE references
+    for (QueryItem queryItem : params.getItems()) {
+      if (queryItem.isProgramIndicator()) {
+        // For program indicators, use CTE reference
+        String piUid = queryItem.getItem().getUid();
+        CteDefinition cteDef = cteContext.getDefinitionByItemUid(piUid);
+        // COALESCE(fbyta.value, 0) as CH6wamtY9kK
+        String col =
+            cteDef.isRequiresCoalesce()
+                ? "coalesce(%s.value, 0) as %s".formatted(cteDef.getAlias(), piUid)
+                : "%s.value as %s".formatted(cteDef.getAlias(), piUid);
+        columns.add(col);
+      } else if (ValueType.COORDINATE == queryItem.getValueType()) {
+        // Handle coordinates
+        columns.add(getCoordinateColumn(queryItem).asSql());
+      } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
+        // Handle org units
+        if (params.getCoordinateFields().stream()
+            .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
+          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
+        } else {
+          columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
+        }
+      } else if (queryItem.hasProgramStage()) {
+        // Handle program stage items with CTE
+        columns.add(getColumnWithCte(queryItem, cteContext));
+      } else {
+        // Handle other types as before
+        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
+        columns.add(columnAndAlias.asSql());
+      }
+    }
+    // Remove duplicates
+    return columns.stream().distinct().toList();
+  }
+
+  /**
+   * Determines if the experimental analytics query engine should be used. The experimental
+   * analytics query engine is used when the analytics database is set to Doris or when the setting
+   * is enabled. When the experimental analytics query engine is used, all enrollment and event
+   * queries are constructed using CTE (Common Table Expressions) instead of subqueries.
+   *
+   * @return true if the experimental analytics query engine should be used, false otherwise.
+   */
+  protected boolean useExperimentalAnalyticsQueryEngine() {
+    return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
+        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+  }
+
   /**
    * Returns a select SQL clause for the given query.
    *
    * @param params the {@link EventQueryParams}.
    */
   protected abstract String getSelectClause(EventQueryParams params);
+
+  /** Returns the column name associated with the CTE */
+  protected abstract String getColumnWithCte(QueryItem item, CteContext cteContext);
 
   /**
    * Generates the SQL for the from-clause. Generally this means which analytics table to get data
