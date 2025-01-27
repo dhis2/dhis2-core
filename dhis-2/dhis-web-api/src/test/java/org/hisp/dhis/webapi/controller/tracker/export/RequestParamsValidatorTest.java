@@ -406,14 +406,14 @@ class RequestParamsValidatorTest {
         filters);
   }
 
-  // @Test
+  @Test
   void shouldFailParsingDataElementFiltersWhenFilteringSameUIDIfAtLeastOneIsExistenceOperator() {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> parseDataElementFilters(DE_1_UID + ":ex:true," + DE_1_UID + ":gt:10"));
+            () -> parseDataElementFilters(DE_1_UID + ":ex:true," + DE_1_UID + ":gt:true"));
     assertContains(
-        "A filter with the operator 'EX' can only filter by a single value at a time",
+        "A data element UID combined with the operator 'EX' cannot be used more than once in the same filter",
         exception.getMessage());
   }
 

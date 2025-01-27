@@ -414,16 +414,25 @@ public class RequestParamsValidator {
   private static void validateExistenceOperator(
       String[] filters, Map<UID, List<QueryFilter>> result, String input, UID uid)
       throws BadRequestException {
+    boolean hasExistenceOperator =
+        result.containsKey(uid)
+            && result.get(uid).stream().anyMatch(qf -> qf.getOperator().equals(QueryOperator.EX));
+
     for (int i = 0; i < filters.length; i += 2) {
-      if (filters[i].equalsIgnoreCase(QueryOperator.EX.name())) {
-        if (!filters[1].equalsIgnoreCase("true") && !filters[1].equalsIgnoreCase("false")) {
+      String operator = filters[i];
+      String value = (i + 1 < filters.length) ? filters[i + 1] : null;
+
+      if (hasExistenceOperator
+          || (operator.equalsIgnoreCase(QueryOperator.EX.name()) && result.containsKey(uid))) {
+        throw new BadRequestException(
+            "A data element UID combined with the operator 'EX' cannot be used more than once in the same filter: "
+                + input);
+      }
+
+      if (operator.equalsIgnoreCase(QueryOperator.EX.name())) {
+        if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
           throw new BadRequestException(
               "A filter with the operator 'EX' can only have 'true' or 'false' as its value: "
-                  + input);
-        }
-        if (result.containsKey(uid)) {
-          throw new BadRequestException(
-              "A filter with the operator 'EX' can only filter by a single value at a time: "
                   + input);
         }
       }
