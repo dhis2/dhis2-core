@@ -274,7 +274,7 @@ public abstract class TestBase {
   private static Date date;
 
   protected static final double DELTA = 0.01;
-  private static int COUNTER = 1;
+  private static int categoryCounter = 1;
 
   // -------------------------------------------------------------------------
   // Service references
@@ -3079,13 +3079,13 @@ public abstract class TestBase {
   protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
     // 4 category options
     CategoryOption co1 =
-        createCategoryOption(identifier + " " + COUNTER++, CodeGenerator.generateUid());
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
     CategoryOption co2 =
-        createCategoryOption(identifier + " " + COUNTER++, CodeGenerator.generateUid());
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
     CategoryOption co3 =
-        createCategoryOption(identifier + " " + COUNTER++, CodeGenerator.generateUid());
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
     CategoryOption co4 =
-        createCategoryOption(identifier + " " + COUNTER++, CodeGenerator.generateUid());
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
 
     categoryService.addCategoryOption(co1);
     categoryService.addCategoryOption(co2);
@@ -3093,13 +3093,13 @@ public abstract class TestBase {
     categoryService.addCategoryOption(co4);
 
     // 2 categories (each with 2 category options)
-    Category cat1 = createCategory(identifier + " " + COUNTER++, co1, co2);
-    Category cat2 = createCategory(identifier + " " + COUNTER++, co3, co4);
+    Category cat1 = createCategory(identifier + " " + categoryCounter++, co1, co2);
+    Category cat2 = createCategory(identifier + " " + categoryCounter++, co3, co4);
     categoryService.addCategory(cat1);
     categoryService.addCategory(cat2);
 
     // 1 category combo with 2 categories
-    CategoryCombo cc1 = createCategoryCombo(identifier + " " + COUNTER++, cat1, cat2);
+    CategoryCombo cc1 = createCategoryCombo(identifier + " " + categoryCounter++, cat1, cat2);
     categoryService.addCategoryCombo(cc1);
 
     // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
