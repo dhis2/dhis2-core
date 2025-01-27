@@ -41,6 +41,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -66,7 +68,15 @@ public class RecordingJobProgress implements JobProgress {
    *     recoding objects
    */
   public static JobProgress transitory() {
-    return new RecordingJobProgress(null, null, JobProgress.noop(), true, () -> {}, false, true);
+    return transitory(null, null);
+  }
+
+  public static JobProgress transitory(JobConfiguration job, Notifier notifier) {
+    JobProgress track =
+        notifier == null
+            ? JobProgress.noop()
+            : new NotifierJobProgress(notifier, job, NotificationLevel.INFO);
+    return new RecordingJobProgress(null, null, track, true, () -> {}, false, true);
   }
 
   @CheckForNull private final MessageService messageService;

@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.adx;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.google.common.collect.Sets;
@@ -38,6 +37,7 @@ import jakarta.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,13 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -89,11 +88,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.staxwax.XMLException;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
@@ -110,6 +107,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultAdxDataService implements AdxDataService {
   private static final int TOTAL_MINUTES_TO_WAIT = 5;
 
+  private static final ScheduledExecutorService EXECUTOR =
+      Executors.newSingleThreadScheduledExecutor();
+
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
@@ -123,8 +123,6 @@ public class DefaultAdxDataService implements AdxDataService {
   private final IdentifiableObjectManager identifiableObjectManager;
 
   private final EntityManagerFactory entityManagerFactory;
-
-  private final Notifier notifier;
 
   // -------------------------------------------------------------------------
   // Public methods
@@ -282,12 +280,12 @@ public class DefaultAdxDataService implements AdxDataService {
   @Override
   @Transactional
   public ImportSummary saveDataValueSet(
-      InputStream in, ImportOptions importOptions, JobConfiguration id) {
+      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress) {
     importOptions.getIdSchemes().setDefaultIdScheme(IdScheme.CODE);
 
     try {
       in = StreamUtils.wrapAndCheckCompressionFormat(in);
-      return saveDataValueSetInternal(in, importOptions, id);
+      return saveDataValueSetInternal(in, importOptions, progress);
     } catch (IOException ex) {
       log.warn("Import failed: " + DebugUtils.getStackTrace(ex));
       return new ImportSummary(ImportStatus.ERROR, "ADX import failed");
@@ -331,13 +329,14 @@ public class DefaultAdxDataService implements AdxDataService {
   }
 
   private ImportSummary saveDataValueSetInternal(
-      InputStream in, ImportOptions importOptions, JobConfiguration id) {
-    notifier.clear(id).notify(id, "ADX parsing process started");
-
+      InputStream in, ImportOptions importOptions, JobProgress progress) {
+    progress.startingStage("ADX parsing process started, preparing options");
     ImportOptions adxImportOptions =
-        firstNonNull(importOptions, ImportOptions.getDefaultImportOptions())
-            .instance()
-            .setNotificationLevel(NotificationLevel.OFF);
+        progress.runStage(
+            () ->
+                firstNonNull(importOptions, ImportOptions.getDefaultImportOptions())
+                    .instance()
+                    .setNotificationLevel(NotificationLevel.OFF));
 
     // Get import options
     IdScheme dsScheme = importOptions.getIdSchemes().getDataSetIdScheme();
@@ -367,21 +366,26 @@ public class DefaultAdxDataService implements AdxDataService {
     ImportSummary importSummary;
 
     int groupCount = 0;
-    ExecutorService executor = Executors.newSingleThreadExecutor();
     try (PipedOutputStream pipeOut = new PipedOutputStream()) {
       adxReader.moveToStartElement(AdxDataService.ROOT, AdxDataService.NAMESPACE);
 
-      // For Async runs, give the DXF import a different notification task ID
-      // so it doesn't conflict with notifications from this level.
-      JobConfiguration dxfJobId =
-          (id == null)
-              ? null
-              : new JobConfiguration("dxfJob", JobType.DATAVALUE_IMPORT_INTERNAL, id.getUserUid());
+      AtomicBoolean doInterrupt = new AtomicBoolean(true);
+      setupTimeout(doInterrupt);
 
-      Future<ImportSummary> futureImportSummary =
-          executor.submit(
-              new AdxPipedImporter(
-                  dataValueSetService, adxImportOptions, dxfJobId, pipeOut, entityManagerFactory));
+      progress.startingStage("ADX data values import");
+      PipedInputStream pipeIn = null;
+      try (PipedInputStream pin = new PipedInputStream(pipeOut, 4096)) {
+        pipeIn = pin;
+        importSummary = dataValueSetService.importDataValueSetXml(pipeIn, importOptions, progress);
+      } catch (Exception ex) {
+        progress.failedStage(ex);
+        importSummary = ImportSummary.error("Exception: " + ex.getMessage());
+      } finally {
+        if (pipeIn != null) StreamUtils.closeQuietly(pipeIn);
+        doInterrupt.set(false);
+      }
+      progress.completedStage(importSummary.getImportCount().toString());
+
       XMLOutputFactory factory = XMLOutputFactory.newInstance();
       XMLStreamWriter dxfWriter = factory.createXMLStreamWriter(pipeOut);
 
@@ -391,13 +395,11 @@ public class DefaultAdxDataService implements AdxDataService {
       dxfWriter.writeStartElement("dataValueSet");
       dxfWriter.writeDefaultNamespace("http://dhis2.org/schema/dxf/2.0");
 
-      notifier.notify(id, "Starting to import ADX data groups.");
-
+      progress.startingStage("Starting to import ADX data groups.");
       while (adxReader.moveToStartElement(AdxDataService.GROUP, AdxDataService.NAMESPACE)) {
-        notifier.update(id, "Importing ADX data group: " + groupCount);
-
+        progress.startingWorkItem("Importing ADX data group: " + groupCount);
         // note this returns conflicts which are detected at ADX level
-        adxConflicts.addAll(
+        List<ImportConflict> conflicts =
             parseAdxGroupToDxf(
                 adxReader,
                 dxfWriter,
@@ -405,16 +407,18 @@ public class DefaultAdxDataService implements AdxDataService {
                 dataSetMap,
                 dataSetCallable,
                 dataElementMap,
-                dataElementCallable));
+                dataElementCallable);
+        adxConflicts.addAll(conflicts);
         groupCount++;
+        progress.completedWorkItem("%d conflicts".formatted(conflicts.size()));
       }
+      progress.completedStage("%d groups".formatted(groupCount));
 
       dxfWriter.writeEndElement(); // end dataValueSet
       dxfWriter.writeEndDocument();
 
       pipeOut.flush();
 
-      importSummary = futureImportSummary.get(TOTAL_MINUTES_TO_WAIT, TimeUnit.MINUTES);
       ImportSummary summary = importSummary;
       adxConflicts.forEach(
           conflict -> summary.addConflict(conflict.getObject(), conflict.getValue()));
@@ -424,30 +428,13 @@ public class DefaultAdxDataService implements AdxDataService {
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription("Data set import failed within group number: " + groupCount);
       importSummary.addConflict(ex.getObject(), ex.getMessage());
-      notifier
-          .update(id, NotificationLevel.ERROR, "ADX data import done", true)
-          .addJobSummary(id, importSummary, ImportSummary.class);
       log.warn("Import failed: " + DebugUtils.getStackTrace(ex));
-    } catch (IOException
-        | XMLStreamException
-        | XMLException
-        | InterruptedException
-        | ExecutionException
-        | TimeoutException ex) {
+    } catch (IOException | XMLStreamException | XMLException ex) {
       importSummary = new ImportSummary();
       importSummary.setStatus(ImportStatus.ERROR);
       importSummary.setDescription("Data set import failed within group number: " + groupCount);
-      notifier
-          .update(id, NotificationLevel.ERROR, "ADX data import done", true)
-          .addJobSummary(id, importSummary, ImportSummary.class);
       log.warn("Import failed: " + DebugUtils.getStackTrace(ex));
     }
-
-    executor.shutdown();
-
-    notifier
-        .update(id, INFO, "ADX data import done", true)
-        .addJobSummary(id, importSummary, ImportSummary.class);
 
     ImportCount c = importSummary.getImportCount();
     log.info(
@@ -461,6 +448,16 @@ public class DefaultAdxDataService implements AdxDataService {
             + c.getIgnored());
 
     return importSummary;
+  }
+
+  private static void setupTimeout(AtomicBoolean doInterrupt) {
+    Thread worker = Thread.currentThread();
+    EXECUTOR.schedule(
+        () -> {
+          if (doInterrupt.get() && !worker.isInterrupted()) worker.interrupt();
+        },
+        TOTAL_MINUTES_TO_WAIT,
+        TimeUnit.MINUTES);
   }
 
   // -------------------------------------------------------------------------

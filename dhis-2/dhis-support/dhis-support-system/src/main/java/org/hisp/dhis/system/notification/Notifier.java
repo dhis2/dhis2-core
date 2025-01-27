@@ -68,26 +68,6 @@ public interface Notifier {
       NotificationDataType dataType,
       JsonValue data);
 
-  default Notifier update(JobConfiguration id, String message) {
-    return update(id, NotificationLevel.INFO, message, false);
-  }
-
-  default Notifier update(JobConfiguration id, String message, boolean completed) {
-    return update(id, NotificationLevel.INFO, message, completed);
-  }
-
-  default Notifier update(JobConfiguration id, @Nonnull NotificationLevel level, String message) {
-    return update(id, level, message, false);
-  }
-
-  default Notifier update(
-      JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed) {
-    if (id != null && !level.isOff()) {
-      notify(id, level, message, completed);
-    }
-    return this;
-  }
-
   /**
    * @param gist when true, only the first and last message are included for each job. When {@code
    *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
