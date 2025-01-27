@@ -358,7 +358,46 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
                 "Program[ATTRIBUTE:" + UNUSED_METADATA_ATTRIBUTE + "]", msg.getDevMessage()));
   }
 
-  // TODO(ivo) add test for single endpoint as well
+  @ParameterizedTest
+  @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
+  void shouldExportTrackedEntityMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
+    assertNotEmpty(
+        trackedEntity.getTrackedEntityAttributeValues(),
+        "test expects a tracked entity with attribute values");
+
+    List<String> idSchemeRequestParams = List.of("orgUnit");
+    String idSchemes =
+        idSchemeRequestParams.stream()
+            .map(p -> p + "IdScheme=" + idSchemeParam)
+            .collect(Collectors.joining("&"));
+
+    JsonTrackedEntity actual =
+        GET(
+                "/tracker/trackedEntities/{id}?fields=trackedEntity,trackedEntityType,orgUnit,attributes&{idSchemes}&idScheme={idScheme}",
+                trackedEntity.getUid(),
+                idSchemes,
+                idSchemeParam.toString())
+            .content(HttpStatus.OK)
+            .as(JsonTrackedEntity.class);
+
+    assertAll(
+        "tracked entity metadata assertions for idScheme=" + idSchemeParam,
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getOrganisationUnit()),
+                actual,
+                idSchemeParam,
+                "orgUnit"),
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getTrackedEntityType()),
+                actual,
+                idSchemeParam,
+                "trackedEntityType"),
+        () -> assertAttributes(actual, trackedEntity, idSchemeParam));
+  }
+
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportTrackedEntitiesMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
@@ -469,7 +508,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         expected.getTrackedEntityType().getTrackedEntityTypeAttributes().stream()
             .map(teta -> teta.getTrackedEntityAttribute().getUid())
             .collect(Collectors.toSet());
-    // this assumes the request was made without the program request parameter
+    // this assumes the request was made without the request parameter program
     List<String> expectedAttributes =
         expected.getTrackedEntityAttributeValues().stream()
             .filter(teav -> tetAttributes.contains(teav.getAttribute().getUid()))
@@ -484,8 +523,6 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             "metadata corresponding to field \"%s\" has no value in test data for"
                 + " idScheme '%s'",
             field, idSchemeParam));
-    // TODO(ivo) what non-complex/reusable way is there for me to show the attribute uid that does
-    // not have an identifier?
     assertFalse(
         expectedAttributes.contains(null),
         String.format(

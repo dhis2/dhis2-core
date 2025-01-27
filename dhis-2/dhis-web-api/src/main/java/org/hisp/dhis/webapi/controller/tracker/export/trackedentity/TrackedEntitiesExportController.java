@@ -279,18 +279,18 @@ class TrackedEntitiesExportController {
           UID uid,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
-          List<FieldPath> fields)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+          List<FieldPath> fields,
+      TrackerIdSchemeParams idSchemeParams)
+      throws ForbiddenException, NotFoundException, BadRequestException, WebMessageException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
             trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+    ensureNoMappingErrors(errors);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
