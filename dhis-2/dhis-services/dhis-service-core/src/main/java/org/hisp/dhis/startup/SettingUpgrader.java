@@ -30,7 +30,6 @@ package org.hisp.dhis.startup;
 import static org.hisp.dhis.user.PasswordValidationRule.DEFAULT_PASSWORD_VALIDATION_PATTERN;
 import static org.hisp.dhis.user.PasswordValidationRule.META_DEFAULT_PASSWORD_VALIDATION_PATTERN;
 
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
