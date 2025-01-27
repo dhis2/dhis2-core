@@ -55,7 +55,8 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
   private static final Set<String> DEFAULT_LOCALES =
       Set.of(
           "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it", "km",
-          "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh");
+          "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "uz__latn", "uz__cyrl", "vi", "zh"
+          );
 
   @Override
   public void executeInTransaction() {
@@ -65,10 +66,33 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
       return;
     }
 
-    for (String locale : DEFAULT_LOCALES) {
-      localeService.saveI18nLocale(new I18nLocale(new Locale(locale)), new SystemUser());
+    for (String localeStr : DEFAULT_LOCALES) {
+      Locale locale = parseLocaleString(localeStr);
+      localeService.saveI18nLocale(new I18nLocale(locale), new SystemUser());
     }
 
     log.info("Populated default locales");
+  }
+
+  /**
+   * Parses a locale string into a Locale object.
+   *
+   * @param localeStr the locale string to parse
+   * @return the parsed Locale object
+   * @throws IllegalArgumentException if the locale string is invalid
+   *
+   * Supports locales of the form <lang>[_<country>[_<variant>]]
+   */
+  private Locale parseLocaleString(String localeStr) {
+    if (!localeStr.contains("_")) {
+      return new Locale(localeStr);
+    }
+
+    String[] parts = localeStr.split("_");
+    return switch (parts.length) {
+      case 2 -> new Locale(parts[0], parts[1]);
+      case 3 -> new Locale(parts[0], parts[1], parts[2]);
+      default -> throw new IllegalArgumentException("Invalid locale format: " + localeStr);
+    };
   }
 }
