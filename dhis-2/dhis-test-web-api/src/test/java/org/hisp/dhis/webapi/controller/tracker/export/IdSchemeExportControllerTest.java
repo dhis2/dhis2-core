@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -70,6 +71,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -360,13 +362,6 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportTrackedEntitiesMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
-    //    List<org.hisp.dhis.webapi.controller.tracker.view.Attribute> attributes
-    // TODO(ivo) should we also export programOwners using the idScheme? and thus need to
-    // assert/test on the program specific idScheme param
-    //    List<ProgramOwner> programOwners
-    // -> Program
-    // -> OrganisationUnit
-    // can I import a program owner? if so I also need to export it using the correct idScheme
     TrackedEntity trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
     assertNotEmpty(
         trackedEntity.getTrackedEntityAttributeValues(),
@@ -380,7 +375,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
     JsonList<JsonTrackedEntity> jsonTrackedEntities =
         GET(
-                "/tracker/trackedEntities?trackedEntities={id}&fields=trackedEntity,trackedEntityType,orgUnit,program&{idSchemes}&idScheme={idScheme}",
+                "/tracker/trackedEntities?trackedEntities={id}&fields=trackedEntity,trackedEntityType,orgUnit,attributes&{idSchemes}&idScheme={idScheme}",
                 trackedEntity.getUid(),
                 idSchemes,
                 idSchemeParam.toString())
@@ -390,9 +385,8 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     JsonTrackedEntity actual =
         jsonTrackedEntities.first(te -> trackedEntity.getUid().equals(te.getTrackedEntity()));
 
-    // TODO(ivo) add assertion for attributes
     assertAll(
-        "event metadata assertions for idScheme=" + idSchemeParam,
+        "tracked entity metadata assertions for idScheme=" + idSchemeParam,
         () ->
             assertIdScheme(
                 idSchemeParam.getIdentifier(trackedEntity.getOrganisationUnit()),
@@ -404,15 +398,8 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
                 idSchemeParam.getIdentifier(trackedEntity.getTrackedEntityType()),
                 actual,
                 idSchemeParam,
-                "trackedEntityType")
-        //        () ->
-        //            assertIdScheme(
-        //                idSchemeParam.getIdentifier(event.getProgramStage().getProgram()),
-        //                actual,
-        //                idSchemeParam,
-        //                "program"),
-        //        () -> assertDataValues(actual, event, idSchemeParam)
-        );
+                "trackedEntityType"),
+        () -> assertAttributes(actual, trackedEntity, idSchemeParam));
   }
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {
@@ -472,6 +459,50 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         expectedDataElement,
         actualDataElement,
         "mismatch in data elements of event " + expected.getUid());
+  }
+
+  private void assertAttributes(
+      JsonTrackedEntity actual, TrackedEntity expected, TrackerIdSchemeParam idSchemeParam) {
+    String field = "attributes";
+
+    Set<String> tetAttributes =
+        expected.getTrackedEntityType().getTrackedEntityTypeAttributes().stream()
+            .map(teta -> teta.getTrackedEntityAttribute().getUid())
+            .collect(Collectors.toSet());
+    // this assumes the request was made without the program request parameter
+    List<String> expectedAttributes =
+        expected.getTrackedEntityAttributeValues().stream()
+            .filter(teav -> tetAttributes.contains(teav.getAttribute().getUid()))
+            .map(
+                tav ->
+                    idSchemeParam.getIdentifier(
+                        get(TrackedEntityAttribute.class, tav.getAttribute().getUid())))
+            .toList();
+    assertNotEmpty(
+        expectedAttributes,
+        String.format(
+            "metadata corresponding to field \"%s\" has no value in test data for"
+                + " idScheme '%s'",
+            field, idSchemeParam));
+    // TODO(ivo) what non-complex/reusable way is there for me to show the attribute uid that does
+    // not have an identifier?
+    assertFalse(
+        expectedAttributes.contains(null),
+        String.format(
+            "metadata corresponding to field \"%s\" contains null value in test data for idScheme '%s'",
+            field, idSchemeParam));
+    assertTrue(
+        actual.has(field),
+        () ->
+            String.format(
+                "field \"%s\" is not in response %s for idScheme '%s'",
+                field, actual, idSchemeParam));
+    List<String> actualAttributes =
+        actual.getList(field, JsonObject.class).toList(el -> el.getString("attribute").string(""));
+    assertContainsOnly(
+        expectedAttributes,
+        actualAttributes,
+        "mismatch in attributes of tracked entity " + expected.getUid());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

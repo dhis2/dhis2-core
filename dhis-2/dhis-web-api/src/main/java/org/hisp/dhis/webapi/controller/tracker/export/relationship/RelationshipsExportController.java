@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -38,14 +39,17 @@ import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -100,7 +104,7 @@ class RelationshipsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getRelationships(RelationshipRequestParams requestParams)
-      throws NotFoundException, BadRequestException, ForbiddenException {
+      throws NotFoundException, BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
     RelationshipOperationParams operationParams = mapper.map(requestParams);
 
@@ -111,8 +115,14 @@ class RelationshipsExportController {
 
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
           relationshipService.getRelationships(operationParams, pageParams);
+      // only supports idScheme=UID
+      TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+      MappingErrors errors = new MappingErrors(idSchemeParams);
       List<Relationship> relationships =
-          relationshipsPage.getItems().stream().map(RELATIONSHIP_MAPPER::map).toList();
+          relationshipsPage.getItems().stream()
+              .map(re -> RELATIONSHIP_MAPPER.map(idSchemeParams, errors, re))
+              .toList();
+      ensureNoMappingErrors(errors);
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
 
@@ -121,10 +131,14 @@ class RelationshipsExportController {
           .body(Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes)));
     }
 
+    // only supports idScheme=UID
+    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+    MappingErrors errors = new MappingErrors(idSchemeParams);
     List<Relationship> relationships =
         relationshipService.getRelationships(operationParams).stream()
-            .map(RELATIONSHIP_MAPPER::map)
+            .map(re -> RELATIONSHIP_MAPPER.map(idSchemeParams, errors, re))
             .toList();
+    ensureNoMappingErrors(errors);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
 
@@ -140,8 +154,13 @@ class RelationshipsExportController {
           UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
-      throws NotFoundException, ForbiddenException {
-    Relationship relationship = RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid));
+      throws NotFoundException, ForbiddenException, WebMessageException {
+    // only supports idScheme=UID
+    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+    Relationship relationship =
+        RELATIONSHIP_MAPPER.map(idSchemeParams, errors, relationshipService.getRelationship(uid));
+    ensureNoMappingErrors(errors);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(relationship, fields));
   }

@@ -30,8 +30,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
@@ -40,6 +42,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -55,7 +58,10 @@ import org.mapstruct.Mapping;
       UserMapper.class,
     })
 interface RelationshipItemMapper {
-  RelationshipItem map(org.hisp.dhis.relationship.RelationshipItem relationshipItem);
+  RelationshipItem map(
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      org.hisp.dhis.relationship.RelationshipItem relationshipItem);
 
   @Mapping(target = "trackedEntity", source = "uid")
   @Mapping(target = "trackedEntityType", source = "trackedEntityType.uid")
@@ -67,7 +73,10 @@ interface RelationshipItemMapper {
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
-  RelationshipItem.TrackedEntity map(TrackedEntity trackedEntity);
+  RelationshipItem.TrackedEntity map(
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      TrackedEntity trackedEntity);
 
   @Mapping(target = "enrollment", source = "uid")
   @Mapping(target = "createdAt", source = "created")
@@ -85,7 +94,10 @@ interface RelationshipItemMapper {
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
-  RelationshipItem.Enrollment map(Enrollment enrollment);
+  RelationshipItem.Enrollment map(
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      Enrollment enrollment);
 
   @Mapping(target = "event", source = "uid")
   @Mapping(target = "program", source = "enrollment.program.uid")

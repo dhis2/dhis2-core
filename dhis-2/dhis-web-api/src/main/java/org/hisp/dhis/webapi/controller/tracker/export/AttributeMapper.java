@@ -28,18 +28,23 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(uses = InstantMapper.class)
+@Mapper(uses = {InstantMapper.class, MetadataMapper.class})
 public interface AttributeMapper {
-  @Mapping(target = "attribute", source = "attribute.uid")
+  @Mapping(target = "attribute", source = "attribute")
   @Mapping(target = "code", source = "attribute.code")
   @Mapping(target = "displayName", source = "attribute.displayName")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "valueType", source = "attribute.valueType")
-  Attribute map(TrackedEntityAttributeValue attribute);
+  Attribute map(
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      TrackedEntityAttributeValue attribute);
 }
