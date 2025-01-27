@@ -82,7 +82,10 @@ interface TrackedEntityMapper {
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "relationships", source = "relationshipItems")
-  @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
+  @Mapping(
+      target = "attributes",
+      source = "trackedEntityAttributeValues",
+      qualifiedByName = "mapWithIdScheme")
   org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity map(
       @Context TrackerIdSchemeParams idSchemeParams,
       @Context MappingErrors errors,

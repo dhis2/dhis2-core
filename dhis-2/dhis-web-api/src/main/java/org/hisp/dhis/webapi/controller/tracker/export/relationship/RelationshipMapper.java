@@ -40,7 +40,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.AfterMapping;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -55,13 +54,6 @@ public abstract class RelationshipMapper {
   static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(entry("createdAt", "created"), entry("createdAtClient", "createdAtClient"));
 
-  Relationship map(org.hisp.dhis.relationship.Relationship relationship) {
-    // relationships are only exported using UIDs
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
-    MappingErrors errors = new MappingErrors(idSchemeParams);
-    return map(idSchemeParams, errors, relationship);
-  }
-
   @Mapping(target = "relationship", source = "uid")
   @Mapping(target = "relationshipType", source = "relationshipType.uid")
   @Mapping(target = "relationshipName", source = "relationshipType.name")
@@ -69,10 +61,7 @@ public abstract class RelationshipMapper {
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
-  public abstract Relationship map(
-      @Context TrackerIdSchemeParams idSchemeParams,
-      @Context MappingErrors errors,
-      org.hisp.dhis.relationship.Relationship relationship);
+  public abstract Relationship map(org.hisp.dhis.relationship.Relationship relationship);
 
   /**
    * Maps a {@link org.hisp.dhis.relationship.RelationshipItem} to a {@link

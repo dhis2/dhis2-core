@@ -34,9 +34,19 @@ import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(uses = {InstantMapper.class, MetadataMapper.class})
 public interface AttributeMapper {
+  @Mapping(target = "attribute", source = "attribute.uid")
+  @Mapping(target = "code", source = "attribute.code")
+  @Mapping(target = "displayName", source = "attribute.displayName")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "valueType", source = "attribute.valueType")
+  Attribute map(TrackedEntityAttributeValue attribute);
+
+  @Named("mapWithIdScheme")
   @Mapping(target = "attribute", source = "attribute")
   @Mapping(target = "code", source = "attribute.code")
   @Mapping(target = "displayName", source = "attribute.displayName")
