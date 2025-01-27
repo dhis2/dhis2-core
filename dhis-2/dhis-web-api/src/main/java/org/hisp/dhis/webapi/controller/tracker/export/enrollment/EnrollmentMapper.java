@@ -68,6 +68,13 @@ public interface EnrollmentMapper {
           entry("updatedAt", "lastUpdated"),
           entry("updatedAtClient", "lastUpdatedAtClient"));
 
+  default org.hisp.dhis.webapi.controller.tracker.view.Enrollment map(Enrollment enrollment) {
+    // enrollments are only exported using UIDs
+    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+    return map(idSchemeParams, errors, enrollment);
+  }
+
   @Mapping(target = "enrollment", source = "uid")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")

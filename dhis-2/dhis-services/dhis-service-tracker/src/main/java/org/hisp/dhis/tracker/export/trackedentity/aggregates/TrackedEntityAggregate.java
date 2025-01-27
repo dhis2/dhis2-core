@@ -162,6 +162,7 @@ public class TrackedEntityAggregate {
             .orElse(
                 new Context.ContextBuilder()
                     .superUser(true)
+                    .trackedEntityTypes(Collections.emptyList())
                     .programs(Collections.emptyList())
                     .programStages(Collections.emptyList())
                     .relationshipTypes(Collections.emptyList()))

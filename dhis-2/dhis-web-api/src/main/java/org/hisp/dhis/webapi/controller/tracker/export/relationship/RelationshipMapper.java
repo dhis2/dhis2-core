@@ -55,6 +55,13 @@ public abstract class RelationshipMapper {
   static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(entry("createdAt", "created"), entry("createdAtClient", "createdAtClient"));
 
+  Relationship map(org.hisp.dhis.relationship.Relationship relationship) {
+    // relationships are only exported using UIDs
+    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+    return map(idSchemeParams, errors, relationship);
+  }
+
   @Mapping(target = "relationship", source = "uid")
   @Mapping(target = "relationshipType", source = "relationshipType.uid")
   @Mapping(target = "relationshipName", source = "relationshipType.name")
