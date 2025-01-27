@@ -1974,6 +1974,15 @@
   "trackedEntityTypes": [
     {
       "id": "ja8NY4PW7Xm",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "trackedEntityType ja8NY4PW7Xm"
+        }
+      ],
+      "code": "ja8NY4PW7Xm code",
       "allowAuditLog": true,
       "created": "2020-05-31T08:59:52.758",
       "description": "person",

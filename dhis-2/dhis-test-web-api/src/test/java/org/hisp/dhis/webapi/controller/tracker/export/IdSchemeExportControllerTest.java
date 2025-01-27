@@ -357,24 +357,22 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   }
 
   // TODO(ivo) add test for single endpoint as well
-
-  // TODO(DHIS2-18541) remove this test as the test against the single endpoint should is enough
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportTrackedEntitiesMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
-    //    TrackedEntityType trackedEntityType
-    //    OrganisationUnit orgUnit
     //    List<org.hisp.dhis.webapi.controller.tracker.view.Attribute> attributes
-    // TODO(ivo) should we also export programOwners using the idScheme?
+    // TODO(ivo) should we also export programOwners using the idScheme? and thus need to
+    // assert/test on the program specific idScheme param
     //    List<ProgramOwner> programOwners
     // -> Program
     // -> OrganisationUnit
+    // can I import a program owner? if so I also need to export it using the correct idScheme
     TrackedEntity trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
     assertNotEmpty(
         trackedEntity.getTrackedEntityAttributeValues(),
         "test expects a tracked entity with attribute values");
 
-    List<String> idSchemeRequestParams = List.of("orgUnit", "program");
+    List<String> idSchemeRequestParams = List.of("orgUnit");
     String idSchemes =
         idSchemeRequestParams.stream()
             .map(p -> p + "IdScheme=" + idSchemeParam)
@@ -382,18 +380,17 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
     JsonList<JsonTrackedEntity> jsonTrackedEntities =
         GET(
-                "/tracker/trackedEntities?trackedEntities={id}&fields=trackedEntity,orgUnit,program&{idSchemes}",
+                "/tracker/trackedEntities?trackedEntities={id}&fields=trackedEntity,trackedEntityType,orgUnit,program&{idSchemes}&idScheme={idScheme}",
                 trackedEntity.getUid(),
-                idSchemes)
+                idSchemes,
+                idSchemeParam.toString())
             .content(HttpStatus.OK)
             .getList("trackedEntities", JsonTrackedEntity.class);
 
     JsonTrackedEntity actual =
         jsonTrackedEntities.first(te -> trackedEntity.getUid().equals(te.getTrackedEntity()));
 
-    // TODO(ivo) add assertion for trackedEntityType
     // TODO(ivo) add assertion for attributes
-    // only orgUnit and program have their own idScheme parameters that are relevant for TE right?
     assertAll(
         "event metadata assertions for idScheme=" + idSchemeParam,
         () ->
@@ -401,7 +398,13 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
                 idSchemeParam.getIdentifier(trackedEntity.getOrganisationUnit()),
                 actual,
                 idSchemeParam,
-                "orgUnit")
+                "orgUnit"),
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getTrackedEntityType()),
+                actual,
+                idSchemeParam,
+                "trackedEntityType")
         //        () ->
         //            assertIdScheme(
         //                idSchemeParam.getIdentifier(event.getProgramStage().getProgram()),

@@ -73,7 +73,7 @@ interface TrackedEntityMapper {
           entry("inactive", "inactive"));
 
   @Mapping(target = "trackedEntity", source = "uid")
-  @Mapping(target = "trackedEntityType", source = "trackedEntityType.uid")
+  @Mapping(target = "trackedEntityType", source = "trackedEntityType")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
