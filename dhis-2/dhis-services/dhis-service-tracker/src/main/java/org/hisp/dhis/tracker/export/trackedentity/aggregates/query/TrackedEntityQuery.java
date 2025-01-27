@@ -35,6 +35,7 @@ import java.util.Map;
  */
 public class TrackedEntityQuery {
   public enum COLUMNS {
+    ID,
     UID,
     CREATED,
     CREATEDCLIENT,

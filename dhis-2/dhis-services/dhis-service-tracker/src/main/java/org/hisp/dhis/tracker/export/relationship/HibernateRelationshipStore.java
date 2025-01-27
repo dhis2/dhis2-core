@@ -195,7 +195,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         whereConditionPredicates(
             entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
-    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
+    return entityManager.createQuery(criteriaQuery).getSingleResult();
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(

@@ -425,7 +425,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     this.switchContextToUser(user);
 
     GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-        .error(HttpStatus.FORBIDDEN);
+        .error(HttpStatus.NOT_FOUND);
   }
 
   @Test
