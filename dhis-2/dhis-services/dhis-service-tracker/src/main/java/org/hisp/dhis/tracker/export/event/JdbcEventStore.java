@@ -1375,6 +1375,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" as ")
           .append(deUid);
 
+      if (filterContainsExistenceOperator(filters)) {
+        // Operator EX allows for only one item in the filter list and its value is true or false
+        eventDataValuesWhereSql.append(addExistsFilterCondition(filters.get(0), hlp, deUid));
+        break;
+      }
+
       String optValueTableAs = "opt_" + filterCount;
 
       if (!joinedColumns.contains(deUid) && de.hasOptionSet() && !filters.isEmpty()) {
@@ -1462,11 +1468,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             }
           }
         }
-      } else {
-        eventDataValuesWhereSql.append(hlp.whereAnd());
-        eventDataValuesWhereSql.append(" (ev.eventdatavalues ?? '");
-        eventDataValuesWhereSql.append(deUid);
-        eventDataValuesWhereSql.append("')");
       }
     }
 
@@ -1474,6 +1475,22 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append(optionValueConditionBuilder)
         .append(eventDataValuesWhereSql)
         .append(" ");
+  }
+
+  private String addExistsFilterCondition(QueryFilter queryFilter, SqlHelper hlp, String deUid) {
+    StringBuilder existsBuilder = new StringBuilder();
+
+    existsBuilder.append(hlp.whereAnd());
+    if (!Boolean.parseBoolean(queryFilter.getFilter())) {
+      existsBuilder.append(" not ");
+    }
+    existsBuilder.append(" (ev.eventdatavalues ");
+    existsBuilder.append(queryFilter.getSqlOperator());
+    existsBuilder.append(" '");
+    existsBuilder.append(deUid);
+    existsBuilder.append("')");
+
+    return existsBuilder.toString();
   }
 
   private String inCondition(QueryFilter filter, String boundParameter, String queryCol) {
@@ -1488,6 +1505,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append(boundParameter)
         .append(") ")
         .toString();
+  }
+
+  private boolean filterContainsExistenceOperator(List<QueryFilter> filters) {
+    return filters.stream().anyMatch(qf -> qf.getOperator().equals(QueryOperator.EX));
   }
 
   private String eventStatusSql(

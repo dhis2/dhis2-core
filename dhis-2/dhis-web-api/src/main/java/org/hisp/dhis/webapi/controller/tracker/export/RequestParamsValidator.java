@@ -277,7 +277,7 @@ public class RequestParamsValidator {
   /**
    * Validate the {@code filter} request parameter in change log tracker exporters. Allowed filter
    * values are {@code supportedFieldNames}. Only one field name at a time can be specified. If the
-   * endpoint supports UIDs use {@link #parseFilters(String)}.
+   * endpoint supports UIDs use {@link #parseAttributeFilters(String)}.
    */
   public static void validateFilter(String filter, Set<Pair<String, Class<?>>> supportedFields)
       throws BadRequestException {
@@ -324,12 +324,13 @@ public class RequestParamsValidator {
 
   /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
-   * tracked entity attribute or data element. Refer to {@link #parseSanitizedFilters(Map, String)}}
-   * for details on the expected input format.
+   * tracked entity attribute. Refer to {@link #parseSanitizedFilters(Map, String)}} for details on
+   * the expected input format.
    *
    * @return filters by UIDs
    */
-  public static Map<UID, List<QueryFilter>> parseFilters(String input) throws BadRequestException {
+  public static Map<UID, List<QueryFilter>> parseAttributeFilters(String input)
+      throws BadRequestException {
     Map<UID, List<QueryFilter>> result = new HashMap<>();
     if (StringUtils.isBlank(input)) {
       return result;
@@ -342,9 +343,30 @@ public class RequestParamsValidator {
   }
 
   /**
-   * Accumulate {@link QueryFilter}s per UID by parsing given input string of format
-   * {uid}[:{operator}:{value}]. Only the UID is mandatory. Multiple operator:value pairs are
-   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding UID.
+   * Parse given {@code input} string representing a filter for an object referenced by a UID like a
+   * data element. Refer to {@link #parseSanitizedDataElementFilters(Map, String)}} for details on
+   * the expected input format.
+   *
+   * @return filters by UIDs
+   */
+  public static Map<UID, List<QueryFilter>> parseDataElementFilters(String input)
+      throws BadRequestException {
+    Map<UID, List<QueryFilter>> result = new HashMap<>();
+    if (StringUtils.isBlank(input)) {
+      return result;
+    }
+
+    for (String uidOperatorValue : filterList(input)) {
+      parseSanitizedDataElementFilters(result, uidOperatorValue);
+    }
+    return result;
+  }
+
+  /**
+   * Accumulate {@link QueryFilter}s per TEA UID by parsing given input string of format
+   * {uid}[:{operator}:{value}]. Only the TEA UID is mandatory. Multiple operator:value pairs are
+   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding TEA
+   * UID.
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
@@ -362,7 +384,55 @@ public class RequestParamsValidator {
     result.putIfAbsent(uid, new ArrayList<>());
 
     String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
+    validateFilterLength(filters, result, uid, input);
+  }
 
+  /**
+   * Accumulate {@link QueryFilter}s per DE UID by parsing given input string of format
+   * {uid}[:{operator}:{value}]. Only the DE ID is mandatory. Multiple operator:value pairs are
+   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding DE
+   * UID.
+   *
+   * @throws BadRequestException filter is neither multiple nor single operator:value format
+   */
+  private static void parseSanitizedDataElementFilters(
+      Map<UID, List<QueryFilter>> result, String input) throws BadRequestException {
+    int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
+
+    if (uidIndex == 0 || input.length() == uidIndex) {
+      UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
+      result.putIfAbsent(uid, List.of(new QueryFilter(QueryOperator.EX, "true")));
+      return;
+    }
+    UID uid = UID.of(input.substring(0, uidIndex - 1));
+    String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
+    validateExistenceOperator(filters, result, input, uid);
+    result.putIfAbsent(uid, new ArrayList<>());
+    validateFilterLength(filters, result, uid, input);
+  }
+
+  private static void validateExistenceOperator(
+      String[] filters, Map<UID, List<QueryFilter>> result, String input, UID uid)
+      throws BadRequestException {
+    for (int i = 0; i < filters.length; i += 2) {
+      if (filters[i].equalsIgnoreCase(QueryOperator.EX.name())) {
+        if (!filters[1].equalsIgnoreCase("true") && !filters[1].equalsIgnoreCase("false")) {
+          throw new BadRequestException(
+              "A filter with the operator 'EX' can only have 'true' or 'false' as its value: "
+                  + input);
+        }
+        if (result.containsKey(uid)) {
+          throw new BadRequestException(
+              "A filter with the operator 'EX' can only filter by a single value at a time: "
+                  + input);
+        }
+      }
+    }
+  }
+
+  private static void validateFilterLength(
+      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
+      throws BadRequestException {
     // single operator
     if (filters.length == 2) {
       result.get(uid).add(operatorValueQueryFilter(filters[0], filters[1], input));

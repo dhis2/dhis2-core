@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -592,7 +591,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldFilterByEventsWithGivenDataValuesWhenFilterContainsDataElementUIDsOnly()
+  void shouldFilterByEventsContainingGivenDataValuesWhenFilteringByExistence()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
@@ -600,14 +599,31 @@ class EventExporterTest extends TrackerTest {
             .dataElementFilters(
                 Map.of(
                     UID.of("GieVkTxp4HH"),
-                    new ArrayList<>(),
+                    List.of(new QueryFilter(QueryOperator.EX, "true")),
                     UID.of("GieVkTxp4HG"),
-                    new ArrayList<>()))
+                    List.of(new QueryFilter(QueryOperator.EX, "true"))))
             .build();
 
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsNotContainingGivenDataValueWhenFilteringByNonexistence()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .eventParams(EventParams.FALSE)
+            .dataElementFilters(
+                Map.of(UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.EX, "false"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
