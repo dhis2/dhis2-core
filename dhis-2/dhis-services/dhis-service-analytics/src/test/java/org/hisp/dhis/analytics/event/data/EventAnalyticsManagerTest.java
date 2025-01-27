@@ -111,6 +111,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -146,7 +148,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             executionPlanStore,
             systemSettingsService,
             config,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");

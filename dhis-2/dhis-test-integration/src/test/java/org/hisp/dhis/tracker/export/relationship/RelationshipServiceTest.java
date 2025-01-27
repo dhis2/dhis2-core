@@ -139,16 +139,13 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     inaccessibleTrackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleTrackedEntityType, false);
 
-    teA = createTrackedEntity(orgUnitA);
-    teA.setTrackedEntityType(trackedEntityType);
+    teA = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(teA, false);
 
-    teB = createTrackedEntity(orgUnitA);
-    teB.setTrackedEntityType(trackedEntityType);
+    teB = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(teB, false);
 
-    inaccessibleTe = createTrackedEntity(orgUnitA);
-    inaccessibleTe.setTrackedEntityType(inaccessibleTrackedEntityType);
+    inaccessibleTe = createTrackedEntity(orgUnitA, inaccessibleTrackedEntityType);
     manager.save(inaccessibleTe, false);
 
     program = createProgram('A', new HashSet<>(), orgUnitA);
@@ -298,8 +295,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(program, false);
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
     manager.save(createEnrollment(program, trackedEntityFrom, orgUnitA));
@@ -309,8 +305,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     relationship(trackedEntityFrom, trackedEntityTo);
@@ -334,19 +329,16 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     injectAdminIntoSecurityContext();
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     Program inaccessibleProgram = protectedProgram('P', trackedEntityType, orgUnitB);
     manager.save(inaccessibleProgram, false);
 
-    TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB);
-    notAccessibleTe.setTrackedEntityType(trackedEntityType);
+    TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB, trackedEntityType);
     manager.save(notAccessibleTe);
 
     injectSecurityContextUser(user);
@@ -382,12 +374,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     relationship(trackedEntityFrom, trackedEntityTo);
@@ -421,12 +411,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     relationship(trackedEntityFrom, trackedEntityTo);
