@@ -1169,6 +1169,19 @@
       "to": {
         "enrollment": "nxP7UnKhomJ"
       }
+    },
+    {
+      "relationship": "rSXvGDlJRBT",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
+      "from": {
+        "trackedEntity": "guVNoAerxWo"
+      },
+      "to": {
+        "enrollment": "nxP7UnKhomJ"
+      }
     }
   ],
   "username": "system-process"

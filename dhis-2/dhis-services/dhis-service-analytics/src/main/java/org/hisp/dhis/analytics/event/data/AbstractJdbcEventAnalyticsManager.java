@@ -174,6 +174,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private final DhisConfigurationProvider config;
 
+  private final OrganisationUnitResolver organisationUnitResolver;
+
   /**
    * Returns a SQL paging clause.
    *
@@ -1277,9 +1279,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             ? getSelectSql(filter, item, params)
             : getSelectSql(filter, item, params.getEarliestStartDate(), params.getLatestEndDate());
 
+    String filterString =
+        item.getValueType() == ValueType.ORGANISATION_UNIT
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            : filter.getFilter();
+
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), !item.isNumeric());
+          new InQueryFilter(field, sqlBuilder.escape(filterString), !item.isNumeric());
 
       return inQueryFilter.getSqlFilter();
     } else {
