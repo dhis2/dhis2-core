@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.startup;
 
+import static org.hisp.dhis.user.PasswordValidationRule.DEFAULT_PASSWORD_VALIDATION_PATTERN;
+import static org.hisp.dhis.user.PasswordValidationRule.META_DEFAULT_PASSWORD_VALIDATION_PATTERN;
+
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
@@ -39,9 +43,22 @@ public class SettingUpgrader extends AbstractStartupRoutine {
   @Override
   public void execute() throws Exception {
     String startModule = settingsService.getCurrentSettings().getStartModule();
-
     if ("dhis-web-dashboard-integration".equals(startModule)) {
       settingsService.put("startModule", "dhis-web-dashboard");
+    }
+
+    String passwordValidationPattern =
+        settingsService.getCurrentSettings().getPasswordValidationPattern();
+    // 1st startup DEFAULT_PASSWORD_VALIDATION_PATTERN is equal to the pattern.
+    // 2nd and subsequent startups META_DEFAULT_PASSWORD_VALIDATION_PATTERN is equal to the pattern,
+    // unless the pattern is set to a custom value.
+    if (passwordValidationPattern.equalsIgnoreCase(DEFAULT_PASSWORD_VALIDATION_PATTERN)
+        || META_DEFAULT_PASSWORD_VALIDATION_PATTERN.matcher(passwordValidationPattern).matches()) {
+      int minPasswordLength = settingsService.getCurrentSettings().getMinPasswordLength();
+      int maxPasswordLength = settingsService.getCurrentSettings().getMaxPasswordLength();
+      settingsService.put(
+          "passwordValidationPattern",
+          String.format(DEFAULT_PASSWORD_VALIDATION_PATTERN, minPasswordLength, maxPasswordLength));
     }
   }
 }

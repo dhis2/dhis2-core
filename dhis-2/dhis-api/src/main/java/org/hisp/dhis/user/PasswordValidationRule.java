@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.regex.Pattern;
+
 /** Created by zubair on 08.03.17. */
 @FunctionalInterface
 public interface PasswordValidationRule {
+
+  String DEFAULT_PASSWORD_VALIDATION_PATTERN =
+      "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$";
+
+  Pattern META_DEFAULT_PASSWORD_VALIDATION_PATTERN =
+      Pattern.compile(
+          "^\\^\\(\\?=\\.\\*\\[A-Z\\]\\)\\(\\?=\\.\\*\\[a-z\\]\\)\\(\\?=\\.\\*\\\\d\\)\\(\\?=\\.\\*\\[\\\\W_\\]\\)\\[A-Za-z\\\\d\\\\W_\\]\\{(\\d+),(\\d+)\\}\\$$");
 
   /**
    * Validates user password to make sure it comply with requirements related to password strength.

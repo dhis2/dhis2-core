@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.setting;
 
+import static org.hisp.dhis.user.PasswordValidationRule.DEFAULT_PASSWORD_VALIDATION_PATTERN;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -804,11 +806,7 @@ public non-sealed interface SystemSettings extends Settings {
    * @return A regex pattern string that enforces the current password validation rules
    */
   default String getPasswordValidationPattern() {
-    return asString(
-        "passwordValidationPattern",
-        String.format(
-            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
-            getMinPasswordLength(), getMaxPasswordLength()));
+    return asString("passwordValidationPattern", DEFAULT_PASSWORD_VALIDATION_PATTERN);
   }
 
   default boolean getUseExperimentalAnalyticsQueryEngine() {
