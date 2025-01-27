@@ -59,6 +59,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.OptionSetSelectionCriteria;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -308,6 +309,7 @@ public class EventQueryParams extends DataQueryParams {
     params.multipleQueries = this.multipleQueries;
     params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
     params.userOrgUnits = this.userOrgUnits;
+    params.optionSetSelectionCriteria = this.optionSetSelectionCriteria;
     return params;
   }
 
@@ -1113,6 +1115,14 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
+    public Builder removeOptionSetSelection() {
+      if (this.params.hasOptionSetSelections()) {
+        this.params.optionSetSelectionCriteria.getOptionSetSelections().clear();
+      }
+
+      return this;
+    }
+
     public Builder withValue(DimensionalItemObject value) {
       this.params.value = value;
       return this;
@@ -1366,6 +1376,12 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
       this.params.userOrgUnits = userOrgUnits;
+      return this;
+    }
+
+    public Builder withOptionSetSelectionCriteria(
+        OptionSetSelectionCriteria optionSetSelectionCriteria) {
+      this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
   }

@@ -123,6 +123,8 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private I18n i18n;
 
+  @Mock private OptionSetFacade optionSetFacade;
+
   @InjectMocks private DimensionalObjectProvider dimensionalObjectProducer;
 
   private DefaultDataQueryService target;
@@ -136,7 +138,8 @@ class DataQueryServiceDimensionItemKeywordTest {
     lenient().when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
 
     target =
-        new DefaultDataQueryService(dimensionalObjectProducer, idObjectManager, securityManager);
+        new DefaultDataQueryService(
+            dimensionalObjectProducer, idObjectManager, securityManager, optionSetFacade);
 
     rb = new RequestBuilder();
 

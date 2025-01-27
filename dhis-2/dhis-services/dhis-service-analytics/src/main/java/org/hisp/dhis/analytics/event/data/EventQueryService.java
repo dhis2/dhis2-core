@@ -70,6 +70,7 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.feedback.ErrorCode.E7218;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Rectangle;
@@ -82,6 +83,7 @@ import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
@@ -126,6 +128,9 @@ public class EventQueryService {
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
+    // Set program if null.
+    params = getEventQueryParamsWithProgram(params);
+
     // Headers
 
     Grid grid = createGridWithHeaders(params);
@@ -151,6 +156,20 @@ public class EventQueryService {
     setRowContextColumns(grid);
 
     return grid;
+  }
+
+  private static EventQueryParams getEventQueryParamsWithProgram(EventQueryParams params) {
+    if (!params.hasProgram()) {
+      Optional<QueryItem> itemWithProgram =
+          params.getItems().stream().filter(QueryItem::hasProgram).findFirst();
+      if (itemWithProgram.isPresent()) {
+        EventQueryParams.Builder builder =
+            new EventQueryParams.Builder(params).withProgram(itemWithProgram.get().getProgram());
+        params = builder.build();
+      }
+    }
+
+    return params;
   }
 
   /**
@@ -269,7 +288,7 @@ public class EventQueryService {
                 false,
                 true));
 
-    if (params.getProgram().isRegistration()) {
+    if (params.getProgram() != null && params.getProgram().isRegistration()) {
       grid.addHeader(
               new GridHeader(
                   ENROLLMENT_DATE.getItem(),
