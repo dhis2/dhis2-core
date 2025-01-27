@@ -124,8 +124,25 @@ public class CteContext {
         new CteDefinition(programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
   }
 
-  public void addCteFilter(QueryItem item, String ctedefinition) {
-    String key = computeKey(item);
+  /**
+   * Adds a CTE definition to the context that represents a filter for a specific query item. The
+   * name of the CTE is computed based on the query item.
+   *
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   */
+  public void addCteFilter(QueryItem item, String cteDefinition) {
+    addCteFilter(computeKey(item), item, cteDefinition);
+  }
+
+  /**
+   * Adds a CTE definition to the context that represents a filter for a specific query item.
+   *
+   * @param key The key of the CTE definition
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   */
+  public void addCteFilter(String key, QueryItem item, String cteDefinition) {
     if (!cteDefinitions.containsKey(key)) {
       ProgramStage programStage = item.getProgramStage();
       cteDefinitions.put(
@@ -133,7 +150,7 @@ public class CteContext {
           new CteDefinition(
               item.getItemId(),
               programStage == null ? null : programStage.getUid(),
-              ctedefinition,
+              cteDefinition,
               true));
     }
   }
