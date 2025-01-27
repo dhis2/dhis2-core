@@ -38,13 +38,11 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
@@ -53,9 +51,9 @@ import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,50 +80,6 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private MergeService categoryOptionMergeService;
 
-  private Category cat1;
-  private Category cat2;
-  private Category cat3;
-  private Category cat4;
-  private CategoryOption coSource1A;
-  private CategoryOption co1B;
-  private CategoryOption co2A;
-  private CategoryOption coSource2B;
-  private CategoryOption coTarget3A;
-  private CategoryOption co3B;
-  private CategoryOption co4A;
-  private CategoryOption co4B;
-
-  @BeforeEach
-  public void setUp() {
-    // 8 category options
-    coSource1A = createCategoryOption("1A source", CodeGenerator.generateUid());
-    co1B = createCategoryOption("1B", CodeGenerator.generateUid());
-    co2A = createCategoryOption("2A", CodeGenerator.generateUid());
-    coSource2B = createCategoryOption("2B source", CodeGenerator.generateUid());
-    coTarget3A = createCategoryOption("3A target", CodeGenerator.generateUid());
-    co3B = createCategoryOption("3B", CodeGenerator.generateUid());
-    co4A = createCategoryOption("4A", CodeGenerator.generateUid());
-    co4B = createCategoryOption("4B", CodeGenerator.generateUid());
-    categoryService.addCategoryOption(coSource1A);
-    categoryService.addCategoryOption(co1B);
-    categoryService.addCategoryOption(co2A);
-    categoryService.addCategoryOption(coSource2B);
-    categoryService.addCategoryOption(coTarget3A);
-    categoryService.addCategoryOption(co3B);
-    categoryService.addCategoryOption(co4A);
-    categoryService.addCategoryOption(co4B);
-
-    // 4 categories (each with 2 category options)
-    cat1 = createCategory('1', coSource1A, co1B);
-    cat2 = createCategory('2', co2A, coSource2B);
-    cat3 = createCategory('3', coTarget3A, co3B);
-    cat4 = createCategory('4', co4A, co4B);
-    categoryService.addCategory(cat1);
-    categoryService.addCategory(cat2);
-    categoryService.addCategory(cat3);
-    categoryService.addCategory(cat4);
-  }
-
   // -----------------------------
   // --------- Category ----------
   // -----------------------------
@@ -133,74 +87,81 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName("Category refs to source CategoryOptions are replaced, sources not deleted")
   void categoryRefsReplacedSourcesNotDeletedTest() throws ConflictException {
     // given category state before merge
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco1");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     List<Category> categorySourcesBefore =
-        categoryService.getCategoriesByCategoryOption(
-            List.of(UID.of(coSource1A.getUid()), UID.of(coSource2B.getUid())));
+        categoryService.getCategoriesByCategoryOption(UID.of(coSource1, coSource2));
     List<Category> categoryTargetBefore =
-        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A.getUid())));
+        categoryService.getCategoriesByCategoryOption(Set.of(UID.of(coTarget)));
 
     assertEquals(
-        2, categorySourcesBefore.size(), "Expect 2 categories with source category option refs");
+        1, categorySourcesBefore.size(), "Expect 1 category with source category option refs");
     assertEquals(
         1, categoryTargetBefore.size(), "Expect 1 category with target category option refs");
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<Category> categorySources =
-        categoryService.getCategoriesByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoriesByCategoryOption(UID.of(coSource1, coSource2));
     List<Category> categoryTarget =
-        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, categorySources.size(), "Expect 0 entries with source category option refs");
-    assertEquals(3, categoryTarget.size(), "Expect 3 entries with target category option refs");
+    assertEquals(2, categoryTarget.size(), "Expect 2 entries with target category option refs");
 
-    // 8 custom + 1 default
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    // 4 custom + 1 default
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(categoryMetadata.getCategoryOptions()));
   }
 
   @Test
   @DisplayName("Category refs to source CategoryOptions are replaced, sources are deleted")
   void categoryRefsReplacedSourcesDeletedTest() throws ConflictException {
     // given category state before merge
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco2");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
     List<Category> categorySourcesBefore =
-        categoryService.getCategoriesByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoriesByCategoryOption(UID.of(coSource1, coSource2));
     List<Category> categoryTargetBefore =
-        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget)));
 
     assertEquals(
-        2, categorySourcesBefore.size(), "Expect 2 categories with source category option refs");
+        1, categorySourcesBefore.size(), "Expect 2 category with source category option refs");
     assertEquals(
         1, categoryTargetBefore.size(), "Expect 1 category with target category option refs");
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<Category> categorySources =
-        categoryService.getCategoriesByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoriesByCategoryOption(UID.of(coSource1, coSource2));
     List<Category> categoryTarget =
-        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, categorySources.size(), "Expect 0 entries with source category option refs");
-    assertEquals(3, categoryTarget.size(), "Expect 3 entries with target category option refs");
+    assertEquals(2, categoryTarget.size(), "Expect 3 entries with target category option refs");
 
-    // 6 custom + 1 default
-    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
-    assertTrue(allCategoryOptions.contains(coTarget3A));
-    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+    // 2 custom + 1 default
+    assertEquals(3, allCategoryOptions.size(), "Expect 3 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget));
+    assertFalse(
+        allCategoryOptions.containsAll(List.of(coSource1, coSource2)),
+        "source cat options are no longer present");
   }
 
   // -----------------------------
@@ -211,65 +172,57 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
       "CategoryOptionCombo refs to source CategoryOptions are replaced, sources not deleted")
   void catOptComboRefsReplacedSourcesNotDeletedTest() throws ConflictException {
     // given
-    CategoryCombo cc1 = createCategoryCombo('1', cat1, cat2);
-    CategoryCombo cc2 = createCategoryCombo('2', cat3, cat4);
-    manager.save(List.of(cc1, cc2));
-    // these calls generate cat option combos
-    categoryService.updateOptionCombos(cc1);
-    categoryService.updateOptionCombos(cc2);
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco3");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
 
     // confirm cat option combo state before merge
     List<CategoryOptionCombo> sourceCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionCombosByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionCombo> targetCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget)));
 
-    assertEquals(3, sourceCocsBefore.size(), "Expect 3 entries with source category option refs");
+    assertEquals(4, sourceCocsBefore.size(), "Expect 4 entries with source category option refs");
     assertEquals(2, targetCocsBefore.size(), "Expect 2 entries with target category option refs");
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionCombo> sourceCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionCombosByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionCombo> targetCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceCocs.size(), "Expect 0 entries with source category option refs");
-    assertEquals(5, targetCocs.size(), "Expect 5 entries with target category option refs");
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertEquals(4, targetCocs.size(), "Expect 4 entries with target category option refs");
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
   }
 
   @Test
   @DisplayName("Expect the correct number of SQL delete queries when merging")
   void catOptMergeQueryTest() throws ConflictException {
     // given
-    CategoryCombo cc1 = createCategoryCombo('1', cat1);
-    CategoryCombo cc2 = createCategoryCombo('2', cat3);
-    manager.save(List.of(cc1, cc2));
-
-    categoryService.updateOptionCombos(cc1);
-    categoryService.updateOptionCombos(cc2);
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco4");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coTarget = categoryMetadata.co3();
 
     // when
-    MergeParams mergeParams = getMergeParams();
-    mergeParams.setSources(Set.of(UID.of(coSource1A)));
+    MergeParams mergeParams = getMergeParams(List.of(coSource1), coTarget);
     mergeParams.setDeleteSources(true);
 
     SQLStatementCountValidator.reset();
     categoryOptionMergeService.processMerge(mergeParams);
 
     // then
-    assertDeleteCount(1);
+    assertDeleteCount(2);
     assertNull(
-        categoryService.getCategoryOption(coSource1A.getUid()),
+        categoryService.getCategoryOption(coSource1.getUid()),
         "source cat option should not exist");
   }
 
@@ -278,90 +231,41 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
       "CategoryOptionCombo refs to source CategoryOptions are replaced, sources are deleted")
   void catOptComboRefsReplacedSourcesDeletedTest() throws ConflictException {
     // given
-    CategoryCombo cc1 = createCategoryCombo('1', cat1, cat2);
-    CategoryCombo cc2 = createCategoryCombo('2', cat3, cat4);
-    manager.save(List.of(cc1, cc2));
-    categoryService.updateOptionCombos(cc1);
-    categoryService.updateOptionCombos(cc2);
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco5");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
 
     // confirm cat option combos state before merge
     List<CategoryOptionCombo> sourceCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionCombosByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionCombo> targetCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget)));
 
-    assertEquals(3, sourceCocsBefore.size(), "Expect 3 entries with source category option refs");
+    assertEquals(4, sourceCocsBefore.size(), "Expect 4 entries with source category option refs");
     assertEquals(2, targetCocsBefore.size(), "Expect 2 entries with target category option refs");
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     mergeParams.setDeleteSources(true);
 
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionCombo> sourceCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionCombosByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionCombo> targetCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceCocs.size(), "Expect 0 entries with source category option refs");
-    assertEquals(5, targetCocs.size(), "Expect 5 entries with target category option refs");
+    assertEquals(4, targetCocs.size(), "Expect 4 entries with target category option refs");
 
     // 6 custom + 1 default
-    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
-    assertTrue(allCategoryOptions.contains(coTarget3A));
-    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
-  }
-
-  @Test
-  @DisplayName(
-      "1 CategoryOptionCombo with refs to source & target CategoryOption results in CategoryOptionCombo with just target")
-  void catOptComboSourceAndTargetRefsTest() throws ConflictException {
-    // given
-    CategoryCombo cc1 = createCategoryCombo('1', cat1, cat2);
-    manager.save(cc1);
-
-    CategoryOptionCombo coc = createCategoryOptionCombo(cc1, coSource1A, coSource2B, coTarget3A);
-    manager.save(coc);
-
-    // confirm cat option combo state before merge
-    List<CategoryOptionCombo> sourceCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
-    List<CategoryOptionCombo> targetCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget3A)));
-
-    assertEquals(1, sourceCocsBefore.size(), "Expect 1 entry with source category option ref");
-    assertEquals(1, targetCocsBefore.size(), "Expect 1 entry with target category option ref");
-
-    // when
-    MergeParams mergeParams = getMergeParams();
-    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
-
-    // then
-    List<CategoryOptionCombo> sourceCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
-    List<CategoryOptionCombo> targetCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.of(coTarget3A)));
-    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
-    List<CategoryOption> catOptions =
-        targetCocs.stream()
-            .flatMap(optionCombo -> optionCombo.getCategoryOptions().stream())
-            .toList();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceCocs.size(), "Expect 0 entries with source category option refs");
-    assertEquals(1, targetCocs.size(), "Expect 1 entry with target category option ref");
-    assertEquals(1, catOptions.size());
-    assertTrue(catOptions.contains(coTarget3A));
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertEquals(3, allCategoryOptions.size(), "Expect 3 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1, coSource2)));
   }
 
   // -----------------------------
@@ -371,86 +275,80 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName("OrgUnit refs to source CategoryOptions are replaced, sources not deleted")
   void orgUnitRefsReplacedSourcesNotDeletedTest() throws ConflictException {
     // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco7");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     OrganisationUnit ou1 = createOrganisationUnit('x');
-    ou1.addCategoryOption(coSource1A);
-    ou1.addCategoryOption(co1B);
+    ou1.addCategoryOption(coSource1);
 
     OrganisationUnit ou2 = createOrganisationUnit('y');
-    ou2.addCategoryOption(coSource2B);
-    ou2.addCategoryOption(co2A);
+    ou2.addCategoryOption(coSource2);
 
     OrganisationUnit ou3 = createOrganisationUnit('z');
-    ou3.addCategoryOption(coTarget3A);
-    ou3.addCategoryOption(co4A);
+    ou3.addCategoryOption(coTarget);
 
-    OrganisationUnit ou4 = createOrganisationUnit('p');
-    ou4.addCategoryOption(co3B);
-    ou4.addCategoryOption(co4B);
-
-    manager.save(List.of(ou1, ou2, ou3, ou4));
+    manager.save(List.of(ou1, ou2, ou3));
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<OrganisationUnit> orgUnitSources =
-        organisationUnitService.getByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        organisationUnitService.getByCategoryOption(UID.of(coSource1, coSource2));
     List<OrganisationUnit> orgUnitTarget =
-        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget3A)));
+        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, orgUnitSources.size(), "Expect 0 entries with source org units refs");
     assertEquals(3, orgUnitTarget.size(), "Expect 3 entries with target org unit refs");
 
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
   }
 
   @Test
   @DisplayName("OrgUnit refs to source CategoryOptions are replaced, sources deleted")
   void orgUnitRefsReplacedSourcesDeletedTest() throws ConflictException {
     // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco8");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     OrganisationUnit ou1 = createOrganisationUnit('x');
-    ou1.addCategoryOption(coSource1A);
-    ou1.addCategoryOption(co1B);
+    ou1.addCategoryOption(coSource1);
 
     OrganisationUnit ou2 = createOrganisationUnit('y');
-    ou2.addCategoryOption(coSource2B);
-    ou2.addCategoryOption(co2A);
+    ou2.addCategoryOption(coSource2);
 
     OrganisationUnit ou3 = createOrganisationUnit('z');
-    ou3.addCategoryOption(coTarget3A);
-    ou3.addCategoryOption(co4A);
+    ou3.addCategoryOption(coTarget);
 
-    OrganisationUnit ou4 = createOrganisationUnit('p');
-    ou4.addCategoryOption(co3B);
-    ou4.addCategoryOption(co4B);
-
-    manager.save(List.of(ou1, ou2, ou3, ou4));
+    manager.save(List.of(ou1, ou2, ou3));
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<OrganisationUnit> orgUnitSources =
-        organisationUnitService.getByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        organisationUnitService.getByCategoryOption(UID.of(coSource1, coSource2));
     List<OrganisationUnit> orgUnitTarget =
-        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget3A)));
+        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, orgUnitSources.size(), "Expect 0 entries with source org units refs");
     assertEquals(3, orgUnitTarget.size(), "Expect 3 entries with target org unit refs");
 
-    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
-    assertTrue(allCategoryOptions.contains(coTarget3A));
-    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+    assertEquals(3, allCategoryOptions.size(), "Expect 3 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1, coSource2)));
   }
 
   @Test
@@ -458,33 +356,36 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
       "1 OrgUnit with refs to source & target CategoryOption results in OrgUnit with just target")
   void orgUnitSourceAndTargetRefsTest() throws ConflictException {
     // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco9");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     OrganisationUnit ou = createOrganisationUnit('o');
-    ou.addCategoryOption(coSource1A);
-    ou.addCategoryOption(coSource2B);
-    ou.addCategoryOption(coTarget3A);
+    ou.addCategoryOption(coSource1);
+    ou.addCategoryOption(coSource2);
+    ou.addCategoryOption(coTarget);
 
     manager.save(ou);
 
     // confirm org unit state before merge
     List<OrganisationUnit> sourceOusBefore =
-        organisationUnitService.getByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        organisationUnitService.getByCategoryOption(UID.of(coSource1, coSource2));
     List<OrganisationUnit> targetOusBefore =
-        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget3A)));
+        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget)));
 
     assertEquals(1, sourceOusBefore.size(), "Expect 1 entry with source category option refs");
     assertEquals(1, targetOusBefore.size(), "Expect 1 entry with target category option ref");
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<OrganisationUnit> sourceOus =
-        organisationUnitService.getByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        organisationUnitService.getByCategoryOption(UID.of(coSource1, coSource2));
     List<OrganisationUnit> targetOus =
-        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget3A)));
+        organisationUnitService.getByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
     List<CategoryOption> catOptions =
         targetOus.stream().flatMap(orgUnit -> orgUnit.getCategoryOptions().stream()).toList();
@@ -493,9 +394,9 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(0, sourceOus.size(), "Expect 0 entries with source category option refs");
     assertEquals(1, targetOus.size(), "Expect 1 entry with target category option ref");
     assertEquals(1, catOptions.size());
-    assertTrue(catOptions.contains(coTarget3A));
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertTrue(catOptions.contains(coTarget));
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
   }
 
   // -----------------------------
@@ -506,86 +407,80 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
       "CategoryOptionGroup refs to source CategoryOptions are replaced, sources not deleted")
   void catOptionGroupSourcesNotDeletedTest() throws ConflictException {
     // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco10");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     CategoryOptionGroup cog1 = createCategoryOptionGroup('x');
-    cog1.addCategoryOption(coSource1A);
-    cog1.addCategoryOption(co1B);
+    cog1.addCategoryOption(coSource1);
 
     CategoryOptionGroup cog2 = createCategoryOptionGroup('y');
-    cog2.addCategoryOption(coSource2B);
-    cog2.addCategoryOption(co2A);
+    cog2.addCategoryOption(coSource2);
 
     CategoryOptionGroup cog3 = createCategoryOptionGroup('z');
-    cog3.addCategoryOption(coTarget3A);
-    cog3.addCategoryOption(co4A);
+    cog3.addCategoryOption(coTarget);
 
-    CategoryOptionGroup cog4 = createCategoryOptionGroup('p');
-    cog4.addCategoryOption(co3B);
-    cog4.addCategoryOption(co4B);
-
-    manager.save(List.of(cog1, cog2, cog3, cog4));
+    manager.save(List.of(cog1, cog2, cog3));
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionGroup> cogSources =
-        categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionGroupByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionGroup> cogTarget =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, cogSources.size(), "Expect 0 entries with source cat option group refs");
     assertEquals(3, cogTarget.size(), "Expect 3 entries with target cat option group refs");
 
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
   }
 
   @Test
   @DisplayName("CategoryOptionGroup refs to source CategoryOptions are replaced, sources deleted")
   void catOptionGroupSourcesDeletedTest() throws ConflictException {
     // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco11");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     CategoryOptionGroup cog1 = createCategoryOptionGroup('x');
-    cog1.addCategoryOption(coSource1A);
-    cog1.addCategoryOption(co1B);
+    cog1.addCategoryOption(coSource1);
 
     CategoryOptionGroup cog2 = createCategoryOptionGroup('y');
-    cog2.addCategoryOption(coSource2B);
-    cog2.addCategoryOption(co2A);
+    cog2.addCategoryOption(coSource2);
 
     CategoryOptionGroup cog3 = createCategoryOptionGroup('z');
-    cog3.addCategoryOption(coTarget3A);
-    cog3.addCategoryOption(co4A);
+    cog3.addCategoryOption(coTarget);
 
-    CategoryOptionGroup cog4 = createCategoryOptionGroup('p');
-    cog4.addCategoryOption(co3B);
-    cog4.addCategoryOption(co4B);
-
-    manager.save(List.of(cog1, cog2, cog3, cog4));
+    manager.save(List.of(cog1, cog2, cog3));
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionGroup> cogSources =
-        categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionGroupByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionGroup> cogTarget =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, cogSources.size(), "Expect 0 entries with source cat option group refs");
     assertEquals(3, cogTarget.size(), "Expect 3 entries with target cat option group refs");
 
-    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
-    assertTrue(allCategoryOptions.contains(coTarget3A));
-    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+    assertEquals(3, allCategoryOptions.size(), "Expect 3 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1, coSource2)));
   }
 
   @Test
@@ -593,32 +488,35 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
       "1 CategoryOptionGroup with refs to source & target CategoryOption results in CategoryOptionGroup with just target")
   void catOptGroupSourceAndTargetRefsTest() throws ConflictException {
     // given
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco12");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
+
     CategoryOptionGroup cog = createCategoryOptionGroup('g');
-    cog.addCategoryOption(coSource1A);
-    cog.addCategoryOption(coSource2B);
-    cog.addCategoryOption(coTarget3A);
+    cog.addCategoryOption(coSource1);
+    cog.addCategoryOption(coSource2);
+    cog.addCategoryOption(coTarget);
     manager.save(cog);
 
     // confirm cat option combo state before merge
     List<CategoryOptionGroup> sourceCogsBefore =
-        categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionGroupByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionGroup> targetCogsBefore =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget)));
 
     assertEquals(1, sourceCogsBefore.size(), "Expect 1 entry with source category option ref");
     assertEquals(1, targetCogsBefore.size(), "Expect 1 entry with target category option ref");
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionGroup> sourceCogs =
-        categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(UID.of(coSource1A), UID.of(coSource2B)));
+        categoryService.getCategoryOptionGroupByCategoryOption(UID.of(coSource1, coSource2));
     List<CategoryOptionGroup> targetCogs =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget3A)));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.of(coTarget)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
     List<CategoryOption> catOptions =
         targetCogs.stream().flatMap(catOptGroup -> catOptGroup.getMembers().stream()).toList();
@@ -627,9 +525,9 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(0, sourceCogs.size(), "Expect 0 entries with source category option refs");
     assertEquals(1, targetCogs.size(), "Expect 1 entry with target category option ref");
     assertEquals(1, catOptions.size());
-    assertTrue(catOptions.contains(coTarget3A));
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertTrue(catOptions.contains(coTarget));
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
   }
 
   // -----------------------------
@@ -639,88 +537,90 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName("CategoryDimension refs to source CategoryOptions are replaced, sources not deleted")
   void catDimensionSourcesNotDeletedTest() throws ConflictException {
     // given
-    CategoryDimension cd1 = createCategoryDimension(cat1);
-    cd1.getItems().add(coSource1A);
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco13");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
 
-    CategoryDimension cd2 = createCategoryDimension(cat2);
-    cd2.getItems().add(coSource2B);
+    CategoryDimension cd1 = createCategoryDimension(categoryMetadata.c1());
+    cd1.getItems().add(coSource1);
 
-    CategoryDimension cd3 = createCategoryDimension(cat3);
-    cd3.getItems().add(coTarget3A);
+    CategoryDimension cd2 = createCategoryDimension(categoryMetadata.c1());
+    cd2.getItems().add(coSource2);
 
-    CategoryDimension cd4 = createCategoryDimension(cat4);
-    cd4.getItems().add(co3B);
+    CategoryDimension cd3 = createCategoryDimension(categoryMetadata.c2());
+    cd3.getItems().add(coTarget);
 
     dimensionStore.save(cd1);
     dimensionStore.save(cd2);
     dimensionStore.save(cd3);
-    dimensionStore.save(cd4);
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryDimension> cogSources =
-        dimensionStore.getByCategoryOption(List.of(coSource1A.getUid(), coSource2B.getUid()));
+        dimensionStore.getByCategoryOption(List.of(coSource1.getUid(), coSource2.getUid()));
     List<CategoryDimension> cogTarget =
-        dimensionStore.getByCategoryOption(List.of(coTarget3A.getUid()));
+        dimensionStore.getByCategoryOption(List.of(coTarget.getUid()));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, cogSources.size(), "Expect 0 entries with source category dimension refs");
     assertEquals(3, cogTarget.size(), "Expect 3 entries with target category dimension refs");
 
-    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
-    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+    assertEquals(5, allCategoryOptions.size(), "Expect 5 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
   }
 
   @Test
   @DisplayName("CategoryDimension refs to source CategoryOptions are replaced, sources deleted")
   void catDimensionSourcesDeletedTest() throws ConflictException {
     // given
-    CategoryDimension cd1 = createCategoryDimension(cat1);
-    cd1.getItems().add(coSource1A);
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco13");
+    CategoryOption coSource1 = categoryMetadata.co1();
+    CategoryOption coSource2 = categoryMetadata.co2();
+    CategoryOption coTarget = categoryMetadata.co3();
 
-    CategoryDimension cd2 = createCategoryDimension(cat2);
-    cd2.getItems().add(coSource2B);
+    CategoryDimension cd1 = createCategoryDimension(categoryMetadata.c1());
+    cd1.getItems().add(coSource1);
 
-    CategoryDimension cd3 = createCategoryDimension(cat3);
-    cd3.getItems().add(coTarget3A);
+    CategoryDimension cd2 = createCategoryDimension(categoryMetadata.c1());
+    cd2.getItems().add(coSource2);
 
-    CategoryDimension cd4 = createCategoryDimension(cat4);
-    cd4.getItems().add(co3B);
+    CategoryDimension cd3 = createCategoryDimension(categoryMetadata.c2());
+    cd3.getItems().add(coTarget);
 
     dimensionStore.save(cd1);
     dimensionStore.save(cd2);
     dimensionStore.save(cd3);
-    dimensionStore.save(cd4);
 
     // when
-    MergeParams mergeParams = getMergeParams();
+    MergeParams mergeParams = getMergeParams(List.of(coSource1, coSource2), coTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryDimension> cdSources =
-        dimensionStore.getByCategoryOption(List.of(coSource1A.getUid(), coSource2B.getUid()));
+        dimensionStore.getByCategoryOption(List.of(coSource1.getUid(), coSource2.getUid()));
     List<CategoryDimension> cdTarget =
-        dimensionStore.getByCategoryOption(List.of(coTarget3A.getUid()));
+        dimensionStore.getByCategoryOption(List.of(coTarget.getUid()));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, cdSources.size(), "Expect 0 entries with source category dimension refs");
     assertEquals(3, cdTarget.size(), "Expect 3 entries with target category dimension refs");
 
-    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
-    assertTrue(allCategoryOptions.contains(coTarget3A));
-    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+    assertEquals(3, allCategoryOptions.size(), "Expect 3 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1, coSource2)));
   }
 
-  private MergeParams getMergeParams() {
+  private MergeParams getMergeParams(List<CategoryOption> sources, CategoryOption target) {
     MergeParams mergeParams = new MergeParams();
-    mergeParams.setSources(UID.of(List.of(coSource1A.getUid(), coSource2B.getUid())));
-    mergeParams.setTarget(UID.of(coTarget3A.getUid()));
+    mergeParams.setSources(UID.of(sources.toArray(new CategoryOption[0])));
+    mergeParams.setTarget(UID.of(target));
     return mergeParams;
   }
 }
