@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -124,16 +125,16 @@ public class JsonAssertions {
         jsonTe.getTrackedEntityType(),
         "trackedEntityType UID");
     assertEquals(expected.getOrganisationUnit().getUid(), jsonTe.getOrgUnit(), "orgUnit UID");
-    assertTrue(jsonTe.getAttributes().isEmpty(), "attributes should be empty");
+    assertFalse(jsonTe.getAttributes().isEmpty(), "attributes should be empty");
     assertFalse(
         jsonTe.has("relationships"), "relationships is not returned within relationship items");
   }
 
-  public static void assertHasOnlyUid(String expectedUid, String member, JsonObject json) {
+  public static void assertHasOnlyUid(UidObject expected, String member, JsonObject json) {
     JsonObject j = json.getObject(member);
     assertFalse(j.isEmpty(), member + " should not be empty");
     assertHasOnlyMembers(j, member);
-    assertEquals(expectedUid, j.getString(member).string(), member + " UID");
+    assertEquals(expected.getUid(), j.getString(member).string(), member + " UID");
   }
 
   public static void assertEnrollmentWithinRelationship(
@@ -149,7 +150,7 @@ public class JsonAssertions {
     assertEquals(expected.getFollowup(), jsonEnrollment.getFollowUp(), "followUp");
     assertEquals(
         expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID");
-    assertTrue(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");
+    assertFalse(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");
     assertFalse(
         jsonEnrollment.has("relationships"),
         "relationships is not returned within relationship items");
