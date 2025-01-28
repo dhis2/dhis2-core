@@ -122,7 +122,7 @@ class CategoryOptionTest {
 
   @ParameterizedTest
   @MethodSource("categoryOptionEqualsParams")
-  @DisplayName("CategoryOptions are equal when all properties are equal")
+  @DisplayName("Category Option equals check has expected result")
   void categoryOptionEqualsTest(
       String name,
       String uid,
