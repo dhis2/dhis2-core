@@ -33,15 +33,12 @@ import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
-import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -87,20 +84,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.RelationshipItemMapper;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -109,7 +101,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.mapstruct.factory.Mappers;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -124,9 +115,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore {
-  private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
-      Mappers.getMapper(RelationshipItemMapper.class);
-
   private static final String RELATIONSHIP_IDS_QUERY =
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from"
           + " relationshipitem ri group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
@@ -255,10 +243,6 @@ class JdbcEventStore {
   private final UserService userService;
 
   private final IdentifiableObjectManager manager;
-
-  private final RelationshipStore relationshipStore;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   public List<Event> getEvents(EventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -478,31 +462,6 @@ class JdbcEventStore {
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
             }
-          }
-
-          // TODO(DHIS2-18883) move this into the relationship service/store
-          List<Relationship> relationships = relationshipStore.getById(relationshipIds);
-
-          Multimap<String, RelationshipItem> map = LinkedListMultimap.create();
-          for (Relationship relationship : relationships) {
-            if (!trackerAccessManager.canRead(getCurrentUserDetails(), relationship).isEmpty()) {
-              continue;
-            }
-
-            if (relationship.getFrom().getEvent() != null) {
-              map.put(
-                  relationship.getFrom().getEvent().getUid(),
-                  RELATIONSHIP_ITEM_MAPPER.map(relationship.getFrom()));
-            }
-            if (relationship.getTo().getEvent() != null) {
-              map.put(
-                  relationship.getTo().getEvent().getUid(),
-                  RELATIONSHIP_ITEM_MAPPER.map(relationship.getTo()));
-            }
-          }
-
-          if (!map.isEmpty()) {
-            events.forEach(e -> e.getRelationshipItems().addAll(map.get(e.getUid())));
           }
 
           return events;

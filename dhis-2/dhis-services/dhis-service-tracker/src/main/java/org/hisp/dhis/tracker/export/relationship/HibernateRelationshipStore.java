@@ -197,6 +197,43 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
   }
 
+  @Override
+  public List<RelationshipItem> getRelationshipItemsByTrackedEntity(UID trackedEntity) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.trackedEntity.uid = :trackedEntity
+                """;
+    return getQuery(hql, RelationshipItem.class)
+        .setParameter(TRACKED_ENTITY, trackedEntity.getValue())
+        .list();
+  }
+
+  @Override
+  public List<RelationshipItem> getRelationshipItemsByEnrollment(UID enrollment) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.enrollment.uid = :enrollment
+                """;
+    return getQuery(hql, RelationshipItem.class)
+        .setParameter(ENROLLMENT, enrollment.getValue())
+        .list();
+  }
+
+  @Override
+  public List<RelationshipItem> getRelationshipItemsByEvent(UID event) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.event.uid = :event
+                """;
+    return getQuery(hql, RelationshipItem.class).setParameter(EVENT, event.getValue()).list();
+  }
+
   /**
    * Query to extract relationships with the order by clause and pagination if required
    *
