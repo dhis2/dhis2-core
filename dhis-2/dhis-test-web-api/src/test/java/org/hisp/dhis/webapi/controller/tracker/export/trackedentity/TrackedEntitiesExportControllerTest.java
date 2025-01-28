@@ -220,7 +220,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
-    softDeletedTrackedEntity = createTrackedEntity(orgUnit);
+    softDeletedTrackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
     softDeletedTrackedEntity.setDeleted(true);
     manager.save(softDeletedTrackedEntity, false);
   }
@@ -345,6 +345,25 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
     Event to = r.getTo().getEvent();
+
+    JsonList<JsonRelationship> rels =
+        GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship relationship = assertFirstRelationship(r, rels);
+    assertTrackedEntityWithinRelationship(from, relationship.getFrom());
+    assertTrackedEntityWithinRelationship(to, relationship.getTo());
+  }
+
+  @Test
+  void getTrackedEntityByIdWithFieldsRelationshipsFromTEToEnrollment() {
+    TrackedEntity from = get(TrackedEntity.class, "guVNoAerxWo");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    Enrollment to = r.getTo().getEnrollment();
 
     JsonList<JsonRelationship> rels =
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
@@ -1076,8 +1095,7 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);
     return te;
@@ -1171,6 +1189,21 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     assertEquals(
         expected.getTrackedEntityAttributeValues().isEmpty(),
         jsonTe.getArray("attributes").isEmpty());
+  }
+
+  private void assertTrackedEntityWithinRelationship(
+      Enrollment expected, JsonRelationshipItem json) {
+    JsonRelationshipItem.JsonEnrollment jsonEnrollment = json.getEnrollment();
+    assertFalse(jsonEnrollment.isEmpty(), "enrollment should not be empty");
+    assertEquals(expected.getUid(), jsonEnrollment.getEnrollment());
+    assertHasMember(jsonEnrollment, "events");
+    assertHasNoMember(json, "trackedEntityType");
+    assertHasNoMember(json, "orgUnit");
+    assertHasNoMember(json, "relationships");
+    assertHasNoMember(jsonEnrollment, "relationships");
+    assertHasNoMember(jsonEnrollment.getEvents().get(0), "relationships"); // relationships are not
+    // returned within
+    // relationships
   }
 
   private void assertTrackedEntityWithinRelationship(Event expected, JsonRelationshipItem json) {

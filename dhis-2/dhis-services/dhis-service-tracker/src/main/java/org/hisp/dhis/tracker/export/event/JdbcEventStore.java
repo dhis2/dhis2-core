@@ -894,7 +894,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(", coc_agg.attributevalues as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
             .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ")
-            .append(addOrderFieldsToSelectClause(params.getOrder()));
+            .append(getOrderFieldsForSelectClause(params.getOrder()));
 
     return selectBuilder
         .append(
@@ -920,7 +920,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .toString();
   }
 
-  private String addOrderFieldsToSelectClause(List<Order> orders) {
+  private String getOrderFieldsForSelectClause(List<Order> orders) {
     StringBuilder selectBuilder = new StringBuilder();
 
     for (Order order : orders) {
@@ -1468,6 +1468,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             }
           }
         }
+      } else {
+        eventDataValuesWhereSql.append(hlp.whereAnd());
+        eventDataValuesWhereSql.append(" (ev.eventdatavalues ?? '");
+        eventDataValuesWhereSql.append(deUid);
+        eventDataValuesWhereSql.append("')");
       }
     }
 

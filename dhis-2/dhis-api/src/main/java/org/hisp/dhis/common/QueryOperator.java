@@ -63,6 +63,8 @@ public enum QueryOperator {
 
   private static final Set<QueryOperator> EQ_OPERATORS = EnumSet.of(EQ, NE, NEQ, IEQ, NIEQ);
 
+  private static final Set<QueryOperator> NE_OPERATORS = EnumSet.of(NE, NEQ, NIEQ);
+
   private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE);
 
   private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
@@ -95,6 +97,10 @@ public enum QueryOperator {
 
   public boolean isEqualTo() {
     return EQ_OPERATORS.contains(this);
+  }
+
+  public boolean isNotEqualTo() {
+    return NE_OPERATORS.contains(this);
   }
 
   public boolean isLike() {

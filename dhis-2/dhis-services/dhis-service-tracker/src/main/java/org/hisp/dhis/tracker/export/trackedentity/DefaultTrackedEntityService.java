@@ -68,7 +68,6 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.UserDetails;
@@ -440,8 +439,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       return null;
     }
 
-    RelationshipItem from = getRelationshipItem(trackedEntity, rel.getFrom(), includeDeleted);
-    RelationshipItem to = getRelationshipItem(trackedEntity, rel.getTo(), includeDeleted);
+    RelationshipItem from = getRelationshipItem(trackedEntity, rel.getFrom());
+    RelationshipItem to = getRelationshipItem(trackedEntity, rel.getTo());
     if (from == null || to == null) {
       return null;
     }
@@ -458,8 +457,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return to;
   }
 
-  private RelationshipItem getRelationshipItem(
-      TrackedEntity trackedEntity, RelationshipItem item, boolean includeDeleted)
+  private RelationshipItem getRelationshipItem(TrackedEntity trackedEntity, RelationshipItem item)
       throws NotFoundException {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
@@ -473,13 +471,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         result = getTrackedEntityInRelationshipItem(item.getTrackedEntity().getUid());
       }
     } else if (item.getEnrollment() != null) {
-      result =
-          enrollmentService.getEnrollmentInRelationshipItem(
-              UID.of(item.getEnrollment()), includeDeleted);
+      result = enrollmentService.getEnrollmentInRelationshipItem(UID.of(item.getEnrollment()));
     } else if (item.getEvent() != null) {
-      result =
-          eventService.getEventInRelationshipItem(
-              UID.of(item.getEvent()), EventParams.TRUE.withIncludeRelationships(false));
+      result = eventService.getEventInRelationshipItem(UID.of(item.getEvent()));
     }
 
     return result;
@@ -493,6 +487,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @return the TE object if found and accessible by the current user or null otherwise
    * @throws NotFoundException if uid does not exist
    */
+  // TODO(DHIS2-18883) Pass TrackedEntityParams as a parameter
   private RelationshipItem getTrackedEntityInRelationshipItem(String uid) throws NotFoundException {
     RelationshipItem relationshipItem = new RelationshipItem();
 

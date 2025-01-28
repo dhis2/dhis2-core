@@ -856,8 +856,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity result = createTrackedEntity(orgUnit);
-    result.setTrackedEntityType(trackedEntityType);
+    TrackedEntity result = createTrackedEntity(orgUnit, trackedEntityType);
     result.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     result.getSharing().setOwner(owner);
     return result;
