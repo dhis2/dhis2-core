@@ -2169,29 +2169,36 @@ public abstract class TestBase {
     return trackedEntityType;
   }
 
-  public static TrackedEntity createTrackedEntity(OrganisationUnit organisationUnit) {
+  public static TrackedEntity createTrackedEntity(
+      OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
   public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit) {
+      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
     trackedEntity.setUid(BASE_TE_UID + uniqueChar);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
   public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityAttribute attribute) {
+      char uniqueChar,
+      OrganisationUnit organisationUnit,
+      TrackedEntityAttribute attribute,
+      TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
     attributeValue.setAttribute(attribute);

@@ -220,7 +220,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
-    softDeletedTrackedEntity = createTrackedEntity(orgUnit);
+    softDeletedTrackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
     softDeletedTrackedEntity.setDeleted(true);
     manager.save(softDeletedTrackedEntity, false);
   }
@@ -1095,8 +1095,7 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);
     return te;
