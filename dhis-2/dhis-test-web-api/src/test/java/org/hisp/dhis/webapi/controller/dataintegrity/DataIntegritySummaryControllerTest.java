@@ -149,10 +149,10 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
     String content = response.content("text/plain");
     assertFalse(content.isEmpty(), "Response content should not be empty");
     assertTrue(
-        content.contains("# HELP dhis_data_integrity_check_count Data integrity check counts"),
+        content.contains("# HELP dhis_data_integrity_issues_count_total Data integrity check counts"),
         "Data integrity check help text is missing");
     assertTrue(
-        content.contains("# TYPE dhis_data_integrity_check_count gauge"),
+        content.contains("# TYPE dhis_data_integrity_issues_count_total gauge"),
         "Data integrity check type is missing");
     assertTrue(
         content.contains("dhis_data_integrity_check_count{check=\"categories_no_options\"}"),

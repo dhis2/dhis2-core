@@ -98,6 +98,29 @@ public class PrometheusTextBuilder {
   }
 
   /**
+   * Transform a Map<String, ?> into a Prometheus text format metric. This method allows for the
+   * specification of a label map, which will be used to generate the labels for the metric. Note
+   * that the key is assumed to be a string, and the value should be a complete value string which
+   * is capable of being imported into a Prometheus time series.
+   *
+   * @param map the map containing the metrics data
+   * @param metricName the name of the metric
+   * @param labelMap the map containing the labels
+   * @param help the help text for the metric
+   * @param type the type of the metric
+   */
+  public void updateMetricsWithLabelsMap(
+      Map<?, ?> map, String metricName, Map<String, String> labelMap, String help, String type) {
+    addHelp(metricName, help);
+    addType(metricName, type);
+    map.forEach(
+        (key, value) -> {
+          String thisLabel = labelMap.get(key);
+          metrics.append("%s{%s} %s%n".formatted(metricName, thisLabel, value));
+        });
+  }
+
+  /**
    * Returns the Prometheus metrics as a string.
    *
    * @return the metrics in Prometheus text format

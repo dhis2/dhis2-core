@@ -173,32 +173,50 @@ public class DataIntegrityController {
     Map<String, Integer> countMetrics = new HashMap<>();
     Map<String, Double> percentMetrics = new HashMap<>();
     Map<String, Long> durationMetrics = new HashMap<>();
+    Map<String, String> metricLabels = new HashMap<>();
+
+    Collection<DataIntegrityCheck> checks = dataIntegrityService.getDataIntegrityChecks(Set.of());
 
     summaries.forEach(
         (key, summary) -> {
-          countMetrics.put(key, summary.getCount());
-          // Percentage might not be present
-          if (summary.getPercentage() != null) {
-            percentMetrics.put(key, summary.getPercentage());
+          DataIntegrityCheck check =
+              checks.stream().filter(c -> c.getName().equals(key)).findFirst().orElse(null);
+          if (check != null) {
+            String severity = check.getSeverity().name();
+            String objectType = check.getIssuesIdType();
+            StringBuilder metricLabel = new StringBuilder();
+            metricLabel.append(
+                "check=\"%s\",severity=\"%s\",object_type=\"%s\"".formatted(key, severity, objectType));
+            countMetrics.put(key, summary.getCount());
+            metricLabels.put(key, metricLabel.toString());
+            // Percentage might not be present
+            if (summary.getPercentage() != null) {
+              percentMetrics.put(key, summary.getPercentage());
+            }
+            long duration = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
+            durationMetrics.put(key, duration);
           }
-          long duration = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
-          durationMetrics.put(key, duration);
         });
+    metrics.updateMetricsWithLabelsMap(
+        countMetrics,
+        "dhis_data_integrity_issues_count_total",
+        metricLabels,
+        "Data integrity check counts",
+        "gauge");
 
-    metrics.addMetrics(
-        countMetrics, "dhis_data_integrity_check_count", "check", "Data integrity check counts");
-
-    metrics.addMetrics(
+    metrics.updateMetricsWithLabelsMap(
         percentMetrics,
-        "dhis_data_integrity_check_percentage",
-        "check",
-        "Data integrity check percentages");
+        "dhis_data_integrity_issues_percentage",
+        metricLabels,
+        "Data integrity check percentages",
+        "gauge");
 
-    metrics.addMetrics(
+    metrics.updateMetricsWithLabelsMap(
         durationMetrics,
-        "dhis_data_integrity_check_duration",
-        "check",
-        "Data integrity check durations");
+        "dhis_data_integrity_check_duration_milliseconds",
+        metricLabels,
+        "Data integrity check durations",
+        "gauge");
 
     return metrics.getMetrics();
   }
