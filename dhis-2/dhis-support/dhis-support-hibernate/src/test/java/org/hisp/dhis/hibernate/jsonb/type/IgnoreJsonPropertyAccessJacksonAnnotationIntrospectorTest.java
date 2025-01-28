@@ -27,21 +27,37 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
 
-/** Deserialise write only properties since they may need to be read internally. */
-public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospector
-    extends JacksonAnnotationIntrospector {
+public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
 
-  @Override
-  public JsonProperty.Access findPropertyAccess(Annotated m) {
-    JsonProperty.Access propertyAccess = super.findPropertyAccess(m);
-    if (propertyAccess != null && propertyAccess.equals(JsonProperty.Access.WRITE_ONLY)) {
-      return null;
-    } else {
-      return propertyAccess;
-    }
+  public static class ClassUnderTest {
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public String writeOnlyProperty;
+
+    @JsonProperty public String readAndWriteProperty;
+  }
+
+  @Test
+  public void testFindPropertyAccess() throws JsonProcessingException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setAnnotationIntrospector(
+        new IgnoreJsonPropertyAccessJacksonAnnotationIntrospector());
+
+    ClassUnderTest classUnderTest = new ClassUnderTest();
+    classUnderTest.writeOnlyProperty = "Foo";
+    classUnderTest.readAndWriteProperty = "Bar";
+
+    String json = objectMapper.writeValueAsString(classUnderTest);
+
+    assertEquals("{\"writeOnlyProperty\":\"Foo\",\"readAndWriteProperty\":\"Bar\"}", json);
+    assertEquals("Foo", objectMapper.readValue(json, ClassUnderTest.class).writeOnlyProperty);
+    assertEquals("Bar", objectMapper.readValue(json, ClassUnderTest.class).readAndWriteProperty);
   }
 }
