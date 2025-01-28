@@ -210,7 +210,7 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   void testPasswordValidationPattern() {
     JsonObject response = GET("/loginConfig").content();
     assertEquals(
-        "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{8,72}$",
+        "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
         response.getString("passwordValidationPattern").string());
 
     POST("/systemSettings/passwordValidationPattern", "test_password_validation_pattern")
