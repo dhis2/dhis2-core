@@ -31,56 +31,45 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOption;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
-
-  @Autowired private CategoryService categoryService;
-
-  @BeforeEach
-  void setUp() {
-    CategoryOption catOptA = createCategoryOption('A');
-    CategoryOption catOptB = createCategoryOption('B');
-    CategoryOption catOptC = createCategoryOption('C');
-    categoryService.addCategoryOption(catOptA);
-    categoryService.addCategoryOption(catOptB);
-    categoryService.addCategoryOption(catOptC);
-  }
 
   @Test
   @DisplayName(
       "Default CategoryOption should be present in payload when defaults are INCLUDE by default")
   void getAllCatOptionsIncludingDefaultsTest() {
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("dco1");
     JsonArray categoryOptions =
         GET("/categoryOptions").content(HttpStatus.OK).getArray("categoryOptions");
 
+    Set<String> coNames = new HashSet<>(categoryMetadata.getCoNames());
+    coNames.add("default");
     assertTrue(
-        Set.of("CategoryOptionA", "CategoryOptionB", "CategoryOptionC", "default")
-            .containsAll(
-                categoryOptions.stream()
-                    .map(jco -> jco.as(JsonCategoryOption.class))
-                    .map(JsonIdentifiableObject::getDisplayName)
-                    .collect(Collectors.toSet())),
+        coNames.containsAll(
+            categoryOptions.stream()
+                .map(jco -> jco.as(JsonCategoryOption.class))
+                .map(JsonIdentifiableObject::getDisplayName)
+                .collect(Collectors.toSet())),
         "Returned catOptions include custom catOptions and default catOption");
   }
 
   @Test
   @DisplayName("Default CategoryOption should not be present in payload when EXCLUDE defaults")
   void catOptionsExcludingDefaultTest() {
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("dco2");
     JsonArray categoryOptions =
         GET("/categoryOptions?defaults=EXCLUDE").content(HttpStatus.OK).getArray("categoryOptions");
 
@@ -91,7 +80,7 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
             .collect(Collectors.toSet());
 
     assertTrue(
-        Set.of("CategoryOptionA", "CategoryOptionB", "CategoryOptionC").containsAll(catOptions),
+        categoryMetadata.getCoNames().containsAll(catOptions),
         "Returned catOptions include custom catOptions only");
 
     assertFalse(catOptions.contains("default"), "default catOption was not in payload");
