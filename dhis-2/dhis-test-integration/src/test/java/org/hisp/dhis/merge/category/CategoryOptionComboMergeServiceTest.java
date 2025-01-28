@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.audit.AuditOperationType;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOption;
@@ -48,7 +47,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -93,6 +91,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -133,11 +133,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private EventStore eventStore;
 
-  private CategoryCombo cc1;
+  private TestCategoryMetadata categoryMetadata;
   private CategoryOptionCombo cocSource1;
   private CategoryOptionCombo cocSource2;
   private CategoryOptionCombo cocTarget;
   private CategoryOptionCombo cocRandom;
+  private static int catCounter;
   private OrganisationUnit ou1;
   private OrganisationUnit ou2;
   private OrganisationUnit ou3;
@@ -151,46 +152,11 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void setUp() {
-    // 8 category options
-    CategoryOption co1A = createCategoryOption("1A", CodeGenerator.generateUid());
-    CategoryOption co1B = createCategoryOption("1B", CodeGenerator.generateUid());
-    CategoryOption co2A = createCategoryOption("2A", CodeGenerator.generateUid());
-    CategoryOption co2B = createCategoryOption("2B", CodeGenerator.generateUid());
-    CategoryOption co3A = createCategoryOption("3A", CodeGenerator.generateUid());
-    CategoryOption co3B = createCategoryOption("3B", CodeGenerator.generateUid());
-    CategoryOption co4A = createCategoryOption("4A", CodeGenerator.generateUid());
-    CategoryOption co4B = createCategoryOption("4B", CodeGenerator.generateUid());
-    categoryService.addCategoryOption(co1A);
-    categoryService.addCategoryOption(co1B);
-    categoryService.addCategoryOption(co2A);
-    categoryService.addCategoryOption(co2B);
-    categoryService.addCategoryOption(co3A);
-    categoryService.addCategoryOption(co3B);
-    categoryService.addCategoryOption(co4A);
-    categoryService.addCategoryOption(co4B);
-
-    // 4 categories (each with 2 category options)
-    Category cat1 = createCategory('1', co1A, co1B);
-    Category cat2 = createCategory('2', co2A, co2B);
-    Category cat3 = createCategory('3', co3A, co3B);
-    Category cat4 = createCategory('4', co4A, co4B);
-    categoryService.addCategory(cat1);
-    categoryService.addCategory(cat2);
-    categoryService.addCategory(cat3);
-    categoryService.addCategory(cat4);
-
-    cc1 = createCategoryCombo('1', cat1, cat2);
-    CategoryCombo cc2 = createCategoryCombo('2', cat3, cat4);
-    categoryService.addCategoryCombo(cc1);
-    categoryService.addCategoryCombo(cc2);
-
-    categoryService.generateOptionCombos(cc1);
-    categoryService.generateOptionCombos(cc2);
-
-    cocSource1 = getCocWithOptions("1A", "2A");
-    cocSource2 = getCocWithOptions("1B", "2B");
-    cocTarget = getCocWithOptions("3A", "4B");
-    cocRandom = getCocWithOptions("3B", "4A");
+    categoryMetadata = TestBase.setupCategoryMetadata("cocm " + ++catCounter);
+    cocSource1 = categoryMetadata.coc1();
+    cocSource2 = categoryMetadata.coc2();
+    cocTarget = categoryMetadata.coc3();
+    cocRandom = categoryMetadata.coc4();
 
     ou1 = createOrganisationUnit('A');
     ou2 = createOrganisationUnit('B');
@@ -231,8 +197,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(9, allCategoryOptions.size(), "9 COs including 1 default");
 
     List<CategoryOption> coSourcesBefore =
-        categoryOptionStore.getByCategoryOptionCombo(
-            List.of(UID.of(cocSource1.getUid()), UID.of(cocSource2.getUid())));
+        categoryOptionStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
     List<CategoryOption> coTargetBefore =
         categoryOptionStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget.getUid())));
 
@@ -251,8 +216,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<CategoryOption> coSourcesAfter =
-        categoryOptionStore.getByCategoryOptionCombo(
-            List.of(UID.of(cocSource1), UID.of(cocSource2)));
+        categoryOptionStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
     List<CategoryOption> coTargetAfter =
         categoryOptionStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget)));
 
@@ -312,7 +276,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         categoryComboStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
     List<CategoryCombo> ccTargetAfter =
         categoryComboStore.getByCategoryOptionCombo(Set.of(UID.of(cocTarget)));
-    CategoryCombo catCombo1 = categoryComboStore.getByUid(cc1.getUid());
+    CategoryCombo catCombo1 = categoryComboStore.getByUid(categoryMetadata.cc1().getUid());
 
     assertFalse(report.hasErrorMessages());
     assertEquals(
@@ -888,7 +852,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw = new DataApprovalWorkflow();
     daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw.setName("DAW");
-    daw.setCategoryCombo(cc1);
+    daw.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw);
 
     DataApprovalAudit daa1 = createDataApprovalAudit(cocSource1, level1, daw, p1);
@@ -938,7 +902,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw = new DataApprovalWorkflow();
     daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw.setName("DAW");
-    daw.setCategoryCombo(cc1);
+    daw.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw);
 
     DataApprovalAudit daa1 = createDataApprovalAudit(cocSource1, dataApprovalLevel, daw, p1);
@@ -998,13 +962,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
     daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw1.setName("DAW1");
-    daw1.setCategoryCombo(cc1);
+    daw1.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw1);
 
     DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
     daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw2.setName("DAW2");
-    daw2.setCategoryCombo(cc1);
+    daw2.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw2);
 
     DataApproval da1 = createDataApproval(cocSource1, level1, daw1, p1, ou1);
@@ -1068,13 +1032,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
     daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw1.setName("DAW1");
-    daw1.setCategoryCombo(cc1);
+    daw1.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw1);
 
     DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
     daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw2.setName("DAW2");
-    daw2.setCategoryCombo(cc1);
+    daw2.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw2);
 
     DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
@@ -1158,13 +1122,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
     daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw1.setName("DAW1");
-    daw1.setCategoryCombo(cc1);
+    daw1.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw1);
 
     DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
     daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw2.setName("DAW2");
-    daw2.setCategoryCombo(cc1);
+    daw2.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw2);
 
     DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
@@ -1248,13 +1212,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
     daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw1.setName("DAW1");
-    daw1.setCategoryCombo(cc1);
+    daw1.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw1);
 
     DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
     daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw2.setName("DAW2");
-    daw2.setCategoryCombo(cc1);
+    daw2.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw2);
 
     DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);
@@ -1338,13 +1302,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataApprovalWorkflow daw1 = new DataApprovalWorkflow();
     daw1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw1.setName("DAW1");
-    daw1.setCategoryCombo(cc1);
+    daw1.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw1);
 
     DataApprovalWorkflow daw2 = new DataApprovalWorkflow();
     daw2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     daw2.setName("DAW2");
-    daw2.setCategoryCombo(cc1);
+    daw2.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw2);
 
     DataApproval da1a = createDataApproval(cocSource1, level1, daw1, p1, ou1);

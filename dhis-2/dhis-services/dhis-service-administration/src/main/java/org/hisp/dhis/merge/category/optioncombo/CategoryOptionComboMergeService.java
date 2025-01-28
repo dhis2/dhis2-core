@@ -73,6 +73,15 @@ public class CategoryOptionComboMergeService implements MergeService {
     if (params.getDataMergeStrategy() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
     }
+
+    // only allow merge if COCs are duplicate
+    List<CategoryOptionCombo> sources =
+        categoryService.getCategoryOptionCombosByUid(request.getSources());
+    CategoryOptionCombo target =
+        categoryService.getCategoryOptionCombo(request.getTarget().getValue());
+    if (!sources.stream().allMatch(coc -> coc.equals(target))) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
+    }
     return request;
   }
 
