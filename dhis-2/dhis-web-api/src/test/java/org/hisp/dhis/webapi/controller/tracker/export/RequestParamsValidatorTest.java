@@ -413,7 +413,7 @@ class RequestParamsValidatorTest {
             BadRequestException.class,
             () -> parseDataElementFilters(DE_1_UID + ":ex:true," + DE_1_UID + ":gt:true"));
     assertContains(
-        "A data element UID combined with the operator 'EX' cannot be used more than once in the same filter",
+        "A data element UID filtering with the operator 'EX' cannot be combined with additional filter criteria",
         exception.getMessage());
   }
 

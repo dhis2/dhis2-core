@@ -425,7 +425,7 @@ public class RequestParamsValidator {
       if (hasExistenceOperator
           || (operator.equalsIgnoreCase(QueryOperator.EX.name()) && result.containsKey(uid))) {
         throw new BadRequestException(
-            "A data element UID combined with the operator 'EX' cannot be used more than once in the same filter: "
+            "A data element UID filtering with the operator 'EX' cannot be combined with additional filter criteria: "
                 + input);
       }
 
