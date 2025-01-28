@@ -29,11 +29,12 @@ package org.hisp.dhis.dxf2.adx;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author bobj
@@ -84,10 +85,11 @@ public interface AdxDataService {
    *
    * @param in the InputStream.
    * @param importOptions the importOptions.
-   * @param id the task id, can be null.
+   * @param progress to track progress
    * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
    */
-  ImportSummary saveDataValueSet(InputStream in, ImportOptions importOptions, JobConfiguration id);
+  ImportSummary saveDataValueSet(
+      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress);
 
   /**
    * Get data. Writes adx export data to output stream.
