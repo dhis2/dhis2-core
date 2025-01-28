@@ -146,16 +146,16 @@ class CategoryOptionTest {
   }
 
   private static Stream<Arguments> categoryOptionEqualsParams() {
-    boolean IS_EQUAL = true;
-    boolean IS_NOT_EQUAL = false;
+    boolean isEqual = true;
+    boolean isNotEqual = false;
 
     return Stream.of(
-        Arguments.of("name", "uid", "code", "shortName", "description", null, IS_EQUAL),
-        Arguments.of("name", "uid", "code", "shortName", "description diff", null, IS_NOT_EQUAL),
-        Arguments.of("name", "uid", "code", "shortName diff", "description", null, IS_NOT_EQUAL),
-        Arguments.of("name", "uid", "code diff", "shortName", "description", null, IS_NOT_EQUAL),
-        Arguments.of("name", "uid diff", "code", "shortName", "description", null, IS_NOT_EQUAL),
-        Arguments.of("name diff", "uid", "code", "shortName", "description", null, IS_NOT_EQUAL),
+        Arguments.of("name", "uid", "code", "shortName", "description", null, isEqual),
+        Arguments.of("name", "uid", "code", "shortName", "description diff", null, isNotEqual),
+        Arguments.of("name", "uid", "code", "shortName diff", "description", null, isNotEqual),
+        Arguments.of("name", "uid", "code diff", "shortName", "description", null, isNotEqual),
+        Arguments.of("name", "uid diff", "code", "shortName", "description", null, isNotEqual),
+        Arguments.of("name diff", "uid", "code", "shortName", "description", null, isNotEqual),
         Arguments.of(
             "name",
             "uid",
