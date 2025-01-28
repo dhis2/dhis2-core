@@ -188,7 +188,7 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbAuth">
-    <param name="clazz">org.hisp.dhis.common.auth.Auth</param>
+    <param name="clazz">org.hisp.dhis.common.auth.AuthScheme</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblEventHookSource">

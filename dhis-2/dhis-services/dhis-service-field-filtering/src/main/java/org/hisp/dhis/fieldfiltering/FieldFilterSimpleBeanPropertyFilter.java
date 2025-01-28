@@ -43,8 +43,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -73,8 +73,8 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
    */
   private static final Map<Class<?>, Set<String>> IGNORE_LIST =
       Map.of(
-          HttpBasicAuth.class, Set.of("auth.password", "targets.auth.password"),
-          ApiTokenAuth.class, Set.of("auth.token", "targets.auth.token"),
+          HttpBasicAuthScheme.class, Set.of("auth.password", "targets.auth.password"),
+          ApiTokenAuthScheme.class, Set.of("auth.token", "targets.auth.token"),
           JmsTarget.class, Set.of("targets.password"),
           KafkaTarget.class, Set.of("targets.password"));
 

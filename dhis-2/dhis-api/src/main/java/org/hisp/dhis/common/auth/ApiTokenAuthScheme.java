@@ -25,69 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.route;
+package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.auth.AuthScheme;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 /**
+ * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
+ * access token, but can be used anywhere the format is accepted.
+ *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class Route extends BaseIdentifiableObject implements MetadataObject {
-  public static final String PATH_WILDCARD_SUFFIX = "/**";
-
-  @JsonProperty private String description;
+public class ApiTokenAuthScheme extends AuthScheme {
+  public static final String API_TOKEN_TYPE = "api-token";
 
   @JsonProperty(required = true)
-  private boolean disabled;
+  private String token;
 
-  @JsonProperty(required = true)
-  private String url;
-
-  @JsonProperty(required = true)
-  private Map<String, String> headers = new HashMap<>();
-
-  /** Optional. Authentication to be passed as part of the route request. */
-  @JsonProperty private AuthScheme auth;
-
-  /** Optional. Required authorities for invoking the route. */
-  @JsonProperty private List<String> authorities = new ArrayList<>();
-
-  /**
-   * If the route url ends with /** return true. Otherwise return false.
-   *
-   * @return true if the route is configured to allow subpaths
-   */
-  public boolean allowsSubpaths() {
-    return url.endsWith(PATH_WILDCARD_SUFFIX);
+  public ApiTokenAuthScheme() {
+    super(API_TOKEN_TYPE);
   }
 
-  /**
-   * If this route supports sub-paths, return the base URL without the /** path wildcard suffix but
-   * including the trailing slash. For example, if the url is configured as https://google.com/**,
-   * return https://google.com/. If the route does not support sub-paths, return the full configured
-   * url.
-   *
-   * @return the base url String
-   */
-  public String getBaseUrl() {
-    if (allowsSubpaths()) {
-      return url.substring(0, url.length() - PATH_WILDCARD_SUFFIX.length()) + "/";
+  @Override
+  public void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+    if (!StringUtils.hasText(token)) {
+      return;
     }
-    return url;
+
+    headers.set("Authorization", "ApiToken " + token);
+  }
+
+  @Override
+  public ApiTokenAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    return copy(encryptFunc.apply(token));
+  }
+
+  @Override
+  public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    return copy(decryptFunc.apply(token));
+  }
+
+  protected ApiTokenAuthScheme copy(String token) {
+    ApiTokenAuthScheme newApiTokenAuth = new ApiTokenAuthScheme();
+    newApiTokenAuth.setToken(token);
+
+    return newApiTokenAuth;
   }
 }

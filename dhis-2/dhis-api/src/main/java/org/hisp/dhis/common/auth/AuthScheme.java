@@ -25,69 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.route;
+package org.hisp.dhis.common.auth;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.Serializable;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.auth.AuthScheme;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 @Accessors(chain = true)
-public class Route extends BaseIdentifiableObject implements MetadataObject {
-  public static final String PATH_WILDCARD_SUFFIX = "/**";
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = "http-basic"),
+  @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = "api-token"),
+  @JsonSubTypes.Type(value = ApiHeadersAuthScheme.class, name = "api-headers"),
+  @JsonSubTypes.Type(value = ApiQueryParamsAuthScheme.class, name = "api-query-params")
+})
+public abstract class AuthScheme implements Serializable {
+  @JsonProperty protected final String type;
 
-  @JsonProperty private String description;
-
-  @JsonProperty(required = true)
-  private boolean disabled;
-
-  @JsonProperty(required = true)
-  private String url;
-
-  @JsonProperty(required = true)
-  private Map<String, String> headers = new HashMap<>();
-
-  /** Optional. Authentication to be passed as part of the route request. */
-  @JsonProperty private AuthScheme auth;
-
-  /** Optional. Required authorities for invoking the route. */
-  @JsonProperty private List<String> authorities = new ArrayList<>();
-
-  /**
-   * If the route url ends with /** return true. Otherwise return false.
-   *
-   * @return true if the route is configured to allow subpaths
-   */
-  public boolean allowsSubpaths() {
-    return url.endsWith(PATH_WILDCARD_SUFFIX);
+  @JsonCreator
+  protected AuthScheme(@JsonProperty("type") String type) {
+    this.type = type;
   }
 
-  /**
-   * If this route supports sub-paths, return the base URL without the /** path wildcard suffix but
-   * including the trailing slash. For example, if the url is configured as https://google.com/**,
-   * return https://google.com/. If the route does not support sub-paths, return the full configured
-   * url.
-   *
-   * @return the base url String
-   */
-  public String getBaseUrl() {
-    if (allowsSubpaths()) {
-      return url.substring(0, url.length() - PATH_WILDCARD_SUFFIX.length()) + "/";
-    }
-    return url;
-  }
+  public abstract void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams);
+
+  public abstract AuthScheme encrypt(UnaryOperator<String> encryptFunc);
+
+  public abstract AuthScheme decrypt(UnaryOperator<String> decryptFunc);
 }
