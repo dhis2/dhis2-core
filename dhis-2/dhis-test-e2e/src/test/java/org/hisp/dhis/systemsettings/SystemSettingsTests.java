@@ -338,4 +338,16 @@ class SystemSettingsTests extends ApiTest {
         .statusCode(200)
         .body("keyGoogleMapsApiKey", emptyString());
   }
+
+  @Test
+  @DisplayName("Tests the password validation pattern is properly returned with default values")
+  void getPasswordValidationPattern() {
+    systemSettingActions
+        .get("passwordValidationPattern")
+        .validate()
+        .statusCode(200)
+        .body(
+            "passwordValidationPattern",
+            containsString("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{8,72}$"));
+  }
 }
