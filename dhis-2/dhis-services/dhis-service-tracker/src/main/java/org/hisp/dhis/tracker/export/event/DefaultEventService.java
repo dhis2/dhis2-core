@@ -40,6 +40,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -120,7 +122,8 @@ class DefaultEventService implements EventService {
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .eventParams(EventParams.FALSE)
-              .dataElementFilters(Map.of(dataElementUid, List.of()))
+              .dataElementFilters(
+                  Map.of(dataElementUid, List.of(new QueryFilter(QueryOperator.EX, "true"))))
               .build();
       events = getEvents(operationParams, new PageParams(1, 1, false));
     } catch (BadRequestException e) {

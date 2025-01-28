@@ -51,6 +51,7 @@ public enum QueryOperator {
   IN("in", true),
   SW("sw"),
   EW("ew"),
+  EX("??"),
   // Analytics specifics
   IEQ("==", true),
   NE("!=", true),
