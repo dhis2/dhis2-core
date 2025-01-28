@@ -30,6 +30,8 @@ package org.hisp.dhis.category;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.stream.Stream;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -38,7 +40,11 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link CategoryOption}.
@@ -112,5 +118,62 @@ class CategoryOptionTest {
     program.setOpenDaysAfterCoEndDate(3);
     assertEquals(
         new DateTime(2020, 1, 4, 0, 0).toDate(), categoryOption.getAdjustedEndDate(program));
+  }
+
+  @ParameterizedTest
+  @MethodSource("categoryOptionEqualsParams")
+  @DisplayName("CategoryOptions are equal when all properties are equal")
+  void categoryOptionEqualsTest(
+      String name,
+      String uid,
+      String code,
+      String shortName,
+      String description,
+      QueryModifiers queryModifiers,
+      boolean expectedResult) {
+    CategoryOption coParams = new CategoryOption();
+    coParams.setName(name);
+    coParams.setUid(uid);
+    coParams.setCode(code);
+    coParams.setShortName(shortName);
+    coParams.setDescription(description);
+    coParams.setQueryMods(queryModifiers);
+
+    assertEquals(
+        expectedResult,
+        getCategoryOption().equals(coParams),
+        "Category Option equals check has expected result");
+  }
+
+  private static Stream<Arguments> categoryOptionEqualsParams() {
+    boolean IS_EQUAL = true;
+    boolean IS_NOT_EQUAL = false;
+
+    return Stream.of(
+        Arguments.of("name", "uid", "code", "shortName", "description", null, IS_EQUAL),
+        Arguments.of("name", "uid", "code", "shortName", "description diff", null, IS_NOT_EQUAL),
+        Arguments.of("name", "uid", "code", "shortName diff", "description", null, IS_NOT_EQUAL),
+        Arguments.of("name", "uid", "code diff", "shortName", "description", null, IS_NOT_EQUAL),
+        Arguments.of("name", "uid diff", "code", "shortName", "description", null, IS_NOT_EQUAL),
+        Arguments.of("name diff", "uid", "code", "shortName", "description", null, IS_NOT_EQUAL),
+        Arguments.of(
+            "name",
+            "uid",
+            "code",
+            "shortName",
+            "description",
+            QueryModifiers.builder().build(),
+            false));
+  }
+
+  private CategoryOption getCategoryOption() {
+    CategoryOption co = new CategoryOption();
+    co.setName("name");
+    co.setUid("uid");
+    co.setCode("code");
+    co.setShortName("shortName");
+    co.setDescription("description");
+    co.setQueryMods(null);
+    return co;
   }
 }
