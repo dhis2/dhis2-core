@@ -57,7 +57,8 @@ public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
     String json = objectMapper.writeValueAsString(classUnderTest);
 
     assertEquals("{\"writeOnlyProperty\":\"Foo\",\"readAndWriteProperty\":\"Bar\"}", json);
-    assertEquals("Foo", objectMapper.readValue(json, ClassUnderTest.class).writeOnlyProperty);
-    assertEquals("Bar", objectMapper.readValue(json, ClassUnderTest.class).readAndWriteProperty);
+    ClassUnderTest newClassUnderTest = objectMapper.readValue(json, ClassUnderTest.class);
+    assertEquals("Foo", newClassUnderTest.writeOnlyProperty);
+    assertEquals("Bar", newClassUnderTest.readAndWriteProperty);
   }
 }
