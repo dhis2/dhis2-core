@@ -52,7 +52,7 @@ public class NoteRowCallbackHandler extends AbstractMapper<Note> {
     note.setNote(rs.getString("uid"));
     note.setValue(rs.getString("commenttext"));
     note.setStoredBy(rs.getString("creator"));
-    note.setStoredDate(DateUtils.getIso8601NoTz(rs.getDate("created")));
+    note.setStoredDate(DateUtils.getIso8601NoTz(rs.getTimestamp("created")));
 
     return note;
   }

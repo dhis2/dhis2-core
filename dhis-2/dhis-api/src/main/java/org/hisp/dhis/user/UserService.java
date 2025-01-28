@@ -613,4 +613,11 @@ public interface UserService {
    * @param activeUsername the username of the user to set as active
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
+
+  /**
+   * Invalidate all sessions for the given user.
+   *
+   * @param userUid the user uid of the user account.
+   */
+  void invalidateUserSessions(String userUid);
 }

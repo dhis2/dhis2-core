@@ -116,7 +116,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.1.RELEASE</lettuce.version>
+    <lettuce.version>6.5.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -125,7 +125,7 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.10.1</c3p0.version>
     <HikariCP.version>6.2.1</HikariCP.version>
-    <postgresql-driver.version>42.7.4</postgresql-driver.version>
+    <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
 
@@ -158,7 +158,7 @@
     <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.3.0</poi.version>
+    <poi.version>5.4.0</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
@@ -170,7 +170,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.38.0</artemis.version>
-    <netty-all.version>4.1.116.Final</netty-all.version>
+    <netty-all.version>4.1.117.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -187,7 +187,7 @@
     <guava.version>33.4.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.7.1</google-api-client.version>
+    <google-api-client.version>2.7.2</google-api-client.version>
     <lombok.version>1.18.36</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.13.0</joda-time.version>
@@ -200,7 +200,7 @@
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.18.0</commons-io.version>
-    <commons-codec.version>1.17.2</commons-codec.version>
+    <commons-codec.version>1.18.0</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
@@ -224,7 +224,7 @@
     <testcontainers.version>1.20.4</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
-    <swagger.version>2.1.24</swagger.version>
+    <swagger.version>2.1.25</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
@@ -242,9 +242,9 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>11.1.1</dependency-check-maven.version>
+    <dependency-check-maven.version>12.0.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.1</spotless.version>
+    <spotless.version>2.44.2</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
@@ -1960,7 +1960,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.6</version>
+              <version>4.9.0</version>
             </dependency>
           </dependencies>
         </plugin>

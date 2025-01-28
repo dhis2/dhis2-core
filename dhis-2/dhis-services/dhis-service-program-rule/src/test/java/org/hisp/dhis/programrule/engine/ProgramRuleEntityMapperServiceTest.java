@@ -109,6 +109,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
   private ProgramRule programRuleD = null;
 
+  private ProgramRuleAction hideOption = null;
   private ProgramRuleAction assignAction = null;
 
   private ProgramRuleAction sendMessageAction = null;
@@ -427,6 +428,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     assignAction = createProgramRuleAction('I');
     sendMessageAction = createProgramRuleAction('J');
+    hideOption = createProgramRuleAction('K');
     displayText = createProgramRuleAction('D');
 
     assignAction =
@@ -437,8 +439,13 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     sendMessageAction =
         setProgramRuleAction(sendMessageAction, ProgramRuleActionType.SENDMESSAGE, null, null);
 
+    hideOption =
+        setProgramRuleAction(hideOption, ProgramRuleActionType.HIDEOPTION, "content", null);
+
     programRuleA = setProgramRule(programRuleA, "", Sets.newHashSet(assignAction, displayText), 1);
-    programRuleB = setProgramRule(programRuleB, "", Sets.newHashSet(sendMessageAction), 4);
+    programRuleB =
+        setProgramRule(
+            programRuleB, "", Sets.newHashSet(sendMessageAction, displayText, hideOption), 4);
     programRuleD = setProgramRule(programRuleD, "", Sets.newHashSet(sendMessageAction), null);
 
     programRules.add(programRuleA);
@@ -529,6 +536,15 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
       ProgramNotificationTemplate notificationTemplate = new ProgramNotificationTemplate();
       notificationTemplate.setUid("uid0");
       programRuleActionA.setTemplateUid(notificationTemplate.getUid());
+    }
+
+    if (type == ProgramRuleActionType.HIDEOPTION) {
+      Option option = createOption('O');
+      TrackedEntityAttribute tea = createTrackedEntityAttribute('A');
+
+      programRuleActionA.setOption(option);
+      programRuleActionA.setAttribute(tea);
+      programRuleActionA.setContent(content);
     }
 
     return programRuleActionA;
