@@ -36,9 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,9 +50,7 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,13 +67,9 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   private static final UID EV_UID = UID.of("TvjwTPToKHO");
 
-  @Mock private TrackedEntityService trackedEntityService;
+  @Mock private RelationshipStore relationshipStore;
 
-  @Mock private EnrollmentService enrollmentService;
-
-  @Mock private EventService eventService;
-
-  @Mock private TrackerAccessManager accessManager;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;
 
@@ -97,12 +91,13 @@ class RelationshipOperationParamsMapperTest extends TestBase {
     enrollment.setUid(EN_UID.getValue());
     event = createEvent(programStage, enrollment, organisationUnit);
     event.setUid(EV_UID.getValue());
+    injectSecurityContextNoSettings(new SystemUser());
   }
 
   @Test
   void shouldMapTrackedEntityWhenATrackedEntityIsPassed()
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
+      throws NotFoundException, ForbiddenException {
+    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
 
@@ -113,9 +108,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapEnrollmentWhenAEnrollmentIsPassed()
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
+  void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
+    when(relationshipStore.findEnrollment(EN_UID)).thenReturn(Optional.of(enrollment));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
 
@@ -126,9 +120,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapEventWhenAEventIsPassed()
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    when(eventService.getEvent(EV_UID)).thenReturn(event);
+  void shouldMapEventWhenAEventIsPassed() throws NotFoundException, ForbiddenException {
+    when(relationshipStore.findEvent(EV_UID)).thenReturn(Optional.of(event));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
 
@@ -139,9 +132,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapOrderInGivenOrder()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
+  void shouldMapOrderInGivenOrder() throws ForbiddenException, NotFoundException {
+    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
@@ -157,8 +149,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
+      throws ForbiddenException, NotFoundException {
+    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
