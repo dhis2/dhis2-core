@@ -29,8 +29,6 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,6 +50,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.util.Timeout;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
@@ -80,8 +79,6 @@ public class RouteService {
   private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
 
   private final RouteStore routeStore;
-
-  private final ObjectMapper objectMapper;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
@@ -165,12 +162,7 @@ public class RouteService {
       return null;
     }
 
-    try {
-      route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Unable to create copy of route: '{}'", route.getUid());
-      return null;
-    }
+    route = Hibernate.unproxy(route, Route.class);
 
     if (route.getAuth() != null) {
       route.setAuth(route.getAuth().decrypt(encryptor::decrypt));

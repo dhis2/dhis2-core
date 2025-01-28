@@ -46,7 +46,7 @@ import org.springframework.util.MultiValueMap;
 public class ApiHeadersAuthScheme extends AuthScheme {
   public static final String API_HEADERS_TYPE = "api-headers";
 
-  @JsonProperty(required = true)
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
   private Map<String, String> headers = new HashMap<>();
 
   public ApiHeadersAuthScheme() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,61 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.auth;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.function.UnaryOperator;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
-/**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
- * access token, but can be used anywhere the format is accepted.
- *
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class ApiTokenAuthScheme extends AuthScheme {
-  public static final String API_TOKEN_TYPE = "api-token";
-
-  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
-  private String token;
-
-  public ApiTokenAuthScheme() {
-    super(API_TOKEN_TYPE);
-  }
+/** Deserialise write only properties since they may need to be read internally. */
+public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospector
+    extends JacksonAnnotationIntrospector {
 
   @Override
-  public void apply(
-      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
-    if (!StringUtils.hasText(token)) {
-      return;
-    }
-
-    headers.set("Authorization", "ApiToken " + token);
-  }
-
-  @Override
-  public ApiTokenAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
-    return copy(encryptFunc.apply(token));
-  }
-
-  @Override
-  public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
-    return copy(decryptFunc.apply(token));
-  }
-
-  protected ApiTokenAuthScheme copy(String token) {
-    ApiTokenAuthScheme newApiTokenAuth = new ApiTokenAuthScheme();
-    newApiTokenAuth.setToken(token);
-
-    return newApiTokenAuth;
+  public JsonProperty.Access findPropertyAccess(Annotated m) {
+    JsonProperty.Access propertyAccess = super.findPropertyAccess(m);
+    //        if (propertyAccess != null && propertyAccess.equals(JsonProperty.Access.WRITE_ONLY)) {
+    return null;
+    //        } else {
+    //            return propertyAccess;
+    //        }
   }
 }
