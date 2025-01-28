@@ -189,11 +189,30 @@ public class EnrollmentQueryService {
         .addHeader(
             new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
 
-    if (sqlBuilder.supportsGeospatialData()) {
-      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
-          .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
-          .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true));
-    }
+    grid.addHeader(
+            new GridHeader(
+                GEOMETRY.getItem(),
+                GEOMETRY.getName(),
+                TEXT,
+                false,
+                true,
+                !sqlBuilder.supportsGeospatialData()))
+        .addHeader(
+            new GridHeader(
+                LONGITUDE.getItem(),
+                LONGITUDE.getName(),
+                NUMBER,
+                false,
+                true,
+                !sqlBuilder.supportsGeospatialData()))
+        .addHeader(
+            new GridHeader(
+                LATITUDE.getItem(),
+                LATITUDE.getName(),
+                NUMBER,
+                false,
+                true,
+                !sqlBuilder.supportsGeospatialData()));
 
     grid.addHeader(
             new GridHeader(
