@@ -519,6 +519,7 @@ public enum ErrorCode {
   E7236("Program stage '{0}' is not associated to program '{0}'"),
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
+  E7239("Invalid operator for 'null' value: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

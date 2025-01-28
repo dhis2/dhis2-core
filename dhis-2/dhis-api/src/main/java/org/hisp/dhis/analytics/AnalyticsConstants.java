@@ -43,4 +43,6 @@ public class AnalyticsConstants {
   public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
 
   public static final String ORG_UNIT_GROUPSET_STRUCT_ALIAS = "ougs";
+
+  public static final String NULL = "null";
 }

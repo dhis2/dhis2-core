@@ -47,8 +47,7 @@ public interface EnrollmentService {
   Enrollment getEnrollment(UID uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  RelationshipItem getEnrollmentInRelationshipItem(UID uid, boolean includeDeleted)
-      throws NotFoundException;
+  RelationshipItem getEnrollmentInRelationshipItem(UID uid) throws NotFoundException;
 
   /** Get all enrollments matching given params. */
   @Nonnull

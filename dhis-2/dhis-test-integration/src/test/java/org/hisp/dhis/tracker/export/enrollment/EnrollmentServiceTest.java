@@ -160,24 +160,20 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setOwner(user);
     manager.save(trackedEntityTypeA, false);
 
-    trackedEntityA = createTrackedEntity(orgUnitA);
-    trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityA = createTrackedEntity(orgUnitA, trackedEntityTypeA);
     manager.save(trackedEntityA, false);
 
-    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitB);
-    trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitB, trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
-    trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC, trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
-    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA);
-    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA, trackedEntityTypeA);
     manager.save(trackedEntityChildA, false);
 
-    TrackedEntity trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
-    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityGrandchildA =
+        createTrackedEntity(orgUnitGrandchildA, trackedEntityTypeA);
     manager.save(trackedEntityGrandchildA, false);
 
     programA = createProgram('A', new HashSet<>(), orgUnitA);
