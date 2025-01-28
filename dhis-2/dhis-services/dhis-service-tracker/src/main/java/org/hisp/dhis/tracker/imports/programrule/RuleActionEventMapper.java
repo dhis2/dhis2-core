@@ -38,12 +38,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.AssignDataValueExecutor;
+import org.hisp.dhis.tracker.imports.programrule.executor.event.CreateEventExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.SetMandatoryFieldExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowErrorExecutor;
@@ -56,6 +58,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class RuleActionEventMapper {
   private final SystemSettingsProvider settingsProvider;
+  private final TrackerImportService trackerImportService;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
@@ -97,6 +100,12 @@ class RuleActionEventMapper {
       case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+      case CRETEEVENT ->
+          new CreateEventExecutor(
+              trackerImportService,
+              validationEffect.rule(),
+              validationEffect.field(),
+              validationEffect.data());
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };
