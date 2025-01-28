@@ -186,7 +186,8 @@ public class DataIntegrityController {
             String objectType = check.getIssuesIdType();
             StringBuilder metricLabel = new StringBuilder();
             metricLabel.append(
-                "check=\"%s\",severity=\"%s\",object_type=\"%s\"".formatted(key, severity, objectType));
+                "check=\"%s\",severity=\"%s\",object_type=\"%s\""
+                    .formatted(key, severity, objectType));
             countMetrics.put(key, summary.getCount());
             metricLabels.put(key, metricLabel.toString());
             // Percentage might not be present
