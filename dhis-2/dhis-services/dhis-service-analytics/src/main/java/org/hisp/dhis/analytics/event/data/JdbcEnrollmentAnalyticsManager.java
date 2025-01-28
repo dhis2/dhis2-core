@@ -220,13 +220,27 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       // The amount of headers must not match to amount of columns due the additional ones
       // describing the repeating of repeatable stage.
       int columnOffset = 0;
+      // Start index for SqlRowSet columns. Starts at 1 (NOT 0, per ResultSet conventions).
+      int sqlIndex = 1;
 
       for (int i = 0; i < grid.getHeaders().size(); ++i) {
-        addGridValue(grid, grid.getHeaders().get(i), i + 1 + columnOffset, rowSet, params);
+        GridHeader header = grid.getHeaders().get(i);
 
-        if (params.isRowContext()) {
-          addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
-          columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
+        if (header.isVirtual()) {
+          // Add an empty value for virtual headers and skip incrementing the SQL index.
+          addGridValue(grid, header, -1, rowSet, params);
+        } else {
+          // Process the non-virtual GridHeader and increment SQL index accordingly.
+          addGridValue(grid, header, sqlIndex + columnOffset, rowSet, params);
+
+          // Increment the offset for row context (when applicable)
+          if (params.isRowContext()) {
+            addValueOriginInfo(grid, rowSet, header.getName());
+            columnOffset += getRowSetOriginItems(rowSet, header.getName());
+          }
+
+          // Increment SQL index only for non-virtual headers
+          sqlIndex++;
         }
       }
     }
