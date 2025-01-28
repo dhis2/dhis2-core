@@ -156,13 +156,16 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
         content.contains("# TYPE dhis_data_integrity_issues_count_total gauge"),
         "Data integrity check type is missing");
     assertTrue(
-        content.contains("dhis_data_integrity_issues_count_total{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        content.contains(
+            "dhis_data_integrity_issues_count_total{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check count is missing");
     assertTrue(
-        content.contains("dhis_data_integrity_issues_percentage{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        content.contains(
+            "dhis_data_integrity_issues_percentage{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check percentage is missing");
     assertTrue(
-        content.contains("dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        content.contains(
+            "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
         "Data integrity check duration is missing");
   }
 }
