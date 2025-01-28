@@ -25,36 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.api;
+package org.hisp.dhis.analytics.util;
 
-import java.util.Set;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import java.util.List;
+import lombok.experimental.UtilityClass;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
 
-public record TestCategoryMetadata(
-    CategoryCombo cc1,
-    Category c1,
-    Category c2,
-    CategoryOption co1,
-    CategoryOption co2,
-    CategoryOption co3,
-    CategoryOption co4,
-    CategoryOptionCombo coc1,
-    CategoryOptionCombo coc2,
-    CategoryOptionCombo coc3,
-    CategoryOptionCombo coc4) {
+@UtilityClass
+public class EventQueryParamsUtils {
 
-  public Set<String> getCocNames() {
-    return Set.of(coc1.getName(), coc2.getName(), coc3.getName(), coc4.getName());
+  /**
+   * Get all program indicators from event query params.
+   *
+   * @param params event query params
+   * @return list of program indicators
+   */
+  public static List<QueryItem> getProgramIndicators(EventQueryParams params) {
+    return params.getItems().stream().filter(QueryItem::isProgramIndicator).toList();
   }
 
-  public Set<String> getCoNames() {
-    return Set.of(co1.getName(), co2.getName(), co3.getName(), co4.getName());
-  }
+  /**
+   * Remove program stage items from EventQueryParams. This method creates a copy of the
+   * EventQueryParams instance and filters out QueryItems with hasProgramStage == true.
+   *
+   * @param params event query params
+   * @return list of program stage items
+   */
+  public static EventQueryParams withoutProgramStageItems(EventQueryParams params) {
+    // Create a copy of the EventQueryParams instance
+    EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
 
-  public Set<CategoryOption> getCategoryOptions() {
-    return Set.of(co1, co2, co3, co4);
+    // Filter out QueryItems with hasProgramStage == true
+    List<QueryItem> filteredItems =
+        params.getItems().stream().filter(item -> !item.hasProgramStage()).toList();
+
+    // Clear the current items and itemFilters in the builder
+    builder.removeItems(); // Clears the items
+
+    for (QueryItem item : filteredItems) {
+      builder.addItem(item);
+    }
+
+    return builder.build();
   }
 }

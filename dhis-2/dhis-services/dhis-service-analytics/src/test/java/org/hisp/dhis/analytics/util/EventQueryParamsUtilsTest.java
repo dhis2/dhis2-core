@@ -25,36 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.api;
+package org.hisp.dhis.analytics.util;
 
-import java.util.Set;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-public record TestCategoryMetadata(
-    CategoryCombo cc1,
-    Category c1,
-    Category c2,
-    CategoryOption co1,
-    CategoryOption co2,
-    CategoryOption co3,
-    CategoryOption co4,
-    CategoryOptionCombo coc1,
-    CategoryOptionCombo coc2,
-    CategoryOptionCombo coc3,
-    CategoryOptionCombo coc4) {
+import java.util.List;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
+import org.junit.jupiter.api.Test;
 
-  public Set<String> getCocNames() {
-    return Set.of(coc1.getName(), coc2.getName(), coc3.getName(), coc4.getName());
-  }
+class EventQueryParamsUtilsTest {
+  @Test
+  void testWithoutProgramStageItems() {
+    // Create mock QueryItems
+    QueryItem item1 = mock(QueryItem.class);
+    QueryItem item2 = mock(QueryItem.class);
+    QueryItem item3 = mock(QueryItem.class);
 
-  public Set<String> getCoNames() {
-    return Set.of(co1.getName(), co2.getName(), co3.getName(), co4.getName());
-  }
+    // Set behavior for hasProgramStage()
+    when(item1.hasProgramStage()).thenReturn(false); // This item should be retained
+    when(item2.hasProgramStage()).thenReturn(true); // This item should be removed
+    when(item3.hasProgramStage()).thenReturn(false); // This item should be retained
 
-  public Set<CategoryOption> getCategoryOptions() {
-    return Set.of(co1, co2, co3, co4);
+    // Create an EventQueryParams instance with these items
+    EventQueryParams originalParams =
+        new EventQueryParams.Builder().addItem(item1).addItem(item2).addItem(item3).build();
+
+    // Apply the method under test
+    EventQueryParams resultParams = EventQueryParamsUtils.withoutProgramStageItems(originalParams);
+
+    // Assert the resulting params contain only the filtered items
+    List<QueryItem> resultItems = resultParams.getItems();
+    assertEquals(2, resultItems.size());
+    assertTrue(resultItems.contains(item1));
+    assertTrue(resultItems.contains(item3));
+    assertFalse(resultItems.contains(item2));
   }
 }

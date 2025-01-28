@@ -1477,6 +1477,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Transforms the query item filters into an "and" separated SQL string. For instance, if the
+   * query item has filters with values "a" and "b" and the operator is "eq", the resulting SQL
+   * string will be "column = 'a' and column = 'b'". If the query item has no filters, an empty
+   * string is returned.
+   *
+   * @param item the {@link QueryItem}.
+   * @param columnName the column name.
+   * @return the SQL string.
+   */
+  protected String extractFiltersAsSql(QueryItem item, String columnName) {
+    return item.getFilters().stream()
+        .map(
+            f ->
+                "%s %s %s".formatted(columnName, f.getOperator().getValue(), getSqlFilter(f, item)))
+        .collect(Collectors.joining(" and "));
+  }
+
+  /**
    * Returns a select SQL clause for the given query.
    *
    * @param params the {@link EventQueryParams}.

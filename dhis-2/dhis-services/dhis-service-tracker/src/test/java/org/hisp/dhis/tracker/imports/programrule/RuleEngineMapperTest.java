@@ -327,7 +327,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   }
 
   private TrackedEntity trackedEntity() {
-    return createTrackedEntity('I', organisationUnit, trackedEntityAttribute);
+    return createTrackedEntity(
+        'I', organisationUnit, trackedEntityAttribute, createTrackedEntityType('W'));
   }
 
   private org.hisp.dhis.tracker.imports.domain.Enrollment payloadEnrollment() {

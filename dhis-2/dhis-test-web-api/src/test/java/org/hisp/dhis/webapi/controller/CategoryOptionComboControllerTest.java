@@ -46,12 +46,12 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,52 +60,29 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
   @Autowired private CategoryService categoryService;
 
-  @BeforeEach
-  void setUp() {
-    CategoryCombo catComboA = createCategoryCombo('A');
-    CategoryCombo catComboB = createCategoryCombo('B');
-    CategoryCombo catComboC = createCategoryCombo('C');
-    categoryService.addCategoryCombo(catComboA);
-    categoryService.addCategoryCombo(catComboB);
-    categoryService.addCategoryCombo(catComboC);
-
-    CategoryOption catOptA = createCategoryOption('A');
-    CategoryOption catOptB = createCategoryOption('B');
-    CategoryOption catOptC = createCategoryOption('C');
-    categoryService.addCategoryOption(catOptA);
-    categoryService.addCategoryOption(catOptB);
-    categoryService.addCategoryOption(catOptC);
-
-    CategoryOptionCombo cocA =
-        createCategoryOptionCombo("CatOptCombo A", "CocUid00001", catComboA, catOptA);
-    CategoryOptionCombo cocB =
-        createCategoryOptionCombo("CatOptCombo B", "CocUid00002", catComboB, catOptB);
-    CategoryOptionCombo cocC =
-        createCategoryOptionCombo("CatOptCombo C", "CocUid00003", catComboC, catOptC);
-    categoryService.addCategoryOptionCombo(cocA);
-    categoryService.addCategoryOptionCombo(cocB);
-    categoryService.addCategoryOptionCombo(cocC);
-  }
-
   @Test
   @DisplayName(
       "Default CategoryOptionCombo should be present in payload when defaults are INCLUDE by default")
   void getAllCatOptionCombosIncludingDefaultsTest() {
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("dcoc1");
     JsonArray categoryCombos =
         GET("/categoryOptionCombos").content(HttpStatus.OK).getArray("categoryOptionCombos");
 
+    Set<String> cocNames = new HashSet<>(categoryMetadata.getCocNames());
+    cocNames.add("default");
     assertEquals(
-        Set.of("CatOptCombo C", "CatOptCombo B", "CatOptCombo A", "default"),
+        cocNames,
         categoryCombos.stream()
             .map(jcoc -> jcoc.as(JsonCategoryOptionCombo.class))
             .map(JsonIdentifiableObject::getDisplayName)
             .collect(Collectors.toSet()),
-        "Returned catOptionCombos equal custom catOptions and default catOption");
+        "Returned catOptionCombos equal custom catOptionCombos and default catOptionCombo");
   }
 
   @Test
   @DisplayName("Default CategoryOptionCombo should not be present in payload when EXCLUDE defaults")
   void catOptionCombosExcludingDefaultTest() {
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("dcoc2");
     JsonArray catOptionCombos =
         GET("/categoryOptionCombos?defaults=EXCLUDE")
             .content(HttpStatus.OK)
@@ -118,9 +95,9 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
             .collect(Collectors.toSet());
 
     assertEquals(
-        Set.of("CatOptCombo C", "CatOptCombo B", "CatOptCombo A"),
+        categoryMetadata.getCocNames(),
         catOptionComboNames,
-        "Returned catOptionCombos include custom catOptions only");
+        "Returned catOptionCombos include custom catOptionCombos only");
 
     assertFalse(
         catOptionComboNames.contains("default"), "default catOptionCombo is not in payload");

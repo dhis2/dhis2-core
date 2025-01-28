@@ -40,6 +40,8 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUni
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
+import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -139,6 +141,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
       String.format(
           "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
+  private static final String ENROLLMENT_COL = "enrollment";
 
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -710,7 +713,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
                     %s
                 where
                     eventstatus != 'SCHEDULE'
-                    %s
+                    %s %s
                 ) ranked
             where
                 rn = 1
@@ -731,10 +734,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               String columnName = quote(item.getItemName()); // Raw column name without alias
               String programStageCondition =
                   item.hasProgramStage()
-                      ? "AND ps = '" + item.getProgramStage().getUid() + "'"
+                      ? "and ps = '" + item.getProgramStage().getUid() + "'"
                       : ""; // Add program stage filter if available
 
-              return filterSql.formatted(columnName, columnName, tableName, programStageCondition);
+              // Collect the filter on the item
+              String filterConditions = extractFiltersAsSql(item, columnName);
+
+              return filterSql.formatted(
+                  columnName,
+                  columnName,
+                  tableName,
+                  programStageCondition,
+                  StringUtils.isEmpty(filterConditions) ? "" : " and " + filterConditions);
             })
         .collect(Collectors.joining("\nunion all\n"));
   }
@@ -1146,39 +1157,45 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param cteContext the {@link CteContext} containing all CTE definitions
    * @param params the {@link EventQueryParams} describing the query parameters
    * @param headers the {@link GridHeader} list defining the query columns
-   * @return a {@link List} of column names included in the `enrollment_aggr_base` CTE
    */
   private void addBaseAggregationCte(
       CteContext cteContext, EventQueryParams params, List<GridHeader> headers) {
+
     // create base enrollment context
     List<String> columns = new ArrayList<>();
-    columns.add("enrollment");
 
+    // Add base column
     addDimensionSelectColumns(columns, params, true);
-    Set<String> headersCols = getHeaderColumns(headers, params);
+
     SelectBuilder sb = new SelectBuilder();
+    sb.addColumn(ENROLLMENT_COL, "ax");
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
+
     List<String> programIndicators =
-        params.getItems().stream()
-            .filter(QueryItem::isProgramIndicator)
-            .map(QueryItem::getItemId)
-            .toList();
-    for (String column : headersCols) {
+        getProgramIndicators(params).stream().map(QueryItem::getItemId).toList();
+
+    // Add the columns from the headers (only the ones that are not program indicators)
+    for (String column : getHeaderColumns(headers, params)) {
       String colToAdd = SqlColumnParser.removeTableAlias(column);
       if (!programIndicators.contains(colToAdd)) {
         sb.addColumnIfNotExist(quote(colToAdd));
       }
     }
 
-    // Returns the name of the columns that are part
-    // of the original params, no need to return also
-    // the columns that are part of the filters
     sb.from(getFromClause(params));
+
+    addBaseAggregatedCteJoins(sb, cteContext);
+
+    // Add where clause
     sb.where(
         Condition.and(
-            Condition.raw(getWhereClause(params)), Condition.raw(addFiltersToWhereClause(params))));
+            // Add base where condition
+            Condition.raw(getWhereClause(params)),
+            // Add conditions from filters (remove program stages item to avoid sub-queries in the
+            // filter)
+            Condition.raw(addFiltersToWhereClause(withoutProgramStageItems(params)))));
 
     // Extract the columns from the where clause
     List<String> cols = SqlWhereClauseExtractor.extractWhereColumns(sb.build());
@@ -1407,6 +1424,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
+  private void addBaseAggregatedCteJoins(SelectBuilder sb, CteContext cteContext) {
+    if (!cteContext.getCteDefinitions().isEmpty()) {
+      for (String cteKey : cteContext.getCteKeys()) {
+        CteDefinition def = cteContext.getDefinitionByItemUid(cteKey);
+        sb.innerJoin(
+            cteKey,
+            def.getAlias(),
+            tableAlias -> tableAlias + ".%s = ax.%s".formatted(ENROLLMENT_COL, ENROLLMENT_COL));
+      }
+    }
+  }
+
   /**
    * Computes a zero-based offset for use with the SQL <em>row_number()</em> function in CTEs that
    * partition and order events by date (e.g., most recent first).
@@ -1449,8 +1478,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    *
    * @param params the {@link EventQueryParams} object
    * @param cteContext the {@link CteContext} object
+   * @param isAggregateQuery a boolean indicating the filter CTE is generated in the context of an
+   *     aggregated query
    */
-  private void generateFilterCTEs(EventQueryParams params, CteContext cteContext) {
+  private void generateFilterCTEs(
+      EventQueryParams params, CteContext cteContext, boolean isAggregateQuery) {
     // Combine items and item filters
     List<QueryItem> queryItems =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
@@ -1474,7 +1506,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             (identifier, items) -> {
               String cteSql = buildFilterCteSql(items, params);
               // TODO is this correct? items.get(0)
-              cteContext.addCteFilter(items.get(0), cteSql);
+              if (isAggregateQuery) {
+                cteContext.addCteFilter("latest_events", items.get(0), cteSql);
+              } else {
+                cteContext.addCteFilter(items.get(0), cteSql);
+              }
             });
 
     // Process non-repeatable stage filters
@@ -1484,9 +1520,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             queryItem -> {
               if (queryItem.hasProgram() && queryItem.hasProgramStage()) {
                 String cteSql = buildFilterCteSql(List.of(queryItem), params);
-                cteContext.addCteFilter(queryItem, cteSql);
+                if (isAggregateQuery) {
+                  cteContext.addCteFilter("latest_events", queryItem, cteSql);
+                } else {
+                  cteContext.addCteFilter(queryItem, cteSql);
+                }
               }
             });
+  }
+
+  /**
+   * Add to the {@link CteContext} the CTE definitions that are specified in the filters of {@link
+   * EventQueryParams}.
+   *
+   * @param params the {@link EventQueryParams} object
+   * @param cteContext the {@link CteContext} object
+   */
+  private void generateFilterCTEs(EventQueryParams params, CteContext cteContext) {
+    generateFilterCTEs(params, cteContext, false);
   }
 
   private String buildAggregatedEnrollmentQueryWithCte(
@@ -1494,19 +1545,22 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     CteContext cteContext = new CteContext();
 
-    // add base aggregation CTE
-    // and retain the columns from the root query
+    // 1. Generate CTE definitions for filters
+    generateFilterCTEs(params, cteContext, true);
+
+    // 2. Add base aggregation CTE
     addBaseAggregationCte(cteContext, params, headers);
 
-    // Add CTE definitions for program indicators, program stages, etc.
+    // 3. Add CTE definitions for program indicators, program stages, etc.
     getCteDefinitions(params, cteContext);
 
+    // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
 
-    // add the CTE with clause based on the CTE definitions accumulated so far
+    // 3.1: Append the WITH clause if needed
     addCteClause(sb, cteContext);
 
-    // SELECT columns in following order:
+    // 3.2: Append SELECT columns in following order:
     //    1) count(eb.enrollment) as value
     //    2) org unit columns (orgColumns)
     //    3) period columns (periodColumns)
@@ -1516,15 +1570,16 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     addPeriodAggregateColumns(params, sb);
     addHeaderAggregateColumns(headers, cteContext, sb);
 
-    // add from
+    // 3.3: Append the FROM clause (the main enrollment analytics table)
     sb.from(ENROLLMENT_AGGR_BASE, "eb");
 
-    // Add join statements for each CTE definition
+    // 3.4: Append JOINs for each relevant CTE definition
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
       sb.leftJoin(
           itemUid, cteDef.getAlias(), tableAlias -> tableAlias + ".enrollment = eb.enrollment");
     }
+
     return sb.build();
   }
 
