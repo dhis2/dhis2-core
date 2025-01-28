@@ -116,6 +116,9 @@ public class PrometheusTextBuilder {
     map.forEach(
         (key, value) -> {
           String thisLabel = labelMap.get(key);
+          if (thisLabel == null) {
+            return;
+          }
           metrics.append("%s{%s} %s%n".formatted(metricName, thisLabel, value));
         });
   }
