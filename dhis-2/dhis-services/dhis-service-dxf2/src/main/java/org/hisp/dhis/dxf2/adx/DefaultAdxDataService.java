@@ -33,7 +33,6 @@ import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.google.common.collect.Sets;
-import jakarta.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -121,8 +120,6 @@ public class DefaultAdxDataService implements AdxDataService {
   private final PeriodService periodService;
 
   private final IdentifiableObjectManager identifiableObjectManager;
-
-  private final EntityManagerFactory entityManagerFactory;
 
   // -------------------------------------------------------------------------
   // Public methods
@@ -372,19 +369,17 @@ public class DefaultAdxDataService implements AdxDataService {
       AtomicBoolean doInterrupt = new AtomicBoolean(true);
       setupTimeout(doInterrupt);
 
-      progress.startingStage("ADX data values import");
       PipedInputStream pipeIn = null;
       try (PipedInputStream pin = new PipedInputStream(pipeOut, 4096)) {
         pipeIn = pin;
+        // Note: the service will add their on progress stages, so we don't do here wrapped around
         importSummary = dataValueSetService.importDataValueSetXml(pipeIn, importOptions, progress);
       } catch (Exception ex) {
-        progress.failedStage(ex);
         importSummary = ImportSummary.error("Exception: " + ex.getMessage());
       } finally {
         if (pipeIn != null) StreamUtils.closeQuietly(pipeIn);
         doInterrupt.set(false);
       }
-      progress.completedStage(importSummary.getImportCount().toString());
 
       XMLOutputFactory factory = XMLOutputFactory.newInstance();
       XMLStreamWriter dxfWriter = factory.createXMLStreamWriter(pipeOut);
@@ -419,9 +414,7 @@ public class DefaultAdxDataService implements AdxDataService {
 
       pipeOut.flush();
 
-      ImportSummary summary = importSummary;
-      adxConflicts.forEach(
-          conflict -> summary.addConflict(conflict.getObject(), conflict.getValue()));
+      for (ImportConflict c : adxConflicts) importSummary.addConflict(c.getObject(), c.getValue());
       importSummary.getImportCount().incrementIgnored(adxConflicts.size());
     } catch (AdxException ex) {
       importSummary = new ImportSummary();
