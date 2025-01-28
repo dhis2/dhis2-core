@@ -225,23 +225,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         + ")";
   }
 
-  // Helper Method: Ensures `TRIM(NULLIF(...))` regardless of incoming column formatting
-  private String wrapTrimAndNullIfProperly(String column) {
-    // If the column is a literal, return it as-is
-    if (isQuoted(column)) {
-      return column;
-    }
-
-    // If the column already contains TRIM, insert NULLIF inside TRIM
-    if (column.startsWith("trim(")) {
-      String innerValue = column.substring(5, column.length() - 1);
-      return "trim(nullif('', " + innerValue + "))";
-    }
-
-    // For other cases, apply both TRIM and NULLIF normally
-    return "trim(nullif('', " + column + "))";
-  }
-
   @Override
   public String differenceInSeconds(String columnA, String columnB) {
     return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
@@ -496,6 +479,28 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
             "password", password,
             "connection_url", connectionUrl,
             "driver_filename", driverFilename));
+  }
+
+  /**
+   * Ensures `TRIM(NULLIF(...))` regardless of incoming column formatting
+   *
+   * @param column the column to be wrapped
+   * @return the wrapped column
+   */
+  private String wrapTrimAndNullIfProperly(String column) {
+    // If the column is a literal, return it as-is
+    if (isQuoted(column)) {
+      return column;
+    }
+
+    // If the column already contains TRIM, insert NULLIF inside TRIM
+    if (column.startsWith("trim(")) {
+      String innerValue = column.substring(5, column.length() - 1);
+      return "trim(nullif('', " + innerValue + "))";
+    }
+
+    // For other cases, apply both TRIM and NULLIF
+    return "trim(nullif('', " + column + "))";
   }
 
   /**
