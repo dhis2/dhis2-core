@@ -596,7 +596,6 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
-            .eventParams(EventParams.FALSE)
             .dataElementFilters(
                 Map.of(
                     UID.of("GieVkTxp4HH"),
