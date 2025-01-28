@@ -303,4 +303,17 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected <T> String toCommaSeparated(Collection<T> collection, Function<T, String> mapper) {
     return collection.stream().map(mapper).collect(Collectors.joining(","));
   }
+
+  /**
+   * Checks if the given input is quoted.
+   *
+   * @param input the input string.
+   * @return true if the input is quoted, false otherwise.
+   */
+  protected static boolean isQuoted(String input) {
+    return input != null
+        && input.length() >= 2
+        && input.startsWith(SINGLE_QUOTE)
+        && input.endsWith(SINGLE_QUOTE);
+  }
 }
