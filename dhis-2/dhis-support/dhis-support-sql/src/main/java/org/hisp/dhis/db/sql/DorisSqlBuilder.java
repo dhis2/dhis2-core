@@ -220,7 +220,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String concat(String... columns) {
     return "concat("
         + Arrays.stream(columns)
-            .map(this::wrapTrimAndNullIfProperly) // Adjust wrapping logic
+            .map(this::wrapTrimNullIf) // Adjust wrapping logic
             .collect(Collectors.joining(", "))
         + ")";
   }
@@ -487,7 +487,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
    * @param column the column to be wrapped
    * @return the wrapped column
    */
-  private String wrapTrimAndNullIfProperly(String column) {
+  private String wrapTrimNullIf(String column) {
     // If the column is a literal, return it as-is
     if (isQuoted(column)) {
       return column;
