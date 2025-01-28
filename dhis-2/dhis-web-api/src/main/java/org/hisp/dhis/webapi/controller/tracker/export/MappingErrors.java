@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,7 +39,9 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.springframework.http.HttpStatus;
 
 /**
  * MappingErrors collects and reports metadata that does not have an identifier for the requested
@@ -147,5 +151,17 @@ Data linked to default category option (combo)s cannot be exported using\
     return metadata instanceof CategoryOptionCombo categoryOptionCombo
             && categoryOptionCombo.isDefault()
         || metadata instanceof CategoryOption categoryOption && categoryOption.isDefault();
+  }
+
+  public static void ensureNoMappingErrors(MappingErrors errors) throws WebMessageException {
+    if (errors.hasErrors()) {
+      throw new WebMessageException(
+          createWebMessage(
+              "Not all metadata has an identifier for the requested idScheme. Either change the"
+                  + " requested idScheme or add the missing identifiers to the metadata.",
+              errors.toString(),
+              org.hisp.dhis.feedback.Status.ERROR,
+              HttpStatus.UNPROCESSABLE_ENTITY));
+    }
   }
 }

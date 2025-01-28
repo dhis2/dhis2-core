@@ -146,8 +146,8 @@ public class TrackerIdSchemeParams implements Serializable {
   }
 
   /**
-   * Get the identifier using the matching {@code idScheme}. Defaults to {@link
-   * IdentifiableObject#getUid()} if the metadata has no dedicated {@code idScheme} parameter.
+   * Get the identifier using the matching {@code idScheme}. Defaults to {@link #getIdScheme()} if
+   * the metadata has no dedicated {@code idScheme} parameter.
    */
   public <T extends IdentifiableObject & MetadataObject> String getIdentifier(T metadata) {
     if (metadata instanceof DataElement dataElement) {
@@ -163,7 +163,7 @@ public class TrackerIdSchemeParams implements Serializable {
     } else if (metadata instanceof CategoryOption categoryOption) {
       return getCategoryOptionIdScheme().getIdentifier(categoryOption);
     }
-    return metadata.getUid();
+    return idScheme.getIdentifier(metadata);
   }
 
   public TrackerIdSchemeParam getByClass(Class<?> klazz) {
