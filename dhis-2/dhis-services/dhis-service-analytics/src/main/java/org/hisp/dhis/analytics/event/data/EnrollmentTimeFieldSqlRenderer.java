@@ -144,7 +144,10 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
               + eventTableName
               + ".pi = "
               + ANALYTICS_TBL_ALIAS
-              + ".pi and executiondate is not null ";
+              + ".pi and executiondate is not null "
+              + "and ps = '"
+              + programStage
+              + "'";
 
       for (AnalyticsPeriodBoundary boundary : boundaries) {
         sql +=
