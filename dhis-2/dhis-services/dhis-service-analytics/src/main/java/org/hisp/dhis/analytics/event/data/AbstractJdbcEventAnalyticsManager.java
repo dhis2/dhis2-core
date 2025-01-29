@@ -1001,7 +1001,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params) {
     // Virtual headers do not contain data
     if (header.isVirtual()) {
-      grid.addValue(header.isNumeric() ? 0L : EMPTY);
+      grid.addValue(EMPTY);
       return;
     }
 
