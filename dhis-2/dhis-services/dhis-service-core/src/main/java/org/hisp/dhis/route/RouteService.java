@@ -32,9 +32,13 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -62,8 +66,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -162,6 +164,7 @@ public class RouteService {
       return null;
     }
 
+    // prevents Hibernate from persisting updates made to the route object
     route = Hibernate.unproxy(route, Route.class);
 
     if (route.getAuth() != null) {
@@ -190,15 +193,26 @@ public class RouteService {
     route.getHeaders().forEach(headers::add);
     addForwardedUserHeader(userDetails, headers);
 
-    MultiValueMap<String, String> queryParameters = new LinkedMultiValueMap<>();
-    request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
+    Map<String, List<String>> queryParameters = new HashMap<>();
+    request
+        .getParameterMap()
+        .forEach(
+            (key, value) ->
+                queryParameters
+                    .computeIfAbsent(key, k -> new LinkedList<>())
+                    .addAll(Arrays.asList(value)));
 
     if (route.getAuth() != null) {
       route.getAuth().apply(headers, queryParameters);
     }
 
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
+        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+
+    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      uriComponentsBuilder =
+          uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
+    }
 
     if (subPath.isPresent()) {
       if (!route.allowsSubpaths()) {

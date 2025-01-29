@@ -30,34 +30,28 @@ package org.hisp.dhis.common.auth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
 
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class ApiHeadersAuthScheme extends AuthScheme {
+public class ApiHeadersAuthScheme implements AuthScheme {
   public static final String API_HEADERS_TYPE = "api-headers";
 
   @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
   private Map<String, String> headers = new HashMap<>();
 
-  public ApiHeadersAuthScheme() {
-    super(API_HEADERS_TYPE);
-  }
-
   @Override
-  public void apply(
-      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
     for (Map.Entry<String, String> header : this.headers.entrySet()) {
-      headers.set(header.getKey(), header.getValue());
+      headers.computeIfAbsent(header.getKey(), v -> new LinkedList<>()).add(header.getValue());
     }
   }
 
@@ -77,6 +71,11 @@ public class ApiHeadersAuthScheme extends AuthScheme {
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     return copy(encryptedHeaders);
+  }
+
+  @Override
+  public String getType() {
+    return API_HEADERS_TYPE;
   }
 
   protected ApiHeadersAuthScheme copy(Map<String, String> headers) {
