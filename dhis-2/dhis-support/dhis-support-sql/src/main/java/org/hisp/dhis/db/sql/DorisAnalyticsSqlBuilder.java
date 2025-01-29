@@ -38,7 +38,7 @@ public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
 
   @Override
   public String renderTimestamp(String timestampAsString) {
-    if (StringUtils.isEmpty(timestampAsString)) return null;
+    if (StringUtils.isBlank(timestampAsString)) return null;
     LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
     String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
     if (formattedDate.endsWith("000")) {
