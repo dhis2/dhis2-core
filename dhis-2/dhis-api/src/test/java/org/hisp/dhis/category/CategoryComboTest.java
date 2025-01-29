@@ -75,7 +75,7 @@ class CategoryComboTest {
 
     assertEquals(
         expectedResult,
-        getCategoryOption().equals(ccParams),
+        getCategoryCombo().equals(ccParams),
         "Category Combo equals check has expected result");
   }
 
@@ -90,7 +90,7 @@ class CategoryComboTest {
         Arguments.of("name", "uid", "code diff", isNotEqual));
   }
 
-  private CategoryCombo getCategoryOption() {
+  private CategoryCombo getCategoryCombo() {
     CategoryCombo cc = new CategoryCombo();
     cc.setName("name");
     cc.setUid("uid");

@@ -74,17 +74,15 @@ class CategoryTest {
       String shortName,
       String description,
       boolean expectedResult) {
-    Category coParams = new Category();
-    coParams.setName(name);
-    coParams.setUid(uid);
-    coParams.setCode(code);
-    coParams.setShortName(shortName);
-    coParams.setDescription(description);
+    Category cParams = new Category();
+    cParams.setName(name);
+    cParams.setUid(uid);
+    cParams.setCode(code);
+    cParams.setShortName(shortName);
+    cParams.setDescription(description);
 
     assertEquals(
-        expectedResult,
-        getCategory().equals(coParams),
-        "Category equals check has expected result");
+        expectedResult, getCategory().equals(cParams), "Category equals check has expected result");
   }
 
   private static Stream<Arguments> categoryEqualsParams() {
@@ -101,12 +99,12 @@ class CategoryTest {
   }
 
   private Category getCategory() {
-    Category co = new Category();
-    co.setName("name");
-    co.setUid("uid");
-    co.setCode("code");
-    co.setShortName("shortName");
-    co.setDescription("description");
-    return co;
+    Category c = new Category();
+    c.setName("name");
+    c.setUid("uid");
+    c.setCode("code");
+    c.setShortName("shortName");
+    c.setDescription("description");
+    return c;
   }
 }
