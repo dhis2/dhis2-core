@@ -210,6 +210,10 @@ class EventOperationParamsMapper {
                 dataElementFilter.getKey()));
       }
 
+      if (dataElementFilter.getValue().isEmpty()) {
+        params.filterBy(de);
+      }
+
       for (QueryFilter filter : dataElementFilter.getValue()) {
         params.filterBy(de, filter);
       }

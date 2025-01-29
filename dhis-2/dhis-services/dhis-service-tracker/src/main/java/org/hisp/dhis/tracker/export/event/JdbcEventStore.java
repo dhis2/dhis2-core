@@ -801,16 +801,8 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
             .append(", ")
             .append("coc_agg.co_uids AS co_uids, ")
-            .append("coc_agg.co_count AS option_size, ");
-
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof TrackedEntityAttribute tea)
-        selectBuilder
-            .append(quote(tea.getUid()))
-            .append(".value AS ")
-            .append(tea.getUid())
-            .append("_value, ");
-    }
+            .append("coc_agg.co_count AS option_size, ")
+            .append(getOrderFieldsForSelectClause(params.getOrder()));
 
     return selectBuilder
         .append(
@@ -836,6 +828,32 @@ class JdbcEventStore implements EventStore {
                 hlp,
                 dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
         .toString();
+  }
+
+  private String getOrderFieldsForSelectClause(List<Order> orders) {
+    StringBuilder selectBuilder = new StringBuilder();
+
+    for (Order order : orders) {
+      if (order.getField() instanceof TrackedEntityAttribute tea) {
+        selectBuilder
+            .append(quote(tea.getUid()))
+            .append(".value AS ")
+            .append(tea.getUid())
+            .append("_value, ");
+      } else if (order.getField() instanceof DataElement de) {
+        final String dataValueValueSql = "ev.eventdatavalues #>> '{" + de.getUid() + ", value}'";
+        selectBuilder
+            .append(
+                de.getValueType().isNumeric()
+                    ? castToNumber(dataValueValueSql)
+                    : lower(dataValueValueSql))
+            .append(" as ")
+            .append(de.getUid())
+            .append(", ");
+      }
+    }
+
+    return selectBuilder.toString();
   }
 
   private boolean checkForOwnership(EventQueryParams params) {
@@ -1357,6 +1375,11 @@ class JdbcEventStore implements EventStore {
             }
           }
         }
+      } else {
+        eventDataValuesWhereSql.append(hlp.whereAnd());
+        eventDataValuesWhereSql.append(" (ev.eventdatavalues ?? '");
+        eventDataValuesWhereSql.append(deUid);
+        eventDataValuesWhereSql.append("') ");
       }
     }
 

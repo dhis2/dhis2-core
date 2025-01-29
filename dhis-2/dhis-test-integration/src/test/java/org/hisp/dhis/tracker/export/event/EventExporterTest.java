@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -711,6 +712,20 @@ class EventExporterTest extends TrackerTest {
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsWithGivenDataValuesWhenFilterContainsDataElementUIDsOnly()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .dataElementFilters(
+                Map.of("DATAEL00001", new ArrayList<>(), "DATAEL00005", new ArrayList<>()))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
