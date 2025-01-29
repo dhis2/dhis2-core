@@ -45,6 +45,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -53,7 +54,6 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.security.twofa.TwoFactorType;
 
 @Getter
 @Setter
