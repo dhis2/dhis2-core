@@ -30,10 +30,16 @@ package org.hisp.dhis.mapping;
 import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface MapViewStore extends AnalyticalObjectStore<MapView> {
   List<MapView> getByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet);
+
+  List<MapView> findByProgram(Program program);
+
+  List<MapView> findByProgramStage(ProgramStage programStage);
 }
