@@ -34,7 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
-public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
+class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
 
   public static class ClassUnderTest {
 
@@ -45,7 +45,7 @@ public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
   }
 
   @Test
-  public void testFindPropertyAccess() throws JsonProcessingException {
+  void testFindPropertyAccess() throws JsonProcessingException {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setAnnotationIntrospector(
         new IgnoreJsonPropertyAccessJacksonAnnotationIntrospector());
