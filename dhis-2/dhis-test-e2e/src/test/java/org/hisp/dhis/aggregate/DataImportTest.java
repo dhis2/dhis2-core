@@ -124,9 +124,9 @@ class DataImportTest extends ApiTest {
     systemActions
         .waitUntilTaskCompleted("DATAVALUE_IMPORT", taskId)
         .validate()
-        .body("message", hasItem(containsString("Process started")))
-        .body("message", hasItem(containsString("Importing data values")))
-        .body("message", hasItem(containsString("Import done")));
+        .body("message", hasItem(containsString("Data value set import")))
+        .body("message", hasItem(containsString("Importing data...")))
+        .body("message", hasItem(containsString("Import complete with status SUCCESS")));
 
     // validate task summaries were created
     ApiResponse taskSummariesResponse =
@@ -170,7 +170,7 @@ class DataImportTest extends ApiTest {
             hasItem(
                 containsString(
                     "Import complete with status ERROR, 0 created, 0 updated, 0 deleted, 0 ignored")))
-        .body("message", hasItem(containsString("No content to map due to end-of-input")));
+        .body("message", hasItem(containsString("Import complete with status ERROR")));
 
     // then a task summary should be available with an error message
     ApiResponse taskSummariesResponse =
