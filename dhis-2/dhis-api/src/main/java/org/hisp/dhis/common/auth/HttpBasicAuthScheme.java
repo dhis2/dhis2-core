@@ -27,39 +27,66 @@
  */
 package org.hisp.dhis.common.auth;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.io.Serializable;
+import java.util.Base64;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type")
-@JsonSubTypes({
-  @JsonSubTypes.Type(value = HttpBasicAuth.class, name = "http-basic"),
-  @JsonSubTypes.Type(value = ApiTokenAuth.class, name = "api-token")
-})
-public abstract class Auth implements Serializable {
-  @JsonProperty protected final String type;
+public class HttpBasicAuthScheme extends AuthScheme {
+  public static final String HTTP_BASIC_TYPE = "http-basic";
 
-  @JsonCreator
-  protected Auth(@JsonProperty("type") String type) {
-    this.type = type;
+  @JsonProperty(required = true)
+  private String username;
+
+  @JsonProperty(required = true)
+  private String password;
+
+  public HttpBasicAuthScheme() {
+    super(HTTP_BASIC_TYPE);
   }
 
-  public abstract void apply(MultiValueMap<String, String> headers);
+  @Override
+  public void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+    if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
+      return;
+    }
+
+    headers.add("Authorization", getBasicAuth(username, password));
+  }
+
+  @Override
+  public HttpBasicAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    return copy(encryptFunc.apply(password));
+  }
+
+  @Override
+  public HttpBasicAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    return copy(decryptFunc.apply(password));
+  }
+
+  protected HttpBasicAuthScheme copy(String password) {
+    HttpBasicAuthScheme newHttpBasicAuth = new HttpBasicAuthScheme();
+    newHttpBasicAuth.setUsername(username);
+    newHttpBasicAuth.setPassword(password);
+
+    return newHttpBasicAuth;
+  }
+
+  private String getBasicAuth(String username, String password) {
+    String string = String.format("%s:%s", username, password);
+    return "Basic " + Base64.getEncoder().encodeToString(string.getBytes());
+  }
 }
