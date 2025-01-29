@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -125,7 +124,6 @@ class DataSetTest {
   void testIsLocked_LastDayOfPeriod() {
     assertIsLocked(false, Period::getEndDate);
   }
-
 
   private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {
     Date now = new Date();
