@@ -3083,6 +3083,17 @@ public abstract class TestBase {
     return user;
   }
 
+  /**
+   * This test setup allows easy creation of more realistic {@link CategoryOptionCombo}s. It creates
+   * multiple {@link CategoryOptionCombo}s that mirror how they are created in live code, (creating
+   * {@link Category}s, {@link CategoryOption}s, {@link CategoryCombo}s and then invoking the
+   * generation of {@link CategoryOptionCombo}s through the service). {@link CategoryOptionCombo}s
+   * are always system-generated and never created in isolation, like most other resources. When
+   * system-generated, they always have a {@link CategoryCombo} and {@link CategoryOption}s.
+   *
+   * @param identifier unique identifier to create different objects
+   * @return record of created category types
+   */
   protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
     // 4 category options
     CategoryOption co1 =
