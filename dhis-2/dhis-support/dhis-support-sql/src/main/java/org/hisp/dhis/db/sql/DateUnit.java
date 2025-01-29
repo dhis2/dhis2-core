@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.function;
-
-import org.hisp.dhis.db.sql.DateUnit;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+package org.hisp.dhis.db.sql;
 
 /**
- * Program indicator function: d2 months between
+ * Enumeration of time units.
  *
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-public class D2MonthsBetween extends ProgramBetweenFunction {
-  @Override
-  public Object getSqlBetweenDates(
-      String startDate, String endDate, CommonExpressionVisitor visitor) {
-    return visitor.getSqlBuilder().dateDifference(startDate, endDate, DateUnit.MONTHS);
-  }
+public enum DateUnit {
+  DAYS,
+  WEEKS,
+  MONTHS,
+  MINUTES,
+  YEARS
 }
