@@ -138,7 +138,7 @@ class TrackerCrudTest {
             any(JobConfiguration.class), any(NotificationLevel.class), anyString(), anyBoolean()))
         .thenReturn(notifier);
     when(notifier.notify(any(JobConfiguration.class), anyString())).thenReturn(notifier);
-    when(notifier.clear(any())).thenReturn(notifier);
+    when(notifier.clear(any(JobConfiguration.class))).thenReturn(notifier);
 
     when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid, user))
         .thenReturn(new TrackedEntity());
