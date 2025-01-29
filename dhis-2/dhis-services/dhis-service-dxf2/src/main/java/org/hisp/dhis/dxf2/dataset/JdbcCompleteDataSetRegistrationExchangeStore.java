@@ -272,7 +272,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
       clause +=
           params.getOrganisationUnits().stream()
-              .map(o -> " ou.path LIKE '" + o.getPath() + "%' OR ")
+              .map(o -> " ou.path LIKE '" + o.getStoredPath() + "%' OR ")
               .collect(Collectors.joining());
 
       return TextUtils.removeLastOr(clause) + " ) ";
