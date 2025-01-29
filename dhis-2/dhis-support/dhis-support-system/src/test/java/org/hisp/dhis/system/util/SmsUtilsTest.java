@@ -39,11 +39,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -164,38 +162,8 @@ class SmsUtilsTest {
   }
 
   @Test
-  void testSplitLongUnicodeString() {
-    List<String> result = new ArrayList<>();
-    assertEquals(
-        Lists.newArrayList(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
-            "red.green.blue000000000000000000000000000000000000000000000000000000000000000000"),
-        SmsUtils.splitLongUnicodeString(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue"
-                + " red.green.blue"
-                + "000000000000000000000000000000000000000000000000000000000000000000",
-            result));
-    result = new ArrayList<>();
-    assertEquals(
-        Lists.newArrayList(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
-            "red.green.blue000000000000000000000000000000000000000000000000000000000000000000",
-            "000000000000000000000000000000000000000000000000000000000000000000red.green.blue"),
-        SmsUtils.splitLongUnicodeString(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue"
-                + " red.green.blue000000000000000000000000000000000000000000000000000000000000000000"
-                + " 000000000000000000000000000000000000000000000000000000000000000000red.green.blue",
-            result));
-  }
-
-  @Test
   void testGetRecipientsPhoneNumber() {
     assertTrue(SmsUtils.getRecipientsPhoneNumber(Lists.newArrayList(userA)).contains(phoneNumber));
-  }
-
-  @Test
-  void testGetRecipientsEmail() {
-    assertTrue(SmsUtils.getRecipientsEmail(Lists.newArrayList(userA)).contains(email));
   }
 
   @Test
