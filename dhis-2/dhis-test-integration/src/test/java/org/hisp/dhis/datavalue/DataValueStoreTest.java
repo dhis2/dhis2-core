@@ -85,7 +85,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
       "Merging duplicate DataValues (cat opt combos) leaves only the last updated (source) value remaining")
   void mergeDvWithDuplicatesKeepSource() {
     // given
-    TestCategoryMetadata categoryMetadata = setupCategoryMetadata();
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mdv1");
 
     Period p1 = createPeriod(DateUtils.getDate(2024, 1, 1), DateUtils.getDate(2023, 2, 1));
 
@@ -169,7 +169,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
       "Merging duplicate DataValues (cat opt combos) leaves only the last updated (target) value remaining")
   void mergeDvWithDuplicatesKeepTarget() {
     // given
-    TestCategoryMetadata categoryMetadata = setupCategoryMetadata();
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mdv2");
 
     Period p1 = createPeriod(DateUtils.getDate(2024, 1, 1), DateUtils.getDate(2023, 2, 1));
 
@@ -253,7 +253,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
       "Merging non-duplicate DataValues (cat opt combos) updates the cat opt combo value only")
   void mergeDvWithNoDuplicates() {
     // given
-    TestCategoryMetadata categoryMetadata = setupCategoryMetadata();
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mdv3");
 
     Period p1 = createPeriod(DateUtils.getDate(2024, 1, 1), DateUtils.getDate(2023, 2, 1));
     Period p2 = createPeriod(DateUtils.getDate(2024, 2, 1), DateUtils.getDate(2023, 3, 1));

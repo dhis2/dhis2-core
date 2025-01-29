@@ -42,9 +42,10 @@ public class TeAttributeQuery {
     VALUE,
     STOREDBY,
     ATTR_UID,
-    ATTR_NAME,
-    ATTR_VALUE_TYPE,
     ATTR_CODE,
+    ATTR_NAME,
+    ATTR_ATTRIBUTE_VALUES,
+    ATTR_VALUE_TYPE,
     ATTR_SKIP_SYNC
   }
 
@@ -57,9 +58,12 @@ public class TeAttributeQuery {
           .put(COLUMNS.STOREDBY, new TableColumn("teav", "storedby"))
           .put(COLUMNS.VALUE, new TableColumn("teav", "value"))
           .put(COLUMNS.ATTR_UID, new TableColumn("t", "uid", "att_uid"))
-          .put(COLUMNS.ATTR_VALUE_TYPE, new TableColumn("t", "valuetype", "att_val_type"))
           .put(COLUMNS.ATTR_CODE, new TableColumn("t", "code", "att_code"))
           .put(COLUMNS.ATTR_NAME, new TableColumn("t", "name", "att_name"))
+          .put(
+              COLUMNS.ATTR_ATTRIBUTE_VALUES,
+              new TableColumn("t", "attributevalues", "att_attributevalues"))
+          .put(COLUMNS.ATTR_VALUE_TYPE, new TableColumn("t", "valuetype", "att_val_type"))
           .put(COLUMNS.ATTR_SKIP_SYNC, new TableColumn("t", "skipsynchronization", "att_skip_sync"))
           .build();
 

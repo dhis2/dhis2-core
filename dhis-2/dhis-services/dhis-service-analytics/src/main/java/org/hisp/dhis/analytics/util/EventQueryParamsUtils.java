@@ -25,50 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.analytics.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.List;
+import lombok.experimental.UtilityClass;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
 
-import java.util.Map;
-import org.junit.jupiter.api.Test;
+@UtilityClass
+public class EventQueryParamsUtils {
 
-/**
- * Unit tests for the PrometheusTextBuilder class.
- *
- * @author Jason P. Pickering
- */
-class PrometheusTextBuilderTest {
-  @Test
-  void getMetricsReturnsEmptyStringWhenNoMetrics() {
-    PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    assertEquals("", builder.getMetrics());
+  /**
+   * Get all program indicators from event query params.
+   *
+   * @param params event query params
+   * @return list of program indicators
+   */
+  public static List<QueryItem> getProgramIndicators(EventQueryParams params) {
+    return params.getItems().stream().filter(QueryItem::isProgramIndicator).toList();
   }
 
-  @Test
-  void helpLineAppendsHelpText() {
-    PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.addHelp("test_metric", "This is a test metric");
-    assertEquals("# HELP test_metric This is a test metric\n", builder.getMetrics());
-  }
+  /**
+   * Remove program stage items from EventQueryParams. This method creates a copy of the
+   * EventQueryParams instance and filters out QueryItems with hasProgramStage == true.
+   *
+   * @param params event query params
+   * @return list of program stage items
+   */
+  public static EventQueryParams withoutProgramStageItems(EventQueryParams params) {
+    // Create a copy of the EventQueryParams instance
+    EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
 
-  @Test
-  void typeLineAppendsTypeText() {
-    PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.addType("test_metric", "counter");
-    assertEquals("# TYPE test_metric counter\n", builder.getMetrics());
-  }
+    // Filter out QueryItems with hasProgramStage == true
+    List<QueryItem> filteredItems =
+        params.getItems().stream().filter(item -> !item.hasProgramStage()).toList();
 
-  @Test
-  void updateMetricsFromMapAppendsMetrics() {
-    PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    Map<String, Integer> map = Map.of("key1", 1);
-    builder.addMetrics(map, "test_metric", "key", "Test help", "gauge");
-    String expected =
-        """
-        # HELP test_metric Test help
-        # TYPE test_metric gauge
-        test_metric{key="key1"} 1
-        """;
-    assertEquals(expected, builder.getMetrics());
+    // Clear the current items and itemFilters in the builder
+    builder.removeItems(); // Clears the items
+
+    for (QueryItem item : filteredItems) {
+      builder.addItem(item);
+    }
+
+    return builder.build();
   }
 }

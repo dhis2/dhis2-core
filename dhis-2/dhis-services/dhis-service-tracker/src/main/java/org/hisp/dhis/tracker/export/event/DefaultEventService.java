@@ -128,7 +128,12 @@ class DefaultEventService implements EventService {
           "this must be a bug in how the EventOperationParams are built");
     }
     if (events.getItems().isEmpty()) {
-      throw new NotFoundException(Event.class, eventUid);
+      throw new NotFoundException(
+          "Event "
+              + eventUid.getValue()
+              + " with data element "
+              + dataElementUid.getValue()
+              + " could not be found.");
     }
     Event event = events.getItems().get(0);
 
@@ -255,12 +260,16 @@ class DefaultEventService implements EventService {
     return eventStore.getEvents(queryParams, pageParams);
   }
 
+  // TODO(DHIS2-18883) Pass EventParams as a parameter
   @Override
-  public RelationshipItem getEventInRelationshipItem(
-      @Nonnull UID uid, @Nonnull EventParams eventParams) {
+  public RelationshipItem getEventInRelationshipItem(@Nonnull UID uid) {
     Event event;
     try {
-      event = getEvent(uid, TrackerIdSchemeParams.builder().build(), eventParams);
+      event =
+          getEvent(
+              uid,
+              TrackerIdSchemeParams.builder().build(),
+              EventParams.TRUE.withIncludeRelationships(false));
     } catch (NotFoundException | ForbiddenException e) {
       // events are not shown in relationships if the user has no access to them
       return null;

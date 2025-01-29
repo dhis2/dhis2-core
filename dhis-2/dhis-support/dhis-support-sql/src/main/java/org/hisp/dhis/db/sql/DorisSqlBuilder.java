@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
@@ -212,6 +214,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dateTrunc(String text, String timestamp) {
     return String.format("date_trunc(%s, %s)", timestamp, singleQuote(text));
+  }
+
+  @Override
+  public String concat(String... columns) {
+    return "concat("
+        + Arrays.stream(columns)
+            .map(this::wrapTrimNullIf) // Adjust wrapping logic
+            .collect(Collectors.joining(", "))
+        + ")";
   }
 
   @Override
@@ -468,6 +479,28 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
             "password", password,
             "connection_url", connectionUrl,
             "driver_filename", driverFilename));
+  }
+
+  /**
+   * Ensures `TRIM(NULLIF(...))` regardless of incoming column formatting
+   *
+   * @param column the column to be wrapped
+   * @return the wrapped column
+   */
+  private String wrapTrimNullIf(String column) {
+    // If the column is a literal, return it as-is
+    if (isQuoted(column)) {
+      return column;
+    }
+
+    // If the column already contains TRIM, insert NULLIF inside TRIM
+    if (column.startsWith("trim(")) {
+      String innerValue = column.substring(5, column.length() - 1);
+      return "trim(nullif('', " + innerValue + "))";
+    }
+
+    // For other cases, apply both TRIM and NULLIF
+    return "trim(nullif('', " + column + "))";
   }
 
   /**
