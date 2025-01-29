@@ -456,6 +456,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * Returns a create catalog statement.
+   *
    * @param connectionUrl the JDBC connection URL.
    * @param username the JDBC connection username.
    * @param password the JDBC connection password.
@@ -482,24 +484,24 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
-   * Ensures `TRIM(NULLIF(...))` regardless of incoming column formatting
+   * Ensures {@code trim(nullif(...))} regardless of incoming column formatting.
    *
-   * @param column the column to be wrapped
-   * @return the wrapped column
+   * @param column the column to be wrapped.
+   * @return the wrapped column.
    */
   private String wrapTrimNullIf(String column) {
-    // If the column is a literal, return it as-is
-    if (isQuoted(column)) {
+    // If the column is a literal, return it as is
+    if (isSingleQuoted(column)) {
       return column;
     }
 
-    // If the column already contains TRIM, insert NULLIF inside TRIM
+    // If the column already contains 'trim', insert 'nullif' inside 'trim'
     if (column.startsWith("trim(")) {
       String innerValue = column.substring(5, column.length() - 1);
       return "trim(nullif('', " + innerValue + "))";
     }
 
-    // For other cases, apply both TRIM and NULLIF
+    // For other cases, apply both 'trim' and 'nullif'
     return "trim(nullif('', " + column + "))";
   }
 
