@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -360,5 +362,30 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
     switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
     assertStatus(HttpStatus.NOT_FOUND, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
+
+  @Test
+  void testDeleteWithMapView() {
+    String mapViewJson =
+        """
+            {
+              "name": "test mapview",
+              "id": "mVIVRd23Jm9",
+              "organisationUnitLevels": [],
+              "maps": [],
+              "layer": "event",
+              "program": {
+                "id": "PrZMWi7rBga"
+              },
+              "programStage": {
+                "id": "PSzMWi7rBga"
+              }
+            }
+            """;
+    POST("/mapViews", mapViewJson).content(HttpStatus.CREATED);
+    assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));
+    JsonMixed mapview = GET("/mapViews/mVIVRd23Jm9").content().as(JsonMixed.class);
+    assertFalse(mapview.has("program"));
   }
 }
