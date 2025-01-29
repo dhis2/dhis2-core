@@ -370,6 +370,8 @@ public enum SettingKey {
         return Double.valueOf(value);
       } else if (Integer.class.isAssignableFrom(settingClazz)) {
         return Integer.valueOf(value);
+      } else if (Long.class.isAssignableFrom(settingClazz)) {
+        return Long.valueOf(value);
       } else if (Boolean.class.isAssignableFrom(settingClazz)) {
         return Boolean.valueOf(value);
       } else if (Locale.class.isAssignableFrom(settingClazz)) {
