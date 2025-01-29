@@ -82,7 +82,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @Spy private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
 

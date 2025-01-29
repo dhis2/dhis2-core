@@ -125,7 +125,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private SystemSettingsService systemSettingsService;
   @Mock private DhisConfigurationProvider config;
-  @Spy private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
       "event,ps,occurreddate,storedby,"
