@@ -88,4 +88,32 @@ class DorisAnalyticsSqlBuilderTest {
     String invalidInput = "2023-13-45 25:65:99"; // Invalid date/time values
     assertThrows(DateTimeParseException.class, () -> sqlBuilder.renderTimestamp(invalidInput));
   }
+
+  @Test
+  void renderTimestamp_allZeroMillis_shouldTrimToSingleZero() {
+    String input = "2023-10-20T15:30:45.000";
+    String expected = "2023-10-20 15:30:45.0";
+    assertEquals(expected, sqlBuilder.renderTimestamp(input));
+  }
+
+  @Test
+  void renderTimestamp_twoTrailingZeros_shouldTrimBothZeros() {
+    String input = "2023-10-20T15:30:45.400";
+    String expected = "2023-10-20 15:30:45.4";
+    assertEquals(expected, sqlBuilder.renderTimestamp(input));
+  }
+
+  @Test
+  void renderTimestamp_oneTrailingZero_shouldTrimZero() {
+    String input = "2023-10-20T15:30:45.420";
+    String expected = "2023-10-20 15:30:45.42";
+    assertEquals(expected, sqlBuilder.renderTimestamp(input));
+  }
+
+  @Test
+  void renderTimestamp_noTrailingZeros_shouldNotTrim() {
+    String input = "2023-10-20T15:30:45.123";
+    String expected = "2023-10-20 15:30:45.123";
+    assertEquals(expected, sqlBuilder.renderTimestamp(input));
+  }
 }
