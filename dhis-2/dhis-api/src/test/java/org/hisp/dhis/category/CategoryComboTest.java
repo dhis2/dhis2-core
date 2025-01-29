@@ -27,9 +27,16 @@
  */
 package org.hisp.dhis.category;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.stream.Stream;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link CategoryCombo}.
@@ -55,5 +62,39 @@ class CategoryComboTest {
     CategoryCombo category = new CategoryCombo();
     category.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME + "x");
     Assertions.assertFalse(category.isDefault());
+  }
+
+  @ParameterizedTest
+  @MethodSource("categoryComboEqualsParams")
+  @DisplayName("Category Combo equals check has expected result")
+  void categoryComboEqualsTest(String name, String uid, String code, boolean expectedResult) {
+    CategoryCombo ccParams = new CategoryCombo();
+    ccParams.setName(name);
+    ccParams.setUid(uid);
+    ccParams.setCode(code);
+
+    assertEquals(
+        expectedResult,
+        getCategoryOption().equals(ccParams),
+        "Category Combo equals check has expected result");
+  }
+
+  private static Stream<Arguments> categoryComboEqualsParams() {
+    boolean isEqual = true;
+    boolean isNotEqual = false;
+
+    return Stream.of(
+        Arguments.of("name", "uid", "code", isEqual),
+        Arguments.of("name diff", "uid", "code", isNotEqual),
+        Arguments.of("name", "uid diff", "code", isNotEqual),
+        Arguments.of("name", "uid", "code diff", isNotEqual));
+  }
+
+  private CategoryCombo getCategoryOption() {
+    CategoryCombo cc = new CategoryCombo();
+    cc.setName("name");
+    cc.setUid("uid");
+    cc.setCode("code");
+    return cc;
   }
 }

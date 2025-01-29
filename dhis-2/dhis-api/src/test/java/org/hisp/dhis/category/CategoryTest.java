@@ -27,9 +27,16 @@
  */
 package org.hisp.dhis.category;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.stream.Stream;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link Category}.
@@ -55,5 +62,51 @@ class CategoryTest {
     Category category = new Category();
     category.setName(Category.DEFAULT_NAME + "x");
     Assertions.assertFalse(category.isDefault());
+  }
+
+  @ParameterizedTest
+  @MethodSource("categoryEqualsParams")
+  @DisplayName("Category equals check has expected result")
+  void categoryEqualsTest(
+      String name,
+      String uid,
+      String code,
+      String shortName,
+      String description,
+      boolean expectedResult) {
+    Category coParams = new Category();
+    coParams.setName(name);
+    coParams.setUid(uid);
+    coParams.setCode(code);
+    coParams.setShortName(shortName);
+    coParams.setDescription(description);
+
+    assertEquals(
+        expectedResult,
+        getCategory().equals(coParams),
+        "Category equals check has expected result");
+  }
+
+  private static Stream<Arguments> categoryEqualsParams() {
+    boolean isEqual = true;
+    boolean isNotEqual = false;
+
+    return Stream.of(
+        Arguments.of("name", "uid", "code", "shortName", "description", isEqual),
+        Arguments.of("name", "uid", "code", "shortName", "description diff", isNotEqual),
+        Arguments.of("name", "uid", "code", "shortName diff", "description", isNotEqual),
+        Arguments.of("name", "uid", "code diff", "shortName", "description", isNotEqual),
+        Arguments.of("name", "uid diff", "code", "shortName", "description", isNotEqual),
+        Arguments.of("name diff", "uid", "code", "shortName", "description", isNotEqual));
+  }
+
+  private Category getCategory() {
+    Category co = new Category();
+    co.setName("name");
+    co.setUid("uid");
+    co.setCode("code");
+    co.setShortName("shortName");
+    co.setDescription("description");
+    return co;
   }
 }
