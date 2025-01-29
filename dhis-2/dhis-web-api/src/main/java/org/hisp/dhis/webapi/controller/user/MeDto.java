@@ -53,6 +53,7 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 
 @Getter
 @Setter
@@ -86,6 +87,7 @@ public class MeDto {
     this.name = user.getName();
     this.email = user.getEmail();
     this.emailVerified = user.isEmailVerified();
+    this.twoFactorType = user.getTwoFactorType();
     this.phoneNumber = user.getPhoneNumber();
     this.introduction = user.getIntroduction();
     this.birthday = user.getBirthday();
@@ -97,8 +99,8 @@ public class MeDto {
     this.skype = user.getSkype();
     this.telegram = user.getTelegram();
     this.twitter = user.getTwitter();
-    this.userRoles = user.getUserRoles();
 
+    this.userRoles = user.getUserRoles();
     this.authorities = new ArrayList<>(user.getAllAuthorities());
 
     this.settings = settings;
@@ -206,6 +208,8 @@ public class MeDto {
   @JsonProperty private String impersonation;
 
   @JsonProperty private List<ApiToken> patTokens;
+
+  @JsonProperty private TwoFactorType twoFactorType;
 
   @JsonProperty
   @JsonDeserialize(using = AttributeValuesDeserializer.class)
