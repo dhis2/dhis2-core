@@ -27,9 +27,23 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.time.LocalDateTime;
+import org.apache.commons.lang3.StringUtils;
+
 public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
   @Override
   public String getEventDataValues() {
     return "ev.eventdatavalues";
+  }
+
+  @Override
+  public String renderTimestamp(String timestampAsString) {
+    if (StringUtils.isEmpty(timestampAsString)) return null;
+    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
+    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
+    if (formattedDate.endsWith("000")) {
+      formattedDate = formattedDate.substring(0, formattedDate.length() - 2);
+    }
+    return formattedDate;
   }
 }
