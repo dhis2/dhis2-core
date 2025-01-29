@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,9 +40,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
@@ -80,13 +83,10 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
                 jsonMapper.writeValueAsString(Map.of("name", "John Doe")), HttpStatus.OK));
     service.setRestTemplate(mockRestTemplate);
 
-    ApiQueryParamsAuthScheme queryParamsAuthScheme = new ApiQueryParamsAuthScheme();
-    queryParamsAuthScheme.setQueryParams(Map.of("token", "foo"));
-
-    Route route = new Route();
-    route.setName("route-under-test");
-    route.setAuth(queryParamsAuthScheme);
-    route.setUrl("http://stub");
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
+    route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -115,13 +115,10 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
                 jsonMapper.writeValueAsString(Map.of("name", "John Doe")), HttpStatus.OK));
     service.setRestTemplate(mockRestTemplate);
 
-    ApiHeadersAuthScheme apiHeadersAuthScheme = new ApiHeadersAuthScheme();
-    apiHeadersAuthScheme.setHeaders(Map.of("X-API-KEY", "foo"));
-
-    Route route = new Route();
-    route.setName("route-under-test");
-    route.setAuth(apiHeadersAuthScheme);
-    route.setUrl("http://stub");
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
+    route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -138,13 +135,10 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testAddRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
-    ApiHeadersAuthScheme apiHeadersAuthScheme = new ApiHeadersAuthScheme();
-    apiHeadersAuthScheme.setHeaders(Map.of("X-API-KEY", "foo"));
-
-    Route route = new Route();
-    route.setName("route-under-test");
-    route.setAuth(apiHeadersAuthScheme);
-    route.setUrl("http://stub");
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
+    route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(org.hisp.dhis.web.HttpStatus.CREATED, postHttpResponse);
@@ -160,6 +154,29 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         ApiHeadersAuthScheme.API_HEADERS_TYPE,
         getHttpResponse.content().get("auth.type").as(JsonString.class).string());
+  }
+
+  @Test
+  void testGetRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    HttpResponse getHttpResponse =
+        GET(
+            "/routes/{id}",
+            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    assertStatus(org.hisp.dhis.web.HttpStatus.OK, getHttpResponse);
+    assertNotEquals(
+        "foo",
+        getHttpResponse.content().get("auth.headers.X-API-KEY").as(JsonString.class).string());
+    assertEquals(
+        ApiHeadersAuthScheme.API_HEADERS_TYPE,
+        getHttpResponse.content().get("auth.type").as(JsonString.class).string());
+    assertFalse(getHttpResponse.content().get("auth").as(JsonObject.class).has("headers"));
   }
 
   @Test
@@ -185,5 +202,25 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE,
         getHttpResponse.content().get("auth.type").as(JsonString.class).string());
+  }
+
+  @Test
+  void testGetRouteGivenApiQueryParamsAuthScheme() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    HttpResponse getHttpResponse =
+        GET(
+            "/routes/{id}",
+            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    assertStatus(org.hisp.dhis.web.HttpStatus.OK, getHttpResponse);
+    assertEquals(
+        ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE,
+        getHttpResponse.content().get("auth.type").as(JsonString.class).string());
+    assertFalse(getHttpResponse.content().get("auth").as(JsonObject.class).has("queryParams"));
   }
 }
