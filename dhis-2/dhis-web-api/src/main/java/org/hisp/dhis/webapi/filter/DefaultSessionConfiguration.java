@@ -28,10 +28,16 @@
 package org.hisp.dhis.webapi.filter;
 
 import javax.servlet.Filter;
+import javax.servlet.http.HttpSession;
 import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
@@ -47,6 +53,9 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @Configuration
 @Conditional(RedisDisabledCondition.class)
 public class DefaultSessionConfiguration {
+
+  @Autowired private DhisConfigurationProvider config;
+
   /**
    * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
    *
@@ -55,5 +64,13 @@ public class DefaultSessionConfiguration {
   @Bean("springSessionRepositoryFilter")
   public Filter springSessionRepositoryFilter() {
     return new CharacterEncodingFilter();
+  }
+
+  @EventListener
+  public void sessionCreated(HttpSessionCreatedEvent event) {
+    HttpSession session = event.getSession();
+    int sessionTimeout =
+        Integer.parseInt(config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT));
+    session.setMaxInactiveInterval(sessionTimeout);
   }
 }
