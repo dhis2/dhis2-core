@@ -144,7 +144,6 @@ public class LoginTest {
       enrollAndLoginEmail2FA(username, password);
     } finally {
       // Reset system settings
-      setSystemProperty("email2FAEnabled", "false");
       setSystemProperty("keyEmailHostName", "");
       setSystemProperty("keyEmailPort", "25");
       setSystemProperty("keyEmailUsername", null);
@@ -471,7 +470,6 @@ public class LoginTest {
   // --------------------------------------------------------------------------------------------
 
   private static void configureEmail2FASettings(String cookie) {
-    setSystemPropertyWithCookie("email2FAEnabled", "true", cookie);
     setSystemPropertyWithCookie("keyEmailHostName", SMTP_HOSTNAME, cookie);
     setSystemPropertyWithCookie("keyEmailPort", String.valueOf(smtpPort), cookie);
     setSystemPropertyWithCookie("keyEmailUsername", "nils", cookie);
