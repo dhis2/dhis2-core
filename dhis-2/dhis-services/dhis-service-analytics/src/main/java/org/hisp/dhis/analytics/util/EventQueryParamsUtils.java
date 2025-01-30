@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.analytics.util;
 
-import java.time.LocalDateTime;
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
+import lombok.experimental.UtilityClass;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
 
-public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
-  @Override
-  public String getEventDataValues() {
-    return "ev.eventdatavalues";
+@UtilityClass
+public class EventQueryParamsUtils {
+
+  /**
+   * Get all program indicators from event query params.
+   *
+   * @param params event query params
+   * @return list of program indicators
+   */
+  public static List<QueryItem> getProgramIndicators(EventQueryParams params) {
+    return params.getItems().stream().filter(QueryItem::isProgramIndicator).toList();
   }
 
-  @Override
-  public String renderTimestamp(String timestampAsString) {
-    if (StringUtils.isBlank(timestampAsString)) return null;
-    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
-    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
+  /**
+   * Remove program stage items from EventQueryParams. This method creates a copy of the
+   * EventQueryParams instance and filters out QueryItems with hasProgramStage == true.
+   *
+   * @param params event query params
+   * @return list of program stage items
+   */
+  public static EventQueryParams withoutProgramStageItems(EventQueryParams params) {
+    // Create a copy of the EventQueryParams instance
+    EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
 
-    // Find the position of the decimal point
-    int decimalPoint = formattedDate.lastIndexOf('.');
-    if (decimalPoint != -1) {
-      // Remove trailing zeros after decimal point
-      String millisPart = formattedDate.substring(decimalPoint + 1);
-      millisPart = millisPart.replaceAll("0+$", ""); // Remove all trailing zeros
+    // Filter out QueryItems with hasProgramStage == true
+    List<QueryItem> filteredItems =
+        params.getItems().stream().filter(item -> !item.hasProgramStage()).toList();
 
-      // If all digits were zeros, use "0" instead of empty string
-      if (millisPart.isEmpty()) {
-        millisPart = "0";
-      }
+    // Clear the current items and itemFilters in the builder
+    builder.removeItems(); // Clears the items
 
-      formattedDate = formattedDate.substring(0, decimalPoint + 1) + millisPart;
+    for (QueryItem item : filteredItems) {
+      builder.addItem(item);
     }
 
-    return formattedDate;
+    return builder.build();
   }
 }

@@ -47,6 +47,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMeDto;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -283,5 +284,11 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).getValue());
+  }
+
+  @Test
+  void testGetTwoFactorType() {
+    JsonMeDto jsonMeDto = GET("/me").content().as(JsonMeDto.class);
+    assertEquals(TwoFactorType.NOT_ENABLED.toString(), jsonMeDto.getTwoFactorType());
   }
 }

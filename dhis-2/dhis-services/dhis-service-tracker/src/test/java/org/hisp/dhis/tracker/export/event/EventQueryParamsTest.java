@@ -70,13 +70,13 @@ class EventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void shouldAddDataElementToOrderAndDataElementsWhenOrderingByDataElement() {
+  void shouldAddDataElementToOrderButNotToDataElementsWhenOrderingByDataElement() {
     EventQueryParams params = new EventQueryParams();
 
     params.orderBy(de1, SortDirection.ASC);
 
     assertEquals(List.of(new Order(de1, SortDirection.ASC)), params.getOrder());
-    assertEquals(Map.of(de1, List.of()), params.getDataElements());
+    assertTrue(params.getDataElements().isEmpty());
     assertFalse(params.hasDataElementFilter());
   }
 

@@ -483,13 +483,4 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
-
-  /** Enumeration of time units. */
-  enum DateUnit {
-    DAYS,
-    WEEKS,
-    MONTHS,
-    MINUTES,
-    YEARS
-  }
 }

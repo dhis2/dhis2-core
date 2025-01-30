@@ -274,6 +274,7 @@ public abstract class TestBase {
   private static Date date;
 
   protected static final double DELTA = 0.01;
+  private static int categoryCounter = 1;
 
   // -------------------------------------------------------------------------
   // Service references
@@ -575,6 +576,23 @@ public abstract class TestBase {
   }
 
   /**
+   * @param identifier A unique string to identify the category option combo.
+   * @param categories the categories category options.
+   * @return CategoryOptionCombo
+   */
+  public static CategoryCombo createCategoryCombo(String identifier, Category... categories) {
+    CategoryCombo categoryCombo =
+        new CategoryCombo("CategoryCombo " + identifier, DataDimensionType.DISAGGREGATION);
+    categoryCombo.setAutoFields();
+
+    for (Category category : categories) {
+      categoryCombo.getCategories().add(category);
+    }
+
+    return categoryCombo;
+  }
+
+  /**
    * Creates a {@see CategoryCombo} with name, uid, and categories.
    *
    * @param name desired name
@@ -684,6 +702,22 @@ public abstract class TestBase {
       char categoryUniqueIdentifier, CategoryOption... categoryOptions) {
     Category category =
         new Category("Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION);
+    category.setAutoFields();
+    category.setShortName(category.getName());
+    for (CategoryOption categoryOption : categoryOptions) {
+      category.addCategoryOption(categoryOption);
+    }
+
+    return category;
+  }
+
+  /**
+   * @param identifier A unique string to identify the category.
+   * @param categoryOptions the category options.
+   * @return Category
+   */
+  public static Category createCategory(String identifier, CategoryOption... categoryOptions) {
+    Category category = new Category("Category" + identifier, DataDimensionType.DISAGGREGATION);
     category.setAutoFields();
     category.setShortName(category.getName());
     for (CategoryOption categoryOption : categoryOptions) {
@@ -3049,54 +3083,55 @@ public abstract class TestBase {
     return user;
   }
 
-  protected TestCategoryMetadata setupCategoryMetadata() {
-    // 8 category options
-    CategoryOption co1A = createCategoryOption("1A", CodeGenerator.generateUid());
-    CategoryOption co1B = createCategoryOption("1B", CodeGenerator.generateUid());
-    CategoryOption co2A = createCategoryOption("2A", CodeGenerator.generateUid());
-    CategoryOption co2B = createCategoryOption("2B", CodeGenerator.generateUid());
-    CategoryOption co3A = createCategoryOption("3A", CodeGenerator.generateUid());
-    CategoryOption co3B = createCategoryOption("3B", CodeGenerator.generateUid());
-    CategoryOption co4A = createCategoryOption("4A", CodeGenerator.generateUid());
-    CategoryOption co4B = createCategoryOption("4B", CodeGenerator.generateUid());
-    categoryService.addCategoryOption(co1A);
-    categoryService.addCategoryOption(co1B);
-    categoryService.addCategoryOption(co2A);
-    categoryService.addCategoryOption(co2B);
-    categoryService.addCategoryOption(co3A);
-    categoryService.addCategoryOption(co3B);
-    categoryService.addCategoryOption(co4A);
-    categoryService.addCategoryOption(co4B);
+  /**
+   * This test setup allows easy creation of more realistic {@link CategoryOptionCombo}s. It creates
+   * multiple {@link CategoryOptionCombo}s that mirror how they are created in live code, (creating
+   * {@link Category}s, {@link CategoryOption}s, {@link CategoryCombo}s and then invoking the
+   * generation of {@link CategoryOptionCombo}s through the service). {@link CategoryOptionCombo}s
+   * are always system-generated and never created in isolation, like most other resources. When
+   * system-generated, they always have a {@link CategoryCombo} and {@link CategoryOption}s.
+   *
+   * @param identifier unique identifier to create different objects
+   * @return record of created category types
+   */
+  protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
+    // 4 category options
+    CategoryOption co1 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co2 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co3 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co4 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
 
-    // 4 categories (each with 2 category options)
-    Category cat1 = createCategory('1', co1A, co1B);
-    Category cat2 = createCategory('2', co2A, co2B);
-    Category cat3 = createCategory('3', co3A, co3B);
-    Category cat4 = createCategory('4', co4A, co4B);
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+    categoryService.addCategoryOption(co3);
+    categoryService.addCategoryOption(co4);
+
+    // 2 categories (each with 2 category options)
+    Category cat1 = createCategory(identifier + " " + categoryCounter++, co1, co2);
+    Category cat2 = createCategory(identifier + " " + categoryCounter++, co3, co4);
     categoryService.addCategory(cat1);
     categoryService.addCategory(cat2);
-    categoryService.addCategory(cat3);
-    categoryService.addCategory(cat4);
 
-    CategoryCombo cc1 = createCategoryCombo('1', cat1, cat2);
-    CategoryCombo cc2 = createCategoryCombo('2', cat3, cat4);
+    // 1 category combo with 2 categories
+    CategoryCombo cc1 = createCategoryCombo(identifier + " " + categoryCounter++, cat1, cat2);
     categoryService.addCategoryCombo(cc1);
-    categoryService.addCategoryCombo(cc2);
 
+    // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
     categoryService.generateOptionCombos(cc1);
-    categoryService.generateOptionCombos(cc2);
 
-    CategoryOptionCombo coc1A2A = getCocWithOptions("1A", "2A");
-    CategoryOptionCombo coc1B2B = getCocWithOptions("1A", "2B");
-    CategoryOptionCombo coc3A4A = getCocWithOptions("3A", "4A");
-    CategoryOptionCombo coc3A4B = getCocWithOptions("3A", "4B");
+    CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
+    CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());
+    CategoryOptionCombo coc3 = getCocWithOptions(co2.getName(), co3.getName());
+    CategoryOptionCombo coc4 = getCocWithOptions(co2.getName(), co4.getName());
 
-    return new TestCategoryMetadata(
-        cc1, cc2, cat1, cat2, cat3, cat4, co1A, co1B, co2A, co2B, co3A, co3B, co4A, co4B, coc1A2A,
-        coc1B2B, coc3A4A, coc3A4B);
+    return new TestCategoryMetadata(cc1, cat1, cat2, co1, co2, co3, co4, coc1, coc2, coc3, coc4);
   }
 
-  private CategoryOptionCombo getCocWithOptions(String co1, String co2) {
+  private static CategoryOptionCombo getCocWithOptions(String co1, String co2) {
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
