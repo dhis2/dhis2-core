@@ -32,4 +32,9 @@ public class ClickhouseAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
   public String getEventDataValues() {
     return "ev.eventdatavalues";
   }
+
+  @Override
+  public String renderTimestamp(String timestampAsString) {
+    return timestampAsString;
+  }
 }

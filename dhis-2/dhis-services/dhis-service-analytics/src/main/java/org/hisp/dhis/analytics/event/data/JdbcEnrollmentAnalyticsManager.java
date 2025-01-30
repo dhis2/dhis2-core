@@ -101,6 +101,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -152,6 +153,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
       SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
@@ -161,7 +163,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        analyticsSqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
