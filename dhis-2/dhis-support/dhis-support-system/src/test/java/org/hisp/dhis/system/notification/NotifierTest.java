@@ -194,14 +194,14 @@ class NotifierTest {
         .forEach(
             i -> {
               for (Notification notification :
-                  getNotifications(METADATA_IMPORT).get(jobConfig.getUid())) {
+                  notifier.getNotificationsByJobId(METADATA_IMPORT, jobConfig.getUid())) {
                 // Iterate over notifications when new notification are added
                 assertNotNull(notification.getUid());
               }
             });
     awaitTermination(e);
     awaitIdle();
-    assertEquals(101, getNotifications(METADATA_IMPORT).get(jobConfig.getUid()).size());
+    assertEquals(101, notifier.getNotificationsByJobId(METADATA_IMPORT, jobConfig.getUid()).size());
   }
 
   public void awaitTermination(ExecutorService threadPool) {
