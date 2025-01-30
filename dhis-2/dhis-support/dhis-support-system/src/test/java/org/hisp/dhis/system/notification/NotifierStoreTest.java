@@ -32,6 +32,7 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.DATA_INTEGRITY;
 import static org.hisp.dhis.system.notification.NotificationLevel.LOOP;
@@ -409,10 +410,10 @@ abstract class NotifierStoreTest {
   }
 
   private static JobConfiguration job(int serial, JobType type) {
-    return new JobConfiguration("job" + serial, type);
+    return new JobConfiguration("job" + serial, type, null, true);
   }
 
   private static void assertMessages(List<String> expected, Deque<Notification> actual) {
-    assertEquals(expected, actual.stream().map(Notification::getMessage).toList());
+    assertEquals(expected, actual.stream().map(Notification::getMessage).collect(toList()));
   }
 }

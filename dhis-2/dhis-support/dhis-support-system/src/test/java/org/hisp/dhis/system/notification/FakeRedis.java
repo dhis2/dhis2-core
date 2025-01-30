@@ -46,6 +46,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.mockito.MockSettings;
 import org.mockito.Mockito;
@@ -64,10 +67,14 @@ import org.springframework.data.redis.core.RedisOperations;
  *
  * @author Jan Bernitt
  */
-record FakeRedis(
-    Map<String, FakeZSet> zSets,
-    Map<String, FakeHashTable> hTables,
-    RedisOperations<String, String> api) {
+@Accessors(fluent = true)
+@Getter
+@RequiredArgsConstructor
+final class FakeRedis {
+
+  private final Map<String, FakeZSet> zSets;
+  private final Map<String, FakeHashTable> hTables;
+  private final RedisOperations<String, String> api;
 
   static Notifier notifier(SystemSettingsProvider settings, LongSupplier clock) {
     return new DefaultNotifier(
@@ -76,9 +83,6 @@ record FakeRedis(
 
   FakeRedis() {
     this(new HashMap<>(), new HashMap<>(), redisOps());
-  }
-
-  FakeRedis {
     when(api.keys(anyString())).thenAnswer(this::keys);
     when(api.boundZSetOps(anyString())).thenAnswer(this::boundZSetOps);
     when(api.boundHashOps(anyString())).thenAnswer(this::boundHashOps);
@@ -122,19 +126,22 @@ record FakeRedis(
 
   private BoundZSetOperations<String, String> boundZSetOps(InvocationOnMock i) {
     String key = i.getArgument(0, String.class);
-    return zSets.computeIfAbsent(key, k -> new FakeZSet(new LinkedList<>(), boundZSetOps())).api();
+    return zSets.computeIfAbsent(key, k -> new FakeZSet(new LinkedList<>(), boundZSetOps())).api;
   }
 
   private BoundHashOperations<String, String, String> boundHashOps(InvocationOnMock i) {
     String key = i.getArgument(0, String.class);
-    return hTables
-        .computeIfAbsent(key, k -> new FakeHashTable(new HashMap<>(), boundHashOps()))
-        .api();
+    return hTables.computeIfAbsent(key, k -> new FakeHashTable(new HashMap<>(), boundHashOps()))
+        .api;
   }
 
-  record FakeZSet(LinkedList<String> entries, BoundZSetOperations<String, String> api) {
+  static final class FakeZSet {
+    final LinkedList<String> entries;
+    final BoundZSetOperations<String, String> api;
 
-    FakeZSet {
+    public FakeZSet(LinkedList<String> entries, BoundZSetOperations<String, String> api) {
+      this.entries = entries;
+      this.api = api;
       when(api.zCard()).thenAnswer(i -> (long) entries.size());
       when(api.removeRange(anyLong(), anyLong())).thenAnswer(this::removeRange);
       when(api.add(anyString(), anyDouble())).thenAnswer(this::add);
@@ -184,10 +191,15 @@ record FakeRedis(
     }
   }
 
-  record FakeHashTable(
-      Map<String, String> entries, BoundHashOperations<String, String, String> api) {
+  static final class FakeHashTable {
 
-    FakeHashTable {
+    final Map<String, String> entries;
+    final BoundHashOperations<String, String, String> api;
+
+    public FakeHashTable(
+        Map<String, String> entries, BoundHashOperations<String, String, String> api) {
+      this.entries = entries;
+      this.api = api;
       doAnswer(
               i -> {
                 put(i);
