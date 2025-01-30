@@ -25,32 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author Morten Olav Hansen
  */
-public class JsonListBinaryType extends JsonBinaryType {
-  static final ObjectMapper MAPPER = new ObjectMapper();
+class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
 
-  static {
-    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    MAPPER.setAnnotationIntrospector(
-        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
+  @Test
+  void testAuthorizationHeaderSet() {
+    ApiTokenAuthScheme auth =
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
+
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
+
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals(
+        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
   }
 
-  @Override
-  protected ObjectMapper getResultingMapper() {
-    return MAPPER;
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F"),
+        ApiTokenAuthScheme::getToken);
   }
 
-  @Override
-  protected JavaType getResultingJavaType(Class<?> returnedClass) {
-    return MAPPER.getTypeFactory().constructCollectionType(List.class, returnedClass);
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiTokenAuthScheme()
+            .setToken("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        ApiTokenAuthScheme::getToken);
   }
 }

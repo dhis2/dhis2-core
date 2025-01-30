@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- */
-public class JsonListBinaryType extends JsonBinaryType {
-  static final ObjectMapper MAPPER = new ObjectMapper();
+class ApiHeadersAuthSchemeTest extends AbstractAuthSchemeTest {
 
-  static {
-    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    MAPPER.setAnnotationIntrospector(
-        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiHeadersAuthScheme()
+            .setHeaders(
+                Map.of(
+                    "X-API-KEY",
+                    "T5pvst37VedtsoD70KlbumzI30Mo4pzzyAY0M6Ia8uYyPBLPeXlYzr4d3LPQD6oS")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getHeaders().get("X-API-KEY"));
   }
 
-  @Override
-  protected ObjectMapper getResultingMapper() {
-    return MAPPER;
-  }
-
-  @Override
-  protected JavaType getResultingJavaType(Class<?> returnedClass) {
-    return MAPPER.getTypeFactory().constructCollectionType(List.class, returnedClass);
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiHeadersAuthScheme()
+            .setHeaders(
+                Map.of(
+                    "X-API-KEY",
+                    "3PB06m2bcr0blf81OEpcIDUMUYQYHJcdQsBJyOwbmelTYBQ6fuskAGJReGgM30Cv")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getHeaders().get("X-API-KEY"));
   }
 }

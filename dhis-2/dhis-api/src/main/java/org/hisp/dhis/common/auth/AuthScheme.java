@@ -27,39 +27,40 @@
  */
 package org.hisp.dhis.common.auth;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.List;
+import java.util.Map;
+import java.util.function.UnaryOperator;
 import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@EqualsAndHashCode
 @Accessors(chain = true)
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
     property = "type")
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = HttpBasicAuth.class, name = "http-basic"),
-  @JsonSubTypes.Type(value = ApiTokenAuth.class, name = "api-token")
+  @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = HttpBasicAuthScheme.HTTP_BASIC_TYPE),
+  @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = ApiTokenAuthScheme.API_TOKEN_TYPE),
+  @JsonSubTypes.Type(
+      value = ApiHeadersAuthScheme.class,
+      name = ApiHeadersAuthScheme.API_HEADERS_TYPE),
+  @JsonSubTypes.Type(
+      value = ApiQueryParamsAuthScheme.class,
+      name = ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE)
 })
-public abstract class Auth implements Serializable {
-  @JsonProperty protected final String type;
+public interface AuthScheme extends Serializable {
+  void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams);
 
-  @JsonCreator
-  protected Auth(@JsonProperty("type") String type) {
-    this.type = type;
-  }
+  AuthScheme encrypt(UnaryOperator<String> encryptFunc);
 
-  public abstract void apply(MultiValueMap<String, String> headers);
+  AuthScheme decrypt(UnaryOperator<String> decryptFunc);
+
+  @JsonProperty
+  String getType();
 }
