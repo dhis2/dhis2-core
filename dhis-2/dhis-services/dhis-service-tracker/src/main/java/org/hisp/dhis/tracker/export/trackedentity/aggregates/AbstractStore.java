@@ -125,27 +125,6 @@ abstract class AbstractStore {
 
   abstract String getRelationshipEntityColumn();
 
-  /**
-   * @param sql an sql statement to which we want to "attach" the ACL sharing and the include delete
-   *     condition
-   * @param ctx the {@see Context} object containing information about the inclusion of deleted
-   *     records and the current user
-   * @param aclSql the sql statement as WHERE condition to filter out elements for which the user
-   *     has no sharing access
-   * @param deletedSql the sql statement as WHERE condition to filter out elements that are soft
-   *     deleted
-   * @return a merge between the sql, the aclSql and the include delete condition
-   */
-  protected String getQuery(String sql, Context ctx, String aclSql, String deletedSql) {
-    if (!ctx.isSuperUser()) {
-      sql = sql + " AND " + aclSql;
-    }
-    if (!ctx.getQueryParams().isIncludeDeleted()) {
-      sql = sql + " AND " + deletedSql;
-    }
-    return sql;
-  }
-
   protected String applySortOrder(String sql, String sortOrderIds) {
     String trackedentityid = "trackedentityid";
     return "select * from ("

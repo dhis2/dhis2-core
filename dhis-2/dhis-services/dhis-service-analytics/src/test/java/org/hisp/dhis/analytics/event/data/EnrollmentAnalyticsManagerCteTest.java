@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
@@ -81,6 +82,9 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+
   @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
@@ -114,6 +118,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
+            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 

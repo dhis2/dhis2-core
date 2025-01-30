@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.analytics.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import org.hisp.dhis.common.auth.ApiTokenAuth;
+import java.util.List;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
-/**
- * @author Morten Olav Hansen
- */
-class ApiTokenAuthTest {
-
+class EventQueryParamsUtilsTest {
   @Test
-  void testAuthorizationHeaderSet() {
-    ApiTokenAuth auth = new ApiTokenAuth().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
+  void testWithoutProgramStageItems() {
+    // Create mock QueryItems
+    QueryItem item1 = mock(QueryItem.class);
+    QueryItem item2 = mock(QueryItem.class);
+    QueryItem item3 = mock(QueryItem.class);
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
+    // Set behavior for hasProgramStage()
+    when(item1.hasProgramStage()).thenReturn(false); // This item should be retained
+    when(item2.hasProgramStage()).thenReturn(true); // This item should be removed
+    when(item3.hasProgramStage()).thenReturn(false); // This item should be retained
 
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals(
-        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+    // Create an EventQueryParams instance with these items
+    EventQueryParams originalParams =
+        new EventQueryParams.Builder().addItem(item1).addItem(item2).addItem(item3).build();
+
+    // Apply the method under test
+    EventQueryParams resultParams = EventQueryParamsUtils.withoutProgramStageItems(originalParams);
+
+    // Assert the resulting params contain only the filtered items
+    List<QueryItem> resultItems = resultParams.getItems();
+    assertEquals(2, resultItems.size());
+    assertTrue(resultItems.contains(item1));
+    assertTrue(resultItems.contains(item3));
+    assertFalse(resultItems.contains(item2));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,29 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import java.util.Map;
+import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
-/**
- * @author Morten Olav Hansen
- */
-class HttpBasicAuthTest {
+class ApiQueryParamsAuthSchemeTest extends AbstractAuthSchemeTest {
+
   @Test
-  void testAuthorizationHeaderSet() {
-    HttpBasicAuth auth = new HttpBasicAuth().setUsername("admin").setPassword("district");
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiQueryParamsAuthScheme()
+            .setQueryParams(
+                Map.of(
+                    "token", "T5pvst37VedtsoD70KlbumzI30Mo4pzzyAY0M6Ia8uYyPBLPeXlYzr4d3LPQD6oS")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getQueryParams().get("token"));
+  }
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
-
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiQueryParamsAuthScheme()
+            .setQueryParams(
+                Map.of(
+                    "token", "3PB06m2bcr0blf81OEpcIDUMUYQYHJcdQsBJyOwbmelTYBQ6fuskAGJReGgM30Cv")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getQueryParams().get("token"));
   }
 }

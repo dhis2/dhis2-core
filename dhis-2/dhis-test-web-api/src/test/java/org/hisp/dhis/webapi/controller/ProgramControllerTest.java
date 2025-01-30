@@ -58,7 +58,6 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -368,8 +367,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.NOT_FOUND, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
   }
 
-  @Disabled(
-      "Throws error only on jenkins: Referential integrity constraint violation: fk_mapview_programstageid")
+  @Test
   void testDeleteWithMapView() {
     String mapViewJson =
         """

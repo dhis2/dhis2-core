@@ -36,6 +36,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
@@ -66,16 +68,19 @@ import org.springframework.stereotype.Component;
 public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
   private UserService userService;
   private TwoFactorAuthService twoFactorAuthService;
+  private DhisConfigurationProvider configurationProvider;
 
   @Autowired
   public TwoFactorAuthenticationProvider(
       @Qualifier("userDetailsService") UserDetailsService detailsService,
       PasswordEncoder passwordEncoder,
       @Lazy UserService userService,
-      @Lazy TwoFactorAuthService twoFactorAuthService) {
+      @Lazy TwoFactorAuthService twoFactorAuthService,
+      DhisConfigurationProvider configurationProvider) {
 
     this.userService = userService;
     this.twoFactorAuthService = twoFactorAuthService;
+    this.configurationProvider = configurationProvider;
     setUserDetailsService(detailsService);
     setPasswordEncoder(passwordEncoder);
   }
@@ -131,7 +136,21 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     if (userDetails.isTwoFactorEnabled()
         && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails authDetails) {
-      validate2FACode(authDetails.getCode(), userDetails);
+      // Check if the user's 2FA type is enabled in config
+      TwoFactorType type = userDetails.getTwoFactorType();
+      boolean isTypeEnabled = false;
+      if (type == TwoFactorType.EMAIL_ENABLED) {
+        isTypeEnabled =
+            configurationProvider.getProperty(ConfigurationKey.EMAIL_2FA_ENABLED).equals("on");
+      } else if (type == TwoFactorType.TOTP_ENABLED) {
+        isTypeEnabled =
+            configurationProvider.getProperty(ConfigurationKey.TOTP_2FA_ENABLED).equals("on");
+      }
+
+      // Only validate 2FA code if the type is enabled
+      if (isTypeEnabled) {
+        validate2FACode(authDetails.getCode(), userDetails);
+      }
     }
 
     return new UsernamePasswordAuthenticationToken(

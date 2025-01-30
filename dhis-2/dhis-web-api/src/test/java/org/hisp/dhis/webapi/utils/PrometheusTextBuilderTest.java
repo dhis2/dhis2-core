@@ -47,14 +47,14 @@ class PrometheusTextBuilderTest {
   @Test
   void helpLineAppendsHelpText() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.helpLine("test_metric", "This is a test metric");
+    builder.addHelp("test_metric", "This is a test metric");
     assertEquals("# HELP test_metric This is a test metric\n", builder.getMetrics());
   }
 
   @Test
   void typeLineAppendsTypeText() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
-    builder.typeLine("test_metric", "counter");
+    builder.addType("test_metric", "counter");
     assertEquals("# TYPE test_metric counter\n", builder.getMetrics());
   }
 
@@ -62,7 +62,7 @@ class PrometheusTextBuilderTest {
   void updateMetricsFromMapAppendsMetrics() {
     PrometheusTextBuilder builder = new PrometheusTextBuilder();
     Map<String, Integer> map = Map.of("key1", 1);
-    builder.updateMetricsFromMap(map, "test_metric", "key", "Test help", "gauge");
+    builder.addMetrics(map, "test_metric", "key", "Test help", "gauge");
     String expected =
         """
         # HELP test_metric Test help

@@ -35,7 +35,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.auth.Auth;
+import org.hisp.dhis.common.auth.AuthScheme;
 import org.hisp.dhis.eventhook.Target;
 
 /**
@@ -59,7 +59,7 @@ public class WebhookTarget extends Target {
 
   @JsonProperty private Map<String, String> headers = new HashMap<>();
 
-  @JsonProperty private Auth auth;
+  @JsonProperty private AuthScheme auth;
 
   public WebhookTarget() {
     super(TYPE);

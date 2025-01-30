@@ -218,8 +218,8 @@ public enum ErrorCode {
   E3043(
       "User does not have a verified email, please verify your email before you try to enable 2FA"),
   E3044("TOTP 2FA is not enabled"),
-  E3045("Email based 2FA is not enabled in the system settings"),
-  E3046("TOTP 2FA is not enabled in the system settings"),
+  E3045("Email based 2FA is not enabled"),
+  E3046("TOTP 2FA is not enabled"),
   E3047("User is not in TOTP 2FA enrollment mode"),
   E3048("User does not have email 2FA enabled"),
   E3049("Sending 2FA code with email failed"),

@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.db.sql.SqlBuilder.DateUnit.MONTHS;
-
+import org.hisp.dhis.db.sql.DateUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
@@ -40,6 +39,6 @@ public class D2MonthsBetween extends ProgramBetweenFunction {
   @Override
   public Object getSqlBetweenDates(
       String startDate, String endDate, CommonExpressionVisitor visitor) {
-    return visitor.getSqlBuilder().dateDifference(startDate, endDate, MONTHS);
+    return visitor.getSqlBuilder().dateDifference(startDate, endDate, DateUnit.MONTHS);
   }
 }

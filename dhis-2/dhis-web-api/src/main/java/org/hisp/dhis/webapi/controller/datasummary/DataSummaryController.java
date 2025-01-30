@@ -79,8 +79,8 @@ public class DataSummaryController {
   public void appendSystemInfoMetrics(PrometheusTextBuilder metrics, Dhis2Info systemInfo) {
     String metricName = "data_summary_build_info";
     if (systemInfo != null) {
-      metrics.helpLine(metricName, "Build information");
-      metrics.typeLine(metricName, "gauge");
+      metrics.addHelp(metricName, "Build information");
+      metrics.addType(metricName);
       long buildTime = 0L;
       if (systemInfo.getBuildTime() != null) {
         buildTime = systemInfo.getBuildTime().toInstant().getEpochSecond();
@@ -90,8 +90,8 @@ public class DataSummaryController {
               "%s{version=\"%s\", commit=\"%s\"} %s%n",
               metricName, systemInfo.getVersion(), systemInfo.getRevision(), buildTime));
 
-      metrics.helpLine("data_summary_system_id", "System ID");
-      metrics.typeLine("data_summary_system_id", "gauge");
+      metrics.addHelp("data_summary_system_id", "System ID");
+      metrics.addType("data_summary_system_id");
       metrics.append(
           String.format("data_summary_system_id{system_id=\"%s\"} 1%n", systemInfo.getSystemId()));
     }
@@ -101,43 +101,38 @@ public class DataSummaryController {
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody String getPrometheusMetrics() {
     DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
-    final String PROMETHEUS_GAUGE_NAME = "gauge";
+
     PrometheusTextBuilder metrics = new PrometheusTextBuilder();
 
-    metrics.updateMetricsFromMap(
+    metrics.addMetrics(
         summary.getObjectCounts(),
         "data_summary_object_counts",
         "type",
-        "Count of metadata objects",
-        PROMETHEUS_GAUGE_NAME);
+        "Count of metadata objects");
 
-    metrics.updateMetricsFromMap(
+    metrics.addMetrics(
         summary.getActiveUsers(),
         "data_summary_active_users",
         "days",
-        "Count of active users by day",
-        PROMETHEUS_GAUGE_NAME);
+        "Count of active users by day");
 
-    metrics.updateMetricsFromMap(
+    metrics.addMetrics(
         summary.getUserInvitations(),
         "data_summary_user_invitations",
         "type",
-        "Count of user invitations",
-        PROMETHEUS_GAUGE_NAME);
+        "Count of user invitations");
 
-    metrics.updateMetricsFromMap(
+    metrics.addMetrics(
         summary.getDataValueCount(),
         "data_summary_data_value_count",
         "days",
-        "Count of updated data values by day",
-        PROMETHEUS_GAUGE_NAME);
+        "Count of updated data values by day");
 
-    metrics.updateMetricsFromMap(
+    metrics.addMetrics(
         summary.getEventCount(),
         "data_summary_event_count",
         "days",
-        "Count of updated events by day",
-        PROMETHEUS_GAUGE_NAME);
+        "Count of updated events by day");
 
     appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();
