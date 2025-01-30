@@ -41,9 +41,9 @@ import org.hisp.dhis.system.notification.Notifier;
 
 /**
  * A {@link JobProgress} implementation that forwards the tracking to a {@link Notifier}. It has no
- * flow control and should be wrapped in a {@link RecordingJobProgress} for that purpose.
+ * flow control and should be wrapped in a {@link ControlledJobProgress} for that purpose.
  *
- * @see RecordingJobProgress
+ * @see ControlledJobProgress
  */
 @RequiredArgsConstructor
 public class NotifierJobProgress implements JobProgress {
@@ -69,10 +69,10 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingProcess(String description, Object... args) {
+  public void startingProcess(String description) {
     String message =
         isNotEmpty(description)
-            ? format(description, args)
+            ? description
             : jobId.getJobType() + " process started";
     if (hasCleared.compareAndSet(false, true)) {
       notifier.clear(jobId);
@@ -88,15 +88,15 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedProcess(String summary, Object... args) {
+  public void completedProcess(String summary) {
     // Note: intentionally no log level check - always log last
-    notifier.notify(jobId, format(summary, args), true);
+    notifier.notify(jobId, summary, true);
   }
 
   @Override
-  public void failedProcess(@CheckForNull String error, Object... args) {
+  public void failedProcess(@CheckForNull String error) {
     // Note: intentionally no log level check - always log last
-    notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
+    notifier.notify(jobId, NotificationLevel.ERROR, error, true);
   }
 
   @Override
@@ -110,16 +110,16 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedStage(String summary, Object... args) {
+  public void completedStage(String summary) {
     if (isLoggedInfo() && isNotEmpty(summary)) {
-      notifier.notify(jobId, format(summary, args));
+      notifier.notify(jobId, summary);
     }
   }
 
   @Override
-  public void failedStage(@Nonnull String error, Object... args) {
+  public void failedStage(@Nonnull String error) {
     if (isLoggedError() && isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
+      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
     }
   }
 
@@ -133,17 +133,17 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedWorkItem(String summary, Object... args) {
+  public void completedWorkItem(String summary) {
     if (isLoggedLoop() && isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-      notifier.notify(jobId, NotificationLevel.LOOP, nOf + format(summary, args), false);
+      notifier.notify(jobId, NotificationLevel.LOOP, nOf + summary, false);
     }
   }
 
   @Override
-  public void failedWorkItem(@Nonnull String error, Object... args) {
+  public void failedWorkItem(@Nonnull String error) {
     if (isLoggedError() && isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
+      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
     }
   }
 
