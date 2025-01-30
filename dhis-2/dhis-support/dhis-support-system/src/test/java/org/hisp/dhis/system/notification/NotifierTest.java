@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.system.notification;
 
+import static java.time.Duration.ofSeconds;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.waitAtMost;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Deque;
@@ -97,23 +98,23 @@ class NotifierTest extends DhisConvenienceTest {
 
   public NotifierTest() {
     dataValueImportJobConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportJobConfig.setUid("dvi1");
+    dataValueImportJobConfig.setUid("dvi15678901");
     analyticsTableJobConfig = new JobConfiguration(null, ANALYTICS_TABLE, user.getUid(), false);
-    analyticsTableJobConfig.setUid("at1");
+    analyticsTableJobConfig.setUid("at145678901");
     metadataImportJobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), false);
-    metadataImportJobConfig.setUid("mdi1");
+    metadataImportJobConfig.setUid("mdi15678901");
     dataValueImportSecondJobConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportSecondJobConfig.setUid("dvi2");
+    dataValueImportSecondJobConfig.setUid("dvi25678901");
     dataValueImportThirdJobConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportThirdJobConfig.setUid("dvi3");
+    dataValueImportThirdJobConfig.setUid("dvi35678901");
     dataValueImportFourthConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportFourthConfig.setUid("dvi4");
+    dataValueImportFourthConfig.setUid("dvi45678901");
     JobConfiguration dataValueImportFifthConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportFifthConfig.setUid("dvi5");
+    dataValueImportFifthConfig.setUid("dvi55678901");
   }
 
   @Test
@@ -123,6 +124,9 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
+
+    awaitIdle();
+
     Map<JobType, Map<String, Deque<Notification>>> notificationsMap =
         notifier.getNotifications(false);
     assertNotNull(notificationsMap);
@@ -151,6 +155,9 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
+
+    awaitIdle();
+
     assertEquals(
         3,
         notifier
@@ -196,15 +203,23 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
+
+    awaitIdle();
+
     Deque<Notification> notifications =
         notifier
             .getNotificationsByJobType(DATAVALUE_IMPORT, false)
             .get(dataValueImportJobConfig.getUid());
     assertNotNull(notifications);
     assertEquals(4, notifications.size());
+
     notifier.notify(dataValueImportThirdJobConfig, "Completed1");
+
+    awaitIdle();
+
     Map<String, Deque<Notification>> notificationsByJobType =
         notifier.getNotificationsByJobType(DATAVALUE_IMPORT, false);
+
     assertNotNull(notificationsByJobType);
     assertEquals(3, notificationsByJobType.size());
     assertEquals(4, notificationsByJobType.get(dataValueImportJobConfig.getUid()).size());
@@ -213,7 +228,11 @@ class NotifierTest extends DhisConvenienceTest {
     assertEquals(
         "Completed1",
         notificationsByJobType.get(dataValueImportThirdJobConfig.getUid()).getFirst().getMessage());
+
     notifier.notify(dataValueImportFourthConfig, "Completed2");
+
+    awaitIdle();
+
     notificationsByJobType = notifier.getNotificationsByJobType(DATAVALUE_IMPORT, false);
     assertNotNull(notificationsByJobType);
     assertEquals(4, notificationsByJobType.get(dataValueImportJobConfig.getUid()).size());
@@ -231,6 +250,9 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.addJobSummary(analyticsTableJobConfig, "somethingid2", String.class);
     notifier.addJobSummary(dataValueImportSecondJobConfig, "somethingid4", String.class);
     notifier.addJobSummary(metadataImportJobConfig, "somethingid3", String.class);
+
+    awaitIdle();
+
     Map<String, JsonValue> jobSummariesForAnalyticsType =
         notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);
@@ -245,11 +267,11 @@ class NotifierTest extends DhisConvenienceTest {
             .get(metadataImportJobConfig.getUid())
             .as(JsonString.class)
             .string());
-    Object summary =
+    JsonValue summary =
         notifier.getJobSummaryByJobId(
             dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid());
     assertNotNull(summary);
-    assertEquals("somethingid1", summary, "True");
+    assertEquals("somethingid1", summary.as(JsonString.class).string(), "True");
     notifier.addJobSummary(dataValueImportThirdJobConfig, "summarry3", String.class);
     jobSummariesForAnalyticsType = notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);
@@ -263,7 +285,7 @@ class NotifierTest extends DhisConvenienceTest {
   @Test
   void testInsertingNotificationsInSameJobConcurrently() throws InterruptedException {
     ExecutorService e = Executors.newFixedThreadPool(5);
-    JobConfiguration jobConfig = createJobConfig(-1);
+    JobConfiguration jobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), true);
     notifier.notify(jobConfig, "somethingid");
     IntStream.range(0, 100)
         .forEach(i -> e.execute(() -> notifier.notify(jobConfig, "somethingid" + i)));
@@ -271,41 +293,20 @@ class NotifierTest extends DhisConvenienceTest {
         .forEach(
             i -> {
               for (Notification notification :
-                  notifier
-                      .getNotificationsByJobType(METADATA_IMPORT, false)
-                      .get(jobConfig.getUid())) {
+                  notifier.getNotificationsByJobId(METADATA_IMPORT, jobConfig.getUid())) {
                 // Iterate over notifications when new notification are added
                 assertNotNull(notification.getUid());
               }
             });
     awaitTermination(e);
+    awaitIdle();
     assertEquals(
         101,
         notifier.getNotificationsByJobType(METADATA_IMPORT, false).get(jobConfig.getUid()).size());
   }
 
-  @Test
-  void testInsertingNotificationJobConcurrently() {
-    notifier.notify(createJobConfig(-1), "zero");
-    ExecutorService e = Executors.newFixedThreadPool(5);
-    IntStream.range(0, 1000)
-        .forEach(
-            i -> {
-              e.execute(
-                  () -> {
-                    notifier.notify(createJobConfig(i), "somethingid" + i);
-                  });
-            });
-    awaitTermination(e);
-    int actualSize = notifier.getNotificationsByJobType(METADATA_IMPORT, false).size();
-    int delta = actualSize - 500;
-    assertTrue(delta <= 5, "delta should not be larger than number of workers but was: " + delta);
-  }
-
-  private JobConfiguration createJobConfig(int i) {
-    JobConfiguration jobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), false);
-    jobConfig.setUid("jobId" + i);
-    return jobConfig;
+  private void awaitIdle() {
+    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
   }
 
   public void awaitTermination(ExecutorService threadPool) {
