@@ -25,43 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.auth.AuthScheme;
-import org.hisp.dhis.eventhook.Target;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class WebhookTarget extends Target {
-  public static final String TYPE = "webhook";
+class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
+  @Test
+  void testAuthorizationHeaderSet() {
+    ApiTokenAuthScheme auth =
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
 
-  @JsonProperty(required = true)
-  private String url;
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
 
-  @JsonProperty(required = true)
-  private String contentType = "application/json";
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals(
+        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+  }
 
-  @JsonProperty private Map<String, String> headers = new HashMap<>();
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F"),
+        ApiTokenAuthScheme::getToken);
+  }
 
-  @JsonProperty private AuthScheme auth;
-
-  public WebhookTarget() {
-    super(TYPE);
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiTokenAuthScheme()
+            .setToken("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        ApiTokenAuthScheme::getToken);
   }
 }
