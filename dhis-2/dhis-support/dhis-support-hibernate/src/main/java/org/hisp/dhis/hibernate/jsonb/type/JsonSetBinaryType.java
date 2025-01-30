@@ -40,7 +40,8 @@ public class JsonSetBinaryType extends JsonBinaryType {
 
   static {
     MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    MAPPER.setAnnotationIntrospector(new IgnoreJsonPropertyAccessJacksonAnnotationIntrospector());
+    MAPPER.setAnnotationIntrospector(
+        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
   }
 
   @Override

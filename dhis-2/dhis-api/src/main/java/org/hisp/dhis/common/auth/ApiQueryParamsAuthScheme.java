@@ -68,11 +68,11 @@ public class ApiQueryParamsAuthScheme implements AuthScheme {
 
   @Override
   public ApiQueryParamsAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
-    Map<String, String> encryptedQueryParams =
+    Map<String, String> decryptedQueryParams =
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedQueryParams);
+    return copy(decryptedQueryParams);
   }
 
   @Override

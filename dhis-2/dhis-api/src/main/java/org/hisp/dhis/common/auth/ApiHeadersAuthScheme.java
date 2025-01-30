@@ -66,11 +66,11 @@ public class ApiHeadersAuthScheme implements AuthScheme {
 
   @Override
   public ApiHeadersAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
-    Map<String, String> encryptedHeaders =
+    Map<String, String> decryptedHeaders =
         headers.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedHeaders);
+    return copy(decryptedHeaders);
   }
 
   @Override

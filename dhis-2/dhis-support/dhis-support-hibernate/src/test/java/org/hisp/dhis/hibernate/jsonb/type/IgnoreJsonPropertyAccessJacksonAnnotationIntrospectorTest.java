@@ -48,7 +48,7 @@ class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
   void testFindPropertyAccess() throws JsonProcessingException {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.setAnnotationIntrospector(
-        new IgnoreJsonPropertyAccessJacksonAnnotationIntrospector());
+        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
 
     ClassUnderTest classUnderTest = new ClassUnderTest();
     classUnderTest.writeOnlyProperty = "Foo";

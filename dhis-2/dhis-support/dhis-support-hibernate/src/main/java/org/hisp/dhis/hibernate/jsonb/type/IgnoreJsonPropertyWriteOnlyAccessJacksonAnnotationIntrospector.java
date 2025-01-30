@@ -31,8 +31,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
-/** Deserialise write only properties since they may need to be read internally. */
-public class IgnoreJsonPropertyAccessJacksonAnnotationIntrospector
+/**
+ * Serialise write only properties since they may need to be read internally. IMPORTANT: do not
+ * attempt to use an object mapper that has this introspector set to serialise the API response.
+ */
+class IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector
     extends JacksonAnnotationIntrospector {
 
   @Override
