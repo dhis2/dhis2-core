@@ -30,8 +30,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -139,10 +137,6 @@ class DataValueSetServiceImportTest extends DhisConvenienceTest {
     DataValueAuditBatchHandler auditBatchHandler = mock(DataValueAuditBatchHandler.class);
     when(batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class))
         .thenReturn(auditBatchHandler);
-
-    when(notifier.clear(any())).thenReturn(notifier);
-    when(notifier.notify(any(), any(), anyString())).thenReturn(notifier);
-    when(notifier.notify(any(), any(), anyString(), anyBoolean())).thenReturn(notifier);
 
     DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
     dataSet.setUid("pBOMPrpg1QX");
