@@ -56,6 +56,11 @@ public class NotifierJobProgress implements JobProgress {
   private int stageItems;
   private int stageItem;
 
+  @Override
+  public boolean isCancellationRequested() {
+    return false;
+  }
+
   private boolean isLoggedLoop() {
     return NotificationLevel.LOOP.ordinal() >= level.ordinal();
   }
@@ -71,9 +76,7 @@ public class NotifierJobProgress implements JobProgress {
   @Override
   public void startingProcess(String description) {
     String message =
-        isNotEmpty(description)
-            ? description
-            : jobId.getJobType() + " process started";
+        isNotEmpty(description) ? description : jobId.getJobType() + " process started";
     if (hasCleared.compareAndSet(false, true)) {
       notifier.clear(jobId);
     }

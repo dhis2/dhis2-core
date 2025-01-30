@@ -135,7 +135,7 @@ public interface NotifierStore {
   }
 
   /** The common API for {@link NotificationStore} and {@link SummaryStore}. */
-  sealed interface PerJobStore {
+  interface PerJobStore {
 
     /**
      * @return the {@link JobType} the store deals with
@@ -162,7 +162,7 @@ public interface NotifierStore {
    * @implSpec Implementations must handle reading and writing methods being used concurrently, but
    *     writes ({@link #add(Notification)}) will never be called concurrently
    */
-  non-sealed interface NotificationStore extends PerJobStore {
+  interface NotificationStore extends PerJobStore {
 
     default boolean isEmpty() {
       return size() == 0;
@@ -224,7 +224,7 @@ public interface NotifierStore {
    * API for a store containing the summary value associated with a specific {@link
    * org.hisp.dhis.scheduling.JobConfiguration}.
    */
-  non-sealed interface SummaryStore extends PerJobStore {
+  interface SummaryStore extends PerJobStore {
 
     default boolean isPresent() {
       return get() != null;

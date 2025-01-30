@@ -29,6 +29,7 @@ package org.hisp.dhis.system.notification;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Deque;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
@@ -80,7 +82,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
     Map<UID, NotificationStore> byId = notificationStores.get(type);
     return byId == null
         ? List.of()
-        : byId.values().stream().filter(not(NotificationStore::isEmpty)).toList();
+        : byId.values().stream().filter(not(NotificationStore::isEmpty)).collect(toList());
   }
 
   @Nonnull
@@ -89,7 +91,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
     Map<UID, SummaryStore> byId = summaryStores.get(type);
     return byId == null
         ? List.of()
-        : byId.values().stream().filter(SummaryStore::isPresent).toList();
+        : byId.values().stream().filter(SummaryStore::isPresent).collect(toList());
   }
 
   @Override
@@ -112,8 +114,22 @@ public final class InMemoryNotifierStore implements NotifierStore {
     if (map != null) map.remove(job);
   }
 
-  private record InMemoryNotificationStore(JobType type, UID job, Deque<Notification> collection)
-      implements NotificationStore {
+  @RequiredArgsConstructor
+  private static final class InMemoryNotificationStore implements NotificationStore {
+
+    private final JobType type;
+    private final UID job;
+    private final Deque<Notification> collection;
+
+    @Override
+    public JobType type() {
+      return type;
+    }
+
+    @Override
+    public UID job() {
+      return job;
+    }
 
     @Override
     public boolean isEmpty() {
@@ -161,22 +177,40 @@ public final class InMemoryNotifierStore implements NotifierStore {
     }
   }
 
-  private record Summary(long ageTimestamp, JsonValue value) {}
+  @RequiredArgsConstructor
+  private static final class Summary {
+    private final long ageTimestamp;
+    private final JsonValue value;
+  }
 
-  private record InMemorySummaryStore(JobType type, UID job, AtomicReference<Summary> summary)
-      implements SummaryStore {
+  @RequiredArgsConstructor
+  private static final class InMemorySummaryStore implements SummaryStore {
+
+    private final JobType type;
+    private final UID job;
+    private final AtomicReference<Summary> summary;
+
+    @Override
+    public JobType type() {
+      return type;
+    }
+
+    @Override
+    public UID job() {
+      return job;
+    }
 
     @Override
     public long ageTimestamp() {
       Summary s = summary.get();
-      return s == null ? 0L : s.ageTimestamp();
+      return s == null ? 0L : s.ageTimestamp;
     }
 
     @CheckForNull
     @Override
     public JsonValue get() {
       Summary s = summary.get();
-      return s == null ? null : s.value();
+      return s == null ? null : s.value;
     }
 
     @Override

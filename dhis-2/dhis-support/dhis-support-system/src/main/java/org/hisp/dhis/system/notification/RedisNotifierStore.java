@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.system.notification;
 
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Date;
 import java.util.List;
@@ -37,8 +39,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.Json;
-import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.JsonDocument;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -71,7 +73,7 @@ public class RedisNotifierStore implements NotifierStore {
   public List<NotificationStore> notifications(@Nonnull JobType type) {
     Set<String> keys = redis.keys(notificationsKeyOf(type.name(), "*"));
     if (keys == null || keys.isEmpty()) return List.of();
-    return keys.stream().map(key -> notifications(type, key)).toList();
+    return keys.stream().map(key -> notifications(type, key)).collect(toList());
   }
 
   @Nonnull
@@ -93,7 +95,7 @@ public class RedisNotifierStore implements NotifierStore {
         redis.boundHashOps(summariesKeyOf(type.name()));
     Set<String> keys = table.keys();
     if (keys == null || keys.isEmpty()) return List.of();
-    return keys.stream().map(job -> summary(type, UID.of(job))).toList();
+    return keys.stream().map(job -> summary(type, UID.of(job))).collect(toList());
   }
 
   @Override
@@ -124,9 +126,22 @@ public class RedisNotifierStore implements NotifierStore {
    * Stores {@link Notification}s (as JSON) in a redis ZSET with the {@link Notification#getTime()}
    * used as score.
    */
-  private record RedisNotificationStore(
-      JobType type, UID job, BoundZSetOperations<String, String> collection)
-      implements NotificationStore {
+  @RequiredArgsConstructor
+  private static final class RedisNotificationStore implements NotificationStore {
+
+    private final JobType type;
+    private final UID job;
+    private final BoundZSetOperations<String, String> collection;
+
+    @Override
+    public JobType type() {
+      return type;
+    }
+
+    @Override
+    public UID job() {
+      return job;
+    }
 
     @Override
     public int size() {
@@ -178,7 +193,7 @@ public class RedisNotifierStore implements NotifierStore {
 
     private Notification fromJson(JobType jobType, String json) {
       if (json == null || json.isEmpty()) return null;
-      JsonObject src = JsonMixed.of(json);
+      JsonObject src = JsonValue.of(json).asObject();
       Notification dest = new Notification();
       dest.setCategory(jobType);
       JsonString level = src.getString("level");
@@ -189,7 +204,7 @@ public class RedisNotifierStore implements NotifierStore {
       dest.setCompleted(src.getBoolean("completed").booleanValue(false));
       JsonValue time = src.get("time");
       dest.setTime(
-          time.isNumber()
+          time.exists() && time.node().getType() == JsonDocument.JsonNodeType.NUMBER
               ? new Date(time.as(JsonNumber.class).longValue())
               : DateUtils.parseDate(time.as(JsonString.class).string()));
       dest.setMessage(src.getString("message").string());
@@ -209,7 +224,7 @@ public class RedisNotifierStore implements NotifierStore {
      * @return the notification as minimal JSON
      */
     private String toJson(Notification n) {
-      return Json.object(
+      return JsonBuilder.createObject(
               obj -> {
                 obj.addString("id", n.getId())
                     .addNumber("time", n.getTime().getTime())
@@ -223,7 +238,7 @@ public class RedisNotifierStore implements NotifierStore {
                     obj.addMember("data", n.getData().node());
                 }
               })
-          .toJson();
+          .getDeclaration();
     }
   }
 
@@ -231,15 +246,28 @@ public class RedisNotifierStore implements NotifierStore {
    * Stores summary objects as JSON ina redis H table. All summaries of a {@link JobType} are stored
    * in the same table with the keys being the {@link UID} of the job.
    */
-  private record RedisSummaryStore(
-      JobType type, UID job, BoundHashOperations<String, String, String> table)
-      implements SummaryStore {
+  @RequiredArgsConstructor
+  private static final class RedisSummaryStore implements SummaryStore {
+
+    private final JobType type;
+    private final UID job;
+    private final BoundHashOperations<String, String, String> table;
+
+    @Override
+    public JobType type() {
+      return type;
+    }
+
+    @Override
+    public UID job() {
+      return job;
+    }
 
     @Override
     public long ageTimestamp() {
       String json = table.get(job.getValue());
       if (json == null) return 0L;
-      JsonNumber ageTimestamp = JsonMixed.of(json).getNumber("ageTimestamp");
+      JsonNumber ageTimestamp = JsonValue.of(json).asObject().getNumber("ageTimestamp");
       return ageTimestamp.isUndefined() ? 0L : ageTimestamp.longValue();
     }
 
@@ -248,7 +276,7 @@ public class RedisNotifierStore implements NotifierStore {
     public JsonValue get() {
       String json = table.get(job.getValue());
       if (json == null) return null;
-      JsonMixed root = JsonMixed.of(json);
+      JsonObject root = JsonValue.of(json).asObject();
       if (root.get("ageTimestamp").isUndefined()) return root;
       return root.get("value");
     }
@@ -257,21 +285,21 @@ public class RedisNotifierStore implements NotifierStore {
     public void set(@Nonnull JsonValue summary) {
       table.put(
           job().getValue(),
-          Json.object(
+          JsonBuilder.createObject(
                   obj ->
                       obj.addMember("value", summary.node())
                           .addNumber("ageTimestamp", currentTimeMillis()))
-              .toJson());
+              .getDeclaration());
     }
   }
 
   private static String notificationsKeyOf(@Nonnull String jobType, @CheckForNull String jobUid) {
     return jobUid == null
-        ? "notifications:%s".formatted(jobType)
-        : "notifications:%s:%s".formatted(jobType, jobUid);
+        ? format("notifications:%s", jobType)
+        : format("notifications:%s:%s", jobType, jobUid);
   }
 
   private static String summariesKeyOf(@Nonnull String jobType) {
-    return "summaries:%s".formatted(jobType);
+    return format("summaries:%s", jobType);
   }
 }

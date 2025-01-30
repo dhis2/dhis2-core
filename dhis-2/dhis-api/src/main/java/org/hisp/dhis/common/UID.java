@@ -27,18 +27,12 @@
  */
 package org.hisp.dhis.common;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * UID represents an alphanumeric string of 11 characters starting with a letter.
@@ -76,19 +70,7 @@ public final class UID implements Serializable {
     return new UID(value);
   }
 
-  public static UID of(@Nonnull UserDetails currentUser) {
-    return new UID(currentUser.getUid());
-  }
-
   public static UID of(@CheckForNull UidObject object) {
     return object == null ? null : new UID(object.getUid());
-  }
-
-  public static Set<String> toValueSet(Collection<UID> uids) {
-    return uids.stream().map(UID::getValue).collect(toUnmodifiableSet());
-  }
-
-  public static List<String> toValueList(Collection<UID> uids) {
-    return uids.stream().map(UID::getValue).toList();
   }
 }
