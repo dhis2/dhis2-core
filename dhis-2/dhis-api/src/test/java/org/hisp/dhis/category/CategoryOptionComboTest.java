@@ -29,12 +29,12 @@ package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,6 +45,9 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link CategoryOptionCombo}.
@@ -256,158 +259,82 @@ class CategoryOptionComboTest {
     assertEquals(jan4, optionComboC.getEarliestEndDate());
   }
 
-  @Test
-  @DisplayName("CategoryOptionCombos are equal when null CatCombo and empty CatOptions")
-  void categoryOptionCombosAreEqualTest1() {
-    // given
-    CategoryOptionCombo coc1 = new CategoryOptionCombo();
-    coc1.setName("coc1 name");
-    coc1.setUid("cocUID00001");
-    coc1.setCode("COC1_CODE");
-    coc1.setCategoryCombo(null);
-    coc1.setCategoryOptions(Set.of());
+  @ParameterizedTest
+  @MethodSource("categoryOptionComboEqualsParams")
+  @DisplayName("CategoryOptionCombo equals check has expected result")
+  void categoryOptionComboEqualsTest(
+      CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions, boolean expectedResult) {
+    CategoryOptionCombo cocParams = new CategoryOptionCombo();
+    cocParams.setCategoryCombo(categoryCombo);
+    cocParams.setCategoryOptions(categoryOptions);
 
-    CategoryOptionCombo coc2 = new CategoryOptionCombo();
-    coc2.setName("coc2");
-    coc2.setUid("cocUID00002");
-    coc2.setCode("COC2_CODE");
-    coc1.setCategoryCombo(null);
-    coc1.setCategoryOptions(Set.of());
-
-    // then
-    assertEquals(coc1, coc2, "COC are equal when null CatCombo and empty CatOptions");
+    assertEquals(
+        expectedResult,
+        getCategoryOptionCombo().equals(cocParams),
+        "CategoryOptionCombo equals check has expected result");
   }
 
-  @Test
-  @DisplayName("CategoryOptionCombos are equal when CatCombo and CatOptions are equal")
-  void categoryOptionCombosAreEqualTest2() {
-    // given
-    CategoryCombo cc = new CategoryCombo();
-    cc.setName("cat combo 1");
-    cc.setUid("catComUID01");
-    cc.setCode("cat_combo_1_code");
+  private static Stream<Arguments> categoryOptionComboEqualsParams() {
+    boolean isEqual = true;
+    boolean isNotEqual = false;
 
-    CategoryOptionCombo coc1 = new CategoryOptionCombo();
-    coc1.setName("coc1");
-    coc1.setUid("cocUID00001");
-    coc1.setCode("COC1_CODEZ");
-    coc1.setCategoryCombo(cc);
-    coc1.setCategoryOptions(Set.of());
+    CategoryCombo sameCatCombo = new CategoryCombo();
+    sameCatCombo.setName("name");
+    sameCatCombo.setUid("uid");
+    sameCatCombo.setCode("code");
 
-    CategoryOptionCombo coc2 = new CategoryOptionCombo();
-    coc2.setName("coc2");
-    coc2.setUid("cocUID00002");
-    coc2.setCode("COC2_CODEX");
-    coc2.setCategoryCombo(cc);
-    coc2.setCategoryOptions(Set.of());
+    CategoryCombo diffCatCombo = new CategoryCombo();
+    diffCatCombo.setName("name diff");
+    diffCatCombo.setUid("uid");
+    diffCatCombo.setCode("code");
 
-    // then
-    assertEquals(coc1, coc2, "COC are equal when CatCombo and CatOptions are equal");
+    CategoryOption sameCatOption = new CategoryOption();
+    sameCatOption.setName("name");
+    sameCatOption.setUid("uid");
+    sameCatOption.setCode("code");
+    sameCatOption.setShortName("shortName");
+    sameCatOption.setDescription("description");
+    sameCatOption.setQueryMods(null);
+
+    CategoryOption diffCatOption = new CategoryOption();
+    diffCatOption.setName("name");
+    diffCatOption.setUid("uid diff");
+    diffCatOption.setCode("code");
+    diffCatOption.setShortName("shortName");
+    diffCatOption.setDescription("description");
+    diffCatOption.setQueryMods(null);
+
+    return Stream.of(
+        Arguments.of(sameCatCombo, Set.of(sameCatOption), isEqual),
+        Arguments.of(diffCatCombo, Set.of(sameCatOption), isNotEqual),
+        Arguments.of(sameCatCombo, Set.of(diffCatOption), isNotEqual),
+        Arguments.of(diffCatCombo, Set.of(diffCatOption), isNotEqual));
   }
 
-  @Test
-  @DisplayName("CategoryOptionCombos are equal when CatCombo and CatOptions are equal")
-  void categoryOptionCombosAreEqualTest3() {
-    // given
-    CategoryCombo cc = new CategoryCombo();
-    cc.setName("cat combo 1");
-    cc.setUid("catComUID01");
-    cc.setCode("cat_combo_1_code");
+  private CategoryOptionCombo getCategoryOptionCombo() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setName("name");
+    coc.setUid("uid");
+    coc.setCode("code");
+    coc.setShortName("shortName");
+    coc.setDescription("description");
 
     CategoryOption co = new CategoryOption();
-    co.setName("cat option 1");
-    co.setUid("catOptUID01");
-    co.setCode("cat_option_1_code");
+    co.setName("name");
+    co.setUid("uid");
+    co.setCode("code");
+    co.setShortName("shortName");
+    co.setDescription("description");
+    co.setQueryMods(null);
 
-    CategoryOptionCombo coc1 = new CategoryOptionCombo();
-    coc1.setName("coc1");
-    coc1.setUid("cocUID00001");
-    coc1.setCode("COC1_CODEZ");
-    coc1.setCategoryCombo(cc);
-    coc1.setCategoryOptions(Set.of(co));
-
-    CategoryOptionCombo coc2 = new CategoryOptionCombo();
-    coc2.setName("coc2");
-    coc2.setUid("cocUID00002");
-    coc2.setCode("COC2_CODEX");
-    coc2.setCategoryCombo(cc);
-    coc2.setCategoryOptions(Set.of(co));
-
-    // then
-    assertEquals(coc1, coc2, "COC are equal when CatCombo and CatOptions are equal");
-  }
-
-  @Test
-  @DisplayName("CategoryOptionCombos are not equal when CatOptions are different")
-  void categoryOptionCombosAreEqualTest4() {
-    // given
     CategoryCombo cc = new CategoryCombo();
-    cc.setName("cat combo 1");
-    cc.setUid("catComUID01");
-    cc.setCode("cat_combo_1_code");
+    cc.setName("name");
+    cc.setUid("uid");
+    cc.setCode("code");
 
-    CategoryOption co1 = new CategoryOption();
-    co1.setName("cat option 1");
-    co1.setUid("catOptUID01");
-    co1.setCode("cat_option_1_code");
+    coc.setCategoryCombo(cc);
+    coc.addCategoryOption(co);
 
-    CategoryOption co2 = new CategoryOption();
-    co2.setName("cat option 2");
-    co2.setUid("catOptUID02");
-    co2.setCode("cat_option_2_code");
-
-    CategoryOptionCombo coc1 = new CategoryOptionCombo();
-    coc1.setName("coc1");
-    coc1.setUid("cocUID00001");
-    coc1.setCode("COC1_CODEZ");
-    coc1.setCategoryCombo(cc);
-    coc1.setCategoryOptions(Set.of(co1));
-
-    CategoryOptionCombo coc2 = new CategoryOptionCombo();
-    coc2.setName("coc2");
-    coc2.setUid("cocUID00002");
-    coc2.setCode("COC2_CODEX");
-    coc2.setCategoryCombo(cc);
-    coc2.setCategoryOptions(Set.of(co2));
-
-    // then
-    assertNotEquals(coc1, coc2, "COC are not equal when CatOptions are different");
-  }
-
-  @Test
-  @DisplayName("CategoryOptionCombos are not equal when CatCombo is different")
-  void categoryOptionCombosAreEqualTest5() {
-    // given
-    CategoryCombo cc1 = new CategoryCombo();
-    cc1.setName("cat combo 1");
-    cc1.setUid("catComUID01");
-    cc1.setCode("cat_combo_1_code");
-
-    CategoryCombo cc2 = new CategoryCombo();
-    cc2.setName("cat combo 2");
-    cc2.setUid("catComUID02");
-    cc2.setCode("cat_combo_2_code");
-
-    CategoryOption co = new CategoryOption();
-    co.setName("cat option 1");
-    co.setUid("catOptUID01");
-    co.setCode("cat_option_1_code");
-
-    CategoryOptionCombo coc1 = new CategoryOptionCombo();
-    coc1.setName("coc1");
-    coc1.setUid("cocUID00001");
-    coc1.setCode("COC1_CODEZ");
-    coc1.setCategoryCombo(cc1);
-    coc1.setCategoryOptions(Set.of(co));
-
-    CategoryOptionCombo coc2 = new CategoryOptionCombo();
-    coc2.setName("coc2");
-    coc2.setUid("cocUID00002");
-    coc2.setCode("COC2_CODEX");
-    coc2.setCategoryCombo(cc2);
-    coc2.setCategoryOptions(Set.of(co));
-
-    // then
-    assertNotEquals(coc1, coc2, "COC are not equal when CatOptions are different");
+    return coc;
   }
 }

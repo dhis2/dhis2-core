@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
-
-import javax.annotation.Nonnull;
-import org.slf4j.Logger;
+package org.hisp.dhis.db.sql;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * Enumeration of time units.
+ *
+ * @author Lars Helge Overland
  */
-public class NotificationLoggerUtil {
-  public static void log(Logger logger, @Nonnull NotificationLevel level, String message) {
-    switch (level) {
-      case LOOP:
-      case DEBUG:
-        logger.debug(message);
-        break;
-      case INFO:
-        logger.info(message);
-        break;
-      case WARN:
-        logger.warn(message);
-        break;
-      case ERROR:
-        logger.error(message);
-        break;
-      case OFF:
-        break;
-    }
-  }
+public enum DateUnit {
+  DAYS,
+  WEEKS,
+  MONTHS,
+  MINUTES,
+  YEARS
 }

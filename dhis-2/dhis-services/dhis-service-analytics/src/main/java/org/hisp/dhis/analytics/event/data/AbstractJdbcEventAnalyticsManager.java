@@ -116,6 +116,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -175,6 +176,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
+
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   /**
    * Returns a SQL paging clause.
@@ -1050,6 +1053,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       } catch (Exception e) {
         grid.addValue(json);
       }
+    } else if (header.getValueType() == ValueType.DATETIME) {
+      grid.addValue(analyticsSqlBuilder.renderTimestamp(sqlRowSet.getString(index)));
     } else {
       grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
     }

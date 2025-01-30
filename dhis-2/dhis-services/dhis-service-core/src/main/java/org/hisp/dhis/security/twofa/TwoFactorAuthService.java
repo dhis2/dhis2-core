@@ -42,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -79,6 +81,7 @@ public class TwoFactorAuthService {
   private final MessageSender emailMessageSender;
   private final UserSettingsService userSettingsService;
   private final I18nManager i18nManager;
+  private final DhisConfigurationProvider configurationProvider;
 
   /**
    * Enroll user in time-based one-time password (TOTP) 2FA authentication.
@@ -94,7 +97,7 @@ public class TwoFactorAuthService {
     if (user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
     }
-    if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
+    if (!configurationProvider.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3046);
     }
     String totpSeed = Base32.encode(generateSecureRandomBytes(20));
@@ -117,7 +120,7 @@ public class TwoFactorAuthService {
     if (user.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3022);
     }
-    if (!settingsProvider.getCurrentSettings().getEmail2FAEnabled()) {
+    if (!configurationProvider.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3045);
     }
     if (!userService.isEmailVerified(user)) {
@@ -304,7 +307,7 @@ public class TwoFactorAuthService {
 
   @NonTransactional
   public @Nonnull byte[] generateQRCode(@Nonnull User currentUser) throws ConflictException {
-    if (!settingsProvider.getCurrentSettings().getTOTP2FAEnabled()) {
+    if (!configurationProvider.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3046);
     }
     if (!TwoFactorType.ENROLLING_TOTP.equals(currentUser.getTwoFactorType())) {
