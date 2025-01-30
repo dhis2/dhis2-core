@@ -263,10 +263,7 @@ public class DataDimensionExtractor {
    */
   @Transactional(readOnly = true)
   public ProgramTrackedEntityAttributeOptionDimensionItem getProgramAttributeOptionDimensionItem(
-      IdScheme idScheme,
-      String programId,
-      String attributeId,
-      String optionId) {
+      IdScheme idScheme, String programId, String attributeId, String optionId) {
     Program program = idObjectManager.getObject(Program.class, idScheme, programId);
     TrackedEntityAttribute attribute =
         idObjectManager.getObject(TrackedEntityAttribute.class, idScheme, attributeId);
@@ -276,8 +273,7 @@ public class DataDimensionExtractor {
       return null;
     }
 
-    return new ProgramTrackedEntityAttributeOptionDimensionItem(
-        program, attribute, option);
+    return new ProgramTrackedEntityAttributeOptionDimensionItem(program, attribute, option);
   }
 
   /**
@@ -310,10 +306,7 @@ public class DataDimensionExtractor {
    */
   @Transactional(readOnly = true)
   public ProgramDataElementOptionDimensionItem getProgramDataElementOptionDimensionItem(
-      IdScheme idScheme,
-      String programId,
-      String dataElementId,
-      String optionId) {
+      IdScheme idScheme, String programId, String dataElementId, String optionId) {
     Program program = idObjectManager.getObject(Program.class, idScheme, programId);
     DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
     Option option = idObjectManager.getObject(Option.class, idScheme, optionId);

@@ -57,10 +57,9 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * This class represents the junction of a {@link Program}, {@link TrackedEntityAttribute} and {@link
- * Option}. It's mainly used as a dimensional item ({@link
- * DimensionalItemObject}), in visualization objects. ie: {@link
- * org.hisp.dhis.visualization.Visualization}
+ * This class represents the junction of a {@link Program}, {@link TrackedEntityAttribute} and
+ * {@link Option}. It's mainly used as a dimensional item ({@link DimensionalItemObject}), in
+ * visualization objects. ie: {@link org.hisp.dhis.visualization.Visualization}
  */
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "programAttributeOptionDimension", namespace = DXF_2_0)
@@ -95,10 +94,7 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
   @Override
   public String getDimensionItem() {
     return joinWith(
-        COMPOSITE_DIM_OBJECT_PLAIN_SEP,
-        program.getUid(),
-        attribute.getUid(),
-        option.getUid());
+        COMPOSITE_DIM_OBJECT_PLAIN_SEP, program.getUid(), attribute.getUid(), option.getUid());
   }
 
   @Override

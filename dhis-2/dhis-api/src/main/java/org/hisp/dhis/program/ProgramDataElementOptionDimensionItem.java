@@ -61,9 +61,8 @@ import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * This class represents the junction of a {@link Program}, {@link DataElement} and {@link Option}.
- * It's mainly used as a dimensional item ({@link
- * DimensionalItemObject}), in visualization objects. ie: {@link
- * org.hisp.dhis.visualization.Visualization}
+ * It's mainly used as a dimensional item ({@link DimensionalItemObject}), in visualization objects.
+ * ie: {@link org.hisp.dhis.visualization.Visualization}
  */
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "programDataElementOptionDimension", namespace = DXF_2_0)
@@ -141,10 +140,7 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   @Override
   public String getDimensionItem() {
     return joinWith(
-        COMPOSITE_DIM_OBJECT_PLAIN_SEP,
-        program.getUid(),
-        dataElement.getUid(),
-        option.getUid());
+        COMPOSITE_DIM_OBJECT_PLAIN_SEP, program.getUid(), dataElement.getUid(), option.getUid());
   }
 
   @Override
