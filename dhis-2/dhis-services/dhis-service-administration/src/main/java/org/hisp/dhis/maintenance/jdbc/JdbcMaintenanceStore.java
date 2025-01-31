@@ -186,6 +186,11 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String pmSelect =
         "(select id from programmessage where programinstanceid in " + piSelect + " )";
 
+    String smsSelect =
+        "(select outboundsmsid from programinstance_outboundsms where programinstanceid in "
+            + piSelect
+            + " )";
+
     /*
      * Delete event values, event value audits, event comments, events,
      * enrollment comments, enrollments
@@ -200,6 +205,12 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               + pmSelect,
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
+
+          // delete SMS objects linked to PIs
+          "delete from outbound_sms_recipients where outbound_sms_id in " + smsSelect,
+          "delete from programinstance_outboundsms where outboundsmsid in " + smsSelect,
+          "delete from outbound_sms where id in " + smsSelect,
+
           // delete comments linked to both PIs and PSIs
           "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
           "delete from programinstancecomments where programinstanceid in " + piSelect,
