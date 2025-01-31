@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.EqualsAndHashCode;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.auth.AuthScheme;
-import org.hisp.dhis.eventhook.Target;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Morten Olav Hansen
- */
+/** User input when creating a new {@link Icon} */
+@Builder(toBuilder = true)
 @Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class WebhookTarget extends Target {
-  public static final String TYPE = "webhook";
+@AllArgsConstructor
+@NoArgsConstructor
+public class AddIconRequest {
 
   @JsonProperty(required = true)
-  private String clientId = "dhis2-webhook-" + CodeGenerator.generateUid();
+  private String key;
+
+  @JsonProperty private String description;
+  @JsonProperty private Set<String> keywords = new HashSet<>();
 
   @JsonProperty(required = true)
-  private String url;
-
-  @JsonProperty(required = true)
-  private String contentType = "application/json";
-
-  @JsonProperty private Map<String, String> headers = new HashMap<>();
-
-  @JsonProperty private AuthScheme auth;
-
-  public WebhookTarget() {
-    super(TYPE);
-  }
+  private String fileResourceId;
 }
