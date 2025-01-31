@@ -66,7 +66,13 @@ class DataIntegrityDatasetsSameNameControllerTest extends AbstractDataIntegrityI
                     + "'}}"));
 
     assertHasDataIntegrityIssues(
-        "dataSets", CHECK_NAME, 100, Set.of(datasetA, datasetB), Set.of("Test"), Set.of("NAME"), true);
+        "dataSets",
+        CHECK_NAME,
+        100,
+        Set.of(datasetA, datasetB),
+        Set.of("Test"),
+        Set.of("NAME"),
+        true);
   }
 
   @Test
