@@ -78,6 +78,7 @@ public interface RelationshipItemMapper {
       source = "from",
       qualifiedByName = "mapRelationshipItemWithoutRelationship")
   @Mapping(target = "to", source = "to", qualifiedByName = "mapRelationshipItemWithoutRelationship")
+  @Mapping(target = "deleted")
   Relationship map(Relationship relationship);
 
   // we need to ignore relationship to break the cycle between relationship and relationshipItem

@@ -79,6 +79,7 @@ public class DefaultRelationshipService implements RelationshipService {
                 trackerAccessManager
                     .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
                     .isEmpty())
+        .filter(ri -> !ri.getRelationship().isDeleted())
         .map(RELATIONSHIP_ITEM_MAPPER::map)
         .collect(Collectors.toSet());
   }
