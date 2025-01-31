@@ -30,7 +30,9 @@ package org.hisp.dhis.category.hibernate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
@@ -68,15 +70,16 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
   }
 
   @Override
-  public List<CategoryCombo> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return List.of();
-    return getQuery(
-            """
-            select distinct cc from CategoryCombo cc
-            join cc.optionCombos coc
-            where coc.uid in :uids
-            """)
-        .setParameter("uids", UID.toValueList(uids))
-        .getResultList();
+  public Set<CategoryCombo> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return Set.of();
+    return new HashSet<>(
+        getQuery(
+                """
+                select distinct cc from CategoryCombo cc
+                join cc.optionCombos coc
+                where coc.uid in :uids
+                """)
+            .setParameter("uids", UID.toValueList(uids))
+            .getResultList());
   }
 }

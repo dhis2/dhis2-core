@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +99,7 @@ public class MetadataCategoryOptionComboMergeHandler {
    */
   public void handleCategoryCombos(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
     log.info("Merging source category combos");
-    List<CategoryCombo> categoryCombos =
+    Set<CategoryCombo> categoryCombos =
         categoryComboStore.getByCategoryOptionCombo(
             UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
 

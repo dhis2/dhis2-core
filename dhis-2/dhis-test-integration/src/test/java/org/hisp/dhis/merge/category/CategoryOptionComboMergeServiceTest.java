@@ -150,12 +150,19 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private Period p2;
   private Period p3;
 
+  private static final String NON_DUPLICATE_VALIDATION_ERROR =
+      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge";
+
   @BeforeEach
   public void setUp() {
     categoryMetadata = TestBase.setupCategoryMetadata("cocm " + ++catCounter);
-    cocSource1 = categoryMetadata.coc1();
-    cocSource2 = categoryMetadata.coc2();
     cocTarget = categoryMetadata.coc3();
+    cocSource1 = categoryMetadata.coc1();
+    cocSource1.setCategoryCombo(cocTarget.getCategoryCombo());
+    cocSource1.setCategoryOptions(new HashSet<>(cocTarget.getCategoryOptions()));
+    cocSource2 = categoryMetadata.coc2();
+    cocSource2.setCategoryCombo(cocTarget.getCategoryCombo());
+    cocSource2.setCategoryOptions(new HashSet<>(cocTarget.getCategoryOptions()));
     cocRandom = categoryMetadata.coc4();
 
     ou1 = createOrganisationUnit('A');
@@ -193,8 +200,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         categoryService.getAllCategoryOptionCombos();
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
-    assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
-    assertEquals(9, allCategoryOptions.size(), "9 COs including 1 default");
+    assertEquals(5, allCategoryOptionCombos.size(), "5 COCs including 1 default");
+    assertEquals(5, allCategoryOptions.size(), "5 COs including 1 default");
 
     List<CategoryOption> coSourcesBefore =
         categoryOptionStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
@@ -202,9 +209,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         categoryOptionStore.getByCategoryOptionCombo(List.of(UID.of(cocTarget.getUid())));
 
     assertEquals(
-        4,
+        2,
         coSourcesBefore.size(),
-        "Expect 4 category options with source category option combo refs");
+        "Expect 2 category options with source category option combo refs");
     assertEquals(
         2,
         coTargetBefore.size(),
@@ -224,7 +231,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         0, coSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(
-        6, coTargetAfter.size(), "Expect 6 entries with target category option combo refs");
+        2, coTargetAfter.size(), "Expect 2 entries with target category option combo refs");
 
     assertTrue(
         categoryService.getCategoryOptionCombosByUid(UID.of(cocSource1, cocSource2)).isEmpty(),
@@ -242,12 +249,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         categoryService.getAllCategoryOptionCombos();
     List<CategoryCombo> allCategoryCombos = categoryService.getAllCategoryCombos();
 
-    assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
-    assertEquals(3, allCategoryCombos.size(), "3 CCs including 1 default");
+    assertEquals(5, allCategoryOptionCombos.size(), "5 COCs including 1 default");
+    assertEquals(2, allCategoryCombos.size(), "2 CCs including 1 default");
 
-    List<CategoryCombo> ccSourcesBefore =
+    Set<CategoryCombo> ccSourcesBefore =
         categoryComboStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
-    List<CategoryCombo> ccTargetBefore =
+    Set<CategoryCombo> ccTargetBefore =
         categoryComboStore.getByCategoryOptionCombo(Set.of(UID.of(cocTarget.getUid())));
 
     assertEquals(
@@ -258,7 +265,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         1, ccTargetBefore.size(), "Expect 1 category combo with target category option combo refs");
     assertEquals(
         4,
-        ccTargetBefore.get(0).getOptionCombos().size(),
+        ccTargetBefore.stream().mapToLong(cc -> cc.getOptionCombos().size()).sum(),
         "Expect 4 COCs with target category combo");
 
     // when
@@ -268,25 +275,24 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
     List<CategoryCombo> allCCsAfter = categoryService.getAllCategoryCombos();
 
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
-    assertEquals(3, allCCsAfter.size(), "3 CCs including 1 default");
+    assertEquals(3, allCOCsAfter.size(), "3 COCs including 1 default");
+    assertEquals(2, allCCsAfter.size(), "2 CCs including 1 default");
 
     // then
-    List<CategoryCombo> ccSourcesAfter =
+    Set<CategoryCombo> ccSourcesAfter =
         categoryComboStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
-    List<CategoryCombo> ccTargetAfter =
+    Set<CategoryCombo> ccTargetAfter =
         categoryComboStore.getByCategoryOptionCombo(Set.of(UID.of(cocTarget)));
     CategoryCombo catCombo1 = categoryComboStore.getByUid(categoryMetadata.cc1().getUid());
 
     assertFalse(report.hasErrorMessages());
     assertEquals(
         0, ccSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
-    assertEquals(
-        1, ccTargetAfter.size(), "Expect 2 entries with target category option combo refs");
-    assertEquals(5, catCombo1.getOptionCombos().size(), "Expect 5 COCs for CC1");
+    assertEquals(1, ccTargetAfter.size(), "Expect 1 entry with target category option combo refs");
+    assertEquals(4, catCombo1.getOptionCombos().size(), "Expect 4 COCs for CC1");
     assertEquals(
         4,
-        ccTargetAfter.get(0).getOptionCombos().size(),
+        ccTargetAfter.stream().mapToLong(cc -> cc.getOptionCombos().size()).sum(),
         "Expect 4 COCs with target category combo");
 
     assertTrue(
@@ -320,7 +326,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
+    assertEquals(5, allCategoryOptionCombos.size(), "5 COCs including 1 default");
 
     List<DataElementOperand> deoSourcesBefore =
         dataElementOperandStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
@@ -343,7 +349,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
 
     // then
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
+    assertEquals(3, allCOCsAfter.size(), "3 COCs including 1 default");
     assertFalse(report.hasErrorMessages(), "there should be no merge errors");
     List<DataElementOperand> deoSourcesAfter =
         dataElementOperandStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
@@ -378,7 +384,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
+    assertEquals(5, allCategoryOptionCombos.size(), "5 COCs including 1 default");
 
     List<MinMaxDataElement> mmdeSourcesBefore =
         minMaxDataElementStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
@@ -400,7 +406,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
+    assertEquals(3, allCOCsAfter.size(), "3 COCs including 1 default");
 
     // then
     List<MinMaxDataElement> mmdeSourcesAfter =
@@ -473,7 +479,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
+    assertEquals(5, allCategoryOptionCombos.size(), "5 COCs including 1 default");
 
     List<Predictor> pSourcesBefore =
         predictorStore.getByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
@@ -491,7 +497,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
+    assertEquals(3, allCOCsAfter.size(), "3 COCs including 1 default");
 
     // then
     List<Predictor> pSourcesAfter =
@@ -532,7 +538,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(9, allCategoryOptionCombos.size(), "9 COCs including 1 default");
+    assertEquals(5, allCategoryOptionCombos.size(), "5 COCs including 1 default");
 
     List<SMSCode> cSourcesBefore =
         smsCommandStore.getCodesByCategoryOptionCombo(UID.of(cocSource1, cocSource2));
@@ -548,7 +554,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
 
-    assertEquals(7, allCOCsAfter.size(), "7 COCs including 1 default");
+    assertEquals(3, allCOCsAfter.size(), "3 COCs including 1 default");
 
     // then
     List<SMSCode> cSourcesAfter =
@@ -603,7 +609,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -647,7 +653,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -695,7 +701,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -739,7 +745,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -769,7 +775,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(false);
 
-    // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
@@ -1008,7 +1013,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1098,7 +1103,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain the original target Data Approvals lastUpdated dates");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1188,7 +1193,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain the original target Data Approvals lastUpdated dates");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1278,7 +1283,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain the original source Data Approvals lastUpdated dates");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1363,7 +1368,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(2, targetItems.size(), "Expect 2 entry with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1418,7 +1423,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toSet())
             .containsAll(Set.of(cocTarget.getUid(), cocRandom.getUid())),
         "All events should only have references to the target coc and the random coc");
-    assertEquals(9, allCategoryOptionCombos.size(), "Expect 9 COCs present");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(
         allCategoryOptionCombos.stream()
             .map(BaseIdentifiableObject::getUid)
@@ -1464,7 +1469,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(2, allEvents.size(), "Expect 2 entries still");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "source COC should not be present");
@@ -1511,7 +1516,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1559,7 +1564,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(3, targetItems.size(), "Expect 3 entries with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource1), "Source COC should not be present");
     assertFalse(allCategoryOptionCombos.contains(cocSource2), "Source COC should not be present");
@@ -1610,7 +1615,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entries with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertEquals(
         Set.of("2024-12-05"),
         targetItems.stream()
@@ -1667,7 +1672,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entries with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertEquals(
         Set.of("2024-11-01"),
         targetItems.stream()
@@ -1724,7 +1729,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(2, targetItems.size(), "Expect 2 entries with target COC ref only");
-    assertEquals(7, allCategoryOptionCombos.size(), "Expect 7 COCs present");
+    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
     assertEquals(
         Set.of("2024-12-05", "2024-11-11"),
         targetItems.stream()

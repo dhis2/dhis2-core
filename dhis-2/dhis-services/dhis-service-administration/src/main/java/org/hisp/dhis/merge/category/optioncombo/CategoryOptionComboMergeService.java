@@ -79,10 +79,19 @@ public class CategoryOptionComboMergeService implements MergeService {
         categoryService.getCategoryOptionCombosByUid(request.getSources());
     CategoryOptionCombo target =
         categoryService.getCategoryOptionCombo(request.getTarget().getValue());
-    if (!sources.stream().allMatch(coc -> coc.equals(target))) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
+    if (!catOptCombosAreDuplicates(sources, target)) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E15400));
     }
     return request;
+  }
+
+  private static boolean catOptCombosAreDuplicates(
+      List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    boolean allSourcesAreEqualToTarget = sources.stream().allMatch(source -> source.equals(target));
+    boolean allSourceUidsAreDifferentToTarget =
+        sources.stream().noneMatch(source -> source.getUid().equals(target.getUid()));
+
+    return allSourcesAreEqualToTarget && allSourceUidsAreDifferentToTarget;
   }
 
   @Override

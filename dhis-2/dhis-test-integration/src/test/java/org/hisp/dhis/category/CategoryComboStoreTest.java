@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
@@ -82,7 +83,7 @@ class CategoryComboStoreTest extends PostgresIntegrationTestBase {
     CategoryOptionCombo coc2 = getCocWithOptions("2A", "1B");
 
     // when
-    List<CategoryCombo> catCombosByCategoryOptionCombo =
+    Set<CategoryCombo> catCombosByCategoryOptionCombo =
         categoryComboStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
 
     // then
