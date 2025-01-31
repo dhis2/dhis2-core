@@ -47,6 +47,7 @@ import org.hisp.dhis.scheduling.ControlledJobProgress;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NotifierJobProgress;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -95,7 +96,10 @@ public class PredictionController {
 
     JobProgress progress =
         new ControlledJobProgress(
-            messageService, jobId, new NotifierJobProgress(notifier, jobId), true);
+            messageService,
+            jobId,
+            new NotifierJobProgress(notifier, jobId, NotificationLevel.INFO),
+            true);
     if (async) {
       taskExecutor.executeTask(
           new PredictionTask(

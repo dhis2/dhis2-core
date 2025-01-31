@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
+package org.hisp.dhis.setting;
 
-import javax.annotation.Nonnull;
-import org.slf4j.Logger;
+import java.io.Serializable;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-public class NotificationLoggerUtil {
-  public static void log(Logger logger, @Nonnull NotificationLevel level, String message) {
-    switch (level) {
-      case LOOP:
-      case DEBUG:
-        logger.debug(message);
-        break;
-      case INFO:
-        logger.info(message);
-        break;
-      case WARN:
-        logger.warn(message);
-        break;
-      case ERROR:
-        logger.error(message);
-        break;
-      case OFF:
-        break;
-    }
-  }
+public interface SystemSettingsProvider {
+
+  <T extends Serializable> T getSystemSetting(SettingKey key, Class<T> type);
+
+  /**
+   * Returns the system setting value for the given key. If no value exists, returns the default
+   * value as defined by the given default value.
+   *
+   * @param key the system setting key.
+   * @return the setting value.
+   */
+  <T extends Serializable> T getSystemSetting(SettingKey key, T defaultValue);
+
+  String getStringSetting(SettingKey key);
+
+  Integer getIntegerSetting(SettingKey key);
+
+  int getIntSetting(SettingKey key);
+
+  Boolean getBooleanSetting(SettingKey key);
+
+  boolean getBoolSetting(SettingKey key);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.system.notification;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import java.io.Serializable;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 
 /**
- * UID represents an alphanumeric string of 11 characters starting with a letter.
+ * Tests the {@link Notifier} API for the {@link InMemoryNotifierStore} implementation.
  *
- * <p>A "virtual" UID type that is "context-sensitive" and points to a UID of the current {@code
- * Api.Endpoint}'s {@link org.hisp.dhis.common.OpenApi.EntityType}.
- *
- * <p>In other words by using this type in {@link OpenApi.Param#value()} the annotated parameter
- * becomes a UID string of the controllers' entity type.
+ * <p>The actual tests are in {@link NotifierStoreTest} as they are used for both stores.
  *
  * @author Jan Bernitt
  */
-@Getter
-@EqualsAndHashCode
-public final class UID implements Serializable {
-
-  private final String value;
-
-  private UID(String value) {
-    if (!CodeGenerator.isValidUid(value)) {
-      throw new IllegalArgumentException(
-          "UID must be an alphanumeric string of 11 characters starting with a letter, but was: "
-              + value);
-    }
-    this.value = value;
-  }
+class InMemoryNotifierTest extends NotifierStoreTest {
 
   @Override
-  public String toString() {
-    return value;
-  }
-
-  @JsonCreator
-  public static UID of(@Nonnull String value) {
-    return new UID(value);
-  }
-
-  public static UID of(@CheckForNull UidObject object) {
-    return object == null ? null : new UID(object.getUid());
+  void setUpNotifier(SystemSettingsProvider settings) {
+    notifier =
+        new DefaultNotifier(new InMemoryNotifierStore(), new ObjectMapper(), settings, clock);
   }
 }
