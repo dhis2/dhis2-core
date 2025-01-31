@@ -56,13 +56,17 @@ import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
@@ -99,7 +103,6 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testEnrollTOTP2FA()
       throws ChecksumException, NotFoundException, DecodingException, IOException, FormatException {
-
     User user = createUserAndInjectSecurityContext(false);
 
     assertStatus(HttpStatus.OK, POST("/2fa/enrollTOTP2FA"));
@@ -448,5 +451,64 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User updatedUser = userService.getUserByUsername(user.getUsername());
     assertNull(updatedUser.getSecret());
     assertEquals(TwoFactorType.NOT_ENABLED, updatedUser.getTwoFactorType());
+  }
+
+  @Test
+  void testChangeEmailWhenEmail2FAIsEnabledWithMeEndpoint() {
+    // Given user has Email 2FA enabled
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    String code = enrolledUser.getSecret().split("\\|")[0];
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.EMAIL_ENABLED, user.getTwoFactorType());
+
+    // When trying to change email
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first",
+        PUT("/me", "{'email':'another@email.com'}").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testChangeEmailWhenEmail2FAIsEnabledWithUserEndpoint() {
+    // Given user has Email 2FA enabled
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    String code = enrolledUser.getSecret().split("\\|")[0];
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.EMAIL_ENABLED, user.getTwoFactorType());
+
+    switchContextToUser(getAdminUser());
+
+    // When trying to change email
+    JsonObject jsonUser = GET("/users/{id}", user.getUid()).content();
+    String jsonUserString = jsonUser.toString();
+    jsonUserString = jsonUserString.replace("valid.x@email.com", "another.email@com");
+
+    JsonWebMessage msg =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "WARNING",
+            "One or more errors occurred, please see full details in import report.",
+            PUT("/users/" + user.getUid(), jsonUserString).content(HttpStatus.CONFLICT));
+
+    msg.getResponse().find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3052);
   }
 }

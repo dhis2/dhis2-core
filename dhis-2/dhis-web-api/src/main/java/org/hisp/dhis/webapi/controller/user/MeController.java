@@ -72,6 +72,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -225,6 +226,15 @@ public class MeController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
+
+    if (currentUser.getTwoFactorType() != null
+        && currentUser.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)
+        && currentUser.isEmailVerified()
+        && user.getEmail() != null
+        && !currentUser.getVerifiedEmail().equals(user.getEmail())) {
+      throw new ConflictException(
+          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first");
+    }
 
     merge(currentUser, user);
 

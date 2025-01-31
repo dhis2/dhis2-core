@@ -136,15 +136,14 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     if (userDetails.isTwoFactorEnabled()
         && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails authDetails) {
-      // Check if the user's 2FA type is enabled in config
+      // Check if the user's 2FA type is enabled in config, if not skip 2FA validation, even if user
+      // is enrolled.
       TwoFactorType type = userDetails.getTwoFactorType();
       boolean isTypeEnabled = false;
       if (type == TwoFactorType.EMAIL_ENABLED) {
-        isTypeEnabled =
-            configurationProvider.getProperty(ConfigurationKey.EMAIL_2FA_ENABLED).equals("on");
+        isTypeEnabled = configurationProvider.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED);
       } else if (type == TwoFactorType.TOTP_ENABLED) {
-        isTypeEnabled =
-            configurationProvider.getProperty(ConfigurationKey.TOTP_2FA_ENABLED).equals("on");
+        isTypeEnabled = configurationProvider.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED);
       }
 
       // Only validate 2FA code if the type is enabled
