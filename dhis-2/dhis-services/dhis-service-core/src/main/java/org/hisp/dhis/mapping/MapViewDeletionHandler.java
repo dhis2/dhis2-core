@@ -41,7 +41,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
@@ -67,11 +69,31 @@ public class MapViewDeletionHandler
     whenVetoing(Period.class, this::allowDeletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    whenDeleting(Program.class, this::deleteProgram);
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
     // special
     whenDeleting(LegendSet.class, this::deleteLegendSet);
     whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSetSpecial);
     whenDeleting(ExpressionDimensionItem.class, this::deleteExpressionDimensionItem);
     whenVetoing(MapView.class, this::allowDeleteMapView);
+  }
+
+  private void deleteProgramStage(ProgramStage programStage) {
+    List<MapView> mapViews = service.findByProgramStage(programStage);
+    mapViews.forEach(
+        mapView -> {
+          mapView.setProgramStage(null);
+          service.updateMapView(mapView);
+        });
+  }
+
+  private void deleteProgram(Program program) {
+    List<MapView> mapViews = service.findByProgram(program);
+    mapViews.forEach(
+        mapView -> {
+          mapView.setProgram(null);
+          service.update(mapView);
+        });
   }
 
   private void deleteLegendSet(LegendSet legendSet) {

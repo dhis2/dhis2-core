@@ -160,10 +160,10 @@ class OrganisationUnitTest {
 
     // Set path property directly to emulate persistence layer
 
-    unitA.getPath();
-    unitB.getPath();
-    unitC.getPath();
-    unitD.getPath();
+    unitA.updatePath();
+    unitB.updatePath();
+    unitC.updatePath();
+    unitD.updatePath();
 
     assertTrue(unitC.isDescendant(Set.of(unitB)));
     assertTrue(unitC.isDescendant(Set.of(unitA)));
