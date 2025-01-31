@@ -44,8 +44,6 @@ class DataIntegrityDatasetsSameNameControllerTest extends AbstractDataIntegrityI
 
   private static final String check = "datasets_same_name";
 
-  private static final String dataSetUID = "CowXAwmulDG";
-
   @Test
   void testDatasetsSameName() {
 
