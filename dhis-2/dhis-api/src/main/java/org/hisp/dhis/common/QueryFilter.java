@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
+import static org.hisp.dhis.common.QueryOperator.EX;
 import static org.hisp.dhis.common.QueryOperator.GE;
 import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
@@ -80,6 +81,7 @@ public class QueryFilter {
           .put(EW, unused -> "like")
           .put(NLIKE, unused -> "not like")
           .put(IN, unused -> "in")
+          .put(EX, unused -> "??")
           .build();
 
   protected QueryOperator operator;
@@ -91,6 +93,10 @@ public class QueryFilter {
   // -------------------------------------------------------------------------
 
   public QueryFilter() {}
+
+  public QueryFilter(QueryOperator operator) {
+    this.operator = operator;
+  }
 
   public QueryFilter(QueryOperator operator, String filter) {
     this.operator = operator;
