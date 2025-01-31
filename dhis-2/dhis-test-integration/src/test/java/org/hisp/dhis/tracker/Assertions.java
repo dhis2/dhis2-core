@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -54,6 +55,7 @@ import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
+import org.hisp.dhis.tracker.sideeffect.TrackerScheduleMessageSideEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerSendMessageSideEffect;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.util.DateUtils;
@@ -307,7 +309,7 @@ public class Assertions {
         "Unexpected notification side effect (TrackerSendMessageSideEffect) found.");
   }
 
-  public static void assertHasNotificationSideEffects(ImportReport report) {
+  public static void assertHasSendNotificationSideEffects(ImportReport report) {
     assertNotNull(report, "The ImportReport should not be null.");
 
     TrackerTypeReport typeReport =
@@ -328,6 +330,36 @@ public class Assertions {
     assertTrue(
         ruleEngineSideEffects.stream().anyMatch(TrackerSendMessageSideEffect.class::isInstance),
         "Expected notification side effect (TrackerSendMessageSideEffect) but none were found.");
+  }
+
+  public static void assertHasScheduleNotificationForCurrentDate(ImportReport report) {
+    assertNotNull(report, "The ImportReport should not be null.");
+
+    TrackerTypeReport typeReport =
+        report.getPersistenceReport().getTypeReportMap().get(TrackerType.EVENT);
+    assertNotNull(typeReport, "The TrackerTypeReport for EVENT should not be null.");
+    assertFalse(
+        typeReport.getSideEffectDataBundles().isEmpty(),
+        "Expected side effect data bundles but none were found.");
+
+    Optional<TrackerScheduleMessageSideEffect> optionalSideEffect =
+        typeReport.getSideEffectDataBundles().stream()
+            .flatMap(bundle -> bundle.getEventRuleEffects().values().stream())
+            .flatMap(List::stream)
+            .filter(TrackerScheduleMessageSideEffect.class::isInstance)
+            .map(TrackerScheduleMessageSideEffect.class::cast)
+            .findFirst();
+
+    assertTrue(
+        optionalSideEffect.isPresent(),
+        "Expected notification side effect (TrackerScheduleMessageSideEffect) but none were found.");
+
+    TrackerScheduleMessageSideEffect sideEffect = optionalSideEffect.get();
+
+    // Assuming sideEffect.getData() returns a date string
+    String dateString = sideEffect.getData();
+    assertNotNull(dateString, "The scheduled date string should not be null.");
+    assertTrue(DateUtils.dateIsValid(dateString));
   }
 
   public static void assertNoErrors(ImportReport report) {
