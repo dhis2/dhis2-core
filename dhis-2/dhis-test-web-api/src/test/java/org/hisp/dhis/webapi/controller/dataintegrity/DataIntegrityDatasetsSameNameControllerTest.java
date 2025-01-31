@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDatasetsSameNameControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-  private static final String check = "datasets_same_name";
+  private static final String CHECK_NAME = "datasets_same_name";
 
   @Test
   void testDatasetsSameName() {
@@ -66,11 +66,11 @@ class DataIntegrityDatasetsSameNameControllerTest extends AbstractDataIntegrityI
                     + "'}}"));
 
     assertHasDataIntegrityIssues(
-        "dataSets", check, 100, Set.of(datasetA, datasetB), Set.of("Test"), Set.of("NAME"), true);
+        "dataSets", CHECK_NAME, 100, Set.of(datasetA, datasetB), Set.of("Test"), Set.of("NAME"), true);
   }
 
   @Test
   void testEmptyDataSetsRuns() {
-    assertHasNoDataIntegrityIssues("dataSets", check, false);
+    assertHasNoDataIntegrityIssues("dataSets", CHECK_NAME, false);
   }
 }
