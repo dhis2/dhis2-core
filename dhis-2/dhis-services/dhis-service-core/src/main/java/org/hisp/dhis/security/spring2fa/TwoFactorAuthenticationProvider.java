@@ -84,6 +84,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     setPasswordEncoder(passwordEncoder);
   }
 
+  @Override
   public Authentication authenticate(Authentication auth) throws AuthenticationException {
     final String username = auth.getName();
     final Object details = auth.getDetails();
