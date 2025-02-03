@@ -100,7 +100,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                 """;
     List<TrackedEntity> trackedEntities =
         getQuery(hql, TrackedEntity.class)
-            .setParameter(TRACKED_ENTITY, trackedEntity.getValue())
+            .setParameter("trackedEntity", trackedEntity.getValue())
             .getResultList();
     return trackedEntities.stream().findFirst();
   }
@@ -115,7 +115,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                 """;
     List<Enrollment> enrollments =
         getQuery(hql, Enrollment.class)
-            .setParameter(ENROLLMENT, enrollment.getValue())
+            .setParameter("enrollment", enrollment.getValue())
             .getResultList();
     return enrollments.stream().findFirst();
   }
@@ -129,7 +129,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                 where e.uid = :event
                 """;
     List<Event> events =
-        getQuery(hql, Event.class).setParameter(EVENT, event.getValue()).getResultList();
+        getQuery(hql, Event.class).setParameter("event", event.getValue()).getResultList();
     return events.stream().findFirst();
   }
 
