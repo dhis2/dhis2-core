@@ -39,8 +39,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Morten Olav Hansen
@@ -63,21 +66,27 @@ public class WebhookHandler implements Handler {
     httpHeaders.setContentType(MediaType.parseMediaType(webhookTarget.getContentType()));
     httpHeaders.setAll(webhookTarget.getHeaders());
 
+    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     if (webhookTarget.getAuth() != null) {
-      webhookTarget.getAuth().apply(httpHeaders);
+      webhookTarget.getAuth().apply(httpHeaders, queryParams);
     }
 
     HttpEntity<String> httpEntity = new HttpEntity<>(payload, httpHeaders);
+    String webhookUri =
+        new DefaultUriBuilderFactory(webhookTarget.getUrl())
+            .builder()
+            .queryParams(queryParams)
+            .build()
+            .toString();
 
     try {
       ResponseEntity<String> response =
-          restTemplate.postForEntity(webhookTarget.getUrl(), httpEntity, String.class);
+          restTemplate.postForEntity(webhookUri, httpEntity, String.class);
 
       log.info(
-          "EventHook '{}' response status '{}' and body: {}",
+          "EventHook '{}' response status '{}'",
           eventHook.getUid(),
-          response.getStatusCode().name(),
-          response.getBody());
+          response.getStatusCode().name());
     } catch (RestClientException ex) {
       log.error(ex.getMessage());
     }
