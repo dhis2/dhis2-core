@@ -49,8 +49,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -159,7 +159,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
                     + ou2
                     + "'}]}"));
 
-    JsonResponse dataSet = GET("/dataSets/{id}", dsId).content();
+    JsonMixed dataSet = GET("/dataSets/{id}", dsId).content();
     assertEquals(2, dataSet.getArray("organisationUnits").size());
 
     assertStatus(
@@ -428,7 +428,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
             "/dataSets/" + dsId,
             "[{'op': 'add', 'path': '/sharing/userGroups/ZoHNWQajIoe', 'value': { 'access': 'rw------', 'id': 'ZoHNWQajIoe' } }]"));
 
-    JsonResponse dataSet = GET("/dataSets/{id}", dsId).content();
+    JsonMixed dataSet = GET("/dataSets/{id}", dsId).content();
     assertNotNull(dataSet.getObject("sharing").getObject("userGroups").getObject("th4S6ovwcr8"));
     assertNotNull(dataSet.getObject("sharing").getObject("userGroups").getObject("ZoHNWQajIoe"));
   }
@@ -438,7 +438,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     String peter =
         "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
     String peterUserId = assertStatus(HttpStatus.CREATED, POST("/users", peter));
-    JsonResponse roles = GET("/userRoles?fields=id").content();
+    JsonMixed roles = GET("/userRoles?fields=id").content();
     String roleId = roles.getArray("userRoles").getObject(0).getString("id").string();
     assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + peterUserId));
     JsonUser oldPeter = GET("/users/{id}", peterUserId).content().as(JsonUser.class);
@@ -463,7 +463,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     String peter =
         "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
     String peterUserId = assertStatus(HttpStatus.CREATED, POST("/users", peter));
-    JsonResponse roles = GET("/userRoles?fields=id").content();
+    JsonMixed roles = GET("/userRoles?fields=id").content();
     String roleId = roles.getArray("userRoles").getObject(0).getString("id").string();
     assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + peterUserId));
     JsonUser oldPeter = GET("/users/{id}", peterUserId).content().as(JsonUser.class);

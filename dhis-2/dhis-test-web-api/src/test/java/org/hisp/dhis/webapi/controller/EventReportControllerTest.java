@@ -40,8 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +84,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
     // Then
-    final JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    final JsonMixed response = GET("/eventVisualizations/" + uid).content();
     final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("simpleDimensions").toString(), containsString("COLUMN"));
@@ -120,7 +120,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
     // Then
-    final JsonResponse response = GET("/eventReports/" + uid).content();
+    final JsonMixed response = GET("/eventReports/" + uid).content();
     final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("simpleDimensions").toString(), containsString("ROW"));
@@ -170,7 +170,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     final String uid = assertStatus(CREATED, POST("/eventReports/", body));
 
     // Then
-    final JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    final JsonMixed response = GET("/eventVisualizations/" + uid).content();
     final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("name").toString(), containsString("Name Test"));
@@ -190,7 +190,7 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
     // Then
-    final JsonResponse response = GET("/eventReports/" + uid).content();
+    final JsonMixed response = GET("/eventReports/" + uid).content();
     final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.values(), is(empty()));

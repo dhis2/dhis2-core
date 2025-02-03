@@ -31,7 +31,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +55,7 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
                 "/organisationUnits/",
                 "{'name':'My Unit 2', 'shortName':'OU2', 'openingDate': '2020-01-01'}"));
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/organisationUnits?filter=identifiable:token:" + ou2.substring(0, 3)).content();
     assertEquals(0, response.getArray("organisationUnits").size());
 

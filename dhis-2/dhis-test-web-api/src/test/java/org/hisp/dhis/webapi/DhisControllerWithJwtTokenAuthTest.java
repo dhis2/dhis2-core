@@ -32,7 +32,6 @@ import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import javax.sql.DataSource;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -53,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link JsonResponse}, with JWT token
+ * Base class for convenient testing of the web API on basis of JSON response, with JWT token
  *
  * @author Morten Svanæs
  */

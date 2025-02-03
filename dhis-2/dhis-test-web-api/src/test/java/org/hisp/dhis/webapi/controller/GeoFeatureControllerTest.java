@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,7 @@ public class GeoFeatureControllerTest extends DhisControllerConvenienceTest {
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
         .content(HttpStatus.OK);
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN").content(HttpStatus.OK);
     assertEquals(1, response.size());
     assertEquals(

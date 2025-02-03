@@ -36,8 +36,8 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +71,7 @@ class EventChartControllerTest extends DhisControllerConvenienceTest {
     final String uid = assertStatus(CREATED, POST("/eventCharts/", body));
 
     // Then
-    final JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    final JsonMixed response = GET("/eventVisualizations/" + uid).content();
 
     @SuppressWarnings("unchecked")
     final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
@@ -90,7 +90,7 @@ class EventChartControllerTest extends DhisControllerConvenienceTest {
     final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
     // Then
-    final JsonResponse response = GET("/eventCharts/" + uid).content();
+    final JsonMixed response = GET("/eventCharts/" + uid).content();
 
     @SuppressWarnings("unchecked")
     final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();

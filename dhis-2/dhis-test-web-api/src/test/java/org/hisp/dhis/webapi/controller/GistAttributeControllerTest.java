@@ -260,7 +260,7 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
 
   private static Map<String, String> toMap(JsonMap<JsonString> actual) {
     Map<String, String> res = new HashMap<>();
-    for (String key : actual.keys()) {
+    for (String key : actual.names()) {
       res.put(key, actual.get(key).string());
     }
     return res;

@@ -33,14 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.time.LocalDateTime;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link JsonResponse} with domain specific cases.
+ * Tests the JSON response with domain specific cases.
  *
  * @author Jan Bernitt
  */
@@ -115,7 +114,7 @@ class DomainJsonResponseTest {
         response.as(JsonError.class).summary());
   }
 
-  private JsonResponse createJSON(String content) {
-    return new JsonResponse(content.replace('\'', '"'), JsonTypedAccess.GLOBAL);
+  private JsonMixed createJSON(String content) {
+    return JsonMixed.of(content.replace('\'', '"'));
   }
 }

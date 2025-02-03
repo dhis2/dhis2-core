@@ -32,7 +32,6 @@ import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -50,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link JsonResponse}.
+ * Base class for convenient testing of the web API on basis of JSON response.
  *
  * @author Jan Bernitt
  */

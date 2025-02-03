@@ -30,12 +30,13 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
@@ -195,14 +196,15 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
       userService.updateUser(user);
     }
 
-    JsonResponse response = GET("/account/linkedAccounts").content(HttpStatus.OK);
+    JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonUser> list = response.getList("users", JsonUser.class);
     assertEquals(3, list.size());
   }
 
-  private static void assertMessage(
-      String key, String value, String message, JsonResponse response) {
-    assertContainsOnly(Set.of(key, "message"), response.node().members().keySet());
+  private static void assertMessage(String key, String value, String message, JsonMixed response) {
+    Set<String> actual = new HashSet<>();
+    response.node().names().forEach(actual::add);
+    assertContainsOnly(Set.of(key, "message"), actual);
     assertEquals(value, response.getString(key).string());
     assertEquals(message, response.getString("message").string());
   }

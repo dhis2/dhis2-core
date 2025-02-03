@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -111,7 +111,7 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Test
   void testSkipPaging() {
-    JsonResponse res = GET("/events.json?skipPaging=true").content(HttpStatus.OK);
+    JsonMixed res = GET("/events.json?skipPaging=true").content(HttpStatus.OK);
     assertFalse(res.get("pager").exists());
 
     res = GET("/events.json?skipPaging=false").content(HttpStatus.OK);

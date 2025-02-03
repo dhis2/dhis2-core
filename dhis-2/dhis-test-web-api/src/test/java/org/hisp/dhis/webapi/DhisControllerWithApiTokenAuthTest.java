@@ -31,7 +31,6 @@ import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -52,10 +51,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link JsonResponse}, with API
- * tokens. This class differs from {@link DhisControllerConvenienceTest} in that this base class
- * also includes the {@link FilterChainProxy} so that we can authenticate the request like it would
- * in a normal running server.
+ * Base class for convenient testing of the web API on basis of JSON response, with API tokens. This
+ * class differs from {@link DhisControllerConvenienceTest} in that this base class also includes
+ * the {@link FilterChainProxy} so that we can authenticate the request like it would in a normal
+ * running server.
  *
  * @author Morten Svanæs
  */

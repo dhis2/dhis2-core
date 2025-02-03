@@ -40,8 +40,8 @@ import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
@@ -131,7 +131,7 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST("/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}"));
 
-    JsonResponse sqlView = GET("/sqlViews/{uid}", uid).content();
+    JsonMixed sqlView = GET("/sqlViews/{uid}", uid).content();
     assertEquals("VIEW", sqlView.getString("type").string());
     assertEquals("RESPECT_SYSTEM_SETTING", sqlView.getString("cacheStrategy").string());
   }
