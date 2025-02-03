@@ -118,4 +118,7 @@ public interface DataValueSetService {
 
   ImportSummary importDataValueSetPdf(
       InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress);
+
+  ImportSummary importDataValueSetAdx(
+      DataValueSetReader reader, ImportOptions importOptions, @Nonnull JobProgress progress);
 }

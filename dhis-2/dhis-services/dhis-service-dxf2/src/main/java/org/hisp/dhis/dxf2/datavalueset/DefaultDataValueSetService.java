@@ -615,6 +615,12 @@ public class DefaultDataValueSetService implements DataValueSetService {
     return importDataValueSetPdf(in, options, JobProgress.noop());
   }
 
+  @Override
+  public ImportSummary importDataValueSetAdx(
+      DataValueSetReader reader, ImportOptions options, @Nonnull JobProgress progress) {
+    return importDataValueSet(options, progress, () -> reader);
+  }
+
   private ImportSummary importDataValueSet(
       ImportOptions options,
       @Nonnull JobProgress progress,
