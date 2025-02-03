@@ -38,6 +38,7 @@ import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
@@ -47,6 +48,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -86,6 +88,49 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
+  }
+
+  @Override
+  public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity) {
+    @Language("hql")
+    String hql =
+        """
+                from TrackedEntity te
+                where te.uid = :trackedEntity
+                """;
+    List<TrackedEntity> trackedEntities =
+        getQuery(hql, TrackedEntity.class)
+            .setParameter("trackedEntity", trackedEntity.getValue())
+            .getResultList();
+    return trackedEntities.stream().findFirst();
+  }
+
+  @Override
+  public Optional<Enrollment> findEnrollment(UID enrollment) {
+    @Language("hql")
+    String hql =
+        """
+                from Enrollment e
+                where e.uid = :enrollment
+                """;
+    List<Enrollment> enrollments =
+        getQuery(hql, Enrollment.class)
+            .setParameter("enrollment", enrollment.getValue())
+            .getResultList();
+    return enrollments.stream().findFirst();
+  }
+
+  @Override
+  public Optional<Event> findEvent(UID event) {
+    @Language("hql")
+    String hql =
+        """
+                from Event e
+                where e.uid = :event
+                """;
+    List<Event> events =
+        getQuery(hql, Event.class).setParameter("event", event.getValue()).getResultList();
+    return events.stream().findFirst();
   }
 
   @Override
