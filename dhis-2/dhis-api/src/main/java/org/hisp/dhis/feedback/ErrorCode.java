@@ -475,6 +475,9 @@ public enum ErrorCode {
   E7147("Query failed because of a missing column: `{0}`"),
   E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
+  E7150("Could not optimize Program Indicator CTE, unexpected error: `{0}`"),
+  E7151("Could not pre-pend CTEs to Program Indicator CTE, unexpected error: `{0}`"),
+
   /* Analytics outliers */
 
   E7180(
