@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,34 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import java.util.function.Function;
+import org.hisp.dhis.common.auth.AuthScheme;
 
-/**
- * @author Morten Olav Hansen
- */
-class ApiTokenAuthTest {
+public abstract class AbstractAuthSchemeTest {
 
-  @Test
-  void testAuthorizationHeaderSet() {
-    ApiTokenAuth auth = new ApiTokenAuth().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
+  protected <T extends AuthScheme> void assertEncrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T encryptedAuthScheme =
+        (T)
+            authScheme.encrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "bar";
+                });
+    assertEquals("bar", secretProvider.apply(encryptedAuthScheme));
+  }
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
-
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals(
-        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+  protected <T extends AuthScheme> void assertDecrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T decryptedAuthScheme =
+        (T)
+            authScheme.decrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "foo";
+                });
+    assertEquals("foo", secretProvider.apply(decryptedAuthScheme));
   }
 }

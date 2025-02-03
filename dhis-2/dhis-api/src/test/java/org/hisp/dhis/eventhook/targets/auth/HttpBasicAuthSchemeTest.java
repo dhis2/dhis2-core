@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -37,16 +39,33 @@ import org.springframework.util.MultiValueMap;
 /**
  * @author Morten Olav Hansen
  */
-class HttpBasicAuthTest {
+class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
   @Test
   void testAuthorizationHeaderSet() {
-    HttpBasicAuth auth = new HttpBasicAuth().setUsername("admin").setPassword("district");
+    HttpBasicAuthScheme auth =
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
 
     MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
+    auth.apply(headers, null);
 
     assertTrue(headers.containsKey("Authorization"));
     assertFalse(headers.get("Authorization").isEmpty());
     assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  }
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district"),
+        HttpBasicAuthScheme::getPassword);
+  }
+
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new HttpBasicAuthScheme()
+            .setUsername("admin")
+            .setPassword("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        HttpBasicAuthScheme::getPassword);
   }
 }
