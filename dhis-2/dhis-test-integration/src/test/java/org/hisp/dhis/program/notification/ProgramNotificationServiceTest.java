@@ -57,6 +57,7 @@ import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,9 +114,11 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
-    TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA, trackedEntityType);
     manager.save(trackedEntityA);
-    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB, trackedEntityType);
     manager.save(trackedEntityB);
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
@@ -343,8 +346,11 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     programNotificationStore.save(a2);
     programNotificationStore.save(a3);
     // TE
-    TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA);
-    TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('M');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA, trackedEntityType);
+    TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA, trackedEntityType);
     manager.save(trackedEntityX);
     manager.save(trackedEntityY);
     // Program

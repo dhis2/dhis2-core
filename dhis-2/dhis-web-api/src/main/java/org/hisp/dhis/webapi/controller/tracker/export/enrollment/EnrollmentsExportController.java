@@ -43,12 +43,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -104,7 +102,7 @@ class EnrollmentsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEnrollments(EnrollmentRequestParams requestParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 
@@ -115,13 +113,8 @@ class EnrollmentsExportController {
 
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
-      // only supports idScheme=UID
-      TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
-      MappingErrors errors = new MappingErrors(idSchemeParams);
       List<Enrollment> enrollments =
-          enrollmentsPage.getItems().stream()
-              .map(en -> ENROLLMENT_MAPPER.map(idSchemeParams, errors, en))
-              .toList();
+          enrollmentsPage.getItems().stream().map(ENROLLMENT_MAPPER::map).toList();
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
 
@@ -130,12 +123,9 @@ class EnrollmentsExportController {
           .body(Page.withPager(ENROLLMENTS, enrollmentsPage.withItems(objectNodes)));
     }
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
-    MappingErrors errors = new MappingErrors(idSchemeParams);
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(operationParams).stream()
-            .map(en -> ENROLLMENT_MAPPER.map(idSchemeParams, errors, en))
+            .map(ENROLLMENT_MAPPER::map)
             .toList();
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
@@ -154,12 +144,8 @@ class EnrollmentsExportController {
       throws NotFoundException, ForbiddenException {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
-    MappingErrors errors = new MappingErrors(idSchemeParams);
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.map(
-            idSchemeParams, errors, enrollmentService.getEnrollment(uid, enrollmentParams, false));
+        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams, false));
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

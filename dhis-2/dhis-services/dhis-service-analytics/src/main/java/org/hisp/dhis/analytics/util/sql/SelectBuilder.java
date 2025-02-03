@@ -73,6 +73,21 @@ public class SelectBuilder {
   private Integer offset;
   private static final Pattern ORDER_BY_PATTERN = Pattern.compile("^(?i)order\\s+by\\s+");
 
+  public enum JoinType {
+    INNER("inner join"),
+    LEFT("left join");
+
+    private final String sql;
+
+    JoinType(String sql) {
+      this.sql = sql;
+    }
+
+    public String toSql() {
+      return sql;
+    }
+  }
+
   /**
    * Represents a column in the SELECT clause of a SQL query. Handles column expressions with
    * optional table prefix and column aliases.
@@ -182,9 +197,9 @@ public class SelectBuilder {
    *     -> "LEFT JOIN orders o ON o.user_id = u.id"
    * }</pre>
    */
-  public record Join(String table, String alias, String condition) {
+  public record Join(JoinType type, String table, String alias, String condition) {
     public String toSql() {
-      return String.format("LEFT JOIN %s %s ON %s", table, alias, condition);
+      return String.format("%s %s %s ON %s", type.toSql(), table, alias, condition);
     }
   }
 
@@ -322,7 +337,25 @@ public class SelectBuilder {
    * }</pre>
    */
   public SelectBuilder leftJoin(String table, String alias, JoinCondition condition) {
-    joins.add(new Join(table, alias, condition.build(alias)));
+    joins.add(new Join(JoinType.LEFT, table, alias, condition.build(alias)));
+    return this;
+  }
+
+  /**
+   * Adds a INNER JOIN clause to the query.
+   *
+   * @param table the table to join
+   * @param alias the alias for the joined table
+   * @param condition the join condition builder
+   * @return this builder instance
+   *     <p>Example:
+   *     <pre>{@code
+   * builder.innerJoin("orders", "o",
+   *     alias -> alias + ".user_id = u.id")
+   * }</pre>
+   */
+  public SelectBuilder innerJoin(String table, String alias, JoinCondition condition) {
+    joins.add(new Join(JoinType.INNER, table, alias, condition.build(alias)));
     return this;
   }
 

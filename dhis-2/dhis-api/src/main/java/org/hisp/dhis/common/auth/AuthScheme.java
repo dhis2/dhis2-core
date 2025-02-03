@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
+package org.hisp.dhis.common.auth;
 
-import javax.annotation.Nonnull;
-import org.slf4j.Logger;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.function.UnaryOperator;
+import lombok.experimental.Accessors;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Morten Olav Hansen
  */
-public class NotificationLoggerUtil {
-  public static void log(Logger logger, @Nonnull NotificationLevel level, String message) {
-    switch (level) {
-      case LOOP:
-      case DEBUG:
-        logger.debug(message);
-        break;
-      case INFO:
-        logger.info(message);
-        break;
-      case WARN:
-        logger.warn(message);
-        break;
-      case ERROR:
-        logger.error(message);
-        break;
-      case OFF:
-        break;
-    }
-  }
+@Accessors(chain = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = HttpBasicAuthScheme.HTTP_BASIC_TYPE),
+  @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = ApiTokenAuthScheme.API_TOKEN_TYPE),
+  @JsonSubTypes.Type(
+      value = ApiHeadersAuthScheme.class,
+      name = ApiHeadersAuthScheme.API_HEADERS_TYPE),
+  @JsonSubTypes.Type(
+      value = ApiQueryParamsAuthScheme.class,
+      name = ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE)
+})
+public interface AuthScheme extends Serializable {
+  void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams);
+
+  AuthScheme encrypt(UnaryOperator<String> encryptFunc);
+
+  AuthScheme decrypt(UnaryOperator<String> decryptFunc);
+
+  @JsonProperty
+  String getType();
 }

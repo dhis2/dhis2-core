@@ -217,13 +217,14 @@ public enum ErrorCode {
   E3043(
       "User does not have a verified email, please verify your email before you try to enable 2FA"),
   E3044("TOTP 2FA is not enabled"),
-  E3045("Email based 2FA is not enabled in the system settings"),
-  E3046("TOTP 2FA is not enabled in the system settings"),
+  E3045("Email based 2FA is not enabled"),
+  E3046("TOTP 2FA is not enabled"),
   E3047("User is not in TOTP 2FA enrollment mode"),
   E3048("User does not have email 2FA enabled"),
   E3049("Sending 2FA code with email failed"),
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
+  E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

@@ -116,6 +116,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -175,6 +176,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
+
+  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   /**
    * Returns a SQL paging clause.
@@ -1050,6 +1053,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       } catch (Exception e) {
         grid.addValue(json);
       }
+    } else if (header.getValueType() == ValueType.DATETIME) {
+      grid.addValue(analyticsSqlBuilder.renderTimestamp(sqlRowSet.getString(index)));
     } else {
       grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
     }
@@ -1474,6 +1479,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected boolean useExperimentalAnalyticsQueryEngine() {
     return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
         || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+  }
+
+  /**
+   * Transforms the query item filters into an "and" separated SQL string. For instance, if the
+   * query item has filters with values "a" and "b" and the operator is "eq", the resulting SQL
+   * string will be "column = 'a' and column = 'b'". If the query item has no filters, an empty
+   * string is returned.
+   *
+   * @param item the {@link QueryItem}.
+   * @param columnName the column name.
+   * @return the SQL string.
+   */
+  protected String extractFiltersAsSql(QueryItem item, String columnName) {
+    return item.getFilters().stream()
+        .map(
+            f ->
+                "%s %s %s".formatted(columnName, f.getOperator().getValue(), getSqlFilter(f, item)))
+        .collect(Collectors.joining(" and "));
   }
 
   /**

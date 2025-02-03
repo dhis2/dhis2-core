@@ -414,7 +414,6 @@ class EventQueryParams {
   /** Order by the given data element {@code de} in given sort {@code direction}. */
   public EventQueryParams orderBy(DataElement de, SortDirection direction) {
     this.order.add(new Order(de, direction));
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 

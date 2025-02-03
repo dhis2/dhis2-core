@@ -55,7 +55,6 @@ public class LoginConfigResponse {
   @JsonProperty private String loginPageLayout;
   @JsonProperty private String loginPageTemplate;
   @JsonProperty private String recaptchaSite;
-  @JsonProperty private String passwordValidationPattern;
   @JsonProperty private String minPasswordLength;
   @JsonProperty private String maxPasswordLength;
 

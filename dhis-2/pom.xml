@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.1</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.2</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -112,10 +112,10 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.2.RELEASE</lettuce.version>
+    <lettuce.version>6.5.3.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.2.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.3.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -149,7 +149,7 @@
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
     <!--- Apache jclouds -->
-    <jclouds.version>2.6.0</jclouds.version>
+    <jclouds.version>2.7.0</jclouds.version>
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
@@ -199,7 +199,7 @@
     <commons-io.version>2.18.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <httpcomponents-core.version>5.3.2</httpcomponents-core.version>
+    <httpcomponents-core.version>5.3.3</httpcomponents-core.version>
     <httpcomponents-client5.version>5.4.1</httpcomponents-client5.version>
     <kafka.version>3.9.0</kafka.version>
 
