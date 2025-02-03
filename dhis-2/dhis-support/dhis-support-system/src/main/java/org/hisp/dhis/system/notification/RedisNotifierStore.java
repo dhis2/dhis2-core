@@ -40,7 +40,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonBuilder;
-import org.hisp.dhis.jsontree.JsonDocument;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -204,7 +203,7 @@ public class RedisNotifierStore implements NotifierStore {
       dest.setCompleted(src.getBoolean("completed").booleanValue(false));
       JsonValue time = src.get("time");
       dest.setTime(
-          time.exists() && time.node().getType() == JsonDocument.JsonNodeType.NUMBER
+          time.exists() && time.isNumber()
               ? new Date(time.as(JsonNumber.class).longValue())
               : DateUtils.parseDate(time.as(JsonString.class).string()));
       dest.setMessage(src.getString("message").string());
