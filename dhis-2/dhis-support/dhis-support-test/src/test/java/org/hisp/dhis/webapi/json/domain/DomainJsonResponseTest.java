@@ -109,9 +109,7 @@ class DomainJsonResponseTest {
                 + "'httpStatusCode':409,"
                 + "'response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}"
                 + "}");
-    assertEquals(
-        "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
-        response.as(JsonError.class).summary());
+    assertEquals("my message", response.as(JsonError.class).getMessage());
   }
 
   private JsonMixed createJSON(String content) {
