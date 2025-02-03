@@ -28,13 +28,10 @@
 package org.hisp.dhis.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -83,17 +80,11 @@ class CategoryComboStoreTest extends PostgresIntegrationTestBase {
     CategoryOptionCombo coc2 = getCocWithOptions("2A", "1B");
 
     // when
-    Set<CategoryCombo> catCombosByCategoryOptionCombo =
-        categoryComboStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
+    long catCombosByCategoryOptionCombo =
+        categoryComboStore.countByCategoryOptionCombo(List.of(coc1.getId(), coc2.getId()));
 
     // then
-    assertEquals(1, catCombosByCategoryOptionCombo.size(), "1 CategoryCombo should be present");
-    List<String> categoryCombos =
-        catCombosByCategoryOptionCombo.stream().map(BaseIdentifiableObject::getUid).toList();
-
-    assertTrue(
-        categoryCombos.contains(cc1.getUid()),
-        "Retrieved CategoryCombo UID should equal the expected value");
+    assertEquals(1, catCombosByCategoryOptionCombo, "1 CategoryCombo should be present");
   }
 
   private CategoryOptionCombo getCocWithOptions(String co1, String co2) {

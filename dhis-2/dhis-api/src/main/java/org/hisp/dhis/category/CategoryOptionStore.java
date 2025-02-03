@@ -50,12 +50,14 @@ public interface CategoryOptionStore extends IdentifiableObjectStore<CategoryOpt
 
   List<CategoryOption> getDataWriteCategoryOptions(Category category, UserDetails userDetails);
 
-  /**
-   * Retrieve all {@link CategoryOption}s with {@link CategoryOptionCombo} {@link UID}s
-   *
-   * @param uids {@link CategoryOptionCombo} {@link UID}s
-   * @return {@link CategoryOption}s with references to {@link CategoryOptionCombo} {@link UID}s
-   *     passed in
-   */
-  List<CategoryOption> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
+  //  /**
+  //   * Retrieve all {@link CategoryOption}s with {@link CategoryOptionCombo} {@link UID}s
+  //   *
+  //   * @param uids {@link CategoryOptionCombo} {@link UID}s
+  //   * @return {@link CategoryOption}s with references to {@link CategoryOptionCombo} {@link UID}s
+  //   *     passed in
+  //   */
+  Long countByCategoryOptionCombo(@Nonnull Collection<Long> ids);
+
+  int removeCocRelationship(@Nonnull Collection<Long> ids);
 }

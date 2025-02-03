@@ -28,7 +28,6 @@
 package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +37,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -79,16 +79,11 @@ public class MetadataCategoryOptionComboMergeHandler {
    * @param target to add
    */
   public void handleCategoryOptions(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    log.info("Merging source category options");
-    List<CategoryOption> categoryOptions =
-        categoryOptionStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
-
-    categoryOptions.forEach(
-        co -> {
-          co.addCategoryOptionCombo(target);
-          co.removeCategoryOptionCombos(sources);
-        });
+    int coRefsRemoved =
+        categoryOptionStore.removeCocRelationship(
+            IdentifiableObjectUtils.getIdentifiersSet(sources));
+    log.info(
+        "Removed {} category option references for source category option combos", coRefsRemoved);
   }
 
   /**
@@ -99,15 +94,11 @@ public class MetadataCategoryOptionComboMergeHandler {
    */
   public void handleCategoryCombos(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
     log.info("Merging source category combos");
-    Set<CategoryCombo> categoryCombos =
-        categoryComboStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
-
-    categoryCombos.forEach(
-        cc -> {
-          cc.addCategoryOptionCombo(target);
-          cc.removeCategoryOptionCombos(sources);
-        });
+    int ccRefsRemoved =
+        categoryComboStore.removeCocRelationship(
+            IdentifiableObjectUtils.getIdentifiersSet(sources));
+    log.info(
+        "Removed {} category combo references for source category option combos", ccRefsRemoved);
   }
 
   /**

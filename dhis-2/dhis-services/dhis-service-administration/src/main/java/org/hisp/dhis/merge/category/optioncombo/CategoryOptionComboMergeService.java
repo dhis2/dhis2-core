@@ -87,11 +87,11 @@ public class CategoryOptionComboMergeService implements MergeService {
 
   private static boolean catOptCombosAreDuplicates(
       List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    boolean allSourcesAreEqualToTarget = sources.stream().allMatch(source -> source.equals(target));
-    boolean allSourceUidsAreDifferentToTarget =
+    boolean allSourcesEqualTarget = sources.stream().allMatch(source -> source.equals(target));
+    boolean allSourceUidsAreDifferentThanTarget =
         sources.stream().noneMatch(source -> source.getUid().equals(target.getUid()));
 
-    return allSourcesAreEqualToTarget && allSourceUidsAreDifferentToTarget;
+    return allSourcesEqualTarget && allSourceUidsAreDifferentThanTarget;
   }
 
   @Override
