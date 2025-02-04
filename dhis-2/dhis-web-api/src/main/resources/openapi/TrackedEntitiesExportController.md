@@ -16,6 +16,10 @@ Get a tracked entity with given UID.
 
 ### `getTrackedEntityByUid.parameter.program`
 
+Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
+program. The ownership of the given `program` will be used to determine access to the tracked
+entities.
+
 ### `getTrackedEntityByUid.parameter.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
@@ -87,6 +91,10 @@ Get tracked entities using given organisation unit mode.
 Get tracked entities using given organisation unit mode.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
+
+Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
+program. The ownership of the given `program` will be used to determine access to the tracked
+entities.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
 
