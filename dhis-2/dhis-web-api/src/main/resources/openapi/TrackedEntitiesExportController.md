@@ -18,7 +18,7 @@ Get a tracked entity with given UID.
 
 Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
 program. The ownership of the given `program` will be used to determine access to the tracked
-entities.
+entity.
 
 ### `getTrackedEntityByUid.parameter.fields`
 
@@ -92,9 +92,9 @@ Get tracked entities using given organisation unit mode.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
 
-Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
+Get tracked entities with tracked entity attribute and enrollment data from the specified tracker
 program. The ownership of the given `program` will be used to determine access to the tracked
-entities.
+entities. Only tracked entities with an enrollment into the `program` will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
 
