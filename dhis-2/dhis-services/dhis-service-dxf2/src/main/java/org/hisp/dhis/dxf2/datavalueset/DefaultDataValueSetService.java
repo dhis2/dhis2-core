@@ -673,7 +673,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
         progress.nonNullStagePostCondition(progress.runStage(reader::readHeader));
 
     progress.startingStage("Creating import context");
-
     ImportContext context =
         progress.nonNullStagePostCondition(
             progress.runStage(
@@ -682,7 +681,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
                         options, dataValueSet, dataValueBatchHandler, auditBatchHandler)));
     logDataValueSetImportContextInfo(context);
 
-    progress.startingStage("Preheat caches, options: " + context.getImportOptions());
+    progress.startingStage("Preheat caches...");
     progress.runStage(() -> preheatCaches(context));
 
     progress.startingStage("Loading base metadata");
@@ -726,23 +725,25 @@ public class DefaultDataValueSetService implements DataValueSetService {
     if (values != null && !values.isEmpty()) {
       int size = values.size();
       progress.startingStage("Importing values (list)", size);
-      int logEveryN = size < 500 ? 1 : size / 1000;
+      progress.setWorkItemBucketing(100);
       for (DataValueEntry dataValue : values) {
-        boolean item = index % logEveryN == 0;
-        if (item) progress.startingWorkItem(index * logEveryN);
+        progress.startingWorkItem(index);
         importDataValue(context, dataSetContext, importCount, now, index++, dataValue);
-        if (item) progress.completedWorkItem(null);
+        progress.completedWorkItem(null);
       }
-      progress.completedStage(importCount.toString());
+      progress.completedStage("Import summary: " + importCount);
     }
     DataValueEntry dataValue = reader.readNext();
     boolean hasItems = dataValue != null;
     if (hasItems) progress.startingStage("Importing values (iterator)");
+    progress.setWorkItemBucketing(100);
     while (dataValue != null) {
+      progress.startingWorkItem(index);
       importDataValue(context, dataSetContext, importCount, now, index++, dataValue);
+      progress.completedWorkItem(null);
       dataValue = reader.readNext();
     }
-    if (hasItems) progress.completedStage(importCount.toString());
+    if (hasItems) progress.completedStage("Import summary: " + importCount);
 
     context
         .getSummary()

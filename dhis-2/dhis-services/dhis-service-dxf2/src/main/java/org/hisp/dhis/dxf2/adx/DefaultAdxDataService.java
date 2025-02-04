@@ -299,8 +299,6 @@ public class DefaultAdxDataService implements AdxDataService {
 
   private ImportSummary saveDataValueSetInternal(
       InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress) {
-    progress.startingStage("ADX parsing process started, preparing options");
-
     // Get import options
     IdScheme dsScheme = importOptions.getIdSchemes().getDataSetIdScheme();
     IdScheme deScheme = importOptions.getIdSchemes().getDataElementIdScheme();
