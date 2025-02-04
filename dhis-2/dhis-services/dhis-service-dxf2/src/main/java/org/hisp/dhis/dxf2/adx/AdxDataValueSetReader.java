@@ -81,10 +81,6 @@ public class AdxDataValueSetReader implements DataValueSetReader, DataValueEntry
     return this;
   }
 
-  // FIXME the DataSet value is only part of the header so it gets lost when more then 1 group is
-  // used :/
-  // check if it is even used
-
   @Override
   public void close() {
     adxReader.closeReader();

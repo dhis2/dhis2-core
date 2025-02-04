@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.adx;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -79,7 +78,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
@@ -300,14 +298,8 @@ public class DefaultAdxDataService implements AdxDataService {
   }
 
   private ImportSummary saveDataValueSetInternal(
-      InputStream in, ImportOptions importOptions, JobProgress progress) {
+      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress) {
     progress.startingStage("ADX parsing process started, preparing options");
-    ImportOptions adxImportOptions =
-        progress.runStage(
-            () ->
-                firstNonNull(importOptions, ImportOptions.getDefaultImportOptions())
-                    .instance()
-                    .setNotificationLevel(NotificationLevel.OFF));
 
     // Get import options
     IdScheme dsScheme = importOptions.getIdSchemes().getDataSetIdScheme();
