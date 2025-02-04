@@ -357,6 +357,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         0, deoSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(
         3, deoTargetAfter.size(), "Expect 3 entries with target category option combo refs");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // -----------------------------
@@ -417,6 +418,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         0, mmdeSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(
         3, mmdeTargetAfter.size(), "Expect 3 entries with target category option combo refs");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // ----------------------
@@ -508,6 +510,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         0, pSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(3, pTargetAfter.size(), "Expect 3 entries with target category option combo refs");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // --------------------
@@ -565,53 +568,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         0, cSourcesAfter.size(), "Expect 0 entries with source category option combo refs");
     assertEquals(3, cTargetAfter.size(), "Expect 3 entries with target category option combo refs");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // -------------------------------------
   // -- DataValue Category Option Combo --
   // -------------------------------------
-  @Test
-  @DisplayName(
-      "Non-duplicate DataValues with references to source COCs are replaced with target COC using LAST_UPDATED strategy")
-  void dataValueMergeCocLastUpdatedTest() throws ConflictException {
-    // given
-    DataValue dv1 = createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "value1");
-    DataValue dv2 = createDataValue(de2, p2, ou1, cocDuplicate, cocRandom, "value2");
-    DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
-
-    // when
-    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
-    entityManager.flush();
-    entityManager.clear();
-
-    // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(
-                dv -> Objects.equals(cocDuplicate.getUid(), dv.getCategoryOptionCombo().getUid()))
-            .toList();
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
-            .toList();
-    List<CategoryOptionCombo> allCategoryOptionCombos =
-        categoryService.getAllCategoryOptionCombos();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
-    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
-  }
 
   @Test
   @DisplayName("DataValues with references to source COCs are deleted using DISCARD strategy")
@@ -632,7 +594,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<DataValue> sourceItems =
@@ -653,54 +614,18 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // --------------------------------------
   // -- DataValue Attribute Option Combo --
   // --------------------------------------
-  @Test
-  @DisplayName(
-      "Non-duplicate DataValues with references to source AOCs are replaced with target AOC using LAST_UPDATED strategy")
-  void dataValueMergeAocLastUpdatedTest() throws ConflictException {
-    // given
-    DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "value1");
-    DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocDuplicate, "value2");
-    DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
-
-    // when
-    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
-
-    // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(
-                dv -> Objects.equals(cocDuplicate.getUid(), dv.getAttributeOptionCombo().getUid()))
-            .toList();
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
-            .toList();
-
-    List<CategoryOptionCombo> allCategoryOptionCombos =
-        categoryService.getAllCategoryOptionCombos();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
-    assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
-  }
-
   @Test
   @DisplayName("DataValues with references to source AOCs are deleted, using DISCARD strategy")
   void dataValueMergeAocDiscardTest() throws ConflictException {
@@ -720,7 +645,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<DataValue> sourceItems =
@@ -741,7 +665,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // ------------------------
@@ -782,6 +712,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(4, source1Audits.size(), "Expect 2 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+    assertCocCountAfterAutoGenerate(6);
   }
 
   @Test
@@ -819,6 +750,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, source1Audits.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // ------------------------
@@ -847,15 +779,11 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     DataApprovalAudit daa1 = createDataApprovalAudit(cocDuplicate, level1, daw, p1);
     DataApprovalAudit daa2 = createDataApprovalAudit(cocDuplicate, level2, daw, p2);
-    DataApprovalAudit daa3 = createDataApprovalAudit(cocDuplicate, level1, daw, p1);
-    DataApprovalAudit daa4 = createDataApprovalAudit(cocDuplicate, level2, daw, p2);
-    DataApprovalAudit daa5 = createDataApprovalAudit(cocTarget, level1, daw, p1);
+    DataApprovalAudit daa3 = createDataApprovalAudit(cocTarget, level1, daw, p1);
 
     dataApprovalAuditStore.save(daa1);
     dataApprovalAuditStore.save(daa2);
     dataApprovalAuditStore.save(daa3);
-    dataApprovalAuditStore.save(daa4);
-    dataApprovalAuditStore.save(daa5);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -863,6 +791,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+    entityManager.flush();
 
     // then
     DataApprovalAuditQueryParams targetDaaQueryParams =
@@ -870,12 +799,18 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .setAttributeOptionCombos(new HashSet<>(Collections.singletonList(cocTarget)))
             .setLevels(Set.of(level1));
 
-    List<DataApprovalAudit> sourceAudits = dataApprovalAuditStore.getAll();
+    DataApprovalAuditQueryParams sourceDaaQueryParams =
+        new DataApprovalAuditQueryParams()
+            .setAttributeOptionCombos(new HashSet<>(Collections.singletonList(cocDuplicate)))
+            .setLevels(Set.of(level1, level2));
+
+    List<DataApprovalAudit> sourceAudits =
+        dataApprovalAuditStore.getDataApprovalAudits(sourceDaaQueryParams);
     List<DataApprovalAudit> targetItems =
         dataApprovalAuditStore.getDataApprovalAudits(targetDaaQueryParams);
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(5, sourceAudits.size(), "Expect 4 entries with source COC refs");
+    assertEquals(2, sourceAudits.size(), "Expect 2 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
   }
 
@@ -929,6 +864,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceAudits.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // -----------------------
@@ -986,7 +922,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<DataApproval> sourceItems =
@@ -1002,7 +937,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, targetItems.size(), "Expect 3 entries with target COC refs");
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1077,16 +1018,22 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(4, targetItems.size(), "Expect 4 entries with target COC refs");
+    assertEquals(2, targetItems.size(), "Expect 4 entries with target COC refs");
     assertEquals(
         Set.of("2024-12-08", "2024-12-09"),
         targetItems.stream()
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain the original target Data Approvals lastUpdated dates");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1167,9 +1114,15 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain the original target Data Approvals lastUpdated dates");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1232,7 +1185,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<DataApproval> sourceItems =
@@ -1245,16 +1197,22 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(4, targetItems.size(), "Expect 4 entries with target COC refs");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC refs");
     assertEquals(
         Set.of("2024-12-03", "2024-12-08"),
         targetItems.stream()
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain the original source Data Approvals lastUpdated dates");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1324,7 +1282,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<DataApproval> sourceItems =
@@ -1340,7 +1297,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(2, targetItems.size(), "Expect 2 entry with target COC ref only");
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // -----------------------------
@@ -1398,47 +1361,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .containsAll(Set.of(cocDuplicate.getUid(), cocTarget.getUid())));
-  }
-
-  @Test
-  @DisplayName(
-      "Event eventDataValues references to source COCs are deleted using DISCARD, source COCs are deleted")
-  void eventMergeSourcesDeletedTest() throws ConflictException {
-    // given
-    TrackedEntityType entityType = createTrackedEntityType('T');
-    manager.save(entityType);
-    TrackedEntity trackedEntity = createTrackedEntity(ou1, entityType);
-    manager.save(trackedEntity);
-    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
-    manager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
-    manager.save(stage);
-
-    Event e1 = createEvent(stage, enrollment, ou1);
-    e1.setAttributeOptionCombo(cocDuplicate);
-    Event e3 = createEvent(stage, enrollment, ou1);
-    e3.setAttributeOptionCombo(cocTarget);
-    Event e4 = createEvent(stage, enrollment, ou1);
-    e4.setAttributeOptionCombo(cocRandom);
-
-    manager.save(List.of(e1, e3, e4));
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
-
-    // then
-    List<Event> allEvents = eventStore.getAll();
-    List<CategoryOptionCombo> allCategoryOptionCombos =
-        categoryService.getAllCategoryOptionCombos();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(2, allEvents.size(), "Expect 2 entries still");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
-    assertTrue(allCategoryOptionCombos.contains(cocTarget), "target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   // --------------------------------
@@ -1454,7 +1377,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     manager.save(ds1);
 
     CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocDuplicate);
-    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p1, cocDuplicate);
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p2, cocDuplicate);
     CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
     CompleteDataSetRegistration cdsr4 = createCdsr(ds1, ou1, p1, cocRandom);
     completeDataSetRegistrationStore.saveCompleteDataSetRegistration(cdsr1);
@@ -1469,7 +1392,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<CompleteDataSetRegistration> sourceItems =
@@ -1483,9 +1405,15 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
     assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref only");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1517,7 +1445,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<CompleteDataSetRegistration> sourceItems =
@@ -1533,7 +1460,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, targetItems.size(), "Expect 3 entries with target COC ref only");
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1551,7 +1484,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocDuplicate);
     cdsr1.setLastUpdated(DateUtils.parseDate("2024-11-01"));
-    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p1, cocDuplicate);
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p2, cocDuplicate);
     cdsr2.setLastUpdated(DateUtils.parseDate("2024-10-01"));
     CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
     cdsr3.setLastUpdated(DateUtils.parseDate("2024-12-05"));
@@ -1568,7 +1501,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<CompleteDataSetRegistration> sourceItems =
@@ -1581,16 +1513,22 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entries with target COC ref only");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC ref only");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
-        Set.of("2024-12-05"),
+        Set.of("2024-12-05", "2024-10-01"),
         targetItems.stream()
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain target Data Approvals lastUpdated dates");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1608,7 +1546,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     CompleteDataSetRegistration cdsr1 = createCdsr(ds1, ou1, p1, cocDuplicate);
     cdsr1.setLastUpdated(DateUtils.parseDate("2024-10-01"));
-    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p1, cocDuplicate);
+    CompleteDataSetRegistration cdsr2 = createCdsr(ds1, ou1, p2, cocDuplicate);
     cdsr2.setLastUpdated(DateUtils.parseDate("2024-11-01"));
     CompleteDataSetRegistration cdsr3 = createCdsr(ds1, ou1, p1, cocTarget);
     cdsr3.setLastUpdated(DateUtils.parseDate("2024-05-05"));
@@ -1625,7 +1563,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<CompleteDataSetRegistration> sourceItems =
@@ -1638,16 +1575,22 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceItems.size(), "Expect 0 entries with source COC refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entries with target COC ref only");
-    assertEquals(3, allCategoryOptionCombos.size(), "Expect 3 COCs present");
+    assertEquals(2, targetItems.size(), "Expect 2 entries with target COC ref only");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
-        Set.of("2024-11-01"),
+        Set.of("2024-11-01", "2024-10-01"),
         targetItems.stream()
             .map(da -> DateUtils.toMediumDate(da.getLastUpdated()))
             .collect(Collectors.toSet()),
         "target items should contain source registration lastUpdated dates");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   @Test
@@ -1682,7 +1625,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // when
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
-    entityManager.clear();
 
     // then
     List<CompleteDataSetRegistration> sourceItems =
@@ -1704,7 +1646,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toSet()),
         "target items should contain target & source registration lastUpdated dates");
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
-    assertFalse(allCategoryOptionCombos.contains(cocDuplicate), "Source COC should not be present");
+    assertFalse(
+        allCategoryOptionCombos.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocDuplicate.getUid()),
+        "Source COC should not be present");
+    assertCocCountAfterAutoGenerate(5);
   }
 
   private CompleteDataSetRegistration createCdsr(

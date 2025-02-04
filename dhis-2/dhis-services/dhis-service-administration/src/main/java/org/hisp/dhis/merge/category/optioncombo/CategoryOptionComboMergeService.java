@@ -123,8 +123,8 @@ public class CategoryOptionComboMergeService implements MergeService {
   private void handleDeleteSources(List<CategoryOptionCombo> sources, MergeReport mergeReport) {
     log.info("Deleting source CategoryOptionCombos");
     for (CategoryOptionCombo source : sources) {
-      mergeReport.addDeletedSource(source.getUid());
       categoryService.deleteCategoryOptionCombo(source);
+      mergeReport.addDeletedSource(source.getUid());
     }
   }
 
