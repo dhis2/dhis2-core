@@ -41,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -109,8 +110,27 @@ public class TwoFactoryAuthenticationUtils {
 
     String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty(appName)).replace(" ", "%20");
 
-    return String.format(
-        "otpauth://totp/%s:%s?secret=%s&issuer=%s", app, user.getUsername(), secret, app);
+    return generateTOTP2FAURL(app, secret, user.getUsername());
+  }
+
+  /**
+   * Generate TOTP URL-based appName and {@link User}, this is used as input to the TOTP generator.
+   *
+   * <p>The URL format is otpauth://totp/Service%20Name:test@example.com?
+   * secret=CLAH6OEOV52XVYTKHGKBERP42IUZHY4D&issuer=Example%20Service
+   *
+   * <p>The format was invented and defined by Google, see:
+   * https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+   */
+  public static String generateTOTP2FAURL(
+      @Nonnull String appName, @Nonnull String secret, @Nonnull String username) {
+    String normalizedAppname = StringUtils.stripToEmpty(appName);
+    // replace possible non-ASCII characters into 'X's
+    normalizedAppname = normalizedAppname.replaceAll("[^\\p{ASCII}]", "X");
+    // truncate to 10 characters
+    normalizedAppname = normalizedAppname.substring(0, Math.min(normalizedAppname.length(), 10));
+    String app = ("DHIS2_" + normalizedAppname).replace(" ", "%20");
+    return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", app, username, secret, app);
   }
 
   /**
