@@ -330,7 +330,7 @@ public class RecordingJobProgress implements JobProgress {
     String message = format(summary, args);
     tracker.completedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
-    autoCompleteWorkItemBucket(stage);
+    autoCompleteWorkItemBucket();
     stage.complete(message);
     logInfo(stage, "completed", message);
   }
@@ -342,7 +342,7 @@ public class RecordingJobProgress implements JobProgress {
     String message = format(error, args);
     tracker.failedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
-    autoCompleteWorkItemBucket(stage);
+    autoCompleteWorkItemBucket();
     stage.completeExceptionally(message, null);
     if (stage.getOnFailure() != FailurePolicy.SKIP_STAGE) {
       automaticAbort(message, null);
@@ -358,7 +358,7 @@ public class RecordingJobProgress implements JobProgress {
     tracker.failedStage(cause);
     String message = getMessage(cause);
     Stage stage = getOrAddLastIncompleteStage();
-    autoCompleteWorkItemBucket(stage);
+    autoCompleteWorkItemBucket();
     stage.completeExceptionally(message, cause);
     if (stage.getOnFailure() != FailurePolicy.SKIP_STAGE) {
       automaticAbort(message, cause);
@@ -408,7 +408,7 @@ public class RecordingJobProgress implements JobProgress {
     return item.getDescription() + " +" + (n == 0 ? bucketingSize : n);
   }
 
-  private void autoCompleteWorkItemBucket(Stage stage) {
+  private void autoCompleteWorkItemBucket() {
     if (bucketingSize > 1) {
       Item item = incompleteItem.get();
       if (item != null && !item.isComplete()) completeWorkItemBucket(null);
