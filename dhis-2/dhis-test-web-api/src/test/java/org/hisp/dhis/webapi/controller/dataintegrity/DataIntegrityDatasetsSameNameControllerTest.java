@@ -25,30 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 /**
- * @author Morten Olav Hansen
+ * Tests for aggregate datasets which have the same name or short name {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/datasets/datasets_same_name.yaml
+ * }
+ *
+ * @author Jason P. Pickering
  */
-class HttpBasicAuthTest {
+class DataIntegrityDatasetsSameNameControllerTest extends AbstractDataIntegrityIntegrationTest {
+
+  private static final String CHECK_NAME = "datasets_same_name";
+
   @Test
-  void testAuthorizationHeaderSet() {
-    HttpBasicAuth auth = new HttpBasicAuth().setUsername("admin").setPassword("district");
+  void testDatasetsSameName() {
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
+    String defaultCatCombo = getDefaultCatCombo();
+    String datasetA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets",
+                "{ 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                    + defaultCatCombo
+                    + "'}}"));
+    String datasetB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets",
+                "{ 'name': 'Test', 'shortName': 'Test2', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                    + defaultCatCombo
+                    + "'}}"));
 
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+    assertHasDataIntegrityIssues(
+        "dataSets",
+        CHECK_NAME,
+        100,
+        Set.of(datasetA, datasetB),
+        Set.of("Test"),
+        Set.of("NAME"),
+        true);
+  }
+
+  @Test
+  void testEmptyDataSetsRuns() {
+    assertHasNoDataIntegrityIssues("dataSets", CHECK_NAME, false);
   }
 }

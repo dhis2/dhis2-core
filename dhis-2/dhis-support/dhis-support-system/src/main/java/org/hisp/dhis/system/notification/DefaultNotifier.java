@@ -160,7 +160,18 @@ public class DefaultNotifier implements Notifier {
       }
     }
     list.add(n);
-    NotificationLoggerUtil.log(log, n.getLevel(), n.getMessage());
+    logNotificationAdded(n);
+  }
+
+  private static void logNotificationAdded(Notification n) {
+    String message = n.getMessage();
+    if (message == null || message.isEmpty()) return;
+    switch (n.getLevel()) {
+      case LOOP, DEBUG -> log.debug(message);
+      case INFO -> log.info(message);
+      case WARN -> log.warn(message);
+      case ERROR -> log.error(message);
+    }
   }
 
   private void asyncAutomaticCleanup() {

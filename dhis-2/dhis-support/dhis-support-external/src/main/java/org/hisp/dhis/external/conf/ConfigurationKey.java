@@ -694,7 +694,13 @@ public enum ConfigurationKey {
    * The maximum number of possible category combination. This is computed by multiplying the number
    * of options in each category in a category combo with each other.
    */
-  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false);
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false),
+
+  /** Enable email-based 2FA authentication. (default: false) */
+  EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
+
+  /** Enable TOTP-based 2FA authentication. (default: true) */
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false);
 
   private final String key;
 

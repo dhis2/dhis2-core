@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import java.time.LocalDateTime;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Map;
+import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
+import org.junit.jupiter.api.Test;
 
-public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
-  @Override
-  public String getEventDataValues() {
-    return "ev.eventdatavalues";
+class ApiHeadersAuthSchemeTest extends AbstractAuthSchemeTest {
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiHeadersAuthScheme()
+            .setHeaders(
+                Map.of(
+                    "X-API-KEY",
+                    "T5pvst37VedtsoD70KlbumzI30Mo4pzzyAY0M6Ia8uYyPBLPeXlYzr4d3LPQD6oS")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getHeaders().get("X-API-KEY"));
   }
 
-  @Override
-  public String renderTimestamp(String timestampAsString) {
-    if (StringUtils.isBlank(timestampAsString)) return null;
-    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
-    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
-
-    // Find the position of the decimal point
-    int decimalPoint = formattedDate.lastIndexOf('.');
-    if (decimalPoint != -1) {
-      // Remove trailing zeros after decimal point
-      String millisPart = formattedDate.substring(decimalPoint + 1);
-      millisPart = millisPart.replaceAll("0+$", ""); // Remove all trailing zeros
-
-      // If all digits were zeros, use "0" instead of empty string
-      if (millisPart.isEmpty()) {
-        millisPart = "0";
-      }
-
-      formattedDate = formattedDate.substring(0, decimalPoint + 1) + millisPart;
-    }
-
-    return formattedDate;
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiHeadersAuthScheme()
+            .setHeaders(
+                Map.of(
+                    "X-API-KEY",
+                    "3PB06m2bcr0blf81OEpcIDUMUYQYHJcdQsBJyOwbmelTYBQ6fuskAGJReGgM30Cv")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getHeaders().get("X-API-KEY"));
   }
 }

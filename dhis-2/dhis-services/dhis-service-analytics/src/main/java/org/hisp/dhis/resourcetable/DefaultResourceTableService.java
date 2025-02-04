@@ -69,6 +69,7 @@ import org.hisp.dhis.resourcetable.table.IndicatorGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
+import org.hisp.dhis.resourcetable.table.RelationshipCountResourceTable;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.sqlview.SqlView;
@@ -133,7 +134,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    *
    * @return a list of {@link ResourceTable}.
    */
-  private final List<ResourceTable> getResourceTables() {
+  private List<ResourceTable> getResourceTables() {
     Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
         new OrganisationUnitStructureResourceTable(
@@ -162,7 +163,8 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
         new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
         new PeriodResourceTable(logged, periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(logged));
+        new CategoryOptionComboResourceTable(logged),
+        new RelationshipCountResourceTable(logged));
   }
 
   /**

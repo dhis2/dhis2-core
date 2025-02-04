@@ -28,11 +28,13 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.UnaryOperator;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,24 +45,41 @@ import org.springframework.util.StringUtils;
  */
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class ApiTokenAuth extends Auth {
-  public static final String TYPE = "api-token";
+public class ApiTokenAuthScheme implements AuthScheme {
+  public static final String API_TOKEN_TYPE = "api-token";
 
-  @JsonProperty(required = true)
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
   private String token;
 
-  public ApiTokenAuth() {
-    super(TYPE);
-  }
-
   @Override
-  public void apply(MultiValueMap<String, String> headers) {
+  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
     if (!StringUtils.hasText(token)) {
       return;
     }
 
-    headers.set("Authorization", "ApiToken " + token);
+    headers.computeIfAbsent("Authorization", v -> new LinkedList<>()).add("ApiToken " + token);
+  }
+
+  @Override
+  public ApiTokenAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    return copy(encryptFunc.apply(token));
+  }
+
+  @Override
+  public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    return copy(decryptFunc.apply(token));
+  }
+
+  @Override
+  public String getType() {
+    return API_TOKEN_TYPE;
+  }
+
+  protected ApiTokenAuthScheme copy(String token) {
+    ApiTokenAuthScheme newApiTokenAuth = new ApiTokenAuthScheme();
+    newApiTokenAuth.setToken(token);
+
+    return newApiTokenAuth;
   }
 }

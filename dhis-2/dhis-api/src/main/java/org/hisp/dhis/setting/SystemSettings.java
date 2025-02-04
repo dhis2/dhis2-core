@@ -722,14 +722,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("globalShellAppName", "global-app-shell");
   }
 
-  default boolean getEmail2FAEnabled() {
-    return asBoolean("email2FAEnabled", false);
-  }
-
-  default boolean getTOTP2FAEnabled() {
-    return asBoolean("totp2FAEnabled", true);
-  }
-
   /**
    * @return true if email verification is enforced for all users.
    */
@@ -797,18 +789,6 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default long getNotifierCleanAfterIdleTime() {
     return asInt("notifierCleanAfterIdleTime", 60_0000); // 1 minute
-  }
-
-  /**
-   * @since 2.42
-   * @return A regex pattern string that enforces the current password validation rules
-   */
-  default String getPasswordValidationPattern() {
-    return asString(
-        "passwordValidationPattern",
-        String.format(
-            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
-            getMinPasswordLength(), getMaxPasswordLength()));
   }
 
   default boolean getUseExperimentalAnalyticsQueryEngine() {

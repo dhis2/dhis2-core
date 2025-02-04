@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.time.LocalDateTime;
-import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
-public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
+/**
+ * Serialise write only properties since they may need to be read internally. IMPORTANT: do not
+ * attempt to use an object mapper that has this introspector set to serialise the API response.
+ */
+class IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector
+    extends JacksonAnnotationIntrospector {
+
   @Override
-  public String getEventDataValues() {
-    return "ev.eventdatavalues";
-  }
-
-  @Override
-  public String renderTimestamp(String timestampAsString) {
-    if (StringUtils.isBlank(timestampAsString)) return null;
-    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
-    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
-
-    // Find the position of the decimal point
-    int decimalPoint = formattedDate.lastIndexOf('.');
-    if (decimalPoint != -1) {
-      // Remove trailing zeros after decimal point
-      String millisPart = formattedDate.substring(decimalPoint + 1);
-      millisPart = millisPart.replaceAll("0+$", ""); // Remove all trailing zeros
-
-      // If all digits were zeros, use "0" instead of empty string
-      if (millisPart.isEmpty()) {
-        millisPart = "0";
-      }
-
-      formattedDate = formattedDate.substring(0, decimalPoint + 1) + millisPart;
+  public JsonProperty.Access findPropertyAccess(Annotated m) {
+    JsonProperty.Access propertyAccess = super.findPropertyAccess(m);
+    if (propertyAccess != null && propertyAccess.equals(JsonProperty.Access.WRITE_ONLY)) {
+      return null;
+    } else {
+      return propertyAccess;
     }
-
-    return formattedDate;
   }
 }

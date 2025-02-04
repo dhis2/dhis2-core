@@ -29,11 +29,13 @@ package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Base64;
-import lombok.EqualsAndHashCode;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.UnaryOperator;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,28 +43,48 @@ import org.springframework.util.StringUtils;
  */
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class HttpBasicAuth extends Auth {
-  public static final String TYPE = "http-basic";
+public class HttpBasicAuthScheme implements AuthScheme {
+  public static final String HTTP_BASIC_TYPE = "http-basic";
 
   @JsonProperty(required = true)
   private String username;
 
-  @JsonProperty(required = true)
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
   private String password;
 
-  public HttpBasicAuth() {
-    super(TYPE);
-  }
-
   @Override
-  public void apply(MultiValueMap<String, String> headers) {
+  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
     if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
       return;
     }
 
-    headers.add("Authorization", getBasicAuth(username, password));
+    headers
+        .computeIfAbsent("Authorization", v -> new LinkedList<>())
+        .add(getBasicAuth(username, password));
+  }
+
+  @Override
+  public HttpBasicAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    return copy(encryptFunc.apply(password));
+  }
+
+  @Override
+  public HttpBasicAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    return copy(decryptFunc.apply(password));
+  }
+
+  @Override
+  public String getType() {
+    return HTTP_BASIC_TYPE;
+  }
+
+  protected HttpBasicAuthScheme copy(String password) {
+    HttpBasicAuthScheme newHttpBasicAuth = new HttpBasicAuthScheme();
+    newHttpBasicAuth.setUsername(username);
+    newHttpBasicAuth.setPassword(password);
+
+    return newHttpBasicAuth;
   }
 
   private String getBasicAuth(String username, String password) {

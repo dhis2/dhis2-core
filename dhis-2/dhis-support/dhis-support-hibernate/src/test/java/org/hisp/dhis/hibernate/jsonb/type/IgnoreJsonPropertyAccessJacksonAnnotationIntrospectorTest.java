@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.time.LocalDateTime;
-import org.apache.commons.lang3.StringUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
-  @Override
-  public String getEventDataValues() {
-    return "ev.eventdatavalues";
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+
+class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
+
+  public static class ClassUnderTest {
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public String writeOnlyProperty;
+
+    @JsonProperty public String readAndWriteProperty;
   }
 
-  @Override
-  public String renderTimestamp(String timestampAsString) {
-    if (StringUtils.isBlank(timestampAsString)) return null;
-    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
-    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
+  @Test
+  void testFindPropertyAccess() throws JsonProcessingException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setAnnotationIntrospector(
+        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
 
-    // Find the position of the decimal point
-    int decimalPoint = formattedDate.lastIndexOf('.');
-    if (decimalPoint != -1) {
-      // Remove trailing zeros after decimal point
-      String millisPart = formattedDate.substring(decimalPoint + 1);
-      millisPart = millisPart.replaceAll("0+$", ""); // Remove all trailing zeros
+    ClassUnderTest classUnderTest = new ClassUnderTest();
+    classUnderTest.writeOnlyProperty = "Foo";
+    classUnderTest.readAndWriteProperty = "Bar";
 
-      // If all digits were zeros, use "0" instead of empty string
-      if (millisPart.isEmpty()) {
-        millisPart = "0";
-      }
+    String json = objectMapper.writeValueAsString(classUnderTest);
 
-      formattedDate = formattedDate.substring(0, decimalPoint + 1) + millisPart;
-    }
-
-    return formattedDate;
+    assertEquals("{\"writeOnlyProperty\":\"Foo\",\"readAndWriteProperty\":\"Bar\"}", json);
+    ClassUnderTest newClassUnderTest = objectMapper.readValue(json, ClassUnderTest.class);
+    assertEquals("Foo", newClassUnderTest.writeOnlyProperty);
+    assertEquals("Bar", newClassUnderTest.readAndWriteProperty);
   }
 }
