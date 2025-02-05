@@ -38,8 +38,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -101,7 +99,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -115,10 +112,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore {
-  private static final String RELATIONSHIP_IDS_QUERY =
-      " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from"
-          + " relationshipitem ri group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
-
   private static final String EVENT_NOTE_QUERY =
       """
       select evn.eventid as evn_id,\
@@ -265,9 +258,6 @@ class JdbcEventStore {
       eventsByUid = new HashMap<>(pageParams.getPageSize());
     }
     List<Event> events = new ArrayList<>();
-    List<Long> relationshipIds = new ArrayList<>();
-
-    final Gson gson = new Gson();
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
@@ -410,16 +400,6 @@ class JdbcEventStore {
                     .addAll(
                         convertEventDataValueJsonIntoSet(
                             resultSet.getString(COLUMN_EVENT_DATAVALUES)));
-              }
-
-              if (queryParams.isIncludeRelationships() && resultSet.getObject("ev_rl") != null) {
-                PGobject pGobject = (PGobject) resultSet.getObject("ev_rl");
-
-                if (pGobject != null) {
-                  String value = pGobject.getValue();
-
-                  relationshipIds.addAll(Lists.newArrayList(gson.fromJson(value, Long[].class)));
-                }
               }
 
               events.add(event);
@@ -624,10 +604,6 @@ left join
     on true
 left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 """);
-    }
-
-    if (queryParams.isIncludeRelationships()) {
-      sqlBuilder.append(RELATIONSHIP_IDS_QUERY);
     }
 
     sqlBuilder.append(getOrderQuery(queryParams));

@@ -218,11 +218,6 @@ class DefaultEventService implements EventService {
     }
     event.setEventDataValues(dataValues);
 
-    if (eventParams.isIncludeRelationships()) {
-      event.setRelationshipItems(
-          relationshipService.getRelationshipItems(TrackerType.EVENT, eventUid));
-    }
-
     return event;
   }
 

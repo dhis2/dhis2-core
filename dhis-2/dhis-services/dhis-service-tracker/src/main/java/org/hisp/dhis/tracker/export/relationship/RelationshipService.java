@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.export.PageParams;
 
 public interface RelationshipService {
 
-  /** Get all relationships matching given params. */
+  /** Get all relationship items matching given params. */
   Set<RelationshipItem> getRelationshipItems(TrackerType trackerType, UID uid);
 
   /** Get all relationships matching given params. */

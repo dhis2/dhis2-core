@@ -496,7 +496,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void shouldNotRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
+  void shouldGetRelationshipsByTrackedEntityWhenRelationshipIsDeleted() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?trackedEntity={te}&includeDeleted=true", "guVNoAerxWo")
             .content(HttpStatus.OK)

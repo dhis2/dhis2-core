@@ -206,7 +206,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                 where ri.trackedEntity.uid = :trackedEntity
                 """;
     return getQuery(hql, RelationshipItem.class)
-        .setParameter(TRACKED_ENTITY, trackedEntity.getValue())
+        .setParameter("trackedEntity", trackedEntity.getValue())
         .list();
   }
 
@@ -219,7 +219,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                 where ri.enrollment.uid = :enrollment
                 """;
     return getQuery(hql, RelationshipItem.class)
-        .setParameter(ENROLLMENT, enrollment.getValue())
+        .setParameter("enrollment", enrollment.getValue())
         .list();
   }
 
@@ -231,7 +231,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                 from RelationshipItem ri
                 where ri.event.uid = :event
                 """;
-    return getQuery(hql, RelationshipItem.class).setParameter(EVENT, event.getValue()).list();
+    return getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()).list();
   }
 
   /**
