@@ -832,6 +832,7 @@ public final class AnalyticsUtils {
 
           addOptionSetToMap(dataElement.getOptionSet(), map, dataElement, includeMetadataDetails);
         }
+
         if (DimensionItemType.PROGRAM_DATA_ELEMENT == item.getDimensionItemType()
             && item instanceof ProgramDataElementDimensionItem programDataElement) {
 

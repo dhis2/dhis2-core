@@ -126,18 +126,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .indexColumns(List.of("dx", "ao"))
               .build(),
           AnalyticsTableColumn.builder()
-              .name("optionsetuid")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("deo.optionsetuid as optionsetuid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("optionvalueuid")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("deo.optionvalueuid as optionvalueuid")
-              .build(),
-          AnalyticsTableColumn.builder()
               .name("pestartdate")
               .dataType(DATE)
               .selectExpression("ps.startdate as pestartdate")
@@ -378,8 +366,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
         inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
         inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-        inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid \
-            left outer join analytics_rs_dataelementoption deo on dv.dataelementid = deo.dataelementid and dv.value = deo.optionvaluecode \s""",
+        inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
