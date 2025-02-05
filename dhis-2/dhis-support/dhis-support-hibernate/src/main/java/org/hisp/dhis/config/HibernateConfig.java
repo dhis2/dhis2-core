@@ -118,7 +118,7 @@ public class HibernateConfig {
       DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
+    // adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
@@ -172,7 +172,7 @@ public class HibernateConfig {
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
-    if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
+    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
@@ -181,7 +181,7 @@ public class HibernateConfig {
           MissingCacheStrategy.CREATE.getExternalRepresentation());
     }
 
-    properties.put(AvailableSettings.HBM2DDL_AUTO, getHibernateSchemaAction(dhisConfig));
+    // properties.put(AvailableSettings.HBM2DDL_AUTO, getHibernateSchemaAction(dhisConfig));
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
