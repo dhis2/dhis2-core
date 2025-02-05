@@ -172,7 +172,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
             .stream()
             .map(this::getDisplayName)
             .toList();
-    ;
 
     assertEquals(
         List.of(
@@ -205,7 +204,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
             .stream()
             .map(this::getDisplayName)
             .toList();
-    ;
 
     assertEquals(
         List.of(
