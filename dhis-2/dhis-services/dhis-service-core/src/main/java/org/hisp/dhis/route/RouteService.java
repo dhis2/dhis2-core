@@ -32,6 +32,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,27 +50,22 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.util.Timeout;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.netty.http.client.HttpClientRequest;
 
 /**
  * @author Morten Olav Hansen
@@ -85,7 +81,7 @@ public class RouteService {
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
-  @Autowired @Getter @Setter private RestTemplate restTemplate;
+  @Autowired @Getter @Setter private ClientHttpConnector clientHttpConnector;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -117,32 +113,11 @@ public class RouteService {
           "cache-control",
           "last-modified",
           "etag");
+  private WebClient webClient;
 
   @PostConstruct
   public void postConstruct() {
-    // Connect timeout
-    ConnectionConfig connectionConfig =
-        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
-
-    // Socket timeout
-    SocketConfig socketConfig =
-        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
-
-    // Connection request timeout
-    RequestConfig requestConfig =
-        RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1_000)).build();
-
-    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-    connectionManager.setDefaultSocketConfig(socketConfig);
-    connectionManager.setDefaultConnectionConfig(connectionConfig);
-
-    org.apache.hc.client5.http.classic.HttpClient httpClient =
-        org.apache.hc.client5.http.impl.classic.HttpClientBuilder.create()
-            .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(requestConfig)
-            .build();
-
-    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+    webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
   }
 
   /**
@@ -224,11 +199,31 @@ public class RouteService {
 
     String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
 
-    HttpEntity<String> entity = new HttpEntity<>(body, headers);
-
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     String targetUri = uriComponentsBuilder.toUriString();
+
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+        webClient
+            .method(httpMethod)
+            .uri(targetUri)
+            .httpRequest(
+                clientHttpRequest -> {
+                  Object nativeRequest = clientHttpRequest.getNativeRequest();
+                  if (nativeRequest instanceof HttpClientRequest httpClientRequest) {
+                    if (route.getResponseTimeout() == null) {
+                      httpClientRequest.responseTimeout(Duration.ofMillis(10_000));
+                    } else {
+                      httpClientRequest.responseTimeout(
+                          Duration.ofSeconds(route.getResponseTimeout()));
+                    }
+                  }
+                })
+            .bodyValue(body);
+    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+      requestHeadersSpec =
+          requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
+    }
 
     log.info(
         "Sending '{}' '{}' with route '{}' ('{}')",
@@ -237,11 +232,9 @@ public class RouteService {
         route.getName(),
         route.getUid());
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(targetUri, httpMethod, entity, String.class);
-
+    WebClient.ResponseSpec responseSpec = requestHeadersSpec.retrieve();
+    ResponseEntity<String> response = responseSpec.toEntity(String.class).block();
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
-
     String responseBody = response.getBody();
 
     log.info(

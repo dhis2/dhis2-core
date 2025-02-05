@@ -31,15 +31,10 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
@@ -50,40 +45,67 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.client.MockMvcHttpConnector;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.WebApplicationContext;
 
 @Transactional
+@ContextConfiguration(classes = {RouteControllerTest.ClientHttpConnectorTestConfig.class})
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private RouteService service;
 
   @Autowired private ObjectMapper jsonMapper;
 
+  @Autowired private ClientHttpConnector clientHttpConnector;
+
+  @Configuration
+  public static class ClientHttpConnectorTestConfig {
+    @Autowired private ObjectMapper jsonMapper;
+
+    @Autowired private WebApplicationContext webApplicationContext;
+
+    @Bean
+    public ClientHttpConnector clientHttpConnector() {
+      MockMvc mockMvc =
+          MockMvcBuilders.webAppContextSetup(webApplicationContext)
+              .addFilter(
+                  (request, response, chain) -> {
+                    Map<String, String> headers = new HashMap<>();
+                    for (String headerName :
+                        Collections.list(((MockHttpServletRequest) request).getHeaderNames())) {
+                      headers.put(
+                          headerName, ((MockHttpServletRequest) request).getHeader(headerName));
+                    }
+
+                    String queryString = ((MockHttpServletRequest) request).getQueryString();
+                    response
+                        .getWriter()
+                        .write(
+                            jsonMapper.writeValueAsString(
+                                Map.of(
+                                    "name",
+                                    "John Doe",
+                                    "headers",
+                                    headers,
+                                    "queryString",
+                                    queryString != null ? queryString : "")));
+                  })
+              .build();
+      return new MockMvcHttpConnector(mockMvc);
+    }
+  }
+
   @Test
-  void testRunRouteGivenApiQueryParamsAuthScheme()
-      throws JsonProcessingException, MalformedURLException {
-    ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
-
-    RestTemplate mockRestTemplate = mock(RestTemplate.class);
-    when(mockRestTemplate.exchange(
-            urlArgumentCaptor.capture(),
-            any(HttpMethod.class),
-            any(HttpEntity.class),
-            any(Class.class)))
-        .thenReturn(
-            new ResponseEntity<>(
-                jsonMapper.writeValueAsString(Map.of("name", "John Doe")),
-                HttpStatusCode.valueOf(200)));
-    service.setRestTemplate(mockRestTemplate);
-
+  void testRunRouteGivenApiQueryParamsAuthScheme() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
@@ -94,29 +116,15 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         GET(
             "/routes/{id}/run",
             postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
     assertStatus(HttpStatus.OK, runHttpResponse);
     assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
-
-    assertEquals("token=foo", new URL(urlArgumentCaptor.getValue()).getQuery());
+    assertEquals(
+        "token=foo", runHttpResponse.content().get("queryString").as(JsonString.class).string());
   }
 
   @Test
   void testRunRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
-    ArgumentCaptor<HttpEntity<?>> httpEntityArgumentCaptor =
-        ArgumentCaptor.forClass(HttpEntity.class);
-
-    RestTemplate mockRestTemplate = mock(RestTemplate.class);
-    when(mockRestTemplate.exchange(
-            anyString(),
-            any(HttpMethod.class),
-            httpEntityArgumentCaptor.capture(),
-            any(Class.class)))
-        .thenReturn(
-            new ResponseEntity<>(
-                jsonMapper.writeValueAsString(Map.of("name", "John Doe")),
-                HttpStatusCode.valueOf(200)));
-    service.setRestTemplate(mockRestTemplate);
-
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
@@ -127,12 +135,18 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         GET(
             "/routes/{id}/run",
             postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
     assertStatus(HttpStatus.OK, runHttpResponse);
     assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
-
-    HttpEntity<?> capturedHttpEntity = httpEntityArgumentCaptor.getValue();
-    HttpHeaders headers = capturedHttpEntity.getHeaders();
-    assertEquals("foo", headers.get("X-API-KEY").get(0));
+    assertEquals(
+        "foo",
+        runHttpResponse
+            .content()
+            .get("headers")
+            .asObject()
+            .get("X-API-KEY")
+            .as(JsonString.class)
+            .string());
   }
 
   @Test
