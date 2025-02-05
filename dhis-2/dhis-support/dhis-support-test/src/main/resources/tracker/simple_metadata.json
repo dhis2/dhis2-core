@@ -1872,6 +1872,14 @@
   "trackedEntityAttributes": [
     {
       "id": "dIVt4l5vIOa",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "attribute dIVt4l5vIOa"
+        }
+      ],
       "aggregationType": "NONE",
       "code": "TA_FIRST_NAME_ATT",
       "created": "2019-02-05T13:45:36.361",
