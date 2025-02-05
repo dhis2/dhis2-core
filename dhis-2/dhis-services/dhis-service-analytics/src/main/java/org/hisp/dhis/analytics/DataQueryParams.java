@@ -235,9 +235,6 @@ public class DataQueryParams {
   /** The aggregation type. */
   protected AnalyticsAggregationType aggregationType;
 
-  /** The option set selection criteria. */
-  protected OptionSetSelectionCriteria optionSetSelectionCriteria;
-
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
 
@@ -502,7 +499,6 @@ public class DataQueryParams {
     params.dimensions = DimensionalObjectUtils.getCopies(this.dimensions);
     params.filters = DimensionalObjectUtils.getCopies(this.filters);
     params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
-    params.optionSetSelectionCriteria = this.optionSetSelectionCriteria;
     params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.preAggregateMeasureCriteria = new HashMap<>(this.preAggregateMeasureCriteria);
     params.skipMeta = this.skipMeta;
@@ -532,7 +528,6 @@ public class DataQueryParams {
     params.orgUnitField = this.orgUnitField;
     params.apiVersion = this.apiVersion;
     params.locale = this.locale;
-
     params.currentUser = this.currentUser;
     params.partitions = new Partitions(this.partitions);
     params.tableName = this.tableName;
@@ -596,7 +591,6 @@ public class DataQueryParams {
         (k, v) -> key.add("preAggregateMeasureCriteria", (String.valueOf(k) + v)));
 
     return key.add("aggregationType", aggregationType)
-        .add("optionSetSelectionCriteria", optionSetSelectionCriteria)
         .add("skipMeta", skipMeta)
         .add("skipData", skipData)
         .add("skipHeaders", skipHeaders)
@@ -750,18 +744,6 @@ public class DataQueryParams {
   /** Indicates whether organisation unit group sets are present as dimension or filter. */
   public boolean hasOrganisationUnitGroupSets() {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
-  }
-
-  /** Indicates whether an option set selection criteria is present as param in this object. */
-  public boolean hasOptionSetSelectionCriteria() {
-    return optionSetSelectionCriteria != null;
-  }
-
-  /** Indicates whether option set selections are present as param ins this objct. */
-  public boolean hasOptionSetSelections() {
-    return hasOptionSetSelectionCriteria()
-        && optionSetSelectionCriteria.getOptionSetSelections() != null
-        && !optionSetSelectionCriteria.getOptionSetSelections().isEmpty();
   }
 
   /**
@@ -1989,10 +1971,6 @@ public class DataQueryParams {
     return aggregationType;
   }
 
-  public OptionSetSelectionCriteria getOptionSetSelectionCriteria() {
-    return optionSetSelectionCriteria;
-  }
-
   public Map<MeasureFilter, Double> getMeasureCriteria() {
     return measureCriteria;
   }
@@ -2262,15 +2240,35 @@ public class DataQueryParams {
         ListUtils.union(getProgramAttributes(), getFilterProgramAttributes()));
   }
 
+  /** Returns all program attribute options part of a dimension or filter. */
+  public List<DimensionalItemObject> getAllProgramAttributeOptions() {
+    return ImmutableList.copyOf(
+        ListUtils.union(getProgramAttributeOptions(), getFilterProgramAttributeOptions()));
+  }
+
   /** Returns all program data elements part of a dimension or filter. */
   public List<DimensionalItemObject> getAllProgramDataElements() {
     return ImmutableList.copyOf(
         ListUtils.union(getProgramDataElements(), getFilterProgramDataElements()));
   }
 
-  /** Returns all program attributes part of a dimension or filter. */
+  /** Returns all program data element options part of a dimension or filter. */
+  public List<DimensionalItemObject> getAllProgramDataElementOptions() {
+    return ImmutableList.copyOf(
+        ListUtils.union(getProgramDataElementOptions(), getFilterProgramDataElementOptions()));
+  }
+
+  /** Returns all data element attributes part of a dimension or filter. */
   public List<DimensionalItemObject> getAllProgramDataElementsAndAttributes() {
     return ListUtils.union(getAllProgramAttributes(), getAllProgramDataElements());
+  }
+
+  /**
+   * Returns all options from program attributes and program data elements part of a dimension or
+   * filter.
+   */
+  public List<DimensionalItemObject> getAllProgramDataElementsAndAttributesOptions() {
+    return ListUtils.union(getAllProgramAttributeOptions(), getAllProgramDataElementOptions());
   }
 
   /** Returns all validation results part of a dimension or filter. */
@@ -2389,6 +2387,13 @@ public class DataQueryParams {
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, getDimensionOptions(DATA_X_DIM_ID)));
   }
 
+  /** Returns all program data element options part of the data dimension. */
+  public List<DimensionalItemObject> getProgramDataElementOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION, getDimensionOptions(DATA_X_DIM_ID)));
+  }
+
   /**
    * Returns all data elements, data elements of of data element operands and data elements of
    * program data elements part of the data dimension.
@@ -2411,11 +2416,18 @@ public class DataQueryParams {
     return ImmutableList.copyOf(dataElements);
   }
 
-  /** Returns all indicators part of the data dimension. */
+  /** Returns all program attributes part of the data dimension. */
   public List<DimensionalItemObject> getProgramAttributes() {
     return ImmutableList.copyOf(
         AnalyticsUtils.getByDataDimensionItemType(
             DataDimensionItemType.PROGRAM_ATTRIBUTE, getDimensionOptions(DATA_X_DIM_ID)));
+  }
+
+  /** Returns all program attribute option part of the data dimension. */
+  public List<DimensionalItemObject> getProgramAttributeOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION, getDimensionOptions(DATA_X_DIM_ID)));
   }
 
   /** Returns all expression dimension items part of the data dimension. */
@@ -2537,11 +2549,25 @@ public class DataQueryParams {
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, getFilterOptions(DATA_X_DIM_ID)));
   }
 
+  /** Returns all program data element options part of the data filter. */
+  public List<DimensionalItemObject> getFilterProgramDataElementOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION, getFilterOptions(DATA_X_DIM_ID)));
+  }
+
   /** Returns all program attributes part of the data filter. */
   public List<DimensionalItemObject> getFilterProgramAttributes() {
     return ImmutableList.copyOf(
         AnalyticsUtils.getByDataDimensionItemType(
             DataDimensionItemType.PROGRAM_ATTRIBUTE, getFilterOptions(DATA_X_DIM_ID)));
+  }
+
+  /** Returns all program attribute options part of the data filter. */
+  public List<DimensionalItemObject> getFilterProgramAttributeOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION, getFilterOptions(DATA_X_DIM_ID)));
   }
 
   /** Returns all expression dimension items part of the data filter. */
@@ -2834,12 +2860,6 @@ public class DataQueryParams {
 
     public Builder withAggregationType(AnalyticsAggregationType aggregationType) {
       this.params.aggregationType = aggregationType;
-      return this;
-    }
-
-    public Builder withOptionSetSelectionCriteria(
-        OptionSetSelectionCriteria optionSetSelectionCriteria) {
-      this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
 

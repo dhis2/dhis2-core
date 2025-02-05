@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
-import org.hisp.dhis.analytics.data.OptionSetFacade;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -95,16 +94,13 @@ class AnalyticsControllerTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-  @Mock private OptionSetFacade optionSetFacade;
-
   @BeforeEach
   public void setUp() {
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
             dimensionalObjectProducer,
             mock(IdentifiableObjectManager.class),
-            mock(AnalyticsSecurityManager.class),
-            optionSetFacade);
+            mock(AnalyticsSecurityManager.class));
 
     when(dimensionalObjectProducer.getPeriodDimension(Mockito.any(), Mockito.any()))
         .thenAnswer(

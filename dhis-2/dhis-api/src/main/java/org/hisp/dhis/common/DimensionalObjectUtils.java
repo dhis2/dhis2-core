@@ -33,7 +33,6 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.hisp.dhis.analytics.OptionSetSelectionMode.AGGREGATED;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
@@ -58,7 +57,6 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
-import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.eventvisualization.Attribute;
@@ -85,8 +83,8 @@ public class DimensionalObjectUtils {
 
   /**
    * Regex to ignore splitting by ";" when they are present between two "dots". ie:
-   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED, splits into
-   * FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED
+   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED, splits
+   * into FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED
    */
   private static final Pattern DX_REGEX_PATTERN = Pattern.compile(";(?![^\\(\\.]*[\\.\\)])");
 
@@ -99,15 +97,17 @@ public class DimensionalObjectUtils {
 
     System.out.println(match);
   }
+
   /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
    * metric, program data element option, etc.
    *
-   * ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf # IpHINAT79UW.UuL3eX8KJHY.dsfdsfsf;dfdsfsdf.uODmvdTEeMr
+   * <p>ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf #
+   * IpHINAT79UW.UuL3eX8KJHY.dsfdsfsf;dfdsfsdf.uODmvdTEeMr
    */
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
-          "(?<id1>\\w+)\\.(?<id2>(\\w+|\\w+|;|\\*)*(\\.(?<id3>\\w+|\\w+|;|\\*)*)(\\.(?<id4>\\w+|\\*))?)?");
+          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*)(\\.(?<id4>\\w+|\\*))?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);
@@ -410,8 +410,7 @@ public class DimensionalObjectUtils {
       // Extracts dimension items by removing dimension name and separator.
       String dimensionItems = param.substring(param.indexOf(DIMENSION_NAME_SEP) + 1);
 
-      //return Arrays.asList(dimensionItems.split(OPTION_SEP));
-      return Arrays.asList(DX_REGEX_PATTERN.split(dimensionItems));
+      return Arrays.asList(dimensionItems.split(OPTION_SEP));
     }
 
     return new ArrayList<>();
@@ -596,28 +595,6 @@ public class DimensionalObjectUtils {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
 
     return matcher.matches() ? matcher.group("id3") : null;
-  }
-
-  /**
-   * Based on the given argument, it will return the associated {@link OptionSetSelectionMode}. If
-   * the argument is null, or no association is found, it returns the default mode "AGGREGATED".
-   *
-   * @param composedOptionSetId the full option set dimension, ie:
-   *     Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED.
-   * @return the respective {@link OptionSetSelectionMode}, or the default mode.
-   */
-  public static OptionSetSelectionMode getOptionSetSelectionMode(String composedOptionSetId) {
-    if (composedOptionSetId == null) {
-      return null;
-    }
-
-    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(composedOptionSetId);
-    if (matcher.matches()) {
-      String suffix = matcher.group("id4");
-      return suffix != null ? OptionSetSelectionMode.valueOf(suffix) : AGGREGATED;
-    }
-
-    return AGGREGATED;
   }
 
   /**

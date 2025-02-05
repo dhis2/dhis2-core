@@ -51,7 +51,6 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
@@ -89,6 +87,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -682,28 +681,19 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return sql;
   }
 
-  private String getWhereClauseOptions(DataQueryParams params, SqlHelper sqlHelper) {
-    if (params.hasOptionSetSelections()) {
+  private String getWhereClauseOptions(EventQueryParams params, SqlHelper sqlHelper) {
+    if (params.hasOption() && params.hasValue()) {
       StringBuilder sql = new StringBuilder();
+      DimensionalItemObject dimensionalItemObject = params.getValue();
+      Option option = params.getOption();
 
-      params
-          .getOptionSetSelectionCriteria()
-          .getOptionSetSelections()
-          .forEach(
-              (key, value) -> {
-                List<String> uids = Arrays.stream(key.split("\\.")).toList();
-                Set<String> options = value.getOptions();
-
-                if (!uids.isEmpty() && isNotEmpty(options)) {
-                  sql.append(" ")
-                      .append(sqlHelper.whereAnd())
-                      .append(" ")
-                      .append(quote(uids.get(0) + ".optionvalueuid"))
-                      .append(" in ('")
-                      .append(String.join("','", options))
-                      .append("') ");
-                }
-              });
+      sql.append(" ")
+          .append(sqlHelper.whereAnd())
+          .append(" ")
+          .append(quote(dimensionalItemObject.getUid()))
+          .append(" in ('")
+          .append(option.getCode())
+          .append("') ");
 
       return sql.toString();
     }

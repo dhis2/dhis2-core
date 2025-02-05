@@ -125,29 +125,11 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
     return true;
   }
 
-  public List<String> getOptionValues() {
-    return options.stream()
-        .filter(Objects::nonNull)
-        .map(Option::getName)
-        .collect(Collectors.toList());
-  }
-
   public List<String> getOptionCodes() {
     return options.stream()
         .filter(Objects::nonNull)
         .map(Option::getCode)
         .collect(Collectors.toList());
-  }
-
-  public Set<String> getOptionUids() {
-    if (options != null) {
-      return options.stream()
-          .filter(Objects::nonNull)
-          .map(Option::getUid)
-          .collect(Collectors.toSet());
-    }
-
-    return Set.of();
   }
 
   public Set<String> getOptionCodesAsSet() {

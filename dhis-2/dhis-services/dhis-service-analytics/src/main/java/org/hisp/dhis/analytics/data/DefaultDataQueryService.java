@@ -100,8 +100,6 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private final AnalyticsSecurityManager securityManager;
 
-  private final OptionSetFacade optionSetFacade;
-
   // -------------------------------------------------------------------------
   // DataQueryService implementation
   // -------------------------------------------------------------------------
@@ -117,8 +115,6 @@ public class DefaultDataQueryService implements DataQueryService {
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
-      params.withOptionSetSelectionCriteria(
-          optionSetFacade.getOptionSetSelectionCriteria(request.getDimension()));
     }
 
     if (isNotEmpty(request.getFilter())) {

@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.join;
-import static org.apache.commons.collections4.CollectionUtils.size;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -41,9 +40,6 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
-import static org.hisp.dhis.analytics.data.OptionSetFacade.addWhereClauseForOptions;
-import static org.hisp.dhis.analytics.data.OptionSetFacade.getAggregatedOptionValueClause;
-import static org.hisp.dhis.analytics.data.OptionSetFacade.getOptionSetSelectionMode;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
@@ -76,7 +72,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.model.Partitions;
@@ -349,10 +344,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     sql += getValueClause(params);
 
-    if (hasAggregation(params)) {
-      sql += getAggregatedOptionValueClause(params);
-    }
-
     return sql;
   }
 
@@ -365,24 +356,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   protected String getValueClause(DataQueryParams params) {
     String sql = "";
 
-    if (hasAggregation(params)) {
+    if (params.isAggregation()) {
       sql += getAggregateValueColumn(params);
     } else {
       sql += params.getValueColumn();
     }
 
     return sql + " as value ";
-  }
-
-  private boolean hasAggregation(DataQueryParams params) {
-    // Analytics query is an item of sequential queries with one data element only.
-    if (size(params.getDataElements()) != 1) {
-      return params.isAggregation();
-    }
-
-    OptionSetSelectionMode mode = getOptionSetSelectionMode(params);
-
-    return params.isAggregation() && mode == OptionSetSelectionMode.AGGREGATED;
   }
 
   /**
@@ -497,8 +477,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         String items = sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()));
 
         sql.append(sqlHelper.whereAnd() + " " + col + " in (" + items + ") ");
-
-        addWhereClauseForOptions(params, sqlHelper, sqlBuilder, sql, items);
       }
     }
   }
@@ -661,11 +639,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL group by clause.
    */
   protected String getGroupByClause(DataQueryParams params) {
-    if (hasAggregation(params)) {
-      return "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + " ";
+    String sql = "";
+
+    if (params.isAggregation()) {
+      sql = "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + " ";
     }
 
-    return "";
+    return sql;
   }
 
   /**
@@ -976,12 +956,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
-
-        if (params.hasOptionSetInDimensionItemsTypeDataElement()) {
-          map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
-        } else {
-          map.put(key.toString(), value);
-        }
+        map.put(key.toString(), value);
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);

@@ -38,16 +38,15 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.OptionSetSelectionMode.AGGREGATED;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
-import static org.hisp.dhis.analytics.data.QueryPlannerUtils.getAggregationType;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -58,7 +57,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -84,6 +82,7 @@ import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +93,6 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
@@ -120,7 +118,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -612,11 +609,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getGroupByClause(EventQueryParams params) {
     String sql = "";
 
-    AggregationType aggregationType = getAggregationType(params);
-    if (aggregationType == NONE && !params.hasOptionSetSelections()) {
-      return sql;
-    }
-
     if (params.isAggregation()) {
       List<String> selectColumnNames = getGroupByColumnNames(params, true);
 
@@ -638,17 +630,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (params.isAggregateData()) {
         if (params.hasValueDimension()) {
-          String itemId =
-              params.getProgram().getUid()
-                  + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-                  + params.getValue().getUid();
-          grid.addValue(itemId);
+          grid.addValue(getItemId(params));
         } else if (params.hasProgramIndicatorDimension()) {
           grid.addValue(params.getProgramIndicator().getUid());
         }
       } else {
         for (QueryItem queryItem : params.getItems()) {
-
           ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, true);
           String alias = columnAndAlias.getAlias();
 
@@ -714,6 +701,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Builds the item identifier, so it can be identifiable in the response/row object.
+   *
+   * @param params the current {@link EventQueryParams}.
+   * @return the item identifier.
+   */
+  private String getItemId(@Nonnull EventQueryParams params) {
+    String programUid = params.getProgram().getUid();
+    String dimensionUid = params.getValue().getUid();
+    String optionUid = params.getOption() == null ? EMPTY : params.getOption().getUid();
+    String itemId = programUid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dimensionUid;
+
+    if (isNotBlank(optionUid)) {
+      itemId += COMPOSITE_DIM_OBJECT_PLAIN_SEP + optionUid;
+    }
+
+    return itemId;
+  }
+
+  /**
    * Returns the aggregate clause based on value dimension and output type.
    *
    * @param params the {@link EventQueryParams}.
@@ -723,7 +729,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     EventOutputType outputType = params.getOutputType();
 
-    AggregationType aggregationType = getAggregationType(params);
+    AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
 
     String function =
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
@@ -771,28 +777,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
-  }
-
-  private AggregationType getAggregationType(EventQueryParams params) {
-    if (params.getValue() instanceof DataElement dataElement
-        && dataElement.hasOptionSet()
-        && params.hasOptionSetSelections()) {
-      String key =
-          dataElement.getUid() + DIMENSION_IDENTIFIER_SEP + dataElement.getOptionSet().getUid();
-
-      OptionSetSelectionMode mode =
-          params
-              .getOptionSetSelectionCriteria()
-              .getOptionSetSelections()
-              .get(key)
-              .getOptionSetSelectionMode();
-
-      if (mode != AGGREGATED) {
-        return NONE;
-      }
-    }
-
-    return params.getAggregationTypeFallback().getAggregationType();
   }
 
   /**
@@ -850,7 +834,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param item the {@link QueryItem}.
    * @param suffix the suffix.
-   * @return the the column select statement for the given item.
+   * @return the column select statement for the given item.
    */
   protected String getColumn(QueryItem item, String suffix) {
     return quote(item.getItemName() + suffix);
