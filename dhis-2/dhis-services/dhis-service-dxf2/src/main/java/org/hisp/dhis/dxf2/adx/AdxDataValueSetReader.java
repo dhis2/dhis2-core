@@ -108,7 +108,7 @@ public class AdxDataValueSetReader implements DataValueSetReader, DataValueEntry
 
   @Override
   public String getAttributeOptionCombo() {
-    return valueAttributes.get(AdxDataService.ATTOPTCOMBO);
+    return groupAttributes.get(AdxDataService.ATTOPTCOMBO);
   }
 
   @Override

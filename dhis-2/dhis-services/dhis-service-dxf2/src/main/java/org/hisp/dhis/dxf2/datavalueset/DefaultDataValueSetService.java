@@ -724,7 +724,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
     int index = 0;
     if (values != null && !values.isEmpty()) {
       int size = values.size();
-      progress.startingStage("Importing values (list)", size);
+      progress.startingStage("Importing values (list)", Math.ceil(size / 100d));
       progress.setWorkItemBucketing(100);
       for (DataValueEntry dataValue : values) {
         progress.startingWorkItem(index);
