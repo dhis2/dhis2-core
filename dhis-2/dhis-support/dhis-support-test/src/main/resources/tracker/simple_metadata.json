@@ -530,7 +530,7 @@
       "lastUpdated": "2015-03-31T11:22:51.642",
       "name": "Height in cm",
       "shortName": "Height in cm",
-      "formName": "Height in cm",
+      "formName": "height in cm",
       "url": "",
       "valueType": "NUMBER"
     },
@@ -2055,6 +2055,21 @@
           "searchable": true,
           "trackedEntityAttribute": {
             "id": "toUpdate000"
+          },
+          "trackedEntityType": {
+            "id": "ja8NY4PW7Xm"
+          },
+          "valueType": "TEXT"
+        },
+        {
+          "displayInList": true,
+          "displayName": "TA First name",
+          "displayShortName": "TA First name",
+          "id": "FHVt4l5vIOb",
+          "name": "TA First name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
           },
           "trackedEntityType": {
             "id": "ja8NY4PW7Xm"

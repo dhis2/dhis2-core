@@ -163,18 +163,21 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
+    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             UID.of(trackedEntity), null, params, defaultPageParams);
 
-    assertNumberOfChanges(3, changeLogs.getItems());
+    assertNumberOfChanges(5, changeLogs.getItems());
 
     assertAll(
         () ->
             assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(0)),
         () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(1)),
-        () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(2)));
+        () -> assertUpdate("dIVt4l5vIOa", "Value", "new value", changeLogs.getItems().get(2)),
+        () -> assertCreate("dIVt4l5vIOa", "Value", changeLogs.getItems().get(3)),
+        () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(4)));
   }
 
   @Test
@@ -189,18 +192,21 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
+    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             UID.of(trackedEntity), null, params, defaultPageParams);
 
-    assertNumberOfChanges(3, changeLogs.getItems());
+    assertNumberOfChanges(5, changeLogs.getItems());
 
     assertAll(
         () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(0)),
+        () -> assertUpdate("dIVt4l5vIOa", "Value", "new value", changeLogs.getItems().get(1)),
+        () -> assertCreate("dIVt4l5vIOa", "Value", changeLogs.getItems().get(2)),
         () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(1)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(2)));
+            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(3)),
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(4)));
   }
 
   @Test
