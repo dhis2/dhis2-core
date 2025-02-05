@@ -33,14 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.time.LocalDateTime;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link JsonResponse} with domain specific cases.
+ * Tests the JSON response with domain specific cases.
  *
  * @author Jan Bernitt
  */
@@ -110,12 +109,10 @@ class DomainJsonResponseTest {
                 + "'httpStatusCode':409,"
                 + "'response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}"
                 + "}");
-    assertEquals(
-        "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
-        response.as(JsonError.class).summary());
+    assertEquals("my message", response.as(JsonError.class).getMessage());
   }
 
-  private JsonResponse createJSON(String content) {
-    return new JsonResponse(content.replace('\'', '"'), JsonTypedAccess.GLOBAL);
+  private JsonMixed createJSON(String content) {
+    return JsonMixed.of(content.replace('\'', '"'));
   }
 }

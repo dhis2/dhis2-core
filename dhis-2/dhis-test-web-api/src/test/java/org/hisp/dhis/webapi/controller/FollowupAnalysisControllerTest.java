@@ -40,8 +40,8 @@ import java.util.Arrays;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
@@ -241,7 +241,7 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
   }
 
   private void assertFollowupValues(HttpResponse response, String... expectedComments) {
-    JsonResponse body = response.content();
+    JsonMixed body = response.content();
     JsonList<JsonFollowupValue> values = body.getList("followupValues", JsonFollowupValue.class);
     assertEquals(expectedComments.length, values.size());
     assertEquals(

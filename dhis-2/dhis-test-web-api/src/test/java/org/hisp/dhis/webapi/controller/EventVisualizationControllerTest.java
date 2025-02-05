@@ -41,9 +41,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -100,7 +100,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
     // Then
-    JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    JsonMixed response = GET("/eventVisualizations/" + uid).content();
     Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("simpleDimensions").toString(), containsString("COLUMN"));
@@ -157,7 +157,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
     // Then
-    JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    JsonMixed response = GET("/eventVisualizations/" + uid).content();
     Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("simpleDimensions").toString(), containsString("ROW"));
@@ -215,7 +215,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     String getParams = "?fields=:all,filters[:all,items,repetitions]";
-    JsonResponse response = GET("/eventVisualizations/" + uid + getParams).content();
+    JsonMixed response = GET("/eventVisualizations/" + uid + getParams).content();
     Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("repetitions").toString(), containsString("FILTER"));
@@ -247,7 +247,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     String getParams = "?fields=:all,rows[:all,items,repetitions]";
-    JsonResponse response = GET("/eventVisualizations/" + uid + getParams).content();
+    JsonMixed response = GET("/eventVisualizations/" + uid + getParams).content();
     Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("repetitions").toString(), containsString("ROW"));
@@ -279,7 +279,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     String getParams = "?fields=:all,columns[:all,items,repetitions]";
-    JsonResponse response = GET("/eventVisualizations/" + uid + getParams).content();
+    JsonMixed response = GET("/eventVisualizations/" + uid + getParams).content();
     Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
     assertThat(nodeMap.get("repetitions").toString(), containsString("COLUMN"));

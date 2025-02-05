@@ -256,7 +256,14 @@ public enum SettingKey {
   ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", -1, Integer.class),
 
   /** Max trackedentityinstance records that can be retrieved from database. */
-  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class);
+  TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),
+
+  NOTIFIER_LOG_LEVEL("notifierLogLevel", "DEBUG", String.class),
+  NOTIFIER_MAX_MESSAGES_PER_JOB("notifierMaxMessagesPerJob", 500, Integer.class),
+  NOTIFIER_MAX_AGE_DAYS("notifierMaxAgeDays", 7, Integer.class),
+  NOTIFIER_MAX_JOBS_PER_TYPE("notifierMaxJobsPerType", 500, Integer.class),
+  NOTIFIER_GIST_OVERVIEW("notifierGistOverview", true, Boolean.class),
+  NOTIFIER_CLEAN_AFTER_IDLE_TIME("notifierCleanAfterIdleTime", 60_000L, Long.class);
 
   private final String name;
 
@@ -324,6 +331,8 @@ public enum SettingKey {
         return Double.valueOf(value);
       } else if (Integer.class.isAssignableFrom(settingClazz)) {
         return Integer.valueOf(value);
+      } else if (Long.class.isAssignableFrom(settingClazz)) {
+        return Long.valueOf(value);
       } else if (Boolean.class.isAssignableFrom(settingClazz)) {
         return Boolean.valueOf(value);
       } else if (Locale.class.isAssignableFrom(settingClazz)) {

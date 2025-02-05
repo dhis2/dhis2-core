@@ -48,8 +48,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -230,9 +230,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         .content(HttpStatus.OK);
 
     JsonIdentifiableObject organisationUnit =
-        GET("/organisationUnits/{id}", "rXnqqH2Pu6N")
-            .content()
-            .asObject(JsonIdentifiableObject.class);
+        GET("/organisationUnits/{id}", "rXnqqH2Pu6N").content().as(JsonIdentifiableObject.class);
 
     assertEquals(1, organisationUnit.getAttributeValues().size());
     JsonAttributeValue attributeValue = organisationUnit.getAttributeValues().get(0);
@@ -270,7 +268,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
@@ -290,7 +288,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
@@ -310,7 +308,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
@@ -330,7 +328,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
@@ -349,7 +347,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
                 + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
@@ -362,8 +360,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
       "Should not include null objects in collection Category.categorycombos or CategoryCombo.categories after importing")
   void testImportCategoryComboAndCategory() {
     POST("/metadata", Body("metadata/category_and_categorycombo.json")).content(HttpStatus.OK);
-    JsonResponse response =
-        GET("/categories/{uid}?fields=id,categoryCombos", "IjOK1aXkjVO").content();
+    JsonMixed response = GET("/categories/{uid}?fields=id,categoryCombos", "IjOK1aXkjVO").content();
     JsonList<JsonObject> catCombos = response.getList("categoryCombos", JsonObject.class);
     assertNotNull(catCombos);
     assertFalse(catCombos.stream().anyMatch(JsonValue::isNull));
@@ -392,7 +389,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testImportWithInvalidCreatedBy() {
-    JsonResponse report =
+    JsonMixed report =
         POST(
                 "/metadata",
                 "{\"optionSets\":\n"
@@ -401,13 +398,13 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
     assertNotNull(report.get("response"));
 
-    JsonResponse optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
     assertTrue(optionSet.get("createdBy").exists());
   }
 
   @Test
   void testImportWithInvalidCreatedByAndSkipSharing() {
-    JsonResponse report =
+    JsonMixed report =
         POST(
                 "/metadata?skipSharing=true",
                 "{\"optionSets\":\n"
@@ -416,7 +413,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
     assertNotNull(report.get("response"));
 
-    JsonResponse optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
+    JsonMixed optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
     assertTrue(optionSet.get("createdBy").exists());
   }
 

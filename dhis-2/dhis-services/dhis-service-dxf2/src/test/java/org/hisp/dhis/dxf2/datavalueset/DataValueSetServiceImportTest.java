@@ -65,6 +65,7 @@ import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -140,7 +141,7 @@ class DataValueSetServiceImportTest extends DhisConvenienceTest {
     when(batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class))
         .thenReturn(auditBatchHandler);
 
-    when(notifier.clear(any())).thenReturn(notifier);
+    when(notifier.clear(any(JobConfiguration.class))).thenReturn(notifier);
     when(notifier.notify(any(), any(), anyString())).thenReturn(notifier);
     when(notifier.notify(any(), any(), anyString(), anyBoolean())).thenReturn(notifier);
 

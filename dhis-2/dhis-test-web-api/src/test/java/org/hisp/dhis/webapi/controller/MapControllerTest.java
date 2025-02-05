@@ -31,8 +31,8 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class MapControllerTest extends DhisControllerConvenienceTest {
   void testPutJsonObject() {
     String mapId = assertStatus(HttpStatus.CREATED, POST("/maps/", "{'name':'My map'}"));
 
-    JsonResponse map = GET("/maps/{uid}", mapId).content();
+    JsonMixed map = GET("/maps/{uid}", mapId).content();
 
     // The default merge method is REPLACE, so we must set the mandatory attributes from the created
     // object.
@@ -99,7 +99,7 @@ class MapControllerTest extends DhisControllerConvenienceTest {
                     + "\", "
                     + "\"layer\": \"thematic1\",\"renderingStrategy\": \"SINGLE\" } ]}"));
 
-    JsonResponse map = GET("/maps/{uid}", mapId).content();
+    JsonMixed map = GET("/maps/{uid}", mapId).content();
     assertNotNull(map.getArray("mapViews"));
     assertEquals(1, map.getArray("mapViews").size());
 

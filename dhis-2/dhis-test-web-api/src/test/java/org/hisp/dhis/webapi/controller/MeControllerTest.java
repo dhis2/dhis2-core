@@ -36,8 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -255,7 +255,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testLegacyUserCredentialsIdPresent() {
-    JsonResponse response = GET("/me?fields=id,userCredentials").content();
+    JsonMixed response = GET("/me?fields=id,userCredentials").content();
     JsonObject userCredentials = response.getObject("userCredentials");
     JsonValue id = userCredentials.get("id");
     assertTrue(id.exists());

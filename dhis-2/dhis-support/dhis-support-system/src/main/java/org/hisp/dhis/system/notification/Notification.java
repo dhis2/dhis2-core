@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
@@ -38,6 +37,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 
 /**
@@ -54,7 +54,7 @@ public class Notification implements Comparable<Notification> {
 
   @ToString.Include private JobType category;
 
-  @ToString.Include private Date time;
+  @Nonnull @ToString.Include private Date time;
 
   @ToString.Include private String message;
 
@@ -62,7 +62,7 @@ public class Notification implements Comparable<Notification> {
 
   private NotificationDataType dataType;
 
-  private JsonNode data;
+  private JsonValue data;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -70,16 +70,17 @@ public class Notification implements Comparable<Notification> {
 
   public Notification() {
     this.uid = CodeGenerator.generateUid();
+    this.time = new Date();
   }
 
   public Notification(
       NotificationLevel level,
       JobType category,
-      Date time,
+      @Nonnull Date time,
       String message,
       boolean completed,
       NotificationDataType dataType,
-      JsonNode data) {
+      JsonValue data) {
     this.uid = CodeGenerator.generateUid();
     this.level = level;
     this.category = category;
@@ -118,6 +119,7 @@ public class Notification implements Comparable<Notification> {
     return category;
   }
 
+  @Nonnull
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getTime() {
@@ -144,7 +146,7 @@ public class Notification implements Comparable<Notification> {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public JsonNode getData() {
+  public JsonValue getData() {
     return data;
   }
 

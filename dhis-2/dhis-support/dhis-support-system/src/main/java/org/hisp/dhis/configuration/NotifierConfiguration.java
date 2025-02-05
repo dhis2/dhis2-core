@@ -30,9 +30,12 @@ package org.hisp.dhis.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.hisp.dhis.system.notification.InMemoryNotifier;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.notification.DefaultNotifier;
+import org.hisp.dhis.system.notification.InMemoryNotifierStore;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.notification.RedisNotifier;
+import org.hisp.dhis.system.notification.NotifierStore;
+import org.hisp.dhis.system.notification.RedisNotifierStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -53,13 +56,17 @@ public class NotifierConfiguration {
   @SuppressWarnings("unchecked")
   @Bean("notifier")
   @Conditional(RedisEnabledCondition.class)
-  public Notifier redisNotifier(ObjectMapper objectMapper) {
-    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
+  public Notifier redisNotifier(
+      ObjectMapper objectMapper, SystemSettingsProvider settingsProvider) {
+    NotifierStore store = new RedisNotifierStore((RedisTemplate<String, String>) redisTemplate);
+    return new DefaultNotifier(store, objectMapper, settingsProvider, System::currentTimeMillis);
   }
 
   @Bean("notifier")
   @Conditional(RedisDisabledCondition.class)
-  public Notifier inMemoryNotifier() {
-    return new InMemoryNotifier();
+  public Notifier inMemoryNotifier(
+      ObjectMapper objectMapper, SystemSettingsProvider settingsProvider) {
+    return new DefaultNotifier(
+        new InMemoryNotifierStore(), objectMapper, settingsProvider, System::currentTimeMillis);
   }
 }

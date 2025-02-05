@@ -56,8 +56,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -743,7 +743,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetUserLegacyUserCredentialsIdPresent() {
-    JsonResponse response = GET("/users/{id}", peter.getUid()).content();
+    JsonMixed response = GET("/users/{id}", peter.getUid()).content();
     JsonObject userCredentials = response.getObject("userCredentials");
     JsonValue id = userCredentials.get("id");
     assertTrue(id.exists());
@@ -751,7 +751,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testNewTwoFAStatusExistsInUserCredentials() {
-    JsonResponse response = GET("/users/{id}", peter.getUid()).content();
+    JsonMixed response = GET("/users/{id}", peter.getUid()).content();
     JsonObject userCredentials = response.getObject("userCredentials");
     Boolean twoFA = userCredentials.get("twoFA").as(JsonBoolean.class).bool();
     assertFalse(twoFA);
@@ -1139,7 +1139,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             Body(
                 "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id': 'B6JNeAQ6akX' } ] } ]")));
 
-    JsonResponse response =
+    JsonMixed response =
         GET("/users/{id}?fields=userGroups", peter.getUid()).content(HttpStatus.OK);
     assertEquals(2, response.getArray("userGroups").size());
 

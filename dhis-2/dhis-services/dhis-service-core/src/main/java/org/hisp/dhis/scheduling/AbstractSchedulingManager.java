@@ -57,6 +57,7 @@ import org.hisp.dhis.eventhook.EventUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobProgress.Process;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.slf4j.MDC;
@@ -340,7 +341,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
   private ControlledJobProgress createJobProgress(JobConfiguration configuration) {
     JobProgress tracker =
         configuration.getJobType().isUsingNotifications()
-            ? new NotifierJobProgress(notifier, configuration)
+            ? new NotifierJobProgress(notifier, configuration, NotificationLevel.DEBUG)
             : NoopJobProgress.INSTANCE;
     return new ControlledJobProgress(messageService, configuration, tracker, true);
   }

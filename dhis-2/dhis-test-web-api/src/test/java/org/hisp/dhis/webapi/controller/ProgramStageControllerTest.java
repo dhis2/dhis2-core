@@ -31,7 +31,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
@@ -65,9 +65,9 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}"));
-    JsonResponse programStage = GET("/programStages/{id}", programStageId).content();
+    JsonMixed programStage = GET("/programStages/{id}", programStageId).content();
     assertEquals("VoZMWi7rBgj", programStage.getString("program.id").string());
-    JsonResponse program = GET("/programs/{id}", "VoZMWi7rBgj").content();
+    JsonMixed program = GET("/programs/{id}", "VoZMWi7rBgj").content();
     assertEquals(programStageId, program.getString("programStages[0].id").string());
   }
 }

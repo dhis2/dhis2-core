@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.Required;
 
 /**
  * Web API equivalent of an {@code ImportConflict}.
@@ -49,7 +49,7 @@ public interface JsonImportConflict extends JsonObject {
     return getMap("objects", JsonString.class);
   }
 
-  @Expected
+  @Required
   default String getValue() {
     return getString("value").string();
   }
