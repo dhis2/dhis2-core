@@ -227,8 +227,8 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
-    for (Event event : events) {
-      if (operationParams.getEventParams().isIncludeRelationships()) {
+    if (operationParams.getEventParams().isIncludeRelationships()) {
+      for (Event event : events) {
         event.setRelationshipItems(
             relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
       }
@@ -243,8 +243,8 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<Event> events = eventStore.getEvents(queryParams, pageParams);
-    for (Event event : events.getItems()) {
-      if (operationParams.getEventParams().isIncludeRelationships()) {
+    if (operationParams.getEventParams().isIncludeRelationships()) {
+      for (Event event : events.getItems()) {
         event.setRelationshipItems(
             relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
       }

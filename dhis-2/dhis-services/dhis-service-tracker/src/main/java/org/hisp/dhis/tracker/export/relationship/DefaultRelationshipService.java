@@ -74,12 +74,12 @@ public class DefaultRelationshipService implements RelationshipService {
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
     return relationshipItems.stream()
+        .filter(ri -> !ri.getRelationship().isDeleted())
         .filter(
             ri ->
                 trackerAccessManager
                     .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
                     .isEmpty())
-        .filter(ri -> !ri.getRelationship().isDeleted())
         .map(RELATIONSHIP_ITEM_MAPPER::map)
         .collect(Collectors.toSet());
   }
