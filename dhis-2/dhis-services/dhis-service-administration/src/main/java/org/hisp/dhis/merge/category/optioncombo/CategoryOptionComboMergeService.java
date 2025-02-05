@@ -69,6 +69,8 @@ public class CategoryOptionComboMergeService implements MergeService {
     MergeRequest request =
         validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION_COMBO);
 
+    if (mergeReport.hasErrorMessages()) return request;
+
     // merge-specific validation
     if (params.getDataMergeStrategy() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
