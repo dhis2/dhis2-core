@@ -199,7 +199,6 @@ public class DefaultAdxDataService implements AdxDataService {
               currentPeriod = dv.getPeriod();
               currentOrgUnit = dv.getSource();
 
-              adxWriter.writeCharacters("\n");
               adxWriter.openElement(AdxDataService.GROUP);
               adxWriter.writeAttribute(AdxDataService.DATASET, dataSet.getPropertyValue(dsScheme));
               adxWriter.writeAttribute(AdxDataService.PERIOD, AdxPeriod.serialize(currentPeriod));
@@ -210,7 +209,6 @@ public class DefaultAdxDataService implements AdxDataService {
                 adxWriter.writeAttribute(e.getKey(), e.getValue());
               }
             }
-            adxWriter.writeCharacters("\n\t");
             adxWriter.openElement(AdxDataService.DATAVALUE);
 
             adxWriter.writeAttribute(
@@ -237,7 +235,6 @@ public class DefaultAdxDataService implements AdxDataService {
           }
 
           if (currentPeriod != null) {
-            adxWriter.writeCharacters("\n");
             adxWriter.closeElement(); // GROUP
           }
         }
