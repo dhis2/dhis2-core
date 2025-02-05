@@ -159,6 +159,7 @@ pipeline {
                 READINESS_PROBE_TIMEOUT_SECONDS = "5"
                 MIN_READY_SECONDS = "240"
                 CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
+                PUBLIC = "true"
             }
 
             steps {
