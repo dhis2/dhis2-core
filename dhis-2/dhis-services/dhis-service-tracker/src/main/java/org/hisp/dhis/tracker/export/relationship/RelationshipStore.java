@@ -35,12 +35,19 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
   String ID = RelationshipStore.class.getName();
+
+  List<RelationshipItem> getRelationshipItemsByTrackedEntity(UID trackedEntity);
+
+  List<RelationshipItem> getRelationshipItemsByEnrollment(UID enrollment);
+
+  List<RelationshipItem> getRelationshipItemsByEvent(UID event);
 
   Optional<TrackedEntity> findTrackedEntity(UID trackedEntity);
 

@@ -750,7 +750,11 @@
           },
           "value": "1.5"
         }
-      ]
+      ],
+      "assignedUser": {
+        "uid": "lPaILkLkgOM",
+        "username": "testuser"
+      }
     },
     {
       "event": "kWjSezkXHVp",
@@ -1181,6 +1185,19 @@
       },
       "to": {
         "enrollment": "ipBifypAQTo"
+      }
+    },
+    {
+      "relationship": "rq1MGCJ8hlq",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "TV9oB9LT3sh"
+      },
+      "from": {
+        "trackedEntity": "H8732208127"
+      },
+      "to": {
+        "event": "LCSfHnurnNB"
       }
     }
   ],

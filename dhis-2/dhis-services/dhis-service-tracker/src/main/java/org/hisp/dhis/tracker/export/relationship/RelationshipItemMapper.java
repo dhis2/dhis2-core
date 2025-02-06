@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export;
+package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
 import java.util.Set;
@@ -53,10 +53,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-// TODO(DHIS2-18883) move this into the relationship service/store
-// double-check that we only map whats needed!
-// We need to ensure we map everything the
-// org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipItemMapper needs
 @Mapper(
     uses = {ProgramStageMapper.class, RelationshipTypeMapper.class, TrackedEntityTypeMapper.class})
 public interface RelationshipItemMapper {
