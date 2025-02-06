@@ -37,6 +37,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -66,16 +67,14 @@ public class H2TestConfig {
     return new NoOpFlyway();
   }
 
+  // NOTE: this must stay in sync with HibernateConfig.entityManagerFactory apart from the
+  // HB2DDL_AUTO override, only then do we also test the actual EntityManagerFactory
   @Bean
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactory(
       DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
-    // TODO(ivo) does it make sense to make a bean out of this adapter so only this bean can be
-    // overriden?
-    // TODO(ivo) how can I then only override the jpa properties of the factory?
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    adapter.setGenerateDdl(true);
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
@@ -83,9 +82,10 @@ public class H2TestConfig {
     factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setMappingResources(loadResources());
-    Properties additionalProperties = getAdditionalProperties(dhisConfig);
-    additionalProperties.put(AvailableSettings.HBM2DDL_AUTO, "update");
-    factory.setJpaProperties(additionalProperties);
+    Properties jpaProperties = getAdditionalProperties(dhisConfig);
+    // let hibernate create the DB schema for H2 tests as no flyway migrations are run
+    jpaProperties.put(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE);
+    factory.setJpaProperties(jpaProperties);
     factory.afterPropertiesSet();
     return factory.getObject();
   }

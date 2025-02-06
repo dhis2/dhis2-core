@@ -111,6 +111,7 @@ public class HibernateConfig {
     return SharedEntityManagerCreator.createSharedEntityManager(emf);
   }
 
+  // NOTE: this must stay in sync with H2TestConfig.entityManagerFactory
   @Bean
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactory(
