@@ -31,6 +31,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -139,6 +140,31 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @AfterEach
     public void afterEach() {
       mockServerClient.reset();
+    }
+
+    @Test
+    void testRunRouteWhenResponseBodyExceedsLimit() throws JsonProcessingException {
+      mockServerClient
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "https://dhis2.org");
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      HttpResponse runHttpResponse =
+          GET(
+              "/routes/{id}/run",
+              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
+      String message =
+          runHttpResponse
+              .error(HttpStatus.BAD_GATEWAY)
+              .get("message")
+              .as(JsonString.class)
+              .string();
+      assertTrue(message.startsWith("Exceeded limit on max bytes to buffer : "));
     }
 
     @Test

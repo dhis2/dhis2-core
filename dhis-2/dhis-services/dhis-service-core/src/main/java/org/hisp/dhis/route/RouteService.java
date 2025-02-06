@@ -29,6 +29,7 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -57,6 +58,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -85,6 +87,8 @@ public class RouteService {
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
   @Autowired @Getter @Setter private ClientHttpConnector clientHttpConnector;
+
+  @Autowired @Getter @Setter private ObjectMapper objectMapper;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -246,6 +250,16 @@ public class RouteService {
             .onErrorReturn(
                 throwable -> throwable.getCause() instanceof ReadTimeoutException,
                 new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+            .onErrorResume(
+                throwable -> throwable.getCause() instanceof DataBufferLimitException,
+                throwable -> {
+                  String message =
+                      String.format(
+                          """
+{"message":"%s"}""",
+                          throwable.getCause().getMessage());
+                  return Mono.just(new ResponseEntity<>(message, HttpStatus.BAD_GATEWAY));
+                })
             .block();
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
     String responseBody = response.getBody();
