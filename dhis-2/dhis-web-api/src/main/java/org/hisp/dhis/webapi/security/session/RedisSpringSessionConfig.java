@@ -44,8 +44,6 @@ import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
-import org.springframework.session.web.http.CookieHttpSessionIdResolver;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /**
  * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
@@ -76,18 +74,6 @@ public class RedisSpringSessionConfig {
     int sessionTimeout = config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
     repository.setDefaultMaxInactiveInterval(sessionTimeout);
     return repository;
-  }
-
-  @Bean
-  public CookieHttpSessionIdResolver httpSessionIdResolver() {
-    CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
-    DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
-    cookieSerializer.setCookieName("JSESSIONID");
-    cookieSerializer.setSameSite("Lax");
-    cookieSerializer.setUseSecureCookie(false);
-    cookieSerializer.setUseHttpOnlyCookie(true);
-    resolver.setCookieSerializer(cookieSerializer);
-    return resolver;
   }
 
   @Bean
