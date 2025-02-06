@@ -82,7 +82,7 @@ public class CategoryOptionComboMergeService implements MergeService {
     CategoryOptionCombo target =
         categoryService.getCategoryOptionCombo(request.getTarget().getValue());
     if (!catOptCombosAreDuplicates(sources, target)) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E15400));
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1540));
     }
     return request;
   }

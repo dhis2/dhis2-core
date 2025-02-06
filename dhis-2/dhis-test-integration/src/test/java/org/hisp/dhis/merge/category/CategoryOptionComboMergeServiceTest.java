@@ -28,7 +28,7 @@
 package org.hisp.dhis.merge.category;
 
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
-import static org.hisp.dhis.feedback.ErrorCode.E15400;
+import static org.hisp.dhis.feedback.ErrorCode.E1540;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -205,7 +205,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         conflictException.getMergeReport().getMergeErrors().stream()
             .map(ErrorMessage::getMessage)
             .collect(Collectors.toSet())
-            .contains(E15400.getMessage()));
+            .contains(E1540.getMessage()));
   }
 
   // -----------------------------
