@@ -98,6 +98,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -403,8 +404,22 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void testScheduleNotificationUsingSystemVariable() {
+    setUpScheduleMessage("V{current_date}");
+    ProgramInstance programInstance = programInstanceService.getProgramInstance("UID-PS");
+    List<RuleEffect> ruleEffects =
+        programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
+    assertEquals(1, ruleEffects.size());
+    RuleAction ruleAction = ruleEffects.get(0).ruleAction();
+    assertInstanceOf(RuleActionScheduleMessage.class, ruleAction);
+    RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
+    assertEquals("PNT-1-SCH", ruleActionScheduleMessage.notification());
+    assertTrue(DateUtils.dateIsValid(ruleEffects.get(0).data()));
+  }
+
+  @Test
   void testSchedulingByProgramRule() {
-    setUpScheduleMessage();
+    setUpScheduleMessage(dataExpression);
     ProgramInstance programInstance = programInstanceService.getProgramInstance("UID-PS");
     List<RuleEffect> ruleEffects =
         programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
@@ -433,7 +448,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
 
   @Test
   void testSendRepeatableTemplates() {
-    setUpScheduleMessage();
+    setUpScheduleMessage(dataExpression);
     pnt.setSendRepeatable(true);
     ProgramInstance programInstance = programInstanceService.getProgramInstance("UID-PS");
     List<RuleEffect> ruleEffects =
@@ -850,7 +865,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     return programRuleE;
   }
 
-  private ProgramRule setUpScheduleMessage() {
+  private ProgramRule setUpScheduleMessage(String scheduledAt) {
     scheduledDate = "2018-04-17";
     pnt = createNotification();
     programNotificationTemplateStore.save(pnt);
@@ -860,7 +875,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
         ProgramRuleActionType.SCHEDULEMESSAGE);
     programRuleActionForScheduleMessage.setTemplateUid(pnt.getUid());
     programRuleActionForScheduleMessage.setContent("STATIC-TEXT-SCHEDULE");
-    programRuleActionForScheduleMessage.setData(dataExpression);
+    programRuleActionForScheduleMessage.setData(scheduledAt);
     programRuleActionService.addProgramRuleAction(programRuleActionForScheduleMessage);
     programRuleS.setProgramRuleActions(Sets.newHashSet(programRuleActionForScheduleMessage));
     programRuleService.updateProgramRule(programRuleS);
