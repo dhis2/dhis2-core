@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
@@ -315,5 +316,27 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE,
         getHttpResponse.content().get("auth.type").as(JsonString.class).string());
     assertFalse(getHttpResponse.content().get("auth").as(JsonObject.class).has("queryParams"));
+  }
+
+  @Test
+  void testAddRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(HttpStatus.CONFLICT, postHttpResponse);
+  }
+
+  @Test
+  void testAddRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(HttpStatus.CONFLICT, postHttpResponse);
   }
 }

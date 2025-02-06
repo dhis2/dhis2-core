@@ -129,6 +129,15 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
     return Optional.empty();
   }
 
+  @Override
+  protected void preCreateEntity(Route route) throws ConflictException {
+    if (route.getResponseTimeout() != null
+        && (route.getResponseTimeout() < 1 || route.getResponseTimeout() > 60)) {
+      throw new ConflictException(
+          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
+    }
+  }
+
   /**
    * Disable the collection API for /api/routes endpoint. This conflicts with sub-path based routes
    * and is not supported by the Route API (no identifiable object collections).
