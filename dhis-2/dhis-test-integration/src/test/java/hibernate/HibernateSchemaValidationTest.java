@@ -27,19 +27,51 @@
  */
 package hibernate;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class HibernateSchemaValidationTest extends PostgresIntegrationTestBase {
+  @Autowired private EntityManagerFactory entityManagerFactory;
+
+  //  @Autowired
+  //  private LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean;
+
   @Test
   public void testHibernateMappingsMatchDBSchema() {
     Session session = entityManager.unwrap(Session.class);
-    SessionFactory sessionFactory = session.getSessionFactory();
+    //    SessionFactory sessionFactory = session.getSessionFactory();
     // TODO(ivo) nothing ever just works https://github.com/spring-projects/spring-boot/issues/39753
     // try to first solve the issue of setting ddl to update for h2 tests. reuse that approach here
     // to set it to validate?
-    //    assertDoesNotThrow(() -> sessionFactory.getSchemaManager().validate());
+    //        assertDoesNotThrow(() -> sessionFactory.getSchemaManager().validate());
+
+    //    Map<String, Object> settings = localContainerEntityManagerFactoryBean.getJpaPropertyMap();
+    //    EntityManagerFactoryBuilder entityManagerFactoryBuilder =
+    // Bootstrap.getEntityManagerFactoryBuilder(
+    //        localContainerEntityManagerFactoryBean.getPersistenceUnitInfo(),
+    //        settings
+    //    );
+    //
+    //    SessionFactoryImplementor sessionFactory =
+    // entityManagerFactory.unwrap(SessionFactoryImplementor.class);
+    //    ServiceRegistryImplementor serviceRegistry = sessionFactory.getServiceRegistry();
+    //    SchemaManagementTool tool = serviceRegistry.getService(SchemaManagementTool.class);
+    //    Map<String,Object> options =Map.of();
+    //    SchemaValidator schemaValidator = tool.getSchemaValidator(options);
+    //
+    //    final ExecutionOptions executionOptions =
+    // SchemaManagementToolCoordinator.buildExecutionOptions(
+    //        settings,
+    //        ExceptionHandlerHaltImpl.INSTANCE
+    //    );
+
+    //    schemaValidator.doValidation(
+    //        metadataImplementor,
+    //        executionOptions,
+    //        contributed -> contributed.getContributor().equals("orm")
+    //    );
   }
 }
