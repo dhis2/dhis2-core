@@ -71,7 +71,7 @@ public class TrackerImportEventScheduleJob implements Job {
                     createEvent(
                         scheduleParams.getEnrollment(),
                         scheduleParams.getOrgUnit(),
-                        scheduleParams.getProgramStageUid(),
+                        scheduleParams.getProgramStage(),
                         scheduleParams.getAttributeOptionCombo(),
                         scheduleParams.getScheduledAt())))
             .build();

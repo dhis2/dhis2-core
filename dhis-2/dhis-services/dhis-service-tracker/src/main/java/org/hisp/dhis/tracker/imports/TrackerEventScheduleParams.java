@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +35,8 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.scheduling.JobParameters;
 
 /**
+ * Job parameters required to initiate event scheduling job.
+ *
  * @author Zubair Asghar
  */
 @Data
@@ -41,10 +44,22 @@ import org.hisp.dhis.scheduling.JobParameters;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackerEventScheduleParams implements JobParameters {
-  private String ruleUid;
-  private String programStageUid;
-  private String enrollment;
-  private String orgUnit;
-  private String attributeOptionCombo;
-  private String scheduledAt;
+
+  /** ProgramRule UID which triggered event scheduling. */
+  @JsonProperty private String rule;
+
+  /** ProgramStage UID which event is created for. */
+  @JsonProperty private String programStage;
+
+  /** Enrollment UID which event belongs to. */
+  @JsonProperty private String enrollment;
+
+  /** OrganisationUnit UID which event belongs to. */
+  @JsonProperty private String orgUnit;
+
+  /** CategoryOptionCombo UID which belong to ProgramStage. */
+  @JsonProperty private String attributeOptionCombo;
+
+  /** Date at which event needs to be scheduled. */
+  @JsonProperty private String scheduledAt;
 }

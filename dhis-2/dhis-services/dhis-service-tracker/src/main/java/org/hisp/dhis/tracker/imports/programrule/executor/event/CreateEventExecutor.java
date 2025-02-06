@@ -34,12 +34,12 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.imports.TrackerEventScheduleParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Zubair Asghar
@@ -47,8 +47,8 @@ import org.hisp.dhis.user.CurrentUserUtil;
 @RequiredArgsConstructor
 public class CreateEventExecutor implements RuleActionExecutor<Event> {
   private final JobExecutionService jobExecutionService;
-  private final UID ruleUid;
-  private final UID programStageUid;
+  private final UID rule;
+  private final UID programStage;
   private final String scheduledAt;
 
   @Override
@@ -58,11 +58,12 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
     params.setOrgUnit(event.getOrgUnit().getIdentifier());
     params.setAttributeOptionCombo(
         bundle.getPreheat().getDefault(CategoryOptionCombo.class).getUid());
-    params.setProgramStageUid(programStageUid.getValue());
+    params.setProgramStage(programStage.getValue());
     params.setScheduledAt(scheduledAt);
 
-    JobConfiguration jobConfiguration = new JobConfiguration();
-    jobConfiguration.setExecutedBy(CurrentUserUtil.getCurrentUsername());
+    JobConfiguration jobConfiguration =
+        new JobConfiguration(JobType.TRACKER_IMPORT_EVENT_SCHEDULE_JOB);
+    jobConfiguration.setExecutedBy(bundle.getUser().getUid());
     jobConfiguration.setJobParameters(params);
 
     try {
