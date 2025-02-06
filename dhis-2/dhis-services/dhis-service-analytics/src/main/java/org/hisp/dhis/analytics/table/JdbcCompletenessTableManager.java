@@ -249,7 +249,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id ";
     String diffInSeconds = sqlBuilder.differenceInSeconds("cdr.date", "ps.enddate");
     String timelyDateDiff = diffInSeconds + " / (" + SECONDS_PER_DAY + ")";
-    String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
+    // Since the end date is reported with a time of 00:00:00, we add 1 day to the timely days
+    // so that the calculations starts at 00:00:00 of the day after the end date.
+    String timelyAlias = "((" + timelyDateDiff + ") <= (ds.timelydays + 1)) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
