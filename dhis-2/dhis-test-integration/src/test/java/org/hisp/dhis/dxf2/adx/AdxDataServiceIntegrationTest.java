@@ -67,6 +67,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -480,7 +481,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
     importOptions.setIdSchemes(idSchemes);
-    adxDataService.saveDataValueSet(in, importOptions, null);
+    adxDataService.saveDataValueSet(in, importOptions, JobProgress.noop());
 
     DataValue dataValue = dataValueService.getAllDataValues().get(0);
     assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
@@ -497,13 +498,13 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
     importOptions.setIdSchemes(idSchemes);
-    adxDataService.saveDataValueSet(in, importOptions, null);
+    adxDataService.saveDataValueSet(in, importOptions, JobProgress.noop());
 
     // wait for a small period so created & lastUpdated times are different & can be checked
     Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
 
     InputStream in2 = new ClassPathResource("adx/importDatesUpdate.adx.xml").getInputStream();
-    adxDataService.saveDataValueSet(in2, importOptions, null);
+    adxDataService.saveDataValueSet(in2, importOptions, JobProgress.noop());
 
     DataValue dataValue = dataValueService.getAllDataValues().get(0);
     assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
@@ -551,7 +552,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     InputStream in = new ClassPathResource(filePath).getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     importOptions.setIdSchemes(idSchemes);
-    adxDataService.saveDataValueSet(in, importOptions, null);
+    adxDataService.saveDataValueSet(in, importOptions, JobProgress.noop());
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertContainsOnly(
         List.of(

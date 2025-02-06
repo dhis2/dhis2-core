@@ -180,7 +180,15 @@ final class LazySettings implements SystemSettings, UserSettings {
   public <E extends Enum<?>> E asEnum(@Nonnull String key, @Nonnull E defaultValue) {
     Serializable value = orDefault(key, defaultValue);
     if (value != null && value.getClass() == defaultValue.getClass()) return (E) value;
-    return (E) asParseValue(key, defaultValue, raw -> Enum.valueOf(defaultValue.getClass(), raw));
+    return (E) asParseValue(key, defaultValue, raw -> parseEnum(defaultValue.getClass(), raw));
+  }
+
+  private static <E extends Enum<E>> E parseEnum(Class<E> type, String value) {
+    try {
+      return Enum.valueOf(type, value);
+    } catch (IllegalArgumentException ex) {
+      return Enum.valueOf(type, value.toUpperCase());
+    }
   }
 
   @Nonnull
@@ -284,7 +292,7 @@ final class LazySettings implements SystemSettings, UserSettings {
       if (defaultValue instanceof Date) return parseDate(value) != null;
       if (defaultValue instanceof Locale) return LocaleUtils.toLocale(value) != null;
       if (defaultValue instanceof Enum<?>)
-        return Enum.valueOf(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
+        return parseEnum(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
       return true;
     } catch (Exception ex) {
       return false;
