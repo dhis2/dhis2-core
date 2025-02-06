@@ -36,6 +36,7 @@
 
     <property name="createdByUsername" column="createdby" type="string"/>
 
+    <!-- TODO Add here foreign-key="none" -->
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" insert="false" update="false" property-ref="username">
       <column name="createdby" />
     </many-to-one>
