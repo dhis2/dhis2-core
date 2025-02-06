@@ -1,0 +1,72 @@
+{
+  "relationshipTypes":[
+    {
+      "id":"OG4B30LS1md",
+      "bidirectional":true,
+      "created":"2019-04-23T09:20:41.834",
+      "fromConstraint":{
+        "relationshipEntity":"TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType":{
+          "id":"Ip8NY4PW7Xm"
+        }
+      },
+      "fromToName":"Sibling of with tracker data view",
+      "lastUpdated":"2019-04-23T09:21:18.063",
+      "name":"Sibling of with tracker data view",
+      "sharing":{
+        "owner":null,
+        "public":"r-------"
+      },
+      "toConstraint":{
+        "program":{
+          "id":"BFcipDERJnf"
+        },
+        "trackerDataView":{
+          "attributes":[
+            "dIVt4l5vIOa"
+          ]
+        },
+        "relationshipEntity":"PROGRAM_INSTANCE"
+      },
+      "toFromName":"Sibling of with tracker data view"
+    },
+    {
+      "id":"LvCLE5oYGx6",
+      "bidirectional":true,
+      "created":"2019-04-23T09:20:41.834",
+      "fromConstraint":{
+        "relationshipEntity":"TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType":{
+          "id":"ja8NY4PW7Xm"
+        },
+        "trackerDataView":{
+          "attributes":[
+            "numericAttr"
+          ]
+        }
+      },
+      "fromToName":"TE to event of with tracker data view",
+      "lastUpdated":"2019-04-23T09:21:18.063",
+      "name":"TE to event of with tracker data view",
+      "sharing":{
+        "owner":null,
+        "public":"r-------"
+      },
+      "toConstraint":{
+        "program":{
+          "id":"BFcipDERJnf"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSO"
+        },
+        "trackerDataView":{
+          "dateElements":[
+            "NpsdDv6kKSO"
+          ]
+        },
+        "relationshipEntity":"PROGRAM_STAGE_INSTANCE"
+      },
+      "toFromName":"TE to event of with tracker data view"
+    }
+  ]
+}
