@@ -29,13 +29,13 @@ package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryComboStore;
+import org.hisp.dhis.category.CategoryComboDeletionHandler;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
@@ -61,8 +61,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MetadataCategoryOptionComboMergeHandler {
 
-  private final CategoryOptionStore categoryOptionStore;
-  private final CategoryComboStore categoryComboStore;
   private final DataElementOperandStore dataElementOperandStore;
   private final DataDimensionItemStore dataDimensionItemStore;
   private final MinMaxDataElementStore minMaxDataElementStore;
@@ -72,41 +70,23 @@ public class MetadataCategoryOptionComboMergeHandler {
   private final ExpressionStore expressionStore;
 
   /**
-   * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}
+   * Remove all {@link CategoryOption}s from source {@link CategoryOptionCombo}s
    *
    * @param sources to be removed
-   * @param target to add
    */
-  public void handleCategoryOptions(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    log.info("Merging source category options");
-    List<CategoryOption> categoryOptions =
-        categoryOptionStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
-
-    categoryOptions.forEach(
-        co -> {
-          co.addCategoryOptionCombo(target);
-          co.removeCategoryOptionCombos(sources);
-        });
+  public void handleCategoryOptions(@Nonnull List<CategoryOptionCombo> sources) {
+    for (CategoryOptionCombo coc : sources) coc.removeAllCategoryOptions();
+    log.info("Removed all category option references for source category option combos");
   }
 
   /**
-   * Remove sources from {@link CategoryCombo} and add target to {@link CategoryCombo}
-   *
-   * @param sources to be removed
-   * @param target to add
+   * Although nothing is done but log in this method, it is worth having to expose how the {@link
+   * CategoryCombo}s refs are being handled and also show that this has been thought about. This
+   * helps keep it up front and not hidden. The easiest way to remove this relationship is to let
+   * the {@link CategoryComboDeletionHandler} look after it.
    */
-  public void handleCategoryCombos(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    log.info("Merging source category combos");
-    List<CategoryCombo> categoryCombos =
-        categoryComboStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
-
-    categoryCombos.forEach(
-        cc -> {
-          cc.addCategoryOptionCombo(target);
-          cc.removeCategoryOptionCombos(sources);
-        });
+  public void handleCategoryCombos() {
+    log.info("Category combo references will be removed when the category option combo is deleted");
   }
 
   /**
