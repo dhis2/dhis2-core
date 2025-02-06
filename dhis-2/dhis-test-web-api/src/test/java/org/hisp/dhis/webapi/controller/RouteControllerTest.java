@@ -31,12 +31,14 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.hisp.dhis.http.HttpStatus;
@@ -44,7 +46,12 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockserver.client.MockServerClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,6 +63,8 @@ import org.springframework.test.web.servlet.client.MockMvcHttpConnector;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 @Transactional
 @ContextConfiguration(classes = {RouteControllerTest.ClientHttpConnectorTestConfig.class})
@@ -101,6 +110,100 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                   })
               .build();
       return new MockMvcHttpConnector(mockMvc);
+    }
+  }
+
+  @Transactional
+  @Nested
+  public class IntegrationTest extends PostgresControllerIntegrationTestBase {
+
+    private static GenericContainer<?> mockServerContainer;
+    private MockServerClient mockServerClient;
+
+    @BeforeAll
+    public static void beforeAll() {
+      mockServerContainer =
+          new GenericContainer<>("mockserver/mockserver")
+              .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+              .withExposedPorts(1080);
+      mockServerContainer.start();
+    }
+
+    @BeforeEach
+    public void beforeEach() {
+      mockServerClient =
+          new MockServerClient("localhost", mockServerContainer.getFirstMappedPort());
+    }
+
+    @AfterEach
+    public void afterEach() {
+      mockServerClient.reset();
+    }
+
+    @Test
+    public void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
+        throws JsonProcessingException {
+      mockServerClient
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 10));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
+      route.put("responseTimeout", 5);
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      HttpResponse runHttpResponse =
+          GET(
+              "/routes/{id}/run",
+              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
+      assertStatus(HttpStatus.GATEWAY_TIMEOUT, runHttpResponse);
+    }
+
+    @Test
+    public void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
+        throws JsonProcessingException {
+      mockServerClient
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
+      route.put("responseTimeout", 5);
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      HttpResponse runHttpResponse =
+          GET(
+              "/routes/{id}/run",
+              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
+      assertStatus(HttpStatus.OK, runHttpResponse);
+    }
+
+    @Test
+    public void testRunRouteWhenResponseIsHttpError() throws JsonProcessingException {
+      mockServerClient
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response(
+                      jsonMapper.writeValueAsString(Map.of("message", "not found")))
+                  .withStatusCode(404));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      HttpResponse runHttpResponse =
+          GET(
+              "/routes/{id}/run",
+              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
+      assertStatus(HttpStatus.NOT_FOUND, runHttpResponse);
+      assertEquals("not found", runHttpResponse.error().getMessage());
     }
   }
 

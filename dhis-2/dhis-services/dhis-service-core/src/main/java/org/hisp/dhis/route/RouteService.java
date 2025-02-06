@@ -29,6 +29,7 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
+import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -58,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientRequest;
 
 /**
@@ -232,8 +235,20 @@ public class RouteService {
         route.getName(),
         route.getUid());
 
-    WebClient.ResponseSpec responseSpec = requestHeadersSpec.retrieve();
-    ResponseEntity<String> response = responseSpec.toEntity(String.class).block();
+    WebClient.ResponseSpec responseSpec =
+        requestHeadersSpec
+            .retrieve()
+            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+
+    ResponseEntity<String> response =
+        responseSpec
+            .toEntity(String.class)
+            .onErrorReturn(
+                throwable ->
+                    throwable.getCause() != null
+                        && throwable.getCause() instanceof ReadTimeoutException,
+                new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+            .block();
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
     String responseBody = response.getBody();
 

@@ -2152,6 +2152,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
