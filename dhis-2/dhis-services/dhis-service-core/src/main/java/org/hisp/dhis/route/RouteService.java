@@ -244,8 +244,7 @@ public class RouteService {
         responseSpec
             .toEntity(String.class)
             .onErrorReturn(
-                throwable ->
-                    throwable.getCause() instanceof ReadTimeoutException,
+                throwable -> throwable.getCause() instanceof ReadTimeoutException,
                 new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
             .block();
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
