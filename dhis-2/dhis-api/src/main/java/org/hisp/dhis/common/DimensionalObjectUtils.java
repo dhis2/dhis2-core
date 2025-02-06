@@ -361,21 +361,6 @@ public class DimensionalObjectUtils {
   }
 
   /**
-   * Retrieves the value from the given dimension param. Returns the part of the string after the
-   * dimension name separator, or the whole string if the separator is not present. ie:
-   * dx:WSGAb5XwJ3Y.QFX1FLWBwtq, becomes WSGAb5XwJ3Y.QFX1FLWBwtq
-   *
-   * @param param the parameter.
-   */
-  public static String getValueFromDimensionParam(String param) {
-    if (param == null) {
-      return null;
-    }
-
-    return param.split(DIMENSION_NAME_SEP).length > 1 ? param.split(DIMENSION_NAME_SEP)[1] : param;
-  }
-
-  /**
    * Retrieves the dimension options from the given string. Looks for the part succeeding the
    * dimension name separator, if exists, splits the string part on the option separator and returns
    * the resulting values. If the dimension name separator does not exist an empty list is returned,
@@ -574,17 +559,6 @@ public class DimensionalObjectUtils {
 
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
 
-    return matcher.matches() ? matcher.group("id3") : null;
-  }
-
-  /**
-   * Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
-   *
-   * @param optionSetParam
-   * @return the options specified for the option set param, or null.
-   */
-  public static String getOptionsParam(String optionSetParam) {
-    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(optionSetParam);
     return matcher.matches() ? matcher.group("id3") : null;
   }
 

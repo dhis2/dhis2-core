@@ -33,7 +33,6 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -859,25 +858,6 @@ public class DataQueryParams {
   /** Indicates whether the this parameters has the given output format specified. */
   public boolean isOutputFormat(OutputFormat format) {
     return this.outputFormat != null && this.outputFormat == format;
-  }
-
-  /**
-   * Checks if there is an {@OptionSet} object inside data elements present in the current
-   * "dimensions" attribute of this class.
-   *
-   * @return boolean if found, false otherwise.
-   */
-  public boolean hasOptionSetInDimensionItemsTypeDataElement() {
-    for (DimensionalObject d : dimensions) {
-      for (DimensionalItemObject it : d.getItems()) {
-        if (it.getDimensionItemType() == DATA_ELEMENT
-            && ((DataElement) it).getOptionSet() != null) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   /**
