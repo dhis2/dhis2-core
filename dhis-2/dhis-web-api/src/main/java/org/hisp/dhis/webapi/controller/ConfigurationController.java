@@ -45,8 +45,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -479,9 +479,10 @@ public class ConfigurationController {
   @GetMapping("/twoFactorMethods")
   public @ResponseBody Map<String, Boolean> getTwoFactorMethods() {
     return Map.of(
-        "email2faEnabled", Boolean.parseBoolean(config.getProperty(ConfigurationKey.EMAIL_2FA_ENABLED)),
-        "totp2faEnabled", Boolean.parseBoolean(config.getProperty(ConfigurationKey.TOTP_2FA_ENABLED))
-    );
+        "email2faEnabled",
+            Boolean.parseBoolean(config.getProperty(ConfigurationKey.EMAIL_2FA_ENABLED)),
+        "totp2faEnabled",
+            Boolean.parseBoolean(config.getProperty(ConfigurationKey.TOTP_2FA_ENABLED)));
   }
 
   /**
