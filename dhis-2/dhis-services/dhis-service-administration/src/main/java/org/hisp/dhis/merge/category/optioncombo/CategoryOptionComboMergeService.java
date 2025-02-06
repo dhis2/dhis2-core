@@ -134,8 +134,8 @@ public class CategoryOptionComboMergeService implements MergeService {
   private void initMergeHandlers() {
     metadataMergeHandlers =
         List.of(
-            metadataMergeHandler::handleCategoryOptions,
-            metadataMergeHandler::handleCategoryCombos,
+            (sources, target) -> metadataMergeHandler.handleCategoryOptions(sources),
+            (sources, target) -> metadataMergeHandler.handleCategoryCombos(),
             metadataMergeHandler::handlePredictors,
             metadataMergeHandler::handleDataElementOperands,
             metadataMergeHandler::handleMinMaxDataElements,

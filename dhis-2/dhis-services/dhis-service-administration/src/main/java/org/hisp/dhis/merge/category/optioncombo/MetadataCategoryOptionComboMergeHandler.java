@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryComboDeletionHandler;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -73,19 +74,18 @@ public class MetadataCategoryOptionComboMergeHandler {
    *
    * @param sources to be removed
    */
-  public void handleCategoryOptions(
-      @Nonnull List<CategoryOptionCombo> sources, @Nonnull CategoryOptionCombo target) {
+  public void handleCategoryOptions(@Nonnull List<CategoryOptionCombo> sources) {
     for (CategoryOptionCombo coc : sources) coc.removeAllCategoryOptions();
     log.info("Removed all category option references for source category option combos");
   }
 
   /**
-   * Remove {@link CategoryCombo} from source {@link CategoryOptionCombo}s
-   *
-   * @param sources to be removed
-   * @param target to add
+   * Although nothing is done but log in this method, it is worth having to expose how the {@link
+   * CategoryCombo}s refs are being handled and also show that this has been thought about. This
+   * helps keep it up front and not hidden. The easiest way to remove this relationship is to let
+   * the {@link CategoryComboDeletionHandler} look after it.
    */
-  public void handleCategoryCombos(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+  public void handleCategoryCombos() {
     log.info("Category combo references will be removed when the category option combo is deleted");
   }
 
