@@ -58,9 +58,9 @@ public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
   private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
   private static final String ORDER_CHANGE_EXPRESSION =
-      "CONCAT(COALESCE(d.formName, ''), COALESCE(d.name, ''), COALESCE("
+      "CONCAT(COALESCE(LOWER(d.formName), ''), COALESCE(LOWER(d.name), ''), COALESCE(LOWER("
           + COLUMN_CHANGELOG_FIELD
-          + ", ''))";
+          + "), ''))";
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
