@@ -27,9 +27,16 @@
  */
 package org.hisp.dhis.test.config;
 
+import static org.hisp.dhis.config.HibernateConfig.getAdditionalProperties;
+import static org.hisp.dhis.config.HibernateConfig.loadResources;
+
+import jakarta.persistence.EntityManagerFactory;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.sql.DataSource;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -38,8 +45,11 @@ import org.hisp.dhis.test.h2.H2SqlFunction;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 /** Use this Spring configuration for tests relying on the H2 in-memory DB. */
 @Configuration
@@ -54,6 +64,30 @@ public class H2TestConfig {
   @Bean
   public NoOpFlyway flyway() {
     return new NoOpFlyway();
+  }
+
+  @Bean
+  @DependsOn({"flyway"})
+  public EntityManagerFactory entityManagerFactory(
+      DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
+    // TODO(ivo) does it make sense to make a bean out of this adapter so only this bean can be
+    // overriden?
+    // TODO(ivo) how can I then only override the jpa properties of the factory?
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+    adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    adapter.setGenerateDdl(true);
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(adapter);
+    factory.setPersistenceUnitName("dhis");
+    factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+    factory.setDataSource(dataSource);
+    factory.setPackagesToScan("org.hisp.dhis");
+    factory.setMappingResources(loadResources());
+    Properties additionalProperties = getAdditionalProperties(dhisConfig);
+    additionalProperties.put(AvailableSettings.HBM2DDL_AUTO, "update");
+    factory.setJpaProperties(additionalProperties);
+    factory.afterPropertiesSet();
+    return factory.getObject();
   }
 
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})

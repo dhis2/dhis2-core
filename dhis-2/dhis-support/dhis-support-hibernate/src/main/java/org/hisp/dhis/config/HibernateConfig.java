@@ -118,7 +118,6 @@ public class HibernateConfig {
       DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    // adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
@@ -146,7 +145,7 @@ public class HibernateConfig {
    *
    * @return Array of Strings representing the mapping files
    */
-  private String[] loadResources() {
+  public static String[] loadResources() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
@@ -166,7 +165,7 @@ public class HibernateConfig {
   /**
    * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
    */
-  private Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
+  public static Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
@@ -181,7 +180,8 @@ public class HibernateConfig {
           MissingCacheStrategy.CREATE.getExternalRepresentation());
     }
 
-    // properties.put(AvailableSettings.HBM2DDL_AUTO, getHibernateSchemaAction(dhisConfig));
+    // TODO(ivo)
+    //    properties.put(AvailableSettings.HBM2DDL_AUTO, getHibernateSchemaAction(dhisConfig));
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
@@ -189,7 +189,7 @@ public class HibernateConfig {
     return properties;
   }
 
-  private Action getHibernateSchemaAction(DhisConfigurationProvider dhisConfig) {
+  public static Action getHibernateSchemaAction(DhisConfigurationProvider dhisConfig) {
     try {
       return Action.interpretHbm2ddlSetting(dhisConfig.getProperty(CONNECTION_SCHEMA));
     } catch (Exception e) {
