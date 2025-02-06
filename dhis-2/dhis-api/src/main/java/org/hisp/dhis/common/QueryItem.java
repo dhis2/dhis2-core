@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -70,6 +71,8 @@ public class QueryItem implements GroupableItem {
   private AggregationType aggregationType;
 
   private OptionSet optionSet;
+
+  private Option option;
 
   private Program program;
 
@@ -429,6 +432,7 @@ public class QueryItem implements GroupableItem {
     final QueryItem other = (QueryItem) object;
 
     return Objects.equals(item, other.getItem())
+        && Objects.equals(option, other.getOption())
         && Objects.equals(program, other.getProgram())
         && Objects.equals(programStage, other.getProgramStage())
         && Objects.equals(repeatableStageParams, other.getRepeatableStageParams());

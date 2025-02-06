@@ -372,10 +372,9 @@ public class DimensionalObjectUtils {
     }
 
     if (param.split(DIMENSION_NAME_SEP).length > 1) {
-      // Extracts dimension items by removing dimension name and separator
+      // Extracts dimension items by removing dimension name and separator.
       String dimensionItems = param.substring(param.indexOf(DIMENSION_NAME_SEP) + 1);
 
-      // Returns them as List<String>
       return Arrays.asList(dimensionItems.split(OPTION_SEP));
     }
 
@@ -522,20 +521,45 @@ public class DimensionalObjectUtils {
    * @param compositeItem the composite dimension object identifier.
    * @return the first identifier, or null if not a valid composite identifier or no match.
    */
-  public static String getFirstIdentifer(String compositeItem) {
+  public static String getFirstIdentifier(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() ? matcher.group(1) : null;
+    return matcher.matches() ? matcher.group("id1") : null;
   }
 
   /**
    * Returns the second identifier in a composite dimension object identifier.
    *
    * @param compositeItem the composite dimension object identifier.
-   * @return the second identifier, or null if not a valid composite identifier or no match.
+   * @return the second identifier, or null if thr composite identifier is not valid or do not
+   *     match.
    */
-  public static String getSecondIdentifer(String compositeItem) {
+  public static String getSecondIdentifier(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() ? matcher.group(2) : null;
+    return matcher.matches() ? matcher.group("id2") : null;
+  }
+
+  /**
+   * Returns the third identifier in a composite dimension object identifier.
+   *
+   * @param compositeItem the composite dimension object identifier.
+   * @return the third identifier, or null if thr composite identifier is not valid or do not match.
+   */
+  public static String getThirdIdentifier(String compositeItem) {
+    if (compositeItem == null) {
+      return null;
+    }
+
+    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
+
+    return matcher.matches() ? matcher.group("id3") : null;
   }
 
   /**

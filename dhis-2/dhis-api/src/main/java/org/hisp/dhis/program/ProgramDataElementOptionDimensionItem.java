@@ -28,7 +28,7 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.apache.commons.lang3.StringUtils.SPACE;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -81,17 +81,18 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
 
   @Override
   public String getName() {
-    return joinWith(
-        SPACE, program.getDisplayName(), dataElement.getDisplayName(), option.getDisplayName());
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayName(), dataElement.getDisplayName(), program.getDisplayName());
   }
 
   @Override
   public String getShortName() {
-    return joinWith(
-        SPACE,
-        program.getDisplayShortName(),
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayShortName(),
         dataElement.getDisplayShortName(),
-        option.getDisplayShortName());
+        program.getDisplayShortName());
   }
 
   @Override

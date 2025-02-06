@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -50,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -362,7 +365,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
-                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
+                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
 
     populateTableInternal(partition, fromClause);
   }
@@ -462,11 +465,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    Set<DataElement> dataElements =
+        program.getAnalyticsDataElements().stream().filter(Objects::nonNull).collect(toSet());
+
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        dataElements.stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
+
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
@@ -530,7 +537,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * Returns a list of columns.
    *
    * @param dataElement the {@link DataElement}.
-   * @param dataFilterClause the data filter SQL clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
@@ -660,7 +666,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param dataElement the {@link DataElement}.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
-   * @return a list of {@link AnayticsTableColumn}.
+   * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
@@ -774,7 +780,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param value the value.
    * @return a numeric regexp match expression.
    */
-  private final String getNumericClause(String value) {
+  private String getNumericClause(String value) {
     return " and " + sqlBuilder.regexpMatch(value, "'" + NUMERIC_LENIENT_REGEXP + "'");
   }
 

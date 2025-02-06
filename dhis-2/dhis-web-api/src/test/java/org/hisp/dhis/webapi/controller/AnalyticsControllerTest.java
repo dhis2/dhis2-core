@@ -96,7 +96,6 @@ class AnalyticsControllerTest {
 
   @BeforeEach
   public void setUp() {
-
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
             dimensionalObjectProducer,
