@@ -62,4 +62,7 @@ public class TrackerEventScheduleParams implements JobParameters {
 
   /** Date at which event needs to be scheduled. */
   @JsonProperty private String scheduledAt;
+
+  /** User who initiated actual import. */
+  @JsonProperty private String userName;
 }

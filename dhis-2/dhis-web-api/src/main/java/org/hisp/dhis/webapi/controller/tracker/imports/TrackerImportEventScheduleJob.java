@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -65,16 +64,7 @@ public class TrackerImportEventScheduleJob implements Job {
         (TrackerEventScheduleParams) config.getJobParameters();
 
     TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .events(
-                List.of(
-                    createEvent(
-                        scheduleParams.getEnrollment(),
-                        scheduleParams.getOrgUnit(),
-                        scheduleParams.getProgramStage(),
-                        scheduleParams.getAttributeOptionCombo(),
-                        scheduleParams.getScheduledAt())))
-            .build();
+        TrackerObjects.builder().events(List.of(createEvent(scheduleParams))).build();
 
     TrackerImportParams importParams =
         TrackerImportParams.builder()
@@ -84,16 +74,15 @@ public class TrackerImportEventScheduleJob implements Job {
     trackerImportService.importTracker(importParams, trackerObjects);
   }
 
-  private Event createEvent(
-      String enrollment, String orgUnit, String programStageUid, String aoc, String scheduledAt) {
+  private Event createEvent(TrackerEventScheduleParams params) {
     return Event.builder()
         .event(UID.generate())
-        .enrollment(UID.of(enrollment))
-        .orgUnit(MetadataIdentifier.ofUid(orgUnit))
-        .programStage(MetadataIdentifier.ofUid(programStageUid))
-        .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
-        .storedBy(CurrentUserUtil.getCurrentUsername())
-        .scheduledAt(DateUtils.instantFromDateAsString(scheduledAt))
+        .enrollment(UID.of(params.getEnrollment()))
+        .orgUnit(MetadataIdentifier.ofUid(params.getOrgUnit()))
+        .programStage(MetadataIdentifier.ofUid(params.getProgramStage()))
+        .attributeOptionCombo(MetadataIdentifier.ofUid(params.getAttributeOptionCombo()))
+        .storedBy(params.getUserName())
+        .scheduledAt(DateUtils.instantFromDateAsString(params.getScheduledAt()))
         .status(EventStatus.SCHEDULE)
         .build();
   }

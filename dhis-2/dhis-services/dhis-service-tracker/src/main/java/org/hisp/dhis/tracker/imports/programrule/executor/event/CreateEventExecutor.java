@@ -60,6 +60,7 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
         bundle.getPreheat().getDefault(CategoryOptionCombo.class).getUid());
     params.setProgramStage(programStage.getValue());
     params.setScheduledAt(scheduledAt);
+    params.setUserName(bundle.getUser().getUsername());
 
     JobConfiguration jobConfiguration =
         new JobConfiguration(JobType.TRACKER_IMPORT_EVENT_SCHEDULE_JOB);
