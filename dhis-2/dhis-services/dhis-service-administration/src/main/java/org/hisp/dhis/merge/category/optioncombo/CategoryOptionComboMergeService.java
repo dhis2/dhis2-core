@@ -73,7 +73,27 @@ public class CategoryOptionComboMergeService implements MergeService {
     if (params.getDataMergeStrategy() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
     }
+
+    if (mergeReport.hasErrorMessages()) return request;
+
+    // only allow merge if COCs are duplicate
+    List<CategoryOptionCombo> sources =
+        categoryService.getCategoryOptionCombosByUid(request.getSources());
+    CategoryOptionCombo target =
+        categoryService.getCategoryOptionCombo(request.getTarget().getValue());
+    if (!catOptCombosAreDuplicates(sources, target)) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1540));
+    }
     return request;
+  }
+
+  protected static boolean catOptCombosAreDuplicates(
+      List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    boolean allSourcesEqualTarget = sources.stream().allMatch(source -> source.equals(target));
+    boolean allSourceUidsAreDifferentThanTarget =
+        sources.stream().noneMatch(source -> source.getUid().equals(target.getUid()));
+
+    return allSourcesEqualTarget && allSourceUidsAreDifferentThanTarget;
   }
 
   @Override
@@ -105,8 +125,8 @@ public class CategoryOptionComboMergeService implements MergeService {
   private void handleDeleteSources(List<CategoryOptionCombo> sources, MergeReport mergeReport) {
     log.info("Deleting source CategoryOptionCombos");
     for (CategoryOptionCombo source : sources) {
-      mergeReport.addDeletedSource(source.getUid());
       categoryService.deleteCategoryOptionCombo(source);
+      mergeReport.addDeletedSource(source.getUid());
     }
   }
 
@@ -114,8 +134,8 @@ public class CategoryOptionComboMergeService implements MergeService {
   private void initMergeHandlers() {
     metadataMergeHandlers =
         List.of(
-            metadataMergeHandler::handleCategoryOptions,
-            metadataMergeHandler::handleCategoryCombos,
+            (sources, target) -> metadataMergeHandler.handleCategoryOptions(sources),
+            (sources, target) -> metadataMergeHandler.handleCategoryCombos(),
             metadataMergeHandler::handlePredictors,
             metadataMergeHandler::handleDataElementOperands,
             metadataMergeHandler::handleMinMaxDataElements,
