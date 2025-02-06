@@ -142,7 +142,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    public void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
+    void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
         throws JsonProcessingException {
       mockServerClient
           .when(request().withPath("/"))
@@ -164,7 +164,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    public void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
+    void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
         throws JsonProcessingException {
       mockServerClient
           .when(request().withPath("/"))
@@ -185,7 +185,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    public void testRunRouteWhenResponseIsHttpError() throws JsonProcessingException {
+    void testRunRouteWhenResponseIsHttpError() throws JsonProcessingException {
       mockServerClient
           .when(request().withPath("/"))
           .respond(
