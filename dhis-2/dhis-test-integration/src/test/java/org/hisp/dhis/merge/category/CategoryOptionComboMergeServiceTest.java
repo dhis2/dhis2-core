@@ -28,8 +28,10 @@
 package org.hisp.dhis.merge.category;
 
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.feedback.ErrorCode.E15400;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
@@ -41,11 +43,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -70,6 +71,7 @@ import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
@@ -118,8 +120,7 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
-  @Autowired private CategoryOptionStore categoryOptionStore;
-  @Autowired private CategoryComboStore categoryComboStore;
+  @Autowired private CategoryOptionComboStore categoryOptionComboStore;
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
   @Autowired private PredictorStore predictorStore;
@@ -150,9 +151,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private Period p1;
   private Period p2;
   private Period p3;
-
-  private static final String NON_DUPLICATE_VALIDATION_ERROR =
-      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge";
 
   @BeforeEach
   public void setUp() {
@@ -192,6 +190,24 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
   }
 
+  @Test
+  @DisplayName("Merging non-duplicate COCs results in an error")
+  void nonDuplicateResultsInErrorTest() {
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setSources(Set.of(UID.of(cocRandom)));
+
+    ConflictException conflictException =
+        assertThrows(
+            ConflictException.class,
+            () -> categoryOptionComboMergeService.processMerge(mergeParams));
+
+    assertTrue(
+        conflictException.getMergeReport().getMergeErrors().stream()
+            .map(ErrorMessage::getMessage)
+            .collect(Collectors.toSet())
+            .contains(E15400.getMessage()));
+  }
+
   // -----------------------------
   // ------ CategoryOption -------
   // -----------------------------
@@ -207,9 +223,15 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptions.size(), "5 COs including 1 default");
 
     long coSourcesBefore =
-        categoryOptionStore.countByCategoryOptionCombo(List.of(cocDuplicate.getId()));
+        categoryOptionComboStore.getAll().stream()
+            .filter(coc -> coc.getId() == cocDuplicate.getId())
+            .mapToLong(coc -> coc.getCategoryOptions().size())
+            .sum();
     long coTargetBefore =
-        categoryOptionStore.countByCategoryOptionCombo(List.of(cocTarget.getId()));
+        categoryOptionComboStore.getAll().stream()
+            .filter(coc -> coc.getId() == cocTarget.getId())
+            .mapToLong(coc -> coc.getCategoryOptions().size())
+            .sum();
 
     assertEquals(
         2, coSourcesBefore, "Expect 2 category options with source category option combo refs");
@@ -224,8 +246,15 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     long coSourcesAfter =
-        categoryOptionStore.countByCategoryOptionCombo(List.of(cocDuplicate.getId()));
-    long coTargetAfter = categoryOptionStore.countByCategoryOptionCombo(List.of(cocTarget.getId()));
+        categoryOptionComboStore.getAll().stream()
+            .filter(coc -> coc.getId() == cocDuplicate.getId())
+            .mapToLong(coc -> coc.getCategoryOptions().size())
+            .sum();
+    long coTargetAfter =
+        categoryOptionComboStore.getAll().stream()
+            .filter(coc -> coc.getId() == cocTarget.getId())
+            .mapToLong(coc -> coc.getCategoryOptions().size())
+            .sum();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, coSourcesAfter, "Expect 0 entries with source category option combo refs");
@@ -264,8 +293,15 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(2, allCategoryCombos.size(), "2 CCs including 1 default");
 
     long ccSourcesBefore =
-        categoryComboStore.countByCategoryOptionCombo(List.of(cocDuplicate.getId()));
-    long ccTargetBefore = categoryComboStore.countByCategoryOptionCombo(List.of(cocTarget.getId()));
+        categoryService.getAllCategoryOptionCombos().stream()
+            .filter(coc -> coc.getId() == cocDuplicate.getId())
+            .filter(coc -> coc.getCategoryCombo().getId() == categoryMetadata.cc1().getId())
+            .count();
+    long ccTargetBefore =
+        categoryService.getAllCategoryOptionCombos().stream()
+            .filter(coc -> coc.getId() == cocTarget.getId())
+            .filter(coc -> coc.getCategoryCombo().getId() == categoryMetadata.cc1().getId())
+            .count();
 
     assertEquals(
         1, ccSourcesBefore, "Expect 1 category combo with source category option combo refs");
@@ -277,16 +313,23 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
     entityManager.flush();
 
+    // then
     List<CategoryOptionCombo> allCOCsAfter = categoryService.getAllCategoryOptionCombos();
     List<CategoryCombo> allCCsAfter = categoryService.getAllCategoryCombos();
 
-    assertEquals(5, allCOCsAfter.size(), "3 COCs including 1 default");
+    assertEquals(5, allCOCsAfter.size(), "5 COCs including 1 default");
     assertEquals(2, allCCsAfter.size(), "2 CCs including 1 default");
 
-    // then
     long ccSourcesAfter =
-        categoryComboStore.countByCategoryOptionCombo(List.of(cocDuplicate.getId()));
-    long ccTargetAfter = categoryComboStore.countByCategoryOptionCombo(List.of(cocTarget.getId()));
+        allCOCsAfter.stream()
+            .filter(coc -> coc.getId() == cocDuplicate.getId())
+            .filter(coc -> coc.getCategoryCombo().getId() == categoryMetadata.cc1().getId())
+            .count();
+    long ccTargetAfter =
+        allCOCsAfter.stream()
+            .filter(coc -> coc.getId() == cocTarget.getId())
+            .filter(coc -> coc.getCategoryCombo().getId() == categoryMetadata.cc1().getId())
+            .count();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, ccSourcesAfter, "Expect 0 entries with source category option combo refs");

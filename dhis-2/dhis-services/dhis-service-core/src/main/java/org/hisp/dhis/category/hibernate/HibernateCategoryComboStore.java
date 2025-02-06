@@ -29,10 +29,7 @@ package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -65,29 +62,5 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimensionType))
             .addPredicate(root -> builder.equal(root.get("name"), "default")));
-  }
-
-  @Override
-  public int removeCocRelationship(@Nonnull Collection<Long> ids) {
-    if (ids.isEmpty()) return 0;
-    String sql =
-        """
-        delete from categoryoptioncombos_categoryoptions
-        where categoryoptioncomboid in (%s);
-        """
-            .formatted(ids.stream().map(String::valueOf).collect(Collectors.joining()));
-    return jdbcTemplate.update(sql);
-  }
-
-  @Override
-  public Long countByCategoryOptionCombo(@Nonnull Collection<Long> ids) {
-    if (ids.isEmpty()) return 0L;
-    String sql =
-        """
-        select count(*) from categorycombos_optioncombos
-        where categoryoptioncomboid in (%s);
-        """
-            .formatted(ids.stream().map(String::valueOf).collect(Collectors.joining()));
-    return jdbcTemplate.queryForObject(sql, Long.class);
   }
 }

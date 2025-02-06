@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.category;
 
-import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -38,15 +36,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface CategoryComboStore extends IdentifiableObjectStore<CategoryCombo> {
   List<CategoryCombo> getCategoryCombosByDimensionType(DataDimensionType dataDimensionType);
-
-  //  /**
-  //   * Retrieve all {@link CategoryCombo}s with {@link CategoryOptionCombo} {@link UID}s
-  //   *
-  //   * @param uids {@link CategoryOptionCombo} {@link UID}s
-  //   * @return {@link CategoryCombo}s with references to {@link CategoryOptionCombo} {@link UID}s
-  //   *     passed in
-  //   */
-  Long countByCategoryOptionCombo(@Nonnull Collection<Long> ids);
-
-  int removeCocRelationship(@Nonnull Collection<Long> ids);
 }
