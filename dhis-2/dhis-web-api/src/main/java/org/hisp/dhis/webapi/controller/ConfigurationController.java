@@ -33,6 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -472,6 +474,15 @@ public class ConfigurationController {
   @GetMapping("/appHubUrl")
   public @ResponseBody String getAppHubUrl(Model model, HttpServletRequest request) {
     return appManager.getAppHubUrl();
+  }
+
+  @GetMapping("/twoFactorMethods")
+  public @ResponseBody Map<String, Boolean> getTwoFactorMethods() {
+    return Map.of(
+        "email2faEnabled",
+            Boolean.parseBoolean(config.getProperty(ConfigurationKey.EMAIL_2FA_ENABLED)),
+        "totp2faEnabled",
+            Boolean.parseBoolean(config.getProperty(ConfigurationKey.TOTP_2FA_ENABLED)));
   }
 
   /**
