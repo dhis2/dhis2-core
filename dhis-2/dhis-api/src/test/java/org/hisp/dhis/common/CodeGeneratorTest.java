@@ -83,4 +83,17 @@ class CodeGeneratorTest {
         CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE,
         (CodeGenerator.getRandomSecureToken()).length());
   }
+
+  @Test
+  void testGenerateUid_Timestamp() {
+    // all numbers are just randomly selected
+    // the main point is that they always generate the same UID
+    // and that very similar numbers generate very different UIDs
+    long time = 33249832492304L;
+    assertEquals("D1dL1bY3aA0", CodeGenerator.generateUid(time));
+    assertEquals("eG9bO6eHB0a", CodeGenerator.generateUid(time + 1));
+    assertEquals("D7dL1bY3aC0", CodeGenerator.generateUid(time + 2));
+    assertEquals("eA9bO6eHB2a", CodeGenerator.generateUid(time + 3));
+    assertEquals("oE9bO8kLK2y", CodeGenerator.generateUid(time - 3933));
+  }
 }
