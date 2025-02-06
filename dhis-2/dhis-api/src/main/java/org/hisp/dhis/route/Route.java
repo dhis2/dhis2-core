@@ -67,6 +67,9 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
   /** Optional. Required authorities for invoking the route. */
   @JsonProperty private List<String> authorities = new ArrayList<>();
 
+  @JsonProperty(defaultValue = "10")
+  private Integer responseTimeout;
+
   /**
    * If the route url ends with /** return true. Otherwise return false.
    *
