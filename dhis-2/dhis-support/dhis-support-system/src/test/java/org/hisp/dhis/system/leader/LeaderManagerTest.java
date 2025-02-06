@@ -31,20 +31,131 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.system.SystemTest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
+import org.hisp.dhis.leader.election.NoOpLeaderManager;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Ameen Mohamed
  */
-class LeaderManagerTest extends SystemTest {
+class LeaderManagerTest {
+  static class TestDhisConfigurationProvider implements DhisConfigurationProvider {
 
-  @Autowired private LeaderManager leaderManager;
+    protected Properties properties;
+
+    public TestDhisConfigurationProvider(Properties properties) {
+      this.properties = properties;
+    }
+
+    @Override
+    public Properties getProperties() {
+      return this.properties;
+    }
+
+    @Override
+    public String getProperty(ConfigurationKey key) {
+      return getPropertyOrDefault(key, key.getDefaultValue());
+    }
+
+    @Override
+    public String getPropertyOrDefault(ConfigurationKey key, String defaultValue) {
+      for (String alias : key.getAliases()) {
+        if (properties.contains(alias)) {
+          return properties.getProperty(alias);
+        }
+      }
+
+      return properties.getProperty(key.getKey(), defaultValue);
+    }
+
+    @Override
+    public boolean hasProperty(ConfigurationKey key) {
+      return false;
+    }
+
+    @Override
+    public boolean isEnabled(ConfigurationKey key) {
+      return DhisConfigurationProvider.isOn(getProperty(key));
+    }
+
+    @Override
+    public boolean isDisabled(ConfigurationKey key) {
+      return DhisConfigurationProvider.isOff(getProperty(key));
+    }
+
+    @Override
+    public Optional<GoogleCredential> getGoogleCredential() {
+      return Optional.empty();
+    }
+
+    @Override
+    public Optional<GoogleAccessToken> getGoogleAccessToken() {
+      return Optional.empty();
+    }
+
+    @Override
+    public boolean isReadOnlyMode() {
+      return false;
+    }
+
+    @Override
+    public boolean isClusterEnabled() {
+      return false;
+    }
+
+    @Override
+    public String getServerBaseUrl() {
+      return "";
+    }
+
+    @Override
+    public List<String> getRemoteServersAllowed() {
+      return List.of();
+    }
+
+    @Override
+    public boolean remoteServerIsInAllowedList(String url) {
+      return false;
+    }
+
+    @Override
+    public boolean isLdapConfigured() {
+      return false;
+    }
+
+    @Override
+    public boolean isAnalyticsDatabaseConfigured() {
+      return false;
+    }
+
+    @Override
+    public EncryptionStatus getEncryptionStatus() {
+      return EncryptionStatus.OK;
+    }
+
+    @Override
+    public Map<String, Serializable> getConfigurationsAsMap() {
+      return Map.of();
+    }
+  }
 
   @Test
   void testNodeInfo() {
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.NODE_ID, "1");
+    TestDhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+    NoOpLeaderManager leaderManager = new NoOpLeaderManager(dhisConfigurationProvider);
+
     assertNotNull(leaderManager.getCurrentNodeUuid());
     assertNotNull(leaderManager.getLeaderNodeUuid());
     assertEquals(leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid());

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_SCHEMA;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
@@ -121,13 +120,13 @@ public class HibernateConfig {
     return new EntityManagerBeanDefinitionRegistrarPostProcessor();
   }
 
+  // NOTE: this must stay in sync with H2TestConfig.entityManagerFactory
   @Bean("entityManagerFactory")
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactoryBean(
       DhisConfigurationProvider dhisConfig, DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
-    adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
@@ -142,22 +141,19 @@ public class HibernateConfig {
     return factory.getObject();
   }
 
-  /**
-   * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
-   */
-  private Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
+  public static Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
-    if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
+    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
     }
 
-    properties.put(AvailableSettings.HBM2DDL_AUTO, getHibernateSchemaAction(dhisConfig));
+    properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
@@ -170,7 +166,7 @@ public class HibernateConfig {
    *
    * @return Array of Strings representing the mapping files
    */
-  private String[] loadResources() {
+  public static String[] loadResources() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
@@ -185,26 +181,5 @@ public class HibernateConfig {
       log.error(e.getMessage(), e);
     }
     return ArrayUtils.EMPTY_STRING_ARRAY;
-  }
-
-  /**
-   * If return true, hibernate will generate the DDL for the database. This is used by h2-test.
-   * @param dhisConfig {@link DhisConfigurationProvider
-   * @return TRUE if connection.schema is not set to none
-   */
-  private boolean shouldGenerateDDL(DhisConfigurationProvider dhisConfig) {
-    return "update".equals(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
-  }
-
-  private Action getHibernateSchemaAction(DhisConfigurationProvider dhisConfig) {
-    try {
-      return Action.interpretHbm2ddlSetting(dhisConfig.getProperty(CONNECTION_SCHEMA));
-    } catch (Exception e) {
-      log.warn(
-          String.format(
-              "Invalid value for property connection.schema: %s. Using validate as default mode.",
-              dhisConfig.getProperty(CONNECTION_SCHEMA)));
-      return Action.VALIDATE;
-    }
   }
 }

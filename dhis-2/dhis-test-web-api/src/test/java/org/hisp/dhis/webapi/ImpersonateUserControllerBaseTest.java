@@ -31,6 +31,7 @@ import java.util.Date;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.H2TestConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
@@ -60,6 +61,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(
     classes = {
+      H2TestConfig.class,
       TestableImpersonateUserConfiguration.class,
       MvcTestConfig.class,
       WebTestConfiguration.class

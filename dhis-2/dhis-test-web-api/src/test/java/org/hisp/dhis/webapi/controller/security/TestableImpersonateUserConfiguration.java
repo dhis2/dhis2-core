@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Profile;
 @Profile({"impersonate-user-test"})
 public class TestableImpersonateUserConfiguration {
 
-  @Bean(name = "dhisConfigurationProvider")
+  @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
     H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
 
