@@ -27,69 +27,50 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
-
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobExecutionService;
+import org.hisp.dhis.tracker.imports.TrackerEventScheduleParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Zubair Asghar
  */
 @RequiredArgsConstructor
 public class CreateEventExecutor implements RuleActionExecutor<Event> {
-  private final TrackerImportService trackerImportService;
-
+  private final JobExecutionService jobExecutionService;
   private final UID ruleUid;
   private final UID programStageUid;
   private final String scheduledAt;
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    TrackerImportParams params =
-        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    TrackerEventScheduleParams params = new TrackerEventScheduleParams();
+    params.setEnrollment(event.getEnrollment().getValue());
+    params.setOrgUnit(event.getOrgUnit().getIdentifier());
+    params.setAttributeOptionCombo(
+        bundle.getPreheat().getDefault(CategoryOptionCombo.class).getUid());
+    params.setProgramStageUid(programStageUid.getValue());
+    params.setScheduledAt(scheduledAt);
 
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder().events(List.of(createEvent(event, bundle.getPreheat()))).build();
+    JobConfiguration jobConfiguration = new JobConfiguration();
+    jobConfiguration.setExecutedBy(CurrentUserUtil.getCurrentUsername());
+    jobConfiguration.setJobParameters(params);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    if (Status.OK != importReport.getStatus()) {
-      return Optional.of(error(ruleUid, ValidationCode.E1318, ruleUid.getValue(), scheduledAt));
+    try {
+      jobExecutionService.executeOnceNow(jobConfiguration);
+    } catch (ConflictException e) {
+      throw new RuntimeException(e);
     }
 
     return Optional.empty();
-  }
-
-  private Event createEvent(Event event, TrackerPreheat preheat) {
-    return Event.builder()
-        .event(UID.generate())
-        .enrollment(event.getEnrollment())
-        .orgUnit(event.getOrgUnit())
-        .programStage(MetadataIdentifier.ofUid(programStageUid.getValue()))
-        .attributeOptionCombo(
-            MetadataIdentifier.ofUid(preheat.getDefault(CategoryOptionCombo.class).getUid()))
-        .storedBy(CurrentUserUtil.getCurrentUsername())
-        .scheduledAt(DateUtils.instantFromDateAsString(scheduledAt))
-        .status(EventStatus.SCHEDULE)
-        .build();
   }
 }
