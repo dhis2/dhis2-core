@@ -27,20 +27,74 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.tracker.imports.TrackerEventScheduleParams;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
+@Component
+@RequiredArgsConstructor
 public class TrackerImportEventScheduleJob implements Job {
+  private final TrackerImportService trackerImportService;
+
   @Override
   public JobType getJobType() {
     return JobType.TRACKER_IMPORT_EVENT_SCHEDULE_JOB;
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {}
+  public void execute(JobConfiguration config, JobProgress progress) {
+    TrackerEventScheduleParams scheduleParams =
+        (TrackerEventScheduleParams) config.getJobParameters();
+
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .events(
+                List.of(
+                    createEvent(
+                        scheduleParams.getEnrollment(),
+                        scheduleParams.getOrgUnit(),
+                        scheduleParams.getProgramStageUid(),
+                        scheduleParams.getAttributeOptionCombo(),
+                        scheduleParams.getScheduledAt())))
+            .build();
+
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
+            .skipRuleEngine(true)
+            .importStrategy(TrackerImportStrategy.CREATE)
+            .build();
+    trackerImportService.importTracker(importParams, trackerObjects);
+  }
+
+  private Event createEvent(
+      String enrollment, String orgUnit, String programStageUid, String aoc, String scheduledAt) {
+    return Event.builder()
+        .event(UID.generate())
+        .enrollment(UID.of(enrollment))
+        .orgUnit(MetadataIdentifier.ofUid(orgUnit))
+        .programStage(MetadataIdentifier.ofUid(programStageUid))
+        .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
+        .storedBy(CurrentUserUtil.getCurrentUsername())
+        .scheduledAt(DateUtils.instantFromDateAsString(scheduledAt))
+        .status(EventStatus.SCHEDULE)
+        .build();
+  }
 }
