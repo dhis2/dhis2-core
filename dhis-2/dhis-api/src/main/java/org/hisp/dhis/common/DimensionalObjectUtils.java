@@ -82,28 +82,8 @@ public class DimensionalObjectUtils {
   public static final String COL_SEP = " ";
 
   /**
-   * Regex to ignore splitting by ";" when they are present between two "dots". ie:
-   * dx:FTRrcoaog83;WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED, splits
-   * into FTRrcoaog83 and WSGAb5XwJ3Y.QFX1FLWBwtq.R3ShQczKnI9;l8S7SjnQ58G;rexqxNDqUKg.AGGREGATED
-   */
-  private static final Pattern DX_REGEX_PATTERN = Pattern.compile(";(?![^\\(\\.]*[\\.\\)])");
-
-  public static void main(String[] args) {
-    String exp = "DX_REGEX_PATTERN";
-
-    Pattern p = Pattern.compile(exp);
-
-    boolean match = DX_REGEX_PATTERN.matcher("dsfds.sfsfgfg.dsfdsf;gfhfgh.dfdsfdfs").matches();
-
-    System.out.println(match);
-  }
-
-  /**
    * Matching data element operand, program data element, program attribute, data set reporting rate
-   * metric, program data element option, etc.
-   *
-   * <p>ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf #
-   * IpHINAT79UW.UuL3eX8KJHY.dsfdsfsf;dfdsfsdf.uODmvdTEeMr
+   * metric, program data element option, etc. ie: IpHINAT79UW.UuL3eX8KJHY.uODmvdTEeMr.fgffggdf
    */
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
