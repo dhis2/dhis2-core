@@ -254,10 +254,7 @@ public class RouteService {
                 throwable -> throwable.getCause() instanceof DataBufferLimitException,
                 throwable -> {
                   String message =
-                      String.format(
-                          """
-{"message":"%s"}""",
-                          throwable.getCause().getMessage());
+                      String.format("{\"message\":\"%s\"}", throwable.getCause().getMessage());
                   return Mono.just(new ResponseEntity<>(message, HttpStatus.BAD_GATEWAY));
                 })
             .block();
