@@ -426,6 +426,7 @@ public class EventQueryParams extends DataQueryParams {
               attribute.getValueType(),
               attribute.getAggregationType(),
               attribute.getOptionSet());
+      item.setProgram(element.getProgram());
       builder.addItemFilter(item);
     }
 
@@ -440,6 +441,7 @@ public class EventQueryParams extends DataQueryParams {
               attribute.getValueType(),
               attribute.getAggregationType(),
               attribute.getOptionSet());
+      item.setProgram(element.getProgram());
       item.setOption(element.getOption());
       builder.addItemFilter(item);
     }
