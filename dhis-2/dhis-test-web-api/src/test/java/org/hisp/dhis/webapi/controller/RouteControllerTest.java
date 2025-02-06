@@ -339,4 +339,40 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CONFLICT, postHttpResponse);
   }
+
+  @Test
+  void testUpdateRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
+  }
+
+  @Test
+  void testUpdateRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
+  }
 }

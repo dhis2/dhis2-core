@@ -131,6 +131,15 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
 
   @Override
   protected void preCreateEntity(Route route) throws ConflictException {
+    validateRoute(route);
+  }
+
+  @Override
+  protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
+    validateRoute(newRoute);
+  }
+
+  protected void validateRoute(Route route) throws ConflictException {
     if (route.getResponseTimeout() != null
         && (route.getResponseTimeout() < 1 || route.getResponseTimeout() > 60)) {
       throw new ConflictException(
