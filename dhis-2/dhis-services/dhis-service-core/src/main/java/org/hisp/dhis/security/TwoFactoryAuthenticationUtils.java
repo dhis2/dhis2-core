@@ -101,16 +101,13 @@ public class TwoFactoryAuthenticationUtils {
    */
   public static String generateQrContent(String appName, User user, Consumer<ErrorCode> errorCode) {
     String secret = user.getSecret();
-
     if (Strings.isNullOrEmpty(secret)) {
       errorCode.accept(E3028);
     }
 
     secret = removeApprovalPrefix(secret);
 
-    String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty(appName)).replace(" ", "%20");
-
-    return generateTOTP2FAURL(app, secret, user.getUsername());
+    return generateTOTP2FAURL(appName, secret, user.getUsername());
   }
 
   /**
@@ -129,7 +126,7 @@ public class TwoFactoryAuthenticationUtils {
     normalizedAppname = normalizedAppname.replaceAll("[^\\p{ASCII}]", "X");
     // truncate to 10 characters
     normalizedAppname = normalizedAppname.substring(0, Math.min(normalizedAppname.length(), 10));
-    String app = ("DHIS2_" + normalizedAppname).replace(" ", "%20");
+    String app = ("DHIS2_" + normalizedAppname).replace(" ", "");
     return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", app, username, secret, app);
   }
 
