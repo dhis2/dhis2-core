@@ -51,16 +51,15 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +83,8 @@ class DefaultEventService implements EventService {
   private final FileResourceService fileResourceService;
 
   private final EventOperationParamsMapper paramsMapper;
+
+  private final RelationshipService relationshipService;
 
   @Override
   public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
@@ -161,25 +162,15 @@ class DefaultEventService implements EventService {
 
   @Override
   public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
-    return getEvent(
-        event, TrackerIdSchemeParams.builder().build(), EventParams.FALSE, getCurrentUserDetails());
+    return getEvent(event, TrackerIdSchemeParams.builder().build(), EventParams.FALSE);
   }
 
   @Override
   public Event getEvent(
-      @Nonnull UID event,
+      @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
       @Nonnull EventParams eventParams)
       throws ForbiddenException, NotFoundException {
-    return getEvent(event, idSchemeParams, eventParams, getCurrentUserDetails());
-  }
-
-  private Event getEvent(
-      @Nonnull UID eventUid,
-      @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull EventParams eventParams,
-      @Nonnull UserDetails user)
-      throws NotFoundException, ForbiddenException {
     Page<Event> events;
     try {
       EventOperationParams operationParams =
@@ -227,19 +218,6 @@ class DefaultEventService implements EventService {
     }
     event.setEventDataValues(dataValues);
 
-    if (eventParams.isIncludeRelationships()) {
-      Set<RelationshipItem> relationshipItems = new HashSet<>();
-      for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
-        Relationship daoRelationship = relationshipItem.getRelationship();
-        if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
-            && (!daoRelationship.isDeleted())) {
-          relationshipItems.add(relationshipItem);
-        }
-      }
-
-      event.setRelationshipItems(relationshipItems);
-    }
-
     return event;
   }
 
@@ -248,7 +226,14 @@ class DefaultEventService implements EventService {
   public List<Event> getEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-    return eventStore.getEvents(queryParams);
+    List<Event> events = eventStore.getEvents(queryParams);
+    if (operationParams.getEventParams().isIncludeRelationships()) {
+      for (Event event : events) {
+        event.setRelationshipItems(
+            relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
+      }
+    }
+    return events;
   }
 
   @Nonnull
@@ -257,27 +242,14 @@ class DefaultEventService implements EventService {
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-    return eventStore.getEvents(queryParams, pageParams);
-  }
-
-  // TODO(DHIS2-18883) Pass EventParams as a parameter
-  @Override
-  public RelationshipItem getEventInRelationshipItem(@Nonnull UID uid) {
-    Event event;
-    try {
-      event =
-          getEvent(
-              uid,
-              TrackerIdSchemeParams.builder().build(),
-              EventParams.TRUE.withIncludeRelationships(false));
-    } catch (NotFoundException | ForbiddenException e) {
-      // events are not shown in relationships if the user has no access to them
-      return null;
+    Page<Event> events = eventStore.getEvents(queryParams, pageParams);
+    if (operationParams.getEventParams().isIncludeRelationships()) {
+      for (Event event : events.getItems()) {
+        event.setRelationshipItems(
+            relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
+      }
     }
-
-    RelationshipItem relationshipItem = new RelationshipItem();
-    relationshipItem.setEvent(event);
-    return relationshipItem;
+    return events;
   }
 
   @Override
