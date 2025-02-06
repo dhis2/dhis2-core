@@ -84,7 +84,7 @@ public class H2TestConfig {
     factory.setMappingResources(loadResources());
     Properties jpaProperties = getAdditionalProperties(dhisConfig);
     // let hibernate create the DB schema for H2 tests as no flyway migrations are run
-    jpaProperties.put(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE);
+    jpaProperties.put(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE.getExternalHbm2ddlName());
     factory.setJpaProperties(jpaProperties);
     factory.afterPropertiesSet();
     return factory.getObject();
