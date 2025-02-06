@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
@@ -570,7 +569,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
-    sql += getWhereClauseOptions(params, hlp);
+    sql += hlp.whereAnd() + getOptionFilter(params);
 
     // ---------------------------------------------------------------------
     // Filter expression
@@ -681,21 +680,23 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return sql;
   }
 
-  private String getWhereClauseOptions(EventQueryParams params, SqlHelper sqlHelper) {
+  /**
+   * Adds a filtering condition into the "where" statement if an {@Option} is defined.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return the SQL condition for the {@link Option}, if any.
+   */
+  private String getOptionFilter(EventQueryParams params) {
     if (params.hasOption() && params.hasValue()) {
-      StringBuilder sql = new StringBuilder();
       DimensionalItemObject dimensionalItemObject = params.getValue();
       Option option = params.getOption();
 
-      sql.append(" ")
-          .append(sqlHelper.whereAnd())
-          .append(" ")
+      return new StringBuilder()
           .append(quote(dimensionalItemObject.getUid()))
           .append(" in ('")
           .append(option.getCode())
-          .append("') ");
-
-      return sql.toString();
+          .append("') ")
+          .toString();
     }
 
     return EMPTY;

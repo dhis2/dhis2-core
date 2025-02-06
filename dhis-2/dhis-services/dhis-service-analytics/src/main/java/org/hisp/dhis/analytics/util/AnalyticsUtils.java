@@ -68,7 +68,6 @@ import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -76,6 +75,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
@@ -113,9 +113,10 @@ import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
@@ -829,17 +830,25 @@ public final class AnalyticsUtils {
                     coc.getDisplayProperty(params.getDisplayProperty()),
                     includeMetadataDetails ? coc : null));
           }
-
-          addOptionSetToMap(dataElement.getOptionSet(), map, dataElement, includeMetadataDetails);
         }
 
-        if (DimensionItemType.PROGRAM_DATA_ELEMENT == item.getDimensionItemType()
-            && item instanceof ProgramDataElementDimensionItem programDataElement) {
+        if (DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramDataElementOptionDimensionItem dimensionItem) {
 
           addOptionSetToMap(
-              programDataElement.getOptionSet(),
+              dimensionItem.getOptionSet(),
               map,
-              programDataElement.getDataElement(),
+              dimensionItem.getDataElement(),
+              includeMetadataDetails);
+        }
+
+        if (DimensionItemType.PROGRAM_ATTRIBUTE_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramTrackedEntityAttributeOptionDimensionItem dimensionItem) {
+
+          addOptionSetToMap(
+              dimensionItem.getOption().getOptionSet(),
+              map,
+              dimensionItem.getAttribute(),
               includeMetadataDetails);
         }
       }
@@ -878,7 +887,7 @@ public final class AnalyticsUtils {
     Program program = params.getProgram();
     ProgramStage stage = params.getProgramStage();
 
-    if (ObjectUtils.allNotNull(program)) {
+    if (program != null) {
       map.put(
           program.getUid(),
           new MetadataItem(
@@ -911,17 +920,17 @@ public final class AnalyticsUtils {
    *
    * @param optionSet the {@link OptionSet} to add.
    * @param map the source map where to add the given {@link OptionSet}.
-   * @param dataElement the {@link DataElement} associated with the {@link OptionSet}.
+   * @param element the {@link BaseDimensionalItemObject} associated with the {@link OptionSet}.
    * @param includeDetails include {@link OptionSet} details or not.
    */
   private static void addOptionSetToMap(
       OptionSet optionSet,
       Map<String, MetadataItem> map,
-      DataElement dataElement,
+      BaseDimensionalItemObject element,
       boolean includeDetails) {
     if (optionSet != null) {
       map.put(
-          dataElement.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid(),
+          element.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid(),
           includeDetails
               ? new MetadataItem(
                   optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
