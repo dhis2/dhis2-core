@@ -276,6 +276,14 @@ public interface JobProgress {
     failedStage(getMessage(cause));
   }
 
+  /**
+   * @since 2.42
+   * @param size number of work items to join into one entry
+   */
+  default void setWorkItemBucketing(int size) {
+    // by default this is not supported and no bucketing will occur
+  }
+
   default void startingWorkItem(@Nonnull String description, Object... args) {
     startingWorkItem(format(description, args), FailurePolicy.PARENT);
   }

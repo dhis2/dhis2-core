@@ -39,8 +39,6 @@ import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 
 public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
-  List<SMSCommand> getJ2MESMSCommands();
-
   SMSCommand getSMSCommand(String commandName, ParserType parserType);
 
   int countDataSetSmsCommands(DataSet dataSet);

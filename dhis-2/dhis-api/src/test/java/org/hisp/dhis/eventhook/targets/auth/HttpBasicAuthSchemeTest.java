@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.eventhook.targets.auth;
 
-public enum Aggregation {
-  AGGREGATED,
-  DISAGGREGATED
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+/**
+ * @author Morten Olav Hansen
+ */
+class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
+  @Test
+  void testAuthorizationHeaderSet() {
+    HttpBasicAuthScheme auth =
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
+
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
+
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  }
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district"),
+        HttpBasicAuthScheme::getPassword);
+  }
+
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new HttpBasicAuthScheme()
+            .setUsername("admin")
+            .setPassword("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        HttpBasicAuthScheme::getPassword);
+  }
 }

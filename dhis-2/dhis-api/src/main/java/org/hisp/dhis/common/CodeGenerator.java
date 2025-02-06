@@ -131,6 +131,49 @@ public class CodeGenerator {
   }
 
   /**
+   * Generates a UID from a timestamp. This is only meant to be used to "fake" the presence of an
+   * independent UID for backwards compatibility when the actual unique value is a timestamp.
+   *
+   * <p>The algorithm uses the lowest 8 bit as a selector to shift through the letter alphabets so
+   * that even small increments in time result in completely different UIDs. The rest of the bits
+   * are used in groups of 5 bits for each of the 11 characters as an offset into the 26 letters or
+   * 10 digits alphabet. Since 5 bits give 0-31 the potential overflow is remembered in the carry to
+   * influence later characters.
+   *
+   * @param timestamp a UNIX timestamp
+   * @return a UID that is likely to be unique for the timestamp
+   */
+  public static String generateUid(long timestamp) {
+    int low8 = (int) (timestamp & 0xFF); // 8 bits
+    // 11 x 5 bits to get a number 0-31 => 55 bits
+    // = 63 bits
+    long v = timestamp >> 8; // cut off 8 low bits
+    char[] uid = new char[11];
+    char c0 = 'a';
+    int carry = 0;
+    for (int i = 0; i < 11; i++) {
+      int offset = low8 & (1 << (i % 8));
+      int index = (int) (v & 0b11111);
+      index += offset;
+      index ^= carry;
+      if (offset % 2 == 0) {
+        c0 =
+            switch (c0) {
+              case 'a' -> 'A';
+              case 'A' -> '0';
+              default -> 'a';
+            };
+      }
+      int n = c0 == '0' ? 10 : 26;
+      char c = (char) (c0 + (index % n));
+      uid[i] = c;
+      v >>= 5; // move to next 5 bits
+      carry = Math.max(0, index - n);
+    }
+    return new String(uid);
+  }
+
+  /**
    * Generates a string of random alphanumeric characters. Uses a {@link SecureRandom} instance and
    * is slower than {@link #generateCode(int)}, this should be used for security-related purposes
    * only.

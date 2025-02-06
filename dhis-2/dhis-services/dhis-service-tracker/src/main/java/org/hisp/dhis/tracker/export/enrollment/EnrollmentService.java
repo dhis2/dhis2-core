@@ -35,7 +35,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
@@ -46,8 +45,6 @@ public interface EnrollmentService {
   @Nonnull
   Enrollment getEnrollment(UID uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
-
-  RelationshipItem getEnrollmentInRelationshipItem(UID uid) throws NotFoundException;
 
   /** Get all enrollments matching given params. */
   @Nonnull

@@ -352,7 +352,6 @@ public class DefaultDimensionService implements DimensionService {
       String id0 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0);
       String id1 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1);
       String id2 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2);
-      String id3 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 3);
 
       DataElementOperand operand;
       ReportingRate reportingRate;
@@ -363,13 +362,13 @@ public class DefaultDimensionService implements DimensionService {
 
       if ((programDataElementOption =
               dataDimensionExtractor.getProgramDataElementOptionDimensionItem(
-                  idScheme, id0, id1, id2, id3))
+                  idScheme, id0, id1, id2))
           != null) {
         return programDataElementOption;
       }
       if ((programAttributeOption =
               dataDimensionExtractor.getProgramAttributeOptionDimensionItem(
-                  idScheme, id0, id1, id2, id3))
+                  idScheme, id0, id1, id2))
           != null) {
         return programAttributeOption;
       }

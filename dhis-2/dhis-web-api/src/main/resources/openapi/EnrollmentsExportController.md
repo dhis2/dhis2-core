@@ -31,7 +31,7 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
-Get enrollments enrolled before the given date and time. 
+Get enrollments enrolled before the given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrollments`
@@ -103,7 +103,7 @@ See `orgUnitMode` for details.
 
 ### `*.parameter.EnrollmentRequestParams.program`
 
-Get enrollments enrolled in the given program.
+Get enrollments enrolled in the given tracker program.
 
 ### `*.parameter.EnrollmentRequestParams.status`
 

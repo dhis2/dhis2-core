@@ -38,7 +38,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.auth.Auth;
+import org.hisp.dhis.common.auth.AuthScheme;
 
 /**
  * @author Morten Olav Hansen
@@ -62,7 +62,7 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
   private Map<String, String> headers = new HashMap<>();
 
   /** Optional. Authentication to be passed as part of the route request. */
-  @JsonProperty private Auth auth;
+  @JsonProperty private AuthScheme auth;
 
   /** Optional. Required authorities for invoking the route. */
   @JsonProperty private List<String> authorities = new ArrayList<>();

@@ -318,7 +318,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testPostOptionItemAggregatedInProgramAttribute() {
+  void testPostAndGetOptionItemInProgramAttribute() {
     // Given
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(attribute);
@@ -329,7 +329,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     String programUid = mockProgram.getUid();
     String attributeUid = attribute.getUid();
     String optionUid = option.getUid();
-    String dimUid = programUid + "." + attributeUid + "." + optionUid + ".AGGREGATED";
+    String dimUid = programUid + "." + attributeUid + "." + optionUid;
     String jsonBody =
         """
 {
@@ -370,59 +370,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testPostOptionItemDisaggregatedInProgramAttribute() {
-    // Given
-    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    manager.save(attribute);
-
-    Option option = createOption('O');
-    manager.save(option);
-
-    String programUid = mockProgram.getUid();
-    String attributeUid = attribute.getUid();
-    String optionUid = option.getUid();
-    String dimUid = programUid + "." + attributeUid + "." + optionUid + ".DISAGGREGATED";
-    String jsonBody =
-        """
-{
-    "type": "PIE",
-    "columns": [
-        {
-            "dimension": "dx",
-            "items": [
-                {
-                    "id": "${dimUid}",
-                    "name": "Program Attribute - Option",
-                    "dimensionItemType": "PROGRAM_ATTRIBUTE_OPTION"
-                }
-            ]
-        }
-    ],
-    "name": "OptionItem - Test"
-}
-"""
-            .replace("${dimUid}", dimUid);
-
-    // When
-    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
-
-    // Then
-    String getParams = "?fields=columns[:all,items[:all]]";
-    JsonObject response = GET("/visualizations/" + uid + getParams).content();
-
-    JsonNode columnNode = response.get("columns").node().element(0);
-    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
-
-    assertEquals("dx", columnNode.get("id").value());
-    assertEquals("DATA_X", columnNode.get("dimensionType").value());
-    assertTrue((boolean) columnNode.get("dataDimension").value());
-    assertEquals("PROGRAM_ATTRIBUTE_OPTION", itemsNode.get("dimensionItemType").value());
-    assertEquals("NONE", itemsNode.get("aggregationType").value());
-    assertEquals(dimUid, itemsNode.get("dimensionItem").value());
-  }
-
-  @Test
-  void testPostOptionItemWithNoAggregationAndLoadDefault() {
+  void testPostAndGetOptionItemInDataElement() {
     // Given
     DataElement dataElement = createDataElement('A');
     manager.save(dataElement);
@@ -470,6 +418,5 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue((boolean) columnNode.get("dataDimension").value());
     assertEquals("PROGRAM_DATA_ELEMENT_OPTION", itemsNode.get("dimensionItemType").value());
     assertEquals("SUM", itemsNode.get("aggregationType").value());
-    assertEquals(dimUid + ".AGGREGATED", itemsNode.get("dimensionItem").value());
   }
 }

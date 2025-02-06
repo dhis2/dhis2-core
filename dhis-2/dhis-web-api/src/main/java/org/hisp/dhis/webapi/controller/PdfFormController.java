@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.notification.Notifier;
@@ -149,15 +150,15 @@ public class PdfFormController {
             JobType.DATAVALUE_IMPORT,
             CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    notifier.clear(jobId);
-
     InputStream in = request.getInputStream();
 
     in = StreamUtils.wrapAndCheckCompressionFormat(in);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetPdf(
-            in, ImportOptions.getDefaultImportOptions(), jobId);
+            in,
+            ImportOptions.getDefaultImportOptions(),
+            RecordingJobProgress.transitory(jobId, notifier));
 
     return importSummary(summary);
   }
