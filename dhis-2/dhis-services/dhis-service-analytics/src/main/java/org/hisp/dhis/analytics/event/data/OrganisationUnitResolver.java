@@ -125,6 +125,6 @@ public class OrganisationUnitResolver {
         .map(s -> s.split(OPTION_SEP))
         .flatMap(Arrays::stream)
         .distinct()
-        .toList();
+        .collect(Collectors.toList());
   }
 }
