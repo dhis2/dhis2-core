@@ -114,15 +114,13 @@ class AuthTest {
     log.info("JDBC URL: " + jdbcUrl);
     String multiLineString =
         """
-            connection.dialect = org.hibernate.dialect.PostgreSQLDialect
-            connection.driver_class = org.postgresql.Driver
-            connection.url = %s
-            connection.username = dhis
-            connection.password = dhis
-            # Database schema behavior, can be validate, update, create, create-drop
-            connection.schema = update
-            system.audit.enabled = false
-            """
+        connection.dialect = org.hibernate.dialect.PostgreSQLDialect
+        connection.driver_class = org.postgresql.Driver
+        connection.url = %s
+        connection.username = dhis
+        connection.password = dhis
+        system.audit.enabled = false
+        """
             .formatted(jdbcUrl);
     try {
       String tmpDir = System.getProperty("java.io.tmpdir");
