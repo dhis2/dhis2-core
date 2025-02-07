@@ -93,7 +93,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;

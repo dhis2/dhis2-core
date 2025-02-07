@@ -120,7 +120,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ExecutionPlanStore executionPlanStore,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
-        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore, organisationUnitResolver);
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        executionPlanStore,
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
