@@ -60,7 +60,7 @@ public class DefaultRelationshipService implements RelationshipService {
   private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
       Mappers.getMapper(RelationshipItemMapper.class);
   private final TrackerAccessManager trackerAccessManager;
-  private final RelationshipStore relationshipStore;
+  private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
 
   // TODO(DHIS2-18883) Pass fields params as a parameter
@@ -127,6 +127,11 @@ public class DefaultRelationshipService implements RelationshipService {
       relationships.add(getRelationship(uid));
     }
     return relationships;
+  }
+
+  @Override
+  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
+    return relationshipStore.getUidsByRelationshipKeys(relationshipKeyList);
   }
 
   private List<Relationship> getRelationshipsByTrackedEntity(

@@ -64,11 +64,12 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
-class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
-    implements EnrollmentStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
+class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment> {
 
   private static final String DEFAULT_ORDER = "id desc";
 
@@ -101,7 +102,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
         .replaceFirst("from Enrollment en", "select count(distinct uid) from Enrollment en");
   }
 
-  @Override
   public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
     String hql = buildEnrollmentHql(params).getFullQuery();
 
@@ -110,7 +110,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     return query.list();
   }
 
-  @Override
   public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
     String hql = buildEnrollmentHql(params).getFullQuery();
 
@@ -308,7 +307,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
   }
 
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
   }

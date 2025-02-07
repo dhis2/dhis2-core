@@ -39,7 +39,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -93,7 +93,7 @@ class DuplicateRelationshipSupplierTest extends TestBase {
 
   private TrackerPreheat preheat;
 
-  @Mock private RelationshipStore relationshipStore;
+  @Mock private RelationshipService relationshipService;
 
   @InjectMocks private DuplicateRelationshipSupplier supplier;
 
@@ -147,7 +147,7 @@ class DuplicateRelationshipSupplierTest extends TestBase {
 
   @Test
   void verifySupplier() {
-    when(relationshipStore.getUidsByRelationshipKeys(List.of(KEY_REL_A, KEY_REL_B, KEY_REL_C)))
+    when(relationshipService.getUidsByRelationshipKeys(List.of(KEY_REL_A, KEY_REL_B, KEY_REL_C)))
         .thenReturn(List.of(relationshipA(), relationshipB()));
 
     TrackerObjects trackerObjects =

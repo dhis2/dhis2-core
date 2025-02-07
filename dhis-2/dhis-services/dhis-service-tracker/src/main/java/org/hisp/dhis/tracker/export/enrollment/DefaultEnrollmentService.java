@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
-  private final EnrollmentStore enrollmentStore;
+  private final HibernateEnrollmentStore enrollmentStore;
 
   private final EventService eventService;
 

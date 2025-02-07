@@ -32,7 +32,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
-  @Nonnull private final RelationshipStore relationshipStore;
+  @Nonnull private final RelationshipService relationshipService;
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
@@ -72,7 +72,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
                         .asString())
             .toList();
 
-    return relationshipStore.getUidsByRelationshipKeys(keys);
+    return relationshipService.getUidsByRelationshipKeys(keys);
   }
 
   private RelationshipType getRelationshipType(

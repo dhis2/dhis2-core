@@ -62,6 +62,8 @@ public interface RelationshipService {
   List<Relationship> getRelationships(@Nonnull Set<UID> uids)
       throws ForbiddenException, NotFoundException;
 
+  List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList);
+
   /**
    * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.
    * Ordering by fields other than these is considered a programmer error. Validation of user
