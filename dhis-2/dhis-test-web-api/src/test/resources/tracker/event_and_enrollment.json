@@ -1211,26 +1211,13 @@
       "relationship": "wVsN59nBTmc",
       "relationshipType": {
         "idScheme": "UID",
-        "identifier": "OG4B30LS1md"
+        "identifier": "xLmPUYJX8Ks"
       },
       "from": {
-        "trackedEntity": "XUitxQbWYNq"
+        "trackedEntity": "woitxQbWYNq"
       },
       "to": {
         "enrollment": "TvctPPhpD8z"
-      }
-    },
-    {
-      "relationship": "SzkXOjXyb59",
-      "relationshipType": {
-        "idScheme": "UID",
-        "identifier": "LvCLE5oYGx6"
-      },
-      "from": {
-        "trackedEntity": "QesgJkTyTCk"
-      },
-      "to": {
-        "event": "pTzf9KYMk72"
       }
     }
   ],

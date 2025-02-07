@@ -145,7 +145,6 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    setUpMetadata("tracker/relationshipTypes.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -185,25 +184,10 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @BeforeEach
   void setUpUser() {
     switchContextToUser(importUser);
-
-    RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
-    relationshipType.getSharing().setUserAccesses(Set.of());
-    relationshipType.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
-    manager.save(relationshipType, false);
-
-    Program program = manager.get(Program.class, "BFcipDERJnf");
-    program.getSharing().setUserAccesses(Set.of());
-    program.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
-    manager.save(program, false);
-
-    TrackedEntityType trackedEntityType = manager.get(TrackedEntityType.class, "ja8NY4PW7Xm");
-    trackedEntityType.getSharing().setUserAccesses(Set.of());
-    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
-    manager.save(trackedEntityType, false);
   }
 
   @Test
-  void getRelationshipsById() {
+  void shouldGetRelationshipsById() {
     JsonRelationship jsonRelationship =
         GET("/tracker/relationships/{uid}", relationship1.getUid())
             .content(HttpStatus.OK)
@@ -218,7 +202,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByIdWithFieldsAll() {
+  void shouldGetRelationshipsByIdWithFieldsAll() {
     JsonRelationship jsonRelationship =
         GET("/tracker/relationships/{uid}?fields=*", relationship1.getUid())
             .content(HttpStatus.OK)
@@ -230,7 +214,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByIdWithFields() {
+  void shouldGetRelationshipsByIdWithFields() {
     JsonRelationship jsonRelationship =
         GET("/tracker/relationships/{uid}?fields=relationship,to[event]", relationship1.getUid())
             .content(HttpStatus.OK)
@@ -247,21 +231,21 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByIdNotFound() {
+  void shouldReturnNotFoundWhenGettingANonExistingRelationshipById() {
     assertEquals(
         "Relationship with id Hq3Kc6HK4OZ could not be found.",
         GET("/tracker/relationships/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
   }
 
   @Test
-  void getRelationshipsMissingParam() {
+  void shouldReturnBadRequestWhenGettingRelationshipsWithoutMandatoryParams() {
     assertEquals(
         "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
         GET("/tracker/relationships").error(HttpStatus.BAD_REQUEST).getMessage());
   }
 
   @Test
-  void getRelationshipsBadRequestWithMultipleParams() {
+  void shouldReturnBadRequestWhenGettingRelationshipsWithMultipleParams() {
     assertEquals(
         "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
         GET("/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ")
@@ -270,7 +254,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEvent() {
+  void shouldGetRelationshipsByEvent() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?event={uid}", relationship1To.getUid())
             .content(HttpStatus.OK)
@@ -288,7 +272,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEventWithAllFields() {
+  void shouldGetRelationshipsByEventWithAllFields() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?event={uid}&fields=*", relationship1To.getUid())
             .content(HttpStatus.OK)
@@ -306,7 +290,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEventWithFields() {
+  void shouldGetRelationshipsByEventWithFields() {
     JsonList<JsonRelationship> jsonRelationships =
         GET(
                 "/tracker/relationships?event={uid}&fields=relationship,to[event]",
@@ -329,7 +313,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEventWithAssignedUser() {
+  void shouldGetRelationshipsByEventWithAssignedUser() {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=*", "QRYjLTiJTrA")
             .content(HttpStatus.OK)
@@ -341,7 +325,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEventWithDataValues() {
+  void shouldGetRelationshipsByEventWithDataValues() {
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?event={uid}&fields=to[event[dataValues[dataElement,value]]]",
@@ -357,7 +341,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEventWithNotes() {
+  void shouldGetRelationshipsByEventWithNotes() {
     JsonList<JsonRelationship> jsonRelationships =
         GET(
                 "/tracker/relationships?event={uid}&fields=relationship,to[event[notes]]",
@@ -379,14 +363,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEventNotFound() {
+  void shouldReturnNotFoundWhenGettingRelationshipsByNonExistingEvent() {
     assertStartsWith(
         "Event with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?event=Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
   }
 
   @Test
-  void getRelationshipsByEnrollment() {
+  void shouldGetRelationshipsByEnrollment() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?enrollment=" + relationship2To.getUid())
             .content(HttpStatus.OK)
@@ -399,7 +383,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEnrollmentWithFieldsAll() {
+  void shouldGetRelationshipsByEnrollmentWithFieldsAll() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?enrollment={uid}&fields=*", relationship2To.getUid())
             .content(HttpStatus.OK)
@@ -411,7 +395,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEnrollmentWithEvents() {
+  void shouldGetRelationshipsByEnrollmentWithEvents() {
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?enrollment={uid}&fields=to[enrollment[events[enrollment,event]]]",
@@ -429,11 +413,18 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEnrollmentWithAttributes() {
+  void shouldGetRelationshipsByEnrollmentWithAttributes() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
+    TrackerDataView trackerDataView = new TrackerDataView();
+    String expectedAttribute = "dIVt4l5vIOa";
+    trackerDataView.getAttributes().add(expectedAttribute);
+    relationshipType.getToConstraint().setTrackerDataView(trackerDataView);
+    manager.save(relationshipType, false);
+
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={trackedEntity}&fields=relationshipType,to[enrollment[attributes[attribute,value]]]",
-                "XUitxQbWYNq")
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=to[enrollment[attributes[attribute,value]]]",
+                "woitxQbWYNq")
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -441,16 +432,12 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         relationships.get(0).getTo().getEnrollment().getAttributes().stream()
             .map(JsonAttribute::getAttribute)
             .toList();
-    TrackerDataView trackerDataView =
-        manager
-            .get(RelationshipType.class, relationships.get(0).getRelationshipType())
-            .getToConstraint()
-            .getTrackerDataView();
-    assertContainsOnly(trackerDataView.getAttributes(), jsonAttributes);
+
+    assertContainsOnly(List.of(expectedAttribute), jsonAttributes);
   }
 
   @Test
-  void getRelationshipsByEnrollmentWithNotes() {
+  void shouldGetRelationshipsByEnrollmentWithNotes() {
     JsonList<JsonRelationship> jsonRelationships =
         GET(
                 "/tracker/relationships?enrollment={uid}&fields=relationship,to[enrollment[notes]]",
@@ -472,7 +459,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByEnrollmentNotFound() {
+  void shouldReturnNotFoundWhenGettingRelationshipsByNonExistingEnrollment() {
     assertStartsWith(
         "Enrollment with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?enrollment=Hq3Kc6HK4OZ")
@@ -481,7 +468,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntity() {
+  void shouldGetRelationshipsByTrackedEntity() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
             .content(HttpStatus.OK)
@@ -546,7 +533,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByDeprecatedTei() {
+  void shouldGetRelationshipsByDeprecatedTei() {
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?tei={te}", relationship1From.getUid())
             .content(HttpStatus.OK)
@@ -560,7 +547,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntityWithEnrollments() {
+  void shouldGetRelationshipsByTrackedEntityWithEnrollments() {
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[trackedEntity[enrollments[enrollment,trackedEntity]]",
@@ -581,11 +568,18 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntityWithAttributes() {
+  void shouldGetRelationshipsByTrackedEntityWithAttributes() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
+    TrackerDataView trackerDataView = new TrackerDataView();
+    String expectedAttribute = "numericAttr";
+    trackerDataView.getAttributes().add(expectedAttribute);
+    relationshipType.getFromConstraint().setTrackerDataView(trackerDataView);
+    manager.save(relationshipType, false);
+
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={trackedEntity}&fields=relationshipType,from[trackedEntity[attributes[attribute,value]]]",
-                "QesgJkTyTCk")
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[trackedEntity[attributes[attribute,value]]]",
+                "mHWCacsGYYn")
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -593,16 +587,12 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         relationships.get(0).getFrom().getTrackedEntity().getAttributes().stream()
             .map(JsonAttribute::getAttribute)
             .toList();
-    TrackerDataView trackerDataView =
-        manager
-            .get(RelationshipType.class, relationships.get(0).getRelationshipType())
-            .getFromConstraint()
-            .getTrackerDataView();
-    assertContainsOnly(trackerDataView.getAttributes(), jsonAttributes);
+
+    assertContainsOnly(List.of(expectedAttribute), jsonAttributes);
   }
 
   @Test
-  void getRelationshipsByTrackedEntityWithNoEnrollmentAttributes() {
+  void shouldGetRelationshipsByTrackedEntityWithNoEnrollmentAttributes() {
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?trackedEntity={trackedEntity}&fields=relationshipType,from[trackedEntity[enrollment[attributes[attribute,value]]]]",
@@ -625,11 +615,18 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntityWithDataElements() {
+  void shouldGetRelationshipsByTrackedEntityWithDataElements() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
+    TrackerDataView trackerDataView = new TrackerDataView();
+    String expectedDataElement = "GieVkTxp4HH";
+    trackerDataView.getDataElements().add(expectedDataElement);
+    relationshipType.getToConstraint().setTrackerDataView(trackerDataView);
+    manager.save(relationshipType, false);
+
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?trackedEntity={trackedEntity}&fields=relationshipType,to[event[dataValues[dataElement,value]]]",
-                "QesgJkTyTCk")
+                "mHWCacsGYYn")
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -637,16 +634,12 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         relationships.get(0).getTo().getEvent().getDataValues().stream()
             .map(JsonDataValue::getDataElement)
             .toList();
-    TrackerDataView trackerDataView =
-        manager
-            .get(RelationshipType.class, relationships.get(0).getRelationshipType())
-            .getToConstraint()
-            .getTrackerDataView();
-    assertContainsOnly(trackerDataView.getDataElements(), jsonDataValues);
+
+    assertContainsOnly(List.of(expectedDataElement), jsonDataValues);
   }
 
   @Test
-  void getRelationshipsByTrackedEntityWithProgramOwners() {
+  void shouldGetRelationshipsByTrackedEntityWithProgramOwners() {
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[trackedEntity[programOwners]",
@@ -662,7 +655,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipType() {
+  void shouldGetRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipType() {
     User user = userService.getUser("Z7870757a75");
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     relationshipType.getSharing().setUserAccesses(Set.of());
@@ -718,7 +711,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void getRelationshipsByTrackedEntityNotFound() {
+  void shouldReturnNotFoundWhenGettingRelationshipsByNonExistingTrackedEntity() {
     assertStartsWith(
         "TrackedEntity with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ")
