@@ -38,7 +38,7 @@
     <property name="createdByUsername" column="createdby" type="string"/>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" insert="false"
-      update="false" foreign-key="none" property-ref="username"/>
+      update="false" property-ref="username"/>
 
     <many-to-one name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttribute"
       column="trackedentityattributeid" insert="false" update="false" access="field" property-ref="attribute" />
