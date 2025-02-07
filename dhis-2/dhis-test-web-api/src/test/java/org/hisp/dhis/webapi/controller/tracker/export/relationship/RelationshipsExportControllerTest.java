@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -73,8 +75,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -414,6 +419,41 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Test
   void shouldGetRelationshipsByEnrollmentWithAttributes() {
+    JsonList<JsonRelationship> relationships =
+        GET(
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=to[enrollment[enrollment,trackedEntity,attributes[attribute,value]]]",
+                "woitxQbWYNq")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    List<String> jsonAttributes =
+        relationships.get(0).getTo().getEnrollment().getAttributes().stream()
+            .map(JsonAttribute::getAttribute)
+            .toList();
+
+    Set<String> expectedAttributes =
+        getEnrollment(UID.of(relationships.get(0).getTo().getEnrollment().getEnrollment()))
+            .getAttributes()
+            .stream()
+            .map(Attribute::getAttribute)
+            .map(MetadataIdentifier::getIdentifier)
+            .collect(Collectors.toSet());
+    Set<String> expectedTETAttributes =
+        getTrackedEntity(UID.of(relationships.get(0).getTo().getEnrollment().getTrackedEntity()))
+            .getAttributes()
+            .stream()
+            .map(Attribute::getAttribute)
+            .map(MetadataIdentifier::getIdentifier)
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(
+        Stream.concat(expectedAttributes.stream(), expectedTETAttributes.stream())
+            .collect(Collectors.toSet()),
+        jsonAttributes);
+  }
+
+  @Test
+  void shouldGetRelationshipsByEnrollmentWithAttributesWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
     TrackerDataView trackerDataView = new TrackerDataView();
     String expectedAttribute = "dIVt4l5vIOa";
@@ -569,6 +609,29 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Test
   void shouldGetRelationshipsByTrackedEntityWithAttributes() {
+    JsonList<JsonRelationship> relationships =
+        GET(
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[trackedEntity[attributes[attribute,value]]]",
+                "mHWCacsGYYn")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    List<String> jsonAttributes =
+        relationships.get(0).getFrom().getTrackedEntity().getAttributes().stream()
+            .map(JsonAttribute::getAttribute)
+            .toList();
+
+    List<String> expectedAttributes =
+        getTrackedEntity(UID.of("mHWCacsGYYn")).getAttributes().stream()
+            .map(Attribute::getAttribute)
+            .map(a -> a.getIdentifier())
+            .toList();
+
+    assertContainsOnly(expectedAttributes, jsonAttributes);
+  }
+
+  @Test
+  void shouldGetRelationshipsByTrackedEntityWithAttributesWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     TrackerDataView trackerDataView = new TrackerDataView();
     String expectedAttribute = "numericAttr";
@@ -616,6 +679,31 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Test
   void shouldGetRelationshipsByTrackedEntityWithDataElements() {
+    JsonList<JsonRelationship> relationships =
+        GET(
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=relationshipType,to[event[event,dataValues[dataElement,value]]]",
+                "mHWCacsGYYn")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    List<String> jsonDataValues =
+        relationships.get(0).getTo().getEvent().getDataValues().stream()
+            .map(JsonDataValue::getDataElement)
+            .toList();
+
+    List<String> expectedDataElements =
+        getEvent(UID.of(relationships.get(0).getTo().getEvent().getEvent()))
+            .getDataValues()
+            .stream()
+            .map(DataValue::getDataElement)
+            .map(MetadataIdentifier::getIdentifier)
+            .toList();
+
+    assertContainsOnly(expectedDataElements, jsonDataValues);
+  }
+
+  @Test
+  void shouldGetRelationshipsByTrackedEntityWithDataElementsWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     TrackerDataView trackerDataView = new TrackerDataView();
     String expectedDataElement = "GieVkTxp4HH";
