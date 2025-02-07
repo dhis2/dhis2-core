@@ -324,81 +324,44 @@ public class EventQueryParams extends DataQueryParams {
 
     EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
 
-    for (DimensionalItemObject object : dataQueryParams.getProgramDataElements()) {
-      ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
-      DataElement dataElement = element.getDataElement();
-      QueryItem item =
-          new QueryItem(
-              dataElement,
-              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
-              dataElement.getValueType(),
-              dataElement.getAggregationType(),
-              dataElement.getOptionSet());
-      item.setProgram(element.getProgram());
-      builder.addItem(item);
-    }
+    // Add items.
+    addProgramDataElements(dataQueryParams, builder);
+    addProgramDataElementOptions(dataQueryParams, builder);
+    addProgramAttributes(dataQueryParams, builder);
+    addProgramAttributeOptions(dataQueryParams, builder);
 
-    for (DimensionalItemObject object : dataQueryParams.getProgramDataElementOptions()) {
-      ProgramDataElementOptionDimensionItem element =
-          (ProgramDataElementOptionDimensionItem) object;
-      DataElement dataElement = element.getDataElement();
-      QueryItem item =
-          new QueryItem(
-              dataElement,
-              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
-              dataElement.getValueType(),
-              dataElement.getAggregationType(),
-              dataElement.getOptionSet());
-      item.setProgram(element.getProgram());
-      item.setOption(element.getOption());
-      builder.addItem(item);
-    }
+    // Add filters.
+    addProgramDataElementsFilter(dataQueryParams, builder);
+    addProgramDataElementOptionsFilter(dataQueryParams, builder);
+    addProgramAttributesFilter(dataQueryParams, builder);
+    addProgramAttributeOptionsFilter(dataQueryParams, builder);
 
-    for (DimensionalItemObject object : dataQueryParams.getProgramAttributes()) {
-      ProgramTrackedEntityAttributeDimensionItem element =
-          (ProgramTrackedEntityAttributeDimensionItem) object;
-      TrackedEntityAttribute attribute = element.getAttribute();
-      QueryItem item =
-          new QueryItem(
-              attribute,
-              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
-              attribute.getValueType(),
-              attribute.getAggregationType(),
-              attribute.getOptionSet());
-      item.setProgram(element.getProgram());
-      builder.addItem(item);
-    }
+    addProgramIndicators(dataQueryParams, builder);
 
-    for (DimensionalItemObject object : dataQueryParams.getProgramAttributeOptions()) {
-      ProgramTrackedEntityAttributeOptionDimensionItem element =
-          (ProgramTrackedEntityAttributeOptionDimensionItem) object;
-      TrackedEntityAttribute attribute = element.getAttribute();
-      QueryItem item =
-          new QueryItem(
-              attribute,
-              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
-              attribute.getValueType(),
-              attribute.getAggregationType(),
-              attribute.getOptionSet());
-      item.setProgram(element.getProgram());
-      item.setOption(element.getOption());
-      builder.addItem(item);
-    }
+    return builder.withAggregateData(true).removeDimension(DATA_X_DIM_ID).build();
+  }
 
-    for (DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements()) {
-      ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
-      DataElement dataElement = element.getDataElement();
-      QueryItem item =
-          new QueryItem(
-              dataElement,
-              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
-              dataElement.getValueType(),
-              dataElement.getAggregationType(),
-              dataElement.getOptionSet());
-      item.setProgram(element.getProgram());
-      builder.addItemFilter(item);
+  /**
+   * Add program indicators to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramIndicators(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramIndicators()) {
+      ProgramIndicator programIndicator = (ProgramIndicator) object;
+      builder.addItemProgramIndicator(programIndicator);
     }
+  }
 
+  /**
+   * Add program data element options filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElementOptionsFilter(
+      DataQueryParams dataQueryParams, Builder builder) {
     for (DimensionalItemObject object : dataQueryParams.getFilterProgramDataElementOptions()) {
       ProgramDataElementOptionDimensionItem element =
           (ProgramDataElementOptionDimensionItem) object;
@@ -414,22 +377,16 @@ public class EventQueryParams extends DataQueryParams {
       item.setOption(element.getOption());
       builder.addItemFilter(item);
     }
+  }
 
-    for (DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes()) {
-      ProgramTrackedEntityAttributeDimensionItem element =
-          (ProgramTrackedEntityAttributeDimensionItem) object;
-      TrackedEntityAttribute attribute = element.getAttribute();
-      QueryItem item =
-          new QueryItem(
-              attribute,
-              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
-              attribute.getValueType(),
-              attribute.getAggregationType(),
-              attribute.getOptionSet());
-      item.setProgram(element.getProgram());
-      builder.addItemFilter(item);
-    }
-
+  /**
+   * Add program attribute options filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributeOptionsFilter(
+      DataQueryParams dataQueryParams, Builder builder) {
     for (DimensionalItemObject object : dataQueryParams.getFilterProgramAttributeOptions()) {
       ProgramTrackedEntityAttributeOptionDimensionItem element =
           (ProgramTrackedEntityAttributeOptionDimensionItem) object;
@@ -445,13 +402,146 @@ public class EventQueryParams extends DataQueryParams {
       item.setOption(element.getOption());
       builder.addItemFilter(item);
     }
+  }
 
-    for (DimensionalItemObject object : dataQueryParams.getProgramIndicators()) {
-      ProgramIndicator programIndicator = (ProgramIndicator) object;
-      builder.addItemProgramIndicator(programIndicator);
+  /**
+   * Add program attribute filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributesFilter(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes()) {
+      ProgramTrackedEntityAttributeDimensionItem element =
+          (ProgramTrackedEntityAttributeDimensionItem) object;
+      TrackedEntityAttribute attribute = element.getAttribute();
+      QueryItem item =
+          new QueryItem(
+              attribute,
+              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
+              attribute.getValueType(),
+              attribute.getAggregationType(),
+              attribute.getOptionSet());
+      item.setProgram(element.getProgram());
+      builder.addItemFilter(item);
     }
+  }
 
-    return builder.withAggregateData(true).removeDimension(DATA_X_DIM_ID).build();
+  /**
+   * Add program data element filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElementsFilter(
+      DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements()) {
+      ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
+      DataElement dataElement = element.getDataElement();
+      QueryItem item =
+          new QueryItem(
+              dataElement,
+              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
+              dataElement.getValueType(),
+              dataElement.getAggregationType(),
+              dataElement.getOptionSet());
+      item.setProgram(element.getProgram());
+      builder.addItemFilter(item);
+    }
+  }
+
+  /**
+   * Add program attribute options to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributeOptions(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramAttributeOptions()) {
+      ProgramTrackedEntityAttributeOptionDimensionItem element =
+          (ProgramTrackedEntityAttributeOptionDimensionItem) object;
+      TrackedEntityAttribute attribute = element.getAttribute();
+      QueryItem item =
+          new QueryItem(
+              attribute,
+              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
+              attribute.getValueType(),
+              attribute.getAggregationType(),
+              attribute.getOptionSet());
+      item.setProgram(element.getProgram());
+      item.setOption(element.getOption());
+      builder.addItem(item);
+    }
+  }
+
+  /**
+   * Add program attributes to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributes(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramAttributes()) {
+      ProgramTrackedEntityAttributeDimensionItem element =
+          (ProgramTrackedEntityAttributeDimensionItem) object;
+      TrackedEntityAttribute attribute = element.getAttribute();
+      QueryItem item =
+          new QueryItem(
+              attribute,
+              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
+              attribute.getValueType(),
+              attribute.getAggregationType(),
+              attribute.getOptionSet());
+      item.setProgram(element.getProgram());
+      builder.addItem(item);
+    }
+  }
+
+  /**
+   * Add program data element options to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElementOptions(
+      DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramDataElementOptions()) {
+      ProgramDataElementOptionDimensionItem element =
+          (ProgramDataElementOptionDimensionItem) object;
+      DataElement dataElement = element.getDataElement();
+      QueryItem item =
+          new QueryItem(
+              dataElement,
+              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
+              dataElement.getValueType(),
+              dataElement.getAggregationType(),
+              dataElement.getOptionSet());
+      item.setProgram(element.getProgram());
+      item.setOption(element.getOption());
+      builder.addItem(item);
+    }
+  }
+
+  /**
+   * Add program data elements to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElements(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramDataElements()) {
+      ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
+      DataElement dataElement = element.getDataElement();
+      QueryItem item =
+          new QueryItem(
+              dataElement,
+              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
+              dataElement.getValueType(),
+              dataElement.getAggregationType(),
+              dataElement.getOptionSet());
+      item.setProgram(element.getProgram());
+      builder.addItem(item);
+    }
   }
 
   /** Returns a unique key representing this query. The key is suitable for caching. */

@@ -834,7 +834,6 @@ public final class AnalyticsUtils {
 
         if (DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION == item.getDimensionItemType()
             && item instanceof ProgramDataElementOptionDimensionItem dimensionItem) {
-
           addOptionSetToMap(
               dimensionItem.getOptionSet(),
               map,
@@ -844,7 +843,6 @@ public final class AnalyticsUtils {
 
         if (DimensionItemType.PROGRAM_ATTRIBUTE_OPTION == item.getDimensionItemType()
             && item instanceof ProgramTrackedEntityAttributeOptionDimensionItem dimensionItem) {
-
           addOptionSetToMap(
               dimensionItem.getOption().getOptionSet(),
               map,
