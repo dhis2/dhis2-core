@@ -96,6 +96,8 @@ class DefaultEventAnalyticsServiceTest {
 
   @Mock private UserService userService;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @BeforeEach
   public void setUp() {
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
@@ -112,7 +114,8 @@ class DefaultEventAnalyticsServiceTest {
             analyticsCache,
             enrollmentAnalyticsManager,
             schemeIdResponseMapper,
-            userService);
+            userService,
+            organisationUnitResolver);
   }
 
   @Test

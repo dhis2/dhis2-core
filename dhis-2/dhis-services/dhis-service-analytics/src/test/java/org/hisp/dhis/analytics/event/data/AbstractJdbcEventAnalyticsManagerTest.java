@@ -58,6 +58,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -124,7 +125,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ProgramIndicatorService programIndicatorService;
 
   @Mock private ExecutionPlanStore executionPlanStore;
+
   @Mock private OrganisationUnitService organisationUnitService;
+
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -156,7 +160,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
@@ -165,7 +170,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
 
     programA = createProgram('A');
 
@@ -870,6 +876,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
