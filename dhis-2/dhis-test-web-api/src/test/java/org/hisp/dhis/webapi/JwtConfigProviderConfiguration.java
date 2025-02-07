@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class JwtConfigProviderConfiguration {
-  @Bean(name = "dhisConfigurationProvider")
+  @Bean
   @Primary
   public DhisConfigurationProvider dhisConfigurationProvider() {
     return new H2DhisConfigurationProvider("h2TestConfigWithJWTAuth.conf");
