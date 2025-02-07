@@ -234,6 +234,8 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected boolean multipleQueries = false;
 
+  @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -303,6 +305,7 @@ public class EventQueryParams extends DataQueryParams {
     params.endpointAction = this.endpointAction;
     params.rowContext = this.rowContext;
     params.multipleQueries = this.multipleQueries;
+    params.userOrgUnits = this.userOrgUnits;
     return params;
   }
 
@@ -1350,6 +1353,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withMultipleQueries(boolean multipleQueries) {
       this.params.multipleQueries = multipleQueries;
+      return this;
+    }
+
+    public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
+      this.params.userOrgUnits = userOrgUnits;
       return this;
     }
   }

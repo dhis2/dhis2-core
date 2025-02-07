@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -98,8 +99,9 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
       AnalyticsSecurityManager securityManager,
       EventQueryPlanner queryPlanner,
       EventQueryValidator queryValidator,
-      SchemaIdResponseMapper schemaIdResponseMapper) {
-    super(securityManager, queryValidator, schemaIdResponseMapper);
+      SchemaIdResponseMapper schemaIdResponseMapper,
+      OrganisationUnitResolver organisationUnitResolver) {
+    super(securityManager, queryValidator, schemaIdResponseMapper, organisationUnitResolver);
 
     checkNotNull(enrollmentAnalyticsManager);
     checkNotNull(queryPlanner);

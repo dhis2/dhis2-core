@@ -124,9 +124,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
-      ExecutionPlanStore executionPlanStore) {
+      ExecutionPlanStore executionPlanStore,
+      OrganisationUnitResolver organisationUnitResolver) {
     super(
-        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore);
+        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore, organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 

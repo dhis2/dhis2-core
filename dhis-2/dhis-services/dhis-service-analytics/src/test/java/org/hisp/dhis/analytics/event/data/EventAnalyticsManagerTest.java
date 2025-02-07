@@ -108,6 +108,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private JdbcEventAnalyticsManager subject;
 
   @Captor private ArgumentCaptor<String> sql;
@@ -137,7 +139,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
-            executionPlanStore);
+            executionPlanStore,
+            organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
   }
