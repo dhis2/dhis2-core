@@ -28,17 +28,32 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
   String ID = RelationshipStore.class.getName();
+
+  List<RelationshipItem> getRelationshipItemsByTrackedEntity(UID trackedEntity);
+
+  List<RelationshipItem> getRelationshipItemsByEnrollment(UID enrollment);
+
+  List<RelationshipItem> getRelationshipItemsByEvent(UID event);
+
+  Optional<TrackedEntity> findTrackedEntity(UID trackedEntity);
+
+  Optional<Enrollment> findEnrollment(UID enrollment);
+
+  Optional<Event> findEvent(UID event);
 
   List<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams);

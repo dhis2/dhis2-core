@@ -30,12 +30,14 @@ package org.hisp.dhis.tracker.export.relationship;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,19 +49,18 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class RelationshipOperationParamsMapper {
 
-  private final TrackedEntityService trackedEntityService;
-  private final EnrollmentService enrollmentService;
-  private final EventService eventService;
+  private final RelationshipStore relationshipStore;
+  private final TrackerAccessManager trackerAccessManager;
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(params.getIdentifier());
-          case ENROLLMENT -> enrollmentService.getEnrollment(params.getIdentifier());
-          case EVENT -> eventService.getEvent(params.getIdentifier());
+          case TRACKED_ENTITY -> getTrackedEntity(params.getIdentifier());
+          case ENROLLMENT -> getEnrollment(params.getIdentifier());
+          case EVENT -> getEvent(params.getIdentifier());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
@@ -68,5 +69,45 @@ class RelationshipOperationParamsMapper {
         .order(params.getOrder())
         .includeDeleted(params.isIncludeDeleted())
         .build();
+  }
+
+  private TrackedEntity getTrackedEntity(UID trackedEntityUid)
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity =
+        relationshipStore
+            .findTrackedEntity(trackedEntityUid)
+            .orElseThrow(() -> new NotFoundException(TrackedEntity.class, trackedEntityUid));
+    if (!trackerAccessManager
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), trackedEntity)
+        .isEmpty()) {
+      throw new ForbiddenException(TrackedEntity.class, trackedEntityUid);
+    }
+    return trackedEntity;
+  }
+
+  private Enrollment getEnrollment(UID enrollmentUid) throws NotFoundException, ForbiddenException {
+    Enrollment enrollment =
+        relationshipStore
+            .findEnrollment(enrollmentUid)
+            .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
+    if (!trackerAccessManager
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
+        .isEmpty()) {
+      throw new ForbiddenException(Enrollment.class, enrollmentUid);
+    }
+    return enrollment;
+  }
+
+  private Event getEvent(UID eventUid) throws NotFoundException, ForbiddenException {
+    Event event =
+        relationshipStore
+            .findEvent(eventUid)
+            .orElseThrow(() -> new NotFoundException(Event.class, eventUid));
+    if (!trackerAccessManager
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), event, false)
+        .isEmpty()) {
+      throw new ForbiddenException(Event.class, eventUid);
+    }
+    return event;
   }
 }

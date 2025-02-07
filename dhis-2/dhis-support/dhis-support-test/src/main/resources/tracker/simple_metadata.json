@@ -1075,6 +1075,7 @@
         }
       ],
       "autoGenerateEvent": true,
+      "enableUserAssignment": true,
       "code": "multi-stage",
       "created": "2022-04-22T05:57:48.383",
       "displayGenerateEventBox": true,

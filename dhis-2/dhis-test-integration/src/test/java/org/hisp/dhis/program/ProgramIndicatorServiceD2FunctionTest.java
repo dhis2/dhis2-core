@@ -307,17 +307,34 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
   @Test
   void testD2RelationshipCount() {
     assertEquals(
-        "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity where r.deleted is false)",
+        """
+                    (select sum(relationship_count)
+                     from analytics_rs_relationship arr
+                     where arr.trackedentityid = ax.trackedentity)
+                    """,
         getSql("d2:relationshipCount()"));
     assertEquals(
-        "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity where r.deleted is false)",
+        """
+                    (select sum(relationship_count)
+                     from analytics_rs_relationship arr
+                     where arr.trackedentityid = ax.trackedentity)
+                    """,
         getSqlEnrollment("d2:relationshipCount()"));
     assertEquals(
-        "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity where r.deleted is false)",
-        getSql("d2:relationshipCount('RelatioTypA')"));
+        normalizeSql(
+            """
+                    (select relationship_count
+                     from analytics_rs_relationship arr
+                     where arr.trackedentityid = ax.trackedentity and relationshiptypeuid = 'RelatioTypA')
+                    """),
+        normalizeSql(getSql("d2:relationshipCount('RelatioTypA')")));
     assertEquals(
-        "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity where r.deleted is false)",
-        getSqlEnrollment("d2:relationshipCount('RelatioTypA')"));
+        normalizeSql(
+            """
+                    (select relationship_count
+                     from analytics_rs_relationship arr
+                     where arr.trackedentityid = ax.trackedentity and relationshiptypeuid = 'RelatioTypA')"""),
+        normalizeSql(getSqlEnrollment("d2:relationshipCount('RelatioTypA')")));
   }
 
   @Test
@@ -369,5 +386,9 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         "nullif(cast((case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end "
             + "+ case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagB' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0)",
         getSqlEnrollment("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})"));
+  }
+
+  private String normalizeSql(String sql) {
+    return sql.replaceAll("\\s+", " ").trim();
   }
 }

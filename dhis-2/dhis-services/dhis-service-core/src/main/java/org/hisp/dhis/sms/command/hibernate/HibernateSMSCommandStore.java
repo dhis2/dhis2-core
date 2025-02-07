@@ -58,16 +58,6 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
   }
 
   @Override
-  public List<SMSCommand> getJ2MESMSCommands() {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("parserType"), ParserType.J2ME_PARSER)));
-  }
-
-  @Override
   public SMSCommand getSMSCommand(String commandName, ParserType parserType) {
     CriteriaBuilder builder = getCriteriaBuilder();
 

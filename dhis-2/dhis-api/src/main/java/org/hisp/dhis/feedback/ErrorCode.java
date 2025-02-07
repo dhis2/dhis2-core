@@ -102,6 +102,10 @@ public enum ErrorCode {
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* CategoryOptionCombo merge */
+  E1540(
+      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
+
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1551(
@@ -224,6 +228,7 @@ public enum ErrorCode {
   E3049("Sending 2FA code with email failed"),
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
+  E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
