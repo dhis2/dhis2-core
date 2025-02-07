@@ -127,6 +127,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
+    setUpMetadata("tracker/relationshipTypes.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
