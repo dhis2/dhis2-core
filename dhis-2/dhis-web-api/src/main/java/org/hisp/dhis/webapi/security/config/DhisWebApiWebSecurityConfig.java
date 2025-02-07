@@ -88,8 +88,6 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.session.web.http.CookieHttpSessionIdResolver;
-import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -157,18 +155,6 @@ public class DhisWebApiWebSecurityConfig {
       String requestURI = request.getRequestURI();
       return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
     }
-  }
-
-  @Bean
-  public CookieHttpSessionIdResolver httpSessionIdResolver() {
-    CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
-    DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
-    cookieSerializer.setCookieName("JSESSIONID");
-    cookieSerializer.setSameSite(dhisConfig.getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE));
-    cookieSerializer.setUseSecureCookie(dhisConfig.isEnabled(ConfigurationKey.SERVER_HTTPS));
-    cookieSerializer.setUseHttpOnlyCookie(true);
-    resolver.setCookieSerializer(cookieSerializer);
-    return resolver;
   }
 
   @Bean

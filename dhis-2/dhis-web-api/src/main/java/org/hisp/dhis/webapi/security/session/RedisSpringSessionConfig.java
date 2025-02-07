@@ -44,6 +44,8 @@ import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
+import org.springframework.session.web.http.CookieHttpSessionIdResolver;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /**
  * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
@@ -90,5 +92,17 @@ public class RedisSpringSessionConfig {
   @Bean
   public HttpSessionEventPublisher httpSessionEventPublisher() {
     return new HttpSessionEventPublisher();
+  }
+
+  @Bean
+  public CookieHttpSessionIdResolver httpSessionIdResolver() {
+    CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
+    DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
+    cookieSerializer.setCookieName("JSESSIONID");
+    cookieSerializer.setUseHttpOnlyCookie(true);
+    cookieSerializer.setSameSite(config.getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE));
+    cookieSerializer.setUseSecureCookie(config.isEnabled(ConfigurationKey.SERVER_HTTPS));
+    resolver.setCookieSerializer(cookieSerializer);
+    return resolver;
   }
 }
