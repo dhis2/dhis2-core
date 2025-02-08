@@ -25,16 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.config;
 
-import org.hisp.dhis.IntegrationH2Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SystemTestConfig.class)
-@ActiveProfiles(profiles = {"test-h2"})
-@IntegrationH2Test
-public abstract class SystemTest {}
+@Profile({"test-h2"})
+@Configuration
+public class H2TestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
+
+  public static class NoOpFlyway {}
+
+  @Bean("flyway")
+  public NoOpFlyway noFlyway() {
+    return new NoOpFlyway();
+  }
+
+  @Bean
+  public HibernateConfigurationProvider hibernateConfigurationProvider(
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
+        new DefaultHibernateConfigurationProvider(org.hibernate.tool.schema.Action.UPDATE);
+    hibernateConfigurationProvider.setConfigProvider(dhisConfigurationProvider);
+    return hibernateConfigurationProvider;
+  }
+}

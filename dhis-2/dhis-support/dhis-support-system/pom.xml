@@ -285,6 +285,11 @@
       <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.api-client</groupId>
+      <artifactId>google-api-client</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 </project>
