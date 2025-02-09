@@ -268,14 +268,18 @@ class RequestParamsValidatorTest {
   void shouldFailParsingFiltersMissingAValue() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseAttributeFilters(TEA_1_UID + ":lt"));
-    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt", exception.getMessage());
+    assertEquals(
+        "Operator in filter must be be used with a value: " + TEA_1_UID + ":lt",
+        exception.getMessage());
   }
 
   @Test
   void shouldFailParsingFiltersWithMissingValueAndTrailingColon() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseAttributeFilters(TEA_1_UID + ":lt:"));
-    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
+    assertEquals(
+        "Operator in filter must be be used with a value: " + TEA_1_UID + ":lt:",
+        exception.getMessage());
   }
 
   @Test
@@ -378,53 +382,63 @@ class RequestParamsValidatorTest {
   }
 
   @Test
-  void shouldParseDataElementFilterWhenUsingExistenceOperator() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":ex:true");
+  void shouldParseDataElementFilterWhenSingleUnaryOperator() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":!null");
 
-    assertEquals(Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.EX, "true"))), filters);
+    assertEquals(Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL))), filters);
   }
 
   @Test
-  void shouldParseDataElementFilterWhenOnlyUIDSupplied() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID.getValue());
-
-    assertEquals(Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.EX, "true"))), filters);
-  }
-
-  @Test
-  void shouldParseDataElementFiltersWhenUsingExistenceOperatorMoreThanOnceOnDifferentUIDs()
-      throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
-        parseDataElementFilters(DE_1_UID + ":ex:true," + DE_2_UID + ":ex:false");
+  void shouldParseDataElementFilterWhenMultipleUnaryOperatorsCombined() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":!null:null");
 
     assertEquals(
         Map.of(
             DE_1_UID,
-            List.of(new QueryFilter(QueryOperator.EX, "true")),
-            DE_2_UID,
-            List.of(new QueryFilter(QueryOperator.EX, "false"))),
+            List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL))),
         filters);
   }
 
   @Test
-  void shouldFailParsingDataElementFiltersWhenFilteringSameUIDIfAtLeastOneIsExistenceOperator() {
+  void shouldParseDataElementFilterWhenUnaryAndBinaryOperatorsCombined()
+      throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":null:gt:10");
+
+    assertEquals(
+        Map.of(
+            DE_1_UID,
+            List.of(new QueryFilter(QueryOperator.NULL), new QueryFilter(QueryOperator.GT, "10"))),
+        filters);
+  }
+
+  @Test
+  void shouldFailParsingDataElementFiltersWhenUnaryOperatorContainsValue() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> parseDataElementFilters(DE_1_UID + ":!null:value"));
+    assertEquals(
+        "Query item or filter is invalid: " + DE_1_UID + ":!null:value", exception.getMessage());
+  }
+
+  @Test
+  void
+      shouldFailParsingDataElementFiltersWhenUnaryAndBinaryOperatorsCombinedAndUnaryContainsValue() {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> parseDataElementFilters(DE_1_UID + ":ex:true," + DE_1_UID + ":gt:true"));
-    assertContains(
-        "A data element UID filtering with the operator 'EX' cannot be combined with additional filter criteria",
+            () -> parseDataElementFilters(DE_1_UID + ":gt:10:null:value"));
+    assertEquals(
+        "Operator in filter can't be used with a value: " + DE_1_UID + ":gt:10:null:value",
         exception.getMessage());
   }
 
   @Test
-  void shouldFailParsingDataElementFilterWhenUsingExistenceOperatorWithInvalidValue() {
+  void shouldFailParsingDataElementFilterWhenMultipleBinaryOperatorsAndOneHasNoValue() {
     Exception exception =
         assertThrows(
-            BadRequestException.class, () -> parseDataElementFilters(DE_1_UID + ":ex:value"));
-    assertContains(
-        "A filter with the operator 'EX' can only have 'true' or 'false' as its value",
-        exception.getMessage());
+            BadRequestException.class, () -> parseDataElementFilters(DE_1_UID + ":gt:10:lt"));
+    assertEquals(
+        "Query item or filter is invalid: " + DE_1_UID + ":gt:10:lt", exception.getMessage());
   }
 
   @ParameterizedTest

@@ -123,7 +123,7 @@ class DefaultEventService implements EventService {
               .events(Set.of(eventUid))
               .eventParams(EventParams.FALSE)
               .dataElementFilters(
-                  Map.of(dataElementUid, List.of(new QueryFilter(QueryOperator.EX, "true"))))
+                  Map.of(dataElementUid, List.of(new QueryFilter(QueryOperator.NNULL))))
               .build();
       events = getEvents(operationParams, new PageParams(1, 1, false));
     } catch (BadRequestException e) {

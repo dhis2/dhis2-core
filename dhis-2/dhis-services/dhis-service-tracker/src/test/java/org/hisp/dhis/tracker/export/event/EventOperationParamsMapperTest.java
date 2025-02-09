@@ -364,7 +364,9 @@ class EventOperationParamsMapperTest {
             .dataElementFilters(
                 Map.of(
                     UID.of(DE_1_UID),
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
+                    List.of(
+                        new QueryFilter(QueryOperator.EQ, "2"),
+                        new QueryFilter(QueryOperator.NNULL)),
                     UID.of(DE_2_UID),
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
@@ -376,7 +378,7 @@ class EventOperationParamsMapperTest {
     Map<DataElement, List<QueryFilter>> expected =
         Map.of(
             de1,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            List.of(new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)),
             de2,
             List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
     assertEquals(expected, dataElements);

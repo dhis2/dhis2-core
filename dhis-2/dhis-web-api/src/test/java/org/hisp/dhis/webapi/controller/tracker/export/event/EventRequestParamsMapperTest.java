@@ -480,7 +480,7 @@ class EventRequestParamsMapperTest {
     Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
     Map<UID, List<QueryFilter>> expected =
-        Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.EX, "true")));
+        Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)));
     assertEquals(expected, dataElementFilters);
   }
 

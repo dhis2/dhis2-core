@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
-import static org.hisp.dhis.common.QueryOperator.EX;
 import static org.hisp.dhis.common.QueryOperator.GE;
 import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
@@ -44,6 +43,8 @@ import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.SW;
 
 import com.google.common.collect.ImmutableMap;
@@ -81,7 +82,8 @@ public class QueryFilter {
           .put(EW, unused -> "like")
           .put(NLIKE, unused -> "not like")
           .put(IN, unused -> "in")
-          .put(EX, unused -> "??")
+          .put(NULL, unused -> "null")
+          .put(NNULL, unused -> "not null")
           .build();
 
   protected QueryOperator operator;
@@ -109,10 +111,6 @@ public class QueryFilter {
 
   public boolean isFilter() {
     return operator != null && filter != null && !filter.isEmpty();
-  }
-
-  public boolean isOperator(QueryOperator op) {
-    return operator != null && operator.equals(op);
   }
 
   public String getSqlOperator() {

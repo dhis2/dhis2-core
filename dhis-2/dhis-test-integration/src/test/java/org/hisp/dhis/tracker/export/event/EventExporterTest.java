@@ -591,7 +591,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldFilterByEventsContainingGivenDataValuesWhenFilteringByExistence()
+  void shouldFilterByEventsContainingGivenDataValuesWhenFilteringByNonNullDataValues()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
@@ -599,9 +599,9 @@ class EventExporterTest extends TrackerTest {
             .dataElementFilters(
                 Map.of(
                     UID.of("GieVkTxp4HH"),
-                    List.of(new QueryFilter(QueryOperator.EX, "true")),
+                    List.of(new QueryFilter(QueryOperator.NNULL)),
                     UID.of("GieVkTxp4HG"),
-                    List.of(new QueryFilter(QueryOperator.EX, "true"))))
+                    List.of(new QueryFilter(QueryOperator.NNULL))))
             .build();
 
     List<String> events = getEvents(params);
@@ -610,7 +610,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldFilterByEventsNotContainingGivenDataValueWhenFilteringByNonexistence()
+  void shouldFilterByEventsNotContainingGivenDataValueWhenFilteringByNullDataValues()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
@@ -618,12 +618,54 @@ class EventExporterTest extends TrackerTest {
             .programStage(programStage)
             .eventParams(EventParams.FALSE)
             .dataElementFilters(
-                Map.of(UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.EX, "false"))))
+                Map.of(UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL))))
             .build();
 
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsContainingGivenDataValueWhenCombiningUnaryAndBinaryOperatorsInFilter()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .dataElementFilters(
+                Map.of(
+                    UID.of(dataElement),
+                    List.of(
+                        new QueryFilter(QueryOperator.IN, "option2"),
+                        new QueryFilter(QueryOperator.NNULL))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsContainingGivenDataValueWhenCombiningTwoUnaryOperatorsInFilter()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .eventParams(EventParams.FALSE)
+            .dataElementFilters(
+                Map.of(
+                    UID.of("DATAEL00002"),
+                    List.of(
+                        new QueryFilter(QueryOperator.NNULL),
+                        new QueryFilter(QueryOperator.NNULL))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test

@@ -51,7 +51,8 @@ public enum QueryOperator {
   IN("in", true),
   SW("sw"),
   EW("ew"),
-  EX("ex"),
+  NULL("??"),
+  NNULL("??"),
   // Analytics specifics
   IEQ("==", true),
   NE("!=", true),
@@ -68,6 +69,10 @@ public enum QueryOperator {
   private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE);
 
   private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
+
+  private static final Set<QueryOperator> UNARY_OPERATORS = EnumSet.of(NULL, NNULL);
+
+  private static final Set<QueryOperator> NEGATION_OPERATORS = EnumSet.of(NULL);
 
   private final String value;
 
@@ -114,4 +119,14 @@ public enum QueryOperator {
   public boolean isComparison() {
     return COMPARISON_OPERATORS.contains(this);
   }
+
+  public boolean isUnary() {
+    return UNARY_OPERATORS.contains(this);
+  }
+  ;
+
+  public boolean isNegatedUnary() {
+    return NEGATION_OPERATORS.contains(this);
+  }
+  ;
 }
