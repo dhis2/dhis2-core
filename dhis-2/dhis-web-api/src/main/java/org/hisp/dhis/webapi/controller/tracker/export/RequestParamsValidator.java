@@ -607,12 +607,18 @@ public class RequestParamsValidator {
       throw new BadRequestException(INVALID_FILTER + filter);
     }
 
+    if (queryOperator == null) {
+      throw new BadRequestException(INVALID_FILTER + filter);
+    }
+
     if (queryOperator.isUnary()) {
       if (!StringUtils.isEmpty(value)) {
         throw new BadRequestException("Operator in filter can't be used with a value: " + filter);
       }
       return new QueryFilter(queryOperator);
-    } else if (StringUtils.isEmpty(value)) {
+    }
+
+    if (StringUtils.isEmpty(value)) {
       throw new BadRequestException("Operator in filter must be be used with a value: " + filter);
     }
 

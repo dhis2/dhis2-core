@@ -123,10 +123,8 @@ public enum QueryOperator {
   public boolean isUnary() {
     return UNARY_OPERATORS.contains(this);
   }
-  ;
 
   public boolean isNegatedUnary() {
     return NEGATION_OPERATORS.contains(this);
   }
-  ;
 }
