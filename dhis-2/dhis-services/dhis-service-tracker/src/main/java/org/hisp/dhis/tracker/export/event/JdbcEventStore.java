@@ -1375,9 +1375,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" as ")
           .append(deUid);
 
-      if (filterContainsExistenceOperator(filters)) {
-        // Operator EX allows for only one item in the filter list and its value is true or false
-        eventDataValuesWhereSql.append(addExistsFilterCondition(filters.get(0), hlp, deUid));
+      if (filterContainsOnlyUnaryOperator(filters)) {
+        for (QueryFilter filter : filters) {
+          eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), hlp, deUid));
+        }
         break;
       }
 
@@ -1418,7 +1419,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           String bindParameter = "parameter_" + filterCount;
           int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
-          if (!de.hasOptionSet()) {
+          if (filter.getOperator().isUnary()) {
+            eventDataValuesWhereSql.append(
+                unaryOperatorCondition(filter.getOperator(), hlp, deUid));
+          } else if (!de.hasOptionSet()) {
             eventDataValuesWhereSql.append(hlp.whereAnd());
 
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
@@ -1468,11 +1472,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             }
           }
         }
-      } else {
-        eventDataValuesWhereSql.append(hlp.whereAnd());
-        eventDataValuesWhereSql.append(" (ev.eventdatavalues ?? '");
-        eventDataValuesWhereSql.append(deUid);
-        eventDataValuesWhereSql.append("')");
       }
     }
 
@@ -1482,20 +1481,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append(" ");
   }
 
-  private String addExistsFilterCondition(QueryFilter queryFilter, SqlHelper hlp, String deUid) {
-    StringBuilder existsBuilder = new StringBuilder();
+  private String unaryOperatorCondition(QueryOperator queryOperator, SqlHelper hlp, String deUid) {
+    StringBuilder builder = new StringBuilder();
 
-    existsBuilder.append(hlp.whereAnd());
-    if (!Boolean.parseBoolean(queryFilter.getFilter())) {
-      existsBuilder.append(" not ");
+    builder.append(hlp.whereAnd());
+    if (queryOperator.isNegatedUnary()) {
+      builder.append(" not ");
     }
-    existsBuilder.append(" (ev.eventdatavalues ");
-    existsBuilder.append(queryFilter.getSqlOperator());
-    existsBuilder.append(" '");
-    existsBuilder.append(deUid);
-    existsBuilder.append("')");
+    builder.append(" (ev.eventdatavalues ");
+    builder.append(queryOperator.getValue());
+    builder.append(" '");
+    builder.append(deUid);
+    builder.append("') ");
 
-    return existsBuilder.toString();
+    return builder.toString();
   }
 
   private String inCondition(QueryFilter filter, String boundParameter, String queryCol) {
@@ -1512,8 +1511,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .toString();
   }
 
-  private boolean filterContainsExistenceOperator(List<QueryFilter> filters) {
-    return filters.stream().anyMatch(qf -> qf.getOperator().equals(QueryOperator.EX));
+  private boolean filterContainsOnlyUnaryOperator(List<QueryFilter> filters) {
+    return filters.stream().allMatch(qf -> qf.getOperator().isUnary());
   }
 
   private String eventStatusSql(
