@@ -125,11 +125,11 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     assertTrue(appStatus.ok());
     assertEquals("ok", appStatus.getMessage());
 
-    // when an app resource is retrieved with the index.html page name
+    // when an app resource is retrieved with a specific resourceVariation
     App app = appManager.getApp("test minio");
     Resource resource = appManager.getAppResource(app, resourceVariation);
 
-    // then the resource path returned is the full app path which ends with `/index.html`
+    // then the resource path returned is the full resource path which ends with `/index.html`
     assertEquals(
         expectedResourcePath,
         resource.getURI().getPath(),

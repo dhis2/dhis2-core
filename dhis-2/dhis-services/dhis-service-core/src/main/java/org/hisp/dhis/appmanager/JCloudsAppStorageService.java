@@ -345,20 +345,20 @@ public class JCloudsAppStorageService implements AppStorageService {
       return null;
     }
 
-    String resolvedResource = getResourceForFileOrDirectory(resource);
+    String resolvedFileResource = getResourceForFileOrDirectory(resource);
 
-    String key = (app.getFolderName() + ("/" + resolvedResource));
-    String fixSlashes = StringUtils.replaceAllRecursively(key, "//", "/");
-    URI uri = getSignedGetContentUri(fixSlashes);
+    String key = (app.getFolderName() + ("/" + resolvedFileResource));
+    String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
+    URI uri = getSignedGetContentUri(cleanedKey);
 
     if (uri == null) {
 
-      String filepath = jCloudsStore.getBlobContainer() + "/" + fixSlashes;
-      filepath = StringUtils.replaceAllRecursively(filepath, "//", "/");
+      String filepath = jCloudsStore.getBlobContainer() + "/" + cleanedKey;
+      String cleanedFilepath = StringUtils.replaceAllRecursively(filepath, "//", "/");
       File res;
 
       try {
-        res = locationManager.getFileForReading(filepath);
+        res = locationManager.getFileForReading(cleanedFilepath);
       } catch (LocationManagerException e) {
         return null;
       }
@@ -373,7 +373,22 @@ public class JCloudsAppStorageService implements AppStorageService {
     return new UrlResource(uri);
   }
 
-  private String getResourceForFileOrDirectory(String resource) {
+  /**
+   * The server is expected to handle multiple resource path variations, which ultimately should
+   * always resolve to a file resource. <br>
+   *
+   * <p>Examples: <br>
+   * <li>'' ->'index.html`
+   * <li>'index.html' ->'index.html`
+   * <li>'subDir/index.html' ->'subDir/index.html`
+   * <li>'subDir/' ->'subDir/index.html`
+   * <li>'subDir' ->'subDir/index.html`
+   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js`
+   *
+   * @param resource app resource to resolve
+   * @return potentially-updated app resource (file)
+   */
+  private String getResourceForFileOrDirectory(@Nonnull String resource) {
     // this condition is treated as the base app resource
     if (resource.isBlank()) {
       log.debug("Resource is blank, using 'index.html'");
