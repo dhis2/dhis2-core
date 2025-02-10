@@ -61,8 +61,8 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
   @Autowired AppManager appManager;
 
   @Test
-  @DisplayName("Can install and then update an App using local file storage")
-  void canUpdateAppUsingFileStorageTest() throws IOException {
+  @DisplayName("Can install and then update an App using MinIO storage")
+  void canUpdateAppUsingMinIOStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     App installedApp =
         appManager.installApp(
