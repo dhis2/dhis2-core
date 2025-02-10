@@ -70,34 +70,34 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 @Transactional
 class RouteControllerTest extends DhisControllerIntegrationTest {
 
-  private static GenericContainer<?> mockServerContainer;
+  private static GenericContainer<?> routeTargetMockServerContainer;
 
   @Autowired private RouteService service;
 
   @Autowired private ObjectMapper jsonMapper;
-  private MockServerClient mockServerClient;
+  private MockServerClient routeTargetMockServerClient;
 
   @Autowired private RestTemplate restTemplate;
 
   @BeforeAll
   public static void beforeAll() {
-    mockServerContainer =
+    routeTargetMockServerContainer =
         new GenericContainer<>("mockserver/mockserver")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
-    mockServerContainer.start();
+    routeTargetMockServerContainer.start();
   }
 
   @AfterAll
   public static void afterAll() {
-    mockServerContainer.stop();
+    routeTargetMockServerContainer.stop();
   }
 
   @Override
   public void integrationTestBefore() {
     service.setRestTemplate(restTemplate);
-    mockServerClient = new MockServerClient("localhost", mockServerContainer.getFirstMappedPort());
-    mockServerClient.reset();
+    routeTargetMockServerClient = new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+    routeTargetMockServerClient.reset();
   }
 
   @Test
@@ -260,13 +260,13 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @Test
   void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
       throws JsonProcessingException {
-    mockServerClient
+    routeTargetMockServerClient
         .when(request().withPath("/"))
         .respond(org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 31));
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
+    route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -280,13 +280,13 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @Test
   void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
       throws JsonProcessingException {
-    mockServerClient
+    routeTargetMockServerClient
         .when(request().withPath("/"))
         .respond(org.mockserver.model.HttpResponse.response("{}"));
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
+    route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
