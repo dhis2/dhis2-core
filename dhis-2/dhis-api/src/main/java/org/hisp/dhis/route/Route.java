@@ -48,7 +48,7 @@ import org.hisp.dhis.common.auth.AuthScheme;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class Route extends BaseIdentifiableObject implements MetadataObject {
-  public static final String DEFAULT_RESPONSE_TIMEOUT_SECONDS = "10";
+  public static final String DEFAULT_RESPONSE_TIMEOUT_SECONDS = "5";
   public static final String PATH_WILDCARD_SUFFIX = "/**";
 
   @JsonProperty private String description;
