@@ -1482,19 +1482,15 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String unaryOperatorCondition(QueryOperator queryOperator, SqlHelper hlp, String deUid) {
-    StringBuilder builder = new StringBuilder();
-
-    builder.append(hlp.whereAnd());
-    if (queryOperator.isNegatedOperator()) {
-      builder.append(" not ");
-    }
-    builder.append(" (ev.eventdatavalues ");
-    builder.append(queryOperator.getValue());
-    builder.append(" '");
-    builder.append(deUid);
-    builder.append("') ");
-
-    return builder.toString();
+    return new StringBuilder()
+        .append(hlp.whereAnd())
+        .append(" ev.eventdatavalues->")
+        .append("'")
+        .append(deUid)
+        .append("' ")
+        .append(queryOperator.getValue())
+        .append(" ")
+        .toString();
   }
 
   private String inCondition(QueryFilter filter, String boundParameter, String queryCol) {

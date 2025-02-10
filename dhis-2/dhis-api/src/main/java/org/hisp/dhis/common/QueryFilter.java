@@ -82,8 +82,8 @@ public class QueryFilter {
           .put(EW, unused -> "like")
           .put(NLIKE, unused -> "not like")
           .put(IN, unused -> "in")
-          .put(NULL, unused -> "null")
-          .put(NNULL, unused -> "not null")
+          .put(NULL, unused -> "is null")
+          .put(NNULL, unused -> "is not null")
           .build();
 
   protected QueryOperator operator;
