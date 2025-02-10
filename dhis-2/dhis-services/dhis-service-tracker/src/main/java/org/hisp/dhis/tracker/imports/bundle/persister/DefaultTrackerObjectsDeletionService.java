@@ -51,7 +51,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -65,8 +64,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final IdentifiableObjectManager manager;
-
-  private final RelationshipService relationshipService;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
 
@@ -97,9 +94,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       deleteEvents(events);
 
       List<UID> relationships =
-          relationshipService
-              .getRelationshipItems(TrackerType.ENROLLMENT, UID.of(enrollment))
-              .stream()
+          enrollment.getRelationshipItems().stream()
               .map(RelationshipItem::getRelationship)
               .filter(r -> !r.isDeleted())
               .map(UID::of)
@@ -140,7 +135,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       List<UID> relationships =
-          relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)).stream()
+          event.getRelationshipItems().stream()
               .map(RelationshipItem::getRelationship)
               .filter(r -> !r.isDeleted())
               .map(UID::of)
@@ -204,9 +199,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       deleteEnrollments(enrollments);
 
       List<UID> relationships =
-          relationshipService
-              .getRelationshipItems(TrackerType.TRACKED_ENTITY, UID.of(trackedEntity))
-              .stream()
+          trackedEntity.getRelationshipItems().stream()
               .map(RelationshipItem::getRelationship)
               .filter(r -> !r.isDeleted())
               .map(UID::of)
