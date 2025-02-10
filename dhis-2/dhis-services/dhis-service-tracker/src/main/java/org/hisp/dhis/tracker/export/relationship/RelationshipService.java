@@ -35,10 +35,15 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface RelationshipService {
+
+  /** Get all relationship items matching given params. */
+  Set<RelationshipItem> getRelationshipItems(TrackerType trackerType, UID uid);
 
   /** Get all relationships matching given params. */
   List<Relationship> getRelationships(RelationshipOperationParams params)

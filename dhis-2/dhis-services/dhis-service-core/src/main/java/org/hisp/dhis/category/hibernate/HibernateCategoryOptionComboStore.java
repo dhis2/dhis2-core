@@ -152,8 +152,8 @@ public class HibernateCategoryOptionComboStore
     if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct coc from CategoryOption co
-            join co.categoryOptionCombos coc
+            select distinct coc from CategoryOptionCombo coc
+            join coc.categoryOptions co
             where co.uid in :categoryOptions
             """,
             CategoryOptionCombo.class)

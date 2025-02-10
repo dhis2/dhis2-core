@@ -35,7 +35,6 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -1319,5 +1318,29 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     report.forEachErrorReport(err -> errors.add(err.toString()));
     assertFalse(
         report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
+  }
+
+  public static JsonRelationship assertFirstRelationship(
+      Relationship expected, JsonList<JsonRelationship> actual) {
+    assertFalse(actual.isEmpty(), "relationships should not be empty");
+    assertTrue(
+        actual.size() >= 0,
+        String.format("element %d does not exist in %d relationships elements", 0, actual.size()));
+    JsonRelationship jsonRelationship = actual.get(0);
+    assertRelationship(expected, jsonRelationship);
+    return jsonRelationship;
+  }
+
+  public static void assertRelationship(Relationship expected, JsonRelationship actual) {
+    assertFalse(actual.isEmpty(), "relationship should not be empty");
+    assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
+    assertEquals(
+        DateUtils.toIso8601NoTz(expected.getCreatedAtClient()),
+        actual.getCreatedAtClient(),
+        "createdAtClient date");
+    assertEquals(
+        expected.getRelationshipType().getUid(),
+        actual.getRelationshipType(),
+        "relationshipType UID");
   }
 }

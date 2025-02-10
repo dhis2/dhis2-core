@@ -147,7 +147,7 @@ class AdxPeriodTest {
   private String parse(String adxPeriod) {
     try {
       return AdxPeriod.parse(adxPeriod).getIsoDate();
-    } catch (AdxException ex) {
+    } catch (IllegalArgumentException ex) {
       fail(ex.getMessage());
     }
     return null;
@@ -158,7 +158,7 @@ class AdxPeriodTest {
       AdxPeriod.parse(adxPeriod).getIsoDate();
       fail("Should have thrown exception parsing " + adxPeriod);
     } catch (Exception ex) {
-      assertEquals(AdxException.class, ex.getClass());
+      assertEquals(IllegalArgumentException.class, ex.getClass());
     }
   }
 

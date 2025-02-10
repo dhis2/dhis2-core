@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -81,7 +82,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
   private String sourceUid2;
   private String targetUid;
   private String randomCocUid1;
-  private String randomCocUid2;
   private String mergeUserId;
 
   @BeforeAll
@@ -110,6 +110,37 @@ class CategoryOptionComboMergeTest extends ApiTest {
   public void setup() {
     loginActions.loginAsSuperUser();
     setupMetadata();
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
+    targetUid = getCocWithOptions("1", "3");
+    sourceUid1 = createDuplicateCoc("dupl1cate");
+    sourceUid2 = createDuplicateCoc("dupli2ate");
+
+    int cocTotal =
+        categoryOptionComboApiActions
+            .get("?filter=categoryCombo.id:in:[CatComUid01]")
+            .validate()
+            .extract()
+            .jsonPath()
+            .getInt("pager.total");
+    assertEquals(6, cocTotal);
+  }
+
+  public void checkCocCountAfter(int expected) {
+    loginActions.loginAsSuperUser();
+    maintenanceApiActions
+        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
+        .validateStatus(204);
+
+    int cocTotal =
+        categoryOptionComboApiActions
+            .get("?filter=categoryCombo.id:in:[CatComUid01]")
+            .validate()
+            .extract()
+            .jsonPath()
+            .getInt("pager.total");
+    assertEquals(expected, cocTotal);
   }
 
   @AfterAll
@@ -124,30 +155,43 @@ class CategoryOptionComboMergeTest extends ApiTest {
         "YuQRtpLP10I");
   }
 
+  private String createDuplicateCoc(String name) {
+    return categoryOptionComboApiActions
+        .post(
+            """
+            {
+                "name": "%s",
+                "categoryCombo": {
+                    "id": "CatComUid01"
+                },
+                "categoryOptions": [
+                    {
+                        "id": "CatOptUid01"
+                    },
+                    {
+                        "id": "CatOptUid03"
+                    }
+                ]
+            }
+            """
+                .formatted(name))
+        .validateStatus(201)
+        .extractUid();
+  }
+
   @Test
   @DisplayName(
       "Valid CategoryOptionCombo merge completes successfully with all source CategoryOptionCombo refs replaced with target CategoryOptionCombo")
   void validCategoryOptionComboMergeTest() {
-    // given
-    // generate category option combos
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
-
-    // get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1B", "2B");
-    targetUid = getCocWithOptions("3A", "4B");
-
     // confirm state before merge
     ValidatableResponse preMergeState =
         categoryOptionComboApiActions.get(targetUid).validateStatus(200).validate();
 
     preMergeState
-        .body("categoryCombo", hasEntry("id", "CatComUid02"))
+        .body("categoryCombo", hasEntry("id", "CatComUid01"))
         .body("categoryOptions", hasSize(equalTo(2)))
-        .body("categoryOptions", hasItem(hasEntry("id", "CatOptUid4B")))
-        .body("categoryOptions", hasItem(hasEntry("id", "CatOptUid3A")));
+        .body("categoryOptions", hasItem(hasEntry("id", "CatOptUid01")))
+        .body("categoryOptions", hasItem(hasEntry("id", "CatOptUid03")));
 
     String dataElement = setupDataElement("test de 1");
     // import visualization to persist data dimension item which has ref to source coc
@@ -170,23 +214,22 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("response.mergeReport.mergeType", equalTo("CategoryOptionCombo"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
+    // sources don't exist
     categoryOptionComboApiActions.get(sourceUid1).validateStatus(404);
     categoryOptionComboApiActions.get(sourceUid2).validateStatus(404);
+
+    // target has expected state
     ValidatableResponse postMergeState =
         categoryOptionComboApiActions.get(targetUid).validateStatus(200).validate();
 
     postMergeState
-        .body("categoryCombo", hasEntry("id", "CatComUid02"))
-        .body("categoryOptions", hasSize(equalTo(6)))
+        .body("categoryCombo", hasEntry("id", "CatComUid01"))
+        .body("categoryOptions", hasSize(equalTo(2)))
         .body(
             "categoryOptions",
-            hasItems(
-                hasEntry("id", "CatOptUid1A"),
-                hasEntry("id", "CatOptUid2B"),
-                hasEntry("id", "CatOptUid3A"),
-                hasEntry("id", "CatOptUid4B"),
-                hasEntry("id", "CatOptUid2A"),
-                hasEntry("id", "CatOptUid1B")));
+            hasItems(hasEntry("id", "CatOptUid01"), hasEntry("id", "CatOptUid03")));
+
+    checkCocCountAfter(4);
   }
 
   @Test
@@ -194,17 +237,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
       "CategoryOptionCombo merge completes successfully with DataValues (cat opt combo) handled correctly")
   void cocMergeDataValuesTest() {
     // Given
-    // Generate category option combos
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
-
-    // Get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1A", "2B");
-    targetUid = getCocWithOptions("3A", "4A");
-    randomCocUid1 = getCocWithOptions("1B", "2A");
-    randomCocUid2 = getCocWithOptions("1B", "2B");
+    randomCocUid1 = getCocWithOptions("2", "4");
 
     addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid1");
     addOrgUnitAccessForUser(mergeUserId, "OrgUnitUid1");
@@ -226,7 +259,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
             .validateStatus(200)
             .validate();
 
-    preMergeState.body("dataValues", hasSize(14));
+    preMergeState.body("dataValues", hasSize(13));
     Set<String> uniqueDates =
         new HashSet<>(preMergeState.extract().jsonPath().getList("dataValues.lastUpdated"));
     assertTrue(uniqueDates.size() > 1, "There should be more than 1 unique date present");
@@ -261,7 +294,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
             .validateStatus(200)
             .validate();
 
-    postMergeState.body("dataValues", hasSize(8));
+    postMergeState.body("dataValues", hasSize(7));
 
     // Check for expected values
     List<String> datValues = postMergeState.extract().jsonPath().getList("dataValues.value");
@@ -282,6 +315,8 @@ class CategoryOptionComboMergeTest extends ApiTest {
     assertTrue(dvCocs.contains(targetUid), "Target COC is present");
     assertFalse(dvCocs.contains(sourceUid1), "Source COC 1 should not be present");
     assertFalse(dvCocs.contains(sourceUid2), "Source COC 2 should not be present");
+
+    checkCocCountAfter(4);
   }
 
   @Test
@@ -289,17 +324,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
       "CategoryOptionCombo merge completes successfully with DataValues (attr opt combo) handled correctly")
   void aocMergeDataValuesTest() {
     // Given
-    // Generate category option combos
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
-
-    // Get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1A", "2B");
-    targetUid = getCocWithOptions("3A", "4A");
-    randomCocUid1 = getCocWithOptions("1B", "2A");
-    randomCocUid2 = getCocWithOptions("1B", "2B");
+    randomCocUid1 = getCocWithOptions("2", "4");
 
     addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUid2");
     addOrgUnitAccessForUser(mergeUserId, "OrgUnitUid2");
@@ -321,7 +346,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
             .validateStatus(200)
             .validate();
 
-    preMergeState.body("dataValues", hasSize(14));
+    preMergeState.body("dataValues", hasSize(13));
     Set<String> uniqueDates =
         new HashSet<>(preMergeState.extract().jsonPath().getList("dataValues.lastUpdated"));
     assertTrue(uniqueDates.size() > 1, "There should be more than 1 unique date present");
@@ -378,22 +403,24 @@ class CategoryOptionComboMergeTest extends ApiTest {
     assertTrue(dvAocs.contains(targetUid), "Target COC is present");
     assertFalse(dvAocs.contains(sourceUid1), "Source COC 1 should not be present");
     assertFalse(dvAocs.contains(sourceUid2), "Source COC 2 should not be present");
+
+    checkCocCountAfter(4);
   }
 
   private void addDataValuesCoc() {
     dataValueSetActions
         .post(
-            dataValueSetImportCoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            dataValueSetImportCoc(sourceUid1, sourceUid2, targetUid, randomCocUid1),
             getDataValueQueryParams())
         .validateStatus(200)
         .validate()
-        .body("response.importCount.imported", equalTo(14));
+        .body("response.importCount.imported", equalTo(13));
   }
 
   private void addDataValuesAoc() {
     dataValueSetActions
         .post(
-            dataValueSetImportAoc(sourceUid1, sourceUid2, targetUid, randomCocUid1, randomCocUid2),
+            dataValueSetImportAoc(sourceUid1, sourceUid2, targetUid, randomCocUid1),
             getDataValueQueryParams())
         .validateStatus(200);
   }
@@ -530,21 +557,21 @@ class CategoryOptionComboMergeTest extends ApiTest {
             "message",
             equalTo(
                 "Access is denied, requires one Authority from [F_CATEGORY_OPTION_COMBO_MERGE]"));
+
+    cleanUpDuplicates();
+  }
+
+  private void cleanUpDuplicates() {
+    loginActions.loginAsSuperUser();
+    categoryOptionComboApiActions.delete(sourceUid1).validateStatus(200);
+    categoryOptionComboApiActions.delete(sourceUid2).validateStatus(200);
+    checkCocCountAfter(4);
   }
 
   @Test
   @DisplayName("Category Option Combo merge fails when min max DE DB unique key constraint met")
   void dbConstraintMinMaxTest() {
     // given
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
-
-    // get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1B", "2B");
-    targetUid = getCocWithOptions("3A", "4B");
-
     String dataElement = setupDataElement("DE test 2");
 
     setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid, dataElement);
@@ -564,6 +591,8 @@ class CategoryOptionComboMergeTest extends ApiTest {
         .body("status", equalTo("ERROR"))
         .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
         .body("message", containsString("minmaxdataelement_unique_key"));
+
+    cleanUpDuplicates();
   }
 
   @Test
@@ -571,15 +600,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
       "Indicators with COC source refs in their numerator or denominator are updated with target COC ref")
   void indicatorsNumeratorDenominatorTest() {
     // given
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
-
-    // get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1B", "2B");
-    targetUid = getCocWithOptions("3A", "4B");
-
     // indicators with mix of source COC in numerator, denominator
     String indicatorType = setupIndicatorType("1");
     String indicator1 = setupIndicator("1", indicatorType, sourceUid1, "num2", "denom1", "denom2");
@@ -609,6 +629,8 @@ class CategoryOptionComboMergeTest extends ApiTest {
     checkIndicatorValues(3, indicator3, targetUid, targetUid, targetUid, targetUid);
     checkIndicatorValues(4, indicator4, targetUid, "num2", targetUid, "denom2");
     checkIndicatorValues(5, indicator5, "randomUID1", "randomUID2", "randomUID3", "randomUID4");
+
+    checkCocCountAfter(4);
   }
 
   @Test
@@ -616,15 +638,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
       "Expressions with COC source refs in their expression are updated with target COC ref")
   void expressionTest() {
     // given
-    maintenanceApiActions
-        .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
-
-    // get cat opt combo uids for sources and target, after generating
-    sourceUid1 = getCocWithOptions("1A", "2A");
-    sourceUid2 = getCocWithOptions("1B", "2B");
-    targetUid = getCocWithOptions("3A", "4B");
-
     // indicators with mix of source COC in numerator, denominator
     String validationRule1 =
         setupExpressionInValidationRule("1", sourceUid1, "leftSide2", "rightSide1", "rightSide2");
@@ -656,6 +669,8 @@ class CategoryOptionComboMergeTest extends ApiTest {
     checkExpressionValues(3, validationRule3, targetUid, targetUid, targetUid, "rightSide2");
     checkExpressionValues(4, validationRule4, targetUid, "leftSide2", "rightSide1", "rightSide2");
     checkExpressionValues(5, validationRule5, "leftSide1", "leftSide2", "rightSide1", "rightSide2");
+
+    checkCocCountAfter(4);
   }
 
   private void checkIndicatorValues(
@@ -810,7 +825,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
   }
 
   private String getCocWithOptions(String co1, String co2) {
-
     return categoryOptionComboApiActions
         .get(
             new QueryParamsBuilder()
@@ -827,9 +841,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
           {
               "categoryOptions": [
                   {
-                      "id": "CatOptUid1A",
-                      "name": "cat opt 1A",
-                      "shortName": "cat opt 1A",
+                      "id": "CatOptUid01",
+                      "name": "cat opt 1",
+                      "shortName": "cat opt 1",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
@@ -840,9 +854,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid1B",
-                      "name": "cat opt 1B",
-                      "shortName": "cat opt 1B",
+                      "id": "CatOptUid02",
+                      "name": "cat opt 2",
+                      "shortName": "cat opt 2",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
@@ -853,9 +867,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid2A",
-                      "name": "cat opt 2A",
-                      "shortName": "cat opt 2A",
+                      "id": "CatOptUid03",
+                      "name": "cat opt 3",
+                      "shortName": "cat opt 3",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
@@ -866,61 +880,9 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       ]
                   },
                   {
-                      "id": "CatOptUid2B",
-                      "name": "cat opt 2B",
-                      "shortName": "cat opt 2B",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid1"
-                          },
-                          {
-                              "id": "OrgUnitUid2"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptUid3A",
-                      "name": "cat opt 3A",
-                      "shortName": "cat opt 3A",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid1"
-                          },
-                          {
-                              "id": "OrgUnitUid2"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptUid3B",
-                      "name": "cat opt 3B",
-                      "shortName": "cat opt 3B",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid1"
-                          },
-                          {
-                              "id": "OrgUnitUid2"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptUid4A",
-                      "name": "cat opt 4A",
-                      "shortName": "cat opt 4A",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid1"
-                          },
-                          {
-                              "id": "OrgUnitUid2"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptUid4B",
-                      "name": "cat opt 4B",
-                      "shortName": "cat opt 4B",
+                      "id": "CatOptUid04",
+                      "name": "cat opt 4",
+                      "shortName": "cat opt 4",
                       "organisationUnits": [
                           {
                               "id": "OrgUnitUid1"
@@ -939,10 +901,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid1A"
+                              "id": "CatOptUid01"
                           },
                           {
-                              "id": "CatOptUid1B"
+                              "id": "CatOptUid02"
                           }
                       ]
                   },
@@ -953,38 +915,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid2A"
+                              "id": "CatOptUid03"
                           },
                           {
-                              "id": "CatOptUid2B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CategoUid03",
-                      "name": "cat 3",
-                      "shortName": "cat 3",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "CatOptUid3A"
-                          },
-                          {
-                              "id": "CatOptUid3B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CategoUid04",
-                      "name": "cat 4",
-                      "shortName": "cat 4",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "CatOptUid4A"
-                          },
-                          {
-                              "id": "CatOptUid4B"
+                              "id": "CatOptUid04"
                           }
                       ]
                   }
@@ -1035,10 +969,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid1A"
+                              "id": "CatOptUid01"
                           },
                           {
-                              "id": "CatOptUid1B"
+                              "id": "CatOptUid02"
                           }
                       ]
                   },
@@ -1049,38 +983,10 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "dataDimensionType": "DISAGGREGATION",
                       "categoryOptions": [
                           {
-                              "id": "CatOptUid2A"
+                              "id": "CatOptUid03"
                           },
                           {
-                              "id": "CatOptUid2B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptGrp03",
-                      "name": "cog 3",
-                      "shortName": "cog 3",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "CatOptUid3A"
-                          },
-                          {
-                              "id": "CatOptUid3B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptGrp04",
-                      "name": "cog 4",
-                      "shortName": "cog 4",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "CatOptUid4A"
-                          },
-                          {
-                              "id": "CatOptUid4B"
+                              "id": "CatOptUid04"
                           }
                       ]
                   }
@@ -1096,19 +1002,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
                           },
                           {
                               "id": "CategoUid02"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatComUid02",
-                      "name": "cat combo 2",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categories": [
-                          {
-                              "id": "CategoUid03"
-                          },
-                          {
-                              "id": "CategoUid04"
                           }
                       ]
                   }
@@ -1128,11 +1021,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
   }
 
   private JsonObject dataValueSetImportCoc(
-      String source1Coc,
-      String source2Coc,
-      String targetCoc,
-      String randomCoc1,
-      String randomCoc2) {
+      String source1Coc, String source2Coc, String targetCoc, String randomCoc1) {
     return JsonParserUtils.toJsonObject(
         """
           {
@@ -1253,15 +1142,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "attributeOptionCombo": "HllvX50cXC0",
                       "value": "random 1, DV 1 - not impacted",
                       "comment": "random 1, DV 1 - not impacted"
-                  },
-                  {
-                      "dataElement": "deUid000001",
-                      "period": "202408",
-                      "orgUnit": "OrgUnitUid1",
-                      "categoryOptionCombo": "%s",
-                      "attributeOptionCombo": "HllvX50cXC0",
-                      "value": "random 2, DV 2 - not impacted",
-                      "comment": "random 2, DV 2 - not impacted"
                   }
               ]
           }
@@ -1279,16 +1159,11 @@ class CategoryOptionComboMergeTest extends ApiTest {
                 targetCoc,
                 targetCoc,
                 targetCoc,
-                randomCoc1,
-                randomCoc2));
+                randomCoc1));
   }
 
   private JsonObject dataValueSetImportAoc(
-      String source1Coc,
-      String source2Coc,
-      String targetCoc,
-      String randomCoc1,
-      String randomCoc2) {
+      String source1Coc, String source2Coc, String targetCoc, String randomCoc1) {
     return JsonParserUtils.toJsonObject(
         """
           {
@@ -1409,15 +1284,6 @@ class CategoryOptionComboMergeTest extends ApiTest {
                       "attributeOptionCombo": "%s",
                       "value": "random 1, DV 1 - not impacted",
                       "comment": "random 1, DV 1 - not impacted"
-                  },
-                  {
-                      "dataElement": "deUid000001",
-                      "period": "202408",
-                      "orgUnit": "OrgUnitUid2",
-                      "categoryOptionCombo": "HllvX50cXC0",
-                      "attributeOptionCombo": "%s",
-                      "value": "random 2, DV 2 - not impacted",
-                      "comment": "random 2, DV 2 - not impacted"
                   }
               ]
           }
@@ -1435,8 +1301,7 @@ class CategoryOptionComboMergeTest extends ApiTest {
                 targetCoc,
                 targetCoc,
                 targetCoc,
-                randomCoc1,
-                randomCoc2));
+                randomCoc1));
   }
 
   private JsonObject dataValueSetImportUpdateAoc(
