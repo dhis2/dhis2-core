@@ -88,8 +88,14 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
       EventQueryPlanner queryPlanner,
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
+      UserService userService,
+      OrganisationUnitResolver organisationUnitResolver) {
+    super(
+        securityManager,
+        queryValidator,
+        schemeIdResponseMapper,
+        userService,
+        organisationUnitResolver);
 
     checkNotNull(enrollmentAnalyticsManager);
     checkNotNull(queryPlanner);

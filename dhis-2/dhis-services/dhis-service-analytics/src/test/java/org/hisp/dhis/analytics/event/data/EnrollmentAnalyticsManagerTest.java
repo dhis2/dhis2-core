@@ -109,6 +109,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @Captor private ArgumentCaptor<String> sql;
 
   private String DEFAULT_COLUMNS =
@@ -134,7 +136,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
   }
 
   @Test

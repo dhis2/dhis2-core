@@ -67,8 +67,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Profile({
-  "!test-h2",
-  "!test-postgres",
+  "!test-h2 & !test-postgres",
 })
 @Component("dhisConfigurationProvider")
 @Slf4j
