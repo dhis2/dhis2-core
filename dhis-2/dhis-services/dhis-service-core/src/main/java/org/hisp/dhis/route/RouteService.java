@@ -29,7 +29,6 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -48,15 +47,14 @@ import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpHeaders;
@@ -86,9 +84,7 @@ public class RouteService {
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
-  @Autowired @Getter @Setter private ClientHttpConnector clientHttpConnector;
-
-  @Autowired @Getter @Setter private ObjectMapper objectMapper;
+  private final ClientHttpConnector clientHttpConnector;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -218,12 +214,8 @@ public class RouteService {
                 clientHttpRequest -> {
                   Object nativeRequest = clientHttpRequest.getNativeRequest();
                   if (nativeRequest instanceof HttpClientRequest httpClientRequest) {
-                    if (route.getResponseTimeout() == null) {
-                      httpClientRequest.responseTimeout(Duration.ofMillis(10_000));
-                    } else {
-                      httpClientRequest.responseTimeout(
-                          Duration.ofSeconds(route.getResponseTimeout()));
-                    }
+                    httpClientRequest.responseTimeout(
+                        Duration.ofSeconds(route.getResponseTimeoutSeconds()));
                   }
                 })
             .bodyValue(body);
@@ -253,9 +245,12 @@ public class RouteService {
             .onErrorResume(
                 throwable -> throwable.getCause() instanceof DataBufferLimitException,
                 throwable -> {
-                  String message =
-                      String.format("{\"message\":\"%s\"}", throwable.getCause().getMessage());
-                  return Mono.just(new ResponseEntity<>(message, HttpStatus.BAD_GATEWAY));
+                  JsonObject message =
+                      Json.object(
+                          jsonObjectBuilder ->
+                              jsonObjectBuilder.addString(
+                                  "message", throwable.getCause().getMessage()));
+                  return Mono.just(new ResponseEntity<>(message.toJson(), HttpStatus.BAD_GATEWAY));
                 })
             .block();
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());

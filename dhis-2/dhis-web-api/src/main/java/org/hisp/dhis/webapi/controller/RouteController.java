@@ -140,8 +140,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
   }
 
   protected void validateRoute(Route route) throws ConflictException {
-    if (route.getResponseTimeout() != null
-        && (route.getResponseTimeout() < 1 || route.getResponseTimeout() > 60)) {
+    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
       throw new ConflictException(
           "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
     }

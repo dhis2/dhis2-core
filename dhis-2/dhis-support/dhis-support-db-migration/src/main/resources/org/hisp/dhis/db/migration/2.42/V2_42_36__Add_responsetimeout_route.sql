@@ -1,1 +1,1 @@
-ALTER TABLE route ADD COLUMN IF NOT EXISTS responsetimeout INTEGER CHECK (responsetimeout > 0 AND responsetimeout <= 60);
+ALTER TABLE route ADD COLUMN IF NOT EXISTS responsetimeoutseconds INTEGER NOT NULL DEFAULT 10 CHECK (responsetimeoutseconds > 0 AND responsetimeoutseconds <= 60);

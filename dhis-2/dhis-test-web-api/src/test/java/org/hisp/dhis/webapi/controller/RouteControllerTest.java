@@ -119,32 +119,32 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   @Nested
   public class IntegrationTest extends PostgresControllerIntegrationTestBase {
 
-    private static GenericContainer<?> mockServerContainer;
-    private MockServerClient mockServerClient;
+    private static GenericContainer<?> routeTargetMockServerContainer;
+    private MockServerClient routeTargetMockServerClient;
 
     @BeforeAll
     public static void beforeAll() {
-      mockServerContainer =
+      routeTargetMockServerContainer =
           new GenericContainer<>("mockserver/mockserver")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))
               .withExposedPorts(1080);
-      mockServerContainer.start();
+      routeTargetMockServerContainer.start();
     }
 
     @BeforeEach
     public void beforeEach() {
-      mockServerClient =
-          new MockServerClient("localhost", mockServerContainer.getFirstMappedPort());
+      routeTargetMockServerClient =
+          new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
     }
 
     @AfterEach
     public void afterEach() {
-      mockServerClient.reset();
+      routeTargetMockServerClient.reset();
     }
 
     @Test
     void testRunRouteWhenResponseBodyExceedsLimit() throws JsonProcessingException {
-      mockServerClient
+      routeTargetMockServerClient
           .when(request().withPath("/"))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
 
@@ -170,15 +170,15 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @Test
     void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
         throws JsonProcessingException {
-      mockServerClient
+      routeTargetMockServerClient
           .when(request().withPath("/"))
           .respond(
               org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 10));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
-      route.put("responseTimeout", 5);
+      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("responseTimeoutSeconds", 5);
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       HttpResponse runHttpResponse =
@@ -192,14 +192,14 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @Test
     void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
         throws JsonProcessingException {
-      mockServerClient
+      routeTargetMockServerClient
           .when(request().withPath("/"))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
-      route.put("responseTimeout", 5);
+      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("responseTimeoutSeconds", 5);
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       HttpResponse runHttpResponse =
@@ -212,7 +212,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     @Test
     void testRunRouteWhenResponseIsHttpError() throws JsonProcessingException {
-      mockServerClient
+      routeTargetMockServerClient
           .when(request().withPath("/"))
           .respond(
               org.mockserver.model.HttpResponse.response(
@@ -221,7 +221,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + mockServerContainer.getFirstMappedPort());
+      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       HttpResponse runHttpResponse =
@@ -349,7 +349,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("url", "http://stub");
-    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CONFLICT, postHttpResponse);
@@ -360,7 +360,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("url", "http://stub");
-    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CONFLICT, postHttpResponse);
@@ -374,7 +374,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
     HttpResponse updateHttpResponse =
         PUT(
             "/routes/"
@@ -392,7 +392,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    route.put("responseTimeout", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
     HttpResponse updateHttpResponse =
         PUT(
             "/routes/"

@@ -48,6 +48,7 @@ import org.hisp.dhis.common.auth.AuthScheme;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class Route extends BaseIdentifiableObject implements MetadataObject {
+  public static final String DEFAULT_RESPONSE_TIMEOUT_SECONDS = "10";
   public static final String PATH_WILDCARD_SUFFIX = "/**";
 
   @JsonProperty private String description;
@@ -67,8 +68,8 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
   /** Optional. Required authorities for invoking the route. */
   @JsonProperty private List<String> authorities = new ArrayList<>();
 
-  @JsonProperty(defaultValue = "10")
-  private Integer responseTimeout;
+  @JsonProperty(defaultValue = DEFAULT_RESPONSE_TIMEOUT_SECONDS)
+  private int responseTimeoutSeconds = Integer.parseInt(DEFAULT_RESPONSE_TIMEOUT_SECONDS);
 
   /**
    * If the route url ends with /** return true. Otherwise return false.
