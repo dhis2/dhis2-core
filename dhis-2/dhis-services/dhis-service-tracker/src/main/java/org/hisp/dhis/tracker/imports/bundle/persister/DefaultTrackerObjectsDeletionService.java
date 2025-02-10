@@ -96,6 +96,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       List<UID> relationships =
           enrollment.getRelationshipItems().stream()
               .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
               .map(UID::of)
               .toList();
       deleteRelationships(relationships);
@@ -128,11 +129,15 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       Event event = manager.get(Event.class, uid);
+      if (event == null) {
+        throw new NotFoundException(Event.class, uid);
+      }
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       List<UID> relationships =
           event.getRelationshipItems().stream()
               .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
               .map(UID::of)
               .toList();
 
@@ -196,6 +201,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       List<UID> relationships =
           trackedEntity.getRelationshipItems().stream()
               .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
               .map(UID::of)
               .toList();
 
