@@ -57,7 +57,9 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "tecl.created";
   private static final String COLUMN_CHANGELOG_USER = "tecl.createdByUsername";
-  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "tea.uid";
+  private static final String COLUMN_CHANGELOG_TEA_UID = "tea.uid";
+  private static final String ORDER_ATTRIBUTE_EXPRESSION =
+      "CONCAT(COALESCE(LOWER(tea.formName), ''), COALESCE(LOWER(tea.name), ''))";
 
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
@@ -66,12 +68,12 @@ public class HibernateTrackedEntityChangeLogStore {
       Map.ofEntries(
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
-          entry("attribute", COLUMN_CHANGELOG_DATA_ELEMENT));
+          entry("attribute", ORDER_ATTRIBUTE_EXPRESSION));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
           entry(Pair.of("username", String.class), COLUMN_CHANGELOG_USER),
-          entry(Pair.of("attribute", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT));
+          entry(Pair.of("attribute", UID.class), COLUMN_CHANGELOG_TEA_UID));
 
   private final EntityManager entityManager;
   private final Session session;

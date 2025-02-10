@@ -346,6 +346,13 @@
             "identifier": "dIVt4l5vIOa"
           },
           "value": "Frank PTEA"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fRGt4l6yIRb"
+          },
+          "value": "Test PTEA"
         }
       ],
       "notes": [
@@ -1198,6 +1205,19 @@
       },
       "to": {
         "event": "LCSfHnurnNB"
+      }
+    },
+    {
+      "relationship": "wVsN59nBTmc",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
+      "from": {
+        "trackedEntity": "woitxQbWYNq"
+      },
+      "to": {
+        "enrollment": "TvctPPhpD8z"
       }
     }
   ],
