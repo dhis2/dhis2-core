@@ -1485,7 +1485,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     StringBuilder builder = new StringBuilder();
 
     builder.append(hlp.whereAnd());
-    if (queryOperator.isNegatedUnary()) {
+    if (queryOperator.isNegatedOperator()) {
       builder.append(" not ");
     }
     builder.append(" (ev.eventdatavalues ");

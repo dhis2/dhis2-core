@@ -124,7 +124,7 @@ public enum QueryOperator {
     return UNARY_OPERATORS.contains(this);
   }
 
-  public boolean isNegatedUnary() {
+  public boolean isNegatedOperator() {
     return NEGATION_OPERATORS.contains(this);
   }
 }

@@ -65,8 +65,11 @@ public class EventDataFilter implements Serializable {
   /** Like */
   private String like;
 
-  /** Exists */
-  private String ex;
+  /** Null */
+  private String isNull;
+
+  /** Not Null */
+  private String isNotNull;
 
   /** If the dataItem is of type date, then date filtering parameters are specified using this. */
   private DateFilterPeriod dateFilter;
@@ -163,12 +166,23 @@ public class EventDataFilter implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getEx() {
-    return ex;
+  public String getNull() {
+    return isNull;
   }
 
-  public void setEx(String ex) {
-    this.ex = ex;
+  public void setNull(String isNull) {
+    this.isNull = isNull == null ? "" : isNull;
+  }
+
+  @JsonProperty("!null")
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getNotNull() {
+    return isNotNull;
+  }
+
+  @JsonProperty("!null")
+  public void setNotNull(String isNotNull) {
+    this.isNotNull = isNotNull == null ? "" : isNotNull;
   }
 
   @JsonProperty
