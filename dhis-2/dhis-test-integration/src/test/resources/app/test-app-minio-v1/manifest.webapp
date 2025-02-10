@@ -1,0 +1,23 @@
+{
+  "app_hub_id": "7fc56956-e2de-4704-896b-f08fac3b9db3",
+  "appType": "APP",
+  "short_name": "test minio",
+  "name": "Test App MinIO",
+  "description": "An application used in tests to check MinIO usage",
+  "version": "1.0.0",
+  "launch_path": "index.html",
+  "default_locale": "en",
+  "activities": {
+    "dhis": {
+      "href": "*",
+      "namespace": "test-app-minio-ns"
+    }
+  },
+  "icons": {
+    "48": "dhis2-app-icon.png"
+  },
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "scope": "."
+}

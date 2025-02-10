@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -43,6 +44,9 @@ import org.hisp.dhis.test.junit.MinIOTestExtension.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -93,32 +97,24 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Retrieving an app with an empty page name returns index.html")
-  void emptyPageNameTest() throws IOException {
-    // given an app is installed in object storage
-    App installedApp =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+  @DisplayName("File resource content size is 38")
+  void fileResourceContentLengthTest() {
+    // given
+    Resource resource =
+        new FileSystemResource("./src/test/resources/app/test-file-content-length.txt");
 
-    AppStatus appStatus = installedApp.getAppState();
+    // when
+    int uriContentLength = appManager.getUriContentLength(resource);
 
-    assertTrue(appStatus.ok());
-    assertEquals("ok", appStatus.getMessage());
-
-    // when an app resource is retrieved with an empty page name
-    App app = appManager.getApp("test minio");
-    Resource resource = appManager.getAppResource(app, "");
-
-    // then the resource path returned is the full app path which ends with `/index.html`
-    assertEquals(
-        "/dhis2/apps/test-app-minio-v1/index.html",
-        resource.getURI().getPath(),
-        "resource path should end with /index.html");
+    // then
+    assertEquals(38, uriContentLength);
   }
 
-  @Test
-  @DisplayName("Retrieving an app with the index.html page name returns correct resource path")
-  void pageNameIndexHtmlTest() throws IOException {
+  @ParameterizedTest
+  @MethodSource("appResourceParams")
+  @DisplayName("Calls with different app resource formats should have expected outcome")
+  void stringCharsReplaceTest(String resourceVariation, String expectedResourcePath)
+      throws IOException {
     // given an app is installed in object storage
     App installedApp =
         appManager.installApp(
@@ -131,27 +127,25 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
     // when an app resource is retrieved with the index.html page name
     App app = appManager.getApp("test minio");
-    Resource resource = appManager.getAppResource(app, "index.html");
+    Resource resource = appManager.getAppResource(app, resourceVariation);
 
     // then the resource path returned is the full app path which ends with `/index.html`
     assertEquals(
-        "/dhis2/apps/test-app-minio-v1/index.html",
+        expectedResourcePath,
         resource.getURI().getPath(),
-        "resource path should end with /index.html");
+        "resource path should match expected format");
   }
 
-  @Test
-  @DisplayName("File resource content size is 38")
-  void fileResourceContentLengthTest() {
-    // given
-    Resource resource =
-        new FileSystemResource("./src/test/resources/app/test-file-content-length.txt");
-
-    // when
-    int uriContentLength = appManager.getUriContentLength(resource);
-
-    // then
-    assertEquals(38, uriContentLength);
+  private static Stream<Arguments> appResourceParams() {
+    return Stream.of(
+        Arguments.of("", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("/index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("subDir", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of("subDir/", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of("subDir/index.html", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of(
+            "subDir/subSubDir/", "/dhis2/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
   }
 
   @Test

@@ -55,6 +55,7 @@ import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
@@ -328,29 +329,32 @@ public class JCloudsAppStorageService implements AppStorageService {
     log.info("Deleted app {}", app.getName());
   }
 
+  /**
+   * @param app the app to serve
+   * @param resource the name of the app resource to serve. This can be a directory, sub-directory
+   *     or a page name
+   * @return app resource
+   * @throws IOException ex if any IO issues
+   */
   @Override
-  public Resource getAppResource(App app, @Nonnull String pageName) throws IOException {
+  public Resource getAppResource(App app, @Nonnull String resource) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
-          pageName);
+          resource);
       return null;
     }
 
-    // assigning index.html if blank as it looks like we always try to return the index.html
-    // for all types of storage (file, object)
-    if (pageName.isBlank()) {
-      pageName = "index.html";
-      log.info("Page name is blank, assigning index.html for app {}", app.getName());
-    }
+    String resolvedResource = getResourceForFileOrDirectory(resource);
 
-    String key = (app.getFolderName() + ("/" + pageName)).replaceAll("//", "/");
-    URI uri = getSignedGetContentUri(key);
+    String key = (app.getFolderName() + ("/" + resolvedResource));
+    String fixSlashes = StringUtils.replaceAllRecursively(key, "//", "/");
+    URI uri = getSignedGetContentUri(fixSlashes);
 
     if (uri == null) {
 
-      String filepath = jCloudsStore.getBlobContainer() + "/" + key;
-      filepath = filepath.replaceAll("//", "/");
+      String filepath = jCloudsStore.getBlobContainer() + "/" + fixSlashes;
+      filepath = StringUtils.replaceAllRecursively(filepath, "//", "/");
       File res;
 
       try {
@@ -367,6 +371,30 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     return new UrlResource(uri);
+  }
+
+  private String getResourceForFileOrDirectory(String resource) {
+    // this condition is treated as the base app resource
+    if (resource.isBlank()) {
+      log.debug("Resource is blank, using 'index.html'");
+      return "index.html";
+    }
+
+    // this condition is treated as a directory (any level) resource, ending in '/'
+    if (resource.endsWith("/")) {
+      log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
+      return resource + "index.html";
+    }
+
+    // this condition is treated as a directory resource not ending in '/'
+    if (!resource.contains(".")) { // not a file extension
+      log.debug(
+          "Resource is treated as a directory with no trailing '/', appending '/index.html' to {}",
+          resource);
+      return resource + "/index.html";
+    }
+    // any other resource, no special handling required, return as is
+    return resource;
   }
 
   public URI getSignedGetContentUri(String key) {
