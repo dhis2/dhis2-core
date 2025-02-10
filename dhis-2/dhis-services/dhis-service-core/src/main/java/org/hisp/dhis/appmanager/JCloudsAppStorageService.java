@@ -47,6 +47,7 @@ import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
@@ -328,12 +329,19 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public Resource getAppResource(App app, @Nonnull String pageName) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
           pageName);
       return null;
+    }
+
+    // assigning index.html if blank as it looks like we always try to return the index.html
+    // for all types of storage (file, object)
+    if (pageName.isBlank()) {
+      pageName = "index.html";
+      log.info("Page name is blank, assigning index.html for app {}", app.getName());
     }
 
     String key = (app.getFolderName() + ("/" + pageName)).replaceAll("//", "/");
@@ -351,11 +359,7 @@ public class JCloudsAppStorageService implements AppStorageService {
         return null;
       }
 
-      if (res.isDirectory()) {
-        String indexPath = pageName.replaceAll("/+$", "") + "/index.html";
-        log.info("Resource {} ({} is a directory, serving {}", pageName, filepath, indexPath);
-        return getAppResource(app, indexPath);
-      } else if (res.exists()) {
+      if (res.exists()) {
         return new FileSystemResource(res);
       } else {
         return null;

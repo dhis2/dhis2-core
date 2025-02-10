@@ -56,13 +56,13 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ExtendWith(MinIOTestExtension.class)
 @ContextConfiguration(classes = {DhisConfig.class})
-class AppManagerTest extends PostgresIntegrationTestBase {
+class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;
 
   @Test
-  @DisplayName("Can install and then update an App using MinIO storage")
-  void canUpdateAppUsingMinIoTest() throws IOException {
+  @DisplayName("Can install and then update an App using local file storage")
+  void canUpdateAppUsingFileStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     App installedApp =
         appManager.installApp(
@@ -90,6 +90,54 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals("2.0.0", app.getVersion());
     assertEquals(63, appManager.getUriContentLength(resource));
+  }
+
+  @Test
+  @DisplayName("Retrieving an app with an empty page name returns index.html")
+  void emptyPageNameTest() throws IOException {
+    // given an app is installed in object storage
+    App installedApp =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    AppStatus appStatus = installedApp.getAppState();
+
+    assertTrue(appStatus.ok());
+    assertEquals("ok", appStatus.getMessage());
+
+    // when an app resource is retrieved with an empty page name
+    App app = appManager.getApp("test minio");
+    Resource resource = appManager.getAppResource(app, "");
+
+    // then the resource path returned is the full app path which ends with `/index.html`
+    assertEquals(
+        "/dhis2/apps/test-app-minio-v1/index.html",
+        resource.getURI().getPath(),
+        "resource path should end with /index.html");
+  }
+
+  @Test
+  @DisplayName("Retrieving an app with the index.html page name returns correct resource path")
+  void pageNameIndexHtmlTest() throws IOException {
+    // given an app is installed in object storage
+    App installedApp =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    AppStatus appStatus = installedApp.getAppState();
+
+    assertTrue(appStatus.ok());
+    assertEquals("ok", appStatus.getMessage());
+
+    // when an app resource is retrieved with the index.html page name
+    App app = appManager.getApp("test minio");
+    Resource resource = appManager.getAppResource(app, "index.html");
+
+    // then the resource path returned is the full app path which ends with `/index.html`
+    assertEquals(
+        "/dhis2/apps/test-app-minio-v1/index.html",
+        resource.getURI().getPath(),
+        "resource path should end with /index.html");
   }
 
   @Test
