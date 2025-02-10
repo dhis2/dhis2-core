@@ -96,7 +96,8 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @Override
   public void integrationTestBefore() {
     service.setRestTemplate(restTemplate);
-    routeTargetMockServerClient = new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+    routeTargetMockServerClient =
+        new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
     routeTargetMockServerClient.reset();
   }
 
