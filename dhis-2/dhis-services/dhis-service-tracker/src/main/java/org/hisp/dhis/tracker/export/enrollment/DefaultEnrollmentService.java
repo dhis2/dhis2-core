@@ -113,6 +113,10 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
+    if (uids.isEmpty()) {
+      return List.of();
+    }
+
     EnrollmentQueryParams queryParams;
     try {
       queryParams =
