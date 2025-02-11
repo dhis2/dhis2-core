@@ -25,16 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import org.hisp.dhis.IntegrationH2Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SystemTestConfig.class)
-@ActiveProfiles(profiles = {"test-h2"})
-@IntegrationH2Test
-public abstract class SystemTest {}
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+/**
+ * @author Morten Olav Hansen
+ */
+class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
+  @Test
+  void testAuthorizationHeaderSet() {
+    HttpBasicAuthScheme auth =
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
+
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
+
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  }
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district"),
+        HttpBasicAuthScheme::getPassword);
+  }
+
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new HttpBasicAuthScheme()
+            .setUsername("admin")
+            .setPassword("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        HttpBasicAuthScheme::getPassword);
+  }
+}

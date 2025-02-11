@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,61 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
-/**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
- * access token, but can be used anywhere the format is accepted.
- *
- * @author Morten Olav Hansen
- */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class ApiTokenAuth extends Auth {
-  public static final String TYPE = "api-token";
+public class ApiQueryParamsAuthScheme extends AuthScheme {
+  public static final String API_QUERY_PARAMS_TYPE = "api-query-params";
 
   @JsonProperty(required = true)
-  private String token;
+  private Map<String, String> queryParams = new HashMap<>();
 
-  public ApiTokenAuth() {
-    super(TYPE);
+  public ApiQueryParamsAuthScheme() {
+    super(API_QUERY_PARAMS_TYPE);
   }
 
   @Override
-  public void apply(MultiValueMap<String, String> headers) {
-    if (!StringUtils.hasText(token)) {
-      return;
+  public void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+    for (Map.Entry<String, String> queryParam : this.queryParams.entrySet()) {
+      queryParams.set(queryParam.getKey(), queryParam.getValue());
     }
+  }
 
-    headers.set("Authorization", "ApiToken " + token);
+  @Override
+  public ApiQueryParamsAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    Map<String, String> encryptedQueryParams =
+        queryParams.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return copy(encryptedQueryParams);
+  }
+
+  @Override
+  public ApiQueryParamsAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    Map<String, String> encryptedQueryParams =
+        queryParams.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    return copy(encryptedQueryParams);
+  }
+
+  protected ApiQueryParamsAuthScheme copy(Map<String, String> queryParams) {
+    ApiQueryParamsAuthScheme apiQueryParamsAuth = new ApiQueryParamsAuthScheme();
+    apiQueryParamsAuth.setQueryParams(queryParams);
+
+    return apiQueryParamsAuth;
   }
 }

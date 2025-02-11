@@ -25,28 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+@Profile({"test-h2"})
+@Configuration
+public class H2TestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
 
-/**
- * @author Morten Olav Hansen
- */
-class HttpBasicAuthTest {
-  @Test
-  void testAuthorizationHeaderSet() {
-    HttpBasicAuth auth = new HttpBasicAuth().setUsername("admin").setPassword("district");
+  public static class NoOpFlyway {}
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
+  @Bean("flyway")
+  public NoOpFlyway noFlyway() {
+    return new NoOpFlyway();
+  }
 
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  @Bean
+  public HibernateConfigurationProvider hibernateConfigurationProvider(
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
+        new DefaultHibernateConfigurationProvider(org.hibernate.tool.schema.Action.UPDATE);
+    hibernateConfigurationProvider.setConfigProvider(dhisConfigurationProvider);
+    return hibernateConfigurationProvider;
   }
 }

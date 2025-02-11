@@ -31,9 +31,10 @@ import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasNoNotificationSideEffects;
-import static org.hisp.dhis.tracker.Assertions.assertHasNotificationSideEffects;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
+import static org.hisp.dhis.tracker.Assertions.assertHasScheduleNotificationForCurrentDate;
+import static org.hisp.dhis.tracker.Assertions.assertHasSendNotificationSideEffects;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrorsAndNoWarnings;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
@@ -202,7 +203,29 @@ class ProgramRuleTest extends TrackerTest {
     importParams.setImportStrategy(TrackerImportStrategy.UPDATE);
     report = trackerImportService.importTracker(importParams);
 
-    assertHasNotificationSideEffects(report);
+    assertHasSendNotificationSideEffects(report);
+  }
+
+  @Test
+  void shouldTestScheduleNotificationUsingSystemVariable() throws IOException {
+    storeScheduleNotificationProgramRule(
+        'P',
+        programWithRegistration,
+        programStageOnInsert,
+        TEMPLATE_UID,
+        "#{integer_prv_de6} > 10");
+
+    ImportReport report =
+        trackerImportService.importTracker(
+            fromJson("tracker/programrule/tei_enrollment_with_event_and_no_datavalues.json"));
+    assertHasNoNotificationSideEffects(report);
+
+    TrackerImportParams importParams =
+        fromJson("tracker/programrule/event_updated_datavalues.json");
+    importParams.setImportStrategy(TrackerImportStrategy.UPDATE);
+    report = trackerImportService.importTracker(importParams);
+
+    assertHasScheduleNotificationForCurrentDate(report);
   }
 
   @Test
@@ -490,6 +513,23 @@ class ProgramRuleTest extends TrackerTest {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction sendMessageProgramRuleAction =
         createProgramRuleAction(programRule, ProgramRuleActionType.SENDMESSAGE, null, null);
+    sendMessageProgramRuleAction.setTemplateUid(notification);
+    programRuleActionService.addProgramRuleAction(sendMessageProgramRuleAction);
+    programRule.getProgramRuleActions().add(sendMessageProgramRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void storeScheduleNotificationProgramRule(
+      char uniqueCharacter,
+      Program program,
+      ProgramStage programStage,
+      String notification,
+      String condition) {
+    ProgramRule programRule = createProgramRule(uniqueCharacter, program, programStage, condition);
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction sendMessageProgramRuleAction =
+        createProgramRuleAction(
+            programRule, ProgramRuleActionType.SCHEDULEMESSAGE, null, "V{current_date}");
     sendMessageProgramRuleAction.setTemplateUid(notification);
     programRuleActionService.addProgramRuleAction(sendMessageProgramRuleAction);
     programRule.getProgramRuleActions().add(sendMessageProgramRuleAction);

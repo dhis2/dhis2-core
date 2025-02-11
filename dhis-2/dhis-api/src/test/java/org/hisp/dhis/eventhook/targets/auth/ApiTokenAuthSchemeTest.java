@@ -25,19 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Configuration
-public class JwtConfigProviderConfiguration {
-  @Bean
-  @Primary
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider("h2TestConfigWithJWTAuth.conf");
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+/**
+ * @author Morten Olav Hansen
+ */
+class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
+
+  @Test
+  void testAuthorizationHeaderSet() {
+    ApiTokenAuthScheme auth =
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
+
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
+
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals(
+        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+  }
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F"),
+        ApiTokenAuthScheme::getToken);
+  }
+
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiTokenAuthScheme()
+            .setToken("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        ApiTokenAuthScheme::getToken);
   }
 }
