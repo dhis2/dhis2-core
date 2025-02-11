@@ -76,7 +76,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class DefaultTrackedEntityService implements TrackedEntityService {
 
-  private final TrackedEntityStore trackedEntityStore;
+  private final HibernateTrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 

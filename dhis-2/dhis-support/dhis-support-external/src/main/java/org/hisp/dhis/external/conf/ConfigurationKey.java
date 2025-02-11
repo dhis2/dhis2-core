@@ -693,7 +693,9 @@ public enum ConfigurationKey {
   EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
 
   /** Enable TOTP-based 2FA authentication. (default: true) */
-  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false);
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
 
