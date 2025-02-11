@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.waitAtMost;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Deque;
 import java.util.Map;
@@ -46,8 +47,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -253,25 +252,22 @@ class NotifierTest extends DhisConvenienceTest {
 
     awaitIdle();
 
-    Map<String, JsonValue> jobSummariesForAnalyticsType =
+    Map<String, JsonNode> jobSummariesForAnalyticsType =
         notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);
     assertEquals(2, jobSummariesForAnalyticsType.size());
-    Map<String, JsonValue> jobSummariesForMetadataImportType =
+    Map<String, JsonNode> jobSummariesForMetadataImportType =
         notifier.getJobSummariesForJobType(METADATA_IMPORT);
     assertNotNull(jobSummariesForMetadataImportType);
     assertEquals(1, jobSummariesForMetadataImportType.size());
     assertEquals(
         "somethingid3",
-        jobSummariesForMetadataImportType
-            .get(metadataImportJobConfig.getUid())
-            .as(JsonString.class)
-            .string());
-    JsonValue summary =
+        jobSummariesForMetadataImportType.get(metadataImportJobConfig.getUid()).asText());
+    JsonNode summary =
         notifier.getJobSummaryByJobId(
             dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid());
     assertNotNull(summary);
-    assertEquals("somethingid1", summary.as(JsonString.class).string(), "True");
+    assertEquals("somethingid1", summary.asText(), "True");
     notifier.addJobSummary(dataValueImportThirdJobConfig, "summarry3", String.class);
     jobSummariesForAnalyticsType = notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);

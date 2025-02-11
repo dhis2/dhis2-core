@@ -30,13 +30,13 @@ package org.hisp.dhis.system.notification;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Comparator.comparingLong;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 
 /**
@@ -235,13 +235,13 @@ public interface NotifierStore {
      *     did expire (got cleaned)
      */
     @CheckForNull
-    JsonValue get();
+    JsonNode get();
 
     /**
      * Set a new summary for a {@link org.hisp.dhis.scheduling.JobConfiguration} run.
      *
      * @param summary the value to store
      */
-    void set(@Nonnull JsonValue summary);
+    void set(@Nonnull JsonNode summary);
   }
 }

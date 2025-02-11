@@ -31,6 +31,7 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.Deque;
@@ -319,9 +320,7 @@ public class DefaultNotifier implements Notifier {
       return this;
 
     try {
-      store
-          .summary(id.getJobType(), UID.of(id.getUid()))
-          .set(JsonValue.of(jsonMapper.writeValueAsString(summary)));
+      store.summary(id.getJobType(), UID.of(id.getUid())).set(jsonMapper.valueToTree(summary));
     } catch (Exception ex) {
       log.warn("Summary lost due to: " + ex.getMessage());
     }
@@ -329,8 +328,8 @@ public class DefaultNotifier implements Notifier {
   }
 
   @Override
-  public Map<String, JsonValue> getJobSummariesForJobType(JobType jobType) {
-    Map<String, JsonValue> res = new LinkedHashMap<>();
+  public Map<String, JsonNode> getJobSummariesForJobType(JobType jobType) {
+    Map<String, JsonNode> res = new LinkedHashMap<>();
     store.summaries(jobType).stream()
         .sorted(comparing(NotifierStore.SummaryStore::ageTimestamp).reversed())
         .forEach(s -> res.put(s.job().getValue(), s.get()));
@@ -338,7 +337,7 @@ public class DefaultNotifier implements Notifier {
   }
 
   @Override
-  public JsonValue getJobSummaryByJobId(JobType jobType, String jobId) {
+  public JsonNode getJobSummaryByJobId(JobType jobType, String jobId) {
     return store.summary(jobType, UID.of(jobId)).get();
   }
 }

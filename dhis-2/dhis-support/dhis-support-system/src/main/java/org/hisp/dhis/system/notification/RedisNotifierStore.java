@@ -44,9 +44,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNumber;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.util.DateUtils;
@@ -283,23 +281,24 @@ public class RedisNotifierStore implements NotifierStore {
 
     @CheckForNull
     @Override
-    public JsonValue get() {
+    public JsonNode get() {
       String json = table.get(job.getValue());
       if (json == null) return null;
-      JsonObject root = JsonValue.of(json).asObject();
-      if (root.get("ageTimestamp").isUndefined()) return root;
-      return root.get("value");
+      try {
+        JsonNode root = JSON_MAPPER.readTree(json);
+        if (!root.has("ageTimestamp")) return root;
+        return root.get("value");
+      } catch (JsonProcessingException e) {
+        throw new IllegalArgumentException(e);
+      }
     }
 
     @Override
-    public void set(@Nonnull JsonValue summary) {
-      table.put(
-          job().getValue(),
-          JsonBuilder.createObject(
-                  obj ->
-                      obj.addMember("value", summary.node())
-                          .addNumber("ageTimestamp", currentTimeMillis()))
-              .getDeclaration());
+    public void set(@Nonnull JsonNode summary) {
+      ObjectNode obj = JSON_MAPPER.createObjectNode();
+      obj.set("value", summary);
+      obj.put("ageTimestamp", currentTimeMillis());
+      table.put(job().getValue(), obj.toString());
     }
   }
 

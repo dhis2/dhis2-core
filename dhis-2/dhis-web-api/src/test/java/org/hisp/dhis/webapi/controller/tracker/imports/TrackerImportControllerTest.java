@@ -43,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
@@ -328,7 +328,7 @@ class TrackerImportControllerTest {
             new HashMap<>());
 
     // When
-    JsonValue report = JsonValue.of(new ObjectMapper().writeValueAsString(importReport));
+    JsonNode report = new ObjectMapper().valueToTree(importReport);
     when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid)).thenReturn(report);
 
     when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);

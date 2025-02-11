@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Deque;
 import java.util.Map;
 import javax.annotation.CheckForNull;
@@ -112,9 +113,9 @@ public interface Notifier {
   <T> Notifier addJobSummary(
       JobConfiguration id, NotificationLevel level, T summary, Class<T> type);
 
-  Map<String, JsonValue> getJobSummariesForJobType(JobType jobType);
+  Map<String, JsonNode> getJobSummariesForJobType(JobType jobType);
 
-  JsonValue getJobSummaryByJobId(JobType jobType, String jobId);
+  JsonNode getJobSummaryByJobId(JobType jobType, String jobId);
 
   /**
    * @since 2.42

@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +50,6 @@ import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -223,12 +223,12 @@ public class TrackerImportController {
       throws HttpStatusCodeException, NotFoundException, ConflictException {
     setNoStore(response);
 
-    JsonValue report = notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+    JsonNode report = notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid);
     if (report == null) throw new NotFoundException("Summary for job " + uid + " does not exist");
 
     try {
       return trackerImportService.buildImportReport(
-          jsonMapper.readValue(report.node().getDeclaration(), ImportReport.class), reportMode);
+          jsonMapper.treeToValue(report, ImportReport.class), reportMode);
     } catch (JsonProcessingException e) {
       throw new ConflictException("Failed to convert the import report: " + report);
     }

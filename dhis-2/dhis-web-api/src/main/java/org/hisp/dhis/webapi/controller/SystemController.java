@@ -31,6 +31,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
@@ -55,7 +56,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
@@ -230,19 +230,19 @@ public class SystemController {
   // -------------------------------------------------------------------------
 
   @GetMapping(value = "/taskSummaries/{jobType}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, JsonValue>> getTaskSummaryExtendedJson(
+  public ResponseEntity<Map<String, JsonNode>> getTaskSummaryExtendedJson(
       @PathVariable("jobType") JobType jobType) {
-    Map<String, JsonValue> summary = notifier.getJobSummariesForJobType(jobType);
+    Map<String, JsonNode> summary = notifier.getJobSummariesForJobType(jobType);
     if (summary != null) return ResponseEntity.ok().cacheControl(noStore()).body(summary);
     return ResponseEntity.ok().cacheControl(noStore()).build();
   }
 
   @GetMapping(value = "/taskSummaries/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonValue> getTaskSummaryJson(
+  public ResponseEntity<JsonNode> getTaskSummaryJson(
       @PathVariable("jobType") JobType jobType,
       @PathVariable("jobId") @OpenApi.Param(value = {UID.class, JobConfiguration.class})
           String jobId) {
-    JsonValue summary = notifier.getJobSummaryByJobId(jobType, jobId);
+    JsonNode summary = notifier.getJobSummaryByJobId(jobType, jobId);
     if (summary != null) return ResponseEntity.ok().cacheControl(noStore()).body(summary);
     return ResponseEntity.ok().cacheControl(noStore()).build();
   }

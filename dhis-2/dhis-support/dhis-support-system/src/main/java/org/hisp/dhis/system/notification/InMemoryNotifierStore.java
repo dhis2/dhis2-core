@@ -31,6 +31,7 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 
 /**
@@ -180,7 +180,7 @@ public final class InMemoryNotifierStore implements NotifierStore {
   @RequiredArgsConstructor
   private static final class Summary {
     private final long ageTimestamp;
-    private final JsonValue value;
+    private final JsonNode value;
   }
 
   @RequiredArgsConstructor
@@ -208,13 +208,13 @@ public final class InMemoryNotifierStore implements NotifierStore {
 
     @CheckForNull
     @Override
-    public JsonValue get() {
+    public JsonNode get() {
       Summary s = summary.get();
       return s == null ? null : s.value;
     }
 
     @Override
-    public void set(@Nonnull JsonValue summary) {
+    public void set(@Nonnull JsonNode summary) {
       this.summary.set(new Summary(currentTimeMillis(), summary));
     }
   }
