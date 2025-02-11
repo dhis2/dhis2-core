@@ -768,7 +768,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.addOrganisationUnits(Set.of(orgUnit));
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));

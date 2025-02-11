@@ -154,7 +154,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
   void testConfiguredPositiveMaxTeiLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3);
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.setOrganisationUnits(Set.of(orgUnitA));
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
@@ -172,7 +172,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.setOrganisationUnits(Set.of(orgUnitA));
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
@@ -187,7 +187,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
   @Test
   void testDefaultMaxTeiLimit() {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.setOrganisationUnits(Set.of(orgUnitA));
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);
@@ -204,7 +204,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0);
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.setOrganisationUnits(Set.of(orgUnitA));
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
     params.setUserWithAssignedUsers(null, user, null);

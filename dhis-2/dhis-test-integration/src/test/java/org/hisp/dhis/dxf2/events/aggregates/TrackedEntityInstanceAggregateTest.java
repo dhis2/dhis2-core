@@ -246,7 +246,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest {
     TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
     queryParams.setUserWithAssignedUsers(null, superUser, null);
     queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    queryParams.setProgram(programA);
+    queryParams.setEnrolledInTrackerProgram(programA);
     queryParams.setEventStatus(EventStatus.COMPLETED);
     queryParams.setEventStartDate(Date.from(Instant.now().minus(10, ChronoUnit.DAYS)));
     queryParams.setEventEndDate(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
@@ -634,7 +634,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest {
     queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
-    queryParams.setPrograms(List.of(programA));
+    queryParams.setAccessibleTrackerPrograms(List.of(programA));
     TrackedEntityInstanceParams params =
         new TrackedEntityInstanceParams(
             false, TrackedEntityInstanceEnrollmentParams.TRUE, false, false, false, false);

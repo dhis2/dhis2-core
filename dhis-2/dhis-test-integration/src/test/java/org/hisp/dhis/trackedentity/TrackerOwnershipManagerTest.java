@@ -467,7 +467,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setTrackedEntityType(trackedEntityType);
     params.setOrganisationUnitMode(ACCESSIBLE);
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.setUser(user);
 
     return params;
