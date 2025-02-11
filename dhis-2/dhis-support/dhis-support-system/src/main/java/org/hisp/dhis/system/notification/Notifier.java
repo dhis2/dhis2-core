@@ -33,7 +33,6 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 
@@ -66,7 +65,7 @@ public interface Notifier {
       String message,
       boolean completed,
       NotificationDataType dataType,
-      JsonValue data);
+      JsonNode data);
 
   default Notifier update(JobConfiguration id, String message) {
     return update(id, NotificationLevel.INFO, message, false);

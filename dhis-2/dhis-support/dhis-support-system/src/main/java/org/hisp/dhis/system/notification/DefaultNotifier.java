@@ -50,7 +50,6 @@ import java.util.function.LongSupplier;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
@@ -214,7 +213,7 @@ public class DefaultNotifier implements Notifier {
       String message,
       boolean completed,
       NotificationDataType dataType,
-      JsonValue data) {
+      JsonNode data) {
     if (id == null || level.isOff()) return this;
 
     Date now = new Date(clock.getAsLong());

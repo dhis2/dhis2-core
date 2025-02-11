@@ -43,6 +43,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -210,7 +211,7 @@ public class RedisNotifierStore implements NotifierStore {
           src.has("level")
               ? NotificationLevel.valueOf(src.get("level").asText())
               : NotificationLevel.INFO);
-      String id = src.get("id").asText();
+      String id = src.has("id") ? src.get("id").asText() : CodeGenerator.generateUid();
       dest.setUid(id);
       dest.setCompleted(src.has("completed") && src.get("completed").asBoolean());
       JsonNode time = src.get("time");
@@ -218,7 +219,7 @@ public class RedisNotifierStore implements NotifierStore {
       dest.setMessage(src.has("message") ? src.get("message").asText() : "");
       if (src.has("dataType"))
         dest.setDataType(NotificationDataType.valueOf(src.get("dataType").asText()));
-      if (src.has("data")) dest.setData(JsonValue.of(src.get("data").toString()));
+      if (src.has("data")) dest.setData(src.get("data"));
       return dest;
     }
 
@@ -238,13 +239,7 @@ public class RedisNotifierStore implements NotifierStore {
       if (n.isCompleted()) obj.put("completed", true);
       if (n.getDataType() != null) {
         obj.put("dataType", n.getDataType().name());
-        if (n.getData() != null && !n.getData().isUndefined()) {
-          try {
-            obj.set("data", JSON_MAPPER.readTree(n.getData().node().getDeclaration()));
-          } catch (JsonProcessingException ex) {
-            log.warn("Failed to convert notification data: " + n.getData().toString(), ex);
-          }
-        }
+        if (n.getData() != null) obj.set("data", n.getData());
       }
       return obj.toString();
     }
