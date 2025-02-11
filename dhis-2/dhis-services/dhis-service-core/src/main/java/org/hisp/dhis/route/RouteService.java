@@ -266,8 +266,6 @@ public class RouteService {
             DataBufferUtils.write(responseEntityFlux.getBody(), out)
                 .doOnNext(DataBufferUtils.releaseConsumer())
                 .blockLast();
-          } else {
-            out.close();
           }
         };
     return new ResponseEntity<>(
