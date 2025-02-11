@@ -292,6 +292,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.api-client</groupId>
