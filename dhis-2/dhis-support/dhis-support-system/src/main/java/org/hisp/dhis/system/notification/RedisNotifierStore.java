@@ -31,6 +31,10 @@ import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -38,12 +42,11 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonBuilder;
-import org.hisp.dhis.jsontree.JsonDocument;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.util.DateUtils;
@@ -59,6 +62,8 @@ import org.springframework.data.redis.core.RedisOperations;
  */
 @RequiredArgsConstructor
 public class RedisNotifierStore implements NotifierStore {
+
+  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   private final RedisOperations<String, String> redis;
 
@@ -126,6 +131,7 @@ public class RedisNotifierStore implements NotifierStore {
    * Stores {@link Notification}s (as JSON) in a redis ZSET with the {@link Notification#getTime()}
    * used as score.
    */
+  @Slf4j
   @RequiredArgsConstructor
   private static final class RedisNotificationStore implements NotificationStore {
 
@@ -193,24 +199,28 @@ public class RedisNotifierStore implements NotifierStore {
 
     private Notification fromJson(JobType jobType, String json) {
       if (json == null || json.isEmpty()) return null;
-      JsonObject src = JsonValue.of(json).asObject();
+      ObjectNode src = null;
       Notification dest = new Notification();
       dest.setCategory(jobType);
-      JsonString level = src.getString("level");
+      try {
+        src = (ObjectNode) JSON_MAPPER.readTree(json);
+      } catch (Exception ex) {
+        log.warn("Failed to parse notification: " + json, ex);
+        return dest;
+      }
       dest.setLevel(
-          level.isUndefined() ? NotificationLevel.INFO : level.parsed(NotificationLevel::valueOf));
-      String id = src.getString("id").string();
+          src.has("level")
+              ? NotificationLevel.valueOf(src.get("level").asText())
+              : NotificationLevel.INFO);
+      String id = src.get("id").asText();
       dest.setUid(id);
-      dest.setCompleted(src.getBoolean("completed").booleanValue(false));
-      JsonValue time = src.get("time");
-      dest.setTime(
-          time.exists() && time.node().getType() == JsonDocument.JsonNodeType.NUMBER
-              ? new Date(time.as(JsonNumber.class).longValue())
-              : DateUtils.parseDate(time.as(JsonString.class).string()));
-      dest.setMessage(src.getString("message").string());
-      dest.setDataType(src.getString("dataType").parsed(NotificationDataType::valueOf));
-      JsonValue data = src.get("data");
-      if (!data.isUndefined()) dest.setData(data);
+      dest.setCompleted(src.has("completed") && src.get("completed").asBoolean());
+      JsonNode time = src.get("time");
+      dest.setTime(time.isNumber() ? new Date(time.asLong()) : DateUtils.parseDate(time.asText()));
+      dest.setMessage(src.has("message") ? src.get("message").asText() : "");
+      if (src.has("dataType"))
+        dest.setDataType(NotificationDataType.valueOf(src.get("dataType").asText()));
+      if (src.has("data")) dest.setData(JsonValue.of(src.get("data").toString()));
       return dest;
     }
 
@@ -224,21 +234,21 @@ public class RedisNotifierStore implements NotifierStore {
      * @return the notification as minimal JSON
      */
     private String toJson(Notification n) {
-      return JsonBuilder.createObject(
-              obj -> {
-                obj.addString("id", n.getId())
-                    .addNumber("time", n.getTime().getTime())
-                    .addString("message", n.getMessage());
-                if (n.getLevel() != NotificationLevel.INFO)
-                  obj.addString("level", n.getLevel().name());
-                if (n.isCompleted()) obj.addBoolean("completed", true);
-                if (n.getDataType() != null) {
-                  obj.addString("dataType", n.getDataType().name());
-                  if (n.getData() != null && !n.getData().isUndefined())
-                    obj.addMember("data", n.getData().node());
-                }
-              })
-          .getDeclaration();
+      ObjectNode obj = JSON_MAPPER.createObjectNode();
+      obj.put("id", n.getId()).put("time", n.getTime().getTime()).put("message", n.getMessage());
+      if (n.getLevel() != NotificationLevel.INFO) obj.put("level", n.getLevel().name());
+      if (n.isCompleted()) obj.put("completed", true);
+      if (n.getDataType() != null) {
+        obj.put("dataType", n.getDataType().name());
+        if (n.getData() != null && !n.getData().isUndefined()) {
+          try {
+            obj.set("data", JSON_MAPPER.readTree(n.getData().node().getDeclaration()));
+          } catch (JsonProcessingException ex) {
+            log.warn("Failed to convert notification data: " + n.getData().toString(), ex);
+          }
+        }
+      }
+      return obj.toString();
     }
   }
 
