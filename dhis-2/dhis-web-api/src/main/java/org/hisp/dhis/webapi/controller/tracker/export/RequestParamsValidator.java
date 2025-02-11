@@ -403,7 +403,7 @@ public class RequestParamsValidator {
 
     if (uidIndex == 0 || input.length() == uidIndex) {
       UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
-      result.putIfAbsent(uid, List.of(new QueryFilter(QueryOperator.NNULL)));
+      result.putIfAbsent(uid, List.of());
       return;
     }
 
