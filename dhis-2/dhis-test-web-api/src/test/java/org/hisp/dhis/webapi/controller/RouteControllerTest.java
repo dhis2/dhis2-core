@@ -31,11 +31,12 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +44,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
@@ -61,6 +64,7 @@ import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.client.MockMvcHttpConnector;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,6 +102,8 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                     }
 
                     String queryString = ((MockHttpServletRequest) request).getQueryString();
+                    response.setContentType("application/json");
+
                     response
                         .getWriter()
                         .write(
@@ -143,31 +149,6 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    void testRunRouteWhenResponseBodyExceedsLimit() throws JsonProcessingException {
-      routeTargetMockServerClient
-          .when(request().withPath("/"))
-          .respond(org.mockserver.model.HttpResponse.response("{}"));
-
-      Map<String, Object> route = new HashMap<>();
-      route.put("name", "route-under-test");
-      route.put("url", "https://dhis2.org");
-
-      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-      HttpResponse runHttpResponse =
-          GET(
-              "/routes/{id}/run",
-              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
-
-      String message =
-          runHttpResponse
-              .error(HttpStatus.BAD_GATEWAY)
-              .get("message")
-              .as(JsonString.class)
-              .string();
-      assertTrue(message.startsWith("Exceeded limit on max bytes to buffer : "));
-    }
-
-    @Test
     void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
         throws JsonProcessingException {
       routeTargetMockServerClient
@@ -181,12 +162,18 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
       route.put("responseTimeoutSeconds", 5);
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-      HttpResponse runHttpResponse =
-          GET(
-              "/routes/{id}/run",
-              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
 
-      assertStatus(HttpStatus.GATEWAY_TIMEOUT, runHttpResponse);
+      assertEquals(504, mvcResult.getResponse().getStatus());
     }
 
     @Test
@@ -202,16 +189,23 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
       route.put("responseTimeoutSeconds", 5);
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-      HttpResponse runHttpResponse =
-          GET(
-              "/routes/{id}/run",
-              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
 
-      assertStatus(HttpStatus.OK, runHttpResponse);
+      assertEquals(200, mvcResult.getResponse().getStatus());
     }
 
     @Test
-    void testRunRouteWhenResponseIsHttpError() throws JsonProcessingException {
+    void testRunRouteWhenResponseIsHttpError()
+        throws JsonProcessingException, UnsupportedEncodingException {
       routeTargetMockServerClient
           .when(request().withPath("/"))
           .respond(
@@ -224,59 +218,77 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
       route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-      HttpResponse runHttpResponse =
-          GET(
-              "/routes/{id}/run",
-              postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
 
-      assertStatus(HttpStatus.NOT_FOUND, runHttpResponse);
-      assertEquals("not found", runHttpResponse.error().getMessage());
+      assertEquals(404, mvcResult.getResponse().getStatus());
+      JsonObject responseBody =
+          JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+      assertEquals("not found", responseBody.get("message").as(JsonString.class).string());
     }
   }
 
   @Test
-  void testRunRouteGivenApiQueryParamsAuthScheme() throws JsonProcessingException {
+  void testRunRouteGivenApiQueryParamsAuthScheme()
+      throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
     route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-    HttpResponse runHttpResponse =
-        GET(
-            "/routes/{id}/run",
-            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
 
-    assertStatus(HttpStatus.OK, runHttpResponse);
-    assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
-    assertEquals(
-        "token=foo", runHttpResponse.content().get("queryString").as(JsonString.class).string());
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+
+    assertEquals("John Doe", responseBody.get("name").as(JsonString.class).string());
+    assertEquals("token=foo", responseBody.get("queryString").as(JsonString.class).string());
   }
 
   @Test
-  void testRunRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
+  void testRunRouteGivenApiHeadersAuthScheme()
+      throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
     route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-    HttpResponse runHttpResponse =
-        GET(
-            "/routes/{id}/run",
-            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
 
-    assertStatus(HttpStatus.OK, runHttpResponse);
-    assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("John Doe", responseBody.asObject().get("name").as(JsonString.class).string());
     assertEquals(
         "foo",
-        runHttpResponse
-            .content()
-            .get("headers")
-            .asObject()
-            .get("X-API-KEY")
-            .as(JsonString.class)
-            .string());
+        responseBody.get("headers").asObject().get("X-API-KEY").as(JsonString.class).string());
   }
 
   @Test

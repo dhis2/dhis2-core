@@ -32,7 +32,6 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,17 +55,23 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientRequest;
 
@@ -85,6 +90,10 @@ public class RouteService {
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
   private final ClientHttpConnector clientHttpConnector;
+
+  private DataBufferFactory dataBufferFactory;
+
+  private WebClient webClient;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -116,11 +125,11 @@ public class RouteService {
           "cache-control",
           "last-modified",
           "etag");
-  private WebClient webClient;
 
   @PostConstruct
   public void postConstruct() {
     webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
+    dataBufferFactory = new DefaultDataBufferFactory();
   }
 
   /**
@@ -163,7 +172,7 @@ public class RouteService {
    * @throws IOException
    * @throws BadRequestException
    */
-  public ResponseEntity<String> execute(
+  public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws IOException, BadRequestException {
 
@@ -200,12 +209,13 @@ public class RouteService {
       uriComponentsBuilder.path(subPath.get());
     }
 
-    String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
-
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     String targetUri = uriComponentsBuilder.toUriString();
 
+    Flux<DataBuffer> requestBodyFlux =
+        DataBufferUtils.read(
+            new InputStreamResource(request.getInputStream()), dataBufferFactory, 4096);
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
         webClient
             .method(httpMethod)
@@ -218,7 +228,8 @@ public class RouteService {
                         Duration.ofSeconds(route.getResponseTimeoutSeconds()));
                   }
                 })
-            .bodyValue(body);
+            .body(requestBodyFlux, DataBuffer.class);
+
     for (Map.Entry<String, List<String>> header : headers.entrySet()) {
       requestHeadersSpec =
           requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
@@ -236,9 +247,9 @@ public class RouteService {
             .retrieve()
             .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
 
-    ResponseEntity<String> response =
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
         responseSpec
-            .toEntity(String.class)
+            .toEntityFlux(DataBuffer.class)
             .onErrorReturn(
                 throwable -> throwable.getCause() instanceof ReadTimeoutException,
                 new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
@@ -250,21 +261,34 @@ public class RouteService {
                           jsonObjectBuilder ->
                               jsonObjectBuilder.addString(
                                   "message", throwable.getCause().getMessage()));
-                  return Mono.just(new ResponseEntity<>(message.toJson(), HttpStatus.BAD_GATEWAY));
+
+                  return Mono.just(
+                      new ResponseEntity<>(
+                          Flux.just(dataBufferFactory.wrap(message.toJson().getBytes())),
+                          HttpStatus.BAD_GATEWAY));
                 })
             .block();
-    HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
-    String responseBody = response.getBody();
 
     log.info(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
         targetUri,
-        response.getStatusCode(),
+        responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
 
-    return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
+    StreamingResponseBody streamingResponseBody =
+        out -> {
+          if (responseEntityFlux.getBody() != null) {
+            DataBufferUtils.write(responseEntityFlux.getBody(), out)
+                .doOnNext(DataBufferUtils.releaseConsumer())
+                .blockLast();
+          } else {
+            out.close();
+          }
+        };
+    return new ResponseEntity<>(
+        streamingResponseBody, responseEntityFlux.getHeaders(), responseEntityFlux.getStatusCode());
   }
 
   /**

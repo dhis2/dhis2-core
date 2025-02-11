@@ -109,6 +109,11 @@
       <version>1.2.2</version>
     </dependency>
     <dependency>
+      <groupId>org.reactivestreams</groupId>
+      <artifactId>reactive-streams</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler</artifactId>
       <version>4.1.116.Final</version>
