@@ -57,7 +57,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -83,15 +82,13 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
 
   @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-  @Autowired private TrackerImportService trackerImportService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   private final String programId = "BFcipDERJnf";
 
   private final String programStageId = "NpsdDv6kKSO";
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
+  protected void setUpMetadata(String path) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
     ObjectBundleParams params = new ObjectBundleParams();
@@ -101,7 +98,6 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
     ObjectBundle bundle = objectBundleService.create(params);
     assertNoErrors(objectBundleValidationService.validate(bundle));
     objectBundleService.commit(bundle);
-    return bundle;
   }
 
   @BeforeAll

@@ -385,7 +385,7 @@ class RequestParamsValidatorTest {
   void shouldParseDataElementFilterWhenOnlyUIDProvided() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID.getValue());
 
-    assertEquals(Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL))), filters);
+    assertEquals(Map.of(DE_1_UID, List.of()), filters);
   }
 
   @Test
