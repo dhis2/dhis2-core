@@ -118,6 +118,32 @@ public class StatementUtil {
   }
 
   /**
+   * Creates a "ilike" SQL statement isolated by parenthesis. It consider two different columns and
+   * uses "or" as junction, ie.: "( columnOne ilike :param or columnTwo ilike :param)"
+   *
+   * @param columnOne
+   * @param columnTwo
+   * @param namedParam
+   * @return the SQL string
+   */
+  public static String ilikeOrFiltering(
+      String columnOne, String columnTwo, String columnThree, String namedParam) {
+    return SPACED_LEFT_PARENTHESIS
+        + columnOne
+        + ILIKE
+        + namedParam
+        + " or "
+        + columnTwo
+        + ILIKE
+        + namedParam
+        + " or "
+        + columnThree
+        + ILIKE
+        + namedParam
+        + SPACED_RIGHT_PARENTHESIS;
+  }
+
+  /**
    * Creates a "equal" SQL statement isolated by parenthesis, ie.: "( column = :param )"
    *
    * @param column
