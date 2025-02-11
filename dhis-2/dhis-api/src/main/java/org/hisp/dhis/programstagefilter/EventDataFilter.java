@@ -177,7 +177,7 @@ public class EventDataFilter implements Serializable {
   @JsonProperty("!null")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getNotNull() {
-    return nullFilter;
+    return notNullFilter;
   }
 
   @JsonProperty("!null")

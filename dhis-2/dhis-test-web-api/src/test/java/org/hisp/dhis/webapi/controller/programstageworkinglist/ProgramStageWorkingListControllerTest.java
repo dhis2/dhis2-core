@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,10 +56,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -165,7 +160,7 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
                      "APtutTb0nOY"
                    ],
                    'order': 'createdAt:desc',
-                   'dataFilters':[{'null':'','dataItem':'%s'}],
+                   'dataFilters':[{'null':'','!null':'','dataItem':'%s'}],
                    'enrollmentStatus': 'ACTIVE',
                     %s
                    'eventOccurredAt': {
@@ -207,6 +202,7 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
     JsonObject dataFilter =
         workingList.getProgramStageQueryCriteria().getDataFilters().get(0).asObject();
     assertEquals("", dataFilter.getString("null").string());
+    assertEquals("", dataFilter.getString("!null").string());
     assertEquals(dataElementId, dataFilter.getString("dataItem").string());
 
     followUpAssertion.accept(programStageQueryCriteria);
@@ -400,36 +396,6 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
                 }
               """
                 .formatted(programId, programStageId, workingListName)));
-  }
-
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
   }
 
   public static void assertNoErrors(ObjectBundleValidationReport report) {
