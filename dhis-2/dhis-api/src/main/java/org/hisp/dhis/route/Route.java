@@ -68,7 +68,7 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
   /** Optional. Required authorities for invoking the route. */
   @JsonProperty private List<String> authorities = new ArrayList<>();
 
-  @JsonProperty(defaultValue = ""+DEFAULT_RESPONSE_TIMEOUT_SECONDS)
+  @JsonProperty(defaultValue = "" + DEFAULT_RESPONSE_TIMEOUT_SECONDS)
   private int responseTimeoutSeconds = DEFAULT_RESPONSE_TIMEOUT_SECONDS;
 
   /**

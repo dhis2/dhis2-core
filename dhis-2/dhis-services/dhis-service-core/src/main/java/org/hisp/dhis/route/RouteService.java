@@ -258,9 +258,7 @@ public class RouteService {
                 throwable -> {
                   JsonObject message =
                       Json.object(
-                          obj ->
-                              obj.addString(
-                                  "message", throwable.getCause().getMessage()));
+                          obj -> obj.addString("message", throwable.getCause().getMessage()));
 
                   return Mono.just(
                       new ResponseEntity<>(
@@ -288,7 +286,9 @@ public class RouteService {
           }
         };
     return new ResponseEntity<>(
-        streamingResponseBody, filterResponseHeaders(responseEntityFlux.getHeaders()), responseEntityFlux.getStatusCode());
+        streamingResponseBody,
+        filterResponseHeaders(responseEntityFlux.getHeaders()),
+        responseEntityFlux.getStatusCode());
   }
 
   /**
