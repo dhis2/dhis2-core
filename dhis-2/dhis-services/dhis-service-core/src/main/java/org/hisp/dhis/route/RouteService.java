@@ -50,15 +50,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.jsontree.Json;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
@@ -253,18 +250,6 @@ public class RouteService {
             .onErrorReturn(
                 throwable -> throwable.getCause() instanceof ReadTimeoutException,
                 new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
-            .onErrorResume(
-                throwable -> throwable.getCause() instanceof DataBufferLimitException,
-                throwable -> {
-                  JsonObject message =
-                      Json.object(
-                          obj -> obj.addString("message", throwable.getCause().getMessage()));
-
-                  return Mono.just(
-                      new ResponseEntity<>(
-                          Flux.just(dataBufferFactory.wrap(message.toJson().getBytes())),
-                          HttpStatus.BAD_GATEWAY));
-                })
             .block();
 
     log.info(
