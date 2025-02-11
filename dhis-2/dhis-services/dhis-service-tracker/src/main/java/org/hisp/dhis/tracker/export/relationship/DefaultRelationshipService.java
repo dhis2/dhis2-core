@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
@@ -130,8 +131,9 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   @Override
-  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
-    return relationshipStore.getUidsByRelationshipKeys(relationshipKeyList);
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    return relationshipStore.getRelationshipsByRelationshipKeys(relationshipKeys);
   }
 
   private List<Relationship> getRelationshipsByTrackedEntity(

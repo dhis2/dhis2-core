@@ -54,6 +54,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
@@ -173,8 +174,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(event, queryParams));
   }
 
-  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
-    if (CollectionUtils.isEmpty(relationshipKeyList)) {
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    if (CollectionUtils.isEmpty(relationshipKeys)) {
       return Collections.emptyList();
     }
 
@@ -185,7 +187,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             where r.deleted = false and (r.key in (:keys)
             or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
             """;
-    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
+    List<String> relationshipKeysAsString =
+        relationshipKeys.stream().map(RelationshipKey::asString).toList();
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
   }
 
   public List<RelationshipItem> getRelationshipItemsByTrackedEntity(UID trackedEntity) {
