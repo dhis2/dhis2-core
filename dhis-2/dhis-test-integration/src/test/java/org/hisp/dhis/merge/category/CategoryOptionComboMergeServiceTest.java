@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -69,10 +70,15 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeService;
@@ -135,6 +141,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private EventStore eventStore;
   @Autowired private CategoryManager categoryManager;
+  @Autowired private IndicatorService indicatorService;
+  @Autowired private DbmsManager dbmsManager;
+  @Autowired private ExpressionService expressionService;
 
   private TestCategoryMetadata categoryMetadata;
   private CategoryOptionCombo cocTarget;
@@ -206,6 +215,98 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
             .map(ErrorMessage::getMessage)
             .collect(Collectors.toSet())
             .contains(E1540.getMessage()));
+  }
+
+  // -------------------------
+  // ------ Indicators -------
+  // -------------------------
+  @Test
+  @DisplayName("Indicator numerator denominators are updated during merge")
+  void indicatorMergeTest() throws ConflictException {
+    // given
+    IndicatorType indType = createIndicatorType('c');
+    manager.save(indType);
+    Indicator i1 = createIndicator('a', indType);
+    i1.setDimensionItemType(DimensionItemType.INDICATOR);
+    i1.setNumerator("#{%s.RanDOmUID01}".formatted(cocDuplicate.getUid()));
+
+    Indicator i2 = createIndicator('b', indType);
+    i2.setDimensionItemType(DimensionItemType.INDICATOR);
+    i2.setDenominator("#{RanDOmUID01.%s}".formatted(cocDuplicate.getUid()));
+
+    Indicator i3 = createIndicator('c', indType);
+    i3.setDimensionItemType(DimensionItemType.INDICATOR);
+    i3.setNumerator("#{%s.RanDOmUID01}".formatted(cocDuplicate.getUid()));
+    i3.setDenominator(
+        "#{%s.RanDOmUID01}.%s".formatted(cocDuplicate.getUid(), cocDuplicate.getUid()));
+
+    Indicator i4 = createIndicator('d', indType);
+    i4.setDimensionItemType(DimensionItemType.INDICATOR);
+    i4.setNumerator("#{%s.RanDOmUID01}".formatted(cocTarget.getUid()));
+
+    manager.save(List.of(i1, i2, i3, i4));
+    dbmsManager.clearSession();
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+    dbmsManager.clearSession();
+
+    // then
+    assertFalse(report.hasErrorMessages());
+    Indicator ind1 = indicatorService.getIndicator(i1.getUid());
+    assertEquals("#{%s.RanDOmUID01}".formatted(cocTarget.getUid()), ind1.getNumerator());
+
+    Indicator ind2 = indicatorService.getIndicator(i2.getUid());
+    assertEquals("#{RanDOmUID01.%s}".formatted(cocTarget.getUid()), ind2.getDenominator());
+
+    Indicator ind3 = indicatorService.getIndicator(i3.getUid());
+    assertEquals("#{%s.RanDOmUID01}".formatted(cocTarget.getUid()), ind3.getNumerator());
+    assertEquals(
+        "#{%s.RanDOmUID01}.%s".formatted(cocTarget.getUid(), cocTarget.getUid()),
+        ind3.getDenominator());
+
+    Indicator ind4 = indicatorService.getIndicator(i4.getUid());
+    assertEquals("#{%s.RanDOmUID01}".formatted(cocTarget.getUid()), ind4.getNumerator());
+  }
+
+  // -------------------------
+  // ------ Expression -------
+  // -------------------------
+  @Test
+  @DisplayName("Expressions have any source ref replaced with target during merge")
+  void expressionMergeTest() throws ConflictException {
+    // given
+    Expression e1 = createExpression2('a', "#{%s.RanDOmUID01}".formatted(cocDuplicate.getUid()));
+    Expression e2 =
+        createExpression2(
+            'b', "#{%s.RanDOmUID01}.%s".formatted(cocDuplicate.getUid(), cocDuplicate.getUid()));
+    Expression e3 = createExpression2('c', "#{RanDOmUID01}");
+    Expression e4 = createExpression2('d', "#{RanDOmUID01}.%s".formatted(cocTarget.getUid()));
+
+    long e1Id = expressionService.addExpression(e1);
+    long e2Id = expressionService.addExpression(e2);
+    long e3Id = expressionService.addExpression(e3);
+    long e4Id = expressionService.addExpression(e4);
+    dbmsManager.clearSession();
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+    dbmsManager.clearSession();
+
+    // then
+    assertFalse(report.hasErrorMessages());
+    Expression exp1 = expressionService.getExpression(e1Id);
+    assertEquals("#{%s.RanDOmUID01}".formatted(cocTarget.getUid()), exp1.getExpression());
+    Expression exp2 = expressionService.getExpression(e2Id);
+    assertEquals(
+        "#{%s.RanDOmUID01}.%s".formatted(cocTarget.getUid(), cocTarget.getUid()),
+        exp2.getExpression());
+    Expression exp3 = expressionService.getExpression(e3Id);
+    assertEquals("#{RanDOmUID01}", exp3.getExpression());
+    Expression exp4 = expressionService.getExpression(e4Id);
+    assertEquals("#{RanDOmUID01}.%s".formatted(cocTarget.getUid()), exp4.getExpression());
   }
 
   // -----------------------------
