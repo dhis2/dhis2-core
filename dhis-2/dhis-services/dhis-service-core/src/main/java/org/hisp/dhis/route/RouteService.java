@@ -258,8 +258,8 @@ public class RouteService {
                 throwable -> {
                   JsonObject message =
                       Json.object(
-                          jsonObjectBuilder ->
-                              jsonObjectBuilder.addString(
+                          obj ->
+                              obj.addString(
                                   "message", throwable.getCause().getMessage()));
 
                   return Mono.just(
