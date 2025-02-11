@@ -158,6 +158,8 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addServlet("RootPageServlet", LoginFallbackServlet.class)
         .addMapping("/login.html", "/dhis-web-commons/security/login.action");
 
+    context.addServlet("XXXPageServlet", XXXFallbackServlet.class).addMapping("/XXX.html");
+
     String profile = System.getProperty("spring.profiles.active");
     if (profile == null || !profile.equals("embeddedJetty")) {
       RequestContextListener requestContextListener = new RequestContextListener();

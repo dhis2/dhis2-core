@@ -598,6 +598,13 @@
         <version>${com.google.zxing.javase.version}</version>
       </dependency>
 
+      <!-- Spring Authorization Server dependency -->
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-oauth2-authorization-server</artifactId>
+        <version>1.4.1</version>
+      </dependency>
+
       <!-- OAuth 2.0 -->
       <dependency>
         <groupId>org.springframework.security</groupId>
