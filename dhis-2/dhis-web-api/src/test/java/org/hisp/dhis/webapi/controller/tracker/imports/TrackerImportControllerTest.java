@@ -108,7 +108,12 @@ class TrackerImportControllerTest {
     // Controller under test
     final TrackerImportController controller =
         new TrackerImportController(
-            syncImporter, asyncImporter, trackerImportService, csvEventService, notifier);
+            syncImporter,
+            asyncImporter,
+            trackerImportService,
+            csvEventService,
+            notifier,
+            new ObjectMapper());
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
