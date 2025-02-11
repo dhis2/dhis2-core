@@ -163,18 +163,24 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
+    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, params, defaultPageParams);
+    List<String> changeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(UID.of(trackedEntity), null, params, defaultPageParams)
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
 
-    assertNumberOfChanges(3, changeLogs.getItems());
-
-    assertAll(
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(0)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(1)),
-        () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(2)));
+    assertEquals(
+        List.of(
+            "numeric-attribute",
+            "numeric-attribute",
+            "TA First name",
+            "TA First name",
+            "to-update-tei-attribute"),
+        changeLogs);
   }
 
   @Test
@@ -189,18 +195,24 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
+    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, params, defaultPageParams);
+    List<String> changeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(UID.of(trackedEntity), null, params, defaultPageParams)
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
 
-    assertNumberOfChanges(3, changeLogs.getItems());
-
-    assertAll(
-        () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(0)),
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(1)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(2)));
+    assertEquals(
+        List.of(
+            "to-update-tei-attribute",
+            "TA First name",
+            "TA First name",
+            "numeric-attribute",
+            "numeric-attribute"),
+        changeLogs);
   }
 
   @Test
@@ -316,5 +328,13 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
     return changeLogs.getItems().stream()
         .filter(cl -> cl.getTrackedEntityAttribute().getUid().equalsIgnoreCase(attribute))
         .toList();
+  }
+
+  private String getDisplayName(TrackedEntityChangeLog cl) {
+    if (cl.getTrackedEntityAttribute().getFormName() != null) {
+      return cl.getTrackedEntityAttribute().getFormName();
+    } else {
+      return cl.getTrackedEntityAttribute().getName();
+    }
   }
 }
