@@ -31,9 +31,9 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
@@ -476,13 +476,14 @@ public class ConfigurationController {
     return appManager.getAppHubUrl();
   }
 
+  public record TwoFactorMethods(
+      @JsonProperty boolean totp2faEnabled, @JsonProperty boolean email2faEnabled) {}
+
   @GetMapping("/twoFactorMethods")
-  public @ResponseBody Map<String, Boolean> getTwoFactorMethods() {
-    return Map.of(
-        "email2faEnabled",
-            Boolean.parseBoolean(config.getProperty(ConfigurationKey.EMAIL_2FA_ENABLED)),
-        "totp2faEnabled",
-            Boolean.parseBoolean(config.getProperty(ConfigurationKey.TOTP_2FA_ENABLED)));
+  public @ResponseBody TwoFactorMethods getTwoFactorMethods() {
+    return new TwoFactorMethods(
+        config.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED),
+        config.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED));
   }
 
   /**
