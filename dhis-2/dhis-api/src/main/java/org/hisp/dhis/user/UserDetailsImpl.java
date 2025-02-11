@@ -56,6 +56,7 @@ public class UserDetailsImpl implements UserDetails {
   private final boolean isTwoFactorEnabled;
   private final TwoFactorType twoFactorType;
   private final String secret;
+  private final String email;
   private final boolean isEmailVerified;
   private final boolean enabled;
   private final boolean accountNonExpired;

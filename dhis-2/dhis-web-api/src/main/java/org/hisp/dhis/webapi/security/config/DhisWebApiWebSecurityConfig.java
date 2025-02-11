@@ -539,8 +539,7 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   /**
-   * Enable either deprecated OAuth2 authorization filter or the new JWT OIDC token filter. They are
-   * mutually exclusive and can not both be added to the chain at the same time.
+   * Enable JWT OIDC token filter.
    *
    * @param http HttpSecurity config
    */

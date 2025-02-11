@@ -38,6 +38,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +50,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -56,6 +61,8 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -126,6 +133,44 @@ public class AuthorizationServerConfig {
   //  }
 
   @Bean
+  public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
+    return (context) -> {
+      OAuth2TokenType tokenType = context.getTokenType();
+      if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)) {
+        String username = context.getPrincipal().getName();
+        User user = userService.getUserByUsername(username);
+        context.getClaims().claim("email", user.getEmail());
+      }
+
+      //      if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
+      //        // Load the user info (this should include the email if available)
+      //        //        OidcUserInfo userInfo =
+      // userService.loadUser(context.getPrincipal().getName());
+      //        // Merge all user info claims into the ID token claims
+      //        //        context.getClaims().claims((claims) ->
+      // claims.putAll(userInfo.getClaims()));
+      //
+      //        String username = context.getPrincipal().getName();
+      //        User user = userService.getUserByUsername(username);
+      //
+      //        context.getClaims().claim("email", user.getEmail());
+      //      }
+
+      if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
+        // Load the user info (this should include the email if available)
+        //        OidcUserInfo userInfo = userService.loadUser(context.getPrincipal().getName());
+        // Merge all user info claims into the ID token claims
+        //        context.getClaims().claims((claims) -> claims.putAll(userInfo.getClaims()));
+
+        String username = context.getPrincipal().getName();
+        User user = userService.getUserByUsername(username);
+
+        context.getClaims().claim("email", user.getEmail());
+      }
+    };
+  }
+
+  @Bean
   public RegisteredClientRepository registeredClientRepository() {
     RegisteredClient oidcClient =
         RegisteredClient.withId(UUID.randomUUID().toString())
@@ -134,10 +179,14 @@ public class AuthorizationServerConfig {
             .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
+            //            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
+            .redirectUri("http://localhost:8080/oauth2/code/xxx")
             .postLogoutRedirectUri("http://127.0.0.1:8080/")
             .scope(OidcScopes.OPENID)
             .scope(OidcScopes.PROFILE)
+            .scope(OidcScopes.EMAIL)
+            .scope(StandardClaimNames.EMAIL)
+            .scope(StandardClaimNames.EMAIL_VERIFIED)
             .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
             .build();
 
