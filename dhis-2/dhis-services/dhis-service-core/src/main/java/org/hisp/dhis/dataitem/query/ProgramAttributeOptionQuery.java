@@ -97,10 +97,12 @@ public class ProgramAttributeOptionQuery implements DataItemQuery {
       "program.uid, trackedentityattribute.uid, optionset.uid, optionvalue.uid, optionvalue.code, optionvalue.name";
 
   private static final String JOINS =
-      " join program_attributes on program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
-          + " join program on program_attributes.programid = program.programid"
-          + " join optionset on trackedentityattribute.optionsetid = optionset.optionsetid"
-          + " join optionvalue on optionvalue.optionsetid = optionset.optionsetid";
+      """
+        join program_attributes on program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid
+        join program on program_attributes.programid = program.programid
+        join optionset on trackedentityattribute.optionsetid = optionset.optionsetid
+        join optionvalue on optionvalue.optionsetid = optionset.optionsetid
+      """;
 
   private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE =
       " from trackedentityattribute ";

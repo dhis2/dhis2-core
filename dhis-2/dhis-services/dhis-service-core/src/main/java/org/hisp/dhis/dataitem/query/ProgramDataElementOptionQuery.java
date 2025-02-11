@@ -97,11 +97,13 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
       "program.uid, dataelement.uid, optionset.uid, optionvalue.uid, optionvalue.code, optionvalue.name";
 
   private static final String JOINS =
-      "   join programstagedataelement on programstagedataelement.dataelementid = dataelement.dataelementid"
-          + " join programstage on programstage.programstageid = programstagedataelement.programstageid"
-          + " join program on programstage.programid = program.programid"
-          + " join optionset on dataelement.optionsetid = optionset.optionsetid"
-          + " join optionvalue on optionvalue.optionsetid = optionset.optionsetid";
+      """
+        join programstagedataelement on programstagedataelement.dataelementid = dataelement.dataelementid
+        join programstage on programstage.programstageid = programstagedataelement.programstageid
+        join program on programstage.programid = program.programid
+        join optionset on dataelement.optionsetid = optionset.optionsetid
+        join optionvalue on optionvalue.optionsetid = optionset.optionsetid
+      """;
 
   private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " from dataelement ";
 
