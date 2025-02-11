@@ -80,7 +80,7 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
               Pair.of("item_name", "dataelement.name"),
               Pair.of("item_shortname", "dataelement.shortname"),
               Pair.of("item_valuetype", "dataelement.valuetype"),
-              Pair.of("item_code", "dataelement.code"),
+              Pair.of("item_code", "optionvalue.code"),
               Pair.of("item_sharing", "dataelement.sharing"),
               Pair.of("item_domaintype", "dataelement.domaintype"),
               Pair.of("item_type", "cast ('PROGRAM_DATA_ELEMENT_OPTION' as text)"),

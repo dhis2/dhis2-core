@@ -80,7 +80,7 @@ public class ProgramAttributeOptionQuery implements DataItemQuery {
               Pair.of("item_name", "trackedentityattribute.name"),
               Pair.of("item_shortname", "trackedentityattribute.shortname"),
               Pair.of("item_valuetype", "trackedentityattribute.valuetype"),
-              Pair.of("item_code", "trackedentityattribute.code"),
+              Pair.of("item_code", "optionvalue.code"),
               Pair.of("item_sharing", "trackedentityattribute.sharing"),
               Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
               Pair.of("item_type", "cast ('PROGRAM_ATTRIBUTE_OPTION' as text)"),
