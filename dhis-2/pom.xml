@@ -2113,6 +2113,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.eclipse.jetty.toolchain:jetty-servlet-api</ignoredUsedUndeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
