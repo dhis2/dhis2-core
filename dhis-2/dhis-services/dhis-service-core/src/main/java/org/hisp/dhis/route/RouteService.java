@@ -288,7 +288,7 @@ public class RouteService {
           }
         };
     return new ResponseEntity<>(
-        streamingResponseBody, responseEntityFlux.getHeaders(), responseEntityFlux.getStatusCode());
+        streamingResponseBody, filterResponseHeaders(responseEntityFlux.getHeaders()), responseEntityFlux.getStatusCode());
   }
 
   /**
