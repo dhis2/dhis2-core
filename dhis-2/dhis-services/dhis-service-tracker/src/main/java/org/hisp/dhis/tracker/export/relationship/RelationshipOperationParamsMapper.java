@@ -49,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class RelationshipOperationParamsMapper {
 
-  private final RelationshipStore relationshipStore;
+  private final HibernateRelationshipStore relationshipStore;
   private final TrackerAccessManager trackerAccessManager;
 
   @Transactional(readOnly = true)
