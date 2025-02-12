@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -160,7 +161,7 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
                      "APtutTb0nOY"
                    ],
                    'order': 'createdAt:desc',
-                   'dataFilters':[{'null':'','!null':'','dataItem':'%s'}],
+                   'dataFilters':[{'null':'','!null':'value','dataItem':'%s'}],
                    'enrollmentStatus': 'ACTIVE',
                     %s
                    'eventOccurredAt': {
@@ -201,8 +202,8 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
     assertFalse(dataFilters.isEmpty(), "Data filters should not be empty");
     JsonObject dataFilter =
         workingList.getProgramStageQueryCriteria().getDataFilters().get(0).asObject();
-    assertEquals("", dataFilter.getString("null").string());
-    assertEquals("", dataFilter.getString("!null").string());
+    assertNull(dataFilter.getString("null").string());
+    assertEquals("true", dataFilter.getString("!null").string());
     assertEquals(dataElementId, dataFilter.getString("dataItem").string());
 
     followUpAssertion.accept(programStageQueryCriteria);

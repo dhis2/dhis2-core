@@ -434,10 +434,28 @@ public class RequestParamsValidator {
   private static void handleOperators(
       String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
       throws BadRequestException {
-    Optional<QueryOperator> firstOperator = findQueryOperatorFromFilter(filters[0]);
-    if (firstOperator.map(qo -> !qo.isUnary()).orElse(false)) {
+    QueryOperator firstOperator =
+        findQueryOperatorFromFilter(filters[0])
+            .orElseThrow(
+                () ->
+                    new BadRequestException(
+                        String.format("'%s' is not a valid operator: %s", filters[0], input)));
+
+    if (!firstOperator.isUnary()) {
       addQueryFilter(result, uid, filters[0], filters[1], input);
-    } else {
+      return;
+    }
+
+    QueryOperator secondOperator =
+        findQueryOperatorFromFilter(filters[1])
+            .orElseThrow(
+                () ->
+                    new BadRequestException(
+                        String.format(
+                            "Operator '%s' in filter can't be used with a value: %s",
+                            filters[0], input)));
+
+    if (secondOperator.isUnary()) {
       addQueryFilter(result, uid, filters[0], null, input);
       addQueryFilter(result, uid, filters[1], null, input);
     }
@@ -466,15 +484,42 @@ public class RequestParamsValidator {
   private static void handleMultipleBinaryOperators(
       String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
       throws BadRequestException {
-    for (int i = 0; i < filters.length; i += 2) {
-      addQueryFilter(result, uid, filters[i], filters[i + 1], input);
+
+    List<String> unaryOperators = getUnaryOperatorsInFilter(filters);
+    switch (unaryOperators.size()) {
+      case 0 -> {
+        for (int i = 0; i < filters.length; i += 2) {
+          addQueryFilter(result, uid, filters[i], filters[i + 1], input);
+        }
+      }
+      case 1 ->
+          throw new BadRequestException(
+              String.format(
+                  "Operator '%s' in filter can't be used with a value: %s",
+                  unaryOperators.get(0), input));
+      default ->
+          throw new BadRequestException(
+              String.format("A maximum of two operators can be used in a filter: %s", input));
     }
   }
 
-  public static Optional<QueryOperator> findQueryOperatorFromFilter(String filter) {
+  private static Optional<QueryOperator> findQueryOperatorFromFilter(String filter) {
     return Arrays.stream(QueryOperator.values())
-        .filter(qo -> qo.name().equalsIgnoreCase(filter))
+        .filter(qo -> qo.name().equalsIgnoreCase(filter.replace("!", "n")))
         .findFirst();
+  }
+
+  private static List<String> getUnaryOperatorsInFilter(String[] filters) {
+    Set<String> unaryOperators =
+        Arrays.stream(QueryOperator.values())
+            .filter(QueryOperator::isUnary)
+            .map(qo -> qo.name().toLowerCase())
+            .collect(Collectors.toSet());
+
+    return Arrays.stream(filters)
+        .map(f -> f.toLowerCase().replace("!", "n"))
+        .filter(unaryOperators::contains)
+        .toList();
   }
 
   public static OrganisationUnitSelectionMode validateOrgUnitModeForTrackedEntities(
@@ -613,7 +658,10 @@ public class RequestParamsValidator {
 
     if (queryOperator.isUnary()) {
       if (!StringUtils.isEmpty(value)) {
-        throw new BadRequestException("Operator in filter can't be used with a value: " + filter);
+        throw new BadRequestException(
+            String.format(
+                "Operator %s in filter can't be used with a value: %s",
+                queryOperator.name(), filter));
       }
       return new QueryFilter(queryOperator);
     }

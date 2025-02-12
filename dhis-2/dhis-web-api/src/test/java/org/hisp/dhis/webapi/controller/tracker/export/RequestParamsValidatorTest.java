@@ -297,7 +297,7 @@ class RequestParamsValidatorTest {
         assertThrows(
             BadRequestException.class, () -> parseAttributeFilters(TEA_1_UID + ":lke:value"));
     assertEquals(
-        "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
+        "'lke' is not a valid operator: " + TEA_1_UID + ":lke:value", exception.getMessage());
   }
 
   @Test
@@ -424,7 +424,8 @@ class RequestParamsValidatorTest {
         assertThrows(
             BadRequestException.class, () -> parseDataElementFilters(DE_1_UID + ":!null:value"));
     assertEquals(
-        "Query item or filter is invalid: " + DE_1_UID + ":!null:value", exception.getMessage());
+        "Operator '!null' in filter can't be used with a value: " + DE_1_UID + ":!null:value",
+        exception.getMessage());
   }
 
   @Test
@@ -435,7 +436,18 @@ class RequestParamsValidatorTest {
             BadRequestException.class,
             () -> parseDataElementFilters(DE_1_UID + ":gt:10:null:value"));
     assertEquals(
-        "Operator in filter can't be used with a value: " + DE_1_UID + ":gt:10:null:value",
+        "Operator 'null' in filter can't be used with a value: " + DE_1_UID + ":gt:10:null:value",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingDataElementFilterWhenMoreThanTwoOperatorsUsed() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> parseDataElementFilters(DE_1_UID + ":gt:10:null:!null"));
+    assertEquals(
+        "A maximum of two operators can be used in a filter: " + DE_1_UID + ":gt:10:null:!null",
         exception.getMessage());
   }
 
