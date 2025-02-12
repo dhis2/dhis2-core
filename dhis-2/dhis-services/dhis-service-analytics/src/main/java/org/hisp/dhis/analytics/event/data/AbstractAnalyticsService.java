@@ -104,6 +104,8 @@ public abstract class AbstractAnalyticsService {
 
   protected final SchemaIdResponseMapper schemaIdResponseMapper;
 
+  protected final OrganisationUnitResolver organisationUnitResolver;
+
   /**
    * Returns a grid based on the given query.
    *
@@ -503,6 +505,8 @@ public abstract class AbstractAnalyticsService {
                     new MetadataItem(
                         item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
 
+    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
+
     return metadataItemMap;
   }
 
@@ -685,7 +689,10 @@ public abstract class AbstractAnalyticsService {
     for (QueryItem item : params.getItems()) {
       String itemUid = getItemUid(item);
 
-      if (item.hasOptionSet()) {
+      if (item.getValueType().isOrganisationUnit()) {
+        List<String> items = organisationUnitResolver.resolveOrgUnis(params, item);
+        dimensionItems.put(itemUid, items);
+      } else if (item.hasOptionSet()) {
         if (itemOptions.isPresent()) {
           Map<String, List<Option>> itemOptionsMap = itemOptions.get();
 

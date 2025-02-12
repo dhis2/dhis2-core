@@ -107,6 +107,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @Captor private ArgumentCaptor<String> sql;
 
   private String DEFAULT_COLUMNS =
@@ -132,7 +134,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(statementBuilder),
-            executionPlanStore);
+            executionPlanStore,
+            organisationUnitResolver);
   }
 
   @Test
