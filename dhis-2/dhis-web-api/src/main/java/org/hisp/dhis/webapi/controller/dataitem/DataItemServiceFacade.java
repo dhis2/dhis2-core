@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.getDefaultEntities;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
@@ -125,7 +125,7 @@ public class DataItemServiceFacade {
       addFilteredTargetEntities(filters, targetedEntities);
     } else {
       // If no filter is set we search for all entities.
-      targetedEntities.addAll(getEntities());
+      targetedEntities.addAll(getDefaultEntities());
     }
 
     return targetedEntities;

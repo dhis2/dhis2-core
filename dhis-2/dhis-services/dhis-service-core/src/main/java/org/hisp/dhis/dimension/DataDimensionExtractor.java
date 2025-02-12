@@ -53,6 +53,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -231,6 +232,26 @@ public class DataDimensionExtractor {
     }
 
     return new ReportingRate(dataSet, ReportingRateMetric.valueOf(metric));
+  }
+
+  /**
+   * Returns a {@link DataElement}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param dataElementId the data element identifier.
+   * @param optionSetId the option set identifier.
+   */
+  @Transactional(readOnly = true)
+  public DataElement getOptionSetDataElementDimensionItem(
+      IdScheme idScheme, String dataElementId, String optionSetId) {
+    DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
+    OptionSet optionSet = idObjectManager.getObject(OptionSet.class, idScheme, optionSetId);
+
+    if (dataElement == null || optionSet == null) {
+      return null;
+    }
+
+    return dataElement;
   }
 
   /**

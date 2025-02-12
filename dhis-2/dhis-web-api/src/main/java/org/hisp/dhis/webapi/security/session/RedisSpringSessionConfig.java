@@ -79,18 +79,6 @@ public class RedisSpringSessionConfig {
   }
 
   @Bean
-  public CookieHttpSessionIdResolver httpSessionIdResolver() {
-    CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
-    DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
-    cookieSerializer.setCookieName("JSESSIONID");
-    cookieSerializer.setSameSite("Lax");
-    cookieSerializer.setUseSecureCookie(false);
-    cookieSerializer.setUseHttpOnlyCookie(true);
-    resolver.setCookieSerializer(cookieSerializer);
-    return resolver;
-  }
-
-  @Bean
   public SpringSessionBackedSessionRegistry sessionRegistry(
       RedisIndexedSessionRepository sessionRepository) {
     return new SpringSessionBackedSessionRegistry<>(sessionRepository);
@@ -104,5 +92,17 @@ public class RedisSpringSessionConfig {
   @Bean
   public HttpSessionEventPublisher httpSessionEventPublisher() {
     return new HttpSessionEventPublisher();
+  }
+
+  @Bean
+  public CookieHttpSessionIdResolver httpSessionIdResolver() {
+    CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();
+    DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();
+    cookieSerializer.setCookieName("JSESSIONID");
+    cookieSerializer.setUseHttpOnlyCookie(true);
+    cookieSerializer.setSameSite(config.getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE));
+    cookieSerializer.setUseSecureCookie(config.isEnabled(ConfigurationKey.SERVER_HTTPS));
+    resolver.setCookieSerializer(cookieSerializer);
+    return resolver;
   }
 }

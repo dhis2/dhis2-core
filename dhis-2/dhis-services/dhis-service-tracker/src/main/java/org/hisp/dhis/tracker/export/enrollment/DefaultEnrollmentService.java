@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
-  private final EnrollmentStore enrollmentStore;
+  private final HibernateEnrollmentStore enrollmentStore;
 
   private final EventService eventService;
 
@@ -113,6 +113,10 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
+    if (uids.isEmpty()) {
+      return List.of();
+    }
+
     EnrollmentQueryParams queryParams;
     try {
       queryParams =

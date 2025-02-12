@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
@@ -60,7 +61,7 @@ public class DefaultRelationshipService implements RelationshipService {
   private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
       Mappers.getMapper(RelationshipItemMapper.class);
   private final TrackerAccessManager trackerAccessManager;
-  private final RelationshipStore relationshipStore;
+  private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
 
   // TODO(DHIS2-18883) Pass fields params as a parameter
@@ -127,6 +128,12 @@ public class DefaultRelationshipService implements RelationshipService {
       relationships.add(getRelationship(uid));
     }
     return relationships;
+  }
+
+  @Override
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    return relationshipStore.getRelationshipsByRelationshipKeys(relationshipKeys);
   }
 
   private List<Relationship> getRelationshipsByTrackedEntity(
