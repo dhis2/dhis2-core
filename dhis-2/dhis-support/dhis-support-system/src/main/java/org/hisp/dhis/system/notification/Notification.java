@@ -54,7 +54,7 @@ public class Notification implements Comparable<Notification> {
 
   @ToString.Include private JobType category;
 
-  @ToString.Include private Date time;
+  @Nonnull @ToString.Include private Date time;
 
   @ToString.Include private String message;
 
@@ -70,12 +70,13 @@ public class Notification implements Comparable<Notification> {
 
   public Notification() {
     this.uid = CodeGenerator.generateUid();
+    this.time = new Date();
   }
 
   public Notification(
       NotificationLevel level,
       JobType category,
-      Date time,
+      @Nonnull Date time,
       String message,
       boolean completed,
       NotificationDataType dataType,
@@ -118,6 +119,7 @@ public class Notification implements Comparable<Notification> {
     return category;
   }
 
+  @Nonnull
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getTime() {
