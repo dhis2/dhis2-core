@@ -3,6 +3,7 @@ package org.hisp.dhis.analytics.util.vis;
 import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
@@ -13,7 +14,9 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @UtilityClass
@@ -276,6 +279,8 @@ public class SubselectMatchers {
             return Optional.empty();
         }
 
+        String relationshipTypeUid = null;
+
         // Handle both cases: simple equality or equality AND relationship type
         if (where instanceof EqualsTo equals) {
             // Case without relationship ID
@@ -298,9 +303,16 @@ public class SubselectMatchers {
             }
 
             Expression typeLeft = relationshipTypeEquals.getLeftExpression();
+            Expression typeRight = relationshipTypeEquals.getRightExpression();
+
             if (!(typeLeft instanceof Column typeCol) ||
                     !"relationshiptypeuid".equalsIgnoreCase(typeCol.getColumnName())) {
                 return Optional.empty();
+            }
+
+            // Extract the relationship type UID from the comparison
+            if (typeRight instanceof StringValue stringValue) {
+                relationshipTypeUid = stringValue.getValue();
             }
         } else {
             return Optional.empty();
@@ -308,8 +320,16 @@ public class SubselectMatchers {
 
         // If we get here, the pattern matches
         // Use a different name for the CTE based on whether it's aggregated
-        String cteName = "relationship_count";
-        return Optional.of(new FoundSubSelect(cteName, subSelect, "relationship_count"));
+        String cteName = isAggregated ? "relationship_count_agg" : "relationship_count";
+
+        // Create metadata map
+        Map<String, String> metadata = new HashMap<>();
+        if (relationshipTypeUid != null) {
+            metadata.put("relationshipTypeUid", relationshipTypeUid);
+        }
+        metadata.put("isAggregated", String.valueOf(isAggregated));
+
+        return Optional.of(new FoundSubSelect(cteName, subSelect, "relationship_count", metadata));
     }
 
     /**

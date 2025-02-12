@@ -44,6 +44,7 @@ import java.util.Optional;
 import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastCreatedExistsPattern;
 import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastEventValuePattern;
 import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastSchedPattern;
+import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesRelationshipCountPattern;
 
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
@@ -216,7 +217,7 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         Optional<FoundSubSelect> lastSched = matchesLastSchedPattern(subSelect);
         Optional<FoundSubSelect> lastCreated = matchesLastCreatedExistsPattern(subSelect);
         Optional<FoundSubSelect> lastEvent = matchesLastEventValuePattern(subSelect);
-        Optional<FoundSubSelect> relCount = SubselectMatchers.matchesRelationshipCountPattern(subSelect);
+        Optional<FoundSubSelect> relCount = matchesRelationshipCountPattern(subSelect);
 
         Optional<FoundSubSelect> matchedPattern = lastSched
                 .or(() -> lastCreated)

@@ -228,8 +228,10 @@ public class ProgramIndicatorCteOptimizer {
                                 String newCteSql = lastCreatedCte(eventTable);
                                 generatedCtes.put(name,
                                         new GeneratedCte(name, newCteSql, "lc"));
-                            } else if(name.equals("relationship_count")) {
-                                String newCteSql = relationshipCountCte();
+                            } else if(name.startsWith("relationship_count")) {
+                                boolean isAggregated = Boolean.parseBoolean(found.metadata().getOrDefault("isAggregated", "false"));
+                                String relationshipTypeUid = found.metadata().get("relationshipTypeUid");
+                                String newCteSql = relationshipCountCte(isAggregated, relationshipTypeUid);
                                 generatedCtes.put(name,
                                         new GeneratedCte(name, newCteSql, "rlc", ImmutablePair.of("trackedentity", "trackedentityid")));
                             } else if (name.startsWith("last_value_")) {
@@ -414,14 +416,24 @@ public class ProgramIndicatorCteOptimizer {
                """.formatted(table);
     }
 
-    private String relationshipCountCte() {
-        return """
-            select
-               trackedentityid,
-               sum(relationship_count) as relationship_sum
-             from analytics_rs_relationship
-             group by trackedentityid
-           """;
+    private String relationshipCountCte(boolean isAggregated, String relationshipTypeUid) {
+        if (isAggregated) {
+            return """
+               SELECT trackedentityid,
+                      sum(relationship_count) as relationship_count
+               FROM analytics_rs_relationship
+               GROUP BY trackedentityid
+               """;
+        } else {
+            String whereClause = relationshipTypeUid != null ?
+                    "WHERE relationshiptypeuid = '%s'".formatted(relationshipTypeUid) : "";
+            return """
+               SELECT trackedentityid,
+                      relationship_count
+               FROM analytics_rs_relationship
+               %s
+               """.formatted(whereClause);
+        }
     }
 
     private String lastEventValueCte(String table, String columnName) {
