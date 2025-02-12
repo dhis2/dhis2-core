@@ -47,6 +47,7 @@ import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
@@ -54,6 +55,7 @@ import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
@@ -327,35 +329,41 @@ public class JCloudsAppStorageService implements AppStorageService {
     log.info("Deleted app {}", app.getName());
   }
 
+  /**
+   * @param app the app to serve
+   * @param resource the name of the app resource to serve. This can be a directory, sub-directory
+   *     or a page name
+   * @return app resource
+   * @throws IOException ex if any IO issues
+   */
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public Resource getAppResource(App app, @Nonnull String resource) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
-          pageName);
+          resource);
       return null;
     }
 
-    String key = (app.getFolderName() + ("/" + pageName)).replaceAll("//", "/");
-    URI uri = getSignedGetContentUri(key);
+    String resolvedFileResource = getResourceForFileOrDirectory(resource);
+
+    String key = (app.getFolderName() + ("/" + resolvedFileResource));
+    String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
+    URI uri = getSignedGetContentUri(cleanedKey);
 
     if (uri == null) {
 
-      String filepath = jCloudsStore.getBlobContainer() + "/" + key;
-      filepath = filepath.replaceAll("//", "/");
+      String filepath = jCloudsStore.getBlobContainer() + "/" + cleanedKey;
+      String cleanedFilepath = StringUtils.replaceAllRecursively(filepath, "//", "/");
       File res;
 
       try {
-        res = locationManager.getFileForReading(filepath);
+        res = locationManager.getFileForReading(cleanedFilepath);
       } catch (LocationManagerException e) {
         return null;
       }
 
-      if (res.isDirectory()) {
-        String indexPath = pageName.replaceAll("/+$", "") + "/index.html";
-        log.info("Resource {} ({} is a directory, serving {}", pageName, filepath, indexPath);
-        return getAppResource(app, indexPath);
-      } else if (res.exists()) {
+      if (res.exists()) {
         return new FileSystemResource(res);
       } else {
         return null;
@@ -363,6 +371,45 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     return new UrlResource(uri);
+  }
+
+  /**
+   * The server is expected to handle multiple resource path variations, which ultimately should
+   * always resolve to a file resource. <br>
+   *
+   * <p>Examples: <br>
+   * <li>'' ->'index.html`
+   * <li>'index.html' ->'index.html`
+   * <li>'subDir/index.html' ->'subDir/index.html`
+   * <li>'subDir/' ->'subDir/index.html`
+   * <li>'subDir' ->'subDir/index.html`
+   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js`
+   *
+   * @param resource app resource to resolve
+   * @return potentially-updated app resource (file)
+   */
+  private String getResourceForFileOrDirectory(@Nonnull String resource) {
+    // this condition is treated as the base app resource
+    if (resource.isBlank()) {
+      log.debug("Resource is blank, using 'index.html'");
+      return "index.html";
+    }
+
+    // this condition is treated as a directory (any level) resource, ending in '/'
+    if (resource.endsWith("/")) {
+      log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
+      return resource + "index.html";
+    }
+
+    // this condition is treated as a directory resource not ending in '/'
+    if (!resource.contains(".")) { // not a file extension
+      log.debug(
+          "Resource is treated as a directory with no trailing '/', appending '/index.html' to {}",
+          resource);
+      return resource + "/index.html";
+    }
+    // any other resource, no special handling required, return as is
+    return resource;
   }
 
   public URI getSignedGetContentUri(String key) {

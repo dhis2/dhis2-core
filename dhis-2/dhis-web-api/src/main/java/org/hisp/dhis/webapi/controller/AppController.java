@@ -312,10 +312,12 @@ public class AppController {
   // --------------------------------------------------------------------------
 
   private String getUrl(String path, String app) {
-    String prefix = RESOURCE_PATH + "/" + app + "/";
+    String prefix = RESOURCE_PATH + "/" + app;
 
-    if (path.startsWith(prefix)) {
+    if (path.startsWith(prefix + "/")) {
       path = path.substring(prefix.length());
+    } else if (path.equals(prefix)) {
+      path = "";
     }
 
     // if path is prefixed by any protocol, clear it out (this is to ensure
