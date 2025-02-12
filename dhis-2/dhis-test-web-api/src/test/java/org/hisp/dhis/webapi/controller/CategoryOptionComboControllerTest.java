@@ -136,6 +136,28 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
+  @DisplayName("invalid merge, missing required auth")
+  void testMergeNoAuth() {
+    switchToNewUser("noAuth", "NoAuth");
+    JsonMixed mergeResponse =
+        POST(
+                "/categoryOptionCombos/merge",
+                """
+                {
+                    "sources": ["Uid00000010"],
+                    "target": "Uid00000012",
+                    "deleteSources": true,
+                    "dataMergeStrategy": "DISCARD"
+                }""")
+            .content(HttpStatus.FORBIDDEN);
+    assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
+    assertEquals("ERROR", mergeResponse.getString("status").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_CATEGORY_OPTION_COMBO_MERGE]",
+        mergeResponse.getString("message").string());
+  }
+
+  @Test
   @DisplayName("invalid merge, missing dataMergeStrategy")
   void mergeMissingDataMergeStrategyTest() {
     JsonWebMessage validationErrorMsg =
