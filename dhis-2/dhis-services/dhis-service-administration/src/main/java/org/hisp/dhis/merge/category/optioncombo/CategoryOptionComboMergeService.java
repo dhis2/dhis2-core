@@ -116,12 +116,18 @@ public class CategoryOptionComboMergeService implements MergeService {
     // see the most up-to-date state, including merges done using Hibernate.
     entityManager.flush();
 
-    // handle deletes
-    if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
+    handleDeleteSources(sources, mergeReport);
 
     return mergeReport;
   }
 
+  /**
+   * {@link CategoryOptionCombo}s are created/deleted by the system. Due to this fact, they can be
+   * deleted as part of the merge process.
+   *
+   * @param sources sources to delete
+   * @param mergeReport report to update with deleted refs
+   */
   private void handleDeleteSources(List<CategoryOptionCombo> sources, MergeReport mergeReport) {
     log.info("Deleting source CategoryOptionCombos");
     for (CategoryOptionCombo source : sources) {
@@ -152,7 +158,8 @@ public class CategoryOptionComboMergeService implements MergeService {
 
     auditMergeHandlers =
         List.of(
-            dataMergeHandler::handleDataValueAudits, dataMergeHandler::handleDataApprovalAudits);
+            (sources, target) -> dataMergeHandler.handleDataValueAudits(sources),
+            (sources, target) -> dataMergeHandler.handleDataApprovalAudits(sources));
   }
 
   /**
