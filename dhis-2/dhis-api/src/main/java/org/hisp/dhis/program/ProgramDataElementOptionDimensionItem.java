@@ -28,7 +28,7 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.apache.commons.lang3.StringUtils.SPACE;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -43,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -73,7 +74,7 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   private Option option;
 
   public ProgramDataElementOptionDimensionItem(
-      Program program, DataElement dataElement, Option option) {
+      @Nonnull Program program, @Nonnull DataElement dataElement, @Nonnull Option option) {
     this.program = program;
     this.dataElement = dataElement;
     this.option = option;
@@ -81,17 +82,18 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
 
   @Override
   public String getName() {
-    return joinWith(
-        SPACE, program.getDisplayName(), dataElement.getDisplayName(), option.getDisplayName());
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayName(), dataElement.getDisplayName(), program.getDisplayName());
   }
 
   @Override
   public String getShortName() {
-    return joinWith(
-        SPACE,
-        program.getDisplayShortName(),
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayShortName(),
         dataElement.getDisplayShortName(),
-        option.getDisplayShortName());
+        program.getDisplayShortName());
   }
 
   @Override
