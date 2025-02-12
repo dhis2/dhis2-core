@@ -296,7 +296,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   @Test
   void testTrackedEntityAttributeFilter() {
     TrackedEntityInstanceQueryParams params = getTrackedEntityInstanceParams();
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
 
@@ -358,7 +358,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("created", SortDirection.ASC)));
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -385,7 +385,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("created", SortDirection.DESC)));
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -419,7 +419,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setTrackedEntityType(trackedEntityType);
     params.setOrders(List.of(new OrderParam("created", SortDirection.ASC)));
     params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
     List<Object> uids = grid.getRows().stream().map(l -> l.get(0)).collect(Collectors.toList());
@@ -448,7 +448,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setTrackedEntityType(trackedEntityType);
     params.setOrders(List.of(new OrderParam("created", SortDirection.DESC)));
     params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
     List<Object> uids = grid.getRows().stream().map(l -> l.get(0)).collect(Collectors.toList());
@@ -467,8 +467,10 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     addEntityInstances();
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
-    params.setOrders(List.of(new OrderParam("createdAt", OrderParam.SortDirection.ASC)));
+
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -495,7 +497,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -523,6 +525,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(List.of(new OrderParam("lastUpdated", OrderParam.SortDirection.ASC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -551,6 +554,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("lastUpdated", SortDirection.DESC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -573,6 +577,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(
         List.of(new OrderParam("trackedEntityInstance", OrderParam.SortDirection.DESC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -598,6 +603,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAtClient", OrderParam.SortDirection.DESC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -623,6 +629,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(List.of(new OrderParam("enrolledAt", OrderParam.SortDirection.DESC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -689,6 +696,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
         List.of(
             new OrderParam(ENROLLED_AT.getPropName(), OrderParam.SortDirection.DESC),
             new OrderParam(tea.getUid(), OrderParam.SortDirection.DESC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -702,6 +710,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -729,6 +738,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(List.of(new OrderParam(filtH.getUid(), OrderParam.SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(filtH)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -764,6 +774,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
             new OrderParam(filtH.getUid(), OrderParam.SortDirection.DESC),
             new OrderParam("inactive", OrderParam.SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(filtH)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -792,6 +803,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), OrderParam.SortDirection.DESC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -820,6 +832,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), OrderParam.SortDirection.ASC)));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
 
@@ -837,7 +850,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     entityInstanceA1.setTrackedEntityType(trackedEntityType);
     entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     int counter = entityInstanceService.getTrackedEntityInstanceCount(params, true, true);
 
@@ -858,7 +871,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   @Test
   void shouldCountZeroEntitiesWhenNonePresent() {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     int trackedEntitiesCounter =
         entityInstanceService.getTrackedEntityInstanceCount(params, true, true);
@@ -886,7 +899,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setTrackedEntityType(trackedEntityType);
     params.setLastUpdatedStartDate(oneHourBeforeLastUpdated);
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<TrackedEntityInstance> trackedEntities =
         entityInstanceService.getTrackedEntityInstances(params, true, true);
@@ -914,7 +927,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     params.setOrganisationUnits(Set.of(organisationUnit));
     params.setTrackedEntityType(trackedEntityType);
     params.setLastUpdatedStartDate(oneHourAfterLastUpdated);
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<TrackedEntityInstance> trackedEntities =
         entityInstanceService.getTrackedEntityInstances(params, true, true);
@@ -928,7 +941,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnitMode(ALL);
-    params.setProgram(disabledAccessProgram);
+    params.setEnrolledInTrackerProgram(disabledAccessProgram);
     params.setUser(userWithSearchInAllAuthority);
 
     IllegalQueryException ex =
@@ -951,7 +964,7 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnitMode(ALL);
     params.setOrganisationUnits(Set.of(organisationUnit));
-    params.setPrograms(List.of(program));
+    params.setAccessibleTrackerPrograms(List.of(program));
 
     List<Long> trackedEntities =
         entityInstanceService.getTrackedEntityInstanceIds(params, true, true);
