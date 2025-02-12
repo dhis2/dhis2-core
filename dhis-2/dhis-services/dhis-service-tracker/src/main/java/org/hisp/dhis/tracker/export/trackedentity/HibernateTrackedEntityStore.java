@@ -76,11 +76,10 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
-class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity>
-    implements TrackedEntityStore {
+@Component("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
+class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity> {
 
   private static final String MAIN_QUERY_ALIAS = "TE";
 
@@ -148,7 +147,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     this.settingsProvider = settingsProvider;
   }
 
-  @Override
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
     String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
@@ -163,7 +161,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return ids;
   }
 
-  @Override
   public Page<TrackedEntityIdentifiers> getTrackedEntityIds(
       TrackedEntityQueryParams params, PageParams pageParams) {
     String sql = getQuery(params, pageParams);
@@ -191,7 +188,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return Page.withoutTotals(ids, pageParams.getPage(), pageParams.getPageSize());
   }
 
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS.keySet();
   }
@@ -210,13 +206,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
   }
 
-  @Override
   public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
     return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
-  @Override
   public int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params) {
     String sql = getCountQueryWithMaxTrackedEntityLimit(params);
     return jdbcTemplate.queryForObject(sql, Integer.class);

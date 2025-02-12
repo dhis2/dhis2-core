@@ -77,7 +77,7 @@ class NotificationTest {
   private Notification createNotificationWithTime(Date now) {
     Notification notification = new Notification();
     notification.setCategory(JobType.ACCOUNT_EXPIRY_ALERT);
-    notification.setTime(now);
+    notification.setTimestamp(now.getTime());
     return notification;
   }
 }

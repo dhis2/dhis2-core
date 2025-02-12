@@ -128,7 +128,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
 
-    assertEquals("INCORRECT_TWO_FACTOR_CODE", wrong2FaCodeResponse.getLoginStatus());
+    assertEquals("INCORRECT_TWO_FACTOR_CODE_TOTP", wrong2FaCodeResponse.getLoginStatus());
     Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
 
     Totp totp = new Totp(secret);
