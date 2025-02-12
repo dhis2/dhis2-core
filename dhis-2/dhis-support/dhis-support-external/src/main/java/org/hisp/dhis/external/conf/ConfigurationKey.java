@@ -102,9 +102,6 @@ public enum ConfigurationKey {
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
 
-  /** Sets 'hibernate.hbm2ddl.auto', used in tests only. (default: validate) */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
-
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
 

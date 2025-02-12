@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.system.notification;
 
+import static java.time.Duration.ofSeconds;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.waitAtMost;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -43,14 +49,23 @@ import java.util.stream.IntStream;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Lars Helge Overland
  */
 class NotifierTest extends DhisConvenienceTest {
-  private Notifier notifier = new InMemoryNotifier();
+
+  private final Notifier notifier =
+      new DefaultNotifier(
+          new InMemoryNotifierStore(),
+          new ObjectMapper(),
+          settingsProvider(),
+          System::currentTimeMillis);
 
   private final User user = makeUser("A");
 
@@ -66,25 +81,39 @@ class NotifierTest extends DhisConvenienceTest {
 
   private final JobConfiguration dataValueImportFourthConfig;
 
+  private static SystemSettingsProvider settingsProvider() {
+    SystemSettingsProvider settingsProvider =
+        mock(SystemSettingsProvider.class, withSettings().strictness(Strictness.LENIENT));
+    when(settingsProvider.getSystemSetting(SettingKey.NOTIFIER_LOG_LEVEL, "DEBUG"))
+        .thenReturn("DEBUG");
+    when(settingsProvider.getIntSetting(SettingKey.NOTIFIER_MAX_MESSAGES_PER_JOB)).thenReturn(500);
+    when(settingsProvider.getIntSetting(SettingKey.NOTIFIER_MAX_AGE_DAYS)).thenReturn(7);
+    when(settingsProvider.getIntSetting(SettingKey.NOTIFIER_MAX_JOBS_PER_TYPE)).thenReturn(500);
+    when(settingsProvider.getBoolSetting(SettingKey.NOTIFIER_GIST_OVERVIEW)).thenReturn(true);
+    when(settingsProvider.getSystemSetting(SettingKey.NOTIFIER_CLEAN_AFTER_IDLE_TIME, Long.class))
+        .thenReturn(60_000L);
+    return settingsProvider;
+  }
+
   public NotifierTest() {
     dataValueImportJobConfig = new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportJobConfig.setUid("dvi1");
+    dataValueImportJobConfig.setUid("dvi15678901");
     analyticsTableJobConfig = new JobConfiguration(null, ANALYTICS_TABLE, user.getUid(), false);
-    analyticsTableJobConfig.setUid("at1");
+    analyticsTableJobConfig.setUid("at145678901");
     metadataImportJobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), false);
-    metadataImportJobConfig.setUid("mdi1");
+    metadataImportJobConfig.setUid("mdi15678901");
     dataValueImportSecondJobConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportSecondJobConfig.setUid("dvi2");
+    dataValueImportSecondJobConfig.setUid("dvi25678901");
     dataValueImportThirdJobConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportThirdJobConfig.setUid("dvi3");
+    dataValueImportThirdJobConfig.setUid("dvi35678901");
     dataValueImportFourthConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportFourthConfig.setUid("dvi4");
+    dataValueImportFourthConfig.setUid("dvi45678901");
     JobConfiguration dataValueImportFifthConfig =
         new JobConfiguration(null, DATAVALUE_IMPORT, user.getUid(), false);
-    dataValueImportFifthConfig.setUid("dvi5");
+    dataValueImportFifthConfig.setUid("dvi55678901");
   }
 
   @Test
@@ -94,7 +123,11 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
-    Map<JobType, Map<String, Deque<Notification>>> notificationsMap = notifier.getNotifications();
+
+    awaitIdle();
+
+    Map<JobType, Map<String, Deque<Notification>>> notificationsMap =
+        notifier.getNotifications(false);
     assertNotNull(notificationsMap);
     assertEquals(
         3,
@@ -121,6 +154,9 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
+
+    awaitIdle();
+
     assertEquals(
         3,
         notifier
@@ -166,13 +202,23 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.notify(dataValueImportJobConfig, "Import done");
     notifier.notify(analyticsTableJobConfig, "Process started");
     notifier.notify(analyticsTableJobConfig, "Process done");
+
+    awaitIdle();
+
     Deque<Notification> notifications =
-        notifier.getNotificationsByJobType(DATAVALUE_IMPORT).get(dataValueImportJobConfig.getUid());
+        notifier
+            .getNotificationsByJobType(DATAVALUE_IMPORT, false)
+            .get(dataValueImportJobConfig.getUid());
     assertNotNull(notifications);
     assertEquals(4, notifications.size());
+
     notifier.notify(dataValueImportThirdJobConfig, "Completed1");
+
+    awaitIdle();
+
     Map<String, Deque<Notification>> notificationsByJobType =
-        notifier.getNotificationsByJobType(DATAVALUE_IMPORT);
+        notifier.getNotificationsByJobType(DATAVALUE_IMPORT, false);
+
     assertNotNull(notificationsByJobType);
     assertEquals(3, notificationsByJobType.size());
     assertEquals(4, notificationsByJobType.get(dataValueImportJobConfig.getUid()).size());
@@ -181,8 +227,12 @@ class NotifierTest extends DhisConvenienceTest {
     assertEquals(
         "Completed1",
         notificationsByJobType.get(dataValueImportThirdJobConfig.getUid()).getFirst().getMessage());
+
     notifier.notify(dataValueImportFourthConfig, "Completed2");
-    notificationsByJobType = notifier.getNotificationsByJobType(DATAVALUE_IMPORT);
+
+    awaitIdle();
+
+    notificationsByJobType = notifier.getNotificationsByJobType(DATAVALUE_IMPORT, false);
     assertNotNull(notificationsByJobType);
     assertEquals(4, notificationsByJobType.get(dataValueImportJobConfig.getUid()).size());
     assertEquals(1, notificationsByJobType.get(dataValueImportSecondJobConfig.getUid()).size());
@@ -199,21 +249,25 @@ class NotifierTest extends DhisConvenienceTest {
     notifier.addJobSummary(analyticsTableJobConfig, "somethingid2", String.class);
     notifier.addJobSummary(dataValueImportSecondJobConfig, "somethingid4", String.class);
     notifier.addJobSummary(metadataImportJobConfig, "somethingid3", String.class);
-    Map<String, Object> jobSummariesForAnalyticsType =
+
+    awaitIdle();
+
+    Map<String, JsonNode> jobSummariesForAnalyticsType =
         notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);
     assertEquals(2, jobSummariesForAnalyticsType.size());
-    Map<String, Object> jobSummariesForMetadataImportType =
+    Map<String, JsonNode> jobSummariesForMetadataImportType =
         notifier.getJobSummariesForJobType(METADATA_IMPORT);
     assertNotNull(jobSummariesForMetadataImportType);
     assertEquals(1, jobSummariesForMetadataImportType.size());
     assertEquals(
-        "somethingid3", jobSummariesForMetadataImportType.get(metadataImportJobConfig.getUid()));
-    Object summary =
+        "somethingid3",
+        jobSummariesForMetadataImportType.get(metadataImportJobConfig.getUid()).asText());
+    JsonNode summary =
         notifier.getJobSummaryByJobId(
             dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid());
     assertNotNull(summary);
-    assertEquals("somethingid1", summary, "True");
+    assertEquals("somethingid1", summary.asText(), "True");
     notifier.addJobSummary(dataValueImportThirdJobConfig, "summarry3", String.class);
     jobSummariesForAnalyticsType = notifier.getJobSummariesForJobType(DATAVALUE_IMPORT);
     assertNotNull(jobSummariesForAnalyticsType);
@@ -227,7 +281,7 @@ class NotifierTest extends DhisConvenienceTest {
   @Test
   void testInsertingNotificationsInSameJobConcurrently() throws InterruptedException {
     ExecutorService e = Executors.newFixedThreadPool(5);
-    JobConfiguration jobConfig = createJobConfig(-1);
+    JobConfiguration jobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), true);
     notifier.notify(jobConfig, "somethingid");
     IntStream.range(0, 100)
         .forEach(i -> e.execute(() -> notifier.notify(jobConfig, "somethingid" + i)));
@@ -235,38 +289,20 @@ class NotifierTest extends DhisConvenienceTest {
         .forEach(
             i -> {
               for (Notification notification :
-                  notifier.getNotificationsByJobType(METADATA_IMPORT).get(jobConfig.getUid())) {
+                  notifier.getNotificationsByJobId(METADATA_IMPORT, jobConfig.getUid())) {
                 // Iterate over notifications when new notification are added
                 assertNotNull(notification.getUid());
               }
             });
     awaitTermination(e);
+    awaitIdle();
     assertEquals(
-        101, notifier.getNotificationsByJobType(METADATA_IMPORT).get(jobConfig.getUid()).size());
+        101,
+        notifier.getNotificationsByJobType(METADATA_IMPORT, false).get(jobConfig.getUid()).size());
   }
 
-  @Test
-  void testInsertingNotificationJobConcurrently() {
-    notifier.notify(createJobConfig(-1), "zero");
-    ExecutorService e = Executors.newFixedThreadPool(5);
-    IntStream.range(0, 1000)
-        .forEach(
-            i -> {
-              e.execute(
-                  () -> {
-                    notifier.notify(createJobConfig(i), "somethingid" + i);
-                  });
-            });
-    awaitTermination(e);
-    int actualSize = notifier.getNotificationsByJobType(METADATA_IMPORT).size();
-    int delta = actualSize - 500;
-    assertTrue(delta <= 5, "delta should not be larger than number of workers but was: " + delta);
-  }
-
-  private JobConfiguration createJobConfig(int i) {
-    JobConfiguration jobConfig = new JobConfiguration(null, METADATA_IMPORT, user.getUid(), false);
-    jobConfig.setUid("jobId" + i);
-    return jobConfig;
+  private void awaitIdle() {
+    waitAtMost(ofSeconds(5)).until(notifier::isIdle);
   }
 
   public void awaitTermination(ExecutorService threadPool) {

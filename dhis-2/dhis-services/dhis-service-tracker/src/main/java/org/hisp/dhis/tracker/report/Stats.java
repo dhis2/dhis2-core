@@ -53,7 +53,7 @@ public class Stats {
 
   @JsonProperty private int ignored = 0;
 
-  @JsonProperty
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public int getTotal() {
     return created + updated + deleted + ignored;
   }

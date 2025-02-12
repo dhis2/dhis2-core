@@ -32,6 +32,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.notification.NotificationDataType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -45,19 +47,30 @@ import org.hisp.dhis.system.notification.Notifier;
  */
 @RequiredArgsConstructor
 public class NotifierJobProgress implements JobProgress {
+
   private final Notifier notifier;
-
   private final JobConfiguration jobId;
-
+  private final NotificationLevel level;
   private final AtomicBoolean hasCleared = new AtomicBoolean();
 
   private int stageItems;
-
   private int stageItem;
 
   @Override
   public boolean isCancellationRequested() {
     return false;
+  }
+
+  private boolean isLoggedLoop() {
+    return NotificationLevel.LOOP.ordinal() >= level.ordinal();
+  }
+
+  private boolean isLoggedInfo() {
+    return NotificationLevel.INFO.ordinal() >= level.ordinal();
+  }
+
+  private boolean isLoggedError() {
+    return NotificationLevel.ERROR.ordinal() >= level.ordinal();
   }
 
   @Override
@@ -67,6 +80,7 @@ public class NotifierJobProgress implements JobProgress {
     if (hasCleared.compareAndSet(false, true)) {
       notifier.clear(jobId);
     }
+    // Note: intentionally no log level check - always log first
     notifier.notify(
         jobId,
         NotificationLevel.INFO,
@@ -78,40 +92,43 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void completedProcess(String summary) {
+    // Note: intentionally no log level check - always log last
     notifier.notify(jobId, summary, true);
   }
 
   @Override
-  public void failedProcess(String error) {
+  public void failedProcess(@CheckForNull String error) {
+    // Note: intentionally no log level check - always log last
     notifier.notify(jobId, NotificationLevel.ERROR, error, true);
   }
 
   @Override
-  public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+  public void startingStage(
+      @Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure) {
     stageItems = workItems;
     stageItem = 0;
-    if (isNotEmpty(description)) {
+    if (isLoggedInfo() && isNotEmpty(description)) {
       notifier.notify(jobId, description);
     }
   }
 
   @Override
   public void completedStage(String summary) {
-    if (isNotEmpty(summary)) {
+    if (isLoggedInfo() && isNotEmpty(summary)) {
       notifier.notify(jobId, summary);
     }
   }
 
   @Override
-  public void failedStage(String error) {
-    if (isNotEmpty(error)) {
+  public void failedStage(@Nonnull String error) {
+    if (isLoggedError() && isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, error, false);
     }
   }
 
   @Override
-  public void startingWorkItem(String description, FailurePolicy onFailure) {
-    if (isNotEmpty(description)) {
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
+    if (isLoggedLoop() && isNotEmpty(description)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + description, false);
     }
@@ -120,15 +137,15 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void completedWorkItem(String summary) {
-    if (isNotEmpty(summary)) {
+    if (isLoggedLoop() && isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + summary, false);
     }
   }
 
   @Override
-  public void failedWorkItem(String error) {
-    if (isNotEmpty(error)) {
+  public void failedWorkItem(@Nonnull String error) {
+    if (isLoggedError() && isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, error, false);
     }
   }
