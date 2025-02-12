@@ -35,11 +35,12 @@ import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -66,14 +67,14 @@ class DuplicateRelationshipSupplierTest extends TestBase {
 
   private static final UID TE_C_UID = UID.generate();
 
-  private static final String KEY_REL_A =
-      "UNIRELTYPE_" + TE_A_UID.getValue() + "_" + TE_B_UID.getValue();
+  private static final RelationshipKey KEY_REL_A =
+      keyOfTEToTERelationship("UNIRELTYPE", TE_A_UID, TE_B_UID);
 
-  private static final String KEY_REL_B =
-      "BIRELTYPE_" + TE_B_UID.getValue() + "_" + TE_C_UID.getValue();
+  private static final RelationshipKey KEY_REL_B =
+      keyOfTEToTERelationship("BIRELTYPE", TE_B_UID, TE_C_UID);
 
-  private static final String KEY_REL_C =
-      "UNIRELTYPE_" + TE_C_UID.getValue() + "_" + TE_A_UID.getValue();
+  private static final RelationshipKey KEY_REL_C =
+      keyOfTEToTERelationship("UNIRELTYPE", TE_C_UID, TE_A_UID);
 
   private static final String UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "UNIRELTYPE";
 
@@ -93,7 +94,7 @@ class DuplicateRelationshipSupplierTest extends TestBase {
 
   private TrackerPreheat preheat;
 
-  @Mock private RelationshipStore relationshipStore;
+  @Mock private RelationshipService relationshipService;
 
   @InjectMocks private DuplicateRelationshipSupplier supplier;
 
@@ -147,7 +148,8 @@ class DuplicateRelationshipSupplierTest extends TestBase {
 
   @Test
   void verifySupplier() {
-    when(relationshipStore.getUidsByRelationshipKeys(List.of(KEY_REL_A, KEY_REL_B, KEY_REL_C)))
+    when(relationshipService.getRelationshipsByRelationshipKeys(
+            List.of(KEY_REL_A, KEY_REL_B, KEY_REL_C)))
         .thenReturn(List.of(relationshipA(), relationshipB()));
 
     TrackerObjects trackerObjects =
@@ -186,5 +188,13 @@ class DuplicateRelationshipSupplierTest extends TestBase {
                 .trackedEntity(relationship.getFrom().getTrackedEntity())
                 .build())
         .build();
+  }
+
+  private static RelationshipKey keyOfTEToTERelationship(
+      String relationshipType, UID from, UID to) {
+    return RelationshipKey.of(
+        relationshipType,
+        RelationshipKey.RelationshipItemKey.builder().trackedEntity(from).build(),
+        RelationshipKey.RelationshipItemKey.builder().trackedEntity(to).build());
   }
 }

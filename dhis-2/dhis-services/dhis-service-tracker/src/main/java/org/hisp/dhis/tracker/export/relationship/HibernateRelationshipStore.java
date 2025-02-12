@@ -54,6 +54,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
@@ -61,11 +62,12 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
-class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
-    implements RelationshipStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
+class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship> {
 
   private static final org.hisp.dhis.tracker.export.Order DEFAULT_ORDER =
       new org.hisp.dhis.tracker.export.Order("id", SortDirection.DESC);
@@ -90,7 +92,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
-  @Override
   public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity) {
     @Language("hql")
     String hql =
@@ -105,7 +106,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return trackedEntities.stream().findFirst();
   }
 
-  @Override
   public Optional<Enrollment> findEnrollment(UID enrollment) {
     @Language("hql")
     String hql =
@@ -120,7 +120,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return enrollments.stream().findFirst();
   }
 
-  @Override
   public Optional<Event> findEvent(UID event) {
     @Language("hql")
     String hql =
@@ -133,25 +132,21 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return events.stream().findFirst();
   }
 
-  @Override
   public List<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
 
     return relationshipsList(trackedEntity, queryParams, null);
   }
 
-  @Override
   public List<Relationship> getByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     return relationshipsList(enrollment, queryParams, null);
   }
 
-  @Override
   public List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams) {
     return relationshipsList(event, queryParams, null);
   }
 
-  @Override
   public Page<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity,
       final RelationshipQueryParams queryParams,
@@ -163,7 +158,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(trackedEntity, queryParams));
   }
 
-  @Override
   public Page<Relationship> getByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
     return getPage(
@@ -172,7 +166,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(enrollment, queryParams));
   }
 
-  @Override
   public Page<Relationship> getByEvent(
       Event event, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
     return getPage(
@@ -181,9 +174,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(event, queryParams));
   }
 
-  @Override
-  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
-    if (CollectionUtils.isEmpty(relationshipKeyList)) {
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    if (CollectionUtils.isEmpty(relationshipKeys)) {
       return Collections.emptyList();
     }
 
@@ -194,10 +187,11 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             where r.deleted = false and (r.key in (:keys)
             or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
             """;
-    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
+    List<String> relationshipKeysAsString =
+        relationshipKeys.stream().map(RelationshipKey::asString).toList();
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
   }
 
-  @Override
   public List<RelationshipItem> getRelationshipItemsByTrackedEntity(UID trackedEntity) {
     @Language("hql")
     String hql =
@@ -210,7 +204,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         .list();
   }
 
-  @Override
   public List<RelationshipItem> getRelationshipItemsByEnrollment(UID enrollment) {
     @Language("hql")
     String hql =
@@ -223,7 +216,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         .list();
   }
 
-  @Override
   public List<RelationshipItem> getRelationshipItemsByEvent(UID event) {
     @Language("hql")
     String hql =
@@ -384,7 +376,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
   }
