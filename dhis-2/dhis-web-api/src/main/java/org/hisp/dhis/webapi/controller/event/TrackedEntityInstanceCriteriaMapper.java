@@ -167,8 +167,8 @@ public class TrackedEntityInstanceCriteriaMapper {
 
     params
         .setQuery(getQueryFilter(criteria.getQuery()))
-        .setProgram(program)
-        .setPrograms(programs)
+        .setEnrolledInTrackerProgram(program)
+        .setAccessibleTrackerPrograms(programs)
         .setProgramStage(validateProgramStage(criteria, program))
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())

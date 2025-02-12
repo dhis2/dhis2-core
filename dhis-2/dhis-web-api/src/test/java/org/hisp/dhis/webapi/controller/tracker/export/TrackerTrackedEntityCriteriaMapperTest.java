@@ -435,7 +435,7 @@ class TrackerTrackedEntityCriteriaMapperTest {
 
     TrackedEntityInstanceQueryParams params = mapper.map(criteria);
 
-    assertEquals(program, params.getProgram());
+    assertEquals(program, params.getEnrolledInTrackerProgram());
   }
 
   @Test

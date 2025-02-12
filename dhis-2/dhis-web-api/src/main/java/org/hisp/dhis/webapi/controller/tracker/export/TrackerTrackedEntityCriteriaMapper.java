@@ -165,7 +165,7 @@ public class TrackerTrackedEntityCriteriaMapper {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params
         .setQuery(queryFilter)
-        .setProgram(program)
+        .setEnrolledInTrackerProgram(program)
         .setProgramStage(programStage)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())

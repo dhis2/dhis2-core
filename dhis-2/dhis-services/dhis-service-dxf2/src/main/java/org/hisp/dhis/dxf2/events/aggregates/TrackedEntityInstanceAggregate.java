@@ -224,7 +224,7 @@ public class TrackedEntityInstanceAggregate extends AbstractAggregate {
 
               Stream<String> teiUidStream = teis.keySet().parallelStream();
 
-              if (user.isPresent() && queryParams.hasProgram()) {
+              if (user.isPresent() && queryParams.hasEnrolledInTrackerProgram()) {
                 teiUidStream = teiUidStream.filter(ownedTeis::containsKey);
               }
 
