@@ -43,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -70,7 +71,7 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
   private Option option;
 
   public ProgramTrackedEntityAttributeOptionDimensionItem(
-      Program program, TrackedEntityAttribute attribute, Option option) {
+      @Nonnull Program program, @Nonnull TrackedEntityAttribute attribute, @Nonnull Option option) {
     this.program = program;
     this.attribute = attribute;
     this.option = option;

@@ -43,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -73,7 +74,7 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   private Option option;
 
   public ProgramDataElementOptionDimensionItem(
-      Program program, DataElement dataElement, Option option) {
+      @Nonnull Program program, @Nonnull DataElement dataElement, @Nonnull Option option) {
     this.program = program;
     this.dataElement = dataElement;
     this.option = option;
