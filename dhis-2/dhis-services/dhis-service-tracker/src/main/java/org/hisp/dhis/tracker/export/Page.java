@@ -50,6 +50,10 @@ public class Page<T> {
   private final Integer prevPage;
   private final Integer nextPage;
 
+  public static <T> Page<T> empty() {
+    return new Page<>(List.of(), 0, 0, 0L, null, null);
+  }
+
   /**
    * Create a new page based on an existing one but with given {@code items}. Page related counts
    * will not be changed so make sure the given {@code items} match the previous page size.

@@ -368,7 +368,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertEquals(program, params.getProgram());
+    assertEquals(program, params.getEnrolledInTrackerProgram());
   }
 
   @Test
