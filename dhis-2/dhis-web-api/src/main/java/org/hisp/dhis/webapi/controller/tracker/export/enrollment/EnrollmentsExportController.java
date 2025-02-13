@@ -145,7 +145,7 @@ class EnrollmentsExportController {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
 
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams, false));
+        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams));
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

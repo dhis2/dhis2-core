@@ -279,7 +279,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.updateNoAcl(programA);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE, false);
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE);
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
@@ -291,8 +291,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA));
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
@@ -304,7 +303,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withEnrollmentEventsParams(EnrollmentEventsParams.TRUE);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(
@@ -321,7 +320,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeEvents(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getEvents());
@@ -333,7 +332,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(Set.of(relationshipA.getUid()), relationshipUids(enrollment));
@@ -348,7 +347,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getRelationshipItems());
@@ -360,7 +359,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeAttributes(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(List.of(trackedEntityAttributeA.getUid()), attributeUids(enrollment));
@@ -374,10 +373,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     NotFoundException exception =
         assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
     assertContains("could not be found", exception.getMessage());
   }
 
@@ -391,10 +387,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     NotFoundException exception =
         assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(nonExistentUid), EnrollmentParams.FALSE, false));
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(nonExistentUid)));
     assertContains(
         "Enrollment with id " + nonExistentUid + " could not be found.", exception.getMessage());
   }
@@ -408,10 +401,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     NotFoundException exception =
         assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
     assertContains("could not be found", exception.getMessage());
   }
 
@@ -424,10 +414,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     NotFoundException exception =
         assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
     assertContains("could not be found", exception.getMessage());
   }
 
@@ -438,10 +425,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     NotFoundException exception =
         assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
     assertContains("could not be found", exception.getMessage());
   }
 
