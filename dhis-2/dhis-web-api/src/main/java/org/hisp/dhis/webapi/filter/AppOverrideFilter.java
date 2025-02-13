@@ -42,6 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.resource.ResourceFound;
+import org.hisp.dhis.appmanager.resource.ResourceNotFound;
+import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
@@ -108,27 +111,21 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
     // Handling of 'manifest.webapp'
     if ("manifest.webapp".equals(resourcePath)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if (app.getActivities() != null
-          && app.getActivities().getDhis() != null
-          && "*".equals(app.getActivities().getDhis().getHref())) {
-        String contextPath = HttpServletRequestPaths.getContextPath(request);
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
-        app.getActivities().getDhis().setHref(contextPath);
-      }
-
-      jsonMapper.writeValue(response.getOutputStream(), app);
+      handleManifestWebApp(request, response, app);
     } else if ("index.action".equals(resourcePath)) {
       response.sendRedirect(app.getLaunchUrl());
     }
     // Any other resource
     else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(app, resourcePath);
-      if (resource == null) {
+      ResourceResult resourceResult = appManager.getAppResource(app, resourcePath);
+      if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
+      }
+
+      Resource resource = null;
+      if (resourceResult instanceof ResourceFound found) {
+        resource = found.resource();
       }
 
       String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
@@ -145,17 +142,22 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         response.setContentType(mimeType);
       }
 
-      // we need to handle scenarios when the Resource is a File (knowing the content length)
-      // or when it's URL (not knowing the content length and having to make a call, e.g. remote web
-      // link in AWS S3/MinIO) - otherwise content length can be set to 0 which causes issues at
-      // the front-end, returning an empty body.
-      if (resource.isFile()) {
-        response.setContentLength((int) resource.contentLength());
-      } else {
-        response.setContentLength(appManager.getUriContentLength(resource));
-      }
+      response.setContentLength(appManager.getUriContentLength(resource));
       response.setHeader("ETag", etag);
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
+  }
+
+  private void handleManifestWebApp(
+      HttpServletRequest request, HttpServletResponse response, App app) throws IOException {
+    // If request was for manifest.webapp, check for * and replace with host
+    if (app.getActivities() != null
+        && app.getActivities().getDhis() != null
+        && "*".equals(app.getActivities().getDhis().getHref())) {
+      String contextPath = HttpServletRequestPaths.getContextPath(request);
+      log.debug(String.format("Manifest context path: '%s'", contextPath));
+      app.getActivities().getDhis().setHref(contextPath);
+    }
+    jsonMapper.writeValue(response.getOutputStream(), app);
   }
 }

@@ -30,8 +30,8 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.hisp.dhis.cache.Cache;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 
 /**
@@ -78,5 +78,5 @@ public interface AppStorageService {
    * @param pageName the name of the page to look up
    * @return The resource representing the page, or null if not found
    */
-  Resource getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String pageName) throws IOException;
 }

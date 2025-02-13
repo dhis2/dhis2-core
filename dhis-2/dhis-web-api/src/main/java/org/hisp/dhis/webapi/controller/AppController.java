@@ -54,6 +54,10 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppMenuManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppType;
+import org.hisp.dhis.appmanager.resource.Redirect;
+import org.hisp.dhis.appmanager.resource.ResourceFound;
+import org.hisp.dhis.appmanager.resource.ResourceNotFound;
+import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -63,6 +67,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -228,51 +233,66 @@ public class AppController {
 
       jsonMapper.writeValue(response.getOutputStream(), application);
     }
-    // Any other page
+    // Any other resource
     else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(application, pageName);
-
-      if (resource == null) {
+      ResourceResult resourceResult = appManager.getAppResource(application, pageName);
+      if (resourceResult instanceof ResourceFound found) {
+        serveResource(request, response, found.resource(), contextPath, application.getBaseUrl());
+        return;
+      }
+      if (resourceResult instanceof Redirect redirect) {
+        response.sendRedirect(
+            StringUtils.replaceAllRecursively(
+                application.getBaseUrl() + "/" + redirect.path(), "//", "/"));
+        return;
+      }
+      if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        return;
       }
+    }
+  }
 
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
+  private void serveResource(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      Resource resource,
+      String contextPath,
+      String appBaseUrl)
+      throws IOException {
+    String filename = resource.getFilename();
+    log.debug(String.format("App filename: '%s'", filename));
 
-      if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
-        return;
-      }
+    if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
+      return;
+    }
 
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
+    String mimeType = request.getSession().getServletContext().getMimeType(filename);
 
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
+    if (mimeType != null) {
+      response.setContentType(mimeType);
+    }
 
-      if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
-        LineIterator iterator =
-            IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
-        try {
-          while (iterator.hasNext()) {
-            String line = iterator.nextLine();
-            output.println(
-                line.replace("__DHIS2_BASE_URL__", contextPath)
-                    .replace("__DHIS2_APP_ROOT_URL__", application.getBaseUrl()));
-          }
-        } finally {
-          iterator.close();
-          response.setContentLength(bout.size());
-          response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
-          bout.writeTo(response.getOutputStream());
+    if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
+      LineIterator iterator =
+          IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
+      try {
+        while (iterator.hasNext()) {
+          String line = iterator.nextLine();
+          output.println(
+              line.replace("__DHIS2_BASE_URL__", contextPath)
+                  .replace("__DHIS2_APP_ROOT_URL__", appBaseUrl));
         }
-      } else {
-        response.setContentLengthLong(resource.contentLength());
-        StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+      } finally {
+        iterator.close();
+        response.setContentLength(bout.size());
+        response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
+        bout.writeTo(response.getOutputStream());
       }
+    } else {
+      response.setContentLengthLong(appManager.getUriContentLength(resource));
+      StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
   }
 

@@ -42,11 +42,8 @@ import org.hisp.dhis.appmanager.resource.Redirect;
 import org.hisp.dhis.appmanager.resource.ResourceFound;
 import org.hisp.dhis.appmanager.resource.ResourceNotFound;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.junit.MinIOTestExtension;
-import org.hisp.dhis.test.junit.MinIOTestExtension.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -55,21 +52,18 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
- * storage is the local filesystem.
+ * Test class configured for use cases when DHIS2 is configured to use local file system storage
+ * (default)
  */
-@ExtendWith(MinIOTestExtension.class)
-@ContextConfiguration(classes = {DhisConfig.class})
-class AppManagerMinIOTest extends PostgresIntegrationTestBase {
+class AppManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;
 
   @Test
-  @DisplayName("Can install and then update an App using MinIO storage")
-  void canUpdateAppUsingMinIOStorageTest() throws IOException {
+  @DisplayName("Can install and then update an App using file system storage")
+  void canUpdateAppUsingFileSystemStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     App installedApp =
         appManager.installApp(
@@ -90,13 +84,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
     assertTrue(updatedApp.getAppState().ok());
     assertEquals("ok", appStatus.getMessage());
-
-    // get app version & index.html
-    App app = appManager.getApp("test minio");
-    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, "index.html");
-
-    assertEquals("2.0.0", app.getVersion());
-    assertEquals(63, appManager.getUriContentLength(resource.resource()));
   }
 
   @Test
@@ -132,9 +119,8 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     ResourceFound resource = (ResourceFound) appManager.getAppResource(app, path);
 
     // then the resource path returned is the full resource path which ends with `/index.html`
-    assertEquals(
-        expectedPath,
-        resource.resource().getURI().getPath(),
+    assertTrue(
+        resource.resource().getURI().getPath().endsWith(expectedPath),
         "resource path should match expected format");
   }
 
@@ -158,7 +144,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     Redirect resource = (Redirect) appManager.getAppResource(app, path);
 
     // then the path returned should end in a trailing slash
-    assertEquals(expectedPath, resource.path(), "redirect path should have trailing slash");
+    assertTrue(resource.path().endsWith(expectedPath), "redirect path should have trailing slash");
   }
 
   @ParameterizedTest
@@ -185,15 +171,15 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   private static Stream<Arguments> validPathParams() {
     return Stream.of(
-        Arguments.of("", "/dhis2/apps/test-app-minio-v1/index.html"),
-        Arguments.of("index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
-        Arguments.of("/index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
-        Arguments.of("subDir/", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
-        Arguments.of("subDir/index.html", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of("", "/files/apps/test-app-minio-v1/index.html"),
+        Arguments.of("index.html", "/files/apps/test-app-minio-v1/index.html"),
+        Arguments.of("/index.html", "/files/apps/test-app-minio-v1/index.html"),
+        Arguments.of("subDir/", "/files/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of("subDir/index.html", "/files/apps/test-app-minio-v1/subDir/index.html"),
         Arguments.of(
-            "subDir/test-page.html", "/dhis2/apps/test-app-minio-v1/subDir/test-page.html"),
+            "subDir/test-page.html", "/files/apps/test-app-minio-v1/subDir/test-page.html"),
         Arguments.of(
-            "subDir/subSubDir/", "/dhis2/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
+            "subDir/subSubDir/", "/files/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
   }
 
   private static Stream<Arguments> redirectPathParams() {

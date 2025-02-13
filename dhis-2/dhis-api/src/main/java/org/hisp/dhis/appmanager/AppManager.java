@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.springframework.core.io.Resource;
 
 /**
@@ -198,9 +199,9 @@ public interface AppManager {
    *
    * @param app the app to look up files for
    * @param pageName the page requested
-   * @return the Resource representing the file, or null if no file was found
+   * @return the {@link ResourceResult}
    */
-  Resource getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String pageName) throws IOException;
 
   /**
    * Sets the app status to DELETION_IN_PROGRESS.
