@@ -328,15 +328,6 @@ public class JCloudsAppStorageService implements AppStorageService {
     log.info("Deleted app {}", app.getName());
   }
 
-  /**
-   * Returns a {@link ResourceResult}
-   *
-   * @param app the app to serve
-   * @param resource the name of the app resource to serve. This can be a directory, sub-directory
-   *     or a page name
-   * @return app resource
-   * @throws IOException ex if any IO issues
-   */
   @Override
   public ResourceResult getAppResource(App app, @Nonnull String resource) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
@@ -351,17 +342,14 @@ public class JCloudsAppStorageService implements AppStorageService {
     String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
     URI uri = fileResourceContentStore.getSignedGetContentUri(cleanedKey);
 
-    log.info("Checking if blob exists {}", cleanedKey);
+    log.debug("Checking if blob exists {}", cleanedKey);
     if (jCloudsStore.blobExists(cleanedKey)) {
-      log.info("Blob found {}", cleanedKey);
       return new ResourceFound(getResourceType(uri, cleanedKey));
     }
-    log.info("Checking if blob exists with extra '/' {}", cleanedKey + "/");
     if (jCloudsStore.blobExists(cleanedKey + "/")) {
-      log.info("Blob exists with extra '/' {}", cleanedKey + "/");
       return new Redirect(resolvedFileResource + "/");
     }
-    log.info("No resource found for {}", cleanedKey);
+    log.debug("No resource found for {}", cleanedKey);
     return new ResourceNotFound(resource);
   }
 

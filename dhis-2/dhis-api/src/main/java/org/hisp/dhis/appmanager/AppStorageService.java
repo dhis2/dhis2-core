@@ -30,6 +30,9 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import org.hisp.dhis.appmanager.resource.Redirect;
+import org.hisp.dhis.appmanager.resource.ResourceFound;
+import org.hisp.dhis.appmanager.resource.ResourceNotFound;
 import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.hisp.dhis.cache.Cache;
 import org.springframework.scheduling.annotation.Async;
@@ -71,12 +74,18 @@ public interface AppStorageService {
   void deleteApp(App app);
 
   /**
-   * Looks up and returns a resource representing the page for the app requested. If the resource is
-   * not found, return null.
+   * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will one
+   * of :
+   *
+   * <ul>
+   *   <li>{@link ResourceFound} - when the resource exists
+   *   <li>{@link ResourceNotFound} - when no resource found
+   *   <li>{@link Redirect} - when a directory is found without a trailing '/'
+   * </ul>
    *
    * @param app the app to look up
-   * @param pageName the name of the page to look up
-   * @return The resource representing the page, or null if not found
+   * @param resource the name of the resource to look up (can be directory or file)
+   * @return {@link ResourceResult}
    */
-  ResourceResult getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String resource) throws IOException;
 }
