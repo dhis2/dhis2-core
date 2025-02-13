@@ -1321,7 +1321,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         eventDataValuesWhereSql.append(hlp.whereAnd());
 
         if (filter.getOperator().isUnary()) {
-          eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), hlp, deUid));
+          eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), deUid));
         } else if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
           mapSqlParameterSource.addValue(
               bindParameter,
@@ -1349,7 +1349,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return eventDataValuesWhereSql.append(" ");
   }
 
-  private String unaryOperatorCondition(QueryOperator queryOperator, SqlHelper hlp, String deUid) {
+  private String unaryOperatorCondition(QueryOperator queryOperator, String deUid) {
     return new StringBuilder()
         .append(" ev.eventdatavalues->")
         .append("'")
