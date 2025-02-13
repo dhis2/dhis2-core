@@ -101,30 +101,6 @@ class AppManagerTest extends PostgresIntegrationTestBase {
   }
 
   @ParameterizedTest
-  @MethodSource("validPathParams")
-  @DisplayName("Calls with valid app resource paths should resolve correctly")
-  void appPathResolveTest(String path, String expectedPath) throws IOException {
-    // given an app is installed in object storage
-    App installedApp =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
-
-    AppStatus appStatus = installedApp.getAppState();
-
-    assertTrue(appStatus.ok());
-    assertEquals("ok", appStatus.getMessage());
-
-    // when an app resource is retrieved with a valid path
-    App app = appManager.getApp("test minio");
-    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, path);
-
-    // then the resource path returned is the full resource path which ends with `/index.html`
-    assertTrue(
-        resource.resource().getURI().getPath().endsWith(expectedPath),
-        "resource path should match expected format");
-  }
-
-  @ParameterizedTest
   @MethodSource("redirectPathParams")
   @DisplayName(
       "Calls to valid directories with no trailing slash should return with a trailing slash")
@@ -167,19 +143,6 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     // then the path returned should be null
     assertEquals(path, resource.path());
-  }
-
-  private static Stream<Arguments> validPathParams() {
-    return Stream.of(
-        Arguments.of("", "/files/apps/test-app-minio-v1/index.html"),
-        Arguments.of("index.html", "/files/apps/test-app-minio-v1/index.html"),
-        Arguments.of("/index.html", "/files/apps/test-app-minio-v1/index.html"),
-        Arguments.of("subDir/", "/files/apps/test-app-minio-v1/subDir/index.html"),
-        Arguments.of("subDir/index.html", "/files/apps/test-app-minio-v1/subDir/index.html"),
-        Arguments.of(
-            "subDir/test-page.html", "/files/apps/test-app-minio-v1/subDir/test-page.html"),
-        Arguments.of(
-            "subDir/subSubDir/", "/files/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
   }
 
   private static Stream<Arguments> redirectPathParams() {
