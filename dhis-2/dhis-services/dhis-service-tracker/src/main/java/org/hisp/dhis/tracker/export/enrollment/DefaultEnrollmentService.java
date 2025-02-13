@@ -224,7 +224,8 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
     if (params.isIncludeRelationships()) {
       result.setRelationshipItems(
-          relationshipService.getRelationshipItems(TrackerType.ENROLLMENT, UID.of(result)));
+          relationshipService.getRelationshipItems(
+              TrackerType.ENROLLMENT, UID.of(result), includeDeleted));
     }
     if (params.isIncludeAttributes()) {
       result

@@ -230,7 +230,8 @@ class DefaultEventService implements EventService {
     if (operationParams.getEventParams().isIncludeRelationships()) {
       for (Event event : events) {
         event.setRelationshipItems(
-            relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
+            relationshipService.getRelationshipItems(
+                TrackerType.EVENT, UID.of(event), queryParams.isIncludeDeleted()));
       }
     }
     return events;
@@ -246,7 +247,8 @@ class DefaultEventService implements EventService {
     if (operationParams.getEventParams().isIncludeRelationships()) {
       for (Event event : events.getItems()) {
         event.setRelationshipItems(
-            relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
+            relationshipService.getRelationshipItems(
+                TrackerType.EVENT, UID.of(event), queryParams.isIncludeDeleted()));
       }
     }
     return events;

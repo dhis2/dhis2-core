@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -278,6 +279,58 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
     assertHasMember(dataValue, "storedBy");
+  }
+
+  @Test
+  void shouldGetEventWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity to = trackedEntity();
+    Event from = event(enrollment(to));
+    Relationship relationship = relationship(from, to);
+    manager.delete(relationship);
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=false", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(relationships.stream().toList());
+  }
+
+  @Test
+  void shouldGetEventWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity to = trackedEntity();
+    Event from = event(enrollment(to));
+    Relationship relationship = relationship(from, to);
+    manager.delete(relationship);
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=true", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship = relationships.get(0);
+    assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
+
+    JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
+    assertEquals(relationship.getFrom().getEvent().getUid(), event.getEvent());
+    assertEquals(relationship.getFrom().getEvent().getEnrollment().getUid(), event.getEnrollment());
+
+    JsonRelationshipItem.JsonTrackedEntity trackedEntity =
+        jsonRelationship.getTo().getTrackedEntity();
+    assertEquals(
+        relationship.getTo().getTrackedEntity().getUid(), trackedEntity.getTrackedEntity());
+
+    assertHasMember(jsonRelationship, "relationshipName");
+    assertHasMember(jsonRelationship, "relationshipType");
+    assertHasMember(jsonRelationship, "createdAt");
+    assertHasMember(jsonRelationship, "updatedAt");
+    assertHasMember(jsonRelationship, "bidirectional");
   }
 
   @Test
