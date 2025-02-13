@@ -32,6 +32,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 
 /**
@@ -65,7 +66,7 @@ public class Legend {
   public void draw(Graphics2D g, I18nFormat format) {
     g.setColor(Color.BLACK);
     g.setFont(PLAIN_FONT);
-    g.drawString(mapLayer.getName(), 0, 15);
+    g.drawString(ObjectUtils.firstNonNull(mapLayer.getName(), mapLayer.getLayer(), ""), 0, 15);
     g.drawString(format.formatPeriod(mapLayer.getPeriod()) + "", 0, 35);
 
     g.translate(0, HEADER_HEIGHT);
