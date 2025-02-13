@@ -1287,10 +1287,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       StringBuilder selectBuilder) {
     int filterCount = 0;
 
-    StringBuilder optionValueJoinBuilder = new StringBuilder();
-    StringBuilder optionValueConditionBuilder = new StringBuilder();
     StringBuilder eventDataValuesWhereSql = new StringBuilder();
-    Set<String> joinedColumns = new HashSet<>();
 
     for (Entry<DataElement, List<QueryFilter>> item : params.getDataElements().entrySet()) {
       ++filterCount;
@@ -1310,115 +1307,50 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" as ")
           .append(deUid);
 
-      if (filterContainsOnlyUnaryOperator(filters)) {
-        for (QueryFilter filter : filters) {
+      for (QueryFilter filter : filters) {
+        ++filterCount;
+
+        final String queryCol =
+            de.getValueType().isNumeric()
+                ? castToNumber(dataValueValueSql)
+                : lower(dataValueValueSql);
+
+        String bindParameter = "parameter_" + filterCount;
+        int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
+
+        eventDataValuesWhereSql.append(hlp.whereAnd());
+
+        if (filter.getOperator().isUnary()) {
           eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), hlp, deUid));
-        }
-        break;
-      }
+        } else if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
+          mapSqlParameterSource.addValue(
+              bindParameter,
+              QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
+              itemType);
 
-      String optValueTableAs = "opt_" + filterCount;
+          eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
+        } else {
+          mapSqlParameterSource.addValue(
+              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
 
-      if (!joinedColumns.contains(deUid) && de.hasOptionSet() && !filters.isEmpty()) {
-        String optSetBind = "optset_" + filterCount;
-
-        mapSqlParameterSource.addValue(optSetBind, de.getOptionSet().getId());
-
-        optionValueJoinBuilder
-            .append("inner join optionvalue as ")
-            .append(optValueTableAs)
-            .append(" on lower(")
-            .append(optValueTableAs)
-            .append(".code) = ")
-            .append("lower(")
-            .append(dataValueValueSql)
-            .append(") and ")
-            .append(optValueTableAs)
-            .append(".optionsetid = ")
-            .append(":")
-            .append(optSetBind)
-            .append(" ");
-
-        joinedColumns.add(deUid);
-      }
-
-      if (!filters.isEmpty()) {
-        for (QueryFilter filter : filters) {
-          ++filterCount;
-
-          final String queryCol =
-              de.getValueType().isNumeric()
-                  ? castToNumber(dataValueValueSql)
-                  : lower(dataValueValueSql);
-
-          String bindParameter = "parameter_" + filterCount;
-          int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
-
-          if (filter.getOperator().isUnary()) {
-            eventDataValuesWhereSql.append(
-                unaryOperatorCondition(filter.getOperator(), hlp, deUid));
-          } else if (!de.hasOptionSet()) {
-            eventDataValuesWhereSql.append(hlp.whereAnd());
-
-            if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
-              mapSqlParameterSource.addValue(
-                  bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-                  itemType);
-
-              eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
-            } else {
-              mapSqlParameterSource.addValue(
-                  bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
-
-              eventDataValuesWhereSql
-                  .append(" ")
-                  .append(queryCol)
-                  .append(" ")
-                  .append(filter.getSqlOperator())
-                  .append(" ")
-                  .append(":")
-                  .append(bindParameter)
-                  .append(" ");
-            }
-          } else {
-            if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
-              mapSqlParameterSource.addValue(
-                  bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-                  itemType);
-
-              optionValueConditionBuilder.append(" and ");
-              optionValueConditionBuilder.append(inCondition(filter, bindParameter, queryCol));
-            } else {
-              mapSqlParameterSource.addValue(
-                  bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
-
-              optionValueConditionBuilder
-                  .append("and lower(")
-                  .append(optValueTableAs)
-                  .append(DOT_NAME)
-                  .append(" ")
-                  .append(filter.getSqlOperator())
-                  .append(" ")
-                  .append(":")
-                  .append(bindParameter)
-                  .append(" ");
-            }
-          }
+          eventDataValuesWhereSql
+              .append(" ")
+              .append(queryCol)
+              .append(" ")
+              .append(filter.getSqlOperator())
+              .append(" ")
+              .append(":")
+              .append(bindParameter)
+              .append(" ");
         }
       }
     }
 
-    return optionValueJoinBuilder
-        .append(optionValueConditionBuilder)
-        .append(eventDataValuesWhereSql)
-        .append(" ");
+    return eventDataValuesWhereSql.append(" ");
   }
 
   private String unaryOperatorCondition(QueryOperator queryOperator, SqlHelper hlp, String deUid) {
     return new StringBuilder()
-        .append(hlp.whereAnd())
         .append(" ev.eventdatavalues->")
         .append("'")
         .append(deUid)
@@ -1440,10 +1372,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append(boundParameter)
         .append(") ")
         .toString();
-  }
-
-  private boolean filterContainsOnlyUnaryOperator(List<QueryFilter> filters) {
-    return filters.stream().allMatch(qf -> qf.getOperator().isUnary());
   }
 
   private String eventStatusSql(
