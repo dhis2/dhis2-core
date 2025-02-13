@@ -39,7 +39,6 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.resource.Redirect;
-import org.hisp.dhis.appmanager.resource.ResourceFound;
 import org.hisp.dhis.appmanager.resource.ResourceNotFound;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
