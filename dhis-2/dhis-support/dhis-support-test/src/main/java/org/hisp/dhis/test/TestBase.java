@@ -2015,7 +2015,9 @@ public abstract class TestBase {
     RelationshipItem riTo = new RelationshipItem();
 
     riFrom.setTrackedEntity(from);
+    riFrom.setRelationship(relationship);
     riTo.setTrackedEntity(to);
+    riTo.setRelationship(relationship);
 
     relationship.setRelationshipType(relationshipType);
     relationship.setFrom(riFrom);
