@@ -64,4 +64,9 @@ public class PostgreSqlAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
         group by l2.uid)::jsonb
         """;
   }
+
+  @Override
+  public String renderTimestamp(String timestampAsString) {
+    return timestampAsString;
+  }
 }

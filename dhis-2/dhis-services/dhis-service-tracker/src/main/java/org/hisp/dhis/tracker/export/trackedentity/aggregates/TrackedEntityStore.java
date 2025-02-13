@@ -67,8 +67,6 @@ class TrackedEntityStore extends AbstractStore {
           + "join trackedentity te on teop.trackedentityid = te.trackedentityid "
           + "where teop.trackedentityid in (:ids)";
 
-  private static final String FILTER_OUT_DELETED_TE = "te.deleted=false";
-
   private String getTrackedEntitiesOwnershipSqlForAllPrograms(boolean skipUserScopeValidation) {
     String sql =
         "SELECT te.uid as te_uid,tpo.trackedentityid, tpo.programid, tpo.organisationunitid, p.accesslevel,p.uid as pgm_uid "
@@ -136,8 +134,13 @@ class TrackedEntityStore extends AbstractStore {
       return new HashMap<>();
     }
 
-    String sql =
-        getQuery(GET_TE_SQL, ctx, "te.trackedentitytypeid in (:teTypeIds)", FILTER_OUT_DELETED_TE);
+    String sql = GET_TE_SQL;
+    if (!ctx.isSuperUser()) {
+      sql = sql + " AND te.trackedentitytypeid in (:teTypeIds)";
+    }
+    if (!ctx.getQueryParams().isIncludeDeleted()) {
+      sql = sql + " AND te.deleted=false";
+    }
     jdbcTemplate.query(
         applySortOrder(sql, StringUtils.join(ids, ",")),
         createIdsParam(ids).addValue("teTypeIds", ctx.getTrackedEntityTypes()),

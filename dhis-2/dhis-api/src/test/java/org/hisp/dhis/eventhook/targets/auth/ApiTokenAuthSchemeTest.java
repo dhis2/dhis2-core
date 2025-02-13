@@ -25,68 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Morten Olav Hansen
  */
-@ExtendWith(MockitoExtension.class)
-class NotificationLoggerUtilTest {
-
-  @Mock Logger logger;
-
-  private static String logMessage = "logMessage";
+class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
 
   @Test
-  void shouldLogDebugLevel() {
+  void testAuthorizationHeaderSet() {
+    ApiTokenAuthScheme auth =
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
 
-    NotificationLoggerUtil.log(logger, NotificationLevel.DEBUG, logMessage);
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
 
-    verify(logger).debug(logMessage);
-    verify(logger, times(0)).info(logMessage);
-    verify(logger, times(0)).warn(logMessage);
-    verify(logger, times(0)).error(logMessage);
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals(
+        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
   }
 
   @Test
-  void shouldLogInfoLevel() {
-
-    NotificationLoggerUtil.log(logger, NotificationLevel.INFO, logMessage);
-
-    verify(logger, times(0)).debug(logMessage);
-    verify(logger).info(logMessage);
-    verify(logger, times(0)).warn(logMessage);
-    verify(logger, times(0)).error(logMessage);
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F"),
+        ApiTokenAuthScheme::getToken);
   }
 
   @Test
-  void shouldLogWarnLevel() {
-
-    NotificationLoggerUtil.log(logger, NotificationLevel.WARN, logMessage);
-
-    verify(logger, times(0)).debug(logMessage);
-    verify(logger, times(0)).info(logMessage);
-    verify(logger).warn(logMessage);
-    verify(logger, times(0)).error(logMessage);
-  }
-
-  @Test
-  void shouldLogErrorLevel() {
-
-    NotificationLoggerUtil.log(logger, NotificationLevel.ERROR, logMessage);
-
-    verify(logger, times(0)).debug(logMessage);
-    verify(logger, times(0)).info(logMessage);
-    verify(logger, times(0)).warn(logMessage);
-    verify(logger).error(logMessage);
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiTokenAuthScheme()
+            .setToken("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        ApiTokenAuthScheme::getToken);
   }
 }

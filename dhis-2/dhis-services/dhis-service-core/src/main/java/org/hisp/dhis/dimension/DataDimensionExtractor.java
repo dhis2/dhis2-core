@@ -29,8 +29,6 @@ package org.hisp.dhis.dimension;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.Aggregation.AGGREGATED;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +37,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -56,6 +53,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -237,6 +235,26 @@ public class DataDimensionExtractor {
   }
 
   /**
+   * Returns a {@link DataElement}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param dataElementId the data element identifier.
+   * @param optionSetId the option set identifier.
+   */
+  @Transactional(readOnly = true)
+  public DataElement getOptionSetDataElementDimensionItem(
+      IdScheme idScheme, String dataElementId, String optionSetId) {
+    DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
+    OptionSet optionSet = idObjectManager.getObject(OptionSet.class, idScheme, optionSetId);
+
+    if (dataElement == null || optionSet == null) {
+      return null;
+    }
+
+    return dataElement;
+  }
+
+  /**
    * Returns a {@link ProgramTrackedEntityAttributeDimensionItem}.
    *
    * @param idScheme the identifier scheme.
@@ -266,24 +284,17 @@ public class DataDimensionExtractor {
    */
   @Transactional(readOnly = true)
   public ProgramTrackedEntityAttributeOptionDimensionItem getProgramAttributeOptionDimensionItem(
-      IdScheme idScheme,
-      String programId,
-      String attributeId,
-      String optionId,
-      String aggregationId) {
+      IdScheme idScheme, String programId, String attributeId, String optionId) {
     Program program = idObjectManager.getObject(Program.class, idScheme, programId);
     TrackedEntityAttribute attribute =
         idObjectManager.getObject(TrackedEntityAttribute.class, idScheme, attributeId);
     Option option = idObjectManager.getObject(Option.class, idScheme, optionId);
-    Aggregation aggregation =
-        isNotBlank(aggregationId) ? Aggregation.valueOf(aggregationId) : AGGREGATED;
 
     if (program == null || attribute == null || option == null) {
       return null;
     }
 
-    return new ProgramTrackedEntityAttributeOptionDimensionItem(
-        program, attribute, option, aggregation);
+    return new ProgramTrackedEntityAttributeOptionDimensionItem(program, attribute, option);
   }
 
   /**
@@ -316,22 +327,16 @@ public class DataDimensionExtractor {
    */
   @Transactional(readOnly = true)
   public ProgramDataElementOptionDimensionItem getProgramDataElementOptionDimensionItem(
-      IdScheme idScheme,
-      String programId,
-      String dataElementId,
-      String optionId,
-      String aggregationId) {
+      IdScheme idScheme, String programId, String dataElementId, String optionId) {
     Program program = idObjectManager.getObject(Program.class, idScheme, programId);
     DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
     Option option = idObjectManager.getObject(Option.class, idScheme, optionId);
-    Aggregation aggregation =
-        isNotBlank(aggregationId) ? Aggregation.valueOf(aggregationId) : AGGREGATED;
 
     if (program == null || dataElement == null || option == null) {
       return null;
     }
 
-    return new ProgramDataElementOptionDimensionItem(program, dataElement, option, aggregation);
+    return new ProgramDataElementOptionDimensionItem(program, dataElement, option);
   }
 
   private DimensionalItemObject getDimensionalItemObject(

@@ -135,13 +135,6 @@ public enum ConfigurationKey {
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
 
-  /**
-   * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden by the same property
-   * loaded by any class implementing {@link DhisConfigurationProvider} like {@link
-   * DefaultDhisConfigurationProvider} from dhis.conf at runtime
-   */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
-
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
 
@@ -694,7 +687,15 @@ public enum ConfigurationKey {
    * The maximum number of possible category combination. This is computed by multiplying the number
    * of options in each category in a category combo with each other.
    */
-  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false);
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false),
+
+  /** Enable email-based 2FA authentication. (default: false) */
+  EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
+
+  /** Enable TOTP-based 2FA authentication. (default: true) */
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
 

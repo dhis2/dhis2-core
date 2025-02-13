@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -40,13 +41,16 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,10 +58,32 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultRelationshipService implements RelationshipService {
-
+  private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
+      Mappers.getMapper(RelationshipItemMapper.class);
   private final TrackerAccessManager trackerAccessManager;
-  private final RelationshipStore relationshipStore;
+  private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
+
+  // TODO(DHIS2-18883) Pass fields params as a parameter
+  @Override
+  public Set<RelationshipItem> getRelationshipItems(TrackerType trackerType, UID uid) {
+    List<RelationshipItem> relationshipItems =
+        switch (trackerType) {
+          case TRACKED_ENTITY -> relationshipStore.getRelationshipItemsByTrackedEntity(uid);
+          case ENROLLMENT -> relationshipStore.getRelationshipItemsByEnrollment(uid);
+          case EVENT -> relationshipStore.getRelationshipItemsByEvent(uid);
+          case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
+        };
+    return relationshipItems.stream()
+        .filter(ri -> !ri.getRelationship().isDeleted())
+        .filter(
+            ri ->
+                trackerAccessManager
+                    .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
+                    .isEmpty())
+        .map(RELATIONSHIP_ITEM_MAPPER::map)
+        .collect(Collectors.toSet());
+  }
 
   @Override
   public List<Relationship> getRelationships(@Nonnull RelationshipOperationParams params)
@@ -102,6 +128,12 @@ public class DefaultRelationshipService implements RelationshipService {
       relationships.add(getRelationship(uid));
     }
     return relationships;
+  }
+
+  @Override
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    return relationshipStore.getRelationshipsByRelationshipKeys(relationshipKeys);
   }
 
   private List<Relationship> getRelationshipsByTrackedEntity(

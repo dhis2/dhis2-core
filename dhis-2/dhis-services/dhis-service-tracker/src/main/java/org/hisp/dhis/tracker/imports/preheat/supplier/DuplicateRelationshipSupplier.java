@@ -31,8 +31,9 @@ import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
-  @Nonnull private final RelationshipStore relationshipStore;
+  @Nonnull private final RelationshipService relationshipService;
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
@@ -59,7 +60,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
   private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys(
       List<Relationship> relationships, TrackerPreheat preheat) {
     List<RelationshipType> relationshipTypes = preheat.getAll(RelationshipType.class);
-    List<String> keys =
+    List<RelationshipKey> keys =
         relationships.stream()
             .filter(
                 rel ->
@@ -68,11 +69,10 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
             .map(
                 rel ->
                     RelationshipKeySupport.getRelationshipKey(
-                            rel, getRelationshipType(rel, relationshipTypes))
-                        .asString())
+                        rel, getRelationshipType(rel, relationshipTypes)))
             .toList();
 
-    return relationshipStore.getUidsByRelationshipKeys(keys);
+    return relationshipService.getRelationshipsByRelationshipKeys(keys);
   }
 
   private RelationshipType getRelationshipType(

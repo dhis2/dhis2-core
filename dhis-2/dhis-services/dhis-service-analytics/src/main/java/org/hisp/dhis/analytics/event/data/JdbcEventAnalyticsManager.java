@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -82,8 +84,10 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -121,6 +125,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
       SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
@@ -130,7 +135,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        analyticsSqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -564,6 +570,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
+    sql += getOptionFilter(params, hlp);
+
     // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
@@ -671,6 +679,32 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     return sql;
+  }
+
+  /**
+   * Adds a filtering condition into the "where" statement if an {@Option} is defined.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param sqlHelper the {@link SqlHelper}.
+   * @return the SQL condition for the {@link Option}, if any.
+   */
+  private String getOptionFilter(EventQueryParams params, SqlHelper sqlHelper) {
+    if (params.hasOption() && params.hasValue()) {
+      DimensionalItemObject dimensionalItemObject = params.getValue();
+      Option option = params.getOption();
+
+      return new StringBuilder()
+          .append(SPACE)
+          .append(sqlHelper.whereAnd())
+          .append(SPACE)
+          .append(quote(dimensionalItemObject.getUid()))
+          .append(" in ('")
+          .append(option.getCode())
+          .append("') ")
+          .toString();
+    }
+
+    return EMPTY;
   }
 
   /** Generates a sub query which provides a filter by organisation descendant level. */

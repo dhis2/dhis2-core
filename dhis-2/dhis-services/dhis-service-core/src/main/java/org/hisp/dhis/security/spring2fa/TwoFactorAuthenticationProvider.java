@@ -30,12 +30,13 @@ package org.hisp.dhis.security.spring2fa;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthUtils.isValid2FACode;
 
-import com.google.common.base.Strings;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
@@ -66,44 +67,63 @@ import org.springframework.stereotype.Component;
 public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
   private UserService userService;
   private TwoFactorAuthService twoFactorAuthService;
+  private DhisConfigurationProvider configurationProvider;
 
   @Autowired
   public TwoFactorAuthenticationProvider(
       @Qualifier("userDetailsService") UserDetailsService detailsService,
       PasswordEncoder passwordEncoder,
       @Lazy UserService userService,
-      @Lazy TwoFactorAuthService twoFactorAuthService) {
+      @Lazy TwoFactorAuthService twoFactorAuthService,
+      DhisConfigurationProvider configurationProvider) {
 
     this.userService = userService;
     this.twoFactorAuthService = twoFactorAuthService;
+    this.configurationProvider = configurationProvider;
     setUserDetailsService(detailsService);
     setPasswordEncoder(passwordEncoder);
   }
 
   @Override
   public Authentication authenticate(Authentication auth) throws AuthenticationException {
-    String username = auth.getName();
-    String ip = "";
+    final String username = auth.getName();
+    final Object details = auth.getDetails();
 
-    if (auth.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails details) {
-      ip = details.getIp();
-    }
+    // Extract the forwarded IP if available
+    final String ip =
+        details instanceof ForwardedIpAwareWebAuthenticationDetails fwd ? fwd.getIp() : "";
 
     log.debug("Login attempt: {}", username);
 
-    // If enabled, temporarily block user with too many failed attempts
+    // Check for temporary lockout
+    checkLockout(username, ip);
+
+    // Authenticate via the parent method (which calls UserDetailsService#loadUserByUsername())
+    Authentication result = super.authenticate(auth);
+    UserDetails userDetails = (UserDetails) result.getPrincipal();
+
+    // Validate that the user is not configured for external auth only
+    checkExternalAuth(userDetails, username);
+
+    // If the user’s role requires 2FA enrollment but they haven’t set it up, throw an exception.
+    checkTwoFactorEnrolment(userDetails);
+
+    // Handle two-factor authentication validations.
+    checkTwoFactorAuthentication(auth, userDetails);
+
+    // Return a new authentication token with the user details.
+    return new UsernamePasswordAuthenticationToken(
+        userDetails, result.getCredentials(), result.getAuthorities());
+  }
+
+  private void checkLockout(String username, String ip) {
     if (userService.isLocked(username)) {
       log.warn("Temporary lockout for user: '{}'", username);
       throw new LockedException(String.format("IP is temporarily locked: %s", ip));
     }
+  }
 
-    // Calls the UserDetailsService#loadUserByUsername(), to create the UserDetails object,
-    // after the password is validated.
-    Authentication result = super.authenticate(auth);
-    UserDetails userDetails = (UserDetails) result.getPrincipal();
-
-    // Prevents other authentication methods (e.g., OAuth2/LDAP),
-    // to use password login.
+  private void checkExternalAuth(UserDetails userDetails, String username) {
     if (userDetails.isExternalAuth()) {
       log.info(
           "User has external authentication enabled, password login attempt aborted: '{}'",
@@ -111,53 +131,71 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       throw new BadCredentialsException(
           "Invalid login method, user is using external authentication");
     }
+  }
 
-    // If the user requires 2FA, and it's not enabled, redirect to
-    // the enrolment page, (via the CustomAuthFailureHandler)
-    boolean has2FARestrictionOnRole =
+  private void checkTwoFactorEnrolment(UserDetails userDetails) {
+    boolean has2FARestriction =
         userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
-    if (!userDetails.isTwoFactorEnabled() && has2FARestrictionOnRole) {
+    if (!userDetails.isTwoFactorEnabled() && has2FARestriction) {
       throw new TwoFactorAuthenticationEnrolmentException(
           "User must setup two-factor authentication first before logging in");
     }
+  }
 
-    boolean isHTTPBasicRequest = !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails);
-    if (userDetails.isTwoFactorEnabled() && isHTTPBasicRequest) {
-      // If the user has 2FA enabled and tries to authenticate with HTTP Basic
+  private void checkTwoFactorAuthentication(Authentication auth, UserDetails userDetails) {
+    if (!userDetails.isTwoFactorEnabled()) {
+      return; // Nothing to do if 2FA is not enabled.
+    }
+
+    // Ensure the authentication details are from a form-based 2FA login
+    if (!(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails authDetails)) {
       throw new PreAuthenticatedCredentialsNotFoundException(
           "User has 2FA enabled, but attempted to authenticate with a non-form based login method: "
               + userDetails.getUsername());
     }
 
-    if (userDetails.isTwoFactorEnabled()
-        && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails authDetails) {
+    // Only validate the 2FA code if the configured type is enabled.
+    if (isTwoFactorTypeEnabled(userDetails.getTwoFactorType())) {
       validate2FACode(authDetails.getCode(), userDetails);
     }
+  }
 
-    return new UsernamePasswordAuthenticationToken(
-        userDetails, result.getCredentials(), result.getAuthorities());
+  private boolean isTwoFactorTypeEnabled(TwoFactorType type) {
+    return switch (type) {
+      case EMAIL_ENABLED -> configurationProvider.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED);
+      case TOTP_ENABLED -> configurationProvider.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED);
+      default -> false;
+    };
   }
 
   private void validate2FACode(@CheckForNull String code, @Nonnull UserDetails userDetails) {
     TwoFactorType type = userDetails.getTwoFactorType();
 
-    // Send 2FA code via Email if the user has email 2FA enabled and the code is empty.
-    if (TwoFactorType.EMAIL_ENABLED == type && Strings.isNullOrEmpty(code)) {
-      try {
-        twoFactorAuthService.sendEmail2FACode(userDetails.getUsername());
-      } catch (ConflictException e) {
-        throw new TwoFactorAuthenticationException(ErrorCode.E3049.getMessage());
-      }
-      throw new TwoFactorAuthenticationException(ErrorCode.E3051.getMessage());
+    // For email-based 2FA, if no code is provided, trigger sending the email code.
+    if (type == TwoFactorType.EMAIL_ENABLED && StringUtils.isBlank(code)) {
+      sendEmail2FACode(userDetails);
+      // Inform the caller that the email code has been sent.
+      throw new TwoFactorAuthenticationException(ErrorCode.E3051.getMessage(), type);
     }
 
-    if (Strings.isNullOrEmpty(code) || StringUtils.deleteWhitespace(code).isEmpty()) {
-      throw new TwoFactorAuthenticationException(ErrorCode.E3023.getMessage());
+    // If the code is blank (null, empty, or only whitespace), reject the login.
+    if (StringUtils.isBlank(code)) {
+      throw new TwoFactorAuthenticationException(ErrorCode.E3023.getMessage(), type);
     }
 
+    // Validate the provided 2FA code.
     if (!isValid2FACode(type, code, userDetails.getSecret())) {
-      throw new TwoFactorAuthenticationException(ErrorCode.E3023.getMessage());
+      throw new TwoFactorAuthenticationException(ErrorCode.E3023.getMessage(), type);
     }
-    // All good, 2FA code is valid!
+    // If no exception is thrown, the 2FA code is valid.
+  }
+
+  private void sendEmail2FACode(UserDetails userDetails) {
+    try {
+      twoFactorAuthService.sendEmail2FACode(userDetails.getUsername());
+    } catch (ConflictException e) {
+      throw new TwoFactorAuthenticationException(
+          ErrorCode.E3049.getMessage(), TwoFactorType.EMAIL_ENABLED);
+    }
   }
 }

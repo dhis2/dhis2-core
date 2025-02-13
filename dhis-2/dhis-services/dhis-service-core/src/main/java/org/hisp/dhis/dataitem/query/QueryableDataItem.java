@@ -37,8 +37,10 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 
 /**
  * This Enum holds the allowed data item types to be queried.
@@ -46,25 +48,41 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
  * @author maikel arabori
  */
 public enum QueryableDataItem {
-  INDICATOR(Indicator.class),
-  DATA_ELEMENT(DataElement.class),
-  DATA_SET(DataSet.class),
-  PROGRAM_INDICATOR(ProgramIndicator.class),
-  PROGRAM_DATA_ELEMENT(ProgramDataElementDimensionItem.class),
-  PROGRAM_ATTRIBUTE(ProgramTrackedEntityAttributeDimensionItem.class),
-  EXPRESSION_DIMENSION_ITEM(ExpressionDimensionItem.class);
+  INDICATOR(Indicator.class, true),
+  DATA_ELEMENT(DataElement.class, true),
+  DATA_SET(DataSet.class, true),
+  PROGRAM_INDICATOR(ProgramIndicator.class, true),
+  PROGRAM_DATA_ELEMENT(ProgramDataElementDimensionItem.class, true),
+  PROGRAM_DATA_ELEMENT_OPTION(ProgramDataElementOptionDimensionItem.class, false),
+  PROGRAM_ATTRIBUTE(ProgramTrackedEntityAttributeDimensionItem.class, true),
+  PROGRAM_ATTRIBUTE_OPTION(ProgramTrackedEntityAttributeOptionDimensionItem.class, false),
+  EXPRESSION_DIMENSION_ITEM(ExpressionDimensionItem.class, true);
 
   private Class<? extends BaseIdentifiableObject> entity;
 
-  QueryableDataItem(Class<? extends BaseIdentifiableObject> entity) {
+  private boolean isDefault;
+
+  QueryableDataItem(Class<? extends BaseIdentifiableObject> entity, boolean isDefault) {
     this.entity = entity;
+    this.isDefault = isDefault;
   }
 
   public Class<? extends BaseIdentifiableObject> getEntity() {
     return this.entity;
   }
 
+  public boolean isDefault() {
+    return this.isDefault;
+  }
+
   public static Set<Class<? extends BaseIdentifiableObject>> getEntities() {
     return of(QueryableDataItem.values()).map(QueryableDataItem::getEntity).collect(toSet());
+  }
+
+  public static Set<Class<? extends BaseIdentifiableObject>> getDefaultEntities() {
+    return of(QueryableDataItem.values())
+        .filter(QueryableDataItem::isDefault)
+        .map(QueryableDataItem::getEntity)
+        .collect(toSet());
   }
 }

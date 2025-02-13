@@ -70,6 +70,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -251,7 +252,8 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
     ImportSummary summary =
-        adxDataService.saveDataValueSet(request.getInputStream(), importOptions, null);
+        adxDataService.saveDataValueSet(
+            request.getInputStream(), importOptions, JobProgress.noop());
     summary.setImportOptions(importOptions);
 
     return importSummary(summary);

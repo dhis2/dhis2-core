@@ -234,6 +234,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipTypeA.getSharing().setOwner(user);
     manager.save(relationshipTypeA, false);
 
+    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA, false);
+
     relationshipA = new Relationship();
     relationshipA.setUid(CodeGenerator.generateUid());
     relationshipA.setRelationshipType(relationshipTypeA);
@@ -249,13 +252,11 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
     manager.save(relationshipA, false);
 
-    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
-    manager.save(enrollmentA, false);
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
     eventA.setOccurredDate(incidentDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
-    enrollmentA.setRelationshipItems(Set.of(from, to));
+    enrollmentA.setRelationshipItems(Set.of(to));
     manager.update(enrollmentA);
 
     enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);

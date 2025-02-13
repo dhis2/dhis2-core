@@ -25,32 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import javax.annotation.Nonnull;
-import org.slf4j.Logger;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Morten Olav Hansen
  */
-public class NotificationLoggerUtil {
-  public static void log(Logger logger, @Nonnull NotificationLevel level, String message) {
-    switch (level) {
-      case LOOP:
-      case DEBUG:
-        logger.debug(message);
-        break;
-      case INFO:
-        logger.info(message);
-        break;
-      case WARN:
-        logger.warn(message);
-        break;
-      case ERROR:
-        logger.error(message);
-        break;
-      case OFF:
-        break;
-    }
+class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
+  @Test
+  void testAuthorizationHeaderSet() {
+    HttpBasicAuthScheme auth =
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
+
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers, null);
+
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  }
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new HttpBasicAuthScheme().setUsername("admin").setPassword("district"),
+        HttpBasicAuthScheme::getPassword);
+  }
+
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new HttpBasicAuthScheme()
+            .setUsername("admin")
+            .setPassword("qkQzMuVWVGw5g3WcjhYuBZXL5r2DdlURaFMTkuya2OmfhLhgf9CPdqj5wvA2JE1t"),
+        HttpBasicAuthScheme::getPassword);
   }
 }

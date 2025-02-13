@@ -27,39 +27,59 @@
  */
 package org.hisp.dhis.common.auth;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.io.Serializable;
-import lombok.EqualsAndHashCode;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.UnaryOperator;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 /**
+ * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
+ * access token, but can be used anywhere the format is accepted.
+ *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode
 @Accessors(chain = true)
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type")
-@JsonSubTypes({
-  @JsonSubTypes.Type(value = HttpBasicAuth.class, name = "http-basic"),
-  @JsonSubTypes.Type(value = ApiTokenAuth.class, name = "api-token")
-})
-public abstract class Auth implements Serializable {
-  @JsonProperty protected final String type;
+public class ApiTokenAuthScheme implements AuthScheme {
+  public static final String API_TOKEN_TYPE = "api-token";
 
-  @JsonCreator
-  protected Auth(@JsonProperty("type") String type) {
-    this.type = type;
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
+  private String token;
+
+  @Override
+  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
+    if (!StringUtils.hasText(token)) {
+      return;
+    }
+
+    headers.computeIfAbsent("Authorization", v -> new LinkedList<>()).add("ApiToken " + token);
   }
 
-  public abstract void apply(MultiValueMap<String, String> headers);
+  @Override
+  public ApiTokenAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    return copy(encryptFunc.apply(token));
+  }
+
+  @Override
+  public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    return copy(decryptFunc.apply(token));
+  }
+
+  @Override
+  public String getType() {
+    return API_TOKEN_TYPE;
+  }
+
+  protected ApiTokenAuthScheme copy(String token) {
+    ApiTokenAuthScheme newApiTokenAuth = new ApiTokenAuthScheme();
+    newApiTokenAuth.setToken(token);
+
+    return newApiTokenAuth;
+  }
 }
