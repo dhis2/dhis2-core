@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.common.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import java.util.Map;
+import java.util.function.UnaryOperator;
+import lombok.experimental.Accessors;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+/**
+ * @author Morten Olav Hansen
+ */
+@Accessors(chain = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = HttpBasicAuthScheme.HTTP_BASIC_TYPE),
+  @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = ApiTokenAuthScheme.API_TOKEN_TYPE),
+  @JsonSubTypes.Type(
+      value = ApiHeadersAuthScheme.class,
+      name = ApiHeadersAuthScheme.API_HEADERS_TYPE),
+  @JsonSubTypes.Type(
+      value = ApiQueryParamsAuthScheme.class,
+      name = ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE)
+})
+public interface AuthScheme extends Serializable {
+  void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams);
 
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
+  AuthScheme encrypt(UnaryOperator<String> encryptFunc);
 
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
+  AuthScheme decrypt(UnaryOperator<String> decryptFunc);
 
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
-
-  void delete(@Nonnull Enrollment enrollment);
+  @JsonProperty
+  String getType();
 }

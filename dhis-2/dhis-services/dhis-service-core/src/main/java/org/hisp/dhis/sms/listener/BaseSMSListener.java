@@ -87,7 +87,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
     update(sms, status, true);
 
     if (smsMessageSender.isConfigured()) {
-      String msg = String.format("%d:%s", messageID, resp.toString());
+      String msg = String.format("%d:%s", messageID, resp);
       smsMessageSender.sendMessage(null, msg, sms.getOriginator());
       return;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.db.sql;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
-
-public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
-  String ID = TrackedEntityStore.class.getName();
-
-  /** Get all tracked entity ids matching given params. */
-  List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params);
-
-  /** Get a page of tracked entities matching given params. */
-  Page<TrackedEntityIdentifiers> getTrackedEntityIds(
-      TrackedEntityQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getTrackedEntityIds(TrackedEntityQueryParams)})} can order tracked entities
-   * by. Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getTrackedEntityIds(TrackedEntityQueryParams)}.
-   */
-  Set<String> getOrderableFields();
-
-  Long getTrackedEntityCount(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params);
+/**
+ * Enumeration of time units.
+ *
+ * @author Lars Helge Overland
+ */
+public enum DateUnit {
+  DAYS,
+  WEEKS,
+  MONTHS,
+  MINUTES,
+  YEARS
 }

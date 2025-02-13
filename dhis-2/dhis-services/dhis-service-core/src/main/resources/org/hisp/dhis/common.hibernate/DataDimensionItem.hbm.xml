@@ -59,14 +59,6 @@
 
       <many-to-one name="option" class="org.hisp.dhis.option.Option"
         column="programdataelementoption_optionid" foreign-key="fk_datadimensionitem_programdataelementoption_optionid" />
-
-      <property name="aggregation" length="50" column="programdataelementoption_aggregation">
-        <type name="org.hibernate.type.EnumType">
-          <param name="enumClass">org.hisp.dhis.analytics.Aggregation</param>
-          <param name="useNamed">true</param>
-          <param name="type">12</param>
-        </type>
-      </property>
     </component>
 
     <component name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem">
@@ -86,14 +78,6 @@
 
       <many-to-one name="option" class="org.hisp.dhis.option.Option"
         column="programattributeoption_optionid" foreign-key="fk_datadimensionitem_programattributeoption_optionid" />
-
-      <property name="aggregation" length="50" column="programattributeoption_aggregation">
-        <type name="org.hibernate.type.EnumType">
-          <param name="enumClass">org.hisp.dhis.analytics.Aggregation</param>
-          <param name="useNamed">true</param>
-          <param name="type">12</param>
-        </type>
-      </property>
     </component>
 
     <many-to-one name="expressionDimensionItem" class="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem"

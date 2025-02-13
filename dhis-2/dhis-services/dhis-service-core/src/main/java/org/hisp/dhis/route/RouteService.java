@@ -29,39 +29,42 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.util.Timeout;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.Auth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -79,12 +82,10 @@ public class RouteService {
 
   private final RouteStore routeStore;
 
-  private final ObjectMapper objectMapper;
-
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
-  private static final RestTemplate restTemplate = new RestTemplate();
+  @Autowired @Getter @Setter private RestTemplate restTemplate;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -117,7 +118,8 @@ public class RouteService {
           "last-modified",
           "etag");
 
-  static {
+  @PostConstruct
+  public void postConstruct() {
     // Connect timeout
     ConnectionConfig connectionConfig =
         ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
@@ -162,14 +164,12 @@ public class RouteService {
       return null;
     }
 
-    try {
-      route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Unable to create copy of route: '{}'", route.getUid());
-      return null;
-    }
+    // prevents Hibernate from persisting updates made to the route object
+    route = Hibernate.unproxy(route, Route.class);
 
-    decryptAuthentication(route.getAuth());
+    if (route.getAuth() != null) {
+      route.setAuth(route.getAuth().decrypt(encryptor::decrypt));
+    }
 
     return route;
   }
@@ -188,26 +188,36 @@ public class RouteService {
   public ResponseEntity<String> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws IOException, BadRequestException {
+
     HttpHeaders headers = filterRequestHeaders(request);
-
     route.getHeaders().forEach(headers::add);
-
     addForwardedUserHeader(userDetails, headers);
 
+    Map<String, List<String>> queryParameters = new HashMap<>();
+    request
+        .getParameterMap()
+        .forEach(
+            (key, value) ->
+                queryParameters
+                    .computeIfAbsent(key, k -> new LinkedList<>())
+                    .addAll(Arrays.asList(value)));
+
     if (route.getAuth() != null) {
-      route.getAuth().apply(headers);
+      route.getAuth().apply(headers, queryParameters);
     }
 
-    HttpHeaders queryParameters = new HttpHeaders();
-    request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
-
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
+        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+
+    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      uriComponentsBuilder =
+          uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
+    }
 
     if (subPath.isPresent()) {
       if (!route.allowsSubpaths()) {
         throw new BadRequestException(
-            String.format("Route '%s' does not allow subpaths", route.getId()));
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
       }
       uriComponentsBuilder.path(subPath.get());
     }
@@ -305,24 +315,5 @@ public class RouteService {
           headers.addAll(name, values);
         });
     return headers;
-  }
-
-  /**
-   * Decrypts the secrets on the given authentication.
-   *
-   * @param auth the {@link Authentication}.
-   */
-  private void decryptAuthentication(Auth auth) {
-    if (auth == null) {
-      return;
-    }
-
-    if (auth.getType().equals(ApiTokenAuth.TYPE)) {
-      ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-      apiTokenAuth.setToken(encryptor.decrypt(apiTokenAuth.getToken()));
-    } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
-      HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-      httpBasicAuth.setPassword(encryptor.decrypt(httpBasicAuth.getPassword()));
-    }
   }
 }

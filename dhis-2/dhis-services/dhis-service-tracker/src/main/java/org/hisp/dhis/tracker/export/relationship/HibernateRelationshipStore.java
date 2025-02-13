@@ -38,6 +38,7 @@ import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
@@ -47,11 +48,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
@@ -59,11 +62,12 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
-class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
-    implements RelationshipStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
+class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship> {
 
   private static final org.hisp.dhis.tracker.export.Order DEFAULT_ORDER =
       new org.hisp.dhis.tracker.export.Order("id", SortDirection.DESC);
@@ -88,25 +92,61 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
-  @Override
+  public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity) {
+    @Language("hql")
+    String hql =
+        """
+                from TrackedEntity te
+                where te.uid = :trackedEntity
+                """;
+    List<TrackedEntity> trackedEntities =
+        getQuery(hql, TrackedEntity.class)
+            .setParameter("trackedEntity", trackedEntity.getValue())
+            .getResultList();
+    return trackedEntities.stream().findFirst();
+  }
+
+  public Optional<Enrollment> findEnrollment(UID enrollment) {
+    @Language("hql")
+    String hql =
+        """
+                from Enrollment e
+                where e.uid = :enrollment
+                """;
+    List<Enrollment> enrollments =
+        getQuery(hql, Enrollment.class)
+            .setParameter("enrollment", enrollment.getValue())
+            .getResultList();
+    return enrollments.stream().findFirst();
+  }
+
+  public Optional<Event> findEvent(UID event) {
+    @Language("hql")
+    String hql =
+        """
+                from Event e
+                where e.uid = :event
+                """;
+    List<Event> events =
+        getQuery(hql, Event.class).setParameter("event", event.getValue()).getResultList();
+    return events.stream().findFirst();
+  }
+
   public List<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
 
     return relationshipsList(trackedEntity, queryParams, null);
   }
 
-  @Override
   public List<Relationship> getByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     return relationshipsList(enrollment, queryParams, null);
   }
 
-  @Override
   public List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams) {
     return relationshipsList(event, queryParams, null);
   }
 
-  @Override
   public Page<Relationship> getByTrackedEntity(
       TrackedEntity trackedEntity,
       final RelationshipQueryParams queryParams,
@@ -118,7 +158,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(trackedEntity, queryParams));
   }
 
-  @Override
   public Page<Relationship> getByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
     return getPage(
@@ -127,7 +166,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(enrollment, queryParams));
   }
 
-  @Override
   public Page<Relationship> getByEvent(
       Event event, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
     return getPage(
@@ -136,9 +174,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(event, queryParams));
   }
 
-  @Override
-  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
-    if (CollectionUtils.isEmpty(relationshipKeyList)) {
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    if (CollectionUtils.isEmpty(relationshipKeys)) {
       return Collections.emptyList();
     }
 
@@ -149,7 +187,43 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             where r.deleted = false and (r.key in (:keys)
             or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
             """;
-    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
+    List<String> relationshipKeysAsString =
+        relationshipKeys.stream().map(RelationshipKey::asString).toList();
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
+  }
+
+  public List<RelationshipItem> getRelationshipItemsByTrackedEntity(UID trackedEntity) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.trackedEntity.uid = :trackedEntity
+                """;
+    return getQuery(hql, RelationshipItem.class)
+        .setParameter("trackedEntity", trackedEntity.getValue())
+        .list();
+  }
+
+  public List<RelationshipItem> getRelationshipItemsByEnrollment(UID enrollment) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.enrollment.uid = :enrollment
+                """;
+    return getQuery(hql, RelationshipItem.class)
+        .setParameter("enrollment", enrollment.getValue())
+        .list();
+  }
+
+  public List<RelationshipItem> getRelationshipItemsByEvent(UID event) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.event.uid = :event
+                """;
+    return getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()).list();
   }
 
   /**
@@ -302,7 +376,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
   }

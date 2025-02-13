@@ -31,6 +31,7 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Jan Henrik Overland
@@ -93,6 +94,8 @@ public interface MappingService extends AnalyticalObjectService<MapView> {
   int countMapViewMaps(MapView mapView);
 
   List<MapView> findByProgram(Program program);
+
+  List<MapView> findByProgramStage(ProgramStage programStage);
 
   // -------------------------------------------------------------------------
   // ExternalMapLayer

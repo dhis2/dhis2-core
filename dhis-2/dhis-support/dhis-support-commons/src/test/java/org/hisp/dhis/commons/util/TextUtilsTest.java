@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.util.MapBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -204,6 +206,19 @@ class TextUtilsTest {
     assertEquals(
         "Hey John, my name is John",
         TextUtils.replace("Hey ${name}, my name is ${name}", Map.of("name", "John")));
+  }
+
+  @Test
+  void testReplaceWithNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            TextUtils.replace(
+                "Welcome ${first_name} ${last_name}",
+                new MapBuilder<String, String>()
+                    .put("first_name", "John")
+                    .put("last_name", null)
+                    .build()));
   }
 
   @Test

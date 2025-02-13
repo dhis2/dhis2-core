@@ -87,7 +87,10 @@ public class DataElementQuery implements DataItemQuery {
               Pair.of("item_domaintype", "dataelement.domaintype"),
               Pair.of("item_type", "cast ('DATA_ELEMENT' as text)"),
               Pair.of("expression", CAST_NULL_AS_TEXT),
-              Pair.of("optionset_uid", "optionset.uid"))
+              Pair.of("optionset_uid", "optionset.uid"),
+              Pair.of("optionvalue_uid", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_name", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));

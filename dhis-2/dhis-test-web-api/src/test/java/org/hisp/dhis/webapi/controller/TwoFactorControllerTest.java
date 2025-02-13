@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.EMAIL_2FA_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.TOTP_2FA_ENABLED;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,15 +54,19 @@ import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
@@ -84,22 +90,20 @@ import org.springframework.transaction.annotation.Transactional;
 class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private TwoFactorAuthService twoFactorAuthService;
-  @Autowired private SystemSettingsService systemSettingsService;
   @Autowired private MessageSender emailMessageSender;
+  @Autowired private DhisConfigurationProvider config;
 
   @AfterEach
   void tearDown() {
     emailMessageSender.clearMessages();
-    systemSettingsService.put("email2FAEnabled", "false");
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "off");
+    config.getProperties().put(TOTP_2FA_ENABLED.getKey(), "on");
   }
 
   @Test
   void testEnrollTOTP2FA()
       throws ChecksumException, NotFoundException, DecodingException, IOException, FormatException {
-    User user = makeUser("X", List.of("TEST"));
-    user.setEmail("valid.x@email.com");
-    userService.addUser(user);
-    switchToNewUser(user);
+    User user = createUserAndInjectSecurityContext(false);
 
     assertStatus(HttpStatus.OK, POST("/2fa/enrollTOTP2FA"));
     User enrolledUser = userService.getUserByUsername(user.getUsername());
@@ -118,6 +122,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     String code = new Totp(base32Secret).now();
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    User enabledUser = userService.getUserByUsername(user.getUsername());
+    assertSame(TwoFactorType.TOTP_ENABLED, enabledUser.getTwoFactorType());
   }
 
   private String decodeBase64QRAndExtractBase32Secret(String base64QRCode)
@@ -156,14 +162,13 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testEnrollEmail2FA() {
-    assertStatus(HttpStatus.OK, POST("/systemSettings/email2FAEnabled?value=true"));
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
 
-    User user = makeUser("X", List.of("TEST"));
+    User user = createUserAndInjectSecurityContext(false);
     String emailAddress = "valid.x@email.com";
     user.setEmail(emailAddress);
     user.setVerifiedEmail(emailAddress);
-    userService.addUser(user);
-    switchToNewUser(user);
+    userService.encodeAndSetPassword(user, "Test123###...");
 
     assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
     User enrolledUser = userService.getUserByUsername(user.getUsername());
@@ -178,6 +183,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     // Extract the 6-digit code from the email
     String code = email.substring(email.indexOf("code:\n") + 6, email.indexOf("code:\n") + 12);
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    User enabledUser = userService.getUserByUsername(user.getUsername());
+    assertSame(TwoFactorType.EMAIL_ENABLED, enabledUser.getTwoFactorType());
   }
 
   @Test
@@ -190,18 +197,20 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     String code = new Totp(user.getSecret()).now();
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    User enabledUser = userService.getUserByUsername(user.getUsername());
+    assertSame(TwoFactorType.TOTP_ENABLED, enabledUser.getTwoFactorType());
   }
 
   @Test
   void testEnableEmail2FA() throws ConflictException {
-    assertStatus(HttpStatus.OK, POST("/systemSettings/email2FAEnabled?value=true"));
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
 
-    User user = makeUser("X", List.of("TEST"));
+    User user = createUserAndInjectSecurityContext(false);
     user.setEmail("valid.x@email.com");
     user.setVerifiedEmail("valid.x@email.com");
-    userService.addUser(user);
+    userService.encodeAndSetPassword(user, "Test123###...");
+
     twoFactorAuthService.enrollEmail2FA(user.getUsername());
-    switchToNewUser(user);
 
     User enrolledUser = userService.getUserByUsername(user.getUsername());
     String secret = enrolledUser.getSecret();
@@ -213,15 +222,14 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     String code = codeAndTTL[0];
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+    User enabledUser = userService.getUserByUsername(user.getUsername());
+    assertSame(TwoFactorType.EMAIL_ENABLED, enabledUser.getTwoFactorType());
   }
 
   @Test
   void testEnableTOTP2FAWrongCode() throws ConflictException {
-    User user = makeUser("X", List.of("TEST"));
-    user.setEmail("valid.x@email.com");
-    userService.addUser(user);
+    User user = createUserAndInjectSecurityContext(false);
     twoFactorAuthService.enrollTOTP2FA(user.getUsername());
-    switchToNewUser(user);
 
     assertEquals(
         "Invalid 2FA code",
@@ -255,24 +263,22 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testDisableTOTP2FA() throws ConflictException {
-    User newUser = makeUser("Y", List.of("TEST"));
-    newUser.setEmail("valid.y@email.com");
-    userService.addUser(newUser);
-    twoFactorAuthService.enrollTOTP2FA(newUser.getUsername());
+    User user = createUserAndInjectSecurityContext(false);
+    twoFactorAuthService.enrollTOTP2FA(user.getUsername());
 
-    User user = userService.getUserByUsername(newUser.getUsername());
+    user = userService.getUserByUsername(user.getUsername());
     user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
     userService.updateUser(user, new SystemUser());
 
-    switchToNewUser(newUser);
+    switchToNewUser(user);
 
-    String code = new Totp(newUser.getSecret()).now();
+    String code = new Totp(user.getSecret()).now();
     assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
   }
 
   @Test
   void testDisableEmail2FA() throws ConflictException {
-    assertStatus(HttpStatus.OK, POST("/systemSettings/email2FAEnabled?value=true"));
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
 
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
@@ -306,11 +312,9 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testDisable2FATooManyTimes() throws ConflictException {
-    User user = makeUser("X", List.of("TEST"));
-    user.setEmail("valid.x@email.com");
+    User user = createUserAndInjectSecurityContext(false);
     userService.addUser(user);
     twoFactorAuthService.enrollTOTP2FA(user.getUsername());
-    switchToNewUser(user);
 
     String code = new Totp(user.getSecret()).now();
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
@@ -331,5 +335,180 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
         "ERROR",
         "Too many failed disable attempts. Please try again later",
         POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testEnrollTOTP2FAWhenDisabled() {
+    // Given TOTP 2FA is disabled in config
+    config.getProperties().put(TOTP_2FA_ENABLED.getKey(), "off");
+
+    User user = createUserAndInjectSecurityContext(false);
+
+    // When trying to enroll
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "TOTP 2FA is not enabled",
+        POST("/2fa/enrollTOTP2FA").content(HttpStatus.CONFLICT));
+
+    // Then user should not be enrolled
+    User updatedUser = userService.getUserByUsername(user.getUsername());
+    assertEquals(TwoFactorType.NOT_ENABLED, updatedUser.getTwoFactorType());
+  }
+
+  @Test
+  void testEnrollEmail2FAWhenDisabled() {
+    // Given Email 2FA is disabled in config
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "off");
+
+    User user = createUserAndInjectSecurityContext(false);
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    // When trying to enroll
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email based 2FA is not enabled",
+        POST("/2fa/enrollEmail2FA").content(HttpStatus.CONFLICT));
+
+    // Then user should not be enrolled
+    User updatedUser = userService.getUserByUsername(user.getUsername());
+    assertNull(updatedUser.getSecret());
+    assertEquals(TwoFactorType.NOT_ENABLED, updatedUser.getTwoFactorType());
+  }
+
+  @Test
+  void testLoginWithTOTP2FAWhenDisabled() {
+    // Given user has TOTP 2FA enabled
+    config.getProperties().put(TOTP_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollTOTP2FA"));
+    String code = new Totp(user.getSecret()).now();
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.TOTP_ENABLED, user.getTwoFactorType());
+
+    // When TOTP 2FA is disabled in config
+    config.getProperties().put(TOTP_2FA_ENABLED.getKey(), "off");
+
+    // Then user should be able to log in without 2FA code
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/auth/login", "{'username':'" + user.getUsername() + "','password':'Test123###...'}"));
+  }
+
+  @Test
+  void testLoginWithEmail2FAWhenDisabled() {
+    // Given user has Email 2FA enabled
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    String code = enrolledUser.getSecret().split("\\|")[0];
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.EMAIL_ENABLED, user.getTwoFactorType());
+
+    // When Email 2FA is disabled in config
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "off");
+
+    // Then user should be able to log in without 2FA code
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/auth/login", "{'username':'" + user.getUsername() + "','password':'Test123###...'}"));
+  }
+
+  @Test
+  void testDisable2FAWhenTypeDisabled() {
+    // Given user has TOTP 2FA enabled
+    config.getProperties().put(TOTP_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollTOTP2FA"));
+    String code = new Totp(user.getSecret()).now();
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.TOTP_ENABLED, user.getTwoFactorType());
+
+    // When TOTP 2FA is disabled in config
+    config.getProperties().put(TOTP_2FA_ENABLED.getKey(), "off");
+
+    // Then user should still be able to disable their 2FA
+    assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
+
+    User updatedUser = userService.getUserByUsername(user.getUsername());
+    assertNull(updatedUser.getSecret());
+    assertEquals(TwoFactorType.NOT_ENABLED, updatedUser.getTwoFactorType());
+  }
+
+  @Test
+  void testChangeEmailWhenEmail2FAIsEnabledWithMeEndpoint() {
+    // Given user has Email 2FA enabled
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    String code = enrolledUser.getSecret().split("\\|")[0];
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.EMAIL_ENABLED, user.getTwoFactorType());
+
+    // When trying to change email
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first",
+        PUT("/me", "{'email':'another@email.com'}").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testChangeEmailWhenEmail2FAIsEnabledWithUserEndpoint() {
+    // Given user has Email 2FA enabled
+    config.getProperties().put(EMAIL_2FA_ENABLED.getKey(), "on");
+
+    User user = createUserAndInjectSecurityContext(false);
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.encodeAndSetPassword(user, "Test123###...");
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    String code = enrolledUser.getSecret().split("\\|")[0];
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+    assertEquals(TwoFactorType.EMAIL_ENABLED, user.getTwoFactorType());
+
+    switchContextToUser(getAdminUser());
+
+    // When trying to change email
+    JsonObject jsonUser = GET("/users/{id}", user.getUid()).content();
+    String jsonUserString = jsonUser.toString();
+    jsonUserString = jsonUserString.replace("valid.x@email.com", "another.email@com");
+
+    JsonWebMessage msg =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "WARNING",
+            "One or more errors occurred, please see full details in import report.",
+            PUT("/users/" + user.getUid(), jsonUserString).content(HttpStatus.CONFLICT));
+
+    msg.getResponse().find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3052);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.auth;
+package org.hisp.dhis.analytics.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-/**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
- * access token, but can be used anywhere the format is accepted.
- *
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class ApiTokenAuth extends Auth {
-  public static final String TYPE = "api-token";
+import java.util.List;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.QueryItem;
+import org.junit.jupiter.api.Test;
 
-  @JsonProperty(required = true)
-  private String token;
+class EventQueryParamsUtilsTest {
+  @Test
+  void testWithoutProgramStageItems() {
+    // Create mock QueryItems
+    QueryItem item1 = mock(QueryItem.class);
+    QueryItem item2 = mock(QueryItem.class);
+    QueryItem item3 = mock(QueryItem.class);
 
-  public ApiTokenAuth() {
-    super(TYPE);
-  }
+    // Set behavior for hasProgramStage()
+    when(item1.hasProgramStage()).thenReturn(false); // This item should be retained
+    when(item2.hasProgramStage()).thenReturn(true); // This item should be removed
+    when(item3.hasProgramStage()).thenReturn(false); // This item should be retained
 
-  @Override
-  public void apply(MultiValueMap<String, String> headers) {
-    if (!StringUtils.hasText(token)) {
-      return;
-    }
+    // Create an EventQueryParams instance with these items
+    EventQueryParams originalParams =
+        new EventQueryParams.Builder().addItem(item1).addItem(item2).addItem(item3).build();
 
-    headers.set("Authorization", "ApiToken " + token);
+    // Apply the method under test
+    EventQueryParams resultParams = EventQueryParamsUtils.withoutProgramStageItems(originalParams);
+
+    // Assert the resulting params contain only the filtered items
+    List<QueryItem> resultItems = resultParams.getItems();
+    assertEquals(2, resultItems.size());
+    assertTrue(resultItems.contains(item1));
+    assertTrue(resultItems.contains(item3));
+    assertFalse(resultItems.contains(item2));
   }
 }

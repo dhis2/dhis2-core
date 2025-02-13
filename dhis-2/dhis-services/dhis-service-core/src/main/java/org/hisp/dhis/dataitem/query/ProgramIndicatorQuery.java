@@ -84,7 +84,10 @@ public class ProgramIndicatorQuery implements DataItemQuery {
               Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
               Pair.of("item_type", "cast ('PROGRAM_INDICATOR' as text)"),
               Pair.of("expression", CAST_NULL_AS_TEXT),
-              Pair.of("optionset_uid", CAST_NULL_AS_TEXT))
+              Pair.of("optionset_uid", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_uid", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_name", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));
