@@ -173,9 +173,10 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore
 
     String sql;
 
-    if (ctx.getQueryParams().hasProgram()) {
+    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
       sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM;
-      paramSource.addValue("programUid", ctx.getQueryParams().getProgram().getUid());
+      paramSource.addValue(
+          "programUid", ctx.getQueryParams().getEnrolledInTrackerProgram().getUid());
     } else if (checkForOwnership) {
       sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM;
     } else {

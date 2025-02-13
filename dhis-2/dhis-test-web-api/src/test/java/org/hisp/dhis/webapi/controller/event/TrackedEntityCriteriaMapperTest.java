@@ -173,7 +173,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
 
     assertThat(queryParams.getQuery().getFilter(), is("query-test"));
     assertThat(queryParams.getQuery().getOperator(), is(QueryOperator.EQ));
-    assertThat(queryParams.getProgram(), is(programA));
+    assertThat(queryParams.getEnrolledInTrackerProgram(), is(programA));
     assertThat(queryParams.getTrackedEntityType(), is(trackedEntityTypeA));
     assertThat(queryParams.getOrganisationUnits(), hasSize(1));
     assertThat(queryParams.getOrganisationUnits().iterator().next(), is(organisationUnit));

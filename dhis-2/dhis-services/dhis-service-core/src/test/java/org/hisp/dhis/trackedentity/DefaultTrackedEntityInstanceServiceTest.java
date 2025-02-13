@@ -101,8 +101,8 @@ class DefaultTrackedEntityInstanceServiceTest {
 
     params = new TrackedEntityInstanceQueryParams();
     params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-    params.setProgram(new Program("Test program"));
-    params.getProgram().setMaxTeiCountToReturn(10);
+    params.setEnrolledInTrackerProgram(new Program("Test program"));
+    params.getEnrolledInTrackerProgram().setMaxTeiCountToReturn(10);
     params.setTrackedEntityInstanceUids(Collections.singleton("1"));
   }
 
