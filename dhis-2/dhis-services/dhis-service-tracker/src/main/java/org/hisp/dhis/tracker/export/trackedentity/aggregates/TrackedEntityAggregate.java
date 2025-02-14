@@ -241,7 +241,7 @@ public class TrackedEntityAggregate {
 
               Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
 
-              if (user.isPresent() && queryParams.hasProgram()) {
+              if (user.isPresent() && queryParams.hasEnrolledInTrackerProgram()) {
                 teUidStream = teUidStream.filter(ownedTeis::containsKey);
               }
 
