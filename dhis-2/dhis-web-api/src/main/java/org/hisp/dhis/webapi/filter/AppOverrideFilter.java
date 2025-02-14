@@ -37,16 +37,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -75,7 +78,9 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull FilterChain chain)
       throws IOException, ServletException {
     String requestPath = request.getServletPath();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
@@ -118,33 +123,36 @@ public class AppOverrideFilter extends OncePerRequestFilter {
     // Any other resource
     else {
       ResourceResult resourceResult = appManager.getAppResource(app, resourcePath);
+
+      Resource resource;
+      if (resourceResult instanceof ResourceFound found) {
+        resource = found.resource();
+
+        String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
+        if (new ServletWebRequest(request, response).checkNotModified(etag)) {
+          response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+          return;
+        }
+
+        String filename = resource.getFilename();
+        log.debug(String.format("App filename: '%s'", filename));
+
+        String mimeType = request.getSession().getServletContext().getMimeType(filename);
+        if (mimeType != null) {
+          response.setContentType(mimeType);
+        }
+        response.setContentLength(appManager.getUriContentLength(resource));
+        response.setHeader("ETag", etag);
+        StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+      }
       if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
-
-      Resource resource = null;
-      if (resourceResult instanceof ResourceFound found) {
-        resource = found.resource();
+      if (resourceResult instanceof Redirect redirect) {
+        response.sendRedirect(
+            StringUtils.replaceAllRecursively(app.getBaseUrl() + "/" + redirect.path(), "//", "/"));
       }
-
-      String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
-      if (new ServletWebRequest(request, response).checkNotModified(etag)) {
-        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        return;
-      }
-
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
-
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
-
-      response.setContentLength(appManager.getUriContentLength(resource));
-      response.setHeader("ETag", etag);
-      StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
   }
 
