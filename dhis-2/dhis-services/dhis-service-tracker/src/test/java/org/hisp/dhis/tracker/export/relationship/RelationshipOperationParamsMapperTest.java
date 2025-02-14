@@ -69,7 +69,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   private static final UID EV_UID = UID.of("TvjwTPToKHO");
 
-  @Mock private RelationshipStore relationshipStore;
+  @Mock private HibernateRelationshipStore relationshipStore;
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
