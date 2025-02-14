@@ -7,9 +7,11 @@ import net.sf.jsqlparser.expression.DateValue;
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
+import net.sf.jsqlparser.expression.ExtractExpression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.NotExpression;
+import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.TimeValue;
 import net.sf.jsqlparser.expression.TimestampValue;
@@ -55,6 +57,8 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     public void visit(Function function) {
         if ("coalesce".equalsIgnoreCase(function.getName())) {
             visitCoalesce(function);
+        } else if ("extract".equalsIgnoreCase(function.getName())) {
+            visitExtract(function);
         } else {
             visitRegularFunction(function);
         }
@@ -89,6 +93,38 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         paramList.setUsingBrackets(false);  // Try to avoid extra brackets
         newCoalesce.setParameters(paramList);
         currentTransformedExpression = hasChanges ? newCoalesce : function;
+    }
+
+    private void visitExtract(Function function) {
+        List<Expression> currentParams = function.getParameters().getExpressions();
+        List<Expression> newParams = new ArrayList<>();
+        boolean hasChanges = false;
+
+        // Process each parameter of the EXTRACT function
+        for (Expression param : currentParams) {
+            if (param != null) {
+                param.accept(this);
+                if (currentTransformedExpression != null) {
+                    newParams.add(currentTransformedExpression);
+                    if (currentTransformedExpression != param) {
+                        hasChanges = true;
+                    }
+                } else {
+                    newParams.add(param);
+                }
+            }
+        }
+
+        // Create new EXTRACT function with transformed parameters
+        Function newExtract = new Function();
+        newExtract.setName("extract");
+        ExpressionList paramList = new ExpressionList();
+        paramList.setExpressions(newParams);
+        paramList.setUsingBrackets(true);
+        newExtract.setParameters(paramList);
+
+        // If this EXTRACT is part of a division expression, wrap it in parentheses
+        currentTransformedExpression = hasChanges ? newExtract : function;
     }
 
     private void visitRegularFunction(Function function) {
@@ -127,30 +163,45 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         currentTransformedExpression = hasChanges ? newFunction : function;
     }
 
+    @Override
+    public void visit(ExtractExpression extract) {
+        // Visit the expression being extracted from
+        extract.getExpression().accept(this);
+        Expression transformedExpr = currentTransformedExpression;
+
+        // Create new extract expression
+        ExtractExpression newExtract = new ExtractExpression();
+        newExtract.setName(extract.getName());  // 'epoch'
+        newExtract.setExpression(transformedExpr);
+
+        // Wrap in parentheses if it's part of a division
+        currentTransformedExpression = new Parenthesis(newExtract);
+    }
+
     // Arithmetic Operators
     @Override
     public void visit(Addition addition) {
-        handleBinaryExpression(addition);
+        handleBinaryArithmeticExpression(addition);
     }
 
     @Override
     public void visit(Multiplication multiplication) {
-        handleBinaryExpression(multiplication);
+        handleBinaryArithmeticExpression(multiplication);
     }
 
     @Override
     public void visit(Subtraction subtraction) {
-        handleBinaryExpression(subtraction);
+        handleBinaryArithmeticExpression(subtraction);
     }
 
     @Override
     public void visit(Division division) {
-        handleBinaryExpression(division);
+        handleBinaryArithmeticExpression(division);
     }
 
     @Override
     public void visit(Modulo modulo) {
-        handleBinaryExpression(modulo);
+        handleBinaryArithmeticExpression(modulo);
     }
 
     // Comparison Operators
@@ -182,6 +233,14 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
         handleBinaryExpression(notEqualsTo);
+    }
+
+    @Override
+    public void visit(Parenthesis parenthesis) {
+        parenthesis.getExpression().accept(this);
+        Expression transformedExpr = currentTransformedExpression;
+
+        currentTransformedExpression = new Parenthesis(transformedExpr);
     }
 
     // Logical Operators
@@ -232,7 +291,7 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
             String alias = switch (found.name()) {
                 case "last_sched" -> "ls";
                 case "last_created" -> "lc";
-                case "relationship_count" -> "rc";
+                case "relationship_count", "relationship_count_agg" -> "rlc";
                 default -> {
                     // For last_value_* patterns, use lv_columnname
                     if (found.name().startsWith("last_value_")) {
@@ -379,6 +438,37 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         } catch (Exception e) {
             // Fallback to original expression if instantiation fails
             currentTransformedExpression = expression;
+        }
+    }
+
+    // Helper method for arithmetic operators
+    private void handleBinaryArithmeticExpression(BinaryExpression expr) {
+        expr.getLeftExpression().accept(this);
+        Expression leftExpr = currentTransformedExpression;
+
+        expr.getRightExpression().accept(this);
+        Expression rightExpr = currentTransformedExpression;
+
+        try {
+            BinaryExpression newExpr = expr.getClass().getDeclaredConstructor().newInstance();
+            newExpr.setLeftExpression(leftExpr);
+            newExpr.setRightExpression(rightExpr);
+
+            // For arithmetic expressions, wrap in parentheses if:
+            // 1. It's a division (to preserve precedence)
+            // 2. When mixing different arithmetic operations
+            boolean needsParentheses = expr instanceof Division ||
+                    (leftExpr instanceof BinaryExpression ||
+                            rightExpr instanceof BinaryExpression);
+
+            if (needsParentheses) {
+                currentTransformedExpression = new Parenthesis(newExpr);
+            } else {
+                currentTransformedExpression = newExpr;
+            }
+        } catch (Exception e) {
+            // Fallback to original expression if instantiation fails
+            currentTransformedExpression = expr;
         }
     }
 
