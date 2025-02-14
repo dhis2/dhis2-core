@@ -70,10 +70,6 @@
     </dependency>
     <!-- Other -->
     <dependency>
-      <groupId>org.apache.httpcomponents.core5</groupId>
-      <artifactId>httpcore5</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
     </dependency>
@@ -96,6 +92,31 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webflux</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>3.6.9</version>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor.netty</groupId>
+      <artifactId>reactor-netty-http</artifactId>
+      <version>1.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reactivestreams</groupId>
+      <artifactId>reactive-streams</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>4.1.116.Final</version>
     </dependency>
     <dependency>
       <groupId>com.nimbusds</groupId>
@@ -197,10 +218,6 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5</artifactId>
-    </dependency>
 
     <!-- Apache JClouds -->
 
@@ -290,6 +307,7 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-crypto</artifactId>

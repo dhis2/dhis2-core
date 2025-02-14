@@ -54,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * @author Morten Olav Hansen
@@ -75,7 +76,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> run(
+  public ResponseEntity<StreamingResponseBody> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
@@ -92,7 +93,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> runWithSubpath(
+  public ResponseEntity<StreamingResponseBody> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
@@ -127,6 +128,23 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
     }
 
     return Optional.empty();
+  }
+
+  @Override
+  protected void preCreateEntity(Route route) throws ConflictException {
+    validateRoute(route);
+  }
+
+  @Override
+  protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
+    validateRoute(newRoute);
+  }
+
+  protected void validateRoute(Route route) throws ConflictException {
+    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
+      throw new ConflictException(
+          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
+    }
   }
 
   /**

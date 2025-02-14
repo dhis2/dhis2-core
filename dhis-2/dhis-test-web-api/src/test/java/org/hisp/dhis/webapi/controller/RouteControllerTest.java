@@ -31,108 +31,264 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.mockserver.client.MockServerClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.client.MockMvcHttpConnector;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 @Transactional
+@ContextConfiguration(classes = {RouteControllerTest.ClientHttpConnectorTestConfig.class})
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private RouteService service;
 
   @Autowired private ObjectMapper jsonMapper;
 
+  @Autowired private ClientHttpConnector clientHttpConnector;
+
+  @Configuration
+  public static class ClientHttpConnectorTestConfig {
+    @Autowired private ObjectMapper jsonMapper;
+
+    @Autowired private WebApplicationContext webApplicationContext;
+
+    @Bean
+    public ClientHttpConnector clientHttpConnector() {
+      MockMvc mockMvc =
+          MockMvcBuilders.webAppContextSetup(webApplicationContext)
+              .addFilter(
+                  (request, response, chain) -> {
+                    Map<String, String> headers = new HashMap<>();
+                    for (String headerName :
+                        Collections.list(((MockHttpServletRequest) request).getHeaderNames())) {
+                      headers.put(
+                          headerName, ((MockHttpServletRequest) request).getHeader(headerName));
+                    }
+
+                    String queryString = ((MockHttpServletRequest) request).getQueryString();
+                    response.setContentType("application/json");
+
+                    response
+                        .getWriter()
+                        .write(
+                            jsonMapper.writeValueAsString(
+                                Map.of(
+                                    "name",
+                                    "John Doe",
+                                    "headers",
+                                    headers,
+                                    "queryString",
+                                    queryString != null ? queryString : "")));
+                  })
+              .build();
+      return new MockMvcHttpConnector(mockMvc);
+    }
+  }
+
+  @Transactional
+  @Nested
+  public class IntegrationTest extends PostgresControllerIntegrationTestBase {
+
+    private static GenericContainer<?> routeTargetMockServerContainer;
+    private MockServerClient routeTargetMockServerClient;
+
+    @BeforeAll
+    public static void beforeAll() {
+      routeTargetMockServerContainer =
+          new GenericContainer<>("mockserver/mockserver")
+              .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+              .withExposedPorts(1080);
+      routeTargetMockServerContainer.start();
+    }
+
+    @BeforeEach
+    public void beforeEach() {
+      routeTargetMockServerClient =
+          new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+    }
+
+    @AfterEach
+    public void afterEach() {
+      routeTargetMockServerClient.reset();
+    }
+
+    @Test
+    void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
+        throws JsonProcessingException {
+      routeTargetMockServerClient
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 10));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("responseTimeoutSeconds", 5);
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(504, mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
+        throws JsonProcessingException {
+      routeTargetMockServerClient
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("responseTimeoutSeconds", 5);
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(200, mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    void testRunRouteWhenResponseIsHttpError()
+        throws JsonProcessingException, UnsupportedEncodingException {
+      routeTargetMockServerClient
+          .when(request().withPath("/"))
+          .respond(
+              org.mockserver.model.HttpResponse.response(
+                      jsonMapper.writeValueAsString(Map.of("message", "not found")))
+                  .withStatusCode(404));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(404, mvcResult.getResponse().getStatus());
+      JsonObject responseBody =
+          JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+      assertEquals("not found", responseBody.get("message").as(JsonString.class).string());
+    }
+  }
+
   @Test
   void testRunRouteGivenApiQueryParamsAuthScheme()
-      throws JsonProcessingException, MalformedURLException {
-    ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
-
-    RestTemplate mockRestTemplate = mock(RestTemplate.class);
-    when(mockRestTemplate.exchange(
-            urlArgumentCaptor.capture(),
-            any(HttpMethod.class),
-            any(HttpEntity.class),
-            any(Class.class)))
-        .thenReturn(
-            new ResponseEntity<>(
-                jsonMapper.writeValueAsString(Map.of("name", "John Doe")),
-                HttpStatusCode.valueOf(200)));
-    service.setRestTemplate(mockRestTemplate);
-
+      throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
     route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-    HttpResponse runHttpResponse =
-        GET(
-            "/routes/{id}/run",
-            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
-    assertStatus(HttpStatus.OK, runHttpResponse);
-    assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
 
-    assertEquals("token=foo", new URL(urlArgumentCaptor.getValue()).getQuery());
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+
+    assertEquals("John Doe", responseBody.get("name").as(JsonString.class).string());
+    assertEquals("token=foo", responseBody.get("queryString").as(JsonString.class).string());
   }
 
   @Test
-  void testRunRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
-    ArgumentCaptor<HttpEntity<?>> httpEntityArgumentCaptor =
-        ArgumentCaptor.forClass(HttpEntity.class);
-
-    RestTemplate mockRestTemplate = mock(RestTemplate.class);
-    when(mockRestTemplate.exchange(
-            anyString(),
-            any(HttpMethod.class),
-            httpEntityArgumentCaptor.capture(),
-            any(Class.class)))
-        .thenReturn(
-            new ResponseEntity<>(
-                jsonMapper.writeValueAsString(Map.of("name", "John Doe")),
-                HttpStatusCode.valueOf(200)));
-    service.setRestTemplate(mockRestTemplate);
-
+  void testRunRouteGivenApiHeadersAuthScheme()
+      throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
     route.put("url", "http://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
-    HttpResponse runHttpResponse =
-        GET(
-            "/routes/{id}/run",
-            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
-    assertStatus(HttpStatus.OK, runHttpResponse);
-    assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
 
-    HttpEntity<?> capturedHttpEntity = httpEntityArgumentCaptor.getValue();
-    HttpHeaders headers = capturedHttpEntity.getHeaders();
-    assertEquals("foo", headers.get("X-API-KEY").get(0));
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("John Doe", responseBody.asObject().get("name").as(JsonString.class).string());
+    assertEquals(
+        "foo",
+        responseBody.get("headers").asObject().get("X-API-KEY").as(JsonString.class).string());
   }
 
   @Test
@@ -198,5 +354,63 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE,
         getHttpResponse.content().get("auth.type").as(JsonString.class).string());
     assertFalse(getHttpResponse.content().get("auth").as(JsonObject.class).has("queryParams"));
+  }
+
+  @Test
+  void testAddRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(HttpStatus.CONFLICT, postHttpResponse);
+  }
+
+  @Test
+  void testAddRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(HttpStatus.CONFLICT, postHttpResponse);
+  }
+
+  @Test
+  void testUpdateRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
+  }
+
+  @Test
+  void testUpdateRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
   }
 }

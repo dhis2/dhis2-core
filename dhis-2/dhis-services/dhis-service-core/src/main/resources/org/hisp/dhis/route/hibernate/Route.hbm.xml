@@ -39,5 +39,7 @@
         <!-- Dynamic attribute values -->
         <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
 
+        <property name="responseTimeoutSeconds" type="integer"/>
+
     </class>
 </hibernate-mapping>
