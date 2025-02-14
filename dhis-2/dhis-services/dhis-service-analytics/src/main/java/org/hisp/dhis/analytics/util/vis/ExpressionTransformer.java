@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesDataElementCountPattern;
 import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastCreatedExistsPattern;
 import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastEventValuePattern;
 import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastSchedPattern;
@@ -273,15 +274,11 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
             return;
         }
 
-        Optional<FoundSubSelect> lastSched = matchesLastSchedPattern(subSelect);
-        Optional<FoundSubSelect> lastCreated = matchesLastCreatedExistsPattern(subSelect);
-        Optional<FoundSubSelect> lastEvent = matchesLastEventValuePattern(subSelect);
-        Optional<FoundSubSelect> relCount = matchesRelationshipCountPattern(subSelect);
-
-        Optional<FoundSubSelect> matchedPattern = lastSched
-                .or(() -> lastCreated)
-                .or(() -> lastEvent)
-                .or(() -> relCount);
+        Optional<FoundSubSelect> matchedPattern = matchesLastSchedPattern(subSelect)
+                .or(() -> matchesLastCreatedExistsPattern(subSelect))
+                .or(() -> matchesLastEventValuePattern(subSelect))
+                .or(() -> matchesRelationshipCountPattern(subSelect))
+                .or(() -> matchesDataElementCountPattern(subSelect));
 
         if (matchedPattern.isPresent()) {
             FoundSubSelect found = matchedPattern.get();
@@ -296,6 +293,9 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
                     // For last_value_* patterns, use lv_columnname
                     if (found.name().startsWith("last_value_")) {
                         yield "lv_" + preserveLetterNumbers(found.columnReference());
+                    }
+                    if (found.name().startsWith("de_count_")) {
+                        yield "dec_" + preserveLetterNumbers(found.columnReference());
                     }
                     yield found.name(); // fallback
                 }
