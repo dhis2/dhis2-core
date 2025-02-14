@@ -6,6 +6,7 @@ import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.FromItem;
@@ -14,6 +15,7 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -330,6 +332,185 @@ public class SubselectMatchers {
         metadata.put("isAggregated", String.valueOf(isAggregated));
 
         return Optional.of(new FoundSubSelect(cteName, subSelect, "relationship_count", metadata));
+    }
+
+    /**
+     * Checks if the given subselect matches the data element count pattern:
+     *   SELECT count("dataElementId")
+     *   FROM analytics_event_*
+     *   WHERE analytics_event_*.enrollment = subax.enrollment
+     *     AND "dataElementId" IS NOT NULL
+     *     AND "dataElementId" = 1
+     *     AND ps = 'programStageId'
+     *
+     * @param subSelect the subselect to check
+     * @return Optional containing FoundSubSelect if it matches, empty Optional otherwise
+     */
+    public static Optional<FoundSubSelect> matchesDataElementCountPattern(SubSelect subSelect) {
+        if (!(subSelect.getSelectBody() instanceof PlainSelect plain)) {
+            return Optional.empty();
+        }
+
+        // Check SELECT clause - should be count of a data element
+        List<SelectItem> selectItems = plain.getSelectItems();
+        if (selectItems == null || selectItems.size() != 1) {
+            return Optional.empty();
+        }
+
+        SelectItem item = selectItems.get(0);
+        if (!(item instanceof SelectExpressionItem sei)) {
+            return Optional.empty();
+        }
+
+        Expression selectExpr = sei.getExpression();
+        if (!(selectExpr instanceof Function func) ||
+                !"count".equalsIgnoreCase(func.getName()) ||
+                func.getParameters() == null ||
+                func.getParameters().getExpressions().size() != 1) {
+            return Optional.empty();
+        }
+
+        Expression countParam = func.getParameters().getExpressions().get(0);
+        if (!(countParam instanceof Column col)) {
+            return Optional.empty();
+        }
+
+        // Remove quotes from the column name if present
+        String dataElementId = col.getColumnName().replaceAll("\"", "");
+
+        // Check FROM clause - should be analytics_event_*
+        FromItem fromItem = plain.getFromItem();
+        if (!(fromItem instanceof Table table) ||
+                !table.getName().toLowerCase().contains("analytics_event")) {
+            return Optional.empty();
+        }
+
+        // Check WHERE clause conditions
+        Expression where = plain.getWhere();
+        if (!(where instanceof AndExpression)) {
+            return Optional.empty();
+        }
+
+        // Parse the WHERE clause to verify all required conditions
+        WhereClauseConditions conditions = extractWhereConditions(where, dataElementId);
+
+        if (!conditions.isValid()) {
+            return Optional.empty();
+        }
+
+        // Create metadata map
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("dataElementId", dataElementId);
+        metadata.put("programStageId", conditions.programStageId());
+        metadata.put("value", conditions.dataElementValue());
+
+        // Generate CTE name using the data element ID
+        String cteName = "de_count_" + preserveLettersAndNumbers(dataElementId);
+
+        return Optional.of(new FoundSubSelect(cteName, subSelect, "de_count", metadata));
+    }
+
+    private record WhereClauseConditions(
+            boolean hasEnrollmentCondition,
+            boolean hasIsNotNullCondition,
+            boolean hasValueCondition,
+            boolean hasProgramStageCondition,
+            String programStageId,
+            String dataElementValue  // This could be any value, not just "1"
+    ) {
+        boolean isValid() {
+            return hasEnrollmentCondition &&
+                    hasIsNotNullCondition &&
+                    hasValueCondition &&
+                    dataElementValue != null;  // Remove programStage requirement
+        }
+    }
+
+
+    private static WhereClauseConditions extractWhereConditions(Expression whereExpr, String dataElementId) {
+        boolean hasEnrollmentCondition = false;
+        boolean hasIsNotNullCondition = false;
+        boolean hasValueCondition = false;
+        boolean hasProgramStageCondition = false;
+        String programStageId = null;
+        String dataElementValue = null;
+
+        List<Expression> conditions = new ArrayList<>();
+        flattenAndConditions(whereExpr, conditions);
+
+        for (Expression condition : conditions) {
+            if (condition instanceof EqualsTo equals) {
+                if (isEnrollmentCondition(equals)) {
+                    hasEnrollmentCondition = true;
+                } else if (isProgramStageCondition(equals)) {
+                    hasProgramStageCondition = true;
+                    programStageId = extractStringValue(equals.getRightExpression());
+                } else if (isDataElementValueCondition(equals, dataElementId)) {
+                    hasValueCondition = true;
+                    dataElementValue = equals.getRightExpression().toString();
+                }
+            } else if (condition instanceof IsNullExpression isNull) {
+                if (isDataElementNotNullCondition(isNull, dataElementId)) {
+                    hasIsNotNullCondition = true;
+                }
+            }
+        }
+
+        return new WhereClauseConditions(
+                hasEnrollmentCondition,
+                hasIsNotNullCondition,
+                hasValueCondition,
+                hasProgramStageCondition,
+                programStageId,
+                dataElementValue
+        );
+    }
+
+    private static void flattenAndConditions(Expression expr, List<Expression> conditions) {
+        if (expr instanceof AndExpression and) {
+            flattenAndConditions(and.getLeftExpression(), conditions);
+            flattenAndConditions(and.getRightExpression(), conditions);
+        } else {
+            conditions.add(expr);
+        }
+    }
+
+    private static boolean isEnrollmentCondition(EqualsTo equals) {
+        Expression left = equals.getLeftExpression();
+        Expression right = equals.getRightExpression();
+
+        return left instanceof Column leftCol &&
+                right instanceof Column rightCol &&
+                leftCol.getColumnName().equals("enrollment") &&
+                rightCol.getTable() != null &&
+                rightCol.getTable().getName().equals("subax") &&
+                rightCol.getColumnName().equals("enrollment");
+    }
+
+    private static boolean isProgramStageCondition(EqualsTo equals) {
+        Expression left = equals.getLeftExpression();
+        return left instanceof Column col && col.getColumnName().equals("ps");
+    }
+
+    private static boolean isDataElementValueCondition(EqualsTo equals, String dataElementId) {
+        Expression left = equals.getLeftExpression();
+        return left instanceof Column col &&
+                col.getColumnName().replaceAll("\"", "").equals(dataElementId) &&
+                equals.getRightExpression() != null;  // Accept any non-null value
+    }
+
+    private static boolean isDataElementNotNullCondition(IsNullExpression isNull, String dataElementId) {
+        Expression left = isNull.getLeftExpression();
+        return left instanceof Column col &&
+                col.getColumnName().replaceAll("\"", "").equals(dataElementId) &&
+                isNull.isNot();
+    }
+
+    private static String extractStringValue(Expression expr) {
+        if (expr instanceof StringValue sv) {
+            return sv.getValue();
+        }
+        return null;
     }
 
     /**

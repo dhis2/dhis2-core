@@ -27,6 +27,7 @@ import org.hisp.dhis.analytics.util.vis.AppendExtractedCtesHelper;
 import org.hisp.dhis.analytics.util.vis.ExpressionTransformer;
 import org.hisp.dhis.analytics.util.vis.FoundSubSelect;
 import org.hisp.dhis.analytics.util.vis.GeneratedCte;
+import org.hisp.dhis.analytics.util.vis.SubqueryTransformer;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 
@@ -247,10 +248,14 @@ public class ProgramIndicatorCteOptimizer {
                                 String newCteSql = lastEventValueCte(eventTable, found.columnReference());
                                 generatedCtes.put(name,
                                         new GeneratedCte(name, newCteSql, "lv_" + preserveLettersAndNumbers(found.columnReference())));
+                            } else if(name.startsWith("de_count_")) {
+                                String newCteSql = dataElementCountCte(entry.getKey(), found.columnReference());
+                                generatedCtes.put(name,
+                                        new GeneratedCte(name, newCteSql, "dec_" + preserveLettersAndNumbers(found.columnReference())));
                             }
                         }
                     }
-                }
+                 }
 
                 // Update the WHERE clause
                 oldSelect.setWhere(transformedWhere);
@@ -458,6 +463,11 @@ public class ProgramIndicatorCteOptimizer {
            ) t
            WHERE rn = 1
            """.formatted(columnName, columnName, table, columnName);
+    }
+
+    private String dataElementCountCte(SubSelect subquery, String columnAlias) {
+
+        return SubqueryTransformer.transformSubSelect(subquery, columnAlias);
     }
 
     private String preserveLettersAndNumbers(String str) {
