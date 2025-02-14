@@ -471,6 +471,19 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
+  void shouldMapDataElementFiltersWhenQueryFilterHasUIDOnly() throws BadRequestException {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setFilter(DE_1_UID.getValue());
+
+    EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
+
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<UID, List<QueryFilter>> expected = Map.of(DE_1_UID, List.of());
+    assertEquals(expected, dataElementFilters);
+  }
+
+  @Test
   void shouldMapDataElementFiltersToDefaultIfNoneSet() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 

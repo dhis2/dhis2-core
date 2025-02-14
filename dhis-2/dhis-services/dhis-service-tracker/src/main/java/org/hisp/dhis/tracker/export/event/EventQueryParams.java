@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -473,7 +474,7 @@ class EventQueryParams {
   }
 
   public EventQueryParams filterBy(DataElement de) {
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
+    this.dataElements.putIfAbsent(de, List.of(new QueryFilter(QueryOperator.NNULL)));
     return this;
   }
 
