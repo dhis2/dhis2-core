@@ -127,7 +127,7 @@ class ProgramIndicatorCteOptimizerTest {
                   limit 101 offset 0
                 """;
 
-        String transformedQuery = transformer.transformSQL(originalQuery);
+        String transformedQuery = transformer.transformSQL(originalQuery, false);
 
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
@@ -330,7 +330,7 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String transformedQuery = transformer.transformSQL(originalQuery);
+        String transformedQuery = transformer.transformSQL(originalQuery, false);
         System.out.println(transformedQuery);
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
@@ -431,7 +431,7 @@ class ProgramIndicatorCteOptimizerTest {
                 	0) as hgTNuHSqBmL
                 from
                 	analytics_enrollment_ur1edk5oe2n as ax
-                left join hgTNuHSqBmL nvtqi on
+                left join pi_hgTNuHSqBmL nvtqi on
                 	nvtqi.enrollment = ax.enrollment
                 where
                 	(((lastupdated >= '2015-01-01'
@@ -549,7 +549,7 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String transformedQuery = transformer.transformSQL(originalQuery);
+        String transformedQuery = transformer.transformSQL(originalQuery, false);
         System.out.println(transformedQuery);
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
