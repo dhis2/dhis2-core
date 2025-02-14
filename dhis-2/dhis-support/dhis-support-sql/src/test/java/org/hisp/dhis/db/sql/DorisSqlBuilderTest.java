@@ -345,6 +345,11 @@ class DorisSqlBuilderTest {
             "a.incidentdate"));
   }
 
+  @Test
+  void testLog10() {
+    assertEquals("log(value, 10)", sqlBuilder.log10("value"));
+  }
+
   // Statements
 
   @Test
