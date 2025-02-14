@@ -32,7 +32,6 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -53,7 +52,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -123,27 +121,62 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
   }
 
   static Stream<Arguments> shouldCreateWorkingListWithProgramStageQueryCriteria() {
-    Consumer<JsonProgramStageQueryCriteria> followUpIsNull =
-        json ->
-            assertFalse(
-                json.has("followUp"),
-                "FollowUp check has not been requested and should not be in the response");
-    Consumer<JsonProgramStageQueryCriteria> followUpIsTrue =
-        json -> assertTrue(json.getFollowUp(), "Expected followUp true but got false");
-    Consumer<JsonProgramStageQueryCriteria> followUpIsFalse =
-        json -> assertFalse(json.getFollowUp(), "Expected followUp false but got true");
-
     return Stream.of(
-        arguments("", followUpIsNull),
-        arguments("'followUp': true,\n", followUpIsTrue),
-        arguments("'followUp': false,\n", followUpIsFalse));
+        arguments(
+            "",
+            assertFollowUp(null),
+            "'dataFilters':[{'dataItem':'DATAEL00001'}],\n",
+            assertUnaryOperator(null)),
+        arguments(
+            "'followUp': true,\n",
+            assertFollowUp(true),
+            "'dataFilters':[{'null':true,'dataItem':'DATAEL00001'}],\n",
+            assertUnaryOperator(true)),
+        arguments(
+            "'followUp': false,\n",
+            assertFollowUp(false),
+            "'dataFilters':[{'null':false,'dataItem':'DATAEL00001'}],\n",
+            assertUnaryOperator(false)));
+  }
+
+  private static Consumer<JsonProgramStageQueryCriteria> assertFollowUp(Boolean expected) {
+    return json -> {
+      if (expected == null) {
+        assertFalse(
+            json.has("followUp"),
+            "FollowUp check has not been requested and should not be in the response");
+      } else {
+        assertEquals(expected, json.getFollowUp(), "Unexpected followUp value");
+      }
+    };
+  }
+
+  private static Consumer<JsonProgramStageQueryCriteria> assertUnaryOperator(Boolean expected) {
+    return json -> {
+      if (expected == null) {
+        assertTrue(
+            json.getDataFilters().stream().noneMatch(filter -> filter.asObject().has("null")),
+            "Null unary operator not expected in the response.");
+      } else {
+        boolean actual =
+            Boolean.TRUE.equals(
+                json.getDataFilters().get(0).asObject().getBoolean("null").booleanValue());
+        assertEquals(
+            expected,
+            actual,
+            String.format(
+                "Expected null unary operator to be %s, but is %s instead.", expected, actual));
+      }
+    };
   }
 
   @MethodSource
   @ParameterizedTest
   void shouldCreateWorkingListWithProgramStageQueryCriteria(
-      String followUp, Consumer<JsonProgramStageQueryCriteria> followUpAssertion) {
-    String dataElementId = "DATAEL00001";
+      String followUp,
+      Consumer<JsonProgramStageQueryCriteria> followUpAssertion,
+      String dataFilter,
+      Consumer<JsonProgramStageQueryCriteria> dataFilterAssertion) {
     String workingListJson =
         assertStatus(
             HttpStatus.CREATED,
@@ -161,7 +194,7 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
                      "APtutTb0nOY"
                    ],
                    'order': 'createdAt:desc',
-                   'dataFilters':[{'null':'','!null':'value','dataItem':'%s'}],
+                   %s
                    'enrollmentStatus': 'ACTIVE',
                     %s
                    'eventOccurredAt': {
@@ -171,7 +204,7 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
                   }
                 }
               """
-                    .formatted(programId, programStageId, dataElementId, followUp)));
+                    .formatted(programId, programStageId, dataFilter, followUp)));
 
     JsonWorkingList workingList =
         GET("/programStageWorkingLists/{id}", workingListJson).content().as(JsonWorkingList.class);
@@ -198,14 +231,7 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
     assertEquals("zDhUuAYrxNC", displayColumnOrder.getString(1).string());
     assertEquals("APtutTb0nOY", displayColumnOrder.getString(2).string());
 
-    JsonArray dataFilters = workingList.getProgramStageQueryCriteria().getDataFilters();
-    assertFalse(dataFilters.isEmpty(), "Data filters should not be empty");
-    JsonObject dataFilter =
-        workingList.getProgramStageQueryCriteria().getDataFilters().get(0).asObject();
-    assertNull(dataFilter.getString("null").string());
-    assertEquals("true", dataFilter.getString("!null").string());
-    assertEquals(dataElementId, dataFilter.getString("dataItem").string());
-
+    dataFilterAssertion.accept(programStageQueryCriteria);
     followUpAssertion.accept(programStageQueryCriteria);
   }
 
