@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.springframework.core.io.Resource;
 
 /**

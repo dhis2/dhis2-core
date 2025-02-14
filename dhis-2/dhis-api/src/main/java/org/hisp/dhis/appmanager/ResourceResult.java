@@ -25,13 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager.resource;
+package org.hisp.dhis.appmanager;
 
 import javax.annotation.Nonnull;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
+import org.springframework.core.io.Resource;
 
 /**
- * Should be used when a Resource does not exist.
+ * Models the potential results when trying to retrieve a Resource. <br>
+ * Can be one of:
  *
- * @param path the path at which the resource was attempted to be retrieved from
+ * <ul>
+ *   <li>ResourceFound
+ *   <li>ResourceNotFound
+ *   <li>Redirect
+ * </ul>
  */
-public record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
+public sealed interface ResourceResult permits ResourceFound, ResourceNotFound, Redirect {
+  record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
+
+  record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
+
+  record Redirect(@Nonnull String path) implements ResourceResult {}
+}

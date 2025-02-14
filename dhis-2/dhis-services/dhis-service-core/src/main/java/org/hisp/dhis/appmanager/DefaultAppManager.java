@@ -56,7 +56,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.apphub.AppHubService;
-import org.hisp.dhis.appmanager.resource.ResourceResult;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespace;

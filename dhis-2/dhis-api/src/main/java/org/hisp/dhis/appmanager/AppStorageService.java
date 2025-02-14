@@ -30,10 +30,9 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import org.hisp.dhis.appmanager.resource.Redirect;
-import org.hisp.dhis.appmanager.resource.ResourceFound;
-import org.hisp.dhis.appmanager.resource.ResourceNotFound;
-import org.hisp.dhis.appmanager.resource.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
 import org.springframework.scheduling.annotation.Async;
 
