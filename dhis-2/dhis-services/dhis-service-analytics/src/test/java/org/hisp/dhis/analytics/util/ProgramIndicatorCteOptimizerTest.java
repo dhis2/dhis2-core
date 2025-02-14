@@ -1,15 +1,216 @@
 package org.hisp.dhis.analytics.util;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
+import net.sf.jsqlparser.JSQLParserException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ProgramIndicatorCteOptimizerTest {
 
+    private final ProgramIndicatorCteOptimizer transformer = new ProgramIndicatorCteOptimizer();
+
     @Test
-    public void testLastScheduled() {
-        ProgramIndicatorCteOptimizer transformer = new ProgramIndicatorCteOptimizer();
+    void testLastScheduled() {
+        String originalSql = """
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE (
+                        SELECT scheduleddate
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND scheduleddate IS NOT NULL
+                        ORDER BY occurreddate DESC
+                        LIMIT 1
+                    ) IS NOT NULL
+                )
+                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                """;
+
+        String expectedSql = """
+                with last_sched as (
+                select
+                	enrollment,
+                	scheduleddate
+                from
+                	(
+                	select
+                		enrollment,
+                		scheduleddate,
+                		row_number() over (partition by enrollment
+                	order by
+                		occurreddate desc) as rn
+                	from
+                		analytics_event_ur1edk5oe2n
+                	where
+                		scheduleddate is not null) t
+                where
+                	rn = 1),
+                pi_inputcte as (
+                select
+                	subax.enrollment
+                from
+                	analytics_enrollment_ur1edk5oe2n as subax
+                left join last_sched as ls on
+                	subax.enrollment = ls.enrollment
+                where
+                	ls.scheduleddate is not null)
+                select
+                	*
+                from
+                	analytics_enrollment_ur1edk5oe2n
+                """;
+        String transformedSql = transformer.transformSQL(originalSql, false);
+        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+    }
+
+    @Test
+    void testLastCreated() {
+        String originalSql = """
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE (
+                        SELECT   created
+                        FROM     analytics_event_ur1edk5oe2n
+                        WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND      created IS NOT NULL
+                        ORDER BY occurreddate DESC
+                        LIMIT    1
+                    ) IS NOT NULL
+                )
+                SELECT * FROM pi_inputcte;
+                """;
+
+        String expectedSql = """
+                with last_created as (
+                    select
+                        enrollment,
+                        created
+                    from
+                        (
+                        select
+                            enrollment,
+                            created,
+                            row_number() over (partition by enrollment
+                        order by
+                            occurreddate desc) as rn
+                        from
+                            analytics_event_ur1edk5oe2n
+                        where
+                            created is not null) t
+                    where
+                        rn = 1),
+                    pi_inputcte as (
+                    select
+                        subax.enrollment
+                    from
+                        analytics_enrollment_ur1edk5oe2n as subax
+                    left join last_created as lc on
+                        subax.enrollment = lc.enrollment
+                    where
+                        lc.created is not null)
+                    select
+                        *
+                    from
+                        pi_inputcte
+                """;
+        String transformedSql = transformer.transformSQL(originalSql, false);
+        System.out.println(transformedSql);
+        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+    }
+
+    @Test
+    void testAggregatedRelationshipCount() {
+        String originalSql = """
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE (
+                        (select
+                            sum(relationship_count)
+                        from
+                            analytics_rs_relationship arr
+                        where
+                            arr.trackedentityid = subax.trackedentity) > 10
+                    )
+                )
+                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                """;
+
+        String expectedSql = """
+                with relationship_count_agg as (
+                select
+                	trackedentityid,
+                	sum(relationship_count) as relationship_count
+                from
+                	analytics_rs_relationship
+                group by
+                	trackedentityid),
+                pi_inputcte as (
+                select
+                	subax.enrollment
+                from
+                	analytics_enrollment_ur1edk5oe2n as subax
+                left join relationship_count_agg as rlc on
+                	subax.trackedentity = rlc.trackedentityid
+                where
+                	(rlc.relationship_count > 10))
+                select
+                	*
+                from
+                	analytics_enrollment_ur1edk5oe2n
+                """;
+        String transformedSql = transformer.transformSQL(originalSql, false);
+        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+    }
+
+    @Test
+    void testNonAggregatedRelationshipCount() {
+        String originalSql = """
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE (
+                        (select relationship_count
+                         from analytics_rs_relationship arr
+                         where arr.trackedentityid = subax.trackedentity
+                         and relationshiptypeuid = 'dk34dj3') > 10
+                    )
+                )
+                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                """;
+
+        String expectedSql = """
+                with relationship_count as (
+                select
+                	trackedentityid,
+                	relationship_count
+                from
+                	analytics_rs_relationship
+                where
+                	relationshiptypeuid = 'dk34dj3'),
+                pi_inputcte as (
+                select
+                	subax.enrollment
+                from
+                	analytics_enrollment_ur1edk5oe2n as subax
+                left join relationship_count as rlc on
+                	subax.trackedentity = rlc.trackedentityid
+                where
+                	(rlc.relationship_count > 10))
+                select
+                	*
+                from
+                	analytics_enrollment_ur1edk5oe2n
+                """;
+        String transformedSql = transformer.transformSQL(originalSql, false);
+        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+    }
+
+    @Test
+    public void testLastScheduledComplex() {
 
         String originalQuery = """
                     WITH pi_hgtnuhsqbml AS (
@@ -60,10 +261,10 @@ class ProgramIndicatorCteOptimizerTest {
 
         String expected = """
                 with last_sched as (
-                  select
+                 select
                     enrollment,
                     scheduleddate
-                  from
+                 from
                     (
                     select
                         enrollment,
@@ -75,13 +276,13 @@ class ProgramIndicatorCteOptimizerTest {
                         analytics_event_ur1edk5oe2n
                     where
                         scheduleddate is not null) t
-                  where
+                 where
                     rn = 1),
-                  last_created as (
-                  select
+                 last_created as (
+                 select
                     enrollment,
                     created
-                  from
+                 from
                     (
                     select
                         enrollment,
@@ -93,42 +294,41 @@ class ProgramIndicatorCteOptimizerTest {
                         analytics_event_ur1edk5oe2n
                     where
                         created is not null) t
-                  where
+                 where
                     rn = 1),
-                  pi_hgtnuhsqbml as (
-                  select
+                 pi_hgtnuhsqbml as (
+                 select
                     subax.enrollment
-                  from
+                 from
                     analytics_enrollment_ur1edk5oe2n as subax
-                  left join last_sched as ls on
+                 left join last_sched as ls on
                     subax.enrollment = ls.enrollment
-                  left join last_created as lc on
+                 left join last_created as lc on
                     subax.enrollment = lc.enrollment
-                  where
-                    date_part('year',
+                 where
+                    (((date_part('year',
                     age(cast(ls.scheduleddate as date),
                     cast(coalesce(completeddate,
-                    lc.created) as date))) * 12 + date_part('month',
+                    lc.created) as date)))) * 12 + date_part('month',
                     age(cast(ls.scheduleddate as date),
                     cast(coalesce(completeddate,
-                    lc.created) as date))) > 1
-                  group by
+                    lc.created) as date))))) > 1
+                 group by
                     subax.enrollment)
-                  select
+                 select
                     ax.enrollment
-                  from
+                 from
                     analytics_enrollment_ur1edk5oe2n as ax
-                  left join pi_hgtnuhsqbml kektm on
+                 left join pi_hgtnuhsqbml kektm on
                     kektm.enrollment = ax.enrollment
-                  where
+                 where
                     (lastupdated >= '2015-01-01'
                         and lastupdated < '2025-01-01')
                     and ax."uidlevel1" = 'ImspTQPwCqd'
-                  limit 101 offset 0
+                 limit 101 offset 0
                 """;
 
         String transformedQuery = transformer.transformSQL(originalQuery, false);
-
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
     }
@@ -228,105 +428,105 @@ class ProgramIndicatorCteOptimizerTest {
         String expected = """
                 with last_created as (
                 select
-                    enrollment,
-                    created
+                	enrollment,
+                	created
                 from
-                    (
-                    select
-                        enrollment,
-                        created,
-                        row_number() over (partition by enrollment
-                    order by
-                        occurreddate desc) as rn
-                    from
-                        analytics_event_IpHINAT79UW
-                    where
-                        created is not null) t
+                	(
+                	select
+                		enrollment,
+                		created,
+                		row_number() over (partition by enrollment
+                	order by
+                		occurreddate desc) as rn
+                	from
+                		analytics_event_IpHINAT79UW
+                	where
+                		created is not null) t
                 where
-                    rn = 1),
+                	rn = 1),
                 last_value_h6usamo5wld as (
                 select
-                    enrollment,
-                    "H6uSAMO5WLD"
+                	enrollment,
+                	"H6uSAMO5WLD"
                 from
-                    (
-                    select
-                        enrollment,
-                        "H6uSAMO5WLD",
-                        row_number() over (partition by enrollment
-                    order by
-                        occurreddate desc) as rn
-                    from
-                        analytics_event_IpHINAT79UW
-                    where
-                        "H6uSAMO5WLD" is not null) t
+                	(
+                	select
+                		enrollment,
+                		"H6uSAMO5WLD",
+                		row_number() over (partition by enrollment
+                	order by
+                		occurreddate desc) as rn
+                	from
+                		analytics_event_IpHINAT79UW
+                	where
+                		"H6uSAMO5WLD" is not null) t
                 where
-                    rn = 1),
+                	rn = 1),
                 last_value_cygaxwk615g as (
                 select
-                    enrollment,
-                    "cYGaxwK615G"
+                	enrollment,
+                	"cYGaxwK615G"
                 from
-                    (
-                    select
-                        enrollment,
-                        "cYGaxwK615G",
-                        row_number() over (partition by enrollment
-                    order by
-                        occurreddate desc) as rn
-                    from
-                        analytics_event_IpHINAT79UW
-                    where
-                        "cYGaxwK615G" is not null) t
+                	(
+                	select
+                		enrollment,
+                		"cYGaxwK615G",
+                		row_number() over (partition by enrollment
+                	order by
+                		occurreddate desc) as rn
+                	from
+                		analytics_event_IpHINAT79UW
+                	where
+                		"cYGaxwK615G" is not null) t
                 where
-                    rn = 1),
+                	rn = 1),
                 pi_qZOBw051LSf as (
                 select
-                    subax.enrollment,
-                    sum(1 + 1) as value
+                	subax.enrollment,
+                	sum(1 + 1) as value
                 from
-                    analytics_enrollment_iphinat79uw as subax
+                	analytics_enrollment_iphinat79uw as subax
                 left join last_created as lc on
-                    subax.enrollment = lc.enrollment
+                	subax.enrollment = lc.enrollment
                 left join last_value_h6usamo5wld as lv_H6uSAMO5WLD on
-                    subax.enrollment = lv_H6uSAMO5WLD.enrollment
+                	subax.enrollment = lv_H6uSAMO5WLD.enrollment
                 left join last_value_cygaxwk615g as lv_cYGaxwK615G on
-                    subax.enrollment = lv_cYGaxwK615G.enrollment
+                	subax.enrollment = lv_cYGaxwK615G.enrollment
                 where
-                    date_part('year',
-                    age(cast(enrollmentdate as date),
-                    cast(lc.created as date))) >= 5
-                        and date_part('year',
-                        age(cast(enrollmentdate as date),
-                        cast(completeddate as date))) < 1
-                            and coalesce(cast("cejWyOfXge6" as text),
-                            '') = 'MALE'
-                                and coalesce(cast(lv_H6uSAMO5WLD."H6uSAMO5WLD" as text),
-                                '') = 'RDT'
-                                    or "w75KJ2mc4zz" is not null
-                                    and coalesce(cast(lv_cYGaxwK615G."cYGaxwK615G" as text),
-                                    '') = 'POSITIVE'
-                                        or coalesce(cast(lv_cYGaxwK615G."cYGaxwK615G" as text),
-                                        '') = 'NEGATIVE'
-                                            or not 3.14 = 0
-                                            or '2015-01-01' is not null
-                                        group by
-                                            subax.enrollment)
+                	(date_part('year',
+                	age(cast(enrollmentdate as date),
+                	cast(lc.created as date)))) >= 5
+                		and (date_part('year',
+                		age(cast(enrollmentdate as date),
+                		cast(completeddate as date)))) < 1
+                			and coalesce(cast("cejWyOfXge6" as text),
+                			'') = 'MALE'
+                				and (coalesce(cast(lv_H6uSAMO5WLD."H6uSAMO5WLD" as text),
+                				'') = 'RDT'
+                					or "w75KJ2mc4zz" is not null)
+                				and (coalesce(cast(lv_cYGaxwK615G."cYGaxwK615G" as text),
+                				'') = 'POSITIVE'
+                					or coalesce(cast(lv_cYGaxwK615G."cYGaxwK615G" as text),
+                					'') = 'NEGATIVE')
+                					or not (3.14 = 0)
+                						or '2015-01-01' is not null
+                					group by
+                						subax.enrollment)
                 select
-                    ax.enrollment,
-                    coalesce(tmwkc.value,
-                    0) as qZOBw051LSf
+                	ax.enrollment,
+                	coalesce(tmwkc.value,
+                	0) as qZOBw051LSf
                 from
-                    analytics_enrollment_iphinat79uw as ax
+                	analytics_enrollment_iphinat79uw as ax
                 left join pi_qZOBw051LSf tmwkc on
-                    tmwkc.enrollment = ax.enrollment
+                	tmwkc.enrollment = ax.enrollment
                 where
-                    (((lastupdated >= '2015-01-01'
-                        and lastupdated < '2025-01-01')))
-                    and (ax."uidlevel1" = 'ImspTQPwCqd')
-                    and enrollmentstatus in ('COMPLETED')
+                	(((lastupdated >= '2015-01-01'
+                		and lastupdated < '2025-01-01')))
+                	and (ax."uidlevel1" = 'ImspTQPwCqd')
+                	and enrollmentstatus in ('COMPLETED')
                 order by
-                    "lastupdated" desc nulls last
+                	"lastupdated" desc nulls last
                 limit 101 offset 0
                 """;
 
@@ -335,9 +535,8 @@ class ProgramIndicatorCteOptimizerTest {
                 "SQL queries should be equivalent after normalization");
     }
 
-
     @Test
-    public void testRelationshipCount() {
+    public void testRelationshipCountComplex() {
         ProgramIndicatorCteOptimizer transformer = new ProgramIndicatorCteOptimizer();
 
         String originalQuery = """
@@ -444,107 +643,111 @@ class ProgramIndicatorCteOptimizerTest {
                 """;
 
         String expected = """
-                with last_created as (
+                with last_sched as (
                 select
-                    enrollment,
-                    created
+                	enrollment,
+                	scheduleddate
                 from
-                    (
-                    select
-                        enrollment,
-                        created,
-                        row_number() over (partition by enrollment
-                    order by
-                        occurreddate desc) as rn
-                    from
-                        analytics_event_IpHINAT79UW
-                    where
-                        created is not null) t
+                	(
+                	select
+                		enrollment,
+                		scheduleddate,
+                		row_number() over (partition by enrollment
+                	order by
+                		occurreddate desc) as rn
+                	from
+                		analytics_event_ur1Edk5Oe2n
+                	where
+                		scheduleddate is not null) t
                 where
-                    rn = 1),
-                last_value_h6usamo5wld as (
+                	rn = 1),
+                last_created as (
                 select
-                    enrollment,
-                    "H6uSAMO5WLD"
+                	enrollment,
+                	created
                 from
-                    (
-                    select
-                        enrollment,
-                        "H6uSAMO5WLD",
-                        row_number() over (partition by enrollment
-                    order by
-                        occurreddate desc) as rn
-                    from
-                        analytics_event_IpHINAT79UW
-                    where
-                        "H6uSAMO5WLD" is not null) t
+                	(
+                	select
+                		enrollment,
+                		created,
+                		row_number() over (partition by enrollment
+                	order by
+                		occurreddate desc) as rn
+                	from
+                		analytics_event_ur1Edk5Oe2n
+                	where
+                		created is not null) t
                 where
-                    rn = 1),
-                last_value_cygaxwk615g as (
+                	rn = 1),
+                de_count_fCXKBdc27Bt as (
                 select
-                    enrollment,
-                    "cYGaxwK615G"
+                	enrollment,
+                	count("fCXKBdc27Bt") as de_count
                 from
-                    (
-                    select
-                        enrollment,
-                        "cYGaxwK615G",
-                        row_number() over (partition by enrollment
-                    order by
-                        occurreddate desc) as rn
-                    from
-                        analytics_event_IpHINAT79UW
-                    where
-                        "cYGaxwK615G" is not null) t
+                	analytics_event_ur1Edk5Oe2n
                 where
-                    rn = 1),
-                pi_qZOBw051LSf as (
+                	"fCXKBdc27Bt" is not null
+                	and "fCXKBdc27Bt" = 1
+                	and ps = 'EPEcjy3FWmI'
+                group by
+                	enrollment),
+                relationship_count_agg as (
                 select
-                    subax.enrollment,
-                    sum(1 + 1) as value
+                	trackedentityid,
+                	sum(relationship_count) as relationship_count
                 from
-                    analytics_enrollment_iphinat79uw as subax
+                	analytics_rs_relationship
+                group by
+                	trackedentityid),
+                pi_hgTNuHSqBmL as (
+                select
+                	subax.enrollment,
+                	sum(1 + 1) as value
+                from
+                	analytics_enrollment_ur1edk5oe2n as subax
+                left join last_sched as ls on
+                	subax.enrollment = ls.enrollment
                 left join last_created as lc on
-                    subax.enrollment = lc.enrollment
-                left join last_value_h6usamo5wld as lv_H6uSAMO5WLD on
-                    subax.enrollment = lv_H6uSAMO5WLD.enrollment
-                left join last_value_cygaxwk615g as lv_cYGaxwK615G on
-                    subax.enrollment = lv_cYGaxwK615G.enrollment
+                	subax.enrollment = lc.enrollment
+                left join de_count_fCXKBdc27Bt as dec_decount on
+                	subax.enrollment = dec_decount.enrollment
+                left join relationship_count_agg as rlc on
+                	subax.trackedentity = rlc.trackedentityid
                 where
-                    date_part('year',
-                    age(cast(enrollmentdate as date),
-                    cast(lc.created as date))) >= 5
-                        and date_part('year',
-                        age(cast(enrollmentdate as date),
-                        cast(completeddate as date))) < 1
-                            and coalesce(cast("cejWyOfXge6" as text),
-                            '') = 'MALE'
-                                and coalesce(cast(lv_H6uSAMO5WLD."H6uSAMO5WLD" as text),
-                                '') = 'RDT'
-                                    or "w75KJ2mc4zz" is not null
-                                    and coalesce(cast(lv_cYGaxwK615G."cYGaxwK615G" as text),
-                                    '') = 'POSITIVE'
-                                        or coalesce(cast(lv_cYGaxwK615G."cYGaxwK615G" as text),
-                                        '') = 'NEGATIVE'
-                                            or not 3.14 = 0
-                                            or '2015-01-01' is not null
-                                        group by
-                                            subax.enrollment)
+                	(((date_part('year',
+                	age(cast(ls.scheduleddate as date),
+                	cast(coalesce(completeddate,
+                	lc.created) as date)))) * 12 + date_part('month',
+                	age(cast(ls.scheduleddate as date),
+                	cast(coalesce(completeddate,
+                	lc.created) as date))))) > 1
+                		or nullif(cast((0) as double precision),
+                		0) > 2
+                			or not (dec_decount.de_count > 0)
+                				and (((extract(epoch
+                			from
+                				(cast(completeddate as timestamp) - cast(enrollmentdate as timestamp)))) / 60)) > 1
+                					and ("cejWyOfXge6" is not null)
+                						and rlc.relationship_count > 0
+                						and "lw1SqmMlnfh" is not null
+                					group by
+                						subax.enrollment)
                 select
-                    ax.enrollment,
-                    coalesce(tmwkc.value,
-                    0) as qZOBw051LSf
+                	ax.enrollment,
+                	coalesce(nvtqi.value,
+                	0) as hgTNuHSqBmL
                 from
-                    analytics_enrollment_iphinat79uw as ax
-                left join pi_qZOBw051LSf tmwkc on
-                    tmwkc.enrollment = ax.enrollment
+                	analytics_enrollment_ur1edk5oe2n as ax
+                left join pi_hgTNuHSqBmL nvtqi on
+                	nvtqi.enrollment = ax.enrollment
                 where
-                    (((lastupdated >= '2015-01-01'
-                        and lastupdated < '2025-01-01')))
-                    and (ax."uidlevel1" = 'ImspTQPwCqd')
-                    and enrollmentstatus in ('COMPLETED')
+                	(((lastupdated >= '2015-01-01'
+                		and lastupdated < '2025-01-01')))
+                	and (ax."uidlevel1" = 'ImspTQPwCqd')
+                	and nvtqi.value > 404
+                	and nvtqi.value is not null
                 order by
-                    "lastupdated" desc nulls last
+                	hgTNuHSqBmL asc nulls last
                 limit 101 offset 0
                 """;
 
