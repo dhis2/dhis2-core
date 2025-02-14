@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.junit.jupiter.api.Test;
 
@@ -60,5 +64,39 @@ class GistControllerPostgresTest extends AbstractGistControllerPostgresTest {
     JsonArray users =
         GET("/users/gist?fields=id,name&headless=true&filter=name:like:Gist").content();
     assertFalse(users.isEmpty());
+  }
+
+  @Test
+  void testFilter_AttributeValuesAttribute() {
+    String attr1Id = postNewAttribute("A1attr", ValueType.TEXT, Attribute.ObjectType.USER_GROUP);
+    String attr2Id = postNewAttribute("A2attr", ValueType.NUMBER, Attribute.ObjectType.USER_GROUP);
+    String group1Id = postNewUserGroupWithAttributeValue("GA1", attr1Id, "hey");
+    String group2Id = postNewUserGroupWithAttributeValue("GA2", attr2Id, "42");
+    JsonArray groups =
+        GET("/userGroups/gist?fields=id,name&headless=true&filter=attributeValues.attribute.name:like:A1")
+            .content();
+    assertEquals(1, groups.size());
+    assertEquals(group1Id, groups.getObject(0).getString("id").string());
+  }
+
+  private String postNewAttribute(
+      String name, ValueType valueType, Attribute.ObjectType objectType) {
+    String body =
+        "{'name':'%s', 'valueType':'%s', '%s':true}"
+            .formatted(name, valueType.name(), objectType.getPropertyName());
+    return assertStatus(HttpStatus.CREATED, POST("/attributes", body));
+  }
+
+  private String postNewUserGroupWithAttributeValue(String name, String attrId, String value) {
+    // language=JSON
+    String json =
+        """
+        {
+        "name":"%s",
+        "attributeValues":[{"attribute": {"id":"%s"}, "value":"%s"}]
+        }
+        """
+            .formatted(name, attrId, value);
+    return assertStatus(HttpStatus.CREATED, POST("/userGroups/", json));
   }
 }

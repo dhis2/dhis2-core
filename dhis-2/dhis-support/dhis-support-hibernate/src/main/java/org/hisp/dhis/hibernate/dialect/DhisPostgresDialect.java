@@ -45,6 +45,9 @@ public class DhisPostgresDialect extends PostgisPG95Dialect {
     registerHibernateType(Types.OTHER, "pg-uuid");
     registerHibernateType(Types.ARRAY, StringArrayType.class.getName());
     registerFunction(
+        "jsonb_exists_any",
+        new StandardSQLFunction("jsonb_exists_any", StandardBasicTypes.BOOLEAN));
+    registerFunction(
         JsonbFunctions.EXTRACT_PATH,
         new StandardSQLFunction(JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING));
     registerFunction(

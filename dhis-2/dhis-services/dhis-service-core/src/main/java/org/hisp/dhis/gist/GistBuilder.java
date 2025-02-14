@@ -31,9 +31,11 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
@@ -823,14 +825,19 @@ final class GistBuilder {
   }
 
   private String createFilterHQL(int index, Filter filter) {
-    if (!isNonNestedPath(filter.getPropertyPath())) {
-      List<Property> path = context.resolvePath(filter.getPropertyPath());
+    String propertyPath = filter.getPropertyPath();
+    if (isAttributeValuesAttributePropertyPath(propertyPath)) {
+      filter = filter.withPropertyPath(attributePath(propertyPath));
+      return "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where %s)) = true"
+          .formatted(createFilterHQL(index, filter, "a." + filter.getPropertyPath()));
+    }
+    if (!isNonNestedPath(propertyPath)) {
+      List<Property> path = context.resolvePath(propertyPath);
       if (isExistsInCollectionFilter(path)) {
         return createExistsFilterHQL(index, filter, path);
       }
     }
-    String memberPath =
-        filter.isAttribute() ? ATTRIBUTES_PROPERTY : getMemberPath(filter.getPropertyPath());
+    String memberPath = filter.isAttribute() ? ATTRIBUTES_PROPERTY : getMemberPath(propertyPath);
     return createFilterHQL(index, filter, "e." + memberPath);
   }
 
@@ -1053,7 +1060,7 @@ final class GistBuilder {
       Comparison operator = filter.getOperator();
       if (!operator.isUnary() && !operator.isAccessCompare()) {
         Object value =
-            filter.isAttribute()
+            filter.isAttribute() || isAttributeValuesAttributePropertyPath(filter.getPropertyPath())
                 ? filter.getValue()[0]
                 : getParameterValue(
                     context.resolveMandatory(filter.getPropertyPath()), filter, argumentParser);
