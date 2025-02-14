@@ -364,7 +364,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
     Enrollment actual =
         enrollmentService.getEnrollment(
-            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true), false);
+            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "update enrollment and program attributes",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));

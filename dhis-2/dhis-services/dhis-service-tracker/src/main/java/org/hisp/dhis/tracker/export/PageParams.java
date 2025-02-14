@@ -43,6 +43,10 @@ public class PageParams {
   private static final int DEFAULT_PAGE = 1;
   private static final int DEFAULT_PAGE_SIZE = 50;
 
+  public static PageParams single() {
+    return new PageParams(1, 1, false);
+  }
+
   /** The page number to be returned. */
   final int page;
 

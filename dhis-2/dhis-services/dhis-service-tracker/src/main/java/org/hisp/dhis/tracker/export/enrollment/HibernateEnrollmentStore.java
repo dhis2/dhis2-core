@@ -34,14 +34,10 @@ import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -294,17 +290,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
           .filter(Objects::nonNull)
           .collect(Collectors.joining(" "));
     }
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Enrollment>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Enrollment postProcessObject(Enrollment enrollment) {
-    return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
   }
 
   public Set<String> getOrderableFields() {

@@ -148,7 +148,8 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
-    trackedEntities = manager.getAll(TrackedEntity.class);
+    trackedEntities =
+        manager.getAll(TrackedEntity.class).stream().filter(te -> !te.isDeleted()).toList();
     assertEquals(0, trackedEntities.size());
   }
 }

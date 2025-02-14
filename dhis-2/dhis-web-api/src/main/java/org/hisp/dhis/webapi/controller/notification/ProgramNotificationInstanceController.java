@@ -45,7 +45,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -115,8 +114,7 @@ public class ProgramNotificationInstanceController {
     }
     Enrollment storedEnrollment = null;
     if (enrollmentUid != null) {
-      storedEnrollment =
-          enrollmentService.getEnrollment(enrollmentUid, EnrollmentParams.FALSE, false);
+      storedEnrollment = enrollmentService.getEnrollment(enrollmentUid);
     }
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()

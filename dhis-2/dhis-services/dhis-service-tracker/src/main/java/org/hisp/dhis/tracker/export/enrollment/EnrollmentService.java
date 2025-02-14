@@ -43,7 +43,7 @@ public interface EnrollmentService {
   Enrollment getEnrollment(UID uid) throws ForbiddenException, NotFoundException;
 
   @Nonnull
-  Enrollment getEnrollment(UID uid, EnrollmentParams params, boolean includeDeleted)
+  Enrollment getEnrollment(UID uid, EnrollmentParams params)
       throws NotFoundException, ForbiddenException;
 
   /** Get all enrollments matching given params. */

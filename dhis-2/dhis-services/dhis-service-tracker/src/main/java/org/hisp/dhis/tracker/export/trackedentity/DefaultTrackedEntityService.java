@@ -121,7 +121,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
       throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || trackedEntity.isDeleted()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
@@ -238,7 +238,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UID uid, Program program, TrackedEntityParams params, UserDetails user)
       throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || trackedEntity.isDeleted()) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
