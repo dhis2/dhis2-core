@@ -220,6 +220,27 @@ public class FilteringStatement {
   }
 
   /**
+   * Returns a SQL string related to 'displayName' "ilike" comparison to be reused as part of data
+   * items 'displayName' filtering. It required two columns so it can compare two different
+   * displayNames. It will always use 'or' condition, which translates to "columnOne ilike
+   * :displayName OR columnTwo ilike :displayName".
+   *
+   * @param columnOne the displayName's first column
+   * @param columnTwo the displayName's second column
+   * @param columnThree the displayName's three column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayNameFiltering(
+      String columnOne, String columnTwo, String columnThree, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, columnThree, DISPLAY_NAME);
+    }
+
+    return EMPTY;
+  }
+
+  /**
    * Returns a SQL string related to 'displayShortName' "ilike" comparison to be reused as part of
    * data items 'displayShortName' filtering.
    *

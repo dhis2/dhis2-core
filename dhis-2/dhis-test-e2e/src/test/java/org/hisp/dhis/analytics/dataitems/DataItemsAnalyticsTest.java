@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.analytics.dataitems;
 
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
@@ -71,6 +76,8 @@ public class DataItemsAnalyticsTest {
     response
         .validate()
         .statusCode(equalTo(200))
+        .body("dataItems.dimensionItemType", not(hasItem("PROGRAM_DATA_ELEMENT_OPTION")))
+        .body("dataItems.dimensionItemType", not(hasItem("PROGRAM_ATTRIBUTE_OPTION")))
         .body("dataItems.dimensionItemType", hasItem("PROGRAM_INDICATOR"))
         .body("dataItems.dimensionItemType", hasItem("DATA_ELEMENT"))
         .body("dataItems.dimensionItemType", not(hasItem("OPTION_SET")));
@@ -128,5 +135,85 @@ public class DataItemsAnalyticsTest {
         .validate()
         .statusCode(equalTo(200))
         .body("dataItems.optionSetId", hasItem("SokRAajDrRz"));
+  }
+
+  @Test
+  void testDataItems_PROGRAM_DATA_ELEMENT_OPTION() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("page=1")
+            .add("paging=false")
+            .add("order=name:asc")
+            .add("filter=dimensionItemType:in:[PROGRAM_DATA_ELEMENT_OPTION]")
+            .add("filter=displayName:ilike:bel");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems", is(not(empty())))
+        .body("dataItems", hasSize(25))
+        .body("dataItems.dimensionItemType", not(hasItem("PROGRAM_ATTRIBUTE_OPTION")))
+        .body("dataItems.dimensionItemType", everyItem(is("PROGRAM_DATA_ELEMENT_OPTION")))
+        .body("dataItems.optionSetId", (allOf(hasItem("ynHtyLDVeJO"), hasItem("eUZ79clX7y1"))));
+  }
+
+  @Test
+  void testDataItems_PROGRAM_ATTRIBUTE_OPTION() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("page=1")
+            .add("paging=false")
+            .add("order=name:asc")
+            .add("filter=dimensionItemType:in:[PROGRAM_ATTRIBUTE_OPTION]")
+            .add("filter=displayName:ilike:bel");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems", is(not(empty())))
+        .body("dataItems", hasSize(3))
+        .body("dataItems.dimensionItemType", not(hasItem("PROGRAM_DATA_ELEMENT_OPTION")))
+        .body("dataItems.dimensionItemType", everyItem(is("PROGRAM_ATTRIBUTE_OPTION")))
+        .body("dataItems.optionSetId", (not(hasItem("eUZ79clX7y1"))))
+        .body("dataItems.optionSetId", (allOf(hasItem("ynHtyLDVeJO"))))
+        .body("dataItems.programId", (allOf(hasItem("qDkgAbB5Jlk"))));
+  }
+
+  @Test
+  void testDataItems_PROGRAM_ATTRIBUTE_OPTION_and_PROGRAM_DATA_ELEMENT_OPTION() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("page=1")
+            .add("paging=false")
+            .add("order=name:asc")
+            .add(
+                "filter=dimensionItemType:in:[PROGRAM_ATTRIBUTE_OPTION,PROGRAM_DATA_ELEMENT_OPTION]")
+            .add("filter=displayName:ilike:bel");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems", is(not(empty())))
+        .body("dataItems", hasSize(28))
+        .body("dataItems.dimensionItemType", hasItem("PROGRAM_DATA_ELEMENT_OPTION"))
+        .body("dataItems.dimensionItemType", hasItem("PROGRAM_ATTRIBUTE_OPTION"))
+        .body("dataItems.optionSetId", (hasItem("eUZ79clX7y1")))
+        .body("dataItems.optionSetId", (hasItem("ynHtyLDVeJO")))
+        .body("dataItems.programId", (hasItem("qDkgAbB5Jlk")));
   }
 }

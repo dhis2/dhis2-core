@@ -375,10 +375,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
         trackedEntity.setProgramOwners(
-            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
+            getTrackedEntityProgramOwners(
+                trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
       trackedEntity.setTrackedEntityAttributeValues(
-          getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
+          getTrackedEntityAttributeValues(
+              trackedEntity, queryParams.getEnrolledInTrackerProgram()));
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
     return trackedEntities;
