@@ -283,6 +283,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Override
   public boolean isValid(String key, String value) {
     Serializable defaultValue = getDefault(key);
+    if (value == null || value.isEmpty()) return true;
     if (defaultValue == null || defaultValue instanceof String) return true;
     if (defaultValue instanceof Boolean) return "true".equals(value) || "false".equals(value);
     try {
