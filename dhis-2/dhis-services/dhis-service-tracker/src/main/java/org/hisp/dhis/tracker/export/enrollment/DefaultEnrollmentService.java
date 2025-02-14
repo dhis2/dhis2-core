@@ -95,7 +95,7 @@ class DefaultEnrollmentService implements EnrollmentService {
               .enrollments(Set.of(uid))
               .enrollmentParams(params)
               .build();
-      enrollments = getEnrollments(operationParams, new PageParams(1, 1, false));
+      enrollments = getEnrollments(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
