@@ -260,7 +260,7 @@ public class AppController {
       String appBaseUrl)
       throws IOException {
     String filename = resource.getFilename();
-    log.debug(String.format("App filename: '%s'", filename));
+    log.debug("App filename: '{}'", filename);
 
     if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
       return;
