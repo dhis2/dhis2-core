@@ -2,7 +2,10 @@ package org.hisp.dhis.analytics.util;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
@@ -109,7 +112,7 @@ public class ProgramIndicatorCteOptimizer {
     // Collection to hold generated CTE definitions.
     private final Map<String, GeneratedCte> generatedCtes = new LinkedHashMap<>();
 
-    public String transformSQL(String sql) {
+    public String transformSQL(String sql, boolean debug) {
         try {
             // Parse the SQL into an AST
             Statement statement = CCJSqlParserUtil.parse(sql);
@@ -121,6 +124,12 @@ public class ProgramIndicatorCteOptimizer {
                         String cteName = withItem.getName();
                         if (cteName != null && cteName.startsWith("pi_") && containsWhereClauseWithSubaxCorrelatedSubSelect(withItem)) {
                             log.debug("Processing PI CTE: {}",  cteName);
+                            // Debug: Print the parsed expression structure
+                            if (withItem.getSubSelect().getSelectBody() instanceof PlainSelect ps &&
+                                    ps.getWhere() != null && debug) {
+                                log.debug("Original WHERE clause structure for CTE {}:", cteName);
+                                debugExpression(ps.getWhere(), 0);
+                            }
                             processCTE(withItem);
                         }
                     }
@@ -453,5 +462,29 @@ public class ProgramIndicatorCteOptimizer {
 
     private String preserveLettersAndNumbers(String str) {
         return str.replaceAll("[^a-zA-Z0-9]", "");
+    }
+
+    private void debugExpression(Expression expr, int depth) {
+        String indent = "  ".repeat(depth);
+        log.debug(indent + "Expression type: " + expr.getClass().getSimpleName());
+        log.debug(indent + "Expression toString: " + expr);
+
+        if (expr instanceof Function func) {
+            log.debug(indent + "Function name: " + func.getName());
+            if (func.getParameters() != null) {
+                log.debug(indent + "Parameters:");
+                for (Expression param : func.getParameters().getExpressions()) {
+                    debugExpression(param, depth + 1);
+                }
+            }
+        } else if (expr instanceof BinaryExpression binExpr) {
+            log.debug(indent + "Left:");
+            debugExpression(binExpr.getLeftExpression(), depth + 1);
+            log.debug(indent + "Right:");
+            debugExpression(binExpr.getRightExpression(), depth + 1);
+        } else if (expr instanceof Parenthesis paren) {
+            log.debug(indent + "Parenthesis contains:");
+            debugExpression(paren.getExpression(), depth + 1);
+        }
     }
 }
