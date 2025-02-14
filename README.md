@@ -82,6 +82,19 @@ DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.39/dhis2-db-sierra-
 
 using versions we for example publish to https://databases.dhis2.org/
 
+### Sync between DHIS2 instances
+
+You can run multiple DHIS2 instances to test [data and metadata
+synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html)
+by running
+
+```sh
+docker compose --profile sync up
+```
+
+After that follow this
+[guide](https://github.com/dhis2/wow-backend/blob/master/guides/testing/metadata_sync_testing.md).
+
 ## Build process
 
 This repository contains the source code for the server-side component of DHIS2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/).
