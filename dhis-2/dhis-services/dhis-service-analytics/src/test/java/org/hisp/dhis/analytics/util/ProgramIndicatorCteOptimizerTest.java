@@ -331,7 +331,6 @@ class ProgramIndicatorCteOptimizerTest {
                 """;
 
         String transformedQuery = transformer.transformSQL(originalQuery, false);
-        System.out.println(transformedQuery);
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
     }
