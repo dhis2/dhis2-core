@@ -212,7 +212,8 @@ public class RouteService {
 
     Flux<DataBuffer> requestBodyFlux =
         DataBufferUtils.read(
-            new InputStreamResource(request.getInputStream()), dataBufferFactory, 4096);
+                new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+            .doOnNext(DataBufferUtils.releaseConsumer());
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
         webClient
             .method(httpMethod)
@@ -263,9 +264,12 @@ public class RouteService {
     StreamingResponseBody streamingResponseBody =
         out -> {
           if (responseEntityFlux.getBody() != null) {
-            DataBufferUtils.write(responseEntityFlux.getBody(), out)
-                .doOnNext(DataBufferUtils.releaseConsumer())
-                .blockLast();
+            try (out) {
+              Flux<DataBuffer> dataBufferFlux =
+                  DataBufferUtils.write(responseEntityFlux.getBody(), out)
+                      .doOnNext(DataBufferUtils.releaseConsumer());
+              dataBufferFlux.blockLast();
+            }
           }
         };
     return new ResponseEntity<>(
