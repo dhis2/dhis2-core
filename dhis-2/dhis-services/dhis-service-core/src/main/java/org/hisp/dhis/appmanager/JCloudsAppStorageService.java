@@ -341,17 +341,14 @@ public class JCloudsAppStorageService implements AppStorageService {
     String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
     URI uri = fileResourceContentStore.getSignedGetContentUri(cleanedKey);
 
-    log.info("Checking if blob exists {}", cleanedKey);
+    log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
     if (jCloudsStore.blobExists(cleanedKey)) {
-      log.info("ResourceFound {}", cleanedKey);
-
       return new ResourceFound(getResourceType(uri, cleanedKey));
     }
     if (jCloudsStore.blobExists(cleanedKey + "/")) {
-      log.info("Redirect {}", resolvedFileResource + "/");
       return new Redirect(resolvedFileResource + "/");
     }
-    log.info("ResourceNotFound {}", cleanedKey);
+    log.debug("ResourceNotFound {} for App {}", cleanedKey, app.getName());
     return new ResourceNotFound(resource);
   }
 
