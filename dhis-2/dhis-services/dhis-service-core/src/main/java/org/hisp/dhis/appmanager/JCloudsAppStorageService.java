@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,21 +48,22 @@ import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.util.ZipFileUtils;
-import org.jclouds.blobstore.BlobRequestSigner;
-import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
-import org.jclouds.blobstore.internal.RequestSigningUnsupported;
 import org.jclouds.blobstore.options.ListContainerOptions;
-import org.jclouds.http.HttpRequest;
 import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -83,6 +85,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final LocationManager locationManager;
 
   private final ObjectMapper jsonMapper;
+  private final FileResourceContentStore fileResourceContentStore;
 
   private void discoverInstalledApps(Consumer<App> handler) {
     ObjectMapper mapper = new ObjectMapper();
@@ -276,13 +279,10 @@ public class JCloudsAppStorageService implements AppStorageService {
       String namespace = app.getActivities().getDhis().getNamespace();
 
       log.info(
-          String.format(
-              "New app '%s' installed"
-                  + "\n\tInstall path: %s"
-                  + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
-              app.getName(),
-              dest,
-              namespace));
+          "New app {} installed, Install path: {}, Namespace reserved: {}",
+          app.getName(),
+          dest,
+          (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
 
       // -----------------------------------------------------------------
       // Installation complete.
@@ -328,64 +328,69 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getAppResource(App app, @Nonnull String resource) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
-          pageName);
-      return null;
+          resource);
+      return new ResourceNotFound(resource);
     }
 
-    String key = (app.getFolderName() + ("/" + pageName)).replaceAll("//", "/");
-    URI uri = getSignedGetContentUri(key);
+    String resolvedFileResource = useIndexHtmlIfWarranted(resource);
+    String key = (app.getFolderName() + ("/" + resolvedFileResource));
+    String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
+    URI uri = fileResourceContentStore.getSignedGetContentUri(cleanedKey);
 
+    log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
+    if (jCloudsStore.blobExists(cleanedKey)) {
+      return new ResourceFound(getResourceType(uri, cleanedKey));
+    }
+    if (jCloudsStore.blobExists(cleanedKey + "/")) {
+      return new Redirect(resolvedFileResource + "/");
+    }
+    log.debug("ResourceNotFound {} for App {}", cleanedKey, app.getName());
+    return new ResourceNotFound(resource);
+  }
+
+  private Resource getResourceType(URI uri, @Nonnull String filePath) throws MalformedURLException {
     if (uri == null) {
-
-      String filepath = jCloudsStore.getBlobContainer() + "/" + key;
-      filepath = filepath.replaceAll("//", "/");
-      File res;
-
-      try {
-        res = locationManager.getFileForReading(filepath);
-      } catch (LocationManagerException e) {
-        return null;
-      }
-
-      if (res.isDirectory()) {
-        String indexPath = pageName.replaceAll("/+$", "") + "/index.html";
-        log.info("Resource {} ({} is a directory, serving {}", pageName, filepath, indexPath);
-        return getAppResource(app, indexPath);
-      } else if (res.exists()) {
-        return new FileSystemResource(res);
-      } else {
-        return null;
-      }
+      String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
+      return new FileSystemResource(
+          locationManager.getFileForReading(
+              StringUtils.replaceAllRecursively(cleanedFilepath, "//", "/")));
+    } else {
+      return new UrlResource(uri);
     }
-
-    return new UrlResource(uri);
   }
 
-  public URI getSignedGetContentUri(String key) {
-    BlobRequestSigner signer = jCloudsStore.getBlobRequestSigner();
-
-    if (!requestSigningSupported(signer)) {
-      return null;
+  /**
+   * The server is expected to handle multiple resource path variations, which have different rules.
+   * <br>
+   *
+   * <p>Examples: <br>
+   * <li>'' ->'index.html`
+   * <li>'index.html' ->'index.html`
+   * <li>'subDir/index.html' ->'subDir/index.html`
+   * <li>'subDir/' ->'subDir/index.html`
+   * <li>'subDir' ->'subDir`
+   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js`
+   *
+   * @param resource app resource to resolve
+   * @return potentially-updated app resource (file)
+   */
+  private String useIndexHtmlIfWarranted(@Nonnull String resource) {
+    // this condition is treated as the base app resource
+    if (resource.isBlank()) {
+      log.debug("Resource is blank, using 'index.html'");
+      return "index.html";
     }
 
-    HttpRequest httpRequest;
-
-    try {
-      httpRequest =
-          signer.signGetBlob(jCloudsStore.getBlobContainer(), key, FIVE_MINUTES_IN_SECONDS);
-    } catch (UnsupportedOperationException uoe) {
-      return null;
+    // this condition is treated as a directory (any level) resource, ending in '/'
+    if (resource.endsWith("/")) {
+      log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
+      return resource + "index.html";
     }
-
-    return httpRequest.getEndpoint();
-  }
-
-  private boolean requestSigningSupported(BlobRequestSigner signer) {
-    return !(signer instanceof RequestSigningUnsupported)
-        && !(signer instanceof LocalBlobRequestSigner);
+    // any other resource, no special handling required, return as is
+    return resource;
   }
 }

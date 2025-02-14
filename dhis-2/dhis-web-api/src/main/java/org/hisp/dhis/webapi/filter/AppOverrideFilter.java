@@ -37,13 +37,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -72,7 +78,9 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull FilterChain chain)
       throws IOException, ServletException {
     String requestPath = request.getServletPath();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
@@ -108,54 +116,56 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
     // Handling of 'manifest.webapp'
     if ("manifest.webapp".equals(resourcePath)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if (app.getActivities() != null
-          && app.getActivities().getDhis() != null
-          && "*".equals(app.getActivities().getDhis().getHref())) {
-        String contextPath = HttpServletRequestPaths.getContextPath(request);
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
-        app.getActivities().getDhis().setHref(contextPath);
-      }
-
-      jsonMapper.writeValue(response.getOutputStream(), app);
+      handleManifestWebApp(request, response, app);
     } else if ("index.action".equals(resourcePath)) {
       response.sendRedirect(app.getLaunchUrl());
     }
     // Any other resource
     else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(app, resourcePath);
-      if (resource == null) {
+      ResourceResult resourceResult = appManager.getAppResource(app, resourcePath);
+
+      Resource resource;
+      if (resourceResult instanceof ResourceFound found) {
+        resource = found.resource();
+
+        String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
+        if (new ServletWebRequest(request, response).checkNotModified(etag)) {
+          response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+          return;
+        }
+
+        String filename = resource.getFilename();
+        log.debug(String.format("App filename: '%s'", filename));
+
+        String mimeType = request.getSession().getServletContext().getMimeType(filename);
+        if (mimeType != null) {
+          response.setContentType(mimeType);
+        }
+        response.setContentLength(appManager.getUriContentLength(resource));
+        response.setHeader("ETag", etag);
+        StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+      }
+      if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
-
-      String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
-      if (new ServletWebRequest(request, response).checkNotModified(etag)) {
-        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        return;
+      if (resourceResult instanceof Redirect redirect) {
+        response.sendRedirect(
+            StringUtils.replaceAllRecursively(app.getBaseUrl() + "/" + redirect.path(), "//", "/"));
       }
-
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
-
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
-
-      // we need to handle scenarios when the Resource is a File (knowing the content length)
-      // or when it's URL (not knowing the content length and having to make a call, e.g. remote web
-      // link in AWS S3/MinIO) - otherwise content length can be set to 0 which causes issues at
-      // the front-end, returning an empty body.
-      if (resource.isFile()) {
-        response.setContentLength((int) resource.contentLength());
-      } else {
-        response.setContentLength(appManager.getUriContentLength(resource));
-      }
-      response.setHeader("ETag", etag);
-      StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
+  }
+
+  private void handleManifestWebApp(
+      HttpServletRequest request, HttpServletResponse response, App app) throws IOException {
+    // If request was for manifest.webapp, check for * and replace with host
+    if (app.getActivities() != null
+        && app.getActivities().getDhis() != null
+        && "*".equals(app.getActivities().getDhis().getHref())) {
+      String contextPath = HttpServletRequestPaths.getContextPath(request);
+      log.debug(String.format("Manifest context path: '%s'", contextPath));
+      app.getActivities().getDhis().setHref(contextPath);
+    }
+    jsonMapper.writeValue(response.getOutputStream(), app);
   }
 }

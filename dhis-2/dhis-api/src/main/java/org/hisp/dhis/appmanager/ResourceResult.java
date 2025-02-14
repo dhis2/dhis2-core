@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,64 +27,26 @@
  */
 package org.hisp.dhis.appmanager;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
-import org.hisp.dhis.cache.Cache;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.core.io.Resource;
 
 /**
- * @author Stian Sandvold
+ * Models the potential results when trying to retrieve a Resource. <br>
+ * Can be one of:
+ *
+ * <ul>
+ *   <li>ResourceFound
+ *   <li>ResourceNotFound
+ *   <li>Redirect
+ * </ul>
  */
-public interface AppStorageService {
+public sealed interface ResourceResult permits ResourceFound, ResourceNotFound, Redirect {
+  record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
 
-  String MANIFEST_FILENAME = "manifest.webapp";
+  record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
 
-  String APPS_DIR = "apps";
-
-  /**
-   * Looks trough the appropriate directory of apps to find all installed apps using the
-   * AppStorageService
-   *
-   * @return A map of all app names and apps found
-   */
-  Map<String, App> discoverInstalledApps();
-
-  /**
-   * Installs an app using the AppServiceStore.
-   *
-   * @param file the zip file containing the app
-   * @param filename The name of the file
-   * @param appCache The app cache
-   * @return The status of the installation
-   */
-  App installApp(File file, String filename, Cache<App> appCache);
-
-  /**
-   * Deletes an app from the AppHubService.
-   *
-   * @param app the app to delete
-   * @return true if app is deleted, false if something fails
-   */
-  @Async
-  void deleteApp(App app);
-
-  /**
-   * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will one
-   * of :
-   *
-   * <ul>
-   *   <li>{@link ResourceFound} - when the resource exists
-   *   <li>{@link ResourceNotFound} - when no resource found
-   *   <li>{@link Redirect} - when a directory is found without a trailing '/'
-   * </ul>
-   *
-   * @param app the app to look up
-   * @param resource the name of the resource to look up (can be directory or file)
-   * @return {@link ResourceResult}
-   */
-  ResourceResult getAppResource(App app, String resource) throws IOException;
+  record Redirect(@Nonnull String path) implements ResourceResult {}
 }
