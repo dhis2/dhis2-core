@@ -256,14 +256,18 @@ class HibernatePotentialDuplicateStore
 
   public void moveRelationships(
       TrackedEntity original, TrackedEntity duplicate, Set<UID> relationships) {
-    duplicate.getRelationshipItems().stream()
-        .filter(r -> relationships.contains(UID.of(r.getRelationship())))
-        .forEach(
-            ri -> {
-              ri.setTrackedEntity(original);
+    List<RelationshipItem> duplicateRelationshipItems =
+        duplicate.getRelationshipItems().stream()
+            .filter(r -> relationships.contains(UID.of(r.getRelationship())))
+            .toList();
+    duplicateRelationshipItems.forEach(
+        ri -> {
+          ri.setTrackedEntity(original);
+          original.getRelationshipItems().add(ri);
+          getSession().update(ri);
+        });
 
-              getSession().update(ri);
-            });
+    duplicateRelationshipItems.forEach(duplicate.getRelationshipItems()::remove);
   }
 
   public void moveEnrollments(

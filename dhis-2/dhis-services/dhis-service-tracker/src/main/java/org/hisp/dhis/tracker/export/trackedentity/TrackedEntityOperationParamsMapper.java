@@ -79,7 +79,7 @@ class TrackedEntityOperationParamsMapper {
 
   // TODO Remove this dependency from the mapper when working on
   // https://dhis2.atlassian.net/browse/DHIS2-15915
-  @Nonnull private final TrackedEntityStore trackedEntityStore;
+  @Nonnull private final HibernateTrackedEntityStore trackedEntityStore;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 

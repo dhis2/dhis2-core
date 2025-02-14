@@ -61,12 +61,6 @@ public enum ConfigurationKey {
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
   /**
-   * Disable server-side program rule execution, can be 'on', 'off'. <br>
-   * (default: on)
-   */
-  SYSTEM_PROGRAM_RULE_SERVER_EXECUTION("system.program_rule.server_execution", Constants.ON, false),
-
-  /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
    */
@@ -693,7 +687,9 @@ public enum ConfigurationKey {
   EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
 
   /** Enable TOTP-based 2FA authentication. (default: true) */
-  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false);
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
 

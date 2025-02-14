@@ -57,15 +57,20 @@ import org.springframework.web.servlet.DispatcherServlet;
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(ServletContext context) {
+    context.getSessionCookieConfig().setName("JSESSIONID");
+    context.getSessionCookieConfig().setHttpOnly(true);
+
     boolean httpsOnly = getConfig().isEnabled(ConfigurationKey.SERVER_HTTPS);
-
-    log.debug(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
-
+    log.info(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
     if (httpsOnly) {
       context.getSessionCookieConfig().setSecure(true);
-      context.getSessionCookieConfig().setHttpOnly(true);
-
       log.info("HTTPS only is enabled, cookies configured as secure");
+    }
+
+    String sameSite = getConfig().getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE);
+    log.info("SameSite cookie attribute set to: " + sameSite);
+    if (sameSite != null) {
+      context.getSessionCookieConfig().setAttribute("SameSite", sameSite);
     }
 
     context.setSessionTrackingModes(EnumSet.of(SessionTrackingMode.COOKIE));

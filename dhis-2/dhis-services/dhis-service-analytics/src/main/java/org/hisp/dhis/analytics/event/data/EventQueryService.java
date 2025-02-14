@@ -269,7 +269,7 @@ public class EventQueryService {
                 false,
                 true));
 
-    if (params.getProgram().isRegistration()) {
+    if (params.getProgram() != null && params.getProgram().isRegistration()) {
       grid.addHeader(
               new GridHeader(
                   ENROLLMENT_DATE.getItem(),
