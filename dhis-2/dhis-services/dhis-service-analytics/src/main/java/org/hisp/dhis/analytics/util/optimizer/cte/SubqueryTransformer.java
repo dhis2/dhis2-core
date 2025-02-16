@@ -1,5 +1,6 @@
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
+import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
@@ -15,6 +16,8 @@ import net.sf.jsqlparser.statement.select.SubSelect;
 
 import java.util.ArrayList;
 import java.util.List;
+
+@UtilityClass
 public class SubqueryTransformer {
 
     /**
@@ -31,7 +34,7 @@ public class SubqueryTransformer {
      * @return The transformed SubSelect.
      * @throws IllegalArgumentException if the select body is not a PlainSelect.
      */
-    public static String transformSubSelect(SubSelect subSelect, String columnAlias)  {
+    public static String dataElementCountCte(SubSelect subSelect, String columnAlias)  {
         if (!(subSelect.getSelectBody() instanceof PlainSelect plainSelect)) {
             throw new IllegalArgumentException("Only PlainSelect is supported in this transformation.");
         }
@@ -80,6 +83,77 @@ public class SubqueryTransformer {
             sql = sql.substring(1, sql.length() - 1).trim();
         }
         return sql;
+    }
+
+    /**
+     * Generates the new CTE SQL for the "last scheduled" data based on the event table name.
+     *
+     * @param table the event table name.
+     * @return the CTE SQL snippet.
+     */
+    public static String lastScheduledCte(String table) {
+        return """
+               select enrollment,
+                      scheduleddate
+               from (
+                 select enrollment,
+                        scheduleddate,
+                        row_number() over (partition by enrollment order by occurreddate desc) as rn
+                 from %s
+                 where scheduleddate is not null
+               ) t
+               where rn = 1
+               """.formatted(table);
+    }
+
+    public static String lastCreatedCte(String table) {
+        return """
+               select enrollment,
+                      created
+               from (
+                 select enrollment,
+                        created,
+                        row_number() over (partition by enrollment order by occurreddate desc) as rn
+                 from %s
+                 where created is not null
+               ) t
+               where rn = 1
+               """.formatted(table);
+    }
+
+    public static String relationshipCountCte(boolean isAggregated, String relationshipTypeUid) {
+        if (isAggregated) {
+            return """
+               SELECT trackedentityid,
+                      sum(relationship_count) as relationship_count
+               FROM analytics_rs_relationship
+               GROUP BY trackedentityid
+               """;
+        } else {
+            String whereClause = relationshipTypeUid != null ?
+                    "WHERE relationshiptypeuid = '%s'".formatted(relationshipTypeUid) : "";
+            return """
+               SELECT trackedentityid,
+                      relationship_count
+               FROM analytics_rs_relationship
+               %s
+               """.formatted(whereClause);
+        }
+    }
+
+    public static String lastEventValueCte(String table, String columnName) {
+        return """
+           select enrollment,
+                  %s
+           from (
+             select enrollment,
+                    %s,
+                    row_number() over (partition by enrollment order by occurreddate desc) as rn
+             from %s
+             where %s is not null
+           ) t
+           WHERE rn = 1
+           """.formatted(columnName, columnName, table, columnName);
     }
 
     /**

@@ -1,10 +1,11 @@
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
 import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.WithItem;
+import org.hisp.dhis.analytics.util.optimizer.cte.data.GeneratedCte;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 
@@ -48,4 +49,5 @@ public class AppendExtractedCtesHelper {
         // Prepend the new CTEs.
         existingWithItems.addAll(0, newCtes);
     }
+
 }

@@ -1,14 +1,14 @@
 package org.hisp.dhis.analytics.util;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
-import net.sf.jsqlparser.JSQLParserException;
+import org.hisp.dhis.analytics.util.optimizer.cte.pipeline.CteOptimizationPipeline;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ProgramIndicatorCteOptimizerTest {
 
-    private final ProgramIndicatorCteOptimizer transformer = new ProgramIndicatorCteOptimizer();
+    private final CteOptimizationPipeline pipeline = new CteOptimizationPipeline();
 
     @Test
     void testLastScheduled() {
@@ -61,7 +61,8 @@ class ProgramIndicatorCteOptimizerTest {
                 from
                 	analytics_enrollment_ur1edk5oe2n
                 """;
-        String transformedSql = transformer.transformSQL(originalSql, false);
+        //String transformedSql = transformer.transformSQL(originalSql, false);
+        String transformedSql = pipeline.optimize(originalSql);
         assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
     }
 
@@ -116,8 +117,7 @@ class ProgramIndicatorCteOptimizerTest {
                     from
                         pi_inputcte
                 """;
-        String transformedSql = transformer.transformSQL(originalSql, false);
-        System.out.println(transformedSql);
+        String transformedSql = pipeline.optimize(originalSql);
         assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
     }
 
@@ -162,7 +162,7 @@ class ProgramIndicatorCteOptimizerTest {
                 from
                 	analytics_enrollment_ur1edk5oe2n
                 """;
-        String transformedSql = transformer.transformSQL(originalSql, false);
+        String transformedSql = pipeline.optimize(originalSql);
         assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
     }
 
@@ -205,7 +205,7 @@ class ProgramIndicatorCteOptimizerTest {
                 from
                 	analytics_enrollment_ur1edk5oe2n
                 """;
-        String transformedSql = transformer.transformSQL(originalSql, false);
+        String transformedSql = pipeline.optimize(originalSql);
         assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
     }
 
@@ -328,14 +328,13 @@ class ProgramIndicatorCteOptimizerTest {
                  limit 101 offset 0
                 """;
 
-        String transformedQuery = transformer.transformSQL(originalQuery, false);
-        assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
+        String transformedSql = pipeline.optimize(originalQuery);
+        assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedSql),
                 "SQL queries should be equivalent after normalization");
     }
 
     @Test
     public void testComplex() {
-        ProgramIndicatorCteOptimizer transformer = new ProgramIndicatorCteOptimizer();
 
         String originalQuery = """
                 with pi_qZOBw051LSf as (
@@ -530,14 +529,13 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String transformedQuery = transformer.transformSQL(originalQuery, false);
+        String transformedQuery = pipeline.optimize(originalQuery);
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
     }
 
     @Test
     public void testRelationshipCountComplex() {
-        ProgramIndicatorCteOptimizer transformer = new ProgramIndicatorCteOptimizer();
 
         String originalQuery = """
                 with pi_hgTNuHSqBmL as (
@@ -751,8 +749,8 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String transformedQuery = transformer.transformSQL(originalQuery, false);
-        System.out.println(transformedQuery);
+        String transformedQuery = pipeline.optimize(originalQuery);
+        //String transformedQuery = transformer.transformSQL(originalQuery, false);
         assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
                 "SQL queries should be equivalent after normalization");
     }
