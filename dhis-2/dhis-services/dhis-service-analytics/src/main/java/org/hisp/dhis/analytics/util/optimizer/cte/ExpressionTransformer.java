@@ -98,60 +98,31 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         }
 
         List<Expression> currentParams = function.getParameters().getExpressions();
-        List<Expression> newParams = new ArrayList<>();
-        boolean hasChanges = false;
-
-        for (Expression param : currentParams) {
-            if (param != null) {
-                param.accept(this);
-                if (currentTransformedExpression != null) {
-                    newParams.add(currentTransformedExpression);
-                    if (currentTransformedExpression != param) {
-                        hasChanges = true;
-                    }
-                }
-            }
-        }
+        ProcessedExpressions processed = processExpressions(currentParams);
 
         Function newCoalesce = new Function();
         newCoalesce.setName("coalesce");
         ExpressionList paramList = new ExpressionList();
-        paramList.setExpressions(newParams);
+        paramList.setExpressions(processed.expressions());
         paramList.setUsingBrackets(false);  // Try to avoid extra brackets
         newCoalesce.setParameters(paramList);
-        currentTransformedExpression = hasChanges ? newCoalesce : function;
+        currentTransformedExpression = processed.hasChanges() ? newCoalesce : function;
     }
 
     private void visitExtract(Function function) {
         List<Expression> currentParams = function.getParameters().getExpressions();
-        List<Expression> newParams = new ArrayList<>();
-        boolean hasChanges = false;
-
-        // Process each parameter of the EXTRACT function
-        for (Expression param : currentParams) {
-            if (param != null) {
-                param.accept(this);
-                if (currentTransformedExpression != null) {
-                    newParams.add(currentTransformedExpression);
-                    if (currentTransformedExpression != param) {
-                        hasChanges = true;
-                    }
-                } else {
-                    newParams.add(param);
-                }
-            }
-        }
+        ProcessedExpressions processed = processExpressions(currentParams);
 
         // Create new EXTRACT function with transformed parameters
         Function newExtract = new Function();
         newExtract.setName("extract");
         ExpressionList paramList = new ExpressionList();
-        paramList.setExpressions(newParams);
+        paramList.setExpressions(processed.expressions());
         paramList.setUsingBrackets(true);
         newExtract.setParameters(paramList);
 
         // If this EXTRACT is part of a division expression, wrap it in parentheses
-        currentTransformedExpression = hasChanges ? newExtract : function;
+        currentTransformedExpression = processed.hasChanges() ? newExtract : function;
     }
 
     private void visitRegularFunction(Function function) {
@@ -161,20 +132,7 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         }
 
         List<Expression> currentParams = function.getParameters().getExpressions();
-        List<Expression> newParams = new ArrayList<>();
-        boolean hasChanges = false;
-
-        for (Expression param : currentParams) {
-            if (param != null) {
-                param.accept(this);
-                if (currentTransformedExpression != null) {
-                    newParams.add(currentTransformedExpression);
-                    if (currentTransformedExpression != param) {
-                        hasChanges = true;
-                    }
-                }
-            }
-        }
+        ProcessedExpressions processed = processExpressions(currentParams);
 
         Function newFunction = new Function();
         newFunction.setName(function.getName());
@@ -183,11 +141,11 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         newFunction.setEscaped(function.isEscaped());
 
         ExpressionList paramList = new ExpressionList();
-        paramList.setExpressions(newParams);
+        paramList.setExpressions(processed.expressions());
         paramList.setUsingBrackets(false);  // Try to avoid extra brackets
         newFunction.setParameters(paramList);
 
-        currentTransformedExpression = hasChanges ? newFunction : function;
+        currentTransformedExpression = processed.hasChanges ? newFunction : function;
     }
 
     @Override
@@ -495,5 +453,22 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
 
     private String preserveLetterNumbers(String str) {
         return str.replaceAll("[^a-zA-Z0-9]", "");
+    }
+
+    private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {}
+
+    private ProcessedExpressions processExpressions(List<Expression> expressions) {
+        List<Expression> newExpressions = new ArrayList<>();
+        boolean hasChanges = false;
+        for (Expression expr : expressions) {
+            if (expr != null) {
+                expr.accept(this);
+                newExpressions.add(currentTransformedExpression);
+                if (currentTransformedExpression != expr) {
+                    hasChanges = true;
+                }
+            }
+        }
+        return new ProcessedExpressions(newExpressions, hasChanges);
     }
 }
