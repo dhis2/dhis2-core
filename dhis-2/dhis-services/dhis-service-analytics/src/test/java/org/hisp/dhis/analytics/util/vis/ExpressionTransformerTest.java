@@ -426,7 +426,7 @@ class ExpressionTransformerTest {
     class ComparisonOperationTests {
 
         @Test
-        void testEquals() throws JSQLParserException {
+        void    testEquals() throws JSQLParserException {
             String sql = "SELECT (col1 = 'value') FROM dual";
             Expression expr = ((SelectExpressionItem) ((PlainSelect) ((Select) CCJSqlParserUtil.parse(sql))
                     .getSelectBody()).getSelectItems().get(0)).getExpression();
@@ -1139,10 +1139,8 @@ class ExpressionTransformerTest {
                     )""";
 
             Expression expr = parseExpression(sql);
-            System.out.println("Original expression: " + expr);
             expr.accept(transformer);
             Expression result = transformer.getTransformedExpression();
-            System.out.println("Transformed expression: " + result);
 
             // Verify parenthesis wrapper
             assertInstanceOf(Parenthesis.class, result,
@@ -1238,10 +1236,8 @@ class ExpressionTransformerTest {
                     )""";
 
             Expression expr = parseExpression(sql);
-            System.out.println("Original expression: " + expr);
             expr.accept(transformer);
             Expression result = transformer.getTransformedExpression();
-            System.out.println("Transformed expression: " + result);
 
             // Verify the COALESCE function
             assertInstanceOf(Function.class, result,
@@ -1314,10 +1310,8 @@ class ExpressionTransformerTest {
                         )""";
 
                 Expression expr = parseExpression(sql);
-                System.out.println("Original expression: " + expr);
                 expr.accept(transformer);
                 Expression result = transformer.getTransformedExpression();
-                System.out.println("Transformed expression: " + result);
 
                 // Verify function structure
                 assertInstanceOf(Function.class, result,
@@ -1443,10 +1437,8 @@ class ExpressionTransformerTest {
                         )""";
 
                 Expression expr = parseExpression(sql);
-                System.out.println("Original expression: " + expr);
                 expr.accept(transformer);
                 Expression result = transformer.getTransformedExpression();
-                System.out.println("Transformed expression: " + result);
 
                 // Verify function structure
                 assertInstanceOf(Function.class, result,
@@ -1483,10 +1475,8 @@ class ExpressionTransformerTest {
                         )""";
 
                 Expression expr = parseExpression(sql);
-                System.out.println("Original expression: " + expr);
                 expr.accept(transformer);
                 Expression result = transformer.getTransformedExpression();
-                System.out.println("Transformed expression: " + result);
 
                 // Verify function structure
                 assertInstanceOf(Function.class, result,
@@ -1533,12 +1523,10 @@ class ExpressionTransformerTest {
                         END""";
 
                 Expression expr = parseExpression(sql);
-                System.out.println("Original expression: " + expr);
                 expr.accept(transformer);
                 Expression result = transformer.getTransformedExpression();
-                System.out.println("Transformed expression: " + result);
 
-                // Add appropriate assertions for CASE expression
+                // TODO Add  assertions for CASE expression
             }
         }
     }
