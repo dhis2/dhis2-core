@@ -10,8 +10,8 @@ import net.sf.jsqlparser.statement.select.SubSelect;
 import net.sf.jsqlparser.statement.select.WithItem;
 import org.hisp.dhis.analytics.util.optimizer.cte.CteGeneratorFactory;
 import org.hisp.dhis.analytics.util.optimizer.cte.CteInput;
-import org.hisp.dhis.analytics.util.optimizer.cte.data.DecomposedCtes;
 import org.hisp.dhis.analytics.util.optimizer.cte.ExpressionTransformer;
+import org.hisp.dhis.analytics.util.optimizer.cte.data.DecomposedCtes;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.GeneratedCte;
 

@@ -37,23 +37,48 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.DataElementCountMatcher;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.LastCreatedMatcher;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.LastEventValueMatcher;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.LastSchedMatcher;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.RelationshipCountMatcher;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesDataElementCountPattern;
-import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesLastCreatedExistsPattern;
-import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesLastEventValuePattern;
-import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesLastSchedPattern;
-import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesRelationshipCountPattern;
 
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
     private final Map<SubSelect, FoundSubSelect> extractedSubSelects = new LinkedHashMap<>();
     private Expression currentTransformedExpression;
+    private final List<SubselectMatcher> matchers;
+
+    public ExpressionTransformer() {
+        this.matchers = Arrays.asList(
+                new LastSchedMatcher(),
+                new LastCreatedMatcher(),
+                new LastEventValueMatcher(),
+                new RelationshipCountMatcher(),
+                new DataElementCountMatcher()
+        );
+    }
+
+    /**
+     * Finds the first matching pattern for a SubSelect.
+     * Matchers are evaluated in the order they were defined.
+     */
+    private Optional<FoundSubSelect> findMatchingPattern(SubSelect subSelect) {
+        return matchers.stream()
+                .map(matcher -> matcher.match(subSelect))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst();
+    }
 
     @Override
     public void visit(Function function) {
@@ -275,12 +300,7 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
             return;
         }
 
-        Optional<FoundSubSelect> matchedPattern = matchesLastSchedPattern(subSelect)
-                .or(() -> matchesLastCreatedExistsPattern(subSelect))
-                .or(() -> matchesLastEventValuePattern(subSelect))
-                .or(() -> matchesRelationshipCountPattern(subSelect))
-                .or(() -> matchesDataElementCountPattern(subSelect));
-
+        Optional<FoundSubSelect> matchedPattern = findMatchingPattern(subSelect);
         if (matchedPattern.isPresent()) {
             FoundSubSelect found = matchedPattern.get();
             extractedSubSelects.put(subSelect, found);

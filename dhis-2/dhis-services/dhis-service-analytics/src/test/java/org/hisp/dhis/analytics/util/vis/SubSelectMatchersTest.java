@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.util.vis;
 
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
-import org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.DataElementCountMatcher;
 import org.junit.jupiter.api.Test;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.SubSelect;
@@ -28,13 +28,13 @@ class SubSelectMatchersTest {
         SubSelect subSelect = createSubSelect(sql);
 
         // when
-        Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+        Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
         // then
         assertTrue(result.isPresent());
         FoundSubSelect found = result.get();
         assertEquals("de_count_fCXKBdc27Bt", found.name());
-        assertEquals("count", found.columnReference());
+        assertEquals("de_count", found.columnReference());
 
         // verify metadata
         assertNotNull(found.metadata());
@@ -96,7 +96,7 @@ class SubSelectMatchersTest {
         SubSelect subSelect = createSubSelect(sql);
 
         // when
-        Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+        Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
         // then
         assertTrue(result.isEmpty());
@@ -116,7 +116,7 @@ class SubSelectMatchersTest {
         SubSelect subSelect = createSubSelect(sql);
 
         // when
-        Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+        Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
         // then
         assertTrue(result.isPresent());
@@ -137,7 +137,7 @@ class SubSelectMatchersTest {
         SubSelect subSelect = createSubSelect(sql);
 
         // when
-        Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+        Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
         // then
         assertTrue(result.isPresent());
@@ -159,7 +159,7 @@ class SubSelectMatchersTest {
         SubSelect subSelect = createSubSelect(sql);
 
         // when
-        Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+        Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
         // then
         assertTrue(result.isPresent());
@@ -203,7 +203,7 @@ class SubSelectMatchersTest {
         for (String sql : testQueries) {
             // when
             SubSelect subSelect = createSubSelect(sql);
-            Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+            Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
             // then
             assertTrue(result.isPresent(), "Should match pattern for query: " + sql);
@@ -227,7 +227,7 @@ class SubSelectMatchersTest {
         SubSelect subSelect = createSubSelect(sql);
 
         // when
-        Optional<FoundSubSelect> result = SubselectMatchers.matchesDataElementCountPattern(subSelect);
+        Optional<FoundSubSelect> result = new DataElementCountMatcher().match(subSelect);
 
         // then
         assertTrue(result.isPresent());
@@ -242,6 +242,4 @@ class SubSelectMatchersTest {
                 ((net.sf.jsqlparser.statement.select.Select) stmt).getSelectBody())
                 .getFromItem();
     }
-
-
 }

@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * An abstract matcher that implements the common logic for matching last-value subselects.
  */
-public abstract class AbstractLastValueMatcher {
+public abstract class AbstractLastValueMatcher implements SubselectMatcher {
 
     /**
      * Attempts to match the provided SubSelect.
@@ -136,94 +136,5 @@ public abstract class AbstractLastValueMatcher {
      */
     protected String preserveLettersAndNumbers(String str) {
         return str.replaceAll("[^a-zA-Z0-9]", "");
-    }
-}
-
-/**
- * Matcher for the "last_sched" pattern:
- *
- * <pre>
- *   SELECT scheduleddate
- *   FROM &lt;some_table&gt;
- *   WHERE &lt;some_table&gt;.enrollment = subax.enrollment
- *     AND scheduleddate IS NOT NULL
- *   ORDER BY occurreddate DESC
- *   LIMIT 1
- * </pre>
- */
-class LastSchedMatcher extends AbstractLastValueMatcher {
-    @Override
-    protected boolean validateColumn(Column col, PlainSelect plain) {
-        return "scheduleddate".equalsIgnoreCase(col.getColumnName());
-    }
-
-    @Override
-    protected String getCteName(Column col) {
-        return "last_sched";
-    }
-}
-
-/**
- * Matcher for the "last_created" pattern:
- *
- * <pre>
- *   SELECT created
- *   FROM &lt;table&gt;
- *   WHERE &lt;table&gt;.enrollment = subax.enrollment
- *     AND created IS NOT NULL
- *   ORDER BY occurreddate DESC
- *   LIMIT 1
- * </pre>
- */
-class LastCreatedMatcher extends AbstractLastValueMatcher {
-    @Override
-    protected boolean validateColumn(Column col, PlainSelect plain) {
-        return "created".equalsIgnoreCase(col.getColumnName());
-    }
-
-    @Override
-    protected String getCteName(Column col) {
-        return "last_created";
-    }
-}
-
-/**
- * Matcher for the "last event value" pattern:
- *
- * <pre>
- *   SELECT "columnName"
- *   FROM &lt;table&gt;
- *   WHERE &lt;table&gt;.enrollment = subax.enrollment
- *     AND "columnName" IS NOT NULL
- *     AND ps = 'programStageId'
- *   ORDER BY occurreddate DESC
- *   LIMIT 1
- * </pre>
- *
- * This matcher applies only if the column is not "scheduleddate" or "created".
- */
-class LastEventValueMatcher extends AbstractLastValueMatcher {
-    @Override
-    protected boolean validateColumn(Column col, PlainSelect plain) {
-        String columnName = col.getColumnName();
-        // Exclude columns handled by other matchers.
-        return !("scheduleddate".equalsIgnoreCase(columnName) || "created".equalsIgnoreCase(columnName));
-    }
-
-    @Override
-    protected boolean additionalValidation(PlainSelect plain, Column col) {
-        String columnName = col.getColumnName();
-        String whereStr = plain.getWhere().toString().toLowerCase();
-        // Ensure that the WHERE clause contains the column IS NOT NULL condition
-        // and a program stage condition.
-        return whereStr.contains(columnName.toLowerCase() + " is not null")
-                && (whereStr.contains("ps =") || whereStr.contains("ps is"));
-    }
-
-    @Override
-    protected String getCteName(Column col) {
-        // The original code uses double preservation of letters/numbers.
-        String cleaned = preserveLettersAndNumbers(preserveLettersAndNumbers(col.getColumnName().toLowerCase()));
-        return "last_value_" + cleaned;
     }
 }
