@@ -34,7 +34,6 @@ import net.sf.jsqlparser.expression.operators.relational.MinorThan;
 import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 import org.hisp.dhis.analytics.util.optimizer.cte.matcher.DataElementCountMatcher;
@@ -42,53 +41,44 @@ import org.hisp.dhis.analytics.util.optimizer.cte.matcher.LastCreatedMatcher;
 import org.hisp.dhis.analytics.util.optimizer.cte.matcher.LastEventValueMatcher;
 import org.hisp.dhis.analytics.util.optimizer.cte.matcher.LastSchedMatcher;
 import org.hisp.dhis.analytics.util.optimizer.cte.matcher.RelationshipCountMatcher;
-import org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatcher;
+import org.hisp.dhis.analytics.util.optimizer.cte.transformer.FunctionTransformer;
+import org.hisp.dhis.analytics.util.optimizer.cte.transformer.SubSelectTransformer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
     private final Map<SubSelect, FoundSubSelect> extractedSubSelects = new LinkedHashMap<>();
     private Expression currentTransformedExpression;
-    private final List<SubselectMatcher> matchers;
+    private final SubSelectTransformer subSelectTransformer;
+    private final FunctionTransformer functionTransformer;
 
     public ExpressionTransformer() {
-        this.matchers = Arrays.asList(
-                new LastSchedMatcher(),
-                new LastCreatedMatcher(),
-                new LastEventValueMatcher(),
-                new RelationshipCountMatcher(),
-                new DataElementCountMatcher()
+        this.subSelectTransformer = new SubSelectTransformer(
+                Arrays.asList(
+                        new LastSchedMatcher(),
+                        new LastCreatedMatcher(),
+                        new LastEventValueMatcher(),
+                        new RelationshipCountMatcher(),
+                        new DataElementCountMatcher()
+                )
         );
-    }
-
-    /**
-     * Finds the first matching pattern for a SubSelect.
-     * Matchers are evaluated in the order they were defined.
-     */
-    private Optional<FoundSubSelect> findMatchingPattern(SubSelect subSelect) {
-        return matchers.stream()
-                .map(matcher -> matcher.match(subSelect))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst();
+        this.functionTransformer = new FunctionTransformer(this);
     }
 
     @Override
     public void visit(Function function) {
-        if ("coalesce".equalsIgnoreCase(function.getName())) {
-            visitCoalesce(function);
-        } else if ("extract".equalsIgnoreCase(function.getName())) {
-            visitExtract(function);
-        } else {
-            visitRegularFunction(function);
-        }
+        // Delegate the entire transformation to FunctionTransformer
+        currentTransformedExpression = functionTransformer.transform(function);
+    }
+
+    public Map<SubSelect, FoundSubSelect> getExtractedSubSelects() {
+        return subSelectTransformer.getExtractedSubSelects();
     }
 
     private void visitCoalesce(Function function) {
@@ -253,37 +243,7 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
 
     @Override
     public void visit(SubSelect subSelect) {
-        if (subSelect == null || subSelect.getSelectBody() == null) {
-            currentTransformedExpression = subSelect;
-            return;
-        }
-
-        Optional<FoundSubSelect> matchedPattern = findMatchingPattern(subSelect);
-        if (matchedPattern.isPresent()) {
-            FoundSubSelect found = matchedPattern.get();
-            extractedSubSelects.put(subSelect, found);
-
-            // Determine the appropriate alias based on the CTE name
-            String alias = switch (found.name()) {
-                case "last_sched" -> "ls";
-                case "last_created" -> "lc";
-                case "relationship_count", "relationship_count_agg" -> "rlc";
-                default -> {
-                    // For last_value_* patterns, use lv_columnname
-                    if (found.name().startsWith("last_value_")) {
-                        yield "lv_" + preserveLetterNumbers(found.columnReference());
-                    }
-                    if (found.name().startsWith("de_count_")) {
-                        yield "dec_" + preserveLetterNumbers(found.columnReference());
-                    }
-                    yield found.name(); // fallback
-                }
-            };
-
-            currentTransformedExpression = new Column(new Table(alias), found.columnReference());
-        } else {
-            currentTransformedExpression = subSelect;
-        }
+        currentTransformedExpression = subSelectTransformer.transform(subSelect);
     }
 
     @Override
@@ -455,7 +415,8 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         return str.replaceAll("[^a-zA-Z0-9]", "");
     }
 
-    private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {}
+    private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {
+    }
 
     private ProcessedExpressions processExpressions(List<Expression> expressions) {
         List<Expression> newExpressions = new ArrayList<>();
