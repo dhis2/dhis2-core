@@ -30,7 +30,7 @@ public class SubqueryTransformer {
      * </ul>
      *
      * @param subSelect   The subselect to transform.
-     * @param columnAlias
+     * @param columnAlias The alias for the count function.
      * @return The transformed SubSelect.
      * @throws IllegalArgumentException if the select body is not a PlainSelect.
      */
@@ -41,8 +41,7 @@ public class SubqueryTransformer {
 
         // Dynamically extract the table name from the FROM clause.
         String dynamicTableName = null;
-        if (plainSelect.getFromItem() instanceof Table) {
-            Table table = (Table) plainSelect.getFromItem();
+        if (plainSelect.getFromItem() instanceof Table table) {
             dynamicTableName = table.getName();
         }
 
@@ -124,18 +123,18 @@ public class SubqueryTransformer {
     public static String relationshipCountCte(boolean isAggregated, String relationshipTypeUid) {
         if (isAggregated) {
             return """
-               SELECT trackedentityid,
+               select trackedentityid,
                       sum(relationship_count) as relationship_count
-               FROM analytics_rs_relationship
-               GROUP BY trackedentityid
+               from analytics_rs_relationship
+               group by trackedentityid
                """;
         } else {
             String whereClause = relationshipTypeUid != null ?
                     "WHERE relationshiptypeuid = '%s'".formatted(relationshipTypeUid) : "";
             return """
-               SELECT trackedentityid,
+               select trackedentityid,
                       relationship_count
-               FROM analytics_rs_relationship
+               from analytics_rs_relationship
                %s
                """.formatted(whereClause);
         }
