@@ -24,7 +24,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
 import net.sf.jsqlparser.expression.operators.relational.GreaterThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
@@ -44,7 +43,6 @@ import org.hisp.dhis.analytics.util.optimizer.cte.matcher.RelationshipCountMatch
 import org.hisp.dhis.analytics.util.optimizer.cte.transformer.FunctionTransformer;
 import org.hisp.dhis.analytics.util.optimizer.cte.transformer.SubSelectTransformer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,69 +71,11 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
 
     @Override
     public void visit(Function function) {
-        // Delegate the entire transformation to FunctionTransformer
         currentTransformedExpression = functionTransformer.transform(function);
     }
 
     public Map<SubSelect, FoundSubSelect> getExtractedSubSelects() {
         return subSelectTransformer.getExtractedSubSelects();
-    }
-
-    private void visitCoalesce(Function function) {
-        if (function.getParameters() == null) {
-            currentTransformedExpression = function;
-            return;
-        }
-
-        List<Expression> currentParams = function.getParameters().getExpressions();
-        ProcessedExpressions processed = processExpressions(currentParams);
-
-        Function newCoalesce = new Function();
-        newCoalesce.setName("coalesce");
-        ExpressionList paramList = new ExpressionList();
-        paramList.setExpressions(processed.expressions());
-        paramList.setUsingBrackets(false);  // Try to avoid extra brackets
-        newCoalesce.setParameters(paramList);
-        currentTransformedExpression = processed.hasChanges() ? newCoalesce : function;
-    }
-
-    private void visitExtract(Function function) {
-        List<Expression> currentParams = function.getParameters().getExpressions();
-        ProcessedExpressions processed = processExpressions(currentParams);
-
-        // Create new EXTRACT function with transformed parameters
-        Function newExtract = new Function();
-        newExtract.setName("extract");
-        ExpressionList paramList = new ExpressionList();
-        paramList.setExpressions(processed.expressions());
-        paramList.setUsingBrackets(true);
-        newExtract.setParameters(paramList);
-
-        // If this EXTRACT is part of a division expression, wrap it in parentheses
-        currentTransformedExpression = processed.hasChanges() ? newExtract : function;
-    }
-
-    private void visitRegularFunction(Function function) {
-        if (function.getParameters() == null) {
-            currentTransformedExpression = function;
-            return;
-        }
-
-        List<Expression> currentParams = function.getParameters().getExpressions();
-        ProcessedExpressions processed = processExpressions(currentParams);
-
-        Function newFunction = new Function();
-        newFunction.setName(function.getName());
-        newFunction.setAllColumns(function.isAllColumns());
-        newFunction.setDistinct(function.isDistinct());
-        newFunction.setEscaped(function.isEscaped());
-
-        ExpressionList paramList = new ExpressionList();
-        paramList.setExpressions(processed.expressions());
-        paramList.setUsingBrackets(false);  // Try to avoid extra brackets
-        newFunction.setParameters(paramList);
-
-        currentTransformedExpression = processed.hasChanges ? newFunction : function;
     }
 
     @Override
@@ -318,7 +258,6 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         currentTransformedExpression = newBetween;
     }
 
-
     // Values
     @Override
     public void visit(DateValue value) {
@@ -411,25 +350,6 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
         }
     }
 
-    private String preserveLetterNumbers(String str) {
-        return str.replaceAll("[^a-zA-Z0-9]", "");
-    }
-
     private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {
-    }
-
-    private ProcessedExpressions processExpressions(List<Expression> expressions) {
-        List<Expression> newExpressions = new ArrayList<>();
-        boolean hasChanges = false;
-        for (Expression expr : expressions) {
-            if (expr != null) {
-                expr.accept(this);
-                newExpressions.add(currentTransformedExpression);
-                if (currentTransformedExpression != expr) {
-                    hasChanges = true;
-                }
-            }
-        }
-        return new ProcessedExpressions(newExpressions, hasChanges);
     }
 }
