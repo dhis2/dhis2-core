@@ -1,4 +1,8 @@
 package org.hisp.dhis.analytics.util.optimizer.cte;
 
-public class CteGenerator {
+import org.hisp.dhis.analytics.util.optimizer.cte.data.GeneratedCte;
+
+@FunctionalInterface
+public interface CteGenerator {
+    GeneratedCte generate(CteInput input);
 }

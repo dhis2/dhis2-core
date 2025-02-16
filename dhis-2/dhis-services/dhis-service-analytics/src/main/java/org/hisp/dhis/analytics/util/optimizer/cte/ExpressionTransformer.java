@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
 import lombok.Getter;
 import net.sf.jsqlparser.expression.BinaryExpression;
@@ -36,6 +36,7 @@ import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -43,11 +44,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesDataElementCountPattern;
-import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastCreatedExistsPattern;
-import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastEventValuePattern;
-import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesLastSchedPattern;
-import static org.hisp.dhis.analytics.util.vis.SubselectMatchers.matchesRelationshipCountPattern;
+import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesDataElementCountPattern;
+import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesLastCreatedExistsPattern;
+import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesLastEventValuePattern;
+import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesLastSchedPattern;
+import static org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers.matchesRelationshipCountPattern;
 
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
