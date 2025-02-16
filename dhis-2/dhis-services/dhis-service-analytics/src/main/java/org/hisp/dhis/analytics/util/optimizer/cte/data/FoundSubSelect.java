@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte.data;
 
 import net.sf.jsqlparser.statement.select.SubSelect;
 

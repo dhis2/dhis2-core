@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte.data;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 

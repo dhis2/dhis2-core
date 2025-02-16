@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.util.vis;
 
+import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
+import org.hisp.dhis.analytics.util.optimizer.cte.matcher.SubselectMatchers;
 import org.junit.jupiter.api.Test;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.SubSelect;

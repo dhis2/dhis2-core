@@ -28,6 +28,8 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import org.hisp.dhis.analytics.util.optimizer.cte.ExpressionTransformer;
+import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
