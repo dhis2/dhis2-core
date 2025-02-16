@@ -772,7 +772,7 @@ class ExpressionTransformerTest {
 
             assertInstanceOf(Function.class, result);
             Function func = (Function) result;
-            assertEquals("COALESCE", func.getName());
+            assertEquals("coalesce", func.getName());
             assertEquals(3, func.getParameters().getExpressions().size());
         }
 
