@@ -120,7 +120,7 @@ public class CteContext {
   public void addProgramIndicatorCte(
       ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
     cteDefinitions.put(
-        programIndicator.getUid(),
+        "pi_%s".formatted(programIndicator.getUid()),
         new CteDefinition(programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
   }
 

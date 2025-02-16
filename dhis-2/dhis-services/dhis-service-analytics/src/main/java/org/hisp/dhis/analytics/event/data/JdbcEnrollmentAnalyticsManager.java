@@ -77,6 +77,7 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.optimizer.cte.pipeline.CteOptimizationPipeline;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
@@ -144,6 +145,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
   private static final String ENROLLMENT_COL = "enrollment";
 
+  private CteOptimizationPipeline cteOptimizationPipeline = new CteOptimizationPipeline();
+
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
@@ -179,7 +182,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       sql =
           useExperimentalAnalyticsQueryEngine()
-              ? buildEnrollmentQueryWithCte(params)
+              ? cteOptimizationPipeline.optimize(buildEnrollmentQueryWithCte(params))
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
     System.out.println(sql);
