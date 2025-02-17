@@ -103,6 +103,7 @@ import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.DefaultValue;
+import org.hisp.dhis.visualization.LegendDefinitions;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically be sub-classed by
@@ -266,6 +267,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   @Override
   public abstract void populateAnalyticalProperties();
+
+  public abstract LegendDefinitions getLegendDefinitions();
 
   @Override
   public boolean hasUserOrgUnit() {
