@@ -123,7 +123,7 @@ class DefaultEventService implements EventService {
               .eventParams(EventParams.FALSE)
               .dataElementFilters(Map.of(dataElementUid, List.of()))
               .build();
-      events = getEvents(operationParams, new PageParams(1, 1, false));
+      events = getEvents(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
@@ -180,7 +180,7 @@ class DefaultEventService implements EventService {
               .eventParams(eventParams)
               .idSchemeParams(idSchemeParams)
               .build();
-      events = getEvents(operationParams, new PageParams(1, 1, false));
+      events = getEvents(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");

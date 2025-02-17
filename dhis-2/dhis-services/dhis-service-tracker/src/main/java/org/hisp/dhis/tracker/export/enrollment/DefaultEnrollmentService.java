@@ -81,13 +81,12 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Nonnull
   @Override
   public Enrollment getEnrollment(@Nonnull UID uid) throws ForbiddenException, NotFoundException {
-    return getEnrollment(uid, EnrollmentParams.FALSE, false);
+    return getEnrollment(uid, EnrollmentParams.FALSE);
   }
 
   @Nonnull
   @Override
-  public Enrollment getEnrollment(
-      @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
+  public Enrollment getEnrollment(@Nonnull UID uid, @Nonnull EnrollmentParams params)
       throws NotFoundException, ForbiddenException {
     Page<Enrollment> enrollments;
     try {
@@ -95,9 +94,8 @@ class DefaultEnrollmentService implements EnrollmentService {
           EnrollmentOperationParams.builder()
               .enrollments(Set.of(uid))
               .enrollmentParams(params)
-              .includeDeleted(includeDeleted)
               .build();
-      enrollments = getEnrollments(operationParams, new PageParams(1, 1, false));
+      enrollments = getEnrollments(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");

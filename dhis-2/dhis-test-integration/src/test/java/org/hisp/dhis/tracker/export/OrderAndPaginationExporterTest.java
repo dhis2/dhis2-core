@@ -625,7 +625,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .build();
 
     Page<Enrollment> firstPage =
-        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, false));
+        enrollmentService.getEnrollments(operationParams, PageParams.single());
 
     assertAll(
         "first page",
@@ -758,7 +758,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
-    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
+    Page<Event> firstPage = eventService.getEvents(operationParams, PageParams.single());
 
     assertAll(
         "first page",
@@ -993,7 +993,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
-    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 1, false));
+    Page<Event> firstPage = eventService.getEvents(operationParams, PageParams.single());
 
     assertAll(
         "first page",
@@ -1444,7 +1444,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .build();
 
     Page<Relationship> firstPage =
-        relationshipService.getRelationships(params, new PageParams(1, 1, false));
+        relationshipService.getRelationships(params, PageParams.single());
 
     assertAll(
         "first page",

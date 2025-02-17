@@ -107,7 +107,7 @@ public class DefaultRelationshipService implements RelationshipService {
       throws ForbiddenException, NotFoundException {
     Relationship relationship = relationshipStore.getByUid(uid.getValue());
 
-    if (relationship == null) {
+    if (relationship == null || relationship.isDeleted()) {
       throw new NotFoundException(Relationship.class, uid);
     }
 
