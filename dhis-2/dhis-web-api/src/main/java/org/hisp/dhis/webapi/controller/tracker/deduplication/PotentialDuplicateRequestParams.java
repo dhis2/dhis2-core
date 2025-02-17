@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
-/**
- * {@link PageRequestParams} represent the HTTP request parameters that configure whether the
- * response should be paginated and if so how. Tracker supports disabling pagination via {@code
- * paging=false} and enabling pagination via {@code paging=true}. Enabling and disabling parameters
- * are mutually exclusive. We can thus not set default values in our {@code RequestParams} classes
- * as we would not be able to discern a user supplied parameter value from a default value.
- *
- * <p>{@code totalPages=true} is only supported on paginated responses.
- */
-@OpenApi.Shared(name = "TrackerPageRequestParams")
-public interface PageRequestParams {
-  /** Returns the page number to be returned. */
-  Integer getPage();
+@OpenApi.Shared(name = "PotentialDuplicateRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class PotentialDuplicateRequestParams implements PageRequestParams {
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
 
-  /** Returns the number of items to be returned. */
-  Integer getPageSize();
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 
-  /** Indicates whether to include the total number of items and pages in the paginated response. */
-  boolean isTotalPages();
+  private boolean totalPages = false;
 
-  /**
-   * Indicates whether to return all items {@code paging=false} or a page of items {@code
-   * paging=true}.
-   */
-  boolean isPaging();
+  private boolean paging = true;
+
+  private List<OrderCriteria> order = new ArrayList<>();
+
+  private List<UID> trackedEntities = new ArrayList<>();
+
+  private DeduplicationStatus status = DeduplicationStatus.OPEN;
 }

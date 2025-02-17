@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.notification;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;

@@ -248,26 +248,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
-
-    JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
-        page.getList("relationships", JsonRelationship.class)
-            .toList(JsonRelationship::getRelationship));
-    assertHasNoMember(page, "pager");
-  }
-
-  @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     TrackedEntity to = trackedEntity();
     Event from1 = event(enrollment(to));

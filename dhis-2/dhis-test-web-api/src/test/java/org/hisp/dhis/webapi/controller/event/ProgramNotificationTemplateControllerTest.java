@@ -169,25 +169,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
   }
 
   @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/programNotificationTemplates/filter?program={uid}&skipPaging=true", program.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
-    assertContainsOnly(
-        List.of(
-            programTemplate1.getName(),
-            programTemplate2.getName(),
-            programTemplate3.getName(),
-            programTemplate4.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-    assertHasNoMember(page, "pager");
-  }
-
-  @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     JsonPage page =
         GET("/programNotificationTemplates/filter?program={uid}&paging=false", program.getUid())
@@ -204,32 +185,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET(
-                "/programNotificationTemplates/filter?program={uid}&paging=false&skipPaging=false",
-                program.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET(
-                "/programNotificationTemplates/filter?program={uid}&paging=true&skipPaging=true",
-                program.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 
   @Test

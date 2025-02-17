@@ -65,6 +65,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -134,8 +135,9 @@ class HibernatePotentialDuplicateStore
     TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
 
     if (criteria.isPaging()) {
-      relationshipTypedQuery.setFirstResult(criteria.getFirstResult());
-      relationshipTypedQuery.setMaxResults(criteria.getPageSize());
+      PageParams pageParams = criteria.getPageParams();
+      relationshipTypedQuery.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+      relationshipTypedQuery.setMaxResults(pageParams.getPageSize());
     }
 
     return relationshipTypedQuery.getResultList();
@@ -177,9 +179,9 @@ class HibernatePotentialDuplicateStore
     NativeQuery<BigInteger> query =
         nativeSynchronizedQuery(
             """
-                select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
-                 :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
-                 pd.duplicate = :original)""");
+            select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
+             :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
+             pd.duplicate = :original)""");
 
     query.setParameter("original", potentialDuplicate.getOriginal().getValue());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());

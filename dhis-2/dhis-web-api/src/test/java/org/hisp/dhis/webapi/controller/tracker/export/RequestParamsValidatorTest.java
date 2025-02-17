@@ -31,12 +31,12 @@ import static java.util.Collections.emptySet;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateFilter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,6 +58,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
+import org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -497,6 +499,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldFailWhenGivenPageLessThanOrEqualToZero(int page) {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPage(page);
 
     Exception exception =
@@ -510,6 +513,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldPassWhenGivenPageGreaterThanOrEqualToOne(int page) throws BadRequestException {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPage(page);
 
     validatePaginationParameters(paginationParameters);
@@ -519,6 +523,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldFailWhenGivenPageSizeLessThanOrEqualToZero(int pageSize) {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPageSize(pageSize);
 
     Exception exception =
@@ -532,6 +537,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldPassWhenGivenPageSizeGreaterThanOrEqualToOne(int pageSize) throws BadRequestException {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPageSize(pageSize);
 
     validatePaginationParameters(paginationParameters);

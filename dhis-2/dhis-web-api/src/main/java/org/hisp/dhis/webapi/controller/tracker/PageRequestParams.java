@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.deduplication;
+package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.common.OpenApi;
 
-@Data
-public class PotentialDuplicateCriteria {
-  private PageParams pageParams;
+/**
+ * {@link PageRequestParams} represent the HTTP request parameters that configure whether the
+ * response should be paginated and if so how. Tracker supports disabling pagination via {@code
+ * paging=false} and enabling pagination via {@code paging=true}. Enabling and disabling parameters
+ * are mutually exclusive. We can thus not set default values in our {@code RequestParams} classes
+ * as we would not be able to discern a user supplied parameter value from a default value.
+ *
+ * <p>{@code totalPages=true} is only supported on paginated responses.
+ */
+@OpenApi.Shared(name = "TrackerPageRequestParams")
+public interface PageRequestParams {
+  /** Returns the page number to be returned. */
+  Integer getPage();
 
-  private List<OrderCriteria> order = new ArrayList<>();
+  /** Returns the number of items to be returned. */
+  Integer getPageSize();
 
-  private List<UID> trackedEntities = new ArrayList<>();
+  /** Indicates whether to include the total number of items and pages in the paginated response. */
+  boolean isTotalPages();
 
-  private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-  boolean isPaging() {
-    return pageParams != null;
-  }
+  /**
+   * Indicates whether to return all items {@code paging=false} or a page of items {@code
+   * paging=true}.
+   */
+  boolean isPaging();
 }

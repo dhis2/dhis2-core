@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 
 import java.util.Date;
 import java.util.List;
@@ -111,6 +111,7 @@ public class ProgramNotificationInstanceController {
             .event(storedEvent)
             .page(page)
             .pageSize(pageSize)
+            .paged(paging)
             .scheduledAt(scheduledAt)
             .build();
 

@@ -37,7 +37,6 @@ import java.util.function.Function;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -76,15 +75,9 @@ public class HibernateProgramNotificationInstanceStore
     if (params.isPaged()) {
       // javax.persistence.TypedQuery position of the first result is numbered from 0 while
       // user-facing pagination parameters start at 1
-      int firstResult =
-          ObjectUtils.firstNonNull(params.getPage(), ProgramNotificationInstanceParam.DEFAULT_PAGE)
-              - 1;
       jpaParameters
-          .setFirstResult(firstResult)
-          .setMaxResults(
-              params.getPageSize() != null
-                  ? params.getPageSize()
-                  : ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE);
+          .setFirstResult((params.getPage() - 1) * params.getPageSize())
+          .setMaxResults(params.getPageSize());
     }
 
     return getList(builder, jpaParameters);

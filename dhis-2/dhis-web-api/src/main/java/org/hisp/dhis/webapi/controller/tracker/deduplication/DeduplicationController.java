@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -55,6 +56,7 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -93,22 +95,35 @@ public class DeduplicationController {
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
   public Page<ObjectNode> getPotentialDuplicates(
-      PotentialDuplicateCriteria criteria,
+      PotentialDuplicateRequestParams requestParams,
       HttpServletResponse response,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException {
+    validatePaginationParameters(requestParams);
+
+    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
+    criteria.setStatus(requestParams.getStatus());
+    criteria.setTrackedEntities(requestParams.getTrackedEntities());
+    criteria.setOrder(requestParams.getOrder());
+    if (requestParams.isPaging()) {
+      PageParams pageParams =
+          new PageParams(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isPaging());
+      criteria.setPageParams(pageParams);
+    }
+
     List<PotentialDuplicate> potentialDuplicates =
         deduplicationService.getPotentialDuplicates(criteria);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
 
     setNoStore(response);
 
-    if (criteria.isPaging()) {
+    if (requestParams.isPaging()) {
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
           org.hisp.dhis.tracker.export.Page.withoutTotals(
               potentialDuplicates,
-              criteria.getPageWithDefault(),
-              criteria.getPageSizeWithDefault());
+              criteria.getPageParams().getPage(),
+              criteria.getPageParams().getPageSize());
       return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
     }
 

@@ -38,6 +38,7 @@ public interface DeduplicationService {
 
   PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid);
 
+  // TODO(ivo) delete if no one uses this
   int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
 
   boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
