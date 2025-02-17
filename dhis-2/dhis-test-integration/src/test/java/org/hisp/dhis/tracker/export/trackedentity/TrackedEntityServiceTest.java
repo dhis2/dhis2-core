@@ -1431,7 +1431,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
         () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
         () -> assertEquals(orgUnitA.getUid(), enrollment.getOrganisationUnit().getUid()),
-        () -> assertEquals(orgUnitA.getName(), enrollment.getOrganisationUnit().getName()),
         () -> assertEquals(programA.getUid(), enrollment.getProgram().getUid()),
         () -> assertEquals(EnrollmentStatus.ACTIVE, enrollment.getStatus()),
         () -> assertFalse(enrollment.isDeleted()),

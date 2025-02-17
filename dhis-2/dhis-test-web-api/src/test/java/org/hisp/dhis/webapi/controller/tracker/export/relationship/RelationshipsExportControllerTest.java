@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationship;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationshipItem;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEventWithinRelationshipItem;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -239,7 +240,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldReturnNotFoundWhenGettingANonExistingRelationshipById() {
     assertEquals(
         "Relationship with id Hq3Kc6HK4OZ could not be found.",
-        GET("/tracker/relationships/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
+        GET("/tracker/relationships/Hq3Kc6HK4OZ").error(NOT_FOUND).getMessage());
   }
 
   @Test
@@ -320,7 +321,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsByEventWithAssignedUser() {
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?event={uid}&fields=*", "QRYjLTiJTrA")
+        GET("/tracker/relationships?event={uid}&fields=to[event[assignedUser]]", "QRYjLTiJTrA")
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -371,7 +372,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldReturnNotFoundWhenGettingRelationshipsByNonExistingEvent() {
     assertStartsWith(
         "Event with id Hq3Kc6HK4OZ",
-        GET("/tracker/relationships?event=Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
+        GET("/tracker/relationships?event=Hq3Kc6HK4OZ").error(NOT_FOUND).getMessage());
   }
 
   @Test
@@ -396,7 +397,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
     assertTrackedEntityWithinRelationshipItem(relationship2From, jsonRelationship.getFrom());
-    assertEnrollmentWithinRelationship(relationship2To, jsonRelationship.getTo());
+    assertEnrollmentWithinRelationshipItem(relationship2To, jsonRelationship.getTo());
   }
 
   @Test
@@ -502,9 +503,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldReturnNotFoundWhenGettingRelationshipsByNonExistingEnrollment() {
     assertStartsWith(
         "Enrollment with id Hq3Kc6HK4OZ",
-        GET("/tracker/relationships?enrollment=Hq3Kc6HK4OZ")
-            .error(HttpStatus.NOT_FOUND)
-            .getMessage());
+        GET("/tracker/relationships?enrollment=Hq3Kc6HK4OZ").error(NOT_FOUND).getMessage());
   }
 
   @Test
@@ -543,6 +542,40 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
+  void shouldGetRelationshipsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            TrackerObjects.builder()
+                .trackedEntities(List.of(getTrackedEntity(UID.of("guVNoAerxWo"))))
+                .build()));
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?trackedEntity={te}&fields=*&includeDeleted=true", "guVNoAerxWo")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+    assertFirstRelationship(deletedTEToEnrollmentRelationship, jsonRelationships);
+    assertTrackedEntityWithinRelationshipItem(
+        getTrackedEntity(UID.of("guVNoAerxWo")), jsonRelationships.get(0).getFrom());
+  }
+
+  @Test
+  void
+      shouldReturnNotFoundWhenGettingRelationshipsByTrackedEntityAndTrackedEntityIsDeletedAndIncludeDeletedIsFalse() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            TrackerObjects.builder()
+                .trackedEntities(List.of(getTrackedEntity(UID.of("guVNoAerxWo"))))
+                .build()));
+
+    assertEquals(
+        NOT_FOUND,
+        GET("/tracker/relationships?trackedEntity={te}&includeDeleted=false", "guVNoAerxWo")
+            .status());
+  }
+
+  @Test
   void shouldNotGetRelationshipsByEnrollmentWhenRelationshipIsDeleted() {
     assertNoRelationships(
         GET("/tracker/relationships?enrollment={en}", "ipBifypAQTo").content(HttpStatus.OK));
@@ -558,18 +591,79 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
+  void shouldGetRelationshipsByEnrollmentWhenEnrollmentIsDeletedAndIncludeDeletedIsTrue() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            TrackerObjects.builder()
+                .enrollments(List.of(getEnrollment(UID.of("ipBifypAQTo"))))
+                .build()));
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?enrollment={en}&includeDeleted=true&fields=*", "ipBifypAQTo")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+    assertFirstRelationship(deletedTEToEnrollmentRelationship, jsonRelationships);
+    assertEnrollmentWithinRelationshipItem(
+        getEnrollment(UID.of("ipBifypAQTo")), jsonRelationships.get(0).getTo());
+  }
+
+  @Test
+  void
+      shouldGetNotFoundWhenGettingRelationshipsByEnrollmentAndEnrollmentIsDeletedAndIncludeDeletedIsFalse() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            TrackerObjects.builder()
+                .enrollments(List.of(getEnrollment(UID.of("ipBifypAQTo"))))
+                .build()));
+
+    assertEquals(
+        NOT_FOUND,
+        GET("/tracker/relationships?enrollment={en}&includeDeleted=false", "ipBifypAQTo").status());
+  }
+
+  @Test
   void shouldNotGetRelationshipsByEventWhenRelationshipIsDeleted() {
     assertNoRelationships(
         GET("/tracker/relationships?event={ev}", "LCSfHnurnNB").content(HttpStatus.OK));
   }
 
   @Test
-  void shouldGetRelationshipsByEventWhenRelationshipIsDeleted() {
+  void shouldGetRelationshipsByEventWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?event={ev}&includeDeleted=true", "LCSfHnurnNB")
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
     assertFirstRelationship(deletedTEToEventRelationship, jsonRelationships);
+  }
+
+  @Test
+  void shouldGetRelationshipsByEventWhenEventIsDeletedAndIncludeDeletedIsTrue() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            TrackerObjects.builder().events(List.of(getEvent(UID.of("LCSfHnurnNB")))).build()));
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?event={ev}&includeDeleted=true&fields=*", "LCSfHnurnNB")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+    assertFirstRelationship(deletedTEToEventRelationship, jsonRelationships);
+    assertEventWithinRelationshipItem(
+        getEvent(UID.of("LCSfHnurnNB")), jsonRelationships.get(0).getTo());
+  }
+
+  @Test
+  void shouldGetNotFoundWhenGettingRelationshipsByEventAndEventIsDeletedAndIncludeDeletedIsFalse() {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            TrackerObjects.builder().events(List.of(getEvent(UID.of("LCSfHnurnNB")))).build()));
+
+    assertEquals(
+        NOT_FOUND,
+        GET("/tracker/relationships?event={ev}&includeDeleted=false", "LCSfHnurnNB").status());
   }
 
   @Test
@@ -802,9 +896,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldReturnNotFoundWhenGettingRelationshipsByNonExistingTrackedEntity() {
     assertStartsWith(
         "TrackedEntity with id Hq3Kc6HK4OZ",
-        GET("/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ")
-            .error(HttpStatus.NOT_FOUND)
-            .getMessage());
+        GET("/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ").error(NOT_FOUND).getMessage());
   }
 
   private TrackedEntity getTrackedEntity(UID trackedEntity) {
