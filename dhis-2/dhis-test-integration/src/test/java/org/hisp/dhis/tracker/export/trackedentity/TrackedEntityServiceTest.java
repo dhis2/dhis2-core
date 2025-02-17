@@ -102,6 +102,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -258,6 +260,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 new TrackedEntityTypeAttribute(trackedEntityTypeA, teaB)));
     trackedEntityTypeA.getSharing().setOwner(user);
     trackedEntityTypeA.setPublicAccess(AccessStringHelper.FULL);
+    trackedEntityTypeA.setMinAttributesRequiredToSearch(0);
     manager.save(trackedEntityTypeA, false);
 
     CategoryCombo defaultCategoryCombo = manager.getByName(CategoryCombo.class, "default");
@@ -1894,6 +1897,39 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             "User has no data read access to tracked entity type: %s",
             inaccessibleTrackedEntityType.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnEmptyResultIfUserHasNoAccessToAnyTrackerProgram()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(getAdminUser());
+    makeProgramMetadataAccessibleOnly(programA);
+    makeProgramMetadataAccessibleOnly(programB);
+    makeProgramMetadataAccessibleOnly(programC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntityType(trackedEntityTypeA).build();
+
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldReturnEmptyPageIfUserHasNoAccessToAnyTrackerProgram()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(getAdminUser());
+    makeProgramMetadataAccessibleOnly(programA);
+    makeProgramMetadataAccessibleOnly(programB);
+    makeProgramMetadataAccessibleOnly(programC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntityType(trackedEntityTypeA).build();
+
+    Page<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams, new PageParams(1, 3, false));
+
+    assertIsEmpty(trackedEntities.getItems());
   }
 
   @Test

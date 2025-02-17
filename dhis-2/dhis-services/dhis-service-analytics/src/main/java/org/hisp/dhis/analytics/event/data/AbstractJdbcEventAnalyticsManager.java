@@ -38,6 +38,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
@@ -81,6 +82,7 @@ import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -628,17 +630,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (params.isAggregateData()) {
         if (params.hasValueDimension()) {
-          String itemId =
-              params.getProgram().getUid()
-                  + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-                  + params.getValue().getUid();
-          grid.addValue(itemId);
+          grid.addValue(getItemId(params));
         } else if (params.hasProgramIndicatorDimension()) {
           grid.addValue(params.getProgramIndicator().getUid());
         }
       } else {
         for (QueryItem queryItem : params.getItems()) {
-
           ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, true);
           String alias = columnAndAlias.getAlias();
 
@@ -701,6 +698,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
       }
     }
+  }
+
+  /**
+   * Builds the item identifier, so it can be identifiable in the response/row object.
+   *
+   * @param params the current {@link EventQueryParams}.
+   * @return the item identifier.
+   */
+  private String getItemId(@Nonnull EventQueryParams params) {
+    String programUid = params.getProgram().getUid();
+    String dimensionUid = params.getValue().getUid();
+    String optionUid = params.getOption() == null ? EMPTY : params.getOption().getUid();
+    String itemId = programUid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dimensionUid;
+
+    if (isNotBlank(optionUid)) {
+      itemId += COMPOSITE_DIM_OBJECT_PLAIN_SEP + optionUid;
+    }
+
+    return itemId;
   }
 
   /**
@@ -818,7 +834,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param item the {@link QueryItem}.
    * @param suffix the suffix.
-   * @return the the column select statement for the given item.
+   * @return the column select statement for the given item.
    */
   protected String getColumn(QueryItem item, String suffix) {
     return quote(item.getItemName() + suffix);

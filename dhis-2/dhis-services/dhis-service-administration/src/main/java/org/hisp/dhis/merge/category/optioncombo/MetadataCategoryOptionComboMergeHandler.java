@@ -86,7 +86,8 @@ public class MetadataCategoryOptionComboMergeHandler {
    * the {@link CategoryComboDeletionHandler} look after it.
    */
   public void handleCategoryCombos() {
-    log.info("Category combo references will be removed when the category option combo is deleted");
+    log.info(
+        "Category combo references will be removed when the category option combo is deleted at the end of the merge process");
   }
 
   /**
