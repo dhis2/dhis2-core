@@ -99,6 +99,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.CteUtils;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -1464,12 +1465,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (queryItem.isProgramIndicator()) {
         // For program indicators, use CTE reference
         String piUid = queryItem.getItem().getUid();
-        CteDefinition cteDef = cteContext.getDefinitionByItemUid(piUid);
-        // COALESCE(fbyta.value, 0) as CH6wamtY9kK
+        CteDefinition cteDef = cteContext.getDefinitionByItemUid(CteUtils.computeKey(queryItem));
         String col =
             cteDef.isRequiresCoalesce()
-                ? "coalesce(%s.value, 0) as %s".formatted(cteDef.getAlias(), piUid)
-                : "%s.value as %s".formatted(cteDef.getAlias(), piUid);
+                ? "coalesce(%s.value, 0) as %s".formatted(cteDef.getAlias(), quote(piUid))
+                : "%s.value as %s".formatted(cteDef.getAlias(), quote(piUid));
         columns.add(col);
       } else if (ValueType.COORDINATE == queryItem.getValueType()) {
         // Handle coordinates

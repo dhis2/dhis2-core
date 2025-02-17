@@ -37,7 +37,7 @@ public class CteUtils {
     if (queryItem.hasProgramStage()) {
       return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
     } else if (queryItem.isProgramIndicator()) {
-      return queryItem.getItemId();
+      return "pi_" + queryItem.getItemId();
     }
     return "";
   }
