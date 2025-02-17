@@ -51,6 +51,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.SystemUser;
@@ -417,7 +418,7 @@ class TrackedEntityRequestParamsMapperTest {
     trackedEntityRequestParams.setFilter(TEA_1_UID + ":like:value1," + TEA_2_UID + ":like:value2");
     trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
-    Map<UID, List<QueryFilter>> filters = mapper.map(trackedEntityRequestParams, user).getFilters();
+    Set<Filter> filters = mapper.map(trackedEntityRequestParams, user).getFilters();
 
     assertEquals(
         Map.of(

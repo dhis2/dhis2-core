@@ -71,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -271,11 +272,9 @@ class TrackedEntityOperationParamsMapperTest {
             .orgUnitMode(ACCESSIBLE)
             .program(program)
             .filters(
-                Map.of(
-                    TEA_1_UID,
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    TEA_2_UID,
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+                Set.of(
+                    new Filter(TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "2"))),
+                    new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo")))))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -326,11 +325,12 @@ class TrackedEntityOperationParamsMapperTest {
             .orgUnitMode(ACCESSIBLE)
             .program(program)
             .filters(
-                Map.of(
-                    TEA_1_UID,
-                    List.of(
-                        new QueryFilter(QueryOperator.GT, "10"),
-                        new QueryFilter(QueryOperator.LT, "20"))))
+                Set.of(
+                    new Filter(
+                        TEA_1_UID,
+                        List.of(
+                            new QueryFilter(QueryOperator.GT, "10"),
+                            new QueryFilter(QueryOperator.LT, "20")))))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);

@@ -72,6 +72,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -442,7 +443,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Set<Filter> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
     Map<UID, List<QueryFilter>> expected =
         Map.of(
@@ -460,7 +461,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Set<Filter> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
     Map<UID, List<QueryFilter>> expected =
         Map.of(
@@ -477,7 +478,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Set<Filter> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
     Map<UID, List<QueryFilter>> expected = Map.of(DE_1_UID, List.of());
     assertEquals(expected, dataElementFilters);
@@ -489,7 +490,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Set<Filter> dataElementFilters = params.getDataElementFilters();
 
     assertNotNull(dataElementFilters);
     assertTrue(dataElementFilters.isEmpty());
@@ -502,7 +503,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Set<Filter> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
     Map<UID, List<QueryFilter>> expected =
         Map.of(
@@ -520,7 +521,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Set<Filter> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
     Map<UID, List<QueryFilter>> expected =
         Map.of(
@@ -537,7 +538,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Set<Filter> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
     Map<UID, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
     assertEquals(expected, attributeFilters);
@@ -549,7 +550,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
-    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Set<Filter> attributeFilters = params.getAttributeFilters();
 
     assertNotNull(attributeFilters);
     assertTrue(attributeFilters.isEmpty());

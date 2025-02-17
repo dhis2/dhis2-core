@@ -31,7 +31,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +56,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -121,7 +121,7 @@ class DefaultEventService implements EventService {
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .eventParams(EventParams.FALSE)
-              .dataElementFilters(Map.of(dataElementUid, List.of()))
+              .dataElementFilters(Set.of(new Filter(dataElementUid)))
               .build();
       events = getEvents(operationParams, new PageParams(1, 1, false));
     } catch (BadRequestException e) {

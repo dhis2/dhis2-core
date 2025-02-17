@@ -31,8 +31,7 @@ import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrg
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -52,6 +51,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -194,47 +194,44 @@ class EventOperationParamsMapper {
     }
   }
 
-  private void mapDataElementFilters(
-      EventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
+  private void mapDataElementFilters(EventQueryParams params, Set<Filter> filters)
       throws BadRequestException {
-    for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
-      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
+    for (Filter trackerFilter : filters) {
+      DataElement de = dataElementService.getDataElement(trackerFilter.getUid().getValue());
       if (de == null) {
         throw new BadRequestException(
             String.format(
-                "filter is invalid. Data element '%s' does not exist.",
-                dataElementFilter.getKey()));
+                "filter is invalid. Data element '%s' does not exist.", trackerFilter.getUid()));
       }
 
-      if (dataElementFilter.getValue().isEmpty()) {
+      if (trackerFilter.getFilters().isEmpty()) {
         params.filterBy(de);
       }
 
-      for (QueryFilter filter : dataElementFilter.getValue()) {
+      for (QueryFilter filter : trackerFilter.getFilters()) {
         params.filterBy(de, filter);
       }
     }
   }
 
-  private void mapAttributeFilters(
-      EventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+  private void mapAttributeFilters(EventQueryParams params, Set<Filter> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Filter trackerFilter : attributeFilters) {
       TrackedEntityAttribute tea =
           trackedEntityAttributeService.getTrackedEntityAttribute(
-              attributeFilter.getKey().getValue());
+              trackerFilter.getUid().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
-                attributeFilter.getKey()));
+                trackerFilter.getUid()));
       }
 
-      if (attributeFilter.getValue().isEmpty()) {
+      if (trackerFilter.getFilters().isEmpty()) {
         params.filterBy(tea);
       }
 
-      for (QueryFilter filter : attributeFilter.getValue()) {
+      for (QueryFilter filter : trackerFilter.getFilters()) {
         params.filterBy(tea, filter);
       }
     }

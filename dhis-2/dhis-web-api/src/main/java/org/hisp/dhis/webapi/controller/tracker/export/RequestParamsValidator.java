@@ -39,6 +39,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
@@ -326,42 +328,40 @@ public class RequestParamsValidator {
 
   /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
-   * tracked entity attribute. Refer to {@link #parseSanitizedFilters(Map, String)}} for details on
+   * tracked entity attribute. Refer to {@link #parseSanitizedFilters(Set, String)}} for details on
    * the expected input format.
    *
    * @return filters by UIDs
    */
-  public static Map<UID, List<QueryFilter>> parseAttributeFilters(String input)
-      throws BadRequestException {
-    Map<UID, List<QueryFilter>> result = new HashMap<>();
+  public static Set<Filter> parseAttributeFilters(String input) throws BadRequestException {
+    Set<Filter> filters = new HashSet<>();
     if (StringUtils.isBlank(input)) {
-      return result;
+      return filters;
     }
 
     for (String uidOperatorValue : filterList(input)) {
-      parseSanitizedFilters(result, uidOperatorValue);
+      parseSanitizedFilters(filters, uidOperatorValue);
     }
-    return result;
+    return filters;
   }
 
   /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
-   * data element. Refer to {@link #parseSanitizedDataElementFilters(Map, String)}} for details on
+   * data element. Refer to {@link #parseSanitizedDataElementFilters(Set, String)}} for details on
    * the expected input format.
    *
    * @return filters by UIDs
    */
-  public static Map<UID, List<QueryFilter>> parseDataElementFilters(String input)
-      throws BadRequestException {
-    Map<UID, List<QueryFilter>> result = new HashMap<>();
+  public static Set<Filter> parseDataElementFilters(String input) throws BadRequestException {
+    Set<Filter> filters = new HashSet<>();
     if (StringUtils.isBlank(input)) {
-      return result;
+      return filters;
     }
 
     for (String uidOperatorValue : filterList(input)) {
-      parseSanitizedDataElementFilters(result, uidOperatorValue);
+      parseSanitizedDataElementFilters(filters, uidOperatorValue);
     }
-    return result;
+    return filters;
   }
 
   /**
@@ -372,21 +372,20 @@ public class RequestParamsValidator {
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
-  private static void parseSanitizedFilters(Map<UID, List<QueryFilter>> result, String input)
+  private static void parseSanitizedFilters(Set<Filter> trackerFilters, String input)
       throws BadRequestException {
     int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
 
     if (uidIndex == 0 || input.length() == uidIndex) {
       UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
-      result.putIfAbsent(uid, new ArrayList<>());
+      trackerFilters.add(new Filter(uid));
       return;
     }
 
     UID uid = UID.of(input.substring(0, uidIndex - 1));
-    result.putIfAbsent(uid, new ArrayList<>());
 
     String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
-    validateFilterLength(filters, result, uid, input);
+    validateFilterLength(filters, trackerFilters, uid, input);
   }
 
   /**
@@ -397,43 +396,37 @@ public class RequestParamsValidator {
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
-  private static void parseSanitizedDataElementFilters(
-      Map<UID, List<QueryFilter>> result, String input) throws BadRequestException {
+  private static void parseSanitizedDataElementFilters(Set<Filter> trackerFilters, String input)
+      throws BadRequestException {
     int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
 
     if (uidIndex == 0 || input.length() == uidIndex) {
       UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
-      result.putIfAbsent(uid, List.of());
+      trackerFilters.add(new Filter(uid));
       return;
     }
 
     UID uid = UID.of(input.substring(0, uidIndex - 1));
     String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
-    result.putIfAbsent(uid, new ArrayList<>());
-    validateFilterLength(filters, result, uid, input);
+    validateFilterLength(filters, trackerFilters, uid, input);
   }
 
   private static void validateFilterLength(
-      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
+      String[] filters, Set<Filter> trackerFilters, UID uid, String input)
       throws BadRequestException {
+    List<QueryFilter> queryFilters = new ArrayList<>();
     switch (filters.length) {
-      case 1 -> addQueryFilter(result, uid, filters[0], null, input);
-      case 2 -> handleOperators(filters, result, uid, input);
-      case 3 -> handleMixedOperators(filters, result, uid, input);
-      case 4 -> handleMultipleBinaryOperators(filters, result, uid, input);
+      case 1 -> getOperatorValueQueryFilter(queryFilters, filters[0], null, input);
+      case 2 -> handleOperators(queryFilters, filters, input);
+      case 3 -> handleMixedOperators(queryFilters, filters, input);
+      case 4 -> handleMultipleBinaryOperators(queryFilters, filters, input);
       default -> throw new BadRequestException(INVALID_FILTER + input);
     }
-  }
-
-  private static void addQueryFilter(
-      Map<UID, List<QueryFilter>> result, UID uid, String operator, String value, String input)
-      throws BadRequestException {
-    result.get(uid).add(operatorValueQueryFilter(operator, value, input));
+    processTrackerFilter(trackerFilters, uid, queryFilters);
   }
 
   private static void handleOperators(
-      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
-      throws BadRequestException {
+      List<QueryFilter> queryFilters, String[] filters, String input) throws BadRequestException {
     QueryOperator firstOperator =
         findQueryOperatorFromFilter(filters[0])
             .orElseThrow(
@@ -442,7 +435,7 @@ public class RequestParamsValidator {
                         String.format("'%s' is not a valid operator: %s", filters[0], input)));
 
     if (!firstOperator.isUnary()) {
-      addQueryFilter(result, uid, filters[0], filters[1], input);
+      getOperatorValueQueryFilter(queryFilters, filters[0], filters[1], input);
       return;
     }
 
@@ -456,25 +449,24 @@ public class RequestParamsValidator {
                             filters[0], input)));
 
     if (secondOperator.isUnary()) {
-      addQueryFilter(result, uid, filters[0], null, input);
-      addQueryFilter(result, uid, filters[1], null, input);
+      getOperatorValueQueryFilter(queryFilters, filters[0], null, input);
+      getOperatorValueQueryFilter(queryFilters, filters[1], null, input);
     }
   }
 
   private static void handleMixedOperators(
-      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
-      throws BadRequestException {
+      List<QueryFilter> queryFilters, String[] filters, String input) throws BadRequestException {
     Optional<QueryOperator> firstOperator = findQueryOperatorFromFilter(filters[0]);
     if (firstOperator.map(QueryOperator::isUnary).orElse(false)) {
-      addQueryFilter(result, uid, filters[0], null, input);
-      addQueryFilter(result, uid, filters[1], filters[2], input);
+      getOperatorValueQueryFilter(queryFilters, filters[0], null, input);
+      getOperatorValueQueryFilter(queryFilters, filters[1], filters[2], input);
       return;
     }
 
     Optional<QueryOperator> thirdOperator = findQueryOperatorFromFilter(filters[2]);
     if (thirdOperator.map(QueryOperator::isUnary).orElse(false)) {
-      addQueryFilter(result, uid, filters[0], filters[1], input);
-      addQueryFilter(result, uid, filters[2], null, input);
+      getOperatorValueQueryFilter(queryFilters, filters[0], filters[1], input);
+      getOperatorValueQueryFilter(queryFilters, filters[2], null, input);
       return;
     }
 
@@ -482,14 +474,13 @@ public class RequestParamsValidator {
   }
 
   private static void handleMultipleBinaryOperators(
-      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
-      throws BadRequestException {
+      List<QueryFilter> queryFilters, String[] filters, String input) throws BadRequestException {
 
     List<String> unaryOperators = getUnaryOperatorsInFilter(filters);
     switch (unaryOperators.size()) {
       case 0 -> {
         for (int i = 0; i < filters.length; i += 2) {
-          addQueryFilter(result, uid, filters[i], filters[i + 1], input);
+          getOperatorValueQueryFilter(queryFilters, filters[i], filters[i + 1], input);
         }
       }
       case 1 ->
@@ -520,6 +511,17 @@ public class RequestParamsValidator {
         .map(f -> f.toLowerCase().replace("!", "n"))
         .filter(unaryOperators::contains)
         .toList();
+  }
+
+  public static void processTrackerFilter(
+      Set<Filter> filters, UID uid, List<QueryFilter> newFilters) {
+    Filter filter = filters.stream().filter(tf -> tf.getUid().equals(uid)).findFirst().orElse(null);
+
+    if (filter != null) {
+      filter.getFilters().addAll(newFilters);
+    } else {
+      filters.add(new Filter(uid, newFilters));
+    }
   }
 
   public static OrganisationUnitSelectionMode validateOrgUnitModeForTrackedEntities(
@@ -639,7 +641,8 @@ public class RequestParamsValidator {
     }
   }
 
-  private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
+  private static void getOperatorValueQueryFilter(
+      List<QueryFilter> queryFilters, String operator, String value, String filter)
       throws BadRequestException {
     if (StringUtils.isEmpty(operator)) {
       throw new BadRequestException(INVALID_FILTER + filter);
@@ -663,14 +666,15 @@ public class RequestParamsValidator {
                 "Operator %s in filter can't be used with a value: %s",
                 queryOperator.name(), filter));
       }
-      return new QueryFilter(queryOperator);
+      queryFilters.add(new QueryFilter(queryOperator));
+      return;
     }
 
     if (StringUtils.isEmpty(value)) {
       throw new BadRequestException("Operator in filter must be be used with a value: " + filter);
     }
 
-    return new QueryFilter(queryOperator, escapedFilterValue(value));
+    queryFilters.add(new QueryFilter(queryOperator, escapedFilterValue(value)));
   }
 
   /**

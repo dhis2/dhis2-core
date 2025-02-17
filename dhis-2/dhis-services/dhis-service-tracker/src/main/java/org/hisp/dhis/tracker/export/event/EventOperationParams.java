@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -42,7 +40,6 @@ import lombok.Getter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -53,6 +50,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -128,10 +126,10 @@ public class EventOperationParams {
   @Builder.Default private Set<UID> events = new HashSet<>();
 
   /** Data element filters per data element UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> dataElementFilters = new HashMap<>();
+  @Builder.Default private Set<Filter> dataElementFilters = new HashSet<>();
 
   /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> attributeFilters = new HashMap<>();
+  @Builder.Default private Set<Filter> attributeFilters = new HashSet<>();
 
   private boolean includeDeleted;
 

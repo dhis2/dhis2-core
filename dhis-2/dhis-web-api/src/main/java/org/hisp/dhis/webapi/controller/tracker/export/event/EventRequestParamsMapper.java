@@ -37,17 +37,16 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
@@ -110,10 +109,8 @@ class EventRequestParamsMapper {
             "event", eventRequestParams.getEvent(), "events", eventRequestParams.getEvents());
 
     validateFilter(eventRequestParams.getFilter(), eventUids);
-    Map<UID, List<QueryFilter>> dataElementFilters =
-        parseDataElementFilters(eventRequestParams.getFilter());
-    Map<UID, List<QueryFilter>> attributeFilters =
-        parseAttributeFilters(eventRequestParams.getFilterAttributes());
+    Set<Filter> dataElementFilters = parseDataElementFilters(eventRequestParams.getFilter());
+    Set<Filter> attributeFilters = parseAttributeFilters(eventRequestParams.getFilterAttributes());
 
     Set<UID> assignedUsers =
         validateDeprecatedUidsParameter(

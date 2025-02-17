@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,6 +49,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -64,7 +63,7 @@ public class TrackedEntityOperationParams {
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
 
   /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> filters = new HashMap<>();
+  @Builder.Default private Set<Filter> filters = new HashSet<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -251,7 +250,7 @@ public class TrackedEntityOperationParams {
 
     public TrackedEntityOperationParamsBuilder filter(
         TrackedEntityAttribute attribute, List<QueryFilter> queryFilters) {
-      this.filters$value = Map.of(UID.of(attribute), queryFilters);
+      this.filters$value = Set.of(new Filter(UID.of(attribute), queryFilters));
       this.filters$set = true;
       return this;
     }

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseAttributeFilters;
@@ -47,7 +48,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Data;
@@ -59,6 +59,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.tracker.export.Filter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -214,52 +215,54 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseAttributeFilters() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
+    Set<Filter> filters =
         parseAttributeFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
 
     assertEquals(
-        Map.of(
-            TEA_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
-            TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        Set.of(
+            new Filter(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "20"),
+                    new QueryFilter(QueryOperator.GT, "10"))),
+            new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo")))),
         filters);
   }
 
   @Test
   void shouldParseAttributeFiltersGivenRepeatedUID() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
+    Set<Filter> filters =
         parseAttributeFilters(
             TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
 
-    assertEquals(
-        Map.of(
-            TEA_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
-            TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+    assertContainsOnly(
+        Set.of(
+            new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+            new Filter(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "20"),
+                    new QueryFilter(QueryOperator.GT, "10")))),
         filters);
   }
 
   @Test
   void shouldParseAttributeFiltersOnlyContainingAnIdentifier() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseAttributeFilters(TEA_1_UID.getValue());
+    Set<Filter> filters = parseAttributeFilters(TEA_1_UID.getValue());
 
-    assertEquals(Map.of(TEA_1_UID, List.of()), filters);
+    assertContainsOnly(Set.of(new Filter(TEA_1_UID)), filters);
   }
 
   @Test
   void shouldParseAttributeFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseAttributeFilters(TEA_1_UID.getValue() + ":");
+    Set<Filter> filters = parseAttributeFilters(TEA_1_UID.getValue() + ":");
 
-    assertEquals(Map.of(TEA_1_UID, List.of()), filters);
+    assertContainsOnly(Set.of(new Filter(TEA_1_UID)), filters);
   }
 
   @Test
   void shouldParseAttributeFiltersGivenBlankInput() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseAttributeFilters(" ");
+    Set<Filter> filters = parseAttributeFilters(" ");
 
     assertTrue(filters.isEmpty());
   }
@@ -284,11 +287,12 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseAttributeFiltersWithFilterNameHasSeparationCharInIt() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
-        parseAttributeFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
+    Set<Filter> filters = parseAttributeFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
 
     assertEquals(
-        Map.of(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))), filters);
+        Set.of(
+            new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2")))),
+        filters);
   }
 
   @Test
@@ -303,37 +307,38 @@ class RequestParamsValidatorTest {
   @Test
   void shouldParseFilterWhenFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
       throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
+    Set<Filter> filters =
         parseAttributeFilters(
             TEA_1_UID
                 + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
 
-    assertEquals(
-        Map.of(
-            TEA_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
-                new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30"))),
+    assertContainsOnly(
+        Set.of(
+            new Filter(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
+                    new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30")))),
         filters);
   }
 
   @Test
   void shouldParseFilterWhenFilterHasMultipleOperatorAndTextRange() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
-        parseAttributeFilters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
+    Set<Filter> filters = parseAttributeFilters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
 
     assertEquals(
-        Map.of(
-            TEA_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.SW, "project:x"),
-                new QueryFilter(QueryOperator.EW, "project:le:"))),
+        Set.of(
+            new Filter(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.SW, "project:x"),
+                    new QueryFilter(QueryOperator.EW, "project:le:")))),
         filters);
   }
 
   @Test
   void shouldParseFilterWhenMultipleFiltersAreMixedCommaAndSlash() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
+    Set<Filter> filters =
         parseAttributeFilters(
             TEA_1_UID
                 + ":eq:project///,/,//"
@@ -345,76 +350,82 @@ class RequestParamsValidatorTest {
                 + ":eq:project//");
 
     assertEquals(
-        Map.of(
-            TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/,,/")),
-            TEA_2_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/")),
-            TEA_3_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/"))),
+        Set.of(
+            new Filter(TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/,,/"))),
+            new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/"))),
+            new Filter(TEA_3_UID, List.of(new QueryFilter(QueryOperator.EQ, "project/")))),
         filters);
   }
 
   @Test
   void shouldParseFilterWhenFilterHasMultipleOperatorWithFinalColon() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
-        parseAttributeFilters(TEA_1_UID + ":like:value1/::like:value2");
+    Set<Filter> filters = parseAttributeFilters(TEA_1_UID + ":like:value1/::like:value2");
 
-    assertEquals(
-        Map.of(
-            TEA_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.LIKE, "value1:"),
-                new QueryFilter(QueryOperator.LIKE, "value2"))),
+    assertContainsOnly(
+        Set.of(
+            new Filter(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.LIKE, "value1:"),
+                    new QueryFilter(QueryOperator.LIKE, "value2")))),
         filters);
   }
 
   @Test
   void shouldParseDataElementFilters() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters =
+    Set<Filter> filters =
         parseDataElementFilters(DE_1_UID + ":lt:20:gt:10," + DE_2_UID + ":like:foo");
 
-    assertEquals(
-        Map.of(
-            DE_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
-            DE_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+    assertContainsOnly(
+        Set.of(
+            new Filter(
+                DE_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "20"),
+                    new QueryFilter(QueryOperator.GT, "10"))),
+            new Filter(DE_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo")))),
         filters);
   }
 
   @Test
   void shouldParseDataElementFilterWhenOnlyUIDProvided() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID.getValue());
+    Set<Filter> filters = parseDataElementFilters(DE_1_UID.getValue());
 
-    assertEquals(Map.of(DE_1_UID, List.of()), filters);
+    assertContainsOnly(Set.of(new Filter(DE_1_UID)), filters);
   }
 
   @Test
   void shouldParseDataElementFilterWhenSingleUnaryOperator() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":!null");
+    Set<Filter> filters = parseDataElementFilters(DE_1_UID + ":!null");
 
-    assertEquals(Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL))), filters);
+    assertContainsOnly(
+        Set.of(new Filter(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)))), filters);
   }
 
   @Test
   void shouldParseDataElementFilterWhenMultipleUnaryOperatorsCombined() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":!null:null");
+    Set<Filter> filters = parseDataElementFilters(DE_1_UID + ":!null:null");
 
-    assertEquals(
-        Map.of(
-            DE_1_UID,
-            List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL))),
+    assertContainsOnly(
+        Set.of(
+            new Filter(
+                DE_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL)))),
         filters);
   }
 
   @Test
   void shouldParseDataElementFilterWhenUnaryAndBinaryOperatorsCombined()
       throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseDataElementFilters(DE_1_UID + ":null:gt:10");
+    Set<Filter> filters = parseDataElementFilters(DE_1_UID + ":null:gt:10");
 
-    assertEquals(
-        Map.of(
-            DE_1_UID,
-            List.of(new QueryFilter(QueryOperator.NULL), new QueryFilter(QueryOperator.GT, "10"))),
+    assertContainsOnly(
+        Set.of(
+            new Filter(
+                DE_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.NULL), new QueryFilter(QueryOperator.GT, "10")))),
         filters);
   }
 

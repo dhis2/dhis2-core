@@ -37,7 +37,6 @@ import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrg
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +55,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.Filter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -178,24 +178,23 @@ class TrackedEntityOperationParamsMapper {
     return emptyList();
   }
 
-  private void mapAttributeFilters(
-      TrackedEntityQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+  private void mapAttributeFilters(TrackedEntityQueryParams params, Set<Filter> filters)
       throws BadRequestException {
-    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Filter trackerFilter : filters) {
       TrackedEntityAttribute tea =
-          attributeService.getTrackedEntityAttribute(attributeFilter.getKey().getValue());
+          attributeService.getTrackedEntityAttribute(trackerFilter.getUid().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
-                attributeFilter.getKey()));
+                trackerFilter.getUid()));
       }
 
-      if (attributeFilter.getValue().isEmpty()) {
+      if (trackerFilter.getFilters().isEmpty()) {
         params.filterBy(tea);
       }
 
-      for (QueryFilter filter : attributeFilter.getValue()) {
+      for (QueryFilter filter : trackerFilter.getFilters()) {
         params.filterBy(tea, filter);
       }
     }
