@@ -268,7 +268,7 @@ public class RouteService {
               Flux<DataBuffer> dataBufferFlux =
                   DataBufferUtils.write(responseEntityFlux.getBody(), out)
                       .doOnNext(DataBufferUtils.releaseConsumer());
-              dataBufferFlux.blockLast();
+              dataBufferFlux.blockLast(Duration.ofMinutes(5));
             } catch (Exception e) {
               out.close();
               throw e;
