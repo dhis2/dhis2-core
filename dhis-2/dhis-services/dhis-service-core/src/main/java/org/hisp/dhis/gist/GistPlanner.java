@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.gist.GistLogic.effectiveTransform;
 import static org.hisp.dhis.gist.GistLogic.isAttributePath;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -98,17 +99,31 @@ class GistPlanner {
 
   private List<Filter> planFilters() {
     List<Filter> filters = query.getFilters();
-    filters = withAttributeFilters(filters); // 1:1
+    filters = withAttributeIdAsPropertyFilters(filters); // 1:1
+    filters = withAttributeIdEqAsNotNullFilters(filters); // 1:1
     filters = withIdentifiableCollectionAutoIdFilters(filters); // 1:1
     filters = withCurrentUserDefaultForAccessFilters(filters); // 1:1
     return filters;
   }
 
-  private List<Filter> withAttributeFilters(List<Filter> filters) {
+  private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {
     return map1to1(
         filters,
         f -> isAttributePath(f.getPropertyPath()) && context.resolve(f.getPropertyPath()) == null,
         Filter::asAttribute);
+  }
+
+  /**
+   * Checking for {@code attributeValues.attribute.id=<uid>} can be done by checking that {@code
+   * <uid>:!null} using the UID as property name.
+   */
+  private List<Filter> withAttributeIdEqAsNotNullFilters(List<Filter> filters) {
+    return map1to1(
+        filters,
+        f ->
+            f.getPropertyPath().equals("attributeValues.attribute.id")
+                && f.getOperator() == Comparison.EQ,
+        f -> new Filter(f.getValue()[0], Comparison.NOT_NULL).asAttribute());
   }
 
   /** Understands {@code collection} property as synonym for {@code collection.id} */
@@ -120,7 +135,7 @@ class GistPlanner {
   }
 
   private boolean isCollectionFilterWithoutIdField(Filter f) {
-    if (f.isAttribute()) {
+    if (f.isAttribute() || isAttributeValuesAttributePropertyPath(f.getPropertyPath())) {
       return false;
     }
     Property p = context.resolveMandatory(f.getPropertyPath());
