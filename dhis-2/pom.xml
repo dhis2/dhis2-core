@@ -152,7 +152,7 @@
     <jclouds.version>2.7.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.20.0</jasperreports.version>
+    <jasperreports.version>6.21.4</jasperreports.version>
     <jfreechart.version>1.0.19</jfreechart.version>
     <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
