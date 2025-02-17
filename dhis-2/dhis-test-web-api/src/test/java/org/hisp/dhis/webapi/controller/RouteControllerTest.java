@@ -57,6 +57,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.model.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -237,6 +238,106 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testRunRouteGivenOAuth2ClientCredentialsAuthSchemeWhenTokenEndpointReturnsUnauthorizedError()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    GenericContainer<?> routeTargetMockServerContainer = newMockerServer();
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put(
+        "auth",
+        Map.of(
+            "type",
+            "oauth2-client-credentials",
+            "clientId",
+            "alice",
+            "clientSecret",
+            "passw0rd",
+            "tokenUri",
+            "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort() + "/token"));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    MockServerClient routeTargetMockServerClient =
+        new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+    routeTargetMockServerClient
+        .when(request().withPath("/token"))
+        .respond(org.mockserver.model.HttpResponse.response().withStatusCode(401));
+
+    MvcResult mvcResult =
+        webRequestWithMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(502, mvcResult.getResponse().getStatus());
+  }
+
+  @Test
+  void testRunRouteGivenOAuth2ClientCredentialsAuthScheme()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    GenericContainer<?> routeTargetMockServerContainer = newMockerServer();
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put(
+        "auth",
+        Map.of(
+            "type",
+            "oauth2-client-credentials",
+            "clientId",
+            "alice",
+            "clientSecret",
+            "passw0rd",
+            "tokenUri",
+            "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort() + "/token"));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    MockServerClient routeTargetMockServerClient =
+        new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+    routeTargetMockServerClient
+        .when(request().withPath("/token"))
+        .respond(
+            org.mockserver.model.HttpResponse.response(
+                    "{\n"
+                        + "  \"access_token\":\"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3\",\n"
+                        + "  \"token_type\":\"Bearer\",\n"
+                        + "  \"expires_in\":3600,\n"
+                        + "  \"refresh_token\":\"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk\",\n"
+                        + "  \"scope\":\"create\"\n"
+                        + "}")
+                .withContentType(MediaType.APPLICATION_JSON)
+                .withStatusCode(200));
+
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+
+    assertEquals("John Doe", responseBody.get("name").as(JsonString.class).string());
+    assertEquals(
+        "Bearer MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+        responseBody.get("headers").asObject().get("Authorization").as(JsonString.class).string());
+  }
+
+  @Test
   void testRunRouteGivenApiQueryParamsAuthScheme()
       throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
@@ -412,5 +513,15 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             jsonMapper.writeValueAsString(route));
 
     assertStatus(HttpStatus.CONFLICT, updateHttpResponse);
+  }
+
+  private GenericContainer<?> newMockerServer() {
+    GenericContainer<?> routeTargetMockServerContainer =
+        new GenericContainer<>("mockserver/mockserver")
+            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+            .withExposedPorts(1080);
+    routeTargetMockServerContainer.start();
+
+    return routeTargetMockServerContainer;
   }
 }

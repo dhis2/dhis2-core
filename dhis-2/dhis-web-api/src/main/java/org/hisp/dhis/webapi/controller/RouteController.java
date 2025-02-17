@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -80,7 +79,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws Exception {
     return runWithSubpath(id, currentUser, request);
   }
 
@@ -97,7 +96,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws Exception {
 
     Route route = routeService.getRouteWithDecryptedAuth(id);
 
