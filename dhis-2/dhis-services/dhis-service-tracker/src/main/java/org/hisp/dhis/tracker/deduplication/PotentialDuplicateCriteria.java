@@ -34,35 +34,22 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
+// TODO(tracker) create a RequestParams class that implements PageRequestParams like all other
+// tracker endpoints. This allows us to reuse our validation and PageParams which is then passed to
+// the service.
 @Data
 public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter {
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // isPaged() handles the default case of skipPaging==paging==null => paging enabled
-  @OpenApi.Property(defaultValue = "true")
-  private Boolean paging;
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
+
+  private boolean totalPages = false;
+
+  private boolean paging = true;
 
   private List<UID> trackedEntities = new ArrayList<>();
 
   private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   *
-   * <p>Note: this assumes {@link #getPaging()} and {@link #getSkipPaging()} have been validated.
-   * Preference is given to {@link #getPaging()} as the other parameter is deprecated.
-   */
-  @OpenApi.Ignore
-  public boolean isPaged() {
-    if (getPaging() != null) {
-      return Boolean.TRUE.equals(getPaging());
-    }
-
-    if (getSkipPaging() != null) {
-      return Boolean.FALSE.equals(getSkipPaging());
-    }
-
-    return true;
-  }
 }

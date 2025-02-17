@@ -230,21 +230,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
   }
 
   @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&skipPaging=true", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-    assertHasNoMember(page, "pager");
-  }
-
-  @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     JsonPage page =
         GET("/programNotificationInstances?enrollment={uid}&paging=false", enrollment.getUid())
@@ -257,31 +242,5 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET(
-                "/programNotificationInstances?enrollment={uid}&paging=false&skipPaging=false",
-                enrollment.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET(
-                "/programNotificationInstances?enrollment={uid}&paging=true&skipPaging=true",
-                enrollment.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 }

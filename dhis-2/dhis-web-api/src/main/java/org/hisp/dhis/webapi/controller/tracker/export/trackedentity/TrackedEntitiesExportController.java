@@ -173,10 +173,10 @@ class TrackedEntitiesExportController {
     validatePaginationParameters(requestParams);
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
           trackedEntitiesPage =

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.notification;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 
@@ -42,19 +43,13 @@ public class ProgramNotificationTemplateRequestParams implements PageRequestPara
 
   private UID programStage;
 
+  @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  private Boolean totalPages = false;
+  private boolean totalPages = false;
 
-  @Deprecated(since = "2.41")
-  private Boolean skipPaging;
-
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
-  // enabled
-  private Boolean paging;
+  private boolean paging = true;
 }

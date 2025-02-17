@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -165,19 +164,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/potentialDuplicates?skipPaging=true").content(HttpStatus.OK).asA(JsonPage.class);
-
-    JsonList<JsonPotentialDuplicate> list =
-        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
-    assertContainsOnly(
-        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
-        list.toList(JsonPotentialDuplicate::getUid));
-    assertHasNoMember(page, "pager");
-  }
-
-  @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     JsonPage page =
         GET("/potentialDuplicates?paging=false").content(HttpStatus.OK).asA(JsonPage.class);
@@ -188,28 +174,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
         List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
         list.toList(JsonPotentialDuplicate::getUid));
     assertHasNoMember(page, "pager");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET("/potentialDuplicates?paging=false&skipPaging=false")
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET("/potentialDuplicates?paging=true&skipPaging=true")
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 
   @Test

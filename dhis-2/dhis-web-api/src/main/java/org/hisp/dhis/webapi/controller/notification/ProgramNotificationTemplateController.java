@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -80,8 +79,6 @@ public class ProgramNotificationTemplateController
   public @ResponseBody Page<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException, BadRequestException {
-    validatePaginationParameters(requestParams);
-
     ProgramNotificationTemplateOperationParams params = requestParamsMapper.map(requestParams);
 
     List<ProgramNotificationTemplate> instances =

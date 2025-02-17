@@ -46,7 +46,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -84,8 +83,6 @@ public class DeduplicationController {
 
   private final IdentifiableObjectManager manager;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
-
   private final TrackerAccessManager trackerAccessManager;
 
   private final FieldFilterService fieldFilterService;
@@ -100,20 +97,13 @@ public class DeduplicationController {
       HttpServletResponse response,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException {
-    if (criteria.getPaging() != null
-        && criteria.getSkipPaging() != null
-        && criteria.getPaging().equals(criteria.getSkipPaging())) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
-    }
-
     List<PotentialDuplicate> potentialDuplicates =
         deduplicationService.getPotentialDuplicates(criteria);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
 
     setNoStore(response);
 
-    if (criteria.isPaged()) {
+    if (criteria.isPaging()) {
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
           org.hisp.dhis.tracker.export.Page.withoutTotals(
               potentialDuplicates,

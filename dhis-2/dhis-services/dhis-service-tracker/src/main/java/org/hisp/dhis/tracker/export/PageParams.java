@@ -56,9 +56,9 @@ public class PageParams {
   /** Indicates whether to fetch the total number of items. */
   final boolean pageTotal;
 
-  public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
+  public PageParams(Integer page, Integer pageSize, boolean pageTotal) {
     this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
     this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
-    this.pageTotal = Boolean.TRUE.equals(pageTotal);
+    this.pageTotal = pageTotal;
   }
 }

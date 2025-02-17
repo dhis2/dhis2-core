@@ -159,10 +159,10 @@ class EventsExportController {
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
       EventOperationParams eventOperationParams =
           eventParamsMapper.map(requestParams, idSchemeParams);

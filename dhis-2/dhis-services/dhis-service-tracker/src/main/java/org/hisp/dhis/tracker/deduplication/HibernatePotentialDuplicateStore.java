@@ -133,7 +133,7 @@ class HibernatePotentialDuplicateStore
 
     TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
 
-    if (criteria.isPagingRequest()) {
+    if (criteria.isPaging()) {
       relationshipTypedQuery.setFirstResult(criteria.getFirstResult());
       relationshipTypedQuery.setMaxResults(criteria.getPageSize());
     }
@@ -176,8 +176,10 @@ class HibernatePotentialDuplicateStore
 
     NativeQuery<BigInteger> query =
         nativeSynchronizedQuery(
-            "select count(potentialduplicateid) from potentialduplicate pd "
-                + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
+            """
+                select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
+                 :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
+                 pd.duplicate = :original)""");
 
     query.setParameter("original", potentialDuplicate.getOriginal().getValue());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());

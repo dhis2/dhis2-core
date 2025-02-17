@@ -27,26 +27,30 @@
  */
 package org.hisp.dhis.program.notification;
 
-import lombok.AllArgsConstructor;
+import java.util.Objects;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * @author Zubair Asghar
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class NotificationPagingParam {
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   public static final int DEFAULT_PAGE = 1;
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
   private Integer page;
 
   private Integer pageSize;
 
-  private boolean skipPaging;
-
   private boolean paged;
+
+  /**
+   * This assumes that the parameters have been validated. Disabling pagination and setting a page
+   * or pageSize do not make sense.
+   */
+  public NotificationPagingParam(Integer page, Integer pageSize, boolean paged) {
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.paged = paged;
+  }
 }

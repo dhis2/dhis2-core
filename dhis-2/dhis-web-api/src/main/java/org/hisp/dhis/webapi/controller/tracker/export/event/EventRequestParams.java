@@ -73,23 +73,9 @@ public class EventRequestParams implements PageRequestParams {
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean totalPages = false;
+  private boolean totalPages = false;
 
-  /**
-   * @deprecated use {@link #paging} instead
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean skipPaging;
-
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
-  // enabled
-  @OpenApi.Property(defaultValue = "true")
-  private Boolean paging;
+  private boolean paging = true;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
