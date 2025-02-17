@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -378,16 +377,5 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Relationship>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Relationship postProcessObject(Relationship relationship) {
-    return (relationship == null || relationship.isDeleted()) ? null : relationship;
   }
 }
