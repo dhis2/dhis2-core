@@ -66,16 +66,18 @@ public class DefaultRelationshipService implements RelationshipService {
 
   // TODO(DHIS2-18883) Pass fields params as a parameter
   @Override
-  public Set<RelationshipItem> getRelationshipItems(TrackerType trackerType, UID uid) {
+  public Set<RelationshipItem> getRelationshipItems(
+      TrackerType trackerType, UID uid, boolean includeDeleted) {
     List<RelationshipItem> relationshipItems =
         switch (trackerType) {
-          case TRACKED_ENTITY -> relationshipStore.getRelationshipItemsByTrackedEntity(uid);
-          case ENROLLMENT -> relationshipStore.getRelationshipItemsByEnrollment(uid);
-          case EVENT -> relationshipStore.getRelationshipItemsByEvent(uid);
+          case TRACKED_ENTITY ->
+              relationshipStore.getRelationshipItemsByTrackedEntity(uid, includeDeleted);
+          case ENROLLMENT ->
+              relationshipStore.getRelationshipItemsByEnrollment(uid, includeDeleted);
+          case EVENT -> relationshipStore.getRelationshipItemsByEvent(uid, includeDeleted);
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
     return relationshipItems.stream()
-        .filter(ri -> !ri.getRelationship().isDeleted())
         .filter(
             ri ->
                 trackerAccessManager
