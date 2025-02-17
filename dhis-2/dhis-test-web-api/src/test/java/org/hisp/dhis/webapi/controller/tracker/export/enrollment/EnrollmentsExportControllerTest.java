@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
@@ -201,6 +202,94 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasMember(attribute, "updatedAt");
     assertHasMember(attribute, "displayName");
     assertHasMember(attribute, "code");
+  }
+
+  @Test
+  void shouldGetEnrollmentWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+    manager.delete(relationship);
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=false",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
+  }
+
+  @Test
+  void shouldGetEnrollmentWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+    manager.delete(relationship);
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            re -> relationship.getUid().equals(re.getRelationship()),
+            relationship.getUid());
+
+    assertAll(
+        "relationship JSON",
+        () ->
+            assertEquals(
+                relationship.getFrom().getTrackedEntity().getUid(),
+                jsonRelationship.getFrom().getTrackedEntity().getTrackedEntity()),
+        () -> assertHasNoMember(jsonRelationship.getFrom().getTrackedEntity(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getFrom().getTrackedEntity(), "enrollments"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0),
+                "relationships"),
+        () ->
+            assertHasMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship
+                    .getFrom()
+                    .getTrackedEntity()
+                    .getEnrollments()
+                    .get(0)
+                    .getEvents()
+                    .get(0),
+                "relationships"),
+        () ->
+            assertEquals(
+                relationship.getTo().getEnrollment().getUid(),
+                jsonRelationship.getTo().getEnrollment().getEnrollment()),
+        () -> assertHasNoMember(jsonRelationship.getTo().getEnrollment(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getTo().getEnrollment(), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getTo().getEnrollment().getEvents().get(0), "relationships"),
+        () -> assertHasMember(jsonRelationship, "relationshipName"),
+        () -> assertHasMember(jsonRelationship, "relationshipType"),
+        () -> assertHasMember(jsonRelationship, "createdAt"),
+        () -> assertHasMember(jsonRelationship, "updatedAt"),
+        () -> assertHasMember(jsonRelationship, "bidirectional"));
   }
 
   @ParameterizedTest

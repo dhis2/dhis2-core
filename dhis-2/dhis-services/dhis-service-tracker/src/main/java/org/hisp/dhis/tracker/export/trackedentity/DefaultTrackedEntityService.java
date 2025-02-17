@@ -271,7 +271,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (params.isIncludeRelationships()) {
       trackedEntity.setRelationshipItems(
           relationshipService.getRelationshipItems(
-              TrackerType.TRACKED_ENTITY, UID.of(trackedEntity)));
+              TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), false));
     }
     if (params.isIncludeProgramOwners()) {
       trackedEntity.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
@@ -369,7 +369,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
         trackedEntity.setRelationshipItems(
             relationshipService.getRelationshipItems(
-                TrackerType.TRACKED_ENTITY, UID.of(trackedEntity)));
+                TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), queryParams.isIncludeDeleted()));
       }
     }
     for (TrackedEntity trackedEntity : trackedEntities) {
