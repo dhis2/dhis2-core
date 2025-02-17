@@ -126,12 +126,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -151,12 +145,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -174,12 +162,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -193,12 +175,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
         List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
         list.toList(JsonPotentialDuplicate::getUid));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -212,12 +188,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
         List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
         list.toList(JsonPotentialDuplicate::getUid));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test

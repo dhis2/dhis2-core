@@ -121,12 +121,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(4, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(4, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -149,12 +143,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(2, page.getPager().getPageSize());
     assertEquals(4, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(2, page.getPageSize());
-    assertEquals(4, page.getTotal());
-    assertEquals(2, page.getPageCount());
   }
 
   @Test
@@ -178,12 +166,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(4, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(4, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -203,12 +185,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -228,12 +204,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test

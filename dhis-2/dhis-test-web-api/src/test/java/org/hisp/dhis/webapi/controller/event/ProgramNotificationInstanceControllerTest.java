@@ -188,12 +188,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -214,12 +208,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(2, page.getPageCount());
   }
 
   @Test
@@ -239,12 +227,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -260,12 +242,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -281,12 +257,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
