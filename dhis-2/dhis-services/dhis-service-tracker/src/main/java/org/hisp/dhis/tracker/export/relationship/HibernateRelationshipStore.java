@@ -56,8 +56,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -251,7 +251,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
     if (pageParams != null) {
-      query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+      query.setFirstResult(pageParams.getOffset());
       query.setMaxResults(pageParams.getPageSize());
     }
 

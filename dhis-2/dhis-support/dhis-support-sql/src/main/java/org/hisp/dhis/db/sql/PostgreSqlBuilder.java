@@ -311,6 +311,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
+  @Override
+  public String log10(String expression) {
+    return String.format("log(%s)", expression);
+  }
+
   // Statements
 
   @Override

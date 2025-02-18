@@ -141,7 +141,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
@@ -606,14 +606,14 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid().toLowerCase()
             + " as subax WHERE  "
             + "subax.trackedentity in (select te.uid from trackedentity te "
-            + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
+            + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+            + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "left join trackedentity te2 on te2.trackedentityid = ri2.trackedentityid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND te.uid = ax.trackedentity )) as \""
+            + " and te2.uid = ax.trackedentity )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"
@@ -654,14 +654,15 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programA.getUid().toLowerCase()
             + " as subax WHERE "
-            + " subax.trackedentity in (select te.uid from trackedentity te LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN enrollment en on en.enrollmentid = ri2.enrollmentid WHERE rty.relationshiptypeid "
+            + " subax.trackedentity in (select te.uid from trackedentity te "
+            + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+            + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "left join enrollment en2 on en2.enrollmentid = ri2.enrollmentid WHERE rty.relationshiptypeid "
             + "= "
             + relationshipTypeA.getId()
-            + " AND en.uid = ax.enrollment ))"
+            + " and en2.uid = ax.enrollment ))"
             + " as \""
             + programIndicatorA.getUid()
             + "\"  "
@@ -730,14 +731,14 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programB.getUid().toLowerCase()
             + " as subax WHERE  "
             + "subax.trackedentity in (select te.uid from trackedentity te "
-            + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
+            + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+            + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "left join trackedentity te2 on te2.trackedentityid = ri2.trackedentityid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND te.uid = ax.trackedentity )) as \""
+            + " and te2.uid = ax.trackedentity )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"

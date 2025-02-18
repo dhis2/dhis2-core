@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
@@ -118,7 +118,8 @@ public class RequestParamsValidator {
     if (!deprecatedParamParsedUids.isEmpty() && !newParamUids.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
+              "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma"
+                  + " separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
               deprecatedParamName, newParamName, newParamName, deprecatedParamName));
     }
 
@@ -143,7 +144,8 @@ public class RequestParamsValidator {
     if (newParam != null && deprecatedParam != null) {
       throw new BadRequestException(
           String.format(
-              "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+              "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be"
+                  + " removed.",
               deprecatedParamName, newParamName, newParamName, deprecatedParamName));
     }
 
@@ -292,18 +294,20 @@ public class RequestParamsValidator {
     if (split.length != 3) {
       throw new BadRequestException(
           String.format(
-              "Invalid filter => %s. Expected format is [field]:eq:[value]. Supported fields are '%s'. Only one of them can be specified at a time",
+              "Invalid filter => %s. Expected format is [field]:eq:[value]. Supported fields are"
+                  + " '%s'. Only one of them can be specified at a time",
               filter, String.join(", ", supportedFieldNames)));
     }
 
     if (!supportedFieldNames.contains(split[0])) {
       throw new BadRequestException(
           String.format(
-              "Invalid filter field. Supported fields are '%s'. Only one of them can be specified at a time",
+              "Invalid filter field. Supported fields are '%s'. Only one of them can be specified"
+                  + " at a time",
               String.join(", ", supportedFieldNames)));
     }
 
-    if (!split[1].equalsIgnoreCase(SUPPORTED_CHANGELOG_FILTER_OPERATOR)) {
+    if (!SUPPORTED_CHANGELOG_FILTER_OPERATOR.equalsIgnoreCase(split[1])) {
       throw new BadRequestException(
           String.format(
               "Invalid filter operator. The only supported operator is '%s'.",
@@ -316,7 +320,8 @@ public class RequestParamsValidator {
           && !CodeGenerator.isValidUid(split[2])) {
         throw new BadRequestException(
             String.format(
-                "Incorrect filter value provided as UID: %s. UID must be an alphanumeric string of 11 characters starting with a letter.",
+                "Incorrect filter value provided as UID: %s. UID must be an alphanumeric string of"
+                    + " 11 characters starting with a letter.",
                 split[2]));
       }
     }
@@ -414,7 +419,8 @@ public class RequestParamsValidator {
     if (orgUnitModeDoesNotRequireOrgUnit(orgUnitMode) && !orgUnits.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and try again.",
+              "orgUnitMode %s cannot be used with orgUnits. Please remove the orgUnit parameter and"
+                  + " try again.",
               orgUnitMode));
     }
 
@@ -429,7 +435,8 @@ public class RequestParamsValidator {
         && trackedEntities.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "At least one org unit or tracked entity is required for orgUnitMode: %s. Please add one of the two or use a different orgUnitMode.",
+              "At least one org unit or tracked entity is required for orgUnitMode: %s. Please add"
+                  + " one of the two or use a different orgUnitMode.",
               orgUnitMode));
     }
   }
@@ -439,7 +446,8 @@ public class RequestParamsValidator {
     if (orgUnitModeRequiresOrgUnit(orgUnitMode) && orgUnits.isEmpty()) {
       throw new BadRequestException(
           String.format(
-              "At least one org unit is required for orgUnitMode: %s. Please add one org unit or use a different orgUnitMode.",
+              "At least one org unit is required for orgUnitMode: %s. Please add one org unit or"
+                  + " use a different orgUnitMode.",
               orgUnitMode));
     }
   }
@@ -455,18 +463,12 @@ public class RequestParamsValidator {
 
   public static void validatePaginationParameters(PageRequestParams params)
       throws BadRequestException {
-    if (params.getPaging() != null
-        && params.getSkipPaging() != null
-        && params.getPaging().equals(params.getSkipPaging())) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
-    }
-
-    if (!params.isPaged()
+    if (!params.isPaging()
         && (ObjectUtils.firstNonNull(params.getPage(), params.getPageSize()) != null
-            || Boolean.TRUE.equals(params.getTotalPages()))) {
+            || params.isTotalPages())) {
       throw new BadRequestException(
-          "Paging cannot be skipped with isSkipPaging=true while also requesting a paginated response with page, pageSize and/or totalPages=true");
+          "Paging cannot be disabled with paging=false while also requesting a paginated"
+              + " response with page, pageSize and/or totalPages=true");
     }
 
     validatePaginationBounds(params.getPage(), params.getPageSize());
@@ -508,12 +510,7 @@ public class RequestParamsValidator {
     }
   }
 
-  /**
-   * Replace escaped comma or colon
-   *
-   * @param value
-   * @return
-   */
+  /** Replace escaped comma or colon */
   private static String escapedFilterValue(String value) {
     return value.replace(ESCAPE_COMMA, COMMA_STRING).replace(ESCAPE_COLON, DIMENSION_NAME_SEP);
   }
@@ -523,7 +520,6 @@ public class RequestParamsValidator {
    * by comma and collect the filter list. Then, it recreates the original filters by restoring the
    * escapes chars if any.
    *
-   * @param filterItem
    * @return a filter list split by comma
    */
   private static List<String> filterList(String filterItem) {
@@ -561,10 +557,6 @@ public class RequestParamsValidator {
    * Restores the escape char in a filter based on the position in the original filter. It uses a
    * pad as in a filter there can be more than one escape char removed.
    *
-   * @param escapesToRestore
-   * @param filter
-   * @param beginning
-   * @param end
    * @return a filter with restored escape chars
    */
   private static String restoreEscape(

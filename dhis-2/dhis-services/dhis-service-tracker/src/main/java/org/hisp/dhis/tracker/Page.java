@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.tracker;
 
-import lombok.Builder;
+import java.util.List;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.UID;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
- * @author Zubair Asghar
+ * Create a page of items. A page is guaranteed to have a page number and size. All other fields are
+ * optional.
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@Setter
-@EqualsAndHashCode(callSuper = false)
-public class ProgramNotificationTemplateOperationParams extends NotificationPagingParam {
-  @Builder
-  public ProgramNotificationTemplateOperationParams(
-      Integer page, Integer pageSize, UID program, UID programStage, boolean paged) {
-    super(page, pageSize, paged);
-    this.program = program;
-    this.programStage = programStage;
+@ToString
+@EqualsAndHashCode
+public class Page<T> {
+  private final List<T> items;
+  private final int page;
+  private final int pageSize;
+  private final Long total;
+  private final Integer prevPage;
+  private final Integer nextPage;
+
+  public static <T> Page<T> empty() {
+    return new Page<>(List.of(), 0, 0, 0L, null, null);
   }
 
-  private UID program;
+  /**
+   * Create a new page based on an existing one but with given {@code items}. Page related counts
+   * will not be changed so make sure the given {@code items} match the previous page size.
+   */
+  public <U> Page<U> withItems(List<U> items) {
+    return new Page<>(items, this.page, this.pageSize, this.total, this.prevPage, this.nextPage);
+  }
 
-  private UID programStage;
+  public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
+    return new Page<>(items, page, pageSize, total, null, null);
+  }
+
+  public static <T> Page<T> withoutTotals(List<T> items, int page, int pageSize) {
+    return new Page<>(items, page, pageSize, null, null, null);
+  }
+
+  public static <T> Page<T> withPrevAndNext(
+      List<T> items, int page, int pageSize, Integer prevPage, Integer nextPage) {
+    return new Page<>(items, page, pageSize, null, prevPage, nextPage);
+  }
 }

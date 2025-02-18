@@ -54,6 +54,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
@@ -65,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
- * org.hisp.dhis.tracker.export.Page} to JSON. The tests use the {@link
+ * Page} to JSON. The tests use the {@link
  * org.hisp.dhis.webapi.controller.tracker.export.relationship} controller but hold true for any of
  * the export controllers.
  */
@@ -145,12 +146,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -174,12 +169,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -203,12 +192,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -233,12 +216,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
             String.format("mismatch in number of expected relationship(s), got %s", relationships));
     assertEquals(2, page.getPager().getPage());
     assertEquals(1, page.getPager().getPageSize());
-    assertHasNoMember(page.getPager(), "total");
-    assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
   }
@@ -269,38 +246,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(2, page.getPageCount());
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
-
-    JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
-        page.getList("relationships", JsonRelationship.class)
-            .toList(JsonRelationship::getRelationship));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -321,12 +266,6 @@ class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
