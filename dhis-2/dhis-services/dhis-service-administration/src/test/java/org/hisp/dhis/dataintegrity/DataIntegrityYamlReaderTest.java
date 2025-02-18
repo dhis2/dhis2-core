@@ -76,6 +76,11 @@ class DataIntegrityYamlReaderTest {
     List<String> codeList = checks.stream().map(DataIntegrityCheck::getCode).sorted().toList();
     assertEquals(codeList.size(), Set.copyOf(codeList).size());
 
+    // Assert that all the descriptions are unique.
+    List<String> nameList =
+        checks.stream().map(DataIntegrityCheck::getDescription).sorted().toList();
+    assertEquals(nameList.size(), Set.copyOf(nameList).size());
+
     // Assert that codes consist of upper case letter and numbers only
     String regEx = "^[A-Z0-9]+$";
     Predicate<String> IS_NOT_CAPS = Pattern.compile(regEx).asPredicate().negate();
