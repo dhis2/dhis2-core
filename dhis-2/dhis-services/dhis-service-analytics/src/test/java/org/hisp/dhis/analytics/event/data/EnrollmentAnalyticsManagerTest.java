@@ -550,10 +550,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
+            + "LEFT JOIN trackedentityinstance tei2 on tei2.trackedentityinstanceid = ri2.trackedentityinstanceid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND tei.uid = ax.tei )) as \""
+            + " AND tei2.uid = ax.tei )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"
@@ -598,10 +598,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
+            + "LEFT JOIN programinstance pi2 on pi2.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
             + "= "
             + relationshipTypeA.getId()
-            + " AND pi.uid = ax.pi ))"
+            + " AND pi2.uid = ax.pi ))"
             + " as \""
             + programIndicatorA.getUid()
             + "\"  "
@@ -674,10 +674,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
+            + "LEFT JOIN trackedentityinstance tei2 on tei2.trackedentityinstanceid = ri2.trackedentityinstanceid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND tei.uid = ax.tei )) as \""
+            + " AND tei2.uid = ax.tei )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"
