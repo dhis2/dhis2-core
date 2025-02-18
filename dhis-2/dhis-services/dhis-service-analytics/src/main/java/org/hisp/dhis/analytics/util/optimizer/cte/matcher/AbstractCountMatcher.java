@@ -190,7 +190,7 @@ public abstract class AbstractCountMatcher implements SubselectMatcher {
   private boolean isDataElementNotNullCondition(IsNullExpression isNull, String dataElementId) {
     Expression left = isNull.getLeftExpression();
     return left instanceof Column col
-        && col.getColumnName().replaceAll("\"", "").equals(dataElementId)
+        && col.getColumnName().replace("\"", "").equals(dataElementId)
         && isNull.isNot();
   }
 
