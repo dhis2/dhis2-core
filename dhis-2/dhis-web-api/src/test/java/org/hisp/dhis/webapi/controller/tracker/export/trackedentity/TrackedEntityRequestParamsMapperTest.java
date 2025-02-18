@@ -41,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -421,11 +420,9 @@ class TrackedEntityRequestParamsMapperTest {
     Set<Filter> filters = mapper.map(trackedEntityRequestParams, user).getFilters();
 
     assertEquals(
-        Map.of(
-            TEA_1_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "value1")),
-            TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "value2"))),
+        Set.of(
+            new Filter(TEA_1_UID, List.of(new QueryFilter(QueryOperator.LIKE, "value1"))),
+            new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "value2")))),
         filters);
   }
 }

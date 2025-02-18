@@ -45,7 +45,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -445,12 +444,10 @@ class EventRequestParamsMapperTest {
 
     Set<Filter> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<UID, List<QueryFilter>> expected =
-        Map.of(
-            DE_1_UID,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
-            DE_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+    Set<Filter> expected =
+        Set.of(
+            new Filter(DE_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "2"))),
+            new Filter(DE_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo"))));
     assertEquals(expected, dataElementFilters);
   }
 
@@ -463,11 +460,13 @@ class EventRequestParamsMapperTest {
 
     Set<Filter> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<UID, List<QueryFilter>> expected =
-        Map.of(
-            DE_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    Set<Filter> expected =
+        Set.of(
+            new Filter(
+                DE_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.GT, "10"),
+                    new QueryFilter(QueryOperator.LT, "20"))));
     assertEquals(expected, dataElementFilters);
   }
 
@@ -480,7 +479,7 @@ class EventRequestParamsMapperTest {
 
     Set<Filter> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<UID, List<QueryFilter>> expected = Map.of(DE_1_UID, List.of());
+    Set<Filter> expected = Set.of(new Filter(DE_1_UID));
     assertEquals(expected, dataElementFilters);
   }
 
@@ -505,12 +504,10 @@ class EventRequestParamsMapperTest {
 
     Set<Filter> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<UID, List<QueryFilter>> expected =
-        Map.of(
-            TEA_1_UID,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
-            TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+    Set<Filter> expected =
+        Set.of(
+            new Filter(TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "2"))),
+            new Filter(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo"))));
     assertEquals(expected, attributeFilters);
   }
 
@@ -523,11 +520,13 @@ class EventRequestParamsMapperTest {
 
     Set<Filter> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<UID, List<QueryFilter>> expected =
-        Map.of(
-            TEA_1_UID,
-            List.of(
-                new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    Set<Filter> expected =
+        Set.of(
+            new Filter(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.GT, "10"),
+                    new QueryFilter(QueryOperator.LT, "20"))));
     assertEquals(expected, attributeFilters);
   }
 
@@ -540,7 +539,7 @@ class EventRequestParamsMapperTest {
 
     Set<Filter> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<UID, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    Set<Filter> expected = Set.of(new Filter(TEA_1_UID));
     assertEquals(expected, attributeFilters);
   }
 
