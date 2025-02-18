@@ -83,6 +83,14 @@ final class GistLogic {
     return path.length() == 11 && CodeGenerator.isValidUid(path);
   }
 
+  static boolean isAttributeValuesAttributePropertyPath(String path) {
+    return path.startsWith("attributeValues.attribute.");
+  }
+
+  static String attributePath(String path) {
+    return path.substring("attributeValues.attribute.".length());
+  }
+
   static String parentPath(String path) {
     return isNonNestedPath(path) ? "" : path.substring(0, path.lastIndexOf('.'));
   }

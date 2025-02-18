@@ -337,6 +337,52 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void
+      shouldGetTrackedEntityWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    manager.delete(r);
+
+    JsonList<JsonRelationship> rels =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=relationships&includeDeleted=false",
+                from.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
+  }
+
+  @Test
+  void shouldGetTrackedEntityWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    manager.delete(r);
+    Event to = r.getTo().getEvent();
+
+    JsonList<JsonRelationship> rels =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=relationships&includeDeleted=true",
+                from.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship relationship = assertFirstRelationship(r, rels);
+    assertTrackedEntityWithinRelationship(from, relationship.getFrom());
+    assertTrackedEntityWithinRelationship(to, relationship.getTo());
+  }
+
+  @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
     assertHasSize(

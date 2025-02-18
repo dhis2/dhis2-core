@@ -121,7 +121,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
       throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || trackedEntity.isDeleted()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
@@ -238,7 +238,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UID uid, Program program, TrackedEntityParams params, UserDetails user)
       throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || trackedEntity.isDeleted()) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
@@ -271,7 +271,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (params.isIncludeRelationships()) {
       trackedEntity.setRelationshipItems(
           relationshipService.getRelationshipItems(
-              TrackerType.TRACKED_ENTITY, UID.of(trackedEntity)));
+              TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), false));
     }
     if (params.isIncludeProgramOwners()) {
       trackedEntity.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
@@ -369,16 +369,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
         trackedEntity.setRelationshipItems(
             relationshipService.getRelationshipItems(
-                TrackerType.TRACKED_ENTITY, UID.of(trackedEntity)));
+                TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), queryParams.isIncludeDeleted()));
       }
     }
     for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
         trackedEntity.setProgramOwners(
-            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
+            getTrackedEntityProgramOwners(
+                trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
       trackedEntity.setTrackedEntityAttributeValues(
-          getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
+          getTrackedEntityAttributeValues(
+              trackedEntity, queryParams.getEnrolledInTrackerProgram()));
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
     return trackedEntities;
