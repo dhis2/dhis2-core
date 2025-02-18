@@ -37,11 +37,13 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -279,7 +281,7 @@ public class RequestParamsValidator {
   /**
    * Validate the {@code filter} request parameter in change log tracker exporters. Allowed filter
    * values are {@code supportedFieldNames}. Only one field name at a time can be specified. If the
-   * endpoint supports UIDs use {@link #parseFilters(String)}.
+   * endpoint supports UIDs use {@link #parseAttributeFilters(String)}.
    */
   public static void validateFilter(String filter, Set<Pair<String, Class<?>>> supportedFields)
       throws BadRequestException {
@@ -329,12 +331,13 @@ public class RequestParamsValidator {
 
   /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
-   * tracked entity attribute or data element. Refer to {@link #parseSanitizedFilters(Map, String)}}
-   * for details on the expected input format.
+   * tracked entity attribute. Refer to {@link #parseSanitizedFilters(Map, String)}} for details on
+   * the expected input format.
    *
    * @return filters by UIDs
    */
-  public static Map<UID, List<QueryFilter>> parseFilters(String input) throws BadRequestException {
+  public static Map<UID, List<QueryFilter>> parseAttributeFilters(String input)
+      throws BadRequestException {
     Map<UID, List<QueryFilter>> result = new HashMap<>();
     if (StringUtils.isBlank(input)) {
       return result;
@@ -347,9 +350,30 @@ public class RequestParamsValidator {
   }
 
   /**
-   * Accumulate {@link QueryFilter}s per UID by parsing given input string of format
-   * {uid}[:{operator}:{value}]. Only the UID is mandatory. Multiple operator:value pairs are
-   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding UID.
+   * Parse given {@code input} string representing a filter for an object referenced by a UID like a
+   * data element. Refer to {@link #parseSanitizedDataElementFilters(Map, String)}} for details on
+   * the expected input format.
+   *
+   * @return filters by UIDs
+   */
+  public static Map<UID, List<QueryFilter>> parseDataElementFilters(String input)
+      throws BadRequestException {
+    Map<UID, List<QueryFilter>> result = new HashMap<>();
+    if (StringUtils.isBlank(input)) {
+      return result;
+    }
+
+    for (String uidOperatorValue : filterList(input)) {
+      parseSanitizedDataElementFilters(result, uidOperatorValue);
+    }
+    return result;
+  }
+
+  /**
+   * Accumulate {@link QueryFilter}s per TEA UID by parsing given input string of format
+   * {uid}[:{operator}:{value}]. Only the TEA UID is mandatory. Multiple operator:value pairs are
+   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding TEA
+   * UID.
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
@@ -367,19 +391,140 @@ public class RequestParamsValidator {
     result.putIfAbsent(uid, new ArrayList<>());
 
     String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
+    validateFilterLength(filters, result, uid, input);
+  }
 
-    // single operator
-    if (filters.length == 2) {
-      result.get(uid).add(operatorValueQueryFilter(filters[0], filters[1], input));
+  /**
+   * Accumulate {@link QueryFilter}s per DE UID by parsing given input string of format
+   * {uid}[:{operator}:{value}]. Only the DE ID is mandatory. Multiple operator:value pairs are
+   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding DE
+   * UID.
+   *
+   * @throws BadRequestException filter is neither multiple nor single operator:value format
+   */
+  private static void parseSanitizedDataElementFilters(
+      Map<UID, List<QueryFilter>> result, String input) throws BadRequestException {
+    int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
+
+    if (uidIndex == 0 || input.length() == uidIndex) {
+      UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
+      result.putIfAbsent(uid, List.of());
+      return;
     }
-    // multiple operator
-    else if (filters.length == 4) {
-      for (int i = 0; i < filters.length; i += 2) {
-        result.get(uid).add(operatorValueQueryFilter(filters[i], filters[i + 1], input));
+
+    UID uid = UID.of(input.substring(0, uidIndex - 1));
+    String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
+    result.putIfAbsent(uid, new ArrayList<>());
+    validateFilterLength(filters, result, uid, input);
+  }
+
+  private static void validateFilterLength(
+      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
+      throws BadRequestException {
+    switch (filters.length) {
+      case 1 -> addQueryFilter(result, uid, filters[0], null, input);
+      case 2 -> handleOperators(filters, result, uid, input);
+      case 3 -> handleMixedOperators(filters, result, uid, input);
+      case 4 -> handleMultipleBinaryOperators(filters, result, uid, input);
+      default -> throw new BadRequestException(INVALID_FILTER + input);
+    }
+  }
+
+  private static void addQueryFilter(
+      Map<UID, List<QueryFilter>> result, UID uid, String operator, String value, String input)
+      throws BadRequestException {
+    result.get(uid).add(operatorValueQueryFilter(operator, value, input));
+  }
+
+  private static void handleOperators(
+      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
+      throws BadRequestException {
+    QueryOperator firstOperator =
+        findQueryOperatorFromFilter(filters[0])
+            .orElseThrow(
+                () ->
+                    new BadRequestException(
+                        String.format("'%s' is not a valid operator: %s", filters[0], input)));
+
+    if (!firstOperator.isUnary()) {
+      addQueryFilter(result, uid, filters[0], filters[1], input);
+      return;
+    }
+
+    QueryOperator secondOperator =
+        findQueryOperatorFromFilter(filters[1])
+            .orElseThrow(
+                () ->
+                    new BadRequestException(
+                        String.format(
+                            "Operator '%s' in filter can't be used with a value: %s",
+                            filters[0], input)));
+
+    if (secondOperator.isUnary()) {
+      addQueryFilter(result, uid, filters[0], null, input);
+      addQueryFilter(result, uid, filters[1], null, input);
+    }
+  }
+
+  private static void handleMixedOperators(
+      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
+      throws BadRequestException {
+    Optional<QueryOperator> firstOperator = findQueryOperatorFromFilter(filters[0]);
+    if (firstOperator.map(QueryOperator::isUnary).orElse(false)) {
+      addQueryFilter(result, uid, filters[0], null, input);
+      addQueryFilter(result, uid, filters[1], filters[2], input);
+      return;
+    }
+
+    Optional<QueryOperator> thirdOperator = findQueryOperatorFromFilter(filters[2]);
+    if (thirdOperator.map(QueryOperator::isUnary).orElse(false)) {
+      addQueryFilter(result, uid, filters[0], filters[1], input);
+      addQueryFilter(result, uid, filters[2], null, input);
+      return;
+    }
+
+    throw new BadRequestException(INVALID_FILTER + input);
+  }
+
+  private static void handleMultipleBinaryOperators(
+      String[] filters, Map<UID, List<QueryFilter>> result, UID uid, String input)
+      throws BadRequestException {
+
+    List<String> unaryOperators = getUnaryOperatorsInFilter(filters);
+    switch (unaryOperators.size()) {
+      case 0 -> {
+        for (int i = 0; i < filters.length; i += 2) {
+          addQueryFilter(result, uid, filters[i], filters[i + 1], input);
+        }
       }
-    } else {
-      throw new BadRequestException(INVALID_FILTER + input);
+      case 1 ->
+          throw new BadRequestException(
+              String.format(
+                  "Operator '%s' in filter can't be used with a value: %s",
+                  unaryOperators.get(0), input));
+      default ->
+          throw new BadRequestException(
+              String.format("A maximum of two operators can be used in a filter: %s", input));
     }
+  }
+
+  private static Optional<QueryOperator> findQueryOperatorFromFilter(String filter) {
+    return Arrays.stream(QueryOperator.values())
+        .filter(qo -> qo.name().equalsIgnoreCase(filter.replace("!", "n")))
+        .findFirst();
+  }
+
+  private static List<String> getUnaryOperatorsInFilter(String[] filters) {
+    Set<String> unaryOperators =
+        Arrays.stream(QueryOperator.values())
+            .filter(QueryOperator::isUnary)
+            .map(qo -> qo.name().toLowerCase())
+            .collect(Collectors.toSet());
+
+    return Arrays.stream(filters)
+        .map(f -> f.toLowerCase().replace("!", "n"))
+        .filter(unaryOperators::contains)
+        .toList();
   }
 
   public static OrganisationUnitSelectionMode validateOrgUnitModeForTrackedEntities(
@@ -498,16 +643,36 @@ public class RequestParamsValidator {
 
   private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
       throws BadRequestException {
-    if (StringUtils.isEmpty(operator) || StringUtils.isEmpty(value)) {
+    if (StringUtils.isEmpty(operator)) {
       throw new BadRequestException(INVALID_FILTER + filter);
     }
 
+    QueryOperator queryOperator;
     try {
-      return new QueryFilter(QueryOperator.fromString(operator), escapedFilterValue(value));
-
+      queryOperator = QueryOperator.fromString(operator);
     } catch (IllegalArgumentException exception) {
       throw new BadRequestException(INVALID_FILTER + filter);
     }
+
+    if (queryOperator == null) {
+      throw new BadRequestException(INVALID_FILTER + filter);
+    }
+
+    if (queryOperator.isUnary()) {
+      if (!StringUtils.isEmpty(value)) {
+        throw new BadRequestException(
+            String.format(
+                "Operator %s in filter can't be used with a value: %s",
+                queryOperator.name(), filter));
+      }
+      return new QueryFilter(queryOperator);
+    }
+
+    if (StringUtils.isEmpty(value)) {
+      throw new BadRequestException("Operator in filter must be be used with a value: " + filter);
+    }
+
+    return new QueryFilter(queryOperator, escapedFilterValue(value));
   }
 
   /** Replace escaped comma or colon */

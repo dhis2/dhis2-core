@@ -133,7 +133,7 @@ class EventRequestParamsMapperTest {
   private TrackerIdSchemeParams idSchemeParams;
 
   @BeforeEach
-  public void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
+  void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
     User user = new User();
 
     when(userService.getUserByUsername(null)).thenReturn(user);
@@ -467,6 +467,19 @@ class EventRequestParamsMapperTest {
             DE_1_UID,
             List.of(
                 new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    assertEquals(expected, dataElementFilters);
+  }
+
+  @Test
+  void shouldMapDataElementFiltersWhenQueryFilterHasUIDOnly() throws BadRequestException {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setFilter(DE_1_UID.getValue());
+
+    EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
+
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<UID, List<QueryFilter>> expected = Map.of(DE_1_UID, List.of());
     assertEquals(expected, dataElementFilters);
   }
 
