@@ -91,13 +91,26 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
-  public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity) {
+  public @Nonnull List<Relationship> getRelationshipsByUid(RelationshipQueryParams params) {
+    return relationshipsList(params, null);
+  }
+
+  public @Nonnull Page<Relationship> getRelationshipsByUid(
+      RelationshipQueryParams params, PageParams pageParams) {
+    return getPage(
+        pageParams, relationshipsList(params, pageParams), () -> countRelationships(params));
+  }
+
+  public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity, boolean includeDeleted) {
     @Language("hql")
     String hql =
         """
                 from TrackedEntity te
                 where te.uid = :trackedEntity
                 """;
+    if (!includeDeleted) {
+      hql += "and te.deleted = false";
+    }
     List<TrackedEntity> trackedEntities =
         getQuery(hql, TrackedEntity.class)
             .setParameter("trackedEntity", trackedEntity.getValue())
@@ -105,13 +118,16 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return trackedEntities.stream().findFirst();
   }
 
-  public Optional<Enrollment> findEnrollment(UID enrollment) {
+  public Optional<Enrollment> findEnrollment(UID enrollment, boolean includeDeleted) {
     @Language("hql")
     String hql =
         """
                 from Enrollment e
                 where e.uid = :enrollment
                 """;
+    if (!includeDeleted) {
+      hql += "and e.deleted = false";
+    }
     List<Enrollment> enrollments =
         getQuery(hql, Enrollment.class)
             .setParameter("enrollment", enrollment.getValue())
@@ -119,13 +135,16 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return enrollments.stream().findFirst();
   }
 
-  public Optional<Event> findEvent(UID event) {
+  public Optional<Event> findEvent(UID event, boolean includeDeleted) {
     @Language("hql")
     String hql =
         """
                 from Event e
                 where e.uid = :event
                 """;
+    if (!includeDeleted) {
+      hql += "and e.deleted = false";
+    }
     List<Event> events =
         getQuery(hql, Event.class).setParameter("event", event.getValue()).getResultList();
     return events.stream().findFirst();
@@ -258,6 +277,20 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return query.getResultList();
   }
 
+  private List<Relationship> relationshipsList(
+      RelationshipQueryParams queryParams, PageParams pageParams) {
+    CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(queryParams);
+
+    TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
+
+    if (pageParams != null) {
+      query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+      query.setMaxResults(pageParams.getPageSize());
+    }
+
+    return query.getResultList();
+  }
+
   /**
    * Query to count relationships avoiding not required constraints such as the order by clause
    *
@@ -280,6 +313,51 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
     return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
+  }
+
+  private long countRelationships(RelationshipQueryParams queryParams) {
+
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
+
+    Root<Relationship> root = criteriaQuery.from(Relationship.class);
+
+    criteriaQuery.select(builder.count(root));
+
+    List<Predicate> predicates = new ArrayList<>();
+
+    predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
+
+    if (!queryParams.isIncludeDeleted()) {
+      predicates.add(builder.equal(root.get("deleted"), false));
+    }
+
+    criteriaQuery.where(predicates.toArray(Predicate[]::new));
+
+    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
+  }
+
+  private CriteriaQuery<Relationship> criteriaQuery(RelationshipQueryParams queryParams) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
+
+    Root<Relationship> root = criteriaQuery.from(Relationship.class);
+
+    criteriaQuery.select(root);
+
+    List<Predicate> predicates = new ArrayList<>();
+
+    predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
+
+    if (!queryParams.isIncludeDeleted()) {
+      predicates.add(builder.equal(root.get("deleted"), false));
+    }
+
+    criteriaQuery.where(predicates.toArray(Predicate[]::new));
+
+    criteriaQuery.orderBy(orderBy(queryParams, builder, root));
+
+    return criteriaQuery;
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(

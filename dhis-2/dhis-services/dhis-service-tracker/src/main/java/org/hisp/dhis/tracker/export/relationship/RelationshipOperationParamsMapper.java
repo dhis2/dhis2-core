@@ -31,6 +31,8 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.collection.CollectionUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -54,7 +56,19 @@ class RelationshipOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
+
+    if (params.getType() == null) {
+      if (CollectionUtils.isEmpty(params.getRelationships())) {
+        throw new BadRequestException(
+            "Either one between Relationships or TrackerType must be provided");
+      }
+      return RelationshipQueryParams.builder()
+          .order(params.getOrder())
+          .includeDeleted(params.isIncludeDeleted())
+          .relationships(params.getRelationships())
+          .build();
+    }
 
     IdentifiableObject entity =
         switch (params.getType()) {
@@ -76,8 +90,7 @@ class RelationshipOperationParamsMapper {
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
         relationshipStore
-            .findTrackedEntity(trackedEntityUid)
-            .filter(te -> (includeDeleted || !te.isDeleted()))
+            .findTrackedEntity(trackedEntityUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(TrackedEntity.class, trackedEntityUid));
     if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), trackedEntity)
@@ -91,8 +104,7 @@ class RelationshipOperationParamsMapper {
       throws NotFoundException, ForbiddenException {
     Enrollment enrollment =
         relationshipStore
-            .findEnrollment(enrollmentUid)
-            .filter(te -> (includeDeleted || !te.isDeleted()))
+            .findEnrollment(enrollmentUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
     if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
@@ -106,8 +118,7 @@ class RelationshipOperationParamsMapper {
       throws NotFoundException, ForbiddenException {
     Event event =
         relationshipStore
-            .findEvent(eventUid)
-            .filter(te -> (includeDeleted || !te.isDeleted()))
+            .findEvent(eventUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Event.class, eventUid));
     if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), event, false)

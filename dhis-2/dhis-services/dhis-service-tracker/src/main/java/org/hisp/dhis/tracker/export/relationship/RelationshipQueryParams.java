@@ -28,17 +28,21 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @Builder(toBuilder = true)
-public class RelationshipQueryParams {
+class RelationshipQueryParams {
   private final IdentifiableObject entity;
 
   @Builder.Default private List<Order> order = List.of();
 
   private boolean includeDeleted;
+
+  @Builder.Default private Set<UID> relationships = Set.of();
 }

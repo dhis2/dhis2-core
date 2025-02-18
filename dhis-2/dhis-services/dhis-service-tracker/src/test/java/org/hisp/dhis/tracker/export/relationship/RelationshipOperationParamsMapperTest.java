@@ -28,9 +28,6 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -101,10 +99,22 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapTrackedEntityWhenATrackedEntityIsPassed()
-      throws NotFoundException, ForbiddenException {
-    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
+    RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
+
+    RelationshipQueryParams queryParams = mapper.map(params);
+
+    assertInstanceOf(TrackedEntity.class, queryParams.getEntity());
+    assertEquals(TE_UID.getValue(), queryParams.getEntity().getUid());
+  }
+
+  @Test
+  void shouldMapTrackedEntityWhenASoftDeletedTrackedEntityIsPassedAndIncludeDeletedIsTrue()
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    when(relationshipStore.findTrackedEntity(TE_UID, true)).thenReturn(Optional.of(trackedEntity));
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
+        RelationshipOperationParams.builder(trackedEntity).includeDeleted(true).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
@@ -114,28 +124,39 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldThrowNotFoundExceptionWhenATrackedEntityIsNotPresent() {
-    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.empty());
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
+    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.empty());
+    RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
     assertThrows(NotFoundException.class, () -> mapper.map(params));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenATrackedEntityIsNotAccessible() {
-    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
+    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
     when(trackerAccessManager.canRead(user, trackedEntity)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
+    RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
   }
 
   @Test
-  void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
-    when(relationshipStore.findEnrollment(EN_UID)).thenReturn(Optional.of(enrollment));
+  void shouldMapEnrollmentWhenAEnrollmentIsPassed()
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    when(relationshipStore.findEnrollment(EN_UID, false)).thenReturn(Optional.of(enrollment));
+    RelationshipOperationParams params = RelationshipOperationParams.builder(enrollment).build();
+
+    RelationshipQueryParams queryParams = mapper.map(params);
+
+    assertInstanceOf(Enrollment.class, queryParams.getEntity());
+    assertEquals(EN_UID.getValue(), queryParams.getEntity().getUid());
+  }
+
+  @Test
+  void shouldMapEnrollmentWhenASoftDeletedEnrollmentIsPassedAndIncludeDeletedIsTrue()
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    when(relationshipStore.findEnrollment(EN_UID, true)).thenReturn(Optional.of(enrollment));
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
+        RelationshipOperationParams.builder(enrollment).includeDeleted(true).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
@@ -145,28 +166,39 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldThrowNotFoundExceptionWhenAnEnrollmentIsNotPresent() {
-    when(relationshipStore.findEnrollment(EN_UID)).thenReturn(Optional.empty());
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
+    when(relationshipStore.findEnrollment(EN_UID, false)).thenReturn(Optional.empty());
+    RelationshipOperationParams params = RelationshipOperationParams.builder(enrollment).build();
 
     assertThrows(NotFoundException.class, () -> mapper.map(params));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenAnEnrollmentIsNotAccessible() {
-    when(relationshipStore.findEnrollment(EN_UID)).thenReturn(Optional.of(enrollment));
+    when(relationshipStore.findEnrollment(EN_UID, false)).thenReturn(Optional.of(enrollment));
     when(trackerAccessManager.canRead(user, enrollment, false)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
+    RelationshipOperationParams params = RelationshipOperationParams.builder(enrollment).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
   }
 
   @Test
-  void shouldMapEventWhenAEventIsPassed() throws NotFoundException, ForbiddenException {
-    when(relationshipStore.findEvent(EV_UID)).thenReturn(Optional.of(event));
+  void shouldMapEventWhenAEventIsPassed()
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    when(relationshipStore.findEvent(EV_UID, false)).thenReturn(Optional.of(event));
+    RelationshipOperationParams params = RelationshipOperationParams.builder(event).build();
+
+    RelationshipQueryParams queryParams = mapper.map(params);
+
+    assertInstanceOf(Event.class, queryParams.getEntity());
+    assertEquals(EV_UID.getValue(), queryParams.getEntity().getUid());
+  }
+
+  @Test
+  void shouldMapEventWhenASoftDeletedEventIsPassedAndIncludeDeletedIsTrue()
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    when(relationshipStore.findEvent(EV_UID, true)).thenReturn(Optional.of(event));
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
+        RelationshipOperationParams.builder(event).includeDeleted(true).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
@@ -176,31 +208,28 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldThrowNotFoundExceptionWhenAnEventIsNotPresent() {
-    when(relationshipStore.findEvent(EV_UID)).thenReturn(Optional.empty());
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
+    when(relationshipStore.findEvent(EV_UID, false)).thenReturn(Optional.empty());
+    RelationshipOperationParams params = RelationshipOperationParams.builder(event).build();
 
     assertThrows(NotFoundException.class, () -> mapper.map(params));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenAnEventIsNotAccessible() {
-    when(relationshipStore.findEvent(EV_UID)).thenReturn(Optional.of(event));
+    when(relationshipStore.findEvent(EV_UID, false)).thenReturn(Optional.of(event));
     when(trackerAccessManager.canRead(user, event, false)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
+    RelationshipOperationParams params = RelationshipOperationParams.builder(event).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
   }
 
   @Test
-  void shouldMapOrderInGivenOrder() throws ForbiddenException, NotFoundException {
-    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
+  void shouldMapOrderInGivenOrder()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(TE_UID)
+        RelationshipOperationParams.builder(trackedEntity)
             .orderBy("created", SortDirection.DESC)
             .build();
 
@@ -211,11 +240,11 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
-      throws ForbiddenException, NotFoundException {
-    when(relationshipStore.findTrackedEntity(TE_UID)).thenReturn(Optional.of(trackedEntity));
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
+        RelationshipOperationParams.builder(trackedEntity).build();
 
     RelationshipQueryParams queryParams = mapper.map(operationParams);
 

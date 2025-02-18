@@ -87,17 +87,15 @@ class RelationshipRequestParamsMapper {
     validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder()
-            .type(
-                getTrackerType(
-                    trackedEntity,
-                    relationshipRequestParams.getEnrollment(),
-                    relationshipRequestParams.getEvent()))
-            .identifier(
-                ObjectUtils.firstNonNull(
-                    trackedEntity,
-                    relationshipRequestParams.getEnrollment(),
-                    relationshipRequestParams.getEvent()));
+        RelationshipOperationParams.builder(
+            getTrackerType(
+                trackedEntity,
+                relationshipRequestParams.getEnrollment(),
+                relationshipRequestParams.getEvent()),
+            ObjectUtils.firstNonNull(
+                trackedEntity,
+                relationshipRequestParams.getEnrollment(),
+                relationshipRequestParams.getEvent()));
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 

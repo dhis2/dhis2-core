@@ -29,9 +29,10 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
@@ -42,50 +43,95 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
-@Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RelationshipOperationParams {
   private TrackerType type;
 
   private UID identifier;
 
+  private Set<UID> relationships;
+
   private List<Order> order;
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull Set<UID> relationships) {
+    return new RelationshipOperationParamsBuilder().relationships(relationships);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull Event event) {
+    return new RelationshipOperationParamsBuilder()
+        .identifier(UID.of(event))
+        .type(TrackerType.EVENT);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull Enrollment enrollment) {
+    return new RelationshipOperationParamsBuilder()
+        .identifier(UID.of(enrollment))
+        .type(TrackerType.ENROLLMENT);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull TrackedEntity trackedEntity) {
+    return new RelationshipOperationParamsBuilder()
+        .identifier(UID.of(trackedEntity))
+        .type(TrackerType.TRACKED_ENTITY);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(
+      @Nonnull TrackerType type, @Nonnull UID identifier) {
+    return new RelationshipOperationParamsBuilder().identifier(identifier).type(type);
+  }
 
   public static class RelationshipOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
+    private TrackerType type;
+    private UID identifier;
+    private Set<UID> relationships;
+    private boolean includeDeleted;
 
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private RelationshipOperationParamsBuilder order(List<Order> order) {
-      return this;
-    }
+    RelationshipOperationParamsBuilder() {}
 
     public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order.add(new Order(field, direction));
       return this;
     }
 
-    public RelationshipOperationParamsBuilder identifier(UID uid) {
+    private RelationshipOperationParamsBuilder identifier(UID uid) {
       this.identifier = uid;
       return this;
     }
 
-    public RelationshipOperationParamsBuilder identifier(TrackedEntity trackedEntity) {
-      this.identifier = UID.of(trackedEntity);
+    private RelationshipOperationParamsBuilder type(TrackerType type) {
+      this.type = type;
       return this;
     }
 
-    public RelationshipOperationParamsBuilder identifier(Enrollment enrollment) {
-      this.identifier = UID.of(enrollment);
+    private RelationshipOperationParamsBuilder relationships(Set<UID> relationships) {
+      this.relationships = relationships;
       return this;
     }
 
-    public RelationshipOperationParamsBuilder identifier(Event event) {
-      this.identifier = UID.of(event);
+    public RelationshipOperationParamsBuilder includeDeleted(boolean includeDeleted) {
+      this.includeDeleted = includeDeleted;
       return this;
+    }
+
+    public RelationshipOperationParams build() {
+      return new RelationshipOperationParams(
+          this.type, this.identifier, this.relationships, this.order, this.includeDeleted);
+    }
+
+    public String toString() {
+      return "RelationshipOperationParams.RelationshipOperationParamsBuilder(order="
+          + this.order
+          + ", type="
+          + this.type
+          + ", identifier="
+          + this.identifier
+          + ", relationships="
+          + this.relationships
+          + ", includeDeleted="
+          + this.includeDeleted
+          + ")";
     }
   }
 
