@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.util.optimizer.cte.matcher;
 
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import org.hisp.dhis.analytics.util.optimizer.cte.StringUtils;
 
-public
 /**
  * Matcher for the "last event value" pattern:
  *
@@ -46,7 +46,7 @@ public
  *
  * This matcher applies only if the column is not "scheduleddate" or "created".
  */
-class LastEventValueMatcher extends AbstractLastValueMatcher {
+public class LastEventValueMatcher extends AbstractLastValueMatcher {
   @Override
   protected boolean validateColumn(Column col, PlainSelect plain) {
     String columnName = col.getColumnName();
@@ -67,9 +67,8 @@ class LastEventValueMatcher extends AbstractLastValueMatcher {
 
   @Override
   protected String getCteName(Column col) {
-    // The original code uses double preservation of letters/numbers.
-    String cleaned =
-        preserveLettersAndNumbers(preserveLettersAndNumbers(col.getColumnName().toLowerCase()));
+
+    String cleaned = StringUtils.preserveLettersAndNumbers(col.getColumnName().toLowerCase());
     return "last_value_" + cleaned;
   }
 }

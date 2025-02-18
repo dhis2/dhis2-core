@@ -156,9 +156,4 @@ public abstract class AbstractLastValueMatcher implements SubselectMatcher {
         && !plain.getOrderByElements().isEmpty()
         && plain.getLimit() != null;
   }
-
-  /** Utility method to remove all characters except letters and numbers. */
-  protected String preserveLettersAndNumbers(String str) {
-    return str.replaceAll("[^a-zA-Z0-9]", "");
-  }
 }
