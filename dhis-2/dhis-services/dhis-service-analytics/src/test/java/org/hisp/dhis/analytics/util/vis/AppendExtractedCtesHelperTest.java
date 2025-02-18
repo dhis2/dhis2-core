@@ -107,7 +107,7 @@ class AppendExtractedCtesHelperTest {
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class, () -> appendExtractedCtes(baseSelect, generatedCtes));
-    assertTrue(exception.getErrorCode().equals(ErrorCode.E7149));
+    assertEquals(ErrorCode.E7149, exception.getErrorCode());
   }
 
   @Test
