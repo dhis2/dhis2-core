@@ -83,15 +83,6 @@ ownership.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
   is not allowed.
 
-### `*.parameter.TrackedEntityRequestParams.orgUnit`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by
-comma!
-
-`<orgUnit1-uid>[;<orgUnit2-uid>...]`
-
-Get tracked entities owned by given `orgUnit`.
-
 ### `*.parameter.TrackedEntityRequestParams.orgUnitMode`
 
 Get tracked entities and enrollments using given `orgUnitMode` and `program` parameters. If a
@@ -107,12 +98,6 @@ the registration organisation unit for the tracked entity would be used to deter
   users capture scope will be returned.
 - When `orgUnitMode=CAPTURE` tracked entities or enrollments that has an enrollment organisation unit
   in the users capture scope will be returned.
-
-### `*.parameter.TrackedEntityRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-Get tracked entities using given organisation unit mode.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
 
@@ -176,15 +161,6 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 Get tracked entities with given UID(s).
 
-### `*.parameter.TrackedEntityRequestParams.trackedEntity`
-
-**DEPRECATED as of 2.41:** Use parameter `trackedEntities` instead where UIDs have to be separated
-by comma!
-
-`<trackedEntity1-uid>[;<trackedEntity2-uid>...]`
-
-Get tracked entities with given UID(s).
-
 ### `*.parameter.TrackedEntityRequestParams.assignedUserMode`
 
 Get tracked entities with events assigned to users according to the specified user mode. By default,
@@ -193,16 +169,6 @@ all events will be retrieved, regardless of whether a user is assigned.
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
 `<user1-uid>[,<user2-uid>...]`
-
-Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
-valid if `assignedUserMode` is either `PROVIDED` or not specified.
-
-### `*.parameter.TrackedEntityRequestParams.assignedUser`
-
-**DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by
-comma!
-
-`<user1-uid>[;<user2-uid>...]`
 
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
 valid if `assignedUserMode` is either `PROVIDED` or not specified.

@@ -61,13 +61,6 @@ public class RelationshipRequestParams implements PageRequestParams {
 
   private List<OrderCriteria> order = new ArrayList<>();
 
-  /**
-   * @deprecated use {@link #trackedEntity} instead
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID.class, TrackedEntity.class})
-  private UID tei;
-
   @OpenApi.Property({UID.class, TrackedEntity.class})
   private UID trackedEntity;
 
