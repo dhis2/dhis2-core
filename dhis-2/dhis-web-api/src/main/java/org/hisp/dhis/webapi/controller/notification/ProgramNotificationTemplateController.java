@@ -88,7 +88,7 @@ public class ProgramNotificationTemplateController
       long total = programNotificationTemplateService.countProgramNotificationTemplates(params);
       return Page.withPager(
           ProgramNotificationTemplateSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(
+          org.hisp.dhis.tracker.Page.withTotals(
               instances, params.getPage(), params.getPageSize(), total));
     }
 

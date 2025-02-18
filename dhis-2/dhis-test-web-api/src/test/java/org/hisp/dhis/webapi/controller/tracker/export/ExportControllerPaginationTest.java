@@ -54,6 +54,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
@@ -65,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
- * org.hisp.dhis.tracker.export.Page} to JSON. The tests use the {@link
+ * Page} to JSON. The tests use the {@link
  * org.hisp.dhis.webapi.controller.tracker.export.relationship} controller but hold true for any of
  * the export controllers.
  */

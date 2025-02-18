@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Data

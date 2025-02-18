@@ -41,8 +41,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Translates {@link org.hisp.dhis.tracker.export.Page} to its JSON representation. Future changes
- * need to be consistent with how pagination is done across products.
+ * Translates {@link org.hisp.dhis.tracker.Page} to its JSON representation. Future changes need to
+ * be consistent with how pagination is done across products.
  */
 @Getter
 @ToString
@@ -93,9 +93,9 @@ public class Page<T> {
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Pagination details will be serialized as well including totals only if {@link
-   * org.hisp.dhis.tracker.export.Page#getTotal()} is not null.
+   * org.hisp.dhis.tracker.Page#getTotal()} is not null.
    */
-  public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.export.Page<T> pager) {
+  public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.Page<T> pager) {
     if (pager.getTotal() != null) {
       return new Page<>(
           key, pager.getItems(), pager.getPage(), pager.getPageSize(), pager.getTotal());
@@ -106,10 +106,10 @@ public class Page<T> {
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Previous and next page links will be generated based on the request if {@link
-   * org.hisp.dhis.tracker.export.Page#getPrevPage()} or next are not null.
+   * org.hisp.dhis.tracker.Page#getPrevPage()} or next are not null.
    */
   public static <T> Page<T> withPager(
-      String key, org.hisp.dhis.tracker.export.Page<T> pager, String requestURL) {
+      String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
     String prevPage = getPageLink(requestURL, pager.getPrevPage());
     String nextPage = getPageLink(requestURL, pager.getNextPage());
 

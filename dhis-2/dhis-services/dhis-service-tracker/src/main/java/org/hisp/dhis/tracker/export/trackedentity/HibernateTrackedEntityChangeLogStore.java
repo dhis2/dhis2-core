@@ -48,9 +48,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore")

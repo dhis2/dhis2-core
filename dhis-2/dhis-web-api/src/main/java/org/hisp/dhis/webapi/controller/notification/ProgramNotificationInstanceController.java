@@ -122,7 +122,7 @@ public class ProgramNotificationInstanceController {
       long total = programNotificationInstanceService.countProgramNotificationInstances(params);
       return Page.withPager(
           ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(instances, page, pageSize, total));
+          org.hisp.dhis.tracker.Page.withTotals(instances, page, pageSize, total));
     }
 
     return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);

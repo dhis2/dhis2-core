@@ -42,8 +42,8 @@ class PageTest {
   @Test
   void shouldNotSetNoPageLinkIfThereAreNone() {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 1, 3, null, null);
+    org.hisp.dhis.tracker.Page<String> exportPage =
+        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 1, 3, null, null);
 
     Page<String> page =
         Page.withPager(
@@ -63,8 +63,8 @@ class PageTest {
   @Test
   void shouldSetPrevPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, 1, null);
+    org.hisp.dhis.tracker.Page<String> exportPage =
+        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 2, 3, 1, null);
 
     Page<String> page =
         Page.withPager(
@@ -89,8 +89,8 @@ class PageTest {
   @Test
   void shouldSetNextPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, null, 3);
+    org.hisp.dhis.tracker.Page<String> exportPage =
+        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 2, 3, null, 3);
 
     Page<String> page =
         Page.withPager(

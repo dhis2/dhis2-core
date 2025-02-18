@@ -43,7 +43,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -111,7 +111,7 @@ class EnrollmentsExportController {
           new PageParams(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
-      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
       List<Enrollment> enrollments =
           enrollmentsPage.getItems().stream().map(ENROLLMENT_MAPPER::map).toList();
