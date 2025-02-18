@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -45,8 +46,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -84,8 +85,6 @@ public class DeduplicationController {
 
   private final IdentifiableObjectManager manager;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
-
   private final TrackerAccessManager trackerAccessManager;
 
   private final FieldFilterService fieldFilterService;
@@ -96,15 +95,21 @@ public class DeduplicationController {
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
   public Page<ObjectNode> getPotentialDuplicates(
-      PotentialDuplicateCriteria criteria,
+      PotentialDuplicateRequestParams requestParams,
       HttpServletResponse response,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException {
-    if (criteria.getPaging() != null
-        && criteria.getSkipPaging() != null
-        && criteria.getPaging().equals(criteria.getSkipPaging())) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
+    validatePaginationParameters(requestParams);
+
+    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
+    criteria.setStatus(requestParams.getStatus());
+    criteria.setTrackedEntities(requestParams.getTrackedEntities());
+    criteria.setOrder(requestParams.getOrder());
+    if (requestParams.isPaging()) {
+      PageParams pageParams =
+          new PageParams(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isPaging());
+      criteria.setPageParams(pageParams);
     }
 
     List<PotentialDuplicate> potentialDuplicates =
@@ -113,12 +118,12 @@ public class DeduplicationController {
 
     setNoStore(response);
 
-    if (criteria.isPaged()) {
-      org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
-          org.hisp.dhis.tracker.export.Page.withoutTotals(
+    if (requestParams.isPaging()) {
+      org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
+          org.hisp.dhis.tracker.Page.withoutTotals(
               potentialDuplicates,
-              criteria.getPageWithDefault(),
-              criteria.getPageSizeWithDefault());
+              criteria.getPageParams().getPage(),
+              criteria.getPageParams().getPageSize());
       return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
     }
 

@@ -113,7 +113,7 @@ public class HibernateProgramNotificationTemplateStore
       query.setParameter("programStageId", param.getProgramStage().getId());
     }
 
-    if (param.isPaged()) {
+    if (param.isPaging()) {
       query.setFirstResult((param.getPage() - 1) * param.getPageSize());
       query.setMaxResults(param.getPageSize());
     }

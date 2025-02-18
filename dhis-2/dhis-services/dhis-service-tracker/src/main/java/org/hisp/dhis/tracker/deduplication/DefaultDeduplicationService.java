@@ -84,12 +84,6 @@ public class DefaultDeduplicationService implements DeduplicationService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public int countPotentialDuplicates(PotentialDuplicateCriteria criteria) {
-    return potentialDuplicateStore.getCountPotentialDuplicates(criteria);
-  }
-
-  @Override
   @Transactional
   public void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate) {
     setPotentialDuplicateUserNameInfo(potentialDuplicate);
