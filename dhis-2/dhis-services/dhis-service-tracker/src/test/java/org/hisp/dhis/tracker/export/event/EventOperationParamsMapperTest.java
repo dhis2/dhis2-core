@@ -131,7 +131,7 @@ class EventOperationParamsMapperTest {
       EventOperationParams.builder();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setChildren(Set.of(createOrganisationUnit('B'), createOrganisationUnit('C')));
 
