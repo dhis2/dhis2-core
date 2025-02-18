@@ -1295,6 +1295,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       DataElement de = item.getKey();
       List<QueryFilter> filters = item.getValue();
       final String deUid = de.getUid();
+      final int itemValueType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
       final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
 
@@ -1316,7 +1317,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 : lower(dataValueValueSql);
 
         String bindParameter = "parameter_" + filterCount;
-        int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
         eventDataValuesWhereSql.append(hlp.whereAnd());
 
@@ -1326,12 +1326,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           mapSqlParameterSource.addValue(
               bindParameter,
               QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-              itemType);
+              itemValueType);
 
           eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
         } else {
           mapSqlParameterSource.addValue(
-              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
+              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemValueType);
 
           eventDataValuesWhereSql
               .append(" ")
