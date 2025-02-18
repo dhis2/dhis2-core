@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.util.optimizer.cte.matcher;
 
+import static org.hisp.dhis.analytics.util.optimizer.cte.StringUtils.preserveLettersAndNumbers;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
