@@ -58,8 +58,7 @@ public class ProgramNotificationTemplateOperationParamsMapper {
         .programStage(programStage)
         .page(operationParams.getPage())
         .pageSize(operationParams.getPageSize())
-        .paged(operationParams.isPaging())
-        .skipPaging(operationParams.isPaging())
+        .paging(operationParams.isPaging())
         .build();
   }
 
