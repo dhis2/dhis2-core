@@ -29,10 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -60,8 +60,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -173,14 +173,13 @@ class TrackedEntitiesExportController {
     validatePaginationParameters(requestParams);
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
-      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
-          trackedEntitiesPage =
-              trackedEntityService.getTrackedEntities(operationParams, pageParams);
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntitiesPage =
+          trackedEntityService.getTrackedEntities(operationParams, pageParams);
       MappingErrors errors = new MappingErrors(idSchemeParams);
       List<TrackedEntity> trackedEntities =
           trackedEntitiesPage.getItems().stream()
@@ -396,7 +395,7 @@ class TrackedEntitiesExportController {
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.export.Page<TrackedEntityChangeLog> changeLogs =
+    org.hisp.dhis.tracker.Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             trackedEntity, program, operationParams, pageParams);
 

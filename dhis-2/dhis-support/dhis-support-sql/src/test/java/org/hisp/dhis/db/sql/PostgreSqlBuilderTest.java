@@ -301,6 +301,11 @@ class PostgreSqlBuilderTest {
             "a.incidentdate"));
   }
 
+  @Test
+  void testLog10() {
+    assertEquals("log(value)", sqlBuilder.log10("value"));
+  }
+
   // Statements
 
   @Test

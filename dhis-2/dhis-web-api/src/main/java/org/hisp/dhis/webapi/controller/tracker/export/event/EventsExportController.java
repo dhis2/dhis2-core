@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -63,8 +63,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -159,14 +159,14 @@ class EventsExportController {
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
       EventOperationParams eventOperationParams =
           eventParamsMapper.map(requestParams, idSchemeParams);
-      org.hisp.dhis.tracker.export.Page<Event> eventsPage =
+      org.hisp.dhis.tracker.Page<Event> eventsPage =
           eventService.getEvents(eventOperationParams, pageParams);
       MappingErrors errors = new MappingErrors(idSchemeParams);
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
@@ -365,8 +365,8 @@ class EventsExportController {
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.export.Page<org.hisp.dhis.tracker.export.event.EventChangeLog>
-        changeLogs = eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
+    org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.export.event.EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
     List<EventChangeLog> eventChangeLogs =
         changeLogs.getItems().stream().map(EVENT_CHANGE_LOG_MAPPER::map).toList();

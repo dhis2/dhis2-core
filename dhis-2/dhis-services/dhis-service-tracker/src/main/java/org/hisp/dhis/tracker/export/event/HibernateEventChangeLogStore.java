@@ -46,9 +46,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore")
@@ -133,7 +133,7 @@ public class HibernateEventChangeLogStore {
 
     Query query = entityManager.createQuery(hql);
     query.setParameter("eventUid", event.getValue());
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(pageParams.getPageSize() + 1);
 
     if (filter != null) {

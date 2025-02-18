@@ -144,7 +144,8 @@ class EnrollmentOperationParamsMapperTest {
     when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
     when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
         .thenReturn(trackedEntityType);
-    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
+    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false))
+        .thenReturn(trackedEntity);
     when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
   }

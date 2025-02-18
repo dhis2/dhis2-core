@@ -209,6 +209,13 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
     assertEquals("different", groups.getObject(0).getString(attrId).string());
   }
 
+  @Test
+  void testFilter_EqAttributeId() {
+    String url =
+        "/userGroups/gist?fields=id,name&headless=true&filter=attributeValues.attribute.id:eq:{attr}";
+    assertEquals(2, GET(url, attrId).content().size());
+  }
+
   private String postNewUserGroupWithAttributeValue(String name, String attrId, String value) {
     // language=JSON
     String json =
@@ -228,16 +235,8 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
         HttpStatus.CREATED,
         POST(
             "/attributes",
-            "{"
-                + "'name':'"
-                + name
-                + "', "
-                + "'valueType':'"
-                + valueType.name()
-                + "', "
-                + "'"
-                + objectType.getPropertyName()
-                + "':true}"));
+            "{'name':'%s', 'valueType':'%s', '%s':true}"
+                .formatted(name, valueType.name(), objectType.getPropertyName())));
   }
 
   private static void assertListOfMapEquals(

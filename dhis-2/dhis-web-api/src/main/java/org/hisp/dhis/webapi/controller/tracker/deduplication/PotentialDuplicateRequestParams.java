@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
-/**
- * {@link PageParams} represent the parameters that configure the page of items to be returned. By
- * default, the total number of items will not be fetched.
- */
-@Getter
-@ToString
-@EqualsAndHashCode
-public class PageParams {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
+@OpenApi.Shared(name = "PotentialDuplicateRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class PotentialDuplicateRequestParams implements PageRequestParams {
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
 
-  /** The page number to be returned. */
-  final int page;
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 
-  /** The number of items to be returned. */
-  final int pageSize;
+  private boolean totalPages = false;
 
-  /** Indicates whether to fetch the total number of items. */
-  final boolean pageTotal;
+  private boolean paging = true;
 
-  public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
-    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
-    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
-    this.pageTotal = Boolean.TRUE.equals(pageTotal);
-  }
+  private List<OrderCriteria> order = new ArrayList<>();
+
+  private List<UID> trackedEntities = new ArrayList<>();
+
+  private DeduplicationStatus status = DeduplicationStatus.OPEN;
 }

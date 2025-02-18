@@ -229,6 +229,14 @@ class SystemSettingsTest {
   }
 
   @Test
+  void testIsValid_Reset() {
+    SystemSettings settings = SystemSettings.of(Map.of("keyCacheStrategy", "NO_CACHE"));
+    assertEquals(CacheStrategy.NO_CACHE, settings.getCacheStrategy());
+    assertTrue(settings.isValid("keyCacheStrategy", ""));
+    assertTrue(settings.isValid("keyCacheStrategy", null));
+  }
+
+  @Test
   void testEmailIsConfigured() {
     SystemSettings settings = SystemSettings.of(Map.of());
     assertFalse(settings.isEmailConfigured());
