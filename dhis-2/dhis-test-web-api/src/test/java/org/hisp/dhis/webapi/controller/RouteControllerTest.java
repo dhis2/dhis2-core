@@ -239,7 +239,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRunRouteGivenOAuth2ClientCredentialsAuthSchemeWhenTokenEndpointReturnsUnauthorizedError()
-      throws JsonProcessingException, UnsupportedEncodingException {
+      throws JsonProcessingException {
     GenericContainer<?> routeTargetMockServerContainer = newMockerServer();
 
     Map<String, Object> route = new HashMap<>();
@@ -307,13 +307,12 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
-                    "{\n"
-                        + "  \"access_token\":\"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3\",\n"
-                        + "  \"token_type\":\"Bearer\",\n"
-                        + "  \"expires_in\":3600,\n"
-                        + "  \"refresh_token\":\"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk\",\n"
-                        + "  \"scope\":\"create\"\n"
-                        + "}")
+                    """
+                        { "access_token":"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+                          "token_type":"Bearer",
+                          "expires_in":3600,
+                          "refresh_token":"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk",
+                          "scope":"create"}""")
                 .withContentType(MediaType.APPLICATION_JSON)
                 .withStatusCode(200));
 
