@@ -46,11 +46,11 @@ public class ProgramNotificationInstanceParam extends NotificationPagingParam {
   public ProgramNotificationInstanceParam(
       Integer page,
       Integer pageSize,
-      boolean paged,
+      boolean paging,
       Enrollment enrollment,
       Event event,
       Date scheduledAt) {
-    super(page, pageSize, paged);
+    super(page, pageSize, paging);
     this.enrollment = enrollment;
     this.event = event;
     this.scheduledAt = scheduledAt;

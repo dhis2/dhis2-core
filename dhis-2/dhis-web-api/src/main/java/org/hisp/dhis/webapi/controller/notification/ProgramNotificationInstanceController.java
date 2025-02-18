@@ -111,7 +111,7 @@ public class ProgramNotificationInstanceController {
             .event(storedEvent)
             .page(page)
             .pageSize(pageSize)
-            .paged(paging)
+            .paging(paging)
             .scheduledAt(scheduledAt)
             .build();
 
