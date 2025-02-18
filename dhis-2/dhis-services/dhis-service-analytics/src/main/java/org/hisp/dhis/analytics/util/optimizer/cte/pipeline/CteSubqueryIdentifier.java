@@ -147,11 +147,10 @@ public class CteSubqueryIdentifier implements SqlOptimizationStep {
                             @Override
                             public void visit(Column column) {
                               if (column.getTable() != null
-                                  && column.getTable().getName() != null) {
-                                if (CORRELATION_ALIAS.equalsIgnoreCase(
-                                    column.getTable().getName())) {
-                                  isCorrelated.set(true);
-                                }
+                                  && column.getTable().getName() != null
+                                  && CORRELATION_ALIAS.equalsIgnoreCase(
+                                      column.getTable().getName())) {
+                                isCorrelated.set(true);
                               }
                             }
                           });
