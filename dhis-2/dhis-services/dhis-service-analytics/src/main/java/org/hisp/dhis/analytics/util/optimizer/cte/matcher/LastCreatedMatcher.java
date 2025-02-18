@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.util.optimizer.cte.matcher;
 
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 
 /**
  * Matcher for the "last_created" pattern:
@@ -44,7 +43,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
  */
 public class LastCreatedMatcher extends AbstractLastValueMatcher {
   @Override
-  protected boolean validateColumn(Column col, PlainSelect plain) {
+  protected boolean validateColumn(Column col) {
     return "created".equalsIgnoreCase(col.getColumnName());
   }
 

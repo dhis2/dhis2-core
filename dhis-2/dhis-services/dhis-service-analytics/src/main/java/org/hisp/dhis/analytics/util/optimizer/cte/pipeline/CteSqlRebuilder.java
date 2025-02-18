@@ -75,7 +75,7 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
 
     // Build new SELECT items and joins
     List<SelectItem> newSelectItems = buildSelectItems(oldSelect, fromAlias);
-    List<Join> joins = buildJoins(decomposedCtes, fromAlias, newSelectItems);
+    List<Join> joins = buildJoins(decomposedCtes, fromAlias);
 
     handleGroupBy(oldSelect, fromAlias);
 
@@ -97,8 +97,7 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
     return originalCte;
   }
 
-  private List<Join> buildJoins(
-      DecomposedCtes decomposedCtes, String fromAlias, List<SelectItem> newSelectItems) {
+  private List<Join> buildJoins(DecomposedCtes decomposedCtes, String fromAlias) {
     List<Join> joins = new ArrayList<>();
     for (GeneratedCte cte : decomposedCtes.ctes()) {
       addJoinItem(joins, fromAlias, cte);

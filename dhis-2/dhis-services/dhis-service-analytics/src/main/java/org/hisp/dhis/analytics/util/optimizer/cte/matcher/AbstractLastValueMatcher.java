@@ -48,6 +48,7 @@ public abstract class AbstractLastValueMatcher implements SubselectMatcher {
    * @param subSelect the subselect to check.
    * @return an Optional FoundSubSelect if the pattern matches; empty otherwise.
    */
+  @Override
   public Optional<FoundSubSelect> match(SubSelect subSelect) {
     Optional<PlainSelect> maybePlain = asPlainSelect(subSelect);
     if (maybePlain.isEmpty()) {
@@ -67,7 +68,7 @@ public abstract class AbstractLastValueMatcher implements SubselectMatcher {
     }
 
     // Delegate column-specific validation to the subclass.
-    if (!validateColumn(col, plain)) {
+    if (!validateColumn(col)) {
       return Optional.empty();
     }
 
@@ -101,10 +102,9 @@ public abstract class AbstractLastValueMatcher implements SubselectMatcher {
    * Validates the column from the SELECT clause.
    *
    * @param col the column from the SELECT clause.
-   * @param plain the PlainSelect statement.
    * @return true if the column meets the expected criteria.
    */
-  protected abstract boolean validateColumn(Column col, PlainSelect plain);
+  protected abstract boolean validateColumn(Column co);
 
   /**
    * Provides the CTE name for the matched subselect.

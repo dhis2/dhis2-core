@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 
 public class DataElementCountMatcher extends AbstractCountMatcher {
 
+  @Override
   public Optional<FoundSubSelect> match(SubSelect subSelect) {
     Optional<PlainSelect> maybePlain = asPlainSelect(subSelect);
     if (maybePlain.isEmpty()) {

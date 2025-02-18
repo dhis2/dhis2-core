@@ -45,7 +45,7 @@ public class FunctionTransformer {
   private static final String FUNCTION_EXTRACT = "extract";
 
   // A small record to store the processed expressions and a "changed" flag.
-  private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {}
+  record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {}
 
   public FunctionTransformer(ExpressionTransformer parentVisitor) {
     this.parentVisitor = parentVisitor;
