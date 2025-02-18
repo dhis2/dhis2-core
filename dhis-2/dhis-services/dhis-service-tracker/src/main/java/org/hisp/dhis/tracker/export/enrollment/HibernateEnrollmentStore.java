@@ -110,7 +110,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     String hql = buildEnrollmentHql(params).getFullQuery();
 
     Query<Enrollment> query = getQuery(hql);
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(pageParams.getPageSize());
 
     LongSupplier enrollmentCount = () -> countEnrollments(params);

@@ -133,7 +133,7 @@ public class HibernateEventChangeLogStore {
 
     Query query = entityManager.createQuery(hql);
     query.setParameter("eventUid", event.getValue());
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(pageParams.getPageSize() + 1);
 
     if (filter != null) {

@@ -61,4 +61,9 @@ public class PageParams {
     this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
     this.pageTotal = pageTotal;
   }
+
+  /** Zero-based offset to be used in a SQL offset clause. */
+  public int getOffset() {
+    return (page - 1) * pageSize;
+  }
 }

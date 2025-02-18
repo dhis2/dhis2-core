@@ -121,7 +121,7 @@ class HibernatePotentialDuplicateStore
 
     if (criteria.isPaging()) {
       PageParams pageParams = criteria.getPageParams();
-      relationshipTypedQuery.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+      relationshipTypedQuery.setFirstResult(pageParams.getOffset());
       relationshipTypedQuery.setMaxResults(pageParams.getPageSize());
     }
 

@@ -1553,9 +1553,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
-    int pageSize = pageParams.getPageSize();
-    int offset = (pageParams.getPage() - 1) * pageParams.getPageSize();
-    return " limit " + pageSize + " offset " + offset + " ";
+    return " limit " + pageParams.getPageSize() + " offset " + pageParams.getOffset() + " ";
   }
 
   private String getOrderQuery(EventQueryParams params) {

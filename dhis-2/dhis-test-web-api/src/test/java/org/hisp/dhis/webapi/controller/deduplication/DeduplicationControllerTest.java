@@ -71,7 +71,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private PotentialDuplicate potentialDuplicate2;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 

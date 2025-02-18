@@ -1077,7 +1077,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
     } else if (pageParams != null) {
@@ -1088,7 +1088,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
     } else {

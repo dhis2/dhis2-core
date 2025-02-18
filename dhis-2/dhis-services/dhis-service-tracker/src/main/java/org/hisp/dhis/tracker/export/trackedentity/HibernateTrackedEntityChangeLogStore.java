@@ -161,7 +161,7 @@ public class HibernateTrackedEntityChangeLogStore {
           "attributes", attributes.stream().map(UID::getValue).collect(Collectors.toSet()));
     }
 
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(pageParams.getPageSize() + 1);
 
     if (filter != null) {

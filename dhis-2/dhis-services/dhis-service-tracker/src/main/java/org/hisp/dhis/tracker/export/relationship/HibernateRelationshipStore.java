@@ -251,7 +251,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
     if (pageParams != null) {
-      query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+      query.setFirstResult(pageParams.getOffset());
       query.setMaxResults(pageParams.getPageSize());
     }
 
