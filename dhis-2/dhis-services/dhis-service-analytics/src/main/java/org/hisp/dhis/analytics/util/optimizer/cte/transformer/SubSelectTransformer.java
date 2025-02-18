@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.util.optimizer.cte.transformer;
 
+import static org.hisp.dhis.analytics.util.optimizer.cte.StringUtils.preserveLettersAndNumbers;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,19 +102,14 @@ public class SubSelectTransformer {
       default -> {
         // Handle "last_value_*" and "de_count_*"
         if (found.name().startsWith("last_value_")) {
-          yield "lv_" + preserveLetterNumbers(found.columnReference());
+          yield "lv_" + preserveLettersAndNumbers(found.columnReference());
         }
         if (found.name().startsWith("de_count_")) {
-          yield "dec_" + preserveLetterNumbers(found.columnReference());
+          yield "dec_" + preserveLettersAndNumbers(found.columnReference());
         }
         // Fallback to the subselect's name
         yield found.name();
       }
     };
-  }
-
-  /** Preserves only letters and digits from a string, removing punctuation. */
-  private String preserveLetterNumbers(String str) {
-    return str.replaceAll("[^a-zA-Z0-9]", "");
   }
 }
