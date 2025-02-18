@@ -40,10 +40,9 @@ import org.hisp.dhis.program.ProgramStage;
 public class ProgramNotificationTemplateQueryParams {
   private Integer page;
   private Integer pageSize;
-  private boolean skipPaging;
   private Program program;
   private ProgramStage programStage;
-  private boolean paged;
+  private boolean paging;
 
   public boolean hasProgram() {
     return this.program != null;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.message;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;

@@ -64,9 +64,9 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -1077,7 +1077,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
     } else if (pageParams != null) {
@@ -1088,7 +1088,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
     } else {

@@ -25,53 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export;
+package org.hisp.dhis.tracker;
 
-import java.util.List;
-import lombok.AccessLevel;
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * Create a page of items. A page is guaranteed to have a page number and size. All other fields are
- * optional.
+ * {@link PageParams} represent the parameters that configure the page of items to be returned. By
+ * default, the total number of items will not be fetched.
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString
 @EqualsAndHashCode
-public class Page<T> {
-  private final List<T> items;
-  private final int page;
-  private final int pageSize;
-  private final Long total;
-  private final Integer prevPage;
-  private final Integer nextPage;
+public class PageParams {
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
 
-  public static <T> Page<T> empty() {
-    return new Page<>(List.of(), 0, 0, 0L, null, null);
+  public static PageParams single() {
+    return new PageParams(1, 1, false);
   }
 
-  /**
-   * Create a new page based on an existing one but with given {@code items}. Page related counts
-   * will not be changed so make sure the given {@code items} match the previous page size.
-   */
-  public <U> Page<U> withItems(List<U> items) {
-    return new Page<>(items, this.page, this.pageSize, this.total, this.prevPage, this.nextPage);
+  /** The page number to be returned. */
+  final int page;
+
+  /** The number of items to be returned. */
+  final int pageSize;
+
+  /** Indicates whether to fetch the total number of items. */
+  final boolean pageTotal;
+
+  public PageParams(Integer page, Integer pageSize, boolean pageTotal) {
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.pageTotal = pageTotal;
   }
 
-  public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
-    return new Page<>(items, page, pageSize, total, null, null);
-  }
-
-  public static <T> Page<T> withoutTotals(List<T> items, int page, int pageSize) {
-    return new Page<>(items, page, pageSize, null, null, null);
-  }
-
-  public static <T> Page<T> withPrevAndNext(
-      List<T> items, int page, int pageSize, Integer prevPage, Integer nextPage) {
-    return new Page<>(items, page, pageSize, null, prevPage, nextPage);
+  /** Zero-based offset to be used in a SQL offset clause. */
+  public int getOffset() {
+    return (page - 1) * pageSize;
   }
 }

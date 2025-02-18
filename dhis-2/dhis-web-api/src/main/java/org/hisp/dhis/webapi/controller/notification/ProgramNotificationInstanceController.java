@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 
 import java.util.Date;
 import java.util.List;
@@ -88,21 +88,10 @@ public class ProgramNotificationInstanceController {
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
       @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date scheduledAt,
-      // @deprecated use {@code paging} instead
-      @Deprecated(since = "2.41") @RequestParam(required = false) Boolean skipPaging,
-      // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-      // now. This would lead to invalid parameters if the user passes the other param i.e.
-      // skipPaging==paging.
-      @RequestParam(required = false) Boolean paging,
+      @RequestParam(required = false, defaultValue = "true") boolean paging,
       @RequestParam(required = false, defaultValue = "1") int page,
       @RequestParam(required = false, defaultValue = "50") int pageSize)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    if (paging != null && skipPaging != null && paging.equals(skipPaging)) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
-    }
-    boolean isPaged = isPaged(paging, skipPaging);
-
     UID enrollmentUid =
         validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
     UID eventUid =
@@ -120,40 +109,22 @@ public class ProgramNotificationInstanceController {
         ProgramNotificationInstanceParam.builder()
             .enrollment(storedEnrollment)
             .event(storedEvent)
-            .skipPaging(!isPaged)
             .page(page)
             .pageSize(pageSize)
+            .paging(paging)
             .scheduledAt(scheduledAt)
             .build();
 
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(params);
 
-    if (isPaged) {
+    if (paging) {
       long total = programNotificationInstanceService.countProgramNotificationInstances(params);
       return Page.withPager(
           ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(instances, page, pageSize, total));
+          org.hisp.dhis.tracker.Page.withTotals(instances, page, pageSize, total));
     }
 
     return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);
-  }
-
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   *
-   * <p>Note: this assumes {@code paging} and {@code skipPaging} have been validated. Preference is
-   * given to {@code paging} as the other parameter is deprecated.
-   */
-  private static boolean isPaged(Boolean paging, Boolean skipPaging) {
-    if (paging != null) {
-      return Boolean.TRUE.equals(paging);
-    }
-
-    if (skipPaging != null) {
-      return Boolean.FALSE.equals(skipPaging);
-    }
-
-    return true;
   }
 }
