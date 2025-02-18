@@ -55,11 +55,11 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.jclouds.JCloudsStore;
-import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
@@ -337,11 +337,13 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
+    // if the resource is blank, we want to use the folder dir without the trailing '/'
+    // so that we are matching the resource request to the rules correctly
     String key =
         resolvedFileResource.isBlank()
             ? app.getFolderNameNoTrailingSlash()
             : app.getFolderName() + ("/" + resolvedFileResource);
-    String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
+    String cleanedKey = TextUtils.replaceAllRecursively(key, "//", "/");
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
     if (jCloudsStore.blobExists(cleanedKey) && !resolvedFileResource.isBlank()) {
@@ -359,7 +361,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
       return new FileSystemResource(
           locationManager.getFileForReading(
-              StringUtils.replaceAllRecursively(cleanedFilepath, "//", "/")));
+              TextUtils.replaceAllRecursively(cleanedFilepath, "//", "/")));
     } else {
       URI uri = fileResourceContentStore.getSignedGetContentUri(filePath);
       return new UrlResource(uri);

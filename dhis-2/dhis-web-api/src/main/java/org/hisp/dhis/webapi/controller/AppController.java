@@ -62,12 +62,12 @@ import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.util.StringUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -242,7 +242,7 @@ public class AppController {
       }
       if (resourceResult instanceof Redirect redirect) {
         response.sendRedirect(
-            StringUtils.replaceAllRecursively(
+            TextUtils.replaceAllRecursively(
                 application.getBaseUrl() + "/" + redirect.path(), "//", "/"));
         return;
       }

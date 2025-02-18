@@ -49,7 +49,7 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.util.StringUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -151,7 +151,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       }
       if (resourceResult instanceof Redirect redirect) {
         response.sendRedirect(
-            StringUtils.replaceAllRecursively(app.getBaseUrl() + "/" + redirect.path(), "//", "/"));
+            TextUtils.replaceAllRecursively(app.getBaseUrl() + "/" + redirect.path(), "//", "/"));
       }
     }
   }
