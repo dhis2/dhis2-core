@@ -243,7 +243,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldThrowPostPotentialDuplicateWhenMissingDuplicateTeiInPayload() throws Exception {
+  void shouldThrowBadRequestExceptionWhenMissingDuplicateTeInPayload() throws Exception {
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.of(origin), null);
     assertStatus(
         HttpStatus.BAD_REQUEST,
@@ -251,7 +251,16 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldThrowPostPotentialDuplicateWhenMissingOriginTeiInPayload() throws Exception {
+  void shouldThrowNotFoundExceptionWhenTeInPayloadDoesNotExist() throws Exception {
+    String nonExistentUID = CodeGenerator.generateUid();
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(UID.of(origin), UID.of(nonExistentUID));
+    assertStatus(
+        HttpStatus.NOT_FOUND, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
+  }
+
+  @Test
+  void shouldThrowPostPotentialDuplicateWhenMissingOriginTeInPayload() throws Exception {
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, UID.of(duplicate1));
     assertStatus(
         HttpStatus.BAD_REQUEST,
@@ -308,7 +317,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldThrowNotFoundWhenPotentialDuplicateDoNotExists() {
+  void shouldThrowNotFoundWhenPotentialDuplicateDoesNotExist() {
     assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + UID.generate()));
   }
 
