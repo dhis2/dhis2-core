@@ -336,14 +336,16 @@ public class JCloudsAppStorageService implements AppStorageService {
       return new ResourceNotFound(resource);
     }
 
-    String resolvedFileResource = useIndexHtmlIfWarranted(resource);
-    String key = (app.getFolderName() + ("/" + resolvedFileResource));
+    String resolvedFileResource = useIndexHtmlIfDirCall(resource);
+    String key =
+        resolvedFileResource.isBlank()
+            ? app.getFolderNameNoTrailingSlash()
+            : app.getFolderName() + ("/" + resolvedFileResource);
     String cleanedKey = StringUtils.replaceAllRecursively(key, "//", "/");
-    URI uri = fileResourceContentStore.getSignedGetContentUri(cleanedKey);
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
-    if (jCloudsStore.blobExists(cleanedKey)) {
-      return new ResourceFound(getResourceType(uri, cleanedKey));
+    if (jCloudsStore.blobExists(cleanedKey) && !resolvedFileResource.isBlank()) {
+      return new ResourceFound(getResourceType(cleanedKey));
     }
     if (jCloudsStore.blobExists(cleanedKey + "/")) {
       return new Redirect(resolvedFileResource + "/");
@@ -352,40 +354,34 @@ public class JCloudsAppStorageService implements AppStorageService {
     return new ResourceNotFound(resource);
   }
 
-  private Resource getResourceType(URI uri, @Nonnull String filePath) throws MalformedURLException {
-    if (uri == null) {
+  private Resource getResourceType(@Nonnull String filePath) throws MalformedURLException {
+    if (jCloudsStore.isUsingFileSystem()) {
       String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
       return new FileSystemResource(
           locationManager.getFileForReading(
               StringUtils.replaceAllRecursively(cleanedFilepath, "//", "/")));
     } else {
+      URI uri = fileResourceContentStore.getSignedGetContentUri(filePath);
       return new UrlResource(uri);
     }
   }
 
   /**
-   * The server is expected to handle multiple resource path variations, which have different rules.
-   * <br>
+   * The server is expected to return the 'index.html' for calls made to resources ending in '/'<br>
    *
    * <p>Examples: <br>
-   * <li>'' ->'index.html`
-   * <li>'index.html' ->'index.html`
-   * <li>'subDir/index.html' ->'subDir/index.html`
-   * <li>'subDir/' ->'subDir/index.html`
-   * <li>'subDir' ->'subDir`
-   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js`
+   * <li>'' -> ''
+   * <li>'index.html' ->'index.html'
+   * <li>'subDir/index.html' ->'subDir/index.html'
+   * <li>'baseDir/' ->'baseDir/index.html'
+   * <li>'baseDir/subDir/' ->'baseDir/subDir/index.html'
+   * <li>'subDir' ->'subDir'
+   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js'
    *
-   * @param resource app resource to resolve
-   * @return potentially-updated app resource (file)
+   * @param resource app resource
+   * @return potentially-updated app resource
    */
-  private String useIndexHtmlIfWarranted(@Nonnull String resource) {
-    // this condition is treated as the base app resource
-    if (resource.isBlank()) {
-      log.debug("Resource is blank, using 'index.html'");
-      return "index.html";
-    }
-
-    // this condition is treated as a directory (any level) resource, ending in '/'
+  private String useIndexHtmlIfDirCall(@Nonnull String resource) {
     if (resource.endsWith("/")) {
       log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
       return resource + "index.html";

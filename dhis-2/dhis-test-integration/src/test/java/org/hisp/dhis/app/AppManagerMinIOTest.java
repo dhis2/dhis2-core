@@ -185,7 +185,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   private static Stream<Arguments> validPathParams() {
     return Stream.of(
-        Arguments.of("", "/dhis2/apps/test-app-minio-v1/index.html"),
         Arguments.of("index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
         Arguments.of("/index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
         Arguments.of("subDir/", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
@@ -198,6 +197,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   private static Stream<Arguments> redirectPathParams() {
     return Stream.of(
+        Arguments.of("", "/"),
         Arguments.of("subDir", "subDir/"),
         Arguments.of("emptyDir", "emptyDir/"),
         Arguments.of("subDir/subSubDir", "subDir/subSubDir/"));

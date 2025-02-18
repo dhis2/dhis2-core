@@ -194,14 +194,14 @@ public class AppController {
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested
-    String pageName = getUrl(request.getPathInfo(), app);
+    String resource = getUrl(request.getPathInfo(), app);
 
     if (application == null) {
       throw new WebMessageException(notFound("App '" + app + "' not found."));
     }
 
     if (application.isBundled()) {
-      String redirectPath = application.getBaseUrl() + "/" + pageName;
+      String redirectPath = application.getBaseUrl() + "/" + resource;
 
       log.info(String.format("Redirecting to bundled app: %s", redirectPath));
 
@@ -217,10 +217,10 @@ public class AppController {
       throw new WebMessageException(conflict("App '" + app + "' deletion is still in progress."));
     }
 
-    log.debug(String.format("App page name: '%s'", pageName));
+    log.debug(String.format("App resource name: '%s'", resource));
 
     // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(pageName)) {
+    if ("manifest.webapp".equals(resource)) {
       // If request was for manifest.webapp, check for * and replace with
       // host
       if (application.getActivities() != null
@@ -235,7 +235,7 @@ public class AppController {
     }
     // Any other resource
     else {
-      ResourceResult resourceResult = appManager.getAppResource(application, pageName);
+      ResourceResult resourceResult = appManager.getAppResource(application, resource);
       if (resourceResult instanceof ResourceFound found) {
         serveResource(request, response, found.resource(), contextPath, application.getBaseUrl());
         return;
