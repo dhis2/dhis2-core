@@ -398,7 +398,6 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         },
         () -> assertHasMember(jsonEvent, "status"),
         () -> assertHasMember(jsonEvent, "followUp"),
-        () -> assertHasMember(jsonEvent, "followup"),
         () -> assertEquals(event.isDeleted(), jsonEvent.getDeleted()));
   }
 
