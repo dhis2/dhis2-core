@@ -98,18 +98,6 @@ class AppendExtractedCtesHelperTest {
   }
 
   @Test
-  void appendExtractedCtes_NullSelect() {
-
-    Map<String, GeneratedCte> generatedCtes = new HashMap<>();
-    generatedCtes.put("cte1", new GeneratedCte("cte1", "SELECT id FROM table", "join_alias"));
-
-    // TODO: Fix this test
-    //        assertThrows(NullPointerException.class, () ->
-    //                appendExtractedCtes(null, generatedCtes)
-    //        );
-  }
-
-  @Test
   void appendExtractedCtes_InvalidSqlSyntax() {
 
     Map<String, GeneratedCte> generatedCtes = new HashMap<>();

@@ -151,12 +151,12 @@ class ExpressionTransformerTest {
     void testSubSelect_LastSchedPattern() throws JSQLParserException {
       String sql =
           """
-                    SELECT scheduleddate
-                    FROM events
-                    WHERE events.enrollment = subax.enrollment
-                        AND scheduleddate IS NOT NULL
-                    ORDER BY occurreddate DESC
-                    LIMIT 1""";
+          SELECT scheduleddate
+          FROM events
+          WHERE events.enrollment = subax.enrollment
+              AND scheduleddate IS NOT NULL
+          ORDER BY occurreddate DESC
+          LIMIT 1""";
 
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
@@ -179,12 +179,12 @@ class ExpressionTransformerTest {
     void testSubSelect_LastCreatedPattern() throws JSQLParserException {
       String sql =
           """
-                    SELECT created
-                    FROM events
-                    WHERE events.enrollment = subax.enrollment
-                        AND created IS NOT NULL
-                    ORDER BY occurreddate DESC
-                    LIMIT 1""";
+          SELECT created
+          FROM events
+          WHERE events.enrollment = subax.enrollment
+              AND created IS NOT NULL
+          ORDER BY occurreddate DESC
+          LIMIT 1""";
 
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
@@ -207,9 +207,9 @@ class ExpressionTransformerTest {
     void testSubSelect_NonMatchingPattern() throws JSQLParserException {
       String sql =
           """
-                    SELECT different_column
-                    FROM some_table
-                    WHERE some_condition = true""";
+          SELECT different_column
+          FROM some_table
+          WHERE some_condition = true""";
 
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
@@ -225,13 +225,13 @@ class ExpressionTransformerTest {
     void testSubSelect_LastEventValuePattern() throws JSQLParserException {
       String sql =
           """
-                    SELECT "de_xyz"
-                    FROM events
-                    WHERE events.enrollment = subax.enrollment
-                    AND "de_xyz" IS NOT NULL
-                    AND ps = 'stage1'
-                    ORDER BY occurreddate DESC
-                    LIMIT 1""";
+          SELECT "de_xyz"
+          FROM events
+          WHERE events.enrollment = subax.enrollment
+          AND "de_xyz" IS NOT NULL
+          AND ps = 'stage1'
+          ORDER BY occurreddate DESC
+          LIMIT 1""";
 
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
@@ -265,16 +265,13 @@ class ExpressionTransformerTest {
     void testSubSelect_RelationshipCountPattern() throws JSQLParserException {
       String sql =
           """
-                    SELECT relationship_count
-                    FROM analytics_rs_relationship
-                    WHERE trackedentityid = subax.trackedentity
-                    AND relationshiptypeuid = 'abc'""";
+          SELECT relationship_count
+          FROM analytics_rs_relationship
+          WHERE trackedentityid = subax.trackedentity
+          AND relationshiptypeuid = 'abc'""";
 
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
-
-      // Add debug output for pattern matching
-      PlainSelect plainSelect = (PlainSelect) subSelect.getSelectBody();
 
       subSelect.accept((ExpressionVisitor) transformer);
       Expression result = transformer.getTransformedExpression();
@@ -316,18 +313,15 @@ class ExpressionTransformerTest {
     void testSubSelect_DataElementCountPattern() throws JSQLParserException {
       String sql =
           """
-                    SELECT count(de_123456)
-                    FROM analytics_event ae
-                    WHERE ae.ps = 'xyz'
-                    AND ae.enrollment = subax.enrollment
-                    AND de_123456 IS NOT NULL
-                    AND de_123456 = '1'""";
+          SELECT count(de_123456)
+          FROM analytics_event ae
+          WHERE ae.ps = 'xyz'
+          AND ae.enrollment = subax.enrollment
+          AND de_123456 IS NOT NULL
+          AND de_123456 = '1'""";
 
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
-
-      // Add debug output for pattern matching
-      PlainSelect plainSelect = (PlainSelect) subSelect.getSelectBody();
 
       subSelect.accept((ExpressionVisitor) transformer);
       Expression result = transformer.getTransformedExpression();
@@ -357,26 +351,26 @@ class ExpressionTransformerTest {
       String[] nonMatchingQueries = {
         // Modified last event value pattern
         """
-            SELECT value
-            FROM programstageinstance
-            WHERE programstageinstance.programstage = 'xyz'
-            -- Missing IS NOT NULL check
-            ORDER BY executiondate DESC
-            LIMIT 1""",
+        SELECT value
+        FROM programstageinstance
+        WHERE programstageinstance.programstage = 'xyz'
+        -- Missing IS NOT NULL check
+        ORDER BY executiondate DESC
+        LIMIT 1""",
 
         // Modified relationship count pattern
         """
-            SELECT count(*)
-            FROM relationship r
-            -- Missing required joins
-            WHERE r.relationshiptypeid = 'abc'""",
+        SELECT count(*)
+        FROM relationship r
+        -- Missing required joins
+        WHERE r.relationshiptypeid = 'abc'""",
 
         // Modified data element count pattern
         """
-            SELECT count(*)
-            FROM programstageinstance psi
-            -- Missing required conditions
-            WHERE psi.programstageid = 'xyz'"""
+        SELECT count(*)
+        FROM programstageinstance psi
+        -- Missing required conditions
+        WHERE psi.programstageid = 'xyz'"""
       };
 
       for (String sql : nonMatchingQueries) {
@@ -474,19 +468,18 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // Assert the parenthesis wrapper
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
-      // Assert the equals expression inside the parentheses
+      // Assert equals expression inside the parentheses
       assertInstanceOf(
           EqualsTo.class, paren.getExpression(), "Expression inside parentheses should be EQUALS");
       EqualsTo equals = (EqualsTo) paren.getExpression();
 
-      // Assert the left side
+      // Assert left side
       assertEquals("col1", equals.getLeftExpression().toString(), "Left side should be col1");
 
-      // Assert the right side
+      // Assert right side
       assertEquals(
           "'value'", equals.getRightExpression().toString(), "Right side should be 'value'");
     }
@@ -530,7 +523,7 @@ class ExpressionTransformerTest {
 
       // Assert the parenthesis wrapper
       assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+          Parenthesis.class, result, "Result should be wrapped in parentheses like original SQL");
       Parenthesis paren = (Parenthesis) result;
 
       // Assert the AND expression inside the parentheses
@@ -582,8 +575,7 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // Assert the parenthesis wrapper
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
       // Assert the OR expression inside the parentheses
@@ -646,7 +638,6 @@ class ExpressionTransformerTest {
           ((Parenthesis) rightExpr).getExpression(),
           "Inside right parentheses should be AND expression");
 
-      // Optionally, we can check the individual conditions
       AndExpression leftAnd = (AndExpression) ((Parenthesis) leftExpr).getExpression();
       assertInstanceOf(
           GreaterThan.class, leftAnd.getLeftExpression(), "First condition should be greater than");
@@ -707,11 +698,6 @@ class ExpressionTransformerTest {
   @Nested
   class AdvancedTransformationTests {
 
-    /**
-     * Parenthesis (outer) └── OrExpression ├── Parenthesis (left) │ └── AndExpression │ ├──
-     * GreaterThan (col1 > 0) │ └── MinorThan (col2 < 10) └── Parenthesis (right) └── AndExpression
-     * ├── EqualsTo (col3 = 'value') └── IsNullExpression (col4 IS NOT NULL)
-     */
     @Test
     void testNestedLogicalOperations() throws JSQLParserException {
       String sql =
@@ -831,8 +817,7 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // Assert the parenthesis wrapper
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
       // Assert the NOT expression inside the parentheses
@@ -912,8 +897,7 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // Assert the parenthesis wrapper
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
       // Assert the IS NULL expression inside the parentheses
@@ -954,8 +938,7 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // Assert the parenthesis wrapper
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
       // Assert the IN expression inside the parentheses
@@ -1012,8 +995,7 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // Assert the parenthesis wrapper
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
       // Assert the BETWEEN expression inside the parentheses
@@ -1088,8 +1070,7 @@ class ExpressionTransformerTest {
       Expression result = transformer.getTransformedExpression();
 
       // First assert we have a Parenthesis
-      assertInstanceOf(
-          Parenthesis.class, result, "Result should be wrapped in parentheses as per original SQL");
+      assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
       Parenthesis paren = (Parenthesis) result;
 
       // Then assert the InExpression inside the parentheses
@@ -1618,16 +1599,16 @@ class ExpressionTransformerTest {
       void testRoundFunction() throws JSQLParserException {
         String sql =
             """
-                        SELECT ROUND(
-                            (SELECT "numeric_value"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "numeric_value" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1),
-                            2
-                        )""";
+            SELECT ROUND(
+                (SELECT "numeric_value"
+                FROM events
+                WHERE events.enrollment = subax.enrollment
+                AND "numeric_value" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1),
+                2
+            )""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
@@ -1667,23 +1648,39 @@ class ExpressionTransformerTest {
       void testIfConditionFunction() throws JSQLParserException {
         String sql =
             """
-                        SELECT CASE
-                            WHEN (SELECT "condition_value"
-                                 FROM events
-                                 WHERE events.enrollment = subax.enrollment
-                                 AND "condition_value" IS NOT NULL
-                                 AND ps = 'stage1'
-                                 ORDER BY occurreddate DESC
-                                 LIMIT 1) = 'true'
-                            THEN 1
-                            ELSE 0
-                        END""";
+              SELECT CASE
+                  WHEN (SELECT "condition_value"
+                       FROM events
+                       WHERE events.enrollment = subax.enrollment
+                       AND "condition_value" IS NOT NULL
+                       AND ps = 'stage1'
+                       ORDER BY occurreddate DESC
+                       LIMIT 1) = 'true'
+                  THEN 1
+                  ELSE 0
+              END""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
         Expression result = transformer.getTransformedExpression();
 
-        // TODO Add  assertions for CASE expression
+        assertInstanceOf(LongValue.class, result, "Result should be a LongValue (0 or 1)");
+        assertInstanceOf(LongValue.class, result, "Result should be a LongValue (0 or 1)");
+        // We can't know the exact value, so let's avoid asserting the precise value. We assert it
+        // IS a LongValue
+
+        // Verify that the subselect "condition_value" was captured in the transformer
+        Optional<Map.Entry<SubSelect, FoundSubSelect>> foundSubSelect =
+            transformer.getExtractedSubSelects().entrySet().stream()
+                .filter(entry -> entry.getValue().columnReference().equals("\"condition_value\""))
+                .findFirst();
+
+        assertTrue(
+            foundSubSelect.isPresent(), "Should find the captured subselect for condition_value");
+        assertEquals(
+            "last_value_conditionvalue",
+            foundSubSelect.get().getValue().name(),
+            "Should be captured as last_value_conditionvalue pattern");
       }
     }
   }
