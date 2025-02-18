@@ -176,7 +176,9 @@ class RelationshipTypeJoinGeneratorTest {
     expected +=
         (to.equals(TRACKED_ENTITY_INSTANCE)
             ? " AND tei2.uid = ax.tei )"
-            : (to.equals(PROGRAM_INSTANCE) ? " AND pi2.uid = ax.pi )" : " AND psi2.uid = ax.psi )"));
+            : (to.equals(PROGRAM_INSTANCE)
+                ? " AND pi2.uid = ax.pi )"
+                : " AND psi2.uid = ax.psi )"));
     assertEquals(expected, RelationshipTypeJoinGenerator.generate(ALIAS, relationshipType, type));
   }
 
