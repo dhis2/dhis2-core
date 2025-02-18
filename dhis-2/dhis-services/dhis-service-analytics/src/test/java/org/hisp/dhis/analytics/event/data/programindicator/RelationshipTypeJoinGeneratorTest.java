@@ -64,12 +64,12 @@ class RelationshipTypeJoinGeneratorTest {
           + ".psi in (select psi.uid from event psi LEFT JOIN relationshipitem ri on psi.eventid = ri.eventid ";
 
   private static final String TEI_RELTO_JOIN =
-      "LEFT JOIN trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
+      "LEFT JOIN trackedentity tei2 on tei2.trackedentityid = ri2.trackedentityid";
 
   private static final String PI_RELTO_JOIN =
-      "LEFT JOIN enrollment pi on pi.enrollmentid = ri2.enrollmentid";
+      "LEFT JOIN enrollment pi2 on pi2.enrollmentid = ri2.enrollmentid";
 
-  private static final String PSI_RELTO_JOIN = "LEFT JOIN event psi on psi.eventid = ri2.eventid";
+  private static final String PSI_RELTO_JOIN = "LEFT JOIN event psi2 on psi2.eventid = ri2.eventid";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -170,8 +170,11 @@ class RelationshipTypeJoinGeneratorTest {
     expected += addWhere(relationshipType);
     expected +=
         (to.equals(TRACKED_ENTITY_INSTANCE)
-            ? " AND tei.uid = ax.tei )"
-            : (to.equals(PROGRAM_INSTANCE) ? " AND pi.uid = ax.pi )" : " AND psi.uid = ax.psi )"));
+            ? " AND tei2.uid = ax.tei )"
+            : (to.equals(PROGRAM_INSTANCE)
+                ? " AND pi2.uid = ax.pi )"
+                : " AND psi2.uid = ax.psi )"));
+    System.out.println(expected);
     assertEquals(expected, RelationshipTypeJoinGenerator.generate(ALIAS, relationshipType, type));
   }
 

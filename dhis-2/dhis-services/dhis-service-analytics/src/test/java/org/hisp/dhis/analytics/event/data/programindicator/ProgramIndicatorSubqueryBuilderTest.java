@@ -171,10 +171,10 @@ class ProgramIndicatorSubqueryBuilderTest {
                 + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
                 + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
                 + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-                + "LEFT JOIN trackedentity tei on tei.trackedentityid = ri2.trackedentityid "
+                + "LEFT JOIN trackedentity tei2 on tei2.trackedentityid = ri2.trackedentityid "
                 + "WHERE rty.relationshiptypeid = "
                 + relationshipType.getId()
-                + " AND tei.uid = ax.tei ))"));
+                + " AND tei2.uid = ax.tei ))"));
   }
 
   @Test
