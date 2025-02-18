@@ -64,7 +64,7 @@ public class DataElementCountMatcher extends AbstractCountMatcher {
     if (!(countParam instanceof Column col)) {
       return Optional.empty();
     }
-    String dataElementId = col.getColumnName().replaceAll("\"", "");
+    String dataElementId = col.getColumnName().replace("\"", "");
 
     // FROM clause must be a table containing "analytics_event"
     FromItem fromItem = plain.getFromItem();
