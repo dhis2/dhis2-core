@@ -470,9 +470,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     relationship(from, to);
     this.switchContextToUser(user);
 
-    assertEquals(
-        HttpStatus.FORBIDDEN,
-        GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid()).status());
+    GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
+        .error(HttpStatus.FORBIDDEN);
   }
 
   @Test

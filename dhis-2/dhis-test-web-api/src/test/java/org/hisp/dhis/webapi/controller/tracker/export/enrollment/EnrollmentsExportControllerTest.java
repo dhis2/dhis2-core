@@ -440,12 +440,8 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @Test
   void
       shouldGetNotFoundWhenGettingEnrollmentsByTrackedEntityAndTrackedEntityIsDeletedAndIncludeDeletedIsFalse() {
-    assertEquals(
-        BAD_REQUEST,
-        GET(
-                "/tracker/enrollments?trackedEntity={te}&includeDeleted=false",
-                DELETE_TRACKED_ENTITY_UID)
-            .status());
+    GET("/tracker/enrollments?trackedEntity={te}&includeDeleted=false", DELETE_TRACKED_ENTITY_UID)
+        .error(BAD_REQUEST);
   }
 
   @Test

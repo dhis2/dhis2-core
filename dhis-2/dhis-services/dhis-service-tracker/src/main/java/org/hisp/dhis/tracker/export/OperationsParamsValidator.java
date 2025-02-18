@@ -173,18 +173,27 @@ public class OperationsParamsValidator {
    *
    * @return the tracked entity if found and accessible
    * @throws BadRequestException if the tracked entity uid does not exist
+   * @throws ForbiddenException if the user has no data read access to type of the tracked entity
    */
   public TrackedEntity validateTrackedEntity(UID uid, UserDetails user, boolean includeDeleted)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
     }
 
+    // TODO(tracker) Are these validations enough? Should we check for ownership too?
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
     if (trackedEntity == null || (trackedEntity.isDeleted() && !includeDeleted)) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
     }
     trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
+
+    if (trackedEntity.getTrackedEntityType() != null
+        && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
+      throw new ForbiddenException(
+          "User is not authorized to read data from type of selected tracked entity: "
+              + trackedEntity.getTrackedEntityType().getUid());
+    }
 
     return trackedEntity;
   }

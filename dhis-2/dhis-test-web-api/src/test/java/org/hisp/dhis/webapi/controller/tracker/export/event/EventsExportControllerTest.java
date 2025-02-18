@@ -458,9 +458,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     manager.flush();
     switchContextToUser(user);
 
-    assertEquals(
-        BAD_REQUEST,
-        GET("/tracker/events?trackedEntity={te}&includeDeleted=false", te.getUid()).status());
+    GET("/tracker/events?trackedEntity={te}&includeDeleted=false", te.getUid()).error(BAD_REQUEST);
   }
 
   @Test

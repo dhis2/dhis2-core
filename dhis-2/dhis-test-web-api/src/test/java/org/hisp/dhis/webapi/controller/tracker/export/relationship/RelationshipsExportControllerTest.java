@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.http.HttpStatus.FORBIDDEN;
 import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -569,10 +570,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
                 .trackedEntities(List.of(getTrackedEntity(UID.of("guVNoAerxWo"))))
                 .build()));
 
-    assertEquals(
-        NOT_FOUND,
-        GET("/tracker/relationships?trackedEntity={te}&includeDeleted=false", "guVNoAerxWo")
-            .status());
+    GET("/tracker/relationships?trackedEntity={te}&includeDeleted=false", "guVNoAerxWo")
+        .error(NOT_FOUND);
   }
 
   @Test
@@ -618,9 +617,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
                 .enrollments(List.of(getEnrollment(UID.of("ipBifypAQTo"))))
                 .build()));
 
-    assertEquals(
-        NOT_FOUND,
-        GET("/tracker/relationships?enrollment={en}&includeDeleted=false", "ipBifypAQTo").status());
+    GET("/tracker/relationships?enrollment={en}&includeDeleted=false", "ipBifypAQTo")
+        .error(NOT_FOUND);
   }
 
   @Test
@@ -661,9 +659,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
             TrackerObjects.builder().events(List.of(getEvent(UID.of("LCSfHnurnNB")))).build()));
 
-    assertEquals(
-        NOT_FOUND,
-        GET("/tracker/relationships?event={ev}&includeDeleted=false", "LCSfHnurnNB").status());
+    GET("/tracker/relationships?event={ev}&includeDeleted=false", "LCSfHnurnNB").error(NOT_FOUND);
   }
 
   @Test
@@ -886,10 +882,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     switchContextToUser(user);
 
-    assertEquals(
-        HttpStatus.FORBIDDEN,
-        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
-            .status());
+    GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
+        .error(FORBIDDEN);
   }
 
   @Test

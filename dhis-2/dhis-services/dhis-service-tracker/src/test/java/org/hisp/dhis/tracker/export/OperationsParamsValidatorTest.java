@@ -216,7 +216,8 @@ class OperationsParamsValidatorTest {
   }
 
   @Test
-  void shouldReturnTrackedEntityWhenTrackedEntityUidExists() throws BadRequestException {
+  void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
+      throws BadRequestException, ForbiddenException {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
 
     assertEquals(
@@ -234,6 +235,39 @@ class OperationsParamsValidatorTest {
 
     assertEquals(
         String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity()
+      throws ForbiddenException, BadRequestException {
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
+    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
+
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
+  }
+
+  @Test
+  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity() {
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
+    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
+
+    assertEquals(
+        String.format(
+            "User is not authorized to read data from type of selected tracked entity: %s",
+            trackedEntity.getUid()),
         exception.getMessage());
   }
 
@@ -256,7 +290,7 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldReturnTrackedEntityWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsTrue()
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
     softDeletedTrackedEntity.setDeleted(true);
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
