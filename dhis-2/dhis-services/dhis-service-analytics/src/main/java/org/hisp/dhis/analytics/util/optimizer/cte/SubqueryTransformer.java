@@ -87,12 +87,10 @@ public class SubqueryTransformer {
 
     // Rename the count function alias to "de_count".
     for (SelectItem item : selectItems) {
-      if (item instanceof SelectExpressionItem sei) {
-        if (sei.getExpression() instanceof Function func) {
-          if ("count".equalsIgnoreCase(func.getName())) {
-            sei.setAlias(new Alias(columnAlias));
-          }
-        }
+      if (item instanceof SelectExpressionItem sei
+          && sei.getExpression() instanceof Function func
+          && "count".equalsIgnoreCase(func.getName())) {
+        sei.setAlias(new Alias(columnAlias));
       }
     }
 

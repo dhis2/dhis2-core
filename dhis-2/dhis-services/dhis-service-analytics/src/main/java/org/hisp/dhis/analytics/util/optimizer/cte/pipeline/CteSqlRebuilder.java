@@ -101,7 +101,7 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
       DecomposedCtes decomposedCtes, String fromAlias, List<SelectItem> newSelectItems) {
     List<Join> joins = new ArrayList<>();
     for (GeneratedCte cte : decomposedCtes.ctes()) {
-      addJoinItem(joins, newSelectItems, fromAlias, cte);
+      addJoinItem(joins, fromAlias, cte);
     }
     return joins;
   }
@@ -171,13 +171,10 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
    * the CTE (aliased by the CTE's generated alias).
    *
    * @param joins The list of Join objects to which the new JOIN clause will be added.
-   * @param selectItems The list of SelectItem objects to which a new select item might be added
-   *     (currently unused).
    * @param fromAlias The alias of the main table in the original query (usually "subax").
    * @param cte The GeneratedCte object representing the CTE to be joined.
    */
-  private void addJoinItem(
-      List<Join> joins, List<SelectItem> selectItems, String fromAlias, GeneratedCte cte) {
+  private void addJoinItem(List<Join> joins, String fromAlias, GeneratedCte cte) {
     // Create LEFT JOIN
     Join join = new Join();
     join.setLeft(true);
