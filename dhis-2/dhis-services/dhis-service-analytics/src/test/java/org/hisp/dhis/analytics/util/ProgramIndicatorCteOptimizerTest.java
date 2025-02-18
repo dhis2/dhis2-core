@@ -307,7 +307,7 @@ class ProgramIndicatorCteOptimizerTest {
   }
 
   @Test
-  public void testLastScheduledComplex() {
+  void testLastScheduledComplex() {
 
     String originalQuery =
         """
@@ -435,7 +435,7 @@ class ProgramIndicatorCteOptimizerTest {
   }
 
   @Test
-  public void testComplex() {
+  void testComplex() {
 
     String originalQuery =
         """
@@ -640,7 +640,7 @@ class ProgramIndicatorCteOptimizerTest {
   }
 
   @Test
-  public void testRelationshipCountComplex() {
+  void testRelationshipCountComplex() {
 
     String originalQuery =
         """
