@@ -1,5 +1,38 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.util.optimizer.cte.pipeline;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.stream.Stream;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.Select;
@@ -10,18 +43,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class CteDecomposerTest {
 
-    @Test
-    void t1() throws JSQLParserException {
-        String withItemSql = """
+  @Test
+  void t1() throws JSQLParserException {
+    String withItemSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -37,25 +64,26 @@ class CteDecomposerTest {
                 SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                 """;
 
-        Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
+    Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
 
-        // Get the WITH items from the statement
-        WithItem withItem = select.getWithItemsList().get(0);
+    // Get the WITH items from the statement
+    WithItem withItem = select.getWithItemsList().get(0);
 
-        CteDecomposer decomposer = new CteDecomposer();
+    CteDecomposer decomposer = new CteDecomposer();
 
-        // Process the WITH item
-        DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+    // Process the WITH item
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
 
-        // Verify the result
-        assertNotNull(result, "Result should not be null");
+    // Verify the result
+    assertNotNull(result, "Result should not be null");
 
-        assertEquals(1, result.ctes().size(), "Should find two subquery");
-    }
+    assertEquals(1, result.ctes().size(), "Should find two subquery");
+  }
 
-    @Test
-    void t4() throws JSQLParserException {
-        String originalQuery = """
+  @Test
+  void t4() throws JSQLParserException {
+    String originalQuery =
+        """
                     WITH pi_hgtnuhsqbml AS (
                         SELECT
                             enrollment
@@ -102,25 +130,26 @@ class CteDecomposerTest {
                 OFFSET 0
                 """;
 
-        Select select = (Select) CCJSqlParserUtil.parse(originalQuery);
+    Select select = (Select) CCJSqlParserUtil.parse(originalQuery);
 
-        // Get the WITH items from the statement
-        WithItem withItem = select.getWithItemsList().get(0);
+    // Get the WITH items from the statement
+    WithItem withItem = select.getWithItemsList().get(0);
 
-        CteDecomposer decomposer = new CteDecomposer();
+    CteDecomposer decomposer = new CteDecomposer();
 
-        // Process the WITH item
-        DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+    // Process the WITH item
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
 
-        // Verify the result
-        assertNotNull(result, "Result should not be null");
+    // Verify the result
+    assertNotNull(result, "Result should not be null");
 
-        assertEquals(2, result.ctes().size(), "Should find two subquery");
-    }
+    assertEquals(2, result.ctes().size(), "Should find two subquery");
+  }
 
-    @Test
-    void shouldDecomposeTwoSubqueries() throws JSQLParserException {
-        String withItemSql = """
+  @Test
+  void shouldDecomposeTwoSubqueries() throws JSQLParserException {
+    String withItemSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -145,29 +174,28 @@ class CteDecomposerTest {
                 SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                 """;
 
-        Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
-        WithItem withItem = select.getWithItemsList().get(0);
-        CteDecomposer decomposer = new CteDecomposer();
-        DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+    Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
+    WithItem withItem = select.getWithItemsList().get(0);
+    CteDecomposer decomposer = new CteDecomposer();
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
 
-        // Verify the result
-        assertNotNull(result, "Result should not be null");
-        assertEquals(2, result.ctes().size(), "Should find two subqueries");
+    // Verify the result
+    assertNotNull(result, "Result should not be null");
+    assertEquals(2, result.ctes().size(), "Should find two subqueries");
 
-        // Verify specific patterns were found
-        List<String> cteNames = result.ctes().stream()
-                .map(GeneratedCte::name)
-                .toList();
+    // Verify specific patterns were found
+    List<String> cteNames = result.ctes().stream().map(GeneratedCte::name).toList();
 
-        assertTrue(cteNames.contains("last_sched"),
-                "Should contain last_sched CTE");
-        assertTrue(cteNames.stream().anyMatch(name -> name.startsWith("last_value_")),
-                "Should contain last_value CTE");
-    }
+    assertTrue(cteNames.contains("last_sched"), "Should contain last_sched CTE");
+    assertTrue(
+        cteNames.stream().anyMatch(name -> name.startsWith("last_value_")),
+        "Should contain last_value CTE");
+  }
 
-    @Test
-    void t3() throws JSQLParserException {
-        String withItemSql = """
+  @Test
+  void t3() throws JSQLParserException {
+    String withItemSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -183,26 +211,28 @@ class CteDecomposerTest {
                 SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                 """;
 
-        Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
+    Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
 
-        // Get the WITH items from the statement
-        WithItem withItem = select.getWithItemsList().get(0);
+    // Get the WITH items from the statement
+    WithItem withItem = select.getWithItemsList().get(0);
 
-        CteDecomposer decomposer = new CteDecomposer();
+    CteDecomposer decomposer = new CteDecomposer();
 
-        // Process the WITH item
-        DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+    // Process the WITH item
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
 
-        // Verify the result
-        assertNotNull(result, "Result should not be null");
+    // Verify the result
+    assertNotNull(result, "Result should not be null");
 
-        assertEquals(1, result.ctes().size(), "Should find two subquery");
-    }
+    assertEquals(1, result.ctes().size(), "Should find two subquery");
+  }
 
-    @ParameterizedTest
-    @MethodSource("comparisonOperatorTestCases")
-    void shouldHandleComparisonOperators(String operator) throws JSQLParserException {
-        String sql = String.format("""
+  @ParameterizedTest
+  @MethodSource("comparisonOperatorTestCases")
+  void shouldHandleComparisonOperators(String operator) throws JSQLParserException {
+    String sql =
+        String.format(
+            """
         WITH pi_inputcte AS (
             SELECT subax.enrollment
             FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -213,19 +243,22 @@ class CteDecomposerTest {
             ) %s 10
         )
         SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-        """, operator);
+        """,
+            operator);
 
-        assertCteDecomposition(sql, 1, "relationship_count");
-    }
+    assertCteDecomposition(sql, 1, "relationship_count");
+  }
 
-    static Stream<String> comparisonOperatorTestCases() {
-        return Stream.of(">", ">=", "<", "<=", "=", "!=");
-    }
+  static Stream<String> comparisonOperatorTestCases() {
+    return Stream.of(">", ">=", "<", "<=", "=", "!=");
+  }
 
-    @ParameterizedTest
-    @MethodSource("logicalOperatorTestCases")
-    void shouldHandleLogicalOperators(String operator) throws JSQLParserException {
-        String sql = String.format("""
+  @ParameterizedTest
+  @MethodSource("logicalOperatorTestCases")
+  void shouldHandleLogicalOperators(String operator) throws JSQLParserException {
+    String sql =
+        String.format(
+            """
         WITH pi_inputcte AS (
             SELECT subax.enrollment
             FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -248,26 +281,27 @@ class CteDecomposerTest {
             ) IS NOT NULL
         )
         SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-        """, operator);
+        """,
+            operator);
 
-        assertCteDecomposition(sql, 2, "last_sched", "last_value_");
-    }
+    assertCteDecomposition(sql, 2, "last_sched", "last_value_");
+  }
 
-    static Stream<String> logicalOperatorTestCases() {
-        return Stream.of("AND", "OR");
-    }
+  static Stream<String> logicalOperatorTestCases() {
+    return Stream.of("AND", "OR");
+  }
 
-    @ParameterizedTest
-    @MethodSource("specialOperatorTestCases")
-    void shouldHandleSpecialOperators(SpecialOperatorTestCase testCase) throws JSQLParserException {
-        assertCteDecomposition(testCase.sql(), testCase.expectedCtes(), testCase.expectedPatterns());
-    }
+  @ParameterizedTest
+  @MethodSource("specialOperatorTestCases")
+  void shouldHandleSpecialOperators(SpecialOperatorTestCase testCase) throws JSQLParserException {
+    assertCteDecomposition(testCase.sql(), testCase.expectedCtes(), testCase.expectedPatterns());
+  }
 
-    static Stream<SpecialOperatorTestCase> specialOperatorTestCases() {
-        return Stream.of(
-                // IS NULL case
-                new SpecialOperatorTestCase(
-                        """
+  static Stream<SpecialOperatorTestCase> specialOperatorTestCases() {
+    return Stream.of(
+        // IS NULL case
+        new SpecialOperatorTestCase(
+            """
                         WITH pi_inputcte AS (
                             SELECT subax.enrollment
                             FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -282,12 +316,11 @@ class CteDecomposerTest {
                         )
                         SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                         """,
-                        1,
-                        new String[]{"last_sched"}
-                ),
-                // IN case
-                new SpecialOperatorTestCase(
-                        """
+            1,
+            new String[] {"last_sched"}),
+        // IN case
+        new SpecialOperatorTestCase(
+            """
                         WITH pi_inputcte AS (
                             SELECT subax.enrollment
                             FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -302,12 +335,11 @@ class CteDecomposerTest {
                         )
                         SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                         """,
-                        1,
-                        new String[]{"last_sched"}
-                ),
-                // BETWEEN case
-                new SpecialOperatorTestCase(
-                        """
+            1,
+            new String[] {"last_sched"}),
+        // BETWEEN case
+        new SpecialOperatorTestCase(
+            """
                         WITH pi_inputcte AS (
                             SELECT subax.enrollment
                             FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -319,35 +351,29 @@ class CteDecomposerTest {
                         )
                         SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                         """,
-                        1,
-                        new String[]{"relationship_count"}
-                )
-        );
+            1,
+            new String[] {"relationship_count"}));
+  }
+
+  private record SpecialOperatorTestCase(String sql, int expectedCtes, String[] expectedPatterns) {}
+
+  private void assertCteDecomposition(String sql, int expectedCtes, String... expectedPatterns)
+      throws JSQLParserException {
+    Select select = (Select) CCJSqlParserUtil.parse(sql);
+    WithItem withItem = select.getWithItemsList().get(0);
+    CteDecomposer decomposer = new CteDecomposer();
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+
+    assertNotNull(result, "Result should not be null");
+    assertEquals(expectedCtes, result.ctes().size(), "Should find " + expectedCtes + " subqueries");
+
+    // Verify the specific patterns were found
+    List<String> cteNames = result.ctes().stream().map(GeneratedCte::name).toList();
+
+    for (String pattern : expectedPatterns) {
+      assertTrue(
+          cteNames.stream().anyMatch(name -> name.equals(pattern) || name.startsWith(pattern)),
+          "Should contain pattern: " + pattern);
     }
-
-    private record SpecialOperatorTestCase(String sql, int expectedCtes, String[] expectedPatterns) {}
-
-    private void assertCteDecomposition(String sql, int expectedCtes, String... expectedPatterns)
-            throws JSQLParserException {
-        Select select = (Select) CCJSqlParserUtil.parse(sql);
-        WithItem withItem = select.getWithItemsList().get(0);
-        CteDecomposer decomposer = new CteDecomposer();
-        DecomposedCtes result = decomposer.processCTE(List.of(withItem));
-
-        assertNotNull(result, "Result should not be null");
-        assertEquals(expectedCtes, result.ctes().size(),
-                "Should find " + expectedCtes + " subqueries");
-
-        // Verify the specific patterns were found
-        List<String> cteNames = result.ctes().stream()
-                .map(GeneratedCte::name)
-                .toList();
-
-        for (String pattern : expectedPatterns) {
-            assertTrue(
-                    cteNames.stream().anyMatch(name -> name.equals(pattern) || name.startsWith(pattern)),
-                    "Should contain pattern: " + pattern
-            );
-        }
-    }
+  }
 }
