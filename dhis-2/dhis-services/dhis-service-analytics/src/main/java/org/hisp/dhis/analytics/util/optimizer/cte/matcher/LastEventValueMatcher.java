@@ -48,7 +48,7 @@ import org.hisp.dhis.analytics.util.optimizer.cte.StringUtils;
  */
 public class LastEventValueMatcher extends AbstractLastValueMatcher {
   @Override
-  protected boolean validateColumn(Column col, PlainSelect plain) {
+  protected boolean validateColumn(Column col) {
     String columnName = col.getColumnName();
     // Exclude columns handled by other matchers.
     return !("scheduleddate".equalsIgnoreCase(columnName)

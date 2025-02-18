@@ -236,9 +236,6 @@ class ExpressionTransformerTest {
       SubSelect subSelect = new SubSelect();
       subSelect.setSelectBody(((Select) CCJSqlParserUtil.parse(sql)).getSelectBody());
 
-      // Add debug output for pattern matching
-      PlainSelect plainSelect = (PlainSelect) subSelect.getSelectBody();
-
       subSelect.accept((ExpressionVisitor) transformer);
       Expression result = transformer.getTransformedExpression();
 
