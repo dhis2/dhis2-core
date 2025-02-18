@@ -510,12 +510,7 @@ public class RequestParamsValidator {
     }
   }
 
-  /**
-   * Replace escaped comma or colon
-   *
-   * @param value
-   * @return
-   */
+  /** Replace escaped comma or colon */
   private static String escapedFilterValue(String value) {
     return value.replace(ESCAPE_COMMA, COMMA_STRING).replace(ESCAPE_COLON, DIMENSION_NAME_SEP);
   }
@@ -525,7 +520,6 @@ public class RequestParamsValidator {
    * by comma and collect the filter list. Then, it recreates the original filters by restoring the
    * escapes chars if any.
    *
-   * @param filterItem
    * @return a filter list split by comma
    */
   private static List<String> filterList(String filterItem) {
@@ -563,10 +557,6 @@ public class RequestParamsValidator {
    * Restores the escape char in a filter based on the position in the original filter. It uses a
    * pad as in a filter there can be more than one escape char removed.
    *
-   * @param escapesToRestore
-   * @param filter
-   * @param beginning
-   * @param end
    * @return a filter with restored escape chars
    */
   private static String restoreEscape(
