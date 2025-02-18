@@ -28,9 +28,9 @@
 package org.hisp.dhis.analytics.util.optimizer.cte;
 
 import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 
-@RequiredArgsConstructor
+@UtilityClass
 public class StringUtils {
   private static final Pattern LETTERS_NUMBERS_PATTERN = Pattern.compile("[^a-zA-Z0-9]");
 
