@@ -1,5 +1,36 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.util.optimizer.cte;
 
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.CastExpression;
@@ -43,313 +74,305 @@ import org.hisp.dhis.analytics.util.optimizer.cte.matcher.RelationshipCountMatch
 import org.hisp.dhis.analytics.util.optimizer.cte.transformer.FunctionTransformer;
 import org.hisp.dhis.analytics.util.optimizer.cte.transformer.SubSelectTransformer;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
-    private final Map<SubSelect, FoundSubSelect> extractedSubSelects = new LinkedHashMap<>();
-    private Expression currentTransformedExpression;
-    private final SubSelectTransformer subSelectTransformer;
-    private final FunctionTransformer functionTransformer;
+  private final Map<SubSelect, FoundSubSelect> extractedSubSelects = new LinkedHashMap<>();
+  private Expression currentTransformedExpression;
+  private final SubSelectTransformer subSelectTransformer;
+  private final FunctionTransformer functionTransformer;
 
-    public ExpressionTransformer() {
-        this.subSelectTransformer = new SubSelectTransformer(
-                Arrays.asList(
-                        new LastSchedMatcher(),
-                        new LastCreatedMatcher(),
-                        new LastEventValueMatcher(),
-                        new RelationshipCountMatcher(),
-                        new DataElementCountMatcher()
-                )
-        );
-        this.functionTransformer = new FunctionTransformer(this);
+  public ExpressionTransformer() {
+    this.subSelectTransformer =
+        new SubSelectTransformer(
+            Arrays.asList(
+                new LastSchedMatcher(),
+                new LastCreatedMatcher(),
+                new LastEventValueMatcher(),
+                new RelationshipCountMatcher(),
+                new DataElementCountMatcher()));
+    this.functionTransformer = new FunctionTransformer(this);
+  }
+
+  @Override
+  public void visit(Function function) {
+    currentTransformedExpression = functionTransformer.transform(function);
+  }
+
+  public Map<SubSelect, FoundSubSelect> getExtractedSubSelects() {
+    return subSelectTransformer.getExtractedSubSelects();
+  }
+
+  @Override
+  public void visit(ExtractExpression extract) {
+    // Visit the expression being extracted from
+    extract.getExpression().accept(this);
+    Expression transformedExpr = currentTransformedExpression;
+
+    // Create new extract expression
+    ExtractExpression newExtract = new ExtractExpression();
+    newExtract.setName(extract.getName()); // 'epoch'
+    newExtract.setExpression(transformedExpr);
+
+    // Wrap in parentheses if it's part of a division
+    currentTransformedExpression = new Parenthesis(newExtract);
+  }
+
+  // Arithmetic Operators
+  @Override
+  public void visit(Addition addition) {
+    handleBinaryArithmeticExpression(addition);
+  }
+
+  @Override
+  public void visit(Multiplication multiplication) {
+    handleBinaryArithmeticExpression(multiplication);
+  }
+
+  @Override
+  public void visit(Subtraction subtraction) {
+    handleBinaryArithmeticExpression(subtraction);
+  }
+
+  @Override
+  public void visit(Division division) {
+    handleBinaryArithmeticExpression(division);
+  }
+
+  @Override
+  public void visit(Modulo modulo) {
+    handleBinaryArithmeticExpression(modulo);
+  }
+
+  // Comparison Operators
+  @Override
+  public void visit(EqualsTo equalsTo) {
+    handleBinaryExpression(equalsTo);
+  }
+
+  @Override
+  public void visit(GreaterThan greaterThan) {
+    handleBinaryExpression(greaterThan);
+  }
+
+  @Override
+  public void visit(GreaterThanEquals greaterThanEquals) {
+    handleBinaryExpression(greaterThanEquals);
+  }
+
+  @Override
+  public void visit(MinorThan minorThan) {
+    handleBinaryExpression(minorThan);
+  }
+
+  @Override
+  public void visit(MinorThanEquals minorThanEquals) {
+    handleBinaryExpression(minorThanEquals);
+  }
+
+  @Override
+  public void visit(NotEqualsTo notEqualsTo) {
+    handleBinaryExpression(notEqualsTo);
+  }
+
+  @Override
+  public void visit(Parenthesis parenthesis) {
+    parenthesis.getExpression().accept(this);
+    Expression transformedExpr = currentTransformedExpression;
+
+    currentTransformedExpression = new Parenthesis(transformedExpr);
+  }
+
+  // Logical Operators
+  @Override
+  public void visit(AndExpression andExpression) {
+    handleBinaryExpression(andExpression);
+  }
+
+  @Override
+  public void visit(OrExpression orExpression) {
+    handleBinaryExpression(orExpression);
+  }
+
+  @Override
+  public void visit(CastExpression cast) {
+    cast.getLeftExpression().accept(this);
+    Expression transformedExpr = currentTransformedExpression;
+
+    CastExpression newCast = new CastExpression();
+    newCast.setLeftExpression(transformedExpr);
+    newCast.setType(cast.getType());
+
+    currentTransformedExpression = newCast;
+  }
+
+  @Override
+  public void visit(SubSelect subSelect) {
+    currentTransformedExpression = subSelectTransformer.transform(subSelect);
+  }
+
+  @Override
+  public void visit(NotExpression notExpression) {
+    notExpression.getExpression().accept(this);
+    Expression transformedExpr = currentTransformedExpression;
+
+    NotExpression newNot = new NotExpression();
+    newNot.setExpression(transformedExpr);
+
+    currentTransformedExpression = newNot;
+  }
+
+  // Special Operators
+  @Override
+  public void visit(IsNullExpression isNull) {
+    isNull.getLeftExpression().accept(this);
+    Expression transformedExpr = currentTransformedExpression;
+
+    IsNullExpression newIsNull = new IsNullExpression();
+    newIsNull.setLeftExpression(transformedExpr);
+    newIsNull.setNot(isNull.isNot());
+
+    currentTransformedExpression = newIsNull;
+  }
+
+  @Override
+  public void visit(InExpression inExpression) {
+    inExpression.getLeftExpression().accept(this);
+    Expression leftExpr = currentTransformedExpression;
+
+    Expression rightExpr = inExpression.getRightExpression();
+    if (rightExpr != null) {
+      rightExpr.accept(this);
+      rightExpr = currentTransformedExpression;
     }
 
-    @Override
-    public void visit(Function function) {
-        currentTransformedExpression = functionTransformer.transform(function);
+    ItemsList rightItemsList = inExpression.getRightItemsList();
+    if (rightItemsList != null) {
+      rightItemsList.accept(this);
     }
 
-    public Map<SubSelect, FoundSubSelect> getExtractedSubSelects() {
-        return subSelectTransformer.getExtractedSubSelects();
+    InExpression newIn = new InExpression();
+    newIn.setLeftExpression(leftExpr);
+    if (rightExpr != null) {
+      newIn.setRightExpression(rightExpr);
+    } else {
+      newIn.setRightItemsList(rightItemsList);
     }
+    newIn.setNot(inExpression.isNot());
 
-    @Override
-    public void visit(ExtractExpression extract) {
-        // Visit the expression being extracted from
-        extract.getExpression().accept(this);
-        Expression transformedExpr = currentTransformedExpression;
+    currentTransformedExpression = newIn;
+  }
 
-        // Create new extract expression
-        ExtractExpression newExtract = new ExtractExpression();
-        newExtract.setName(extract.getName());  // 'epoch'
-        newExtract.setExpression(transformedExpr);
+  @Override
+  public void visit(Between between) {
+    between.getLeftExpression().accept(this);
+    Expression leftExpr = currentTransformedExpression;
 
-        // Wrap in parentheses if it's part of a division
-        currentTransformedExpression = new Parenthesis(newExtract);
+    between.getBetweenExpressionStart().accept(this);
+    Expression startExpr = currentTransformedExpression;
+
+    between.getBetweenExpressionEnd().accept(this);
+    Expression endExpr = currentTransformedExpression;
+
+    Between newBetween = new Between();
+    newBetween.setLeftExpression(leftExpr);
+    newBetween.setBetweenExpressionStart(startExpr);
+    newBetween.setBetweenExpressionEnd(endExpr);
+    newBetween.setNot(between.isNot());
+
+    currentTransformedExpression = newBetween;
+  }
+
+  // Values
+  @Override
+  public void visit(DateValue value) {
+    currentTransformedExpression = value;
+  }
+
+  @Override
+  public void visit(TimestampValue value) {
+    currentTransformedExpression = value;
+  }
+
+  @Override
+  public void visit(TimeValue value) {
+    currentTransformedExpression = value;
+  }
+
+  @Override
+  public void visit(DoubleValue value) {
+    currentTransformedExpression = value;
+  }
+
+  @Override
+  public void visit(Column column) {
+    currentTransformedExpression = column;
+  }
+
+  @Override
+  public void visit(StringValue value) {
+    currentTransformedExpression = value;
+  }
+
+  @Override
+  public void visit(LongValue value) {
+    currentTransformedExpression = value;
+  }
+
+  public Expression getTransformedExpression() {
+    return currentTransformedExpression;
+  }
+
+  // Helper method for binary expressions
+  private void handleBinaryExpression(BinaryExpression expression) {
+    expression.getLeftExpression().accept(this);
+    Expression leftExpr = currentTransformedExpression;
+
+    expression.getRightExpression().accept(this);
+    Expression rightExpr = currentTransformedExpression;
+
+    try {
+      // Create a new instance of the same type of expression
+      BinaryExpression newExpr = expression.getClass().getDeclaredConstructor().newInstance();
+      newExpr.setLeftExpression(leftExpr);
+      newExpr.setRightExpression(rightExpr);
+
+      currentTransformedExpression = newExpr;
+    } catch (Exception e) {
+      // Fallback to original expression if instantiation fails
+      currentTransformedExpression = expression;
     }
+  }
 
-    // Arithmetic Operators
-    @Override
-    public void visit(Addition addition) {
-        handleBinaryArithmeticExpression(addition);
+  // Helper method for arithmetic operators
+  private void handleBinaryArithmeticExpression(BinaryExpression expr) {
+    expr.getLeftExpression().accept(this);
+    Expression leftExpr = currentTransformedExpression;
+
+    expr.getRightExpression().accept(this);
+    Expression rightExpr = currentTransformedExpression;
+
+    try {
+      BinaryExpression newExpr = expr.getClass().getDeclaredConstructor().newInstance();
+      newExpr.setLeftExpression(leftExpr);
+      newExpr.setRightExpression(rightExpr);
+
+      // For arithmetic expressions, wrap in parentheses if:
+      // 1. It's a division (to preserve precedence)
+      // 2. When mixing different arithmetic operations
+      boolean needsParentheses =
+          expr instanceof Division
+              || (leftExpr instanceof BinaryExpression || rightExpr instanceof BinaryExpression);
+
+      if (needsParentheses) {
+        currentTransformedExpression = new Parenthesis(newExpr);
+      } else {
+        currentTransformedExpression = newExpr;
+      }
+    } catch (Exception e) {
+      // Fallback to original expression if instantiation fails
+      currentTransformedExpression = expr;
     }
+  }
 
-    @Override
-    public void visit(Multiplication multiplication) {
-        handleBinaryArithmeticExpression(multiplication);
-    }
-
-    @Override
-    public void visit(Subtraction subtraction) {
-        handleBinaryArithmeticExpression(subtraction);
-    }
-
-    @Override
-    public void visit(Division division) {
-        handleBinaryArithmeticExpression(division);
-    }
-
-    @Override
-    public void visit(Modulo modulo) {
-        handleBinaryArithmeticExpression(modulo);
-    }
-
-    // Comparison Operators
-    @Override
-    public void visit(EqualsTo equalsTo) {
-        handleBinaryExpression(equalsTo);
-    }
-
-    @Override
-    public void visit(GreaterThan greaterThan) {
-        handleBinaryExpression(greaterThan);
-    }
-
-    @Override
-    public void visit(GreaterThanEquals greaterThanEquals) {
-        handleBinaryExpression(greaterThanEquals);
-    }
-
-    @Override
-    public void visit(MinorThan minorThan) {
-        handleBinaryExpression(minorThan);
-    }
-
-    @Override
-    public void visit(MinorThanEquals minorThanEquals) {
-        handleBinaryExpression(minorThanEquals);
-    }
-
-    @Override
-    public void visit(NotEqualsTo notEqualsTo) {
-        handleBinaryExpression(notEqualsTo);
-    }
-
-    @Override
-    public void visit(Parenthesis parenthesis) {
-        parenthesis.getExpression().accept(this);
-        Expression transformedExpr = currentTransformedExpression;
-
-        currentTransformedExpression = new Parenthesis(transformedExpr);
-    }
-
-    // Logical Operators
-    @Override
-    public void visit(AndExpression andExpression) {
-        handleBinaryExpression(andExpression);
-    }
-
-    @Override
-    public void visit(OrExpression orExpression) {
-        handleBinaryExpression(orExpression);
-    }
-
-    @Override
-    public void visit(CastExpression cast) {
-        cast.getLeftExpression().accept(this);
-        Expression transformedExpr = currentTransformedExpression;
-
-        CastExpression newCast = new CastExpression();
-        newCast.setLeftExpression(transformedExpr);
-        newCast.setType(cast.getType());
-
-        currentTransformedExpression = newCast;
-    }
-
-    @Override
-    public void visit(SubSelect subSelect) {
-        currentTransformedExpression = subSelectTransformer.transform(subSelect);
-    }
-
-    @Override
-    public void visit(NotExpression notExpression) {
-        notExpression.getExpression().accept(this);
-        Expression transformedExpr = currentTransformedExpression;
-
-        NotExpression newNot = new NotExpression();
-        newNot.setExpression(transformedExpr);
-
-        currentTransformedExpression = newNot;
-    }
-
-    // Special Operators
-    @Override
-    public void visit(IsNullExpression isNull) {
-        isNull.getLeftExpression().accept(this);
-        Expression transformedExpr = currentTransformedExpression;
-
-        IsNullExpression newIsNull = new IsNullExpression();
-        newIsNull.setLeftExpression(transformedExpr);
-        newIsNull.setNot(isNull.isNot());
-
-        currentTransformedExpression = newIsNull;
-    }
-
-    @Override
-    public void visit(InExpression inExpression) {
-        inExpression.getLeftExpression().accept(this);
-        Expression leftExpr = currentTransformedExpression;
-
-        Expression rightExpr = inExpression.getRightExpression();
-        if (rightExpr != null) {
-            rightExpr.accept(this);
-            rightExpr = currentTransformedExpression;
-        }
-
-        ItemsList rightItemsList = inExpression.getRightItemsList();
-        if (rightItemsList != null) {
-            rightItemsList.accept(this);
-        }
-
-        InExpression newIn = new InExpression();
-        newIn.setLeftExpression(leftExpr);
-        if (rightExpr != null) {
-            newIn.setRightExpression(rightExpr);
-        } else {
-            newIn.setRightItemsList(rightItemsList);
-        }
-        newIn.setNot(inExpression.isNot());
-
-        currentTransformedExpression = newIn;
-    }
-
-    @Override
-    public void visit(Between between) {
-        between.getLeftExpression().accept(this);
-        Expression leftExpr = currentTransformedExpression;
-
-        between.getBetweenExpressionStart().accept(this);
-        Expression startExpr = currentTransformedExpression;
-
-        between.getBetweenExpressionEnd().accept(this);
-        Expression endExpr = currentTransformedExpression;
-
-        Between newBetween = new Between();
-        newBetween.setLeftExpression(leftExpr);
-        newBetween.setBetweenExpressionStart(startExpr);
-        newBetween.setBetweenExpressionEnd(endExpr);
-        newBetween.setNot(between.isNot());
-
-        currentTransformedExpression = newBetween;
-    }
-
-    // Values
-    @Override
-    public void visit(DateValue value) {
-        currentTransformedExpression = value;
-    }
-
-    @Override
-    public void visit(TimestampValue value) {
-        currentTransformedExpression = value;
-    }
-
-    @Override
-    public void visit(TimeValue value) {
-        currentTransformedExpression = value;
-    }
-
-    @Override
-    public void visit(DoubleValue value) {
-        currentTransformedExpression = value;
-    }
-
-    @Override
-    public void visit(Column column) {
-        currentTransformedExpression = column;
-    }
-
-    @Override
-    public void visit(StringValue value) {
-        currentTransformedExpression = value;
-    }
-
-    @Override
-    public void visit(LongValue value) {
-        currentTransformedExpression = value;
-    }
-
-    public Expression getTransformedExpression() {
-        return currentTransformedExpression;
-    }
-
-    // Helper method for binary expressions
-    private void handleBinaryExpression(BinaryExpression expression) {
-        expression.getLeftExpression().accept(this);
-        Expression leftExpr = currentTransformedExpression;
-
-        expression.getRightExpression().accept(this);
-        Expression rightExpr = currentTransformedExpression;
-
-        try {
-            // Create a new instance of the same type of expression
-            BinaryExpression newExpr = expression.getClass().getDeclaredConstructor().newInstance();
-            newExpr.setLeftExpression(leftExpr);
-            newExpr.setRightExpression(rightExpr);
-
-            currentTransformedExpression = newExpr;
-        } catch (Exception e) {
-            // Fallback to original expression if instantiation fails
-            currentTransformedExpression = expression;
-        }
-    }
-
-    // Helper method for arithmetic operators
-    private void handleBinaryArithmeticExpression(BinaryExpression expr) {
-        expr.getLeftExpression().accept(this);
-        Expression leftExpr = currentTransformedExpression;
-
-        expr.getRightExpression().accept(this);
-        Expression rightExpr = currentTransformedExpression;
-
-        try {
-            BinaryExpression newExpr = expr.getClass().getDeclaredConstructor().newInstance();
-            newExpr.setLeftExpression(leftExpr);
-            newExpr.setRightExpression(rightExpr);
-
-            // For arithmetic expressions, wrap in parentheses if:
-            // 1. It's a division (to preserve precedence)
-            // 2. When mixing different arithmetic operations
-            boolean needsParentheses = expr instanceof Division ||
-                    (leftExpr instanceof BinaryExpression ||
-                            rightExpr instanceof BinaryExpression);
-
-            if (needsParentheses) {
-                currentTransformedExpression = new Parenthesis(newExpr);
-            } else {
-                currentTransformedExpression = newExpr;
-            }
-        } catch (Exception e) {
-            // Fallback to original expression if instantiation fails
-            currentTransformedExpression = expr;
-        }
-    }
-
-    private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {
-    }
+  private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {}
 }
