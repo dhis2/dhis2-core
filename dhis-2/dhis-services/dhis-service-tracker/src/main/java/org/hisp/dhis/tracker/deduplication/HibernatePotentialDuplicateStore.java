@@ -99,21 +99,6 @@ class HibernatePotentialDuplicateStore
     this.config = config;
   }
 
-  public int getCountPotentialDuplicates(PotentialDuplicateCriteria query) {
-    CriteriaBuilder cb = getCriteriaBuilder();
-
-    CriteriaQuery<Long> countCriteriaQuery = cb.createQuery(Long.class);
-    Root<PotentialDuplicate> root = countCriteriaQuery.from(PotentialDuplicate.class);
-
-    countCriteriaQuery.select(cb.count(root));
-
-    countCriteriaQuery.where(getQueryPredicates(query, cb, root));
-
-    TypedQuery<Long> relationshipTypedQuery = entityManager.createQuery(countCriteriaQuery);
-
-    return relationshipTypedQuery.getSingleResult().intValue();
-  }
-
   public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
 

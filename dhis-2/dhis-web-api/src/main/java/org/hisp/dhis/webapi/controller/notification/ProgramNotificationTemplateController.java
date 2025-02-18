@@ -84,7 +84,7 @@ public class ProgramNotificationTemplateController
     List<ProgramNotificationTemplate> instances =
         programNotificationTemplateService.getProgramNotificationTemplates(params);
 
-    if (params.isPaged()) {
+    if (params.isPaging()) {
       long total = programNotificationTemplateService.countProgramNotificationTemplates(params);
       return Page.withPager(
           ProgramNotificationTemplateSchemaDescriptor.PLURAL,

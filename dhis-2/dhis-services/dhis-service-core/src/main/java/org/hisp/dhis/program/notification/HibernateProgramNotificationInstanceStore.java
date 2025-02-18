@@ -72,7 +72,7 @@ public class HibernateProgramNotificationInstanceStore
             .addPredicates(getPredicates(params, builder))
             .addOrder(root -> builder.desc(root.get("created")));
 
-    if (params.isPaged()) {
+    if (params.isPaging()) {
       // javax.persistence.TypedQuery position of the first result is numbered from 0 while
       // user-facing pagination parameters start at 1
       jpaParameters

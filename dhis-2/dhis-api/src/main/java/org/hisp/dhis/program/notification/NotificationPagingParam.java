@@ -42,15 +42,15 @@ public class NotificationPagingParam {
 
   private Integer pageSize;
 
-  private boolean paged;
+  private boolean paging;
 
   /**
    * This assumes that the parameters have been validated. Disabling pagination and setting a page
-   * or pageSize do not make sense.
+   * or pageSize does not make sense.
    */
-  public NotificationPagingParam(Integer page, Integer pageSize, boolean paged) {
+  public NotificationPagingParam(Integer page, Integer pageSize, boolean paging) {
     this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
     this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
-    this.paged = paged;
+    this.paging = paging;
   }
 }

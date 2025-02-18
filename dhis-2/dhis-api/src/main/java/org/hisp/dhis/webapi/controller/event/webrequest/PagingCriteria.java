@@ -55,11 +55,10 @@ public interface PagingCriteria {
   @OpenApi.Ignore
   default Integer getFirstResult() {
     Integer page = Optional.ofNullable(getPage()).filter(p -> p > 0).orElse(DEFAULT_PAGE);
-    return (page - 1) * getPageSizeWithDefault();
-  }
 
-  @OpenApi.Ignore
-  default int getPageSizeWithDefault() {
-    return Optional.ofNullable(getPageSize()).filter(ps -> ps > 0).orElse(DEFAULT_PAGE_SIZE);
+    Integer pageSize =
+        Optional.ofNullable(getPageSize()).filter(ps -> ps > 0).orElse(DEFAULT_PAGE_SIZE);
+
+    return (page - 1) * pageSize;
   }
 }
