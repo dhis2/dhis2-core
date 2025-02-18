@@ -72,7 +72,7 @@ public abstract class AbstractCountMatcher implements SubselectMatcher {
    * @return a cleaned string containing only letters and numbers.
    */
   protected String preserveLettersAndNumbers(String str) {
-    return str.replaceAll("[^a-zA-Z0-9]", "");
+    return str.replace("[^a-zA-Z0-9]", "");
   }
 
   /**
@@ -176,7 +176,7 @@ public abstract class AbstractCountMatcher implements SubselectMatcher {
   private boolean isDataElementValueCondition(EqualsTo equals, String dataElementId) {
     Expression left = equals.getLeftExpression();
     return left instanceof Column col
-        && col.getColumnName().replaceAll("\"", "").equals(dataElementId)
+        && col.getColumnName().replace("\"", "").equals(dataElementId)
         && equals.getRightExpression() != null;
   }
 

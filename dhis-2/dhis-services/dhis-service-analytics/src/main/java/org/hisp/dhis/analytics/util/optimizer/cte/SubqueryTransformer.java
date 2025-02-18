@@ -244,7 +244,7 @@ public class SubqueryTransformer {
     if (column == null || column.getColumnName() == null) {
       return false;
     }
-    String colName = column.getColumnName().replaceAll("\"", "");
+    String colName = column.getColumnName().replace("\"", "");
     if (!colName.equalsIgnoreCase(columnName)) {
       return false;
     }
