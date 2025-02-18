@@ -141,7 +141,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");

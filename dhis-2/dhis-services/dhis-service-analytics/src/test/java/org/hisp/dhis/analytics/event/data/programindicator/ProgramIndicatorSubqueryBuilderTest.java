@@ -83,7 +83,7 @@ class ProgramIndicatorSubqueryBuilderTest {
   @Spy private SystemSettings systemSettings;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     program = createProgram('A');
     startDate = getDate(2018, 1, 1);
     endDate = getDate(2018, 6, 30);
