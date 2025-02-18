@@ -83,6 +83,8 @@ class ResultProcessor {
               .code(rowSet.getString(ITEM_CODE))
               .dimensionItemType(getItemType(rowSet))
               .programId(rowSet.getString(PROGRAM_UID))
+              .programDataElementId(getProgramDataElementId(rowSet))
+              .programAttributeId(getProgramAttributeId(rowSet))
               .valueType(getValueType(rowSet))
               .expression(rowSet.getString(EXPRESSION))
               .optionSetId(rowSet.getString(OPTION_SET_UID))
@@ -90,6 +92,32 @@ class ResultProcessor {
     }
 
     return dataItems;
+  }
+
+  private static String getProgramDataElementId(SqlRowSet rowSet) {
+    if (isProgramDataElement(rowSet)) {
+      return getProgramItemId(rowSet);
+    }
+
+    return null;
+  }
+
+  private static String getProgramItemId(SqlRowSet rowSet) {
+    String uid = rowSet.getString("item_uid");
+
+    if (isNotBlank(rowSet.getString(PROGRAM_UID))) {
+      uid = rowSet.getString(PROGRAM_UID) + "." + uid;
+    }
+
+    return uid;
+  }
+
+  private static String getProgramAttributeId(SqlRowSet rowSet) {
+    if (isProgramAttribute(rowSet)) {
+      return getProgramItemId(rowSet);
+    }
+
+    return null;
   }
 
   private static DimensionItemType getItemType(SqlRowSet rowSet) {
@@ -183,6 +211,15 @@ class ResultProcessor {
   private static boolean hasOptionUid(String itemType) {
     return PROGRAM_ATTRIBUTE_OPTION.name().equalsIgnoreCase(itemType)
         || PROGRAM_DATA_ELEMENT_OPTION.name().equalsIgnoreCase(itemType);
+  }
+
+  private static boolean isProgramAttribute(SqlRowSet rowSet) {
+    DimensionItemType itemType = getItemType(rowSet);
+    return PROGRAM_ATTRIBUTE_OPTION == itemType;
+  }
+
+  private static boolean isProgramDataElement(SqlRowSet rowSet) {
+    return PROGRAM_DATA_ELEMENT_OPTION == getItemType(rowSet);
   }
 
   private static String getName(SqlRowSet rowSet) {
