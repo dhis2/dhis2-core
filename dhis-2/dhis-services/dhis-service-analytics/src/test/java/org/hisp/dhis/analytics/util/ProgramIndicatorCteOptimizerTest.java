@@ -1,18 +1,46 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.util;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.vertical_blank.sqlformatter.SqlFormatter;
 import org.hisp.dhis.analytics.util.optimizer.cte.pipeline.CteOptimizationPipeline;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class ProgramIndicatorCteOptimizerTest {
 
-    private final CteOptimizationPipeline pipeline = new CteOptimizationPipeline();
+  private final CteOptimizationPipeline pipeline = new CteOptimizationPipeline();
 
-    @Test
-    void testLastScheduled() {
-        String originalSql = """
+  @Test
+  void testLastScheduled() {
+    String originalSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -28,7 +56,8 @@ class ProgramIndicatorCteOptimizerTest {
                 SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                 """;
 
-        String expectedSql = """
+    String expectedSql =
+        """
                 with last_sched as (
                 select
                 	enrollment,
@@ -61,14 +90,15 @@ class ProgramIndicatorCteOptimizerTest {
                 from
                 	analytics_enrollment_ur1edk5oe2n
                 """;
-        //String transformedSql = transformer.transformSQL(originalSql, false);
-        String transformedSql = pipeline.optimize(originalSql);
-        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
-    }
+    // String transformedSql = transformer.transformSQL(originalSql, false);
+    String transformedSql = pipeline.optimize(originalSql);
+    assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+  }
 
-    @Test
-    void testLastCreated() {
-        String originalSql = """
+  @Test
+  void testLastCreated() {
+    String originalSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -84,7 +114,8 @@ class ProgramIndicatorCteOptimizerTest {
                 SELECT * FROM pi_inputcte;
                 """;
 
-        String expectedSql = """
+    String expectedSql =
+        """
                 with last_created as (
                     select
                         enrollment,
@@ -117,13 +148,14 @@ class ProgramIndicatorCteOptimizerTest {
                     from
                         pi_inputcte
                 """;
-        String transformedSql = pipeline.optimize(originalSql);
-        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
-    }
+    String transformedSql = pipeline.optimize(originalSql);
+    assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+  }
 
-    @Test
-    void testAggregatedRelationshipCount() {
-        String originalSql = """
+  @Test
+  void testAggregatedRelationshipCount() {
+    String originalSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -139,7 +171,8 @@ class ProgramIndicatorCteOptimizerTest {
                 SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                 """;
 
-        String expectedSql = """
+    String expectedSql =
+        """
                 with relationship_count_agg as (
                 select
                 	trackedentityid,
@@ -162,13 +195,14 @@ class ProgramIndicatorCteOptimizerTest {
                 from
                 	analytics_enrollment_ur1edk5oe2n
                 """;
-        String transformedSql = pipeline.optimize(originalSql);
-        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
-    }
+    String transformedSql = pipeline.optimize(originalSql);
+    assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+  }
 
-    @Test
-    void testNonAggregatedRelationshipCount() {
-        String originalSql = """
+  @Test
+  void testNonAggregatedRelationshipCount() {
+    String originalSql =
+        """
                 WITH pi_inputcte AS (
                     SELECT subax.enrollment
                     FROM analytics_enrollment_ur1edk5oe2n AS subax
@@ -182,7 +216,8 @@ class ProgramIndicatorCteOptimizerTest {
                 SELECT * FROM analytics_enrollment_ur1edk5oe2n;
                 """;
 
-        String expectedSql = """
+    String expectedSql =
+        """
                 with relationship_count as (
                 select
                 	trackedentityid,
@@ -205,14 +240,15 @@ class ProgramIndicatorCteOptimizerTest {
                 from
                 	analytics_enrollment_ur1edk5oe2n
                 """;
-        String transformedSql = pipeline.optimize(originalSql);
-        assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
-    }
+    String transformedSql = pipeline.optimize(originalSql);
+    assertEquals(normalizeSqlQuery(expectedSql), normalizeSqlQuery(transformedSql));
+  }
 
-    @Test
-    public void testLastScheduledComplex() {
+  @Test
+  public void testLastScheduledComplex() {
 
-        String originalQuery = """
+    String originalQuery =
+        """
                     WITH pi_hgtnuhsqbml AS (
                         SELECT
                             enrollment
@@ -259,7 +295,8 @@ class ProgramIndicatorCteOptimizerTest {
                 OFFSET 0
                 """;
 
-        String expected = """
+    String expected =
+        """
                 with last_sched as (
                  select
                     enrollment,
@@ -328,15 +365,18 @@ class ProgramIndicatorCteOptimizerTest {
                  limit 101 offset 0
                 """;
 
-        String transformedSql = pipeline.optimize(originalQuery);
-        assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedSql),
-                "SQL queries should be equivalent after normalization");
-    }
+    String transformedSql = pipeline.optimize(originalQuery);
+    assertEquals(
+        normalizeSqlQuery(expected),
+        normalizeSqlQuery(transformedSql),
+        "SQL queries should be equivalent after normalization");
+  }
 
-    @Test
-    public void testComplex() {
+  @Test
+  public void testComplex() {
 
-        String originalQuery = """
+    String originalQuery =
+        """
                 with pi_qZOBw051LSf as (
                 select
                 	enrollment,
@@ -424,7 +464,8 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String expected = """
+    String expected =
+        """
                 with last_created as (
                 select
                 	enrollment,
@@ -529,15 +570,18 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String transformedQuery = pipeline.optimize(originalQuery);
-        assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
-                "SQL queries should be equivalent after normalization");
-    }
+    String transformedQuery = pipeline.optimize(originalQuery);
+    assertEquals(
+        normalizeSqlQuery(expected),
+        normalizeSqlQuery(transformedQuery),
+        "SQL queries should be equivalent after normalization");
+  }
 
-    @Test
-    public void testRelationshipCountComplex() {
+  @Test
+  public void testRelationshipCountComplex() {
 
-        String originalQuery = """
+    String originalQuery =
+        """
                 with pi_hgTNuHSqBmL as (
                 select
                 	enrollment,
@@ -640,7 +684,8 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String expected = """
+    String expected =
+        """
                 with last_sched as (
                 select
                 	enrollment,
@@ -749,21 +794,19 @@ class ProgramIndicatorCteOptimizerTest {
                 limit 101 offset 0
                 """;
 
-        String transformedQuery = pipeline.optimize(originalQuery);
-        //String transformedQuery = transformer.transformSQL(originalQuery, false);
-        assertEquals(normalizeSqlQuery(expected), normalizeSqlQuery(transformedQuery),
-                "SQL queries should be equivalent after normalization");
-    }
+    String transformedQuery = pipeline.optimize(originalQuery);
+    // String transformedQuery = transformer.transformSQL(originalQuery, false);
+    assertEquals(
+        normalizeSqlQuery(expected),
+        normalizeSqlQuery(transformedQuery),
+        "SQL queries should be equivalent after normalization");
+  }
 
-
-    private String normalizeSqlQuery(String sql) {
-        // 1. Convert to lowercase
-        // 2. Remove all whitespace
-        // 3. Format SQL using SqlFormatter
-        // 4. Remove any remaining whitespace variations
-        return SqlFormatter.format(sql)
-                .toLowerCase()
-                .replaceAll("\\s+", " ")
-                .trim();
-    }
+  private String normalizeSqlQuery(String sql) {
+    // 1. Convert to lowercase
+    // 2. Remove all whitespace
+    // 3. Format SQL using SqlFormatter
+    // 4. Remove any remaining whitespace variations
+    return SqlFormatter.format(sql).toLowerCase().replaceAll("\\s+", " ").trim();
+  }
 }
