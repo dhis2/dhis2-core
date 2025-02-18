@@ -57,8 +57,6 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -232,9 +230,9 @@ public class DeduplicationController {
 
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
 
-    canReadTrackedEntity(trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal()));
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
 
-    canReadTrackedEntity(trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate()));
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
 
     checkAlreadyExistingDuplicate(potentialDuplicate);
   }
@@ -257,14 +255,6 @@ public class DeduplicationController {
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Missing required input property '" + trackedEntityFieldName + "'");
-    }
-  }
-
-  private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
-      throw new ForbiddenException(
-          "You don't have read access to '" + trackedEntity.getUid() + "'.");
     }
   }
 }
