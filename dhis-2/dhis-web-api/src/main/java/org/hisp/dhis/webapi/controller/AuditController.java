@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedUidsParameter;
 
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
@@ -65,7 +64,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -295,77 +293,6 @@ public class AuditController {
     dataApprovalAudits.addChildren(
         fieldFilterService
             .toCollectionNode(DataApprovalAudit.class, new FieldFilterParams(audits, fields))
-            .getChildren());
-
-    return rootNode;
-  }
-
-  /**
-   * @deprecated use {@link #getTrackedEntityAudit} instead.
-   */
-  @Deprecated(since = "2.41")
-  @GetMapping("trackedEntityInstance")
-  public RootNode getTrackedEntityInstanceAudit(
-      @Deprecated(since = "2.41")
-          @OpenApi.Param({UID[].class, TrackedEntity.class})
-          @RequestParam(required = false, defaultValue = "")
-          List<String> tei,
-      @OpenApi.Param({UID[].class, TrackedEntity.class})
-          @RequestParam(required = false, defaultValue = "")
-          Set<UID> trackedEntities,
-      @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
-      @RequestParam(required = false) List<AuditOperationType> auditType,
-      @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) Date endDate,
-      @RequestParam(required = false) Boolean skipPaging,
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws BadRequestException {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
-
-    List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
-
-    Set<UID> teUids =
-        validateDeprecatedUidsParameter(
-            "tei", String.join(";", tei), "trackedEntities", trackedEntities);
-
-    TrackedEntityAuditQueryParams params =
-        new TrackedEntityAuditQueryParams()
-            .setTrackedEntities(UID.toValueList(teUids))
-            .setUsers(user)
-            .setAuditTypes(auditOperationTypes)
-            .setStartDate(startDate)
-            .setEndDate(endDate);
-
-    List<TrackedEntityAudit> teAudits;
-    Pager pager = null;
-
-    if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      int total = trackedEntityAuditService.getTrackedEntityAuditsCount(params);
-
-      pager = new Pager(page, total, pageSize);
-
-      teAudits = trackedEntityAuditService.getTrackedEntityAudits(params);
-    } else {
-      teAudits = trackedEntityAuditService.getTrackedEntityAudits(params.setPager(pager));
-    }
-
-    RootNode rootNode = NodeUtils.createMetadata();
-
-    if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
-    }
-
-    CollectionNode audits =
-        rootNode.addChild(new CollectionNode("trackedEntityInstanceAudits", true));
-    audits.addChildren(
-        fieldFilterService
-            .toCollectionNode(TrackedEntityAudit.class, new FieldFilterParams(teAudits, fields))
             .getChildren());
 
     return rootNode;

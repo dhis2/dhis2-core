@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -116,40 +115,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
   }
 
   @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programInstance={uid}", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEnrollmentAndProgramInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programInstance' and 'enrollment'",
-        GET(
-                "/programNotificationInstances?enrollment={uid}&programInstance={uid}",
-                enrollment.getUid(),
-                enrollment.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramStageInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programStageInstance={uid}", event.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
   void shouldGetProgramNotificationWhenPassingEventParams() {
     JsonList<JsonIdentifiableObject> list =
         GET("/programNotificationInstances?event={uid}", event.getUid())
@@ -157,18 +122,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
             .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
     assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEventAndProgramStageInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programStageInstance' and 'event'",
-        GET(
-                "/programNotificationInstances?event={uid}&programStageInstance={uid}",
-                event.getUid(),
-                event.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test
