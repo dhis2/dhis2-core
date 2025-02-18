@@ -121,55 +121,55 @@ public class SubqueryTransformer {
    */
   public static String lastScheduledCte(String table) {
     return """
-               select enrollment,
-                      scheduleddate
-               from (
-                 select enrollment,
-                        scheduleddate,
-                        row_number() over (partition by enrollment order by occurreddate desc) as rn
-                 from %s
-                 where scheduleddate is not null
-               ) t
-               where rn = 1
-               """
+           select enrollment,
+                  scheduleddate
+           from (
+             select enrollment,
+                    scheduleddate,
+                    row_number() over (partition by enrollment order by occurreddate desc) as rn
+             from %s
+             where scheduleddate is not null
+           ) t
+           where rn = 1
+           """
         .formatted(table);
   }
 
   public static String lastCreatedCte(String table) {
     return """
-               select enrollment,
-                      created
-               from (
-                 select enrollment,
-                        created,
-                        row_number() over (partition by enrollment order by occurreddate desc) as rn
-                 from %s
-                 where created is not null
-               ) t
-               where rn = 1
-               """
+           select enrollment,
+                  created
+           from (
+             select enrollment,
+                    created,
+                    row_number() over (partition by enrollment order by occurreddate desc) as rn
+             from %s
+             where created is not null
+           ) t
+           where rn = 1
+           """
         .formatted(table);
   }
 
   public static String relationshipCountCte(boolean isAggregated, String relationshipTypeUid) {
     if (isAggregated) {
       return """
-               select trackedentityid,
-                      sum(relationship_count) as relationship_count
-               from analytics_rs_relationship
-               group by trackedentityid
-               """;
+             select trackedentityid,
+                    sum(relationship_count) as relationship_count
+             from analytics_rs_relationship
+             group by trackedentityid
+             """;
     } else {
       String whereClause =
           relationshipTypeUid != null
-              ? "WHERE relationshiptypeuid = '%s'".formatted(relationshipTypeUid)
+              ? "where relationshiptypeuid = '%s'".formatted(relationshipTypeUid)
               : "";
       return """
-               select trackedentityid,
-                      relationship_count
-               from analytics_rs_relationship
-               %s
-               """
+             select trackedentityid,
+                    relationship_count
+             from analytics_rs_relationship
+             %s
+             """
           .formatted(whereClause);
     }
   }

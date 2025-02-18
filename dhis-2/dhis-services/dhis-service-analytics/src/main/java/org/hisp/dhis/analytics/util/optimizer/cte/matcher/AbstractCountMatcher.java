@@ -66,16 +66,6 @@ public abstract class AbstractCountMatcher implements SubselectMatcher {
   }
 
   /**
-   * Removes all characters from the input string that are not letters or numbers.
-   *
-   * @param str the input string.
-   * @return a cleaned string containing only letters and numbers.
-   */
-  protected String preserveLettersAndNumbers(String str) {
-    return str.replace("[^a-zA-Z0-9]", "");
-  }
-
-  /**
    * Extracts conditions from a complex WHERE clause by flattening AND expressions.
    *
    * @param whereExpr the WHERE clause expression.

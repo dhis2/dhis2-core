@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.util.optimizer.cte;
 
+import static org.hisp.dhis.analytics.util.optimizer.cte.StringUtils.preserveLettersAndNumbers;
 import static org.hisp.dhis.analytics.util.optimizer.cte.SubqueryTransformer.dataElementCountCte;
 import static org.hisp.dhis.analytics.util.optimizer.cte.SubqueryTransformer.lastCreatedCte;
 import static org.hisp.dhis.analytics.util.optimizer.cte.SubqueryTransformer.lastEventValueCte;
@@ -105,15 +106,5 @@ public class CteGeneratorFactory {
         .findFirst()
         .map(ConditionHandler::getGenerator)
         .orElseThrow(() -> new IllegalArgumentException("No CTE generator found for: " + cteName));
-  }
-
-  /**
-   * Removes all characters from the input string that are not letters or numbers.
-   *
-   * @param str the input string to be processed
-   * @return a new string containing only letters and numbers from the input string
-   */
-  private String preserveLettersAndNumbers(String str) {
-    return str.replaceAll("[^a-zA-Z0-9]", "");
   }
 }
