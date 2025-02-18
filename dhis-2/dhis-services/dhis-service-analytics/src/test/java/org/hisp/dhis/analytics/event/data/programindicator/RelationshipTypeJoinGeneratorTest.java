@@ -65,13 +65,13 @@ class RelationshipTypeJoinGeneratorTest {
           + ".psi in (select psi.uid from programstageinstance psi LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid ";
 
   private static final String TEI_RELTO_JOIN =
-      "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
+      "LEFT JOIN trackedentityinstance tei2 on tei2.trackedentityinstanceid = ri2.trackedentityinstanceid";
 
   private static final String PI_RELTO_JOIN =
-      "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid";
+      "LEFT JOIN programinstance pi2 on pi2.programinstanceid = ri2.programinstanceid";
 
   private static final String PSI_RELTO_JOIN =
-      "LEFT JOIN programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
+      "LEFT JOIN programstageinstance psi2 on psi2.programstageinstanceid = ri2.programstageinstanceid";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -175,8 +175,10 @@ class RelationshipTypeJoinGeneratorTest {
     expected += addWhere(relationshipType);
     expected +=
         (to.equals(TRACKED_ENTITY_INSTANCE)
-            ? " AND tei.uid = ax.tei )"
-            : (to.equals(PROGRAM_INSTANCE) ? " AND pi.uid = ax.pi )" : " AND psi.uid = ax.psi )"));
+            ? " AND tei2.uid = ax.tei )"
+            : (to.equals(PROGRAM_INSTANCE)
+                ? " AND pi2.uid = ax.pi )"
+                : " AND psi2.uid = ax.psi )"));
     assertEquals(expected, RelationshipTypeJoinGenerator.generate(ALIAS, relationshipType, type));
   }
 
