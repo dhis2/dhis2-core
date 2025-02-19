@@ -58,9 +58,10 @@ class RelationshipOperationParamsMapper {
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> getTrackedEntity(params.getIdentifier());
-          case ENROLLMENT -> getEnrollment(params.getIdentifier());
-          case EVENT -> getEvent(params.getIdentifier());
+          case TRACKED_ENTITY ->
+              getTrackedEntity(params.getIdentifier(), params.isIncludeDeleted());
+          case ENROLLMENT -> getEnrollment(params.getIdentifier(), params.isIncludeDeleted());
+          case EVENT -> getEvent(params.getIdentifier(), params.isIncludeDeleted());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
@@ -71,11 +72,12 @@ class RelationshipOperationParamsMapper {
         .build();
   }
 
-  private TrackedEntity getTrackedEntity(UID trackedEntityUid)
+  private TrackedEntity getTrackedEntity(UID trackedEntityUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
         relationshipStore
             .findTrackedEntity(trackedEntityUid)
+            .filter(te -> (includeDeleted || !te.isDeleted()))
             .orElseThrow(() -> new NotFoundException(TrackedEntity.class, trackedEntityUid));
     if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), trackedEntity)
@@ -85,10 +87,12 @@ class RelationshipOperationParamsMapper {
     return trackedEntity;
   }
 
-  private Enrollment getEnrollment(UID enrollmentUid) throws NotFoundException, ForbiddenException {
+  private Enrollment getEnrollment(UID enrollmentUid, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
     Enrollment enrollment =
         relationshipStore
             .findEnrollment(enrollmentUid)
+            .filter(te -> (includeDeleted || !te.isDeleted()))
             .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
     if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
@@ -98,10 +102,12 @@ class RelationshipOperationParamsMapper {
     return enrollment;
   }
 
-  private Event getEvent(UID eventUid) throws NotFoundException, ForbiddenException {
+  private Event getEvent(UID eventUid, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
     Event event =
         relationshipStore
             .findEvent(eventUid)
+            .filter(te -> (includeDeleted || !te.isDeleted()))
             .orElseThrow(() -> new NotFoundException(Event.class, eventUid));
     if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), event, false)

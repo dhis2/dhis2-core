@@ -31,7 +31,6 @@ import java.util.Date;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -42,18 +41,16 @@ import org.hisp.dhis.program.Event;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 public class ProgramNotificationInstanceParam extends NotificationPagingParam {
   @Builder
   public ProgramNotificationInstanceParam(
       Integer page,
       Integer pageSize,
-      boolean skipPaging,
+      boolean paging,
       Enrollment enrollment,
       Event event,
-      Date scheduledAt,
-      boolean paged) {
-    super(page, pageSize, skipPaging, paged);
+      Date scheduledAt) {
+    super(page, pageSize, paging);
     this.enrollment = enrollment;
     this.event = event;
     this.scheduledAt = scheduledAt;

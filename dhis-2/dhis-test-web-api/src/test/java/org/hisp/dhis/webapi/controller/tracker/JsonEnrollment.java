@@ -52,6 +52,10 @@ public interface JsonEnrollment extends JsonObject {
     return getString("orgUnit").string();
   }
 
+  default Boolean getDeleted() {
+    return getBoolean("deleted").bool();
+  }
+
   default JsonList<JsonEvent> getEvents() {
     return get("events").asList(JsonEvent.class);
   }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -169,28 +170,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     dv.setDataElement(de.getUid());
     dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
-  }
-
-  @Test
-  void getEventsFailsIfGivenAttributeCategoryOptionsAndDeprecatedAttributeCos() {
-    switchContextToUser(user);
-
-    assertStartsWith(
-        "Only one parameter of 'attributeCos' (deprecated",
-        GET("/tracker/events?attributeCategoryOptions=Hq3Kc6HK4OZ&attributeCos=Hq3Kc6HK4OZ")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void getEventsFailsIfGivenAttributeCcAndAttributeCategoryCombo() {
-    switchContextToUser(user);
-
-    assertStartsWith(
-        "Only one parameter of 'attributeCc' and 'attributeCategoryCombo'",
-        GET("/tracker/events?attributeCc=FQnYqKlIHxd&attributeCategoryCombo=YApXsOpwiXk")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test
@@ -423,6 +402,41 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .getList("relationships", JsonRelationship.class);
 
     assertEquals(0, relationships.size());
+  }
+
+  @Test
+  void shouldGetEventsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity te = trackedEntity();
+    Event event = event(enrollment(te));
+    manager.delete(te);
+    manager.delete(event);
+    manager.flush();
+    switchContextToUser(user);
+
+    JsonList<JsonEvent> events =
+        GET(
+                "/tracker/events?trackedEntity={te}&includeDeleted=true&fields=deleted,trackedEntity",
+                te.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    events.forEach(
+        ev -> {
+          assertTrue(ev.getDeleted());
+          assertEquals(te.getUid(), ev.getTrackedEntity());
+        });
+  }
+
+  @Test
+  void
+      shouldGetNotFoundWhenGettingEventsByTrackedEntityAndTrackedEntityIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity te = trackedEntity();
+    event(enrollment(te));
+    manager.delete(te);
+    manager.flush();
+    switchContextToUser(user);
+
+    GET("/tracker/events?trackedEntity={te}&includeDeleted=false", te.getUid()).error(BAD_REQUEST);
   }
 
   @Test
@@ -1041,7 +1055,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(event.getEnrollment().getUid(), json.getString("enrollment").string());
     assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
     assertFalse(json.getBoolean("followUp").booleanValue());
-    assertFalse(json.getBoolean("followup").booleanValue());
     assertFalse(json.getBoolean("deleted").booleanValue());
     assertHasMember(json, "createdAt");
     assertHasMember(json, "createdAtClient");

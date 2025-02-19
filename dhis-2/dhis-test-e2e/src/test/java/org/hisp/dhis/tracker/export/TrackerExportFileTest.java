@@ -196,7 +196,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 .getTrackedEntitiesCsvGZip(
                     new QueryParamsBuilder()
                         .add("trackedEntityType", TRACKED_ENTITY_TYPE)
-                        .add("orgUnit", ORG_UNIT)
+                        .add("orgUnits", ORG_UNIT)
                         .add("trackedEntities", trackedEntity))
                 .validate()
                 .statusCode(200)
@@ -221,7 +221,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
             .getTrackedEntitiesCsv(
                 new QueryParamsBuilder()
                     .add("trackedEntityType", TRACKED_ENTITY_TYPE)
-                    .add("orgUnit", ORG_UNIT)
+                    .add("orgUnits", ORG_UNIT)
                     .add("trackedEntities", trackedEntity))
             .validate()
             .statusCode(200)
