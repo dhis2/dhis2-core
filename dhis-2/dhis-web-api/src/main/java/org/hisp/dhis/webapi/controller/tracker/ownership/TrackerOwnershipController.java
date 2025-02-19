@@ -105,12 +105,12 @@ public class TrackerOwnershipController {
   @PostMapping(value = "/override", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage grantTemporaryAccess(
-      @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam String program)
+      @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
       throws BadRequestException, ForbiddenException, NotFoundException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         trackedEntityService.getTrackedEntity(trackedEntity),
-        programService.getProgram(program),
+        programService.getProgram(program.getValue()),
         currentUser,
         reason);
 
