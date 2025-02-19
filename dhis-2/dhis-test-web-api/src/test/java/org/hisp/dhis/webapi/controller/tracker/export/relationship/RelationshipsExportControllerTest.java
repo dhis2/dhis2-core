@@ -66,7 +66,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderFormat;
@@ -660,20 +659,6 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             TrackerObjects.builder().events(List.of(getEvent(UID.of("LCSfHnurnNB")))).build()));
 
     GET("/tracker/relationships?event={ev}&includeDeleted=false", "LCSfHnurnNB").error(NOT_FOUND);
-  }
-
-  @Test
-  void shouldGetRelationshipsByDeprecatedTei() {
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?tei={te}", relationship1From.getUid())
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    JsonObject relationship = relationships.get(0);
-    assertHasOnlyMembers(
-        relationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
-    assertHasOnlyUid(relationship1From.getUid(), "trackedEntity", relationship.getObject("from"));
-    assertHasOnlyUid(relationship1To.getUid(), "event", relationship.getObject("to"));
   }
 
   @Test

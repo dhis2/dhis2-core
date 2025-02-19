@@ -239,7 +239,7 @@ public class TrackedEntityImportTests extends TrackerApiTest {
     JsonObjectBuilder trackedEntities =
         trackerImportExportActions
             .getTrackedEntities(
-                new QueryParamsBuilder().add("fields", "*").add("trackedEntity", teUID))
+                new QueryParamsBuilder().add("fields", "*").add("trackedEntities", teUID))
             .getBodyAsJsonBuilder()
             .deleteByJsonPath("trackedEntities[0].trackedEntity")
             .deleteByJsonPath("trackedEntities[0].enrollments[0].enrollment")

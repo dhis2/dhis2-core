@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -398,7 +397,6 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         },
         () -> assertHasMember(jsonEvent, "status"),
         () -> assertHasMember(jsonEvent, "followUp"),
-        () -> assertHasMember(jsonEvent, "followup"),
         () -> assertEquals(event.isDeleted(), jsonEvent.getDeleted()));
   }
 
@@ -464,15 +462,6 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertEquals(
         "Enrollment with id Hq3Kc6HK4OZ could not be found.",
         GET("/tracker/enrollments/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
-  }
-
-  @Test
-  void getEnrollmentsFailsIfGivenEnrollmentAndEnrollmentsParameters() {
-    assertStartsWith(
-        "Only one parameter of 'enrollment' (deprecated",
-        GET("/tracker/enrollments?enrollment=IsdLBTOBzMi&enrollments=IsdLBTOBzMi")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   private Stream<Arguments> getEnrollment() {
