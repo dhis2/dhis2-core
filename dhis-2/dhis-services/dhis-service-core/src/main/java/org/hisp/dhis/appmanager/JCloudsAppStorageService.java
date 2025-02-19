@@ -55,7 +55,6 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -341,7 +340,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
     String key = app.getFolderName() + ("/" + resolvedFileResource);
-    String cleanedKey = TextUtils.replaceAllRecursively(key, "//", "/");
+    String cleanedKey = key.replaceAll("/+", "/");
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
     if (jCloudsStore.blobExists(cleanedKey)) {
@@ -362,8 +361,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     if (jCloudsStore.isUsingFileSystem()) {
       String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
       return new FileSystemResource(
-          locationManager.getFileForReading(
-              TextUtils.replaceAllRecursively(cleanedFilepath, "//", "/")));
+          locationManager.getFileForReading((cleanedFilepath).replaceAll("/+", "/")));
     } else {
       URI uri = fileResourceContentStore.getSignedGetContentUri(filePath);
       return new UrlResource(uri);

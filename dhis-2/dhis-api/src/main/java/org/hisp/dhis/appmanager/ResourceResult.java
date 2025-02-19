@@ -28,9 +28,6 @@
 package org.hisp.dhis.appmanager;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.appmanager.ResourceResult.Redirect;
-import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
-import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.springframework.core.io.Resource;
 
 /**
@@ -43,7 +40,7 @@ import org.springframework.core.io.Resource;
  *   <li>Redirect
  * </ul>
  */
-public sealed interface ResourceResult permits ResourceFound, ResourceNotFound, Redirect {
+public sealed interface ResourceResult {
   record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
 
   record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
