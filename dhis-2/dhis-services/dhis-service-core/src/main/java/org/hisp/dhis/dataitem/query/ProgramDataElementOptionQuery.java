@@ -37,6 +37,7 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiabl
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.optionIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.optionSetIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
@@ -157,6 +158,7 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
         ifSet(shortNameFiltering("t.program_shortname", "t.item_shortname", paramsMap)));
     optionalFilters.append(ifSet(programIdFiltering("t.program_uid", paramsMap)));
     optionalFilters.append(ifSet(uidFiltering("t.item_uid", paramsMap)));
+    optionalFilters.append(ifSet(optionIdFiltering("t.optionvalue_uid", paramsMap)));
     optionalFilters.append(ifSet(optionSetIdFiltering("t.optionset_uid", paramsMap)));
     sql.append(ifAny(optionalFilters.toString()));
 
@@ -172,10 +174,10 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
     sql.append(
         ifSet(
             ordering(
-                "t.i18n_first_name, t.i18n_second_name, t.i18n_third_name, t.item_uid",
-                "t.program_name, t.item_name, t.optionvalue_name, t.item_uid",
-                "t.i18n_first_shortname, t.i18n_second_shortname, t.item_uid",
-                "t.program_shortname, t.item_shortname, t.item_uid",
+                "t.i18n_third_name, t.i18n_second_name, t.i18n_first_name, t.item_uid",
+                "t.optionvalue_name, t.item_name, t.program_name, t.item_uid",
+                "t.i18n_second_shortname, t.i18n_first_shortname, t.item_uid",
+                "t.item_shortname, t.program_shortname, t.item_uid",
                 paramsMap)));
     sql.append(ifSet(maxLimit(paramsMap)));
     sql.append(")");

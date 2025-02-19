@@ -60,6 +60,7 @@ public enum QueryableDataItem {
 
   private Class<? extends BaseIdentifiableObject> entity;
 
+  /** Indicates if the entity is loaded by default or not. */
   private boolean isDefault;
 
   QueryableDataItem(Class<? extends BaseIdentifiableObject> entity, boolean isDefault) {
