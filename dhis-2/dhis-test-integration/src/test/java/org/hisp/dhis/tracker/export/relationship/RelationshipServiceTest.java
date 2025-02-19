@@ -28,9 +28,6 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
@@ -242,8 +239,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     Relationship accessible = relationship(teA, teB);
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
 
-    RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(teA).build();
+    RelationshipOperationParams operationParams = RelationshipOperationParams.builder(teA).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
@@ -258,7 +254,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(teB, enrollmentA, teToInaccessibleEnType);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(enrollmentA).build();
+        RelationshipOperationParams.builder(enrollmentA).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
@@ -273,7 +269,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(eventA, inaccessibleEvent);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(EVENT).identifier(eventA).build();
+        RelationshipOperationParams.builder(eventA).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
@@ -313,10 +309,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom)
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     assertThrows(
         ForbiddenException.class,
@@ -347,10 +340,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(trackedEntityFrom, notAccessibleTe);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom)
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
@@ -385,10 +375,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom)
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     assertThrows(
         ForbiddenException.class,
@@ -422,10 +409,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom)
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     assertThrows(
         ForbiddenException.class,

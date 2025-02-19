@@ -62,14 +62,6 @@ class RelationshipRequestParamsMapper {
       throws BadRequestException {
     UID trackedEntity = relationshipRequestParams.getTrackedEntity();
 
-    if (ObjectUtils.allNull(
-        trackedEntity,
-        relationshipRequestParams.getEnrollment(),
-        relationshipRequestParams.getEvent())) {
-      throw new BadRequestException(
-          "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
-    }
-
     if (hasMoreThanOneNotNull(
         trackedEntity,
         relationshipRequestParams.getEnrollment(),
@@ -78,27 +70,26 @@ class RelationshipRequestParamsMapper {
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
     }
 
-    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
-
     RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder()
-            .type(
-                getTrackerType(
-                    trackedEntity,
-                    relationshipRequestParams.getEnrollment(),
-                    relationshipRequestParams.getEvent()))
-            .identifier(
-                ObjectUtils.firstNonNull(
-                    trackedEntity,
-                    relationshipRequestParams.getEnrollment(),
-                    relationshipRequestParams.getEvent()));
+        RelationshipOperationParams.builder(
+            getTrackerType(
+                trackedEntity,
+                relationshipRequestParams.getEnrollment(),
+                relationshipRequestParams.getEvent()),
+            ObjectUtils.firstNonNull(
+                trackedEntity,
+                relationshipRequestParams.getEnrollment(),
+                relationshipRequestParams.getEvent()));
+
+    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 
     return builder.includeDeleted(relationshipRequestParams.isIncludeDeleted()).build();
   }
 
-  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event) {
+  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event)
+      throws BadRequestException {
     if (Objects.nonNull(trackedEntity)) {
       return TRACKED_ENTITY;
     } else if (Objects.nonNull(enrollment)) {
@@ -106,7 +97,8 @@ class RelationshipRequestParamsMapper {
     } else if (Objects.nonNull(event)) {
       return EVENT;
     }
-    return null;
+    throw new BadRequestException(
+        "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
   }
 
   private boolean hasMoreThanOneNotNull(Object... values) {

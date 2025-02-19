@@ -116,22 +116,12 @@ class DefaultEnrollmentService implements EnrollmentService {
       return List.of();
     }
 
-    EnrollmentQueryParams queryParams;
     try {
-      queryParams =
-          paramsMapper.map(
-              EnrollmentOperationParams.builder().enrollments(uids).build(),
-              getCurrentUserDetails());
+      return getEnrollments(EnrollmentOperationParams.builder().enrollments(uids).build());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
     }
-
-    return getEnrollments(
-        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        EnrollmentParams.FALSE,
-        false,
-        queryParams.getOrganisationUnitMode());
   }
 
   @Nonnull
