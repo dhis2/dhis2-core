@@ -62,14 +62,6 @@ class RelationshipRequestParamsMapper {
       throws BadRequestException {
     UID trackedEntity = relationshipRequestParams.getTrackedEntity();
 
-    if (ObjectUtils.allNull(
-        trackedEntity,
-        relationshipRequestParams.getEnrollment(),
-        relationshipRequestParams.getEvent())) {
-      throw new BadRequestException(
-          "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
-    }
-
     if (hasMoreThanOneNotNull(
         trackedEntity,
         relationshipRequestParams.getEnrollment(),
@@ -77,8 +69,6 @@ class RelationshipRequestParamsMapper {
       throw new BadRequestException(
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
     }
-
-    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     RelationshipOperationParamsBuilder builder =
         RelationshipOperationParams.builder(
@@ -90,6 +80,8 @@ class RelationshipRequestParamsMapper {
                 trackedEntity,
                 relationshipRequestParams.getEnrollment(),
                 relationshipRequestParams.getEvent()));
+
+    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 
