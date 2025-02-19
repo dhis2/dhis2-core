@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.dataitems;
 
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -387,5 +388,32 @@ public class DataItemsAnalyticsTest {
         .body("dataItems.programAttributeId", allOf(hasItem("qDkgAbB5Jlk.spkM2E9dn2J")))
         .body("dataItems.id", allOf(hasItem("qDkgAbB5Jlk.spkM2E9dn2J.CNnT7FC710W")))
         .body("dataItems.programId", allOf(hasItem("qDkgAbB5Jlk")));
+  }
+
+  @Test
+  void testDataItems_PROGRAM_DATA_ELEMENT_OPTION_withProgramDataElementIdEqFilter() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("page=1")
+            .add("paging=false")
+            .add("order=name:asc")
+            .add("filter=dimensionItemType:eq:PROGRAM_DATA_ELEMENT_OPTION")
+            .add("filter=programDataElementId:eq:eBAyeGv0exc.fWIAEtYVEGk");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems", is(not(empty())))
+        .body("dataItems", hasSize(4))
+        .body("dataItems.dimensionItemType", allOf(hasItem("PROGRAM_DATA_ELEMENT_OPTION")))
+        .body("dataItems.dimensionItemType", not(hasItem("PROGRAM_ATTRIBUTE")))
+        .body("dataItems.dimensionItemType", not(hasItem("PROGRAM_ATTRIBUTE_OPTION")))
+        .body("dataItems.optionSetId", allOf(hasItem("iDFPKpFTiVw")))
+        .body("dataItems.programId", allOf(hasItem("eBAyeGv0exc")));
   }
 }

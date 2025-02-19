@@ -77,6 +77,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRA
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
 
@@ -159,7 +160,9 @@ public class FilteringHelper {
     if (CollectionUtils.isNotEmpty(filters)) {
       for (String filter : filters) {
         if (contains(filter, DIMENSION_TYPE_IN.getCombination())) {
-          return extractEntitiesFromInFilter(filter);
+          dataItemsEntity.addAll(extractEntitiesFromInFilter(filter));
+        } else if (contains(filter, DIMENSION_TYPE_EQUAL.getCombination())) {
+          dataItemsEntity.add(extractEntityFromEqualFilter(filter));
         }
       }
     }
