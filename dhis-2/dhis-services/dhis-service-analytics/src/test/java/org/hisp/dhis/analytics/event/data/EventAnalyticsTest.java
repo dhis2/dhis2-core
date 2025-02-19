@@ -123,9 +123,9 @@ abstract class EventAnalyticsTest {
   }
 
   protected EventQueryParams createRequestParamsMeasureCriteria(
-          ProgramStage withProgramStage, ValueType withQueryItemValueType) {
+      ProgramStage withProgramStage, ValueType withQueryItemValueType) {
     EventQueryParams.Builder params =
-            new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
+        new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
 
     params.addMeasureCriteria(MeasureFilter.GT, 10.0);
     params.addMeasureCriteria(MeasureFilter.LT, 20.0);

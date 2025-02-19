@@ -654,8 +654,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     mockRowSet();
 
     Grid resultGrid =
-            subject.getAggregatedEventData(
-                    createRequestParamsMeasureCriteria(programStage, ValueType.TEXT), createGrid(), 200000);
+        subject.getAggregatedEventData(
+            createRequestParamsMeasureCriteria(programStage, ValueType.TEXT), createGrid(), 200000);
 
     assertThat(resultGrid.getRows(), hasSize(1));
     assertThat(resultGrid.getRow(0), hasSize(4));
