@@ -117,7 +117,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
               week,
               calendar,
               PeriodType.MAP_WEEK_TYPE.get(periodType.getName()),
-              new DateTimeUnit(year, 1, 1));
+              periodType.adjustToStartOfWeek(new DateTimeUnit(year, 1, 4), calendar));
 
       end = calendar.plusWeeks(start, 1);
       end = calendar.minusDays(end, 1);
