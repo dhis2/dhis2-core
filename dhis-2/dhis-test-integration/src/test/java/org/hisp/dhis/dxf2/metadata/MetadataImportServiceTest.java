@@ -59,6 +59,7 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -1137,6 +1138,31 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
                     .getMessage()
                     .equals(
                         "Duplicate reference [XJGLlMAMCcn] (Category) on object Gender [faV8QvLgIwB] (CategoryCombo) for association `category`")));
+  }
+
+  @Test
+  void testImportVisualizationWithExistedLegendSet() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/favorites/metadata_with_legendSet.json").getInputStream(),
+            RenderFormat.JSON);
+    MetadataImportParams params = createParams(ImportStrategy.CREATE);
+    ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    assertEquals(Status.OK, report.getStatus());
+
+    metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/favorites/event_visualizations.json").getInputStream(),
+            RenderFormat.JSON);
+    params = createParams(ImportStrategy.CREATE);
+    report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    assertEquals(Status.OK, report.getStatus());
+
+    EventVisualization visualization = manager.get(EventVisualization.class, "gyYXi0rXAIc");
+    assertNotNull(visualization.getLegendDefinitions().getLegendSet());
+    assertEquals("CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid());
   }
 
   private MetadataImportParams createParams(ImportStrategy importStrategy) {
