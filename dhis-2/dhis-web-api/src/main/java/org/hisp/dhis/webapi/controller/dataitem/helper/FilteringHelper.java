@@ -405,7 +405,7 @@ public class FilteringHelper {
    * @param paramsMap the {@link MapSqlParameterSource}.
    */
   private static void handleDoubleComposedDimensionIdFilter(
-      String composedId, MapSqlParameterSource paramsMap) {
+      @Nonnull String composedId, @Nonnull MapSqlParameterSource paramsMap) {
     String[] composedIds = composedId.split(DIM_SEPARATOR);
 
     if (composedIds.length == 2) {
