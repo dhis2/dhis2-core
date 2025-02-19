@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
@@ -78,7 +79,7 @@ class DataIntegrityYamlReaderTest {
 
     // Assert that all the descriptions are unique.
     List<String> nameList =
-        checks.stream().map(DataIntegrityCheck::getDescription).sorted().toList();
+        checks.stream().map(DataIntegrityCheck::getDescription).sorted().collect(toList());
     assertEquals(nameList.size(), Set.copyOf(nameList).size());
 
     // Assert that codes consist of upper case letter and numbers only
