@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.message;
 
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
-
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -42,13 +40,8 @@ import org.springframework.stereotype.Component;
 public class ProgramMessageRequestParamMapper {
   public ProgramMessageOperationParams map(ProgramMessageRequestParams params)
       throws ConflictException, BadRequestException {
-    UID enrollmentUid =
-        validateDeprecatedParameter(
-            "programInstance", params.getProgramInstance(), "enrollment", params.getEnrollment());
-
-    UID eventUid =
-        validateDeprecatedParameter(
-            "programStageInstance", params.getProgramStageInstance(), "event", params.getEvent());
+    UID enrollmentUid = params.getEnrollment();
+    UID eventUid = params.getEvent();
 
     if (enrollmentUid == null && eventUid == null) {
       throw new ConflictException("Enrollment or Event must be specified.");

@@ -95,7 +95,6 @@ interface RelationshipItemMapper {
   @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "scheduledAt", source = "scheduledDate")
   @Mapping(target = "followUp", source = "enrollment.followup")
-  @Mapping(target = "legacyFollowUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")

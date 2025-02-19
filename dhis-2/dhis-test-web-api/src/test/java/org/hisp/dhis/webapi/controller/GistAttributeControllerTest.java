@@ -214,6 +214,9 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
     String url =
         "/userGroups/gist?fields=id,name&headless=true&filter=attributeValues.attribute.id:eq:{attr}";
     assertEquals(2, GET(url, attrId).content().size());
+    // cross-check with metadata API
+    url = url.replace("/gist", "");
+    assertEquals(2, GET(url, attrId).content().size());
   }
 
   private String postNewUserGroupWithAttributeValue(String name, String attrId, String value) {

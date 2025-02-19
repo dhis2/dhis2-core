@@ -131,7 +131,7 @@ public class TrackedEntityUpdateTests extends TrackerApiTest {
     JsonObjectBuilder trackedEntities =
         trackerImportExportActions
             .getTrackedEntities(
-                new QueryParamsBuilder().add("fields", "*").add("trackedEntity", teUID))
+                new QueryParamsBuilder().add("fields", "*").add("trackedEntities", teUID))
             .getBodyAsJsonBuilder()
             .addPropertyByJsonPath("trackedEntities[0].attributes[0].value", "Rabbit");
 
