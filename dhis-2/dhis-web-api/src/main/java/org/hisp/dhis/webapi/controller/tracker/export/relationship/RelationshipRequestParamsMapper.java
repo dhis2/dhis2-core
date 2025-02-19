@@ -102,7 +102,8 @@ class RelationshipRequestParamsMapper {
     return builder.includeDeleted(relationshipRequestParams.isIncludeDeleted()).build();
   }
 
-  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event) {
+  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event)
+      throws BadRequestException {
     if (Objects.nonNull(trackedEntity)) {
       return TRACKED_ENTITY;
     } else if (Objects.nonNull(enrollment)) {
@@ -110,7 +111,8 @@ class RelationshipRequestParamsMapper {
     } else if (Objects.nonNull(event)) {
       return EVENT;
     }
-    return null;
+    throw new BadRequestException(
+        "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
   }
 
   private boolean hasMoreThanOneNotNull(Object... values) {
