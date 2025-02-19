@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;

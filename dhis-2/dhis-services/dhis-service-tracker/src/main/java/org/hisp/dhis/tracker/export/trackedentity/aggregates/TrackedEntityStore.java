@@ -183,9 +183,10 @@ class TrackedEntityStore extends AbstractStore {
 
     String sql;
 
-    if (ctx.getQueryParams().hasProgram()) {
+    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
       sql = getTrackedEntitiesOwnershipSqlForSpecificProgram(skipUserScopeValidation);
-      paramSource.addValue("programUid", ctx.getQueryParams().getProgram().getUid());
+      paramSource.addValue(
+          "programUid", ctx.getQueryParams().getEnrolledInTrackerProgram().getUid());
     } else if (checkForOwnership) {
       sql = getTrackedEntitiesOwnershipSqlForAllPrograms(skipUserScopeValidation);
     } else {

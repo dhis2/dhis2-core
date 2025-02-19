@@ -103,7 +103,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.1.12</spring.version>
+    <spring.version>6.1.17</spring.version>
     <spring-session-core.version>3.4.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
@@ -119,7 +119,7 @@
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
-    <hypersistence-utils.version>3.9.1</hypersistence-utils.version>
+    <hypersistence-utils.version>3.9.2</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.11.0-pre1</c3p0.version>
     <HikariCP.version>6.2.1</HikariCP.version>
@@ -190,7 +190,7 @@
     <joda-time.version>2.13.1</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-beanutils.version>1.10.0</commons-beanutils.version>
+    <commons-beanutils.version>1.10.1</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
@@ -238,8 +238,8 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.0.2</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
+    <dependency-check-maven.version>12.1.0</dependency-check-maven.version>
+    <spotbugs-maven-plugin.version>4.9.1.0</spotbugs-maven-plugin.version>
     <spotless.version>2.44.2</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -247,7 +247,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.12.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.12.0</opentelemetry.version>
+    <opentelemetry.version>2.13.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -2152,6 +2152,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
