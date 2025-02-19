@@ -185,12 +185,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   // TODO why not move this into the MeasureFilter so it gets encapsulated, we have the same
   // map in JdbcAnalyticsManager line 144
   private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP =
-    Map.of(
-            MeasureFilter.EQ, "=",
-            MeasureFilter.GT, ">",
-            MeasureFilter.GE, ">=",
-            MeasureFilter.LT, "<",
-            MeasureFilter.LE, "<=");
+      Map.of(
+          MeasureFilter.EQ, "=",
+          MeasureFilter.GT, ">",
+          MeasureFilter.GE, ">=",
+          MeasureFilter.LT, "<",
+          MeasureFilter.LE, "<=");
+
   /**
    * Returns a SQL paging clause.
    *
@@ -587,7 +588,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Filtering criteria
     // ---------------------------------------------------------------------
     if (params.hasMeasureCriteria()) {
-        sql += getMeasureCriteriaSql(params, aggregateClause);
+      sql += getMeasureCriteriaSql(params, aggregateClause);
     }
 
     // ---------------------------------------------------------------------
@@ -1515,11 +1516,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Returns the "having" clause for the aggregated query.
-   * The "having" clause is calculated based on the measure criteria in the {@link EventQueryParams}
-   * and the existing aggregate clause.
+   * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
+   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause.
    *
-   * @param params          the {@link EventQueryParams}
+   * @param params the {@link EventQueryParams}
    * @param aggregateClause the aggregate clause to use in the SQL
    * @return the "having" clause
    */
@@ -1529,9 +1529,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
-      String sqlFilter = String.format(
-              " %s %s %s ",
-              aggregateClause, OPERATOR_SQL_MAP.get(filter), criterion);
+      String sqlFilter =
+          String.format(" %s %s %s ", aggregateClause, OPERATOR_SQL_MAP.get(filter), criterion);
 
       sqlBuilder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
