@@ -135,11 +135,41 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
         "OK",
         "Ownership transferred",
         PUT(
+                "/tracker/ownership/transfer?trackedEntity={te}&program={prog}&orgUnit={orgUnit}",
+                teUid,
+                pId,
+                orgUnitBUid)
+            .content(HttpStatus.OK));
+  }
+
+  @Test
+  void
+      shouldUpdateTrackerProgramOwnerAndBeAccessibleFromTransferredOrgUnitUsingDeprecatedParameter() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Ownership transferred",
+        PUT(
                 "/tracker/ownership/transfer?trackedEntity={te}&program={prog}&ou={ou}",
                 teUid,
                 pId,
                 orgUnitBUid)
             .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldFailToTransferIfGivenDeprecatedAndNewOrgUnitParameter() {
+    assertStartsWith(
+        "Only one parameter of 'ou'",
+        PUT(
+                "/tracker/ownership/transfer?trackedEntity={te}&program={prog}&ou={ou}&orgUnit={orgUnit}",
+                teUid,
+                pId,
+                orgUnitBUid,
+                orgUnitBUid)
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test
