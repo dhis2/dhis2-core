@@ -344,7 +344,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
     if (jCloudsStore.blobExists(cleanedKey)) {
-      return new ResourceFound(getResourceType(cleanedKey));
+      return new ResourceFound(getResource(cleanedKey));
     }
     if (keyExistsAsDirectory(cleanedKey)) {
       return new Redirect(resource + "/");
@@ -357,7 +357,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     return !jCloudsStore.getBlobList(prefix(cleanedKey)).isEmpty();
   }
 
-  private Resource getResourceType(@Nonnull String filePath) throws MalformedURLException {
+  private Resource getResource(@Nonnull String filePath) throws MalformedURLException {
     if (jCloudsStore.isUsingFileSystem()) {
       String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
       return new FileSystemResource(

@@ -73,8 +73,8 @@ public interface AppStorageService {
   void deleteApp(App app);
 
   /**
-   * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will one
-   * of :
+   * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will be
+   * one of :
    *
    * <ul>
    *   <li>{@link ResourceFound} - when the resource exists
