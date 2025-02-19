@@ -173,28 +173,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void getEventsFailsIfGivenAttributeCategoryOptionsAndDeprecatedAttributeCos() {
-    switchContextToUser(user);
-
-    assertStartsWith(
-        "Only one parameter of 'attributeCos' (deprecated",
-        GET("/tracker/events?attributeCategoryOptions=Hq3Kc6HK4OZ&attributeCos=Hq3Kc6HK4OZ")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void getEventsFailsIfGivenAttributeCcAndAttributeCategoryCombo() {
-    switchContextToUser(user);
-
-    assertStartsWith(
-        "Only one parameter of 'attributeCc' and 'attributeCategoryCombo'",
-        GET("/tracker/events?attributeCc=FQnYqKlIHxd&attributeCategoryCombo=YApXsOpwiXk")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
   void getEventByPathIsIdenticalToQueryParam() {
     TrackedEntity to = trackedEntity();
     Event event = event(enrollment(to));
@@ -1077,7 +1055,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(event.getEnrollment().getUid(), json.getString("enrollment").string());
     assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
     assertFalse(json.getBoolean("followUp").booleanValue());
-    assertFalse(json.getBoolean("followup").booleanValue());
     assertFalse(json.getBoolean("deleted").booleanValue());
     assertHasMember(json, "createdAt");
     assertHasMember(json, "createdAtClient");

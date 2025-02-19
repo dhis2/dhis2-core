@@ -81,7 +81,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -107,8 +106,6 @@ public class AuditController {
   private final IdentifiableObjectManager manager;
 
   private final DataValueAuditService dataValueAuditService;
-
-  private final TrackedEntityChangeLogService attributeValueChangeLogService;
 
   private final DataApprovalAuditService dataApprovalAuditService;
 
@@ -300,8 +297,7 @@ public class AuditController {
 
   @GetMapping("trackedEntity")
   public RootNode getTrackedEntityAudit(
-      @OpenApi.Param({UID[].class, TrackedEntity.class})
-          @RequestParam(required = false, defaultValue = "")
+      @OpenApi.Param({UID[].class, TrackedEntity.class}) @RequestParam(required = false)
           Set<UID> trackedEntities,
       @OpenApi.Param({UID[].class, User.class}) @RequestParam(required = false) List<String> user,
       @RequestParam(required = false) List<AuditOperationType> auditType,
