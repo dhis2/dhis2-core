@@ -335,6 +335,11 @@ public class JCloudsAppStorageService implements AppStorageService {
           resource);
       return new ResourceNotFound(resource);
     }
+    if (resource.isBlank()) {
+      String appBaseUrlWithTrailingSlash =
+          TextUtils.replaceAllRecursively("/" + app.getBaseUrl() + "/", "//", "/");
+      return new Redirect(appBaseUrlWithTrailingSlash);
+    }
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
     // if the resource is blank, we want to use the folder dir without the trailing '/'
@@ -346,11 +351,11 @@ public class JCloudsAppStorageService implements AppStorageService {
     String cleanedKey = TextUtils.replaceAllRecursively(key, "//", "/");
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
-    if (jCloudsStore.blobExists(cleanedKey) && !resolvedFileResource.isBlank()) {
+    if (jCloudsStore.blobExists(cleanedKey)) {
       return new ResourceFound(getResourceType(cleanedKey));
     }
     if (jCloudsStore.blobExists(cleanedKey + "/")) {
-      return new Redirect(resolvedFileResource + "/");
+      return new Redirect(cleanedKey + "/");
     }
     log.debug("ResourceNotFound {} for App {}", cleanedKey, app.getName());
     return new ResourceNotFound(resource);
