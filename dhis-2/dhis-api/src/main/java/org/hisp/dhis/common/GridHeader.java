@@ -73,6 +73,16 @@ public class GridHeader implements Serializable {
 
   private String displayColumn;
 
+  /**
+   * Indicates whether this GridHeader is virtual.
+   *
+   * <p>A virtual GridHeader does not correspond to any column in the underlying SQL result set.
+   * Instead, it is used to represent a placeholder or derived value in the grid. Virtual headers
+   * should always be assigned a default or empty value in the grid, and they do not increment the
+   * SQL result set index.
+   */
+  private boolean virtual = false;
+
   @With private transient RepeatableStageParams repeatableStageParams;
 
   // -------------------------------------------------------------------------
@@ -138,6 +148,17 @@ public class GridHeader implements Serializable {
     this.type = valueType.getJavaClass().getName();
     this.hidden = hidden;
     this.meta = meta;
+  }
+
+  public GridHeader(
+      String name,
+      String column,
+      ValueType valueType,
+      boolean hidden,
+      boolean meta,
+      boolean virtual) {
+    this(name, column, valueType, hidden, meta);
+    this.virtual = virtual;
   }
 
   /**
@@ -336,6 +357,11 @@ public class GridHeader implements Serializable {
     }
 
     return repeatableStageParams.getIndex();
+  }
+
+  @JsonProperty
+  public boolean isVirtual() {
+    return virtual;
   }
 
   // -------------------------------------------------------------------------
