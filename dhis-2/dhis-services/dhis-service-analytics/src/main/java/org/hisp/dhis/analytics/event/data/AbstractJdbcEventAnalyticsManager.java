@@ -93,6 +93,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
@@ -181,6 +182,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
+  // TODO why not move this into the MeasureFilter so it gets encapsulated, we have the same
+  // map in JdbcAnalyticsManager line 144
+  private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP =
+    Map.of(
+            MeasureFilter.EQ, "=",
+            MeasureFilter.GT, ">",
+            MeasureFilter.GE, ">=",
+            MeasureFilter.LT, "<",
+            MeasureFilter.LE, "<=");
   /**
    * Returns a SQL paging clause.
    *
@@ -571,6 +581,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (params.hasSortOrder()) {
       sql += "order by value " + params.getSortOrder().toString().toLowerCase() + " ";
+    }
+
+    // ---------------------------------------------------------------------
+    // Filtering criteria
+    // ---------------------------------------------------------------------
+    if (params.hasMeasureCriteria()) {
+        sql += getMeasureCriteriaSql(params, aggregateClause);
     }
 
     // ---------------------------------------------------------------------
@@ -1495,6 +1512,31 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected boolean useExperimentalAnalyticsQueryEngine() {
     return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
         || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+  }
+
+  /**
+   * Returns the "having" clause for the aggregated query.
+   * The "having" clause is calculated based on the measure criteria in the {@link EventQueryParams}
+   * and the existing aggregate clause.
+   *
+   * @param params          the {@link EventQueryParams}
+   * @param aggregateClause the aggregate clause to use in the SQL
+   * @return the "having" clause
+   */
+  protected String getMeasureCriteriaSql(EventQueryParams params, String aggregateClause) {
+    SqlHelper sqlHelper = new SqlHelper();
+    StringBuilder sqlBuilder = new StringBuilder();
+
+    for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
+      Double criterion = params.getMeasureCriteria().get(filter);
+      String sqlFilter = String.format(
+              " %s %s %s ",
+              aggregateClause, OPERATOR_SQL_MAP.get(filter), criterion);
+
+      sqlBuilder.append(sqlHelper.havingAnd()).append(sqlFilter);
+    }
+
+    return sqlBuilder.toString();
   }
 
   /**
