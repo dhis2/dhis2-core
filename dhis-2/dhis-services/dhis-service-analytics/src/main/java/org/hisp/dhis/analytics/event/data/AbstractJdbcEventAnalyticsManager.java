@@ -63,6 +63,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -110,9 +111,11 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
@@ -181,16 +184,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private final OrganisationUnitResolver organisationUnitResolver;
 
   private final AnalyticsSqlBuilder analyticsSqlBuilder;
-
-  // TODO why not move this into the MeasureFilter so it gets encapsulated, we have the same
-  // map in JdbcAnalyticsManager line 144
-  private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP =
-      Map.of(
-          MeasureFilter.EQ, "=",
-          MeasureFilter.GT, ">",
-          MeasureFilter.GE, ">=",
-          MeasureFilter.LT, "<",
-          MeasureFilter.LE, "<=");
 
   /**
    * Returns a SQL paging clause.
@@ -1530,12 +1523,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
       String sqlFilter =
-          String.format(" %s %s %s ", aggregateClause, OPERATOR_SQL_MAP.get(filter), criterion);
+          String.format(" %s %s %s ", aggregateClause, getOperatorByMeasureFilter(filter), criterion);
 
       sqlBuilder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
 
     return sqlBuilder.toString();
+  }
+
+  private String getOperatorByMeasureFilter(MeasureFilter filter) {
+    QueryOperator qo = QueryOperator.fromString(filter.toString());
+    if (qo != null) {
+      return qo.getValue();
+    }
+    throw new IllegalQueryException(E7149, filter.toString());
   }
 
   /**
