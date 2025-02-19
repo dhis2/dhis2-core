@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -140,31 +139,10 @@ class AuditControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldFailGetTrackedEntityInstanceAuditsWhenGivenTeiAndTrackedEntitiesParameters() {
-    assertEquals(
-        "Only one parameter of 'tei' (deprecated; semicolon separated UIDs) and 'trackedEntities' (comma separated UIDs) must be specified. Prefer 'trackedEntities' as 'tei' will be removed.",
-        GET(
-                "/audits/trackedEntityInstance?tei={te}&trackedEntities={te}",
-                te1.getUid() + ";" + te2.getUid(),
-                te1.getUid() + "," + te2.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldSuccessToGetTrackedEntityInstanceAuditsWhenPassingOnlyTeiParameter() {
-    assertStatus(
-        HttpStatus.OK,
-        GET("/audits/trackedEntityInstance?tei={te}", te1.getUid() + ";" + te2.getUid()));
-  }
-
-  @Test
   void shouldSuccessToGetTrackedEntityInstanceAuditsWhenPassingOnlyTrackedEntitiesParameter() {
     assertStatus(
         HttpStatus.OK,
-        GET(
-            "/audits/trackedEntityInstance?trackedEntities={te}",
-            te1.getUid() + "," + te2.getUid()));
+        GET("/audits/trackedEntity?trackedEntities={te}", te1.getUid() + "," + te2.getUid()));
   }
 
   @Test

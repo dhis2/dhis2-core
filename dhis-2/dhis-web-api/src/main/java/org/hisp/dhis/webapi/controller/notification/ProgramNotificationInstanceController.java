@@ -28,14 +28,12 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -83,27 +81,20 @@ public class ProgramNotificationInstanceController {
   @RequiresAuthority(anyOf = ALL)
   @GetMapping(produces = {"application/json"})
   public @ResponseBody Page<ProgramNotificationInstance> getScheduledMessage(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
       @RequestParam(required = false) UID enrollment,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
       @RequestParam(required = false) UID event,
       @RequestParam(required = false) Date scheduledAt,
       @RequestParam(required = false, defaultValue = "true") boolean paging,
       @RequestParam(required = false, defaultValue = "1") int page,
       @RequestParam(required = false, defaultValue = "50") int pageSize)
-      throws BadRequestException, ForbiddenException, NotFoundException {
-    UID enrollmentUid =
-        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
-    UID eventUid =
-        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
-
+      throws ForbiddenException, NotFoundException {
     Event storedEvent = null;
-    if (eventUid != null) {
-      storedEvent = eventService.getEvent(eventUid);
+    if (event != null) {
+      storedEvent = eventService.getEvent(event);
     }
     Enrollment storedEnrollment = null;
-    if (enrollmentUid != null) {
-      storedEnrollment = enrollmentService.getEnrollment(enrollmentUid);
+    if (enrollment != null) {
+      storedEnrollment = enrollmentService.getEnrollment(enrollment);
     }
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()

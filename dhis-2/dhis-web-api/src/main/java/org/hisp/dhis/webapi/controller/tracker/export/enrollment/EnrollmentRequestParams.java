@@ -69,23 +69,8 @@ public class EnrollmentRequestParams implements PageRequestParams {
 
   private List<OrderCriteria> order = new ArrayList<>();
 
-  /**
-   * Semicolon-delimited list of organisation unit UIDs.
-   *
-   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private String orgUnit;
-
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
-
-  /**
-   * @deprecated use {@link #orgUnitMode} instead.
-   */
-  @Deprecated(since = "2.41")
-  private OrganisationUnitSelectionMode ouMode;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
@@ -115,15 +100,6 @@ public class EnrollmentRequestParams implements PageRequestParams {
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
   private UID trackedEntity;
-
-  /**
-   * Semicolon-delimited list of enrollment UIDs.
-   *
-   * @deprecated use {@link #enrollments} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, Enrollment.class})
-  private String enrollment;
 
   @OpenApi.Property({UID[].class, Enrollment.class})
   private Set<UID> enrollments = new HashSet<>();
