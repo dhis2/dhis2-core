@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -87,13 +88,17 @@ public class TrackerOwnershipController {
   @PutMapping(value = "/transfer", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage updateTrackerProgramOwner(
-      @RequestParam UID trackedEntity, @RequestParam String program, @RequestParam String ou)
+      @RequestParam UID trackedEntity,
+      @RequestParam UID program,
+      @RequestParam(required = false) UID ou,
+      @RequestParam(required = false) UID orgUnit)
       throws BadRequestException, ForbiddenException, NotFoundException {
+    UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
+
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(
-            trackedEntity, UID.of(program), TrackedEntityParams.FALSE),
-        programService.getProgram(program),
-        organisationUnitService.getOrganisationUnit(ou));
+        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
+        programService.getProgram(program.getValue()),
+        organisationUnitService.getOrganisationUnit(orgUnitUid.getValue()));
     return ok("Ownership transferred");
   }
 
