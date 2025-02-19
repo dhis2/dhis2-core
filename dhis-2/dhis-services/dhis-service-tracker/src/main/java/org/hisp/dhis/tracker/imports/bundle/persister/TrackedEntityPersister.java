@@ -94,7 +94,7 @@ public class TrackedEntityPersister
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity entity) {
-    // DO NOTHING, Tei alone does not have ownership records
+    // DO NOTHING, TE alone does not have ownership records
 
   }
 
@@ -111,8 +111,7 @@ public class TrackedEntityPersister
 
   @Override
   protected String getUpdatedTrackedEntity(TrackedEntity entity) {
-    return null; // We don't need to keep track, Tei has already been
-    // updated
+    return null; // We don't need to keep track, TE has already been updated
   }
 
   @Override

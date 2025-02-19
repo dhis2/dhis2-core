@@ -31,7 +31,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -93,7 +92,7 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void shouldMapCorrectlyWhenProgramAndSpecificUpdateDatesSupplied() throws BadRequestException {
-    trackedEntityRequestParams.setOuMode(CAPTURE);
+    trackedEntityRequestParams.setOrgUnitMode(CAPTURE);
     trackedEntityRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
     trackedEntityRequestParams.setProgram(PROGRAM_UID);
     trackedEntityRequestParams.setProgramStage(PROGRAM_STAGE_UID);
@@ -137,7 +136,7 @@ class TrackedEntityRequestParamsMapperTest {
   @Test
   void shouldMapCorrectlyWhenTrackedEntityAndSpecificUpdatedRangeSupplied()
       throws BadRequestException {
-    trackedEntityRequestParams.setOuMode(CAPTURE);
+    trackedEntityRequestParams.setOrgUnitMode(CAPTURE);
     trackedEntityRequestParams.setUpdatedWithin("20h");
     trackedEntityRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
     trackedEntityRequestParams.setEventStatus(EventStatus.COMPLETED);
@@ -179,17 +178,6 @@ class TrackedEntityRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
-    trackedEntityRequestParams = new TrackedEntityRequestParams();
-    trackedEntityRequestParams.setOuMode(CAPTURE);
-    trackedEntityRequestParams.setProgram(PROGRAM_UID);
-
-    TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null, user);
-
-    assertEquals(CAPTURE, params.getOrgUnitMode());
-  }
-
-  @Test
   void shouldMapOrgUnitModeToDefaultGivenNoOrgUnitModeParamIsSet() throws BadRequestException {
     trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setProgram(PROGRAM_UID);
@@ -197,18 +185,6 @@ class TrackedEntityRequestParamsMapperTest {
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null, user);
 
     assertEquals(ACCESSIBLE, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    trackedEntityRequestParams.setOuMode(SELECTED);
-    trackedEntityRequestParams.setOrgUnitMode(SELECTED);
-
-    BadRequestException exception =
-        assertThrows(
-            BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, null, user));
-
-    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test
@@ -260,20 +236,6 @@ class TrackedEntityRequestParamsMapperTest {
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityType());
-  }
-
-  @Test
-  void testMappingAssignedUser() throws BadRequestException {
-    trackedEntityRequestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
-    trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
-    trackedEntityRequestParams.setProgram(PROGRAM_UID);
-
-    TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
-
-    assertContainsOnly(
-        UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-        params.getAssignedUserQueryParam().getAssignedUsers());
-    assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
   }
 
   @Test
@@ -333,43 +295,6 @@ class TrackedEntityRequestParamsMapperTest {
   void shouldFailIfGivenOccurredEventDatesAndNotEventStatus() {
     trackedEntityRequestParams.setEventOccurredBefore(EndDateTime.of("2020-11-11"));
     trackedEntityRequestParams.setEventOccurredAfter(StartDateTime.of("2020-10-10"));
-
-    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
-  }
-
-  @Test
-  void shouldFailIfGivenOrgUnitAndOrgUnits() {
-    trackedEntityRequestParams.setOrgUnit("IsdLBTOBzMi");
-    trackedEntityRequestParams.setOrgUnits(Set.of(UID.of("IsdLBTOBzMi")));
-
-    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
-  }
-
-  @Test
-  void shouldFailIfGivenTrackedEntityAndTrackedEntities() {
-    trackedEntityRequestParams.setTrackedEntity("IsdLBTOBzMi");
-    trackedEntityRequestParams.setTrackedEntities(Set.of(UID.of("IsdLBTOBzMi")));
-
-    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
-  }
-
-  @Test
-  void shouldFailIfGivenRemovedQueryParameter() {
-    trackedEntityRequestParams.setQuery("query");
-
-    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
-  }
-
-  @Test
-  void shouldFailIfGivenRemovedAttributeParameter() {
-    trackedEntityRequestParams.setAttribute("IsdLBTOBzMi");
-
-    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
-  }
-
-  @Test
-  void shouldFailIfGivenRemovedIncludeAllAttributesParameter() {
-    trackedEntityRequestParams.setIncludeAllAttributes("true");
 
     assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
   }
