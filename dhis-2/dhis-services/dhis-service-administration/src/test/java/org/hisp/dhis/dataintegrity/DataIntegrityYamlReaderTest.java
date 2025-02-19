@@ -78,7 +78,7 @@ class DataIntegrityYamlReaderTest {
 
     // Assert that all the descriptions are unique.
     List<String> nameList =
-        checks.stream().map(DataIntegrityCheck::getDescription).sorted().toList();
+        checks.stream().map(DataIntegrityCheck::getDescription).sorted().collect(toList());
     assertEquals(nameList.size(), Set.copyOf(nameList).size());
 
     // Assert that codes consist of upper case letter and numbers only
