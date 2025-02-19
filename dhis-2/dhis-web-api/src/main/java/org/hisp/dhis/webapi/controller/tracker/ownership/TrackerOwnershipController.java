@@ -90,7 +90,11 @@ public class TrackerOwnershipController {
   public WebMessage updateTrackerProgramOwner(
       @RequestParam UID trackedEntity,
       @RequestParam UID program,
-      @RequestParam(required = false) UID ou,
+      @Deprecated(
+              since = "2.41",
+              forRemoval = true) // TODO(tracker) remove `ou` parameter in favor of `orgUnit` in v43
+          @RequestParam(required = false)
+          UID ou,
       @RequestParam(required = false) UID orgUnit)
       throws BadRequestException, ForbiddenException, NotFoundException {
     UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
