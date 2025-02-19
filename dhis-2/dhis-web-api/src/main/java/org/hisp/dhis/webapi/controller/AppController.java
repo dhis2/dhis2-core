@@ -240,7 +240,8 @@ public class AppController {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        response.sendRedirect(redirect.path());
+        response.sendRedirect(application.getBaseUrl() + redirect.path());
+
         return;
       }
       if (resourceResult instanceof ResourceNotFound) {

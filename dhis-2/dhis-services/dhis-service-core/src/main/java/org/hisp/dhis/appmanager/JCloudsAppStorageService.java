@@ -336,9 +336,9 @@ public class JCloudsAppStorageService implements AppStorageService {
       return new ResourceNotFound(resource);
     }
     if (resource.isBlank()) {
-      String appBaseUrlWithTrailingSlash =
-          TextUtils.replaceAllRecursively("/" + app.getBaseUrl() + "/", "//", "/");
-      return new Redirect(appBaseUrlWithTrailingSlash);
+      //      String appBaseUrlWithTrailingSlash =
+      //          TextUtils.replaceAllRecursively("/" + app.getBaseUrl() + "/", "//", "/");
+      return new Redirect("/");
     }
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
@@ -355,7 +355,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       return new ResourceFound(getResourceType(cleanedKey));
     }
     if (jCloudsStore.blobExists(cleanedKey + "/")) {
-      return new Redirect(cleanedKey + "/");
+      return new Redirect(resource + "/");
     }
     log.debug("ResourceNotFound {} for App {}", cleanedKey, app.getName());
     return new ResourceNotFound(resource);
