@@ -17,7 +17,7 @@
 * Delete the docker image from the repository
 */
 
-@Library('pipeline-library') _
+@Library('pipeline-library@add-im-functions') _
 
 pipeline {
     agent {
@@ -34,7 +34,8 @@ pipeline {
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME_DEV = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core"
-        DOCKER_IMAGE_TAG = "${env.DHIS2_VERSION.replace('SNAPSHOT', 'rc')}"
+//        DOCKER_IMAGE_TAG = "${env.DHIS2_VERSION.replace('SNAPSHOT', 'rc')}"
+        DOCKER_IMAGE_TAG = "2.55.5"
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
         // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
         BASE_IMAGE = "tomcat:10.1.30-jre17"
@@ -48,167 +49,167 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                echo 'Building DHIS2 ...'
-                script {
-                    withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --activate-profiles --update-snapshots'
-                    }
-                }
-            }
-        }
+//        stage('Build') {
+//            steps {
+//                echo 'Building DHIS2 ...'
+//                script {
+//                    withMaven(options: [artifactsPublisher(disabled: true)]) {
+//                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --activate-profiles --update-snapshots'
+//                    }
+//                }
+//            }
+//        }
 
-        stage('Run api tests') {
-            environment {
-                RP_UUID = credentials('report-portal-access-uuid')
-                RP_ENABLE = 'true'
-                RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
-                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
-                DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}"
-            }
+//        stage('Run api tests') {
+//            environment {
+//                RP_UUID = credentials('report-portal-access-uuid')
+//                RP_ENABLE = 'true'
+//                RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
+//                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
+//                DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}"
+//            }
+//
+//            stages {
+//                stage('Build Docker image') {
+//                    steps {
+//                        withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+//                            withMaven(options: [artifactsPublisher(disabled: true)]) {
+//                                sh './dhis-2/build-docker-image.sh -t "${DOCKER_IMAGE_TAG}" -d'
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                stage('Run tests') {
+//                    steps {
+//                        script {
+//                            dir("dhis-2/dhis-test-e2e") {
+//                                sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
+//                                sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+//                            }
+//                        }
+//                    }
+//
+//                    post {
+//                        always {
+//                            script {
+//                                dir("dhis-2/dhis-test-e2e") {
+//                                    archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
+//                                }
+//                            }
+//                        }
+//
+//                        failure {
+//                            script {
+//                                dir("dhis-2/dhis-test-e2e") {
+//                                    sh "docker compose logs web > web-logs.txt"
+//                                    archiveArtifacts artifacts: "web-logs.txt"
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
-            stages {
-                stage('Build Docker image') {
-                    steps {
-                        withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                            withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                sh './dhis-2/build-docker-image.sh -t "${DOCKER_IMAGE_TAG}" -d'
-                            }
-                        }
-                    }
-                }
+//        stage('Publish images') {
+//            environment {
+//                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
+//            }
+//
+//            steps {
+//                script {
+//                    // Remove -rc suffix in case it's there, will be added later if needed.
+//                    oldImageTag = env.DOCKER_IMAGE_TAG.replace("-rc", "")
+//
+//                    // If version contains more than 2 dots... It's a hotfix.
+//                    isHotfix = oldImageTag.length() - oldImageTag.replace(".", "").length() > 2
+//
+//                    if (!isHotfix) {
+//                        oldImageTag = "$oldImageTag.0"
+//                    }
+//
+//                    imageTag = oldImageTag.replaceFirst(/^2\./, "")
+//
+//                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+//                        withMaven(options: [artifactsPublisher(disabled: true)]) {
+//                            if (env.DOCKER_IMAGE_TAG.endsWith("-rc")) {
+//                                imageTag = "$imageTag-rc"
+//
+//                                // Release candidates don't need immutable and rolling tags.
+//                                sh "./dhis-2/build-docker-image.sh -t $imageTag -d"
+//                            } else {
+//                                sh "./dhis-2/build-docker-image.sh -t $imageTag"
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
-                stage('Run tests') {
-                    steps {
-                        script {
-                            dir("dhis-2/dhis-test-e2e") {
-                                sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
-                            }
-                        }
-                    }
+//        stage('Sync WAR') {
+//            steps {
+//                echo 'Syncing WAR ...'
+//                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
+//                sh 'chmod +x copy-war-s3.sh'
+//                sh './copy-war-s3.sh stable ${GIT_BRANCH}'
+//            }
+//        }
 
-                    post {
-                        always {
-                            script {
-                                dir("dhis-2/dhis-test-e2e") {
-                                    archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
-                                }
-                            }
-                        }
-
-                        failure {
-                            script {
-                                dir("dhis-2/dhis-test-e2e") {
-                                    sh "docker compose logs web > web-logs.txt"
-                                    archiveArtifacts artifacts: "web-logs.txt"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Publish images') {
-            environment {
-                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
-            }
-
-            steps {
-                script {
-                    // Remove -rc suffix in case it's there, will be added later if needed.
-                    oldImageTag = env.DOCKER_IMAGE_TAG.replace("-rc", "")
-
-                    // If version contains more than 2 dots... It's a hotfix.
-                    isHotfix = oldImageTag.length() - oldImageTag.replace(".", "").length() > 2
-
-                    if (!isHotfix) {
-                        oldImageTag = "$oldImageTag.0"
-                    }
-
-                    imageTag = oldImageTag.replaceFirst(/^2\./, "")
-
-                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                        withMaven(options: [artifactsPublisher(disabled: true)]) {
-                            if (env.DOCKER_IMAGE_TAG.endsWith("-rc")) {
-                                imageTag = "$imageTag-rc"
-
-                                // Release candidates don't need immutable and rolling tags.
-                                sh "./dhis-2/build-docker-image.sh -t $imageTag -d"
-                            } else {
-                                sh "./dhis-2/build-docker-image.sh -t $imageTag"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Sync WAR') {
-            steps {
-                echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
-                sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh stable ${GIT_BRANCH}'
-            }
-        }
-
-        stage('Update stable.json') {
-            when {
-                buildingTag()
-            }
-
-            environment {
-                DHIS2_RELEASES_REPO = "dhis2/dhis2-releases"
-                GITHUB_EMAIL = 'apps@dhis2.org'
-                GITHUB_USER = 'dhis2-bot'
-            }
-
-            steps {
-                script {
-                    dir('dhis2-releases') {
-                        git url: "https://github.com/$DHIS2_RELEASES_REPO"
-
-                        majorVersion = imageTag.split("\\.")[0]
-
-                        sh """
-                            ./tools/update-stable-json/update_stable_json.py \
-                            --version $imageTag \
-                            --war-path ${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war \
-                            --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${imageTag}.war \
-                            --release-date \$(date +%F) \
-                            --json-file ./downloads/v1/versions/stable.json
-                        """
-
-                        withCredentials([
-                            file(credentialsId: 'github-private-signing-key', variable: 'SIGNING_PRIVATE_KEY_PATH'),
-                            file(credentialsId: 'github-public-signing-key', variable: 'SIGNING_PUBLIC_KEY_PATH')
-                        ]) {
-                            sh 'cp $SIGNING_PRIVATE_KEY_PATH ~/.ssh/signing_key'
-                            sh 'cp $SIGNING_PUBLIC_KEY_PATH ~/.ssh/signing_key.pub'
-                            sh 'chmod --changes 600 ~/.ssh/signing_key ~/.ssh/signing_key.pub'
-
-                            sh 'git config user.email "$GITHUB_EMAIL"'
-                            sh 'git config user.name "$GITHUB_USER"'
-                            sh 'git config user.signingkey ~/.ssh/signing_key.pub'
-                            sh 'git config commit.gpgSign true'
-                            sh 'git config gpg.format ssh'
-
-                            releasesBranch = "add-release-${imageTag}"
-
-                            sh "git checkout -b $releasesBranch"
-                            sh 'git add ./downloads/v1/versions/stable.json'
-                            sh "git diff-index --quiet HEAD || git commit -S -m \"chore: add version $imageTag to stable.json\""
-                            sh 'git push https://$GITHUB_TOKEN@github.com/$DHIS2_RELEASES_REPO'
-
-                            sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
-                        }
-                    }
-                }
-            }
-        }
+//        stage('Update stable.json') {
+//            when {
+//                buildingTag()
+//            }
+//
+//            environment {
+//                DHIS2_RELEASES_REPO = "dhis2/dhis2-releases"
+//                GITHUB_EMAIL = 'apps@dhis2.org'
+//                GITHUB_USER = 'dhis2-bot'
+//            }
+//
+//            steps {
+//                script {
+//                    dir('dhis2-releases') {
+//                        git url: "https://github.com/$DHIS2_RELEASES_REPO"
+//
+//                        majorVersion = imageTag.split("\\.")[0]
+//
+//                        sh """
+//                            ./tools/update-stable-json/update_stable_json.py \
+//                            --version $imageTag \
+//                            --war-path ${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war \
+//                            --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${imageTag}.war \
+//                            --release-date \$(date +%F) \
+//                            --json-file ./downloads/v1/versions/stable.json
+//                        """
+//
+//                        withCredentials([
+//                            file(credentialsId: 'github-private-signing-key', variable: 'SIGNING_PRIVATE_KEY_PATH'),
+//                            file(credentialsId: 'github-public-signing-key', variable: 'SIGNING_PUBLIC_KEY_PATH')
+//                        ]) {
+//                            sh 'cp $SIGNING_PRIVATE_KEY_PATH ~/.ssh/signing_key'
+//                            sh 'cp $SIGNING_PUBLIC_KEY_PATH ~/.ssh/signing_key.pub'
+//                            sh 'chmod --changes 600 ~/.ssh/signing_key ~/.ssh/signing_key.pub'
+//
+//                            sh 'git config user.email "$GITHUB_EMAIL"'
+//                            sh 'git config user.name "$GITHUB_USER"'
+//                            sh 'git config user.signingkey ~/.ssh/signing_key.pub'
+//                            sh 'git config commit.gpgSign true'
+//                            sh 'git config gpg.format ssh'
+//
+//                            releasesBranch = "add-release-${imageTag}"
+//
+//                            sh "git checkout -b $releasesBranch"
+//                            sh 'git add ./downloads/v1/versions/stable.json'
+//                            sh "git diff-index --quiet HEAD || git commit -S -m \"chore: add version $imageTag to stable.json\""
+//                            sh 'git push https://$GITHUB_TOKEN@github.com/$DHIS2_RELEASES_REPO'
+//
+//                            sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         stage('Update IM Play instance') {
             when {
@@ -252,14 +253,34 @@ pipeline {
                             }
 
                             dir('scripts/databases') {
-                                env.DATABASE_ID = sh(
-                                        returnStdout: true,
-                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
-                                ).trim()
-                            }
+//                                env.DATABASE_ID = sh(
+//                                        returnStdout: true,
+//                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
+//                                ).trim()
+                                env.DATABASE_ID = im.findDatabaseId('test-dbs', version)
 
-                            sh '[ -n "$DATABASE_ID" ]'
-                            echo "Database: ${env.DATABASE_ID}"
+                                if (!env.DATABASE_ID) {
+                                    echo "Couldn't find database for $version"
+
+                                    try {
+                                        env.DATABASE_ID = uploadNewDatabase(DATABASE_GROUP_NAME, version)
+                                    } catch (err) {
+                                        echo "Couldn't download database for ${version}: ${err}"
+
+                                        shortVersion = version.split('\\.').take(2).join('.')
+                                        env.DATABASE_ID = findDatabaseId(DATABASE_GROUP_NAME, shortVersion)
+
+                                        if (!env.DATABASE_ID) {
+                                            echo "Couldn't find database for $shortVersion"
+
+                                            env.DATABASE_ID = uploadNewDatabase(DATABASE_GROUP_NAME, shortVersion)
+                                        }
+                                    }
+                                }
+
+                                sh '[ -n "$DATABASE_ID" ]'
+                                echo "Database: ${env.DATABASE_ID}"
+                            }
 
                             dir('scripts/instances') {
                                 description = "DHIS 2 stable branch ${env.GIT_BRANCH}"
@@ -275,21 +296,21 @@ pipeline {
         }
     }
 
-    post {
-        failure {
-            script {
-                slack.sendMessage(
-                    '#ff0000',
-                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                    'team-backend'
-                )
-            }
-        }
-
-        aborted {
-            script {
-                slack.sendTimedoutMessage()
-            }
-        }
-    }
+//    post {
+//        failure {
+//            script {
+//                slack.sendMessage(
+//                    '#ff0000',
+//                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+//                    'team-backend'
+//                )
+//            }
+//        }
+//
+//        aborted {
+//            script {
+//                slack.sendTimedoutMessage()
+//            }
+//        }
+//    }
 }
