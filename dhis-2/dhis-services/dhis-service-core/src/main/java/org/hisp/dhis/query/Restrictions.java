@@ -149,24 +149,14 @@ public final class Restrictions {
     return or(schema, id, code, name);
   }
 
-  public static Disjunction or(Schema schema, Criterion... filters) {
+  private static Disjunction or(Schema schema, Criterion... filters) {
     return or(schema, List.of(filters));
   }
 
-  public static Disjunction or(Schema schema, List<? extends Criterion> filters) {
+  private static Disjunction or(Schema schema, List<? extends Criterion> filters) {
     Disjunction or = new Disjunction(schema);
     or.add(filters);
     return or;
-  }
-
-  public static Conjunction and(Schema schema, Criterion... filters) {
-    return and(schema, List.of(filters));
-  }
-
-  public static Conjunction and(Schema schema, List<? extends Criterion> filters) {
-    Conjunction and = new Conjunction(schema);
-    and.add(filters);
-    return and;
   }
 
   private Restrictions() {}
