@@ -1285,25 +1285,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertErrorMandatoryAttributeRequired(attrId, POST("/users", user));
   }
 
-  @Test
-  void testSortIAscending() {
-    POST(
-            "/categories/",
-            "{'name':'Child Health', 'shortName':'CAT1','dataDimensionType':'DISAGGREGATION'}")
-        .content(HttpStatus.CREATED);
-    POST(
-            "/categories/",
-            "{'name':'births attended by', 'shortName':'CAT2','dataDimensionType':'DISAGGREGATION'}")
-        .content(HttpStatus.CREATED);
-
-    JsonList<JsonIdentifiableObject> response =
-        GET("/categories?order=name:iasc")
-            .content()
-            .getList("categories", JsonIdentifiableObject.class);
-    assertEquals("births attended by", response.get(0).getDisplayName());
-    assertEquals("Child Health", response.get(1).getDisplayName());
-  }
-
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
     JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
     JsonList<JsonErrorReport> errorReports = msg.getTypeReport().getErrorReports();

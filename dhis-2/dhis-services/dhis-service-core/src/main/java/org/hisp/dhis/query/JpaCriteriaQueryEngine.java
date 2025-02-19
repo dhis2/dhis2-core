@@ -194,22 +194,13 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   @Nonnull
   private static <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
       Query query, CriteriaBuilder builder, Root<T> root) {
-    return query.getOrders().stream().map(o -> getOrderPredicate(builder, root, o)).toList();
-  }
-
-  private static <T extends IdentifiableObject>
-      jakarta.persistence.criteria.Order getOrderPredicate(
-          CriteriaBuilder builder, Root<T> root, @Nonnull Order order) {
-
-    if (order.isIgnoreCase()) {
-      return order.isAscending()
-          ? builder.asc(builder.lower(root.get(order.getProperty().getFieldName())))
-          : builder.desc(builder.lower(root.get(order.getProperty().getFieldName())));
-    }
-
-    return order.isAscending()
-        ? builder.asc(root.get(order.getProperty().getFieldName()))
-        : builder.desc(root.get(order.getProperty().getFieldName()));
+    return query.getOrders().stream()
+        .map(
+            o ->
+                o.isAscending()
+                    ? builder.asc(root.get(o.getProperty().getFieldName()))
+                    : builder.desc(root.get(o.getProperty().getFieldName())))
+        .toList();
   }
 
   private void initStoreMap() {
