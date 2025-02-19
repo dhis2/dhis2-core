@@ -547,7 +547,7 @@ public class RequestParamsValidator {
   }
 
   /**
-   * Validates that no org unit is present if the ou mode is ACCESSIBLE or CAPTURE. If it is, an
+   * Validates that no org unit is present if the orgUnitMode is ACCESSIBLE or CAPTURE. If it is, an
    * exception will be thrown. If the org unit mode is not defined, SELECTED will be used by default
    * if an org unit is present. Otherwise, ACCESSIBLE will be the default.
    *
