@@ -359,10 +359,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
 
     for (Integer year : years) {
-      List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
+      List<String> checks = getPartitionChecks(year, getEndDate(year));
 
-      table.addTablePartition(
-          checks, year, getStartDate(calendar, year), getEndDate(calendar, year));
+      table.addTablePartition(checks, year, getStartDate(calendar, year), getEndDate(year));
     }
 
     return table;
