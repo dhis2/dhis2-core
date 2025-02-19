@@ -54,6 +54,7 @@ import java.util.function.Supplier;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -70,6 +71,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -88,6 +90,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -126,6 +129,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private TrackerObjects trackerObjects;
+
   private User importUser;
 
   protected ObjectBundle setUpMetadata(String path) throws IOException {
@@ -154,11 +159,13 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     injectSecurityContextUser(importUser);
 
     TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
 
     manager.flush();
     manager.clear();
+
+    deleteTrackedEntity(UID.of("woitxQbWYNq"));
   }
 
   @BeforeEach
@@ -181,8 +188,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   private User owner;
 
   private User user;
-
-  private TrackedEntity softDeletedTrackedEntity;
 
   // Used to generate unique chars for creating TEA in test setup
   private int uniqueAttributeCharCounter = 0;
@@ -218,10 +223,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     trackedEntityType = trackedEntityTypeAccessible();
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
-
-    softDeletedTrackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
-    softDeletedTrackedEntity.setDeleted(true);
-    manager.save(softDeletedTrackedEntity, false);
   }
 
   @Test
@@ -337,6 +338,52 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void
+      shouldGetTrackedEntityWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    manager.delete(r);
+
+    JsonList<JsonRelationship> rels =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=relationships&includeDeleted=false",
+                from.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
+  }
+
+  @Test
+  void shouldGetTrackedEntityWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    manager.delete(r);
+    Event to = r.getTo().getEvent();
+
+    JsonList<JsonRelationship> rels =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=relationships&includeDeleted=true",
+                from.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship relationship = assertFirstRelationship(r, rels);
+    assertTrackedEntityWithinRelationship(from, relationship.getFrom());
+    assertTrackedEntityWithinRelationship(to, relationship.getTo());
+  }
+
+  @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
     assertHasSize(
@@ -436,9 +483,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
   @Test
   void shouldReturnNotFoundWhenGettingASoftDeletedTrackedEntityById() {
-    assertEquals(
-        HttpStatus.NOT_FOUND,
-        GET("/tracker/trackedEntities/" + softDeletedTrackedEntity.getUid()).status());
+    assertEquals(HttpStatus.NOT_FOUND, GET("/tracker/trackedEntities/" + "woitxQbWYNq").status());
   }
 
   @Test
@@ -565,6 +610,26 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
             assertTrue(
                 response.header("content-disposition").contains("filename=trackedEntities.csv.gz")),
         () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_GZIP)));
+  }
+
+  @Test
+  void shouldGetSoftDeletedEnrollmentsWhenIncludeDeletedIsTrue() {
+    JsonList<JsonTrackedEntity> json =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=enrollments&includeDeleted=true",
+                "woitxQbWYNq")
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    JsonList<JsonEnrollment> enrollments = json.get(0).getEnrollments();
+    enrollments.forEach(
+        en -> {
+          assertEquals(EnrollmentStatus.CANCELLED.name(), en.getStatus());
+          assertTrue(en.getDeleted());
+        });
+    enrollments.stream()
+        .flatMap(en -> en.getEvents().stream())
+        .forEach(ev -> assertTrue(ev.getDeleted()));
   }
 
   @Test
@@ -1002,6 +1067,25 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
+  }
+
+  private TrackedEntity deleteTrackedEntity(UID uid) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
+        trackerObjects.getTrackedEntities().stream()
+            .filter(te -> te.getTrackedEntity().equals(uid))
+            .findFirst()
+            .get();
+
+    TrackerObjects deleteTrackerObjects =
+        TrackerObjects.builder().trackedEntities(List.of(deletedTrackedEntity)).build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            deleteTrackerObjects));
+    manager.clear();
+    manager.flush();
+    return trackedEntity;
   }
 
   private JsonEnrollment assertDefaultEnrollmentResponse(

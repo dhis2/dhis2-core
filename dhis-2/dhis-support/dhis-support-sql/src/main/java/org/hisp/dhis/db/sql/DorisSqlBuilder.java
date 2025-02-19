@@ -293,6 +293,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
+  @Override
+  public String log10(String expression) {
+    return String.format("log(%s, 10)", expression);
+  }
+
   // Statements
 
   @Override

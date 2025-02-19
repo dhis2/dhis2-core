@@ -152,18 +152,6 @@ public class MaintenanceController {
     maintenanceService.deleteSoftDeletedDataValues();
   }
 
-  /**
-   * @deprecated use {@link #deleteSoftDeletedEvents()} instead
-   */
-  @Deprecated(since = "2.41", forRemoval = true)
-  @RequestMapping(
-      value = "/softDeletedProgramStageInstanceRemoval",
-      method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteSoftDeletedEventsDeprecated() {
-    maintenanceService.deleteSoftDeletedEvents();
-  }
-
   @RequestMapping(
       value = "/softDeletedEventRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
@@ -180,36 +168,12 @@ public class MaintenanceController {
     maintenanceService.deleteSoftDeletedRelationships();
   }
 
-  /**
-   * @deprecated use {@link #deleteSoftDeletedEnrollments()} instead
-   */
-  @Deprecated(since = "2.41", forRemoval = true)
-  @RequestMapping(
-      value = "/softDeletedProgramInstanceRemoval",
-      method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteSoftDeletedEnrollmentsDeprecated() {
-    maintenanceService.deleteSoftDeletedEnrollments();
-  }
-
   @RequestMapping(
       value = "/softDeletedEnrollmentRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEnrollments() {
     maintenanceService.deleteSoftDeletedEnrollments();
-  }
-
-  /**
-   * @deprecated use {@link #deleteSoftDeletedTrackedEntities()}
-   */
-  @Deprecated(since = "2.41", forRemoval = true)
-  @RequestMapping(
-      value = "/softDeletedTrackedEntityInstanceRemoval",
-      method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteSoftDeletedTrackedEntityInstancesDeprecated() {
-    maintenanceService.deleteSoftDeletedTrackedEntities();
   }
 
   @RequestMapping(
@@ -320,9 +284,6 @@ public class MaintenanceController {
       @RequestParam(required = false) boolean softDeletedRelationshipRemoval,
       @RequestParam(required = false) boolean softDeletedEventRemoval,
       @RequestParam(required = false) boolean softDeletedEnrollmentRemoval,
-      @Deprecated(since = "2.41", forRemoval = true) // use softDeletedTrackedEntityRemoval instead
-          @RequestParam(required = false)
-          boolean softDeletedTrackedEntityInstanceRemoval,
       @RequestParam(required = false) boolean softDeletedTrackedEntityRemoval,
       @RequestParam(required = false) boolean sqlViewsDrop,
       @RequestParam(required = false) boolean sqlViewsCreate,
@@ -370,7 +331,7 @@ public class MaintenanceController {
       deleteSoftDeletedEnrollments();
     }
 
-    if (softDeletedTrackedEntityRemoval || softDeletedTrackedEntityInstanceRemoval) {
+    if (softDeletedTrackedEntityRemoval) {
       deleteSoftDeletedTrackedEntities();
     }
 
