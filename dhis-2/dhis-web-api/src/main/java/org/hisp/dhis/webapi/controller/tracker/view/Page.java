@@ -40,11 +40,9 @@ import lombok.ToString;
 import org.hisp.dhis.common.OpenApi;
 import org.springframework.web.util.UriComponentsBuilder;
 
-// TODO(tracker): revisit if we can create a Page class used by all products when we remove the
-// deprecated fields
 /**
- * Translates {@link org.hisp.dhis.tracker.export.Page} to its JSON representation. Future changes
- * need to be consistent with how pagination is done across products.
+ * Translates {@link org.hisp.dhis.tracker.Page} to its JSON representation. Future changes need to
+ * be consistent with how pagination is done across products.
  */
 @Getter
 @ToString
@@ -58,103 +56,46 @@ public class Page<T> {
   @JsonProperty private final Pager pager;
 
   /**
-   * @deprecated in favor of {@link Pager#page}
-   */
-  @Deprecated(since = "2.41")
-  @JsonProperty
-  private final Integer page;
-
-  /**
-   * @deprecated in favor of {@link Pager#pageSize}
-   */
-  @Deprecated(since = "2.41")
-  @JsonProperty
-  private final Integer pageSize;
-
-  /**
-   * @deprecated in favor of {@link Pager#total}
-   */
-  @Deprecated(since = "2.41")
-  @JsonProperty
-  private final Long total;
-
-  /**
-   * @deprecated in favor of {@link Pager#pageCount}
-   */
-  @Deprecated(since = "2.41")
-  @JsonProperty
-  private final Integer pageCount;
-
-  /**
-   * Create a page without totals but prev and next page links. This page will also not include any
-   * of the deprecated flat pagination fields.
-   */
-  private Page(
-      String key, List<T> values, int page, int pageSize, String prevPage, String nextPage) {
-    this.items.put(key, values);
-    this.page = null;
-    this.pageSize = null;
-    this.total = null;
-    this.pageCount = null;
-    this.pager = new Pager(page, pageSize, null, null, prevPage, nextPage);
-  }
-
-  /**
-   * Returns a page which will only serialize the items into {@link #items} under given {@code key}.
-   * All other fields will be omitted from the JSON.
+   * Create a page without a pager.
+   *
+   * <p>Only the items will be serialized into {@link #items} under given {@code key}. All other
+   * fields will be omitted from the JSON.
    */
   private Page(String key, List<T> values) {
     this.items.put(key, values);
     this.pager = null;
-    this.page = null;
-    this.pageSize = null;
-    this.total = null;
-    this.pageCount = null;
   }
 
   /**
-   * Create a page without totals.
+   * Create a page with a pager without a total, prev and next page links.
    *
-   * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
-   *     to the standard pager object.
+   * <p>The pager will thus only show the page and its size.
    */
-  @Deprecated(since = "2.41")
   private Page(String key, List<T> values, int page, int pageSize) {
     this.items.put(key, values);
-    this.page = page;
-    this.pageSize = pageSize;
-    this.total = null;
-    this.pageCount = null;
     this.pager = new Pager(page, pageSize, null, null, null, null);
   }
 
-  /**
-   * Create a page with totals.
-   *
-   * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
-   *     to the standard pager object.
-   */
-  @Deprecated(since = "2.41")
+  /** Create a page with a pager with a total but without prev and next page links. */
   private Page(String key, List<T> values, int page, int pageSize, long total) {
     this.items.put(key, values);
-    this.page = page;
-    this.pageSize = pageSize;
-    this.total = total;
-    this.pageCount = (int) Math.ceil(total / (double) pageSize);
-    this.pager = new Pager(page, pageSize, total, this.pageCount, null, null);
+    int pageCount = (int) Math.ceil(total / (double) pageSize);
+    this.pager = new Pager(page, pageSize, total, pageCount, null, null);
+  }
+
+  /** Create a page with a pager without a total but with prev and next page links. */
+  private Page(
+      String key, List<T> values, int page, int pageSize, String prevPage, String nextPage) {
+    this.items.put(key, values);
+    this.pager = new Pager(page, pageSize, null, null, prevPage, nextPage);
   }
 
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Pagination details will be serialized as well including totals only if {@link
-   * org.hisp.dhis.tracker.export.Page#getTotal()} is not null. The deprecated flat pagination
-   * fields will be serialized as well!
-   *
-   * @deprecated Only use if you need to serialize the deprecated flat pagination fields in addition
-   *     to the standard pager object.
+   * org.hisp.dhis.tracker.Page#getTotal()} is not null.
    */
-  @Deprecated(since = "2.41")
-  public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.export.Page<T> pager) {
+  public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.Page<T> pager) {
     if (pager.getTotal() != null) {
       return new Page<>(
           key, pager.getItems(), pager.getPage(), pager.getPageSize(), pager.getTotal());
@@ -165,10 +106,10 @@ public class Page<T> {
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Previous and next page links will be generated based on the request if {@link
-   * org.hisp.dhis.tracker.export.Page#getPrevPage()} or next are not null.
+   * org.hisp.dhis.tracker.Page#getPrevPage()} or next are not null.
    */
   public static <T> Page<T> withPager(
-      String key, org.hisp.dhis.tracker.export.Page<T> pager, String requestURL) {
+      String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
     String prevPage = getPageLink(requestURL, pager.getPrevPage());
     String nextPage = getPageLink(requestURL, pager.getNextPage());
 

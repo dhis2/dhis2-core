@@ -86,11 +86,11 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -1295,6 +1295,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       DataElement de = item.getKey();
       List<QueryFilter> filters = item.getValue();
       final String deUid = de.getUid();
+      final int itemValueType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
       final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
 
@@ -1316,7 +1317,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 : lower(dataValueValueSql);
 
         String bindParameter = "parameter_" + filterCount;
-        int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
         eventDataValuesWhereSql.append(hlp.whereAnd());
 
@@ -1326,12 +1326,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           mapSqlParameterSource.addValue(
               bindParameter,
               QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-              itemType);
+              itemValueType);
 
           eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
         } else {
           mapSqlParameterSource.addValue(
-              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
+              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemValueType);
 
           eventDataValuesWhereSql
               .append(" ")
@@ -1502,9 +1502,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
-    int pageSize = pageParams.getPageSize();
-    int offset = (pageParams.getPage() - 1) * pageParams.getPageSize();
-    return " limit " + pageSize + " offset " + offset + " ";
+    return " limit " + pageParams.getPageSize() + " offset " + pageParams.getOffset() + " ";
   }
 
   private String getOrderQuery(EventQueryParams params) {

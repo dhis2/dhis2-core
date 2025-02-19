@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -72,7 +71,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private PotentialDuplicate potentialDuplicate2;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 
@@ -126,12 +125,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -151,12 +144,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -174,31 +161,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/potentialDuplicates?skipPaging=true").content(HttpStatus.OK).asA(JsonPage.class);
-
-    JsonList<JsonPotentialDuplicate> list =
-        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
-    assertContainsOnly(
-        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
-        list.toList(JsonPotentialDuplicate::getUid));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -212,34 +174,6 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
         List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
         list.toList(JsonPotentialDuplicate::getUid));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET("/potentialDuplicates?paging=false&skipPaging=false")
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET("/potentialDuplicates?paging=true&skipPaging=true")
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 
   @Test

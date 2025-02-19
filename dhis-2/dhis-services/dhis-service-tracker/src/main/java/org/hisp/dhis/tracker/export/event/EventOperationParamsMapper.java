@@ -89,7 +89,8 @@ class EventOperationParamsMapper {
         validateProgramStage(
             applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
+        paramsValidator.validateTrackedEntity(
+            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);

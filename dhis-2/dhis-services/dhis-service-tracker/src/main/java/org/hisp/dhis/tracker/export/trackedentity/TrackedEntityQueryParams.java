@@ -68,11 +68,17 @@ public class TrackedEntityQueryParams {
    */
   private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
-  /** Program for which instances in the response must be enrolled in. */
-  private Program program;
+  /**
+   * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
+   * #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   */
+  private Program enrolledInTrackerProgram;
 
-  /** Programs to fetch. */
-  private List<Program> programs = List.of();
+  /**
+   * Tracker programs the user has data read access to. This should not be set when {@link
+   * #enrolledInTrackerProgram} is set.
+   */
+  private List<Program> accessibleTrackerPrograms = List.of();
 
   /** Status of a tracked entities enrollment into a given program. */
   private EnrollmentStatus enrollmentStatus;
@@ -172,8 +178,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Indicates whether these parameters specify a program. */
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram != null;
   }
 
   /** Indicates whether these parameters specify an enrollment status. */
@@ -308,21 +314,22 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Program getProgram() {
-    return program;
+  public Program getEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram;
   }
 
-  public TrackedEntityQueryParams setProgram(Program program) {
-    this.program = program;
+  public TrackedEntityQueryParams setEnrolledInTrackerProgram(Program enrolledInTrackerProgram) {
+    this.enrolledInTrackerProgram = enrolledInTrackerProgram;
     return this;
   }
 
-  public List<Program> getPrograms() {
-    return programs;
+  public List<Program> getAccessibleTrackerPrograms() {
+    return accessibleTrackerPrograms;
   }
 
-  public TrackedEntityQueryParams setPrograms(List<Program> programs) {
-    this.programs = programs;
+  public TrackedEntityQueryParams setAccessibleTrackerPrograms(
+      List<Program> accessibleTrackerPrograms) {
+    this.accessibleTrackerPrograms = accessibleTrackerPrograms;
     return this;
   }
 

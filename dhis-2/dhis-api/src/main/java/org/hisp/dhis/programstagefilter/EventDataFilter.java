@@ -167,10 +167,8 @@ public class EventDataFilter implements Serializable {
     return isNull;
   }
 
-  public void setNull(Boolean nullFilter) {
-    if (nullFilter != null) {
-      this.isNull = nullFilter;
-    }
+  public void setNull(Boolean isNull) {
+    this.isNull = isNull;
   }
 
   @JsonProperty

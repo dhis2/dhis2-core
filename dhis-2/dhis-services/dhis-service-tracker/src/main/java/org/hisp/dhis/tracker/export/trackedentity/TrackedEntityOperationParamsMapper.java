@@ -114,8 +114,8 @@ class TrackedEntityOperationParamsMapper {
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
 
     params
-        .setProgram(program)
-        .setPrograms(programs)
+        .setEnrolledInTrackerProgram(program)
+        .setAccessibleTrackerPrograms(programs)
         .setProgramStage(programStage)
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
@@ -296,8 +296,9 @@ class TrackedEntityOperationParamsMapper {
   private List<UID> getSearchableAttributeIds(TrackedEntityQueryParams params) {
     List<UID> searchableAttributeIds = new ArrayList<>();
 
-    if (params.hasProgram()) {
-      searchableAttributeIds.addAll(UID.of(params.getProgram().getSearchableAttributeIds()));
+    if (params.hasEnrolledInTrackerProgram()) {
+      searchableAttributeIds.addAll(
+          UID.of(params.getEnrolledInTrackerProgram().getSearchableAttributeIds()));
     }
 
     if (params.hasTrackedEntityType()) {
@@ -305,7 +306,7 @@ class TrackedEntityOperationParamsMapper {
           UID.of(params.getTrackedEntityType().getSearchableAttributeIds()));
     }
 
-    if (!params.hasProgram() && !params.hasTrackedEntityType()) {
+    if (!params.hasEnrolledInTrackerProgram() && !params.hasTrackedEntityType()) {
       searchableAttributeIds.addAll(
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(UID::of)
@@ -345,13 +346,13 @@ class TrackedEntityOperationParamsMapper {
       }
     }
 
-    if (params.hasProgram()) {
-      maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+    if (params.hasEnrolledInTrackerProgram()) {
+      maxTeiLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
 
       if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
         throw new IllegalQueryException(
             "At least "
-                + params.getProgram().getMinAttributesRequiredToSearch()
+                + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
                 + " attributes should be mentioned in the search criteria.");
       }
     }
@@ -404,9 +405,11 @@ class TrackedEntityOperationParamsMapper {
       return false;
     }
 
-    return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+    return (!params.hasFilters()
+            && params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
-            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+            && params.getFilters().size()
+                < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {

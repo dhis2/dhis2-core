@@ -154,7 +154,7 @@ public class JsonAssertions {
     assertEquals(expected.getValue(), j.getString(member).string(), member + " UID");
   }
 
-  public static void assertEnrollmentWithinRelationship(
+  public static void assertEnrollmentWithinRelationshipItem(
       Enrollment expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
     assertFalse(jsonEnrollment.isEmpty(), "enrollment should not be empty");
