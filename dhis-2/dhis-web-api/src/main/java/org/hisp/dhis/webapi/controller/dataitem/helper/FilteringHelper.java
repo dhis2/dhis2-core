@@ -77,7 +77,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRA
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_IN;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
 
