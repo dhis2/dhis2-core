@@ -1518,17 +1518,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getMeasureCriteriaSql(EventQueryParams params, String aggregateClause) {
     SqlHelper sqlHelper = new SqlHelper();
-    StringBuilder sqlBuilder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
       String sqlFilter =
-          String.format(" %s %s %s ", aggregateClause, getOperatorByMeasureFilter(filter), criterion);
+          String.format(
+              " %s %s %s ", aggregateClause, getOperatorByMeasureFilter(filter), criterion);
 
-      sqlBuilder.append(sqlHelper.havingAnd()).append(sqlFilter);
+      builder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
 
-    return sqlBuilder.toString();
+    return builder.toString();
   }
 
   private String getOperatorByMeasureFilter(MeasureFilter filter) {
