@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.auth;
+package org.hisp.dhis.feedback;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.function.UnaryOperator;
+import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_GATEWAY;
+
+import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webmessage.WebResponse;
 
-/**
- * @author Morten Olav Hansen
- */
+@Getter
 @Accessors(chain = true)
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "type")
-@JsonSubTypes({
-  @JsonSubTypes.Type(value = HttpBasicAuthScheme.class, name = HttpBasicAuthScheme.HTTP_BASIC_TYPE),
-  @JsonSubTypes.Type(value = ApiTokenAuthScheme.class, name = ApiTokenAuthScheme.API_TOKEN_TYPE),
-  @JsonSubTypes.Type(
-      value = ApiHeadersAuthScheme.class,
-      name = ApiHeadersAuthScheme.API_HEADERS_TYPE),
-  @JsonSubTypes.Type(
-      value = ApiQueryParamsAuthScheme.class,
-      name = ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE),
-  @JsonSubTypes.Type(
-      value = OAuth2ClientCredentialsuthAuthScheme.class,
-      name = OAuth2ClientCredentialsuthAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)
-})
-public interface AuthScheme extends Serializable {
-  void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams)
-      throws Exception;
-
-  AuthScheme encrypt(UnaryOperator<String> encryptFunc);
-
-  AuthScheme decrypt(UnaryOperator<String> decryptFunc);
-
-  @JsonProperty
-  String getType();
+@OpenApi.Response(status = BAD_GATEWAY, value = WebResponse.class)
+public final class BadGatewayException extends Exception {
+  public BadGatewayException(String message) {
+    super(message);
+  }
 }

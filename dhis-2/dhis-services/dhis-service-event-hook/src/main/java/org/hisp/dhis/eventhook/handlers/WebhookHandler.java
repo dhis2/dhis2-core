@@ -74,7 +74,11 @@ public class WebhookHandler implements Handler {
 
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     if (webhookTarget.getAuth() != null) {
-      webhookTarget.getAuth().apply(httpHeaders, queryParams);
+      try {
+        webhookTarget.getAuth().apply(httpHeaders, queryParams);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
     HttpEntity<String> httpEntity = new HttpEntity<>(payload, httpHeaders);

@@ -171,7 +171,7 @@ public class RouteService {
    */
   public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
-      throws IOException, BadRequestException {
+      throws Exception {
 
     HttpHeaders headers = filterRequestHeaders(request);
     route.getHeaders().forEach(headers::add);
