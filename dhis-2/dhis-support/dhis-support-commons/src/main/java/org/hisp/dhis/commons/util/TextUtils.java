@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.RegexUtils;
@@ -641,10 +642,10 @@ public class TextUtils {
   /**
    * Method to remove a trailing '/' if it's the last char.
    *
-   * @param string
+   * @param string string to update if condition met
    * @return string with no trailing '/' or the string unchanged
    */
-  public static String removeAnyTrailingSlash(String string) {
+  public static String removeAnyTrailingSlash(@Nonnull String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
   }
 
