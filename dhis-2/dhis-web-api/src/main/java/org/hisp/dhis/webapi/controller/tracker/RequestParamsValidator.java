@@ -510,7 +510,7 @@ public class RequestParamsValidator {
     Filter filter = filters.stream().filter(tf -> tf.getUid().equals(uid)).findFirst().orElse(null);
 
     if (filter != null) {
-      filter.getFilters().addAll(newFilters);
+      filter.addFilters(newFilters);
     } else {
       filters.add(new Filter(uid, newFilters));
     }

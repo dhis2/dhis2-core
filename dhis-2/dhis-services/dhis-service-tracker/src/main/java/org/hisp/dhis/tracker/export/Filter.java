@@ -50,6 +50,10 @@ public class Filter {
     this.filters = filters;
   }
 
+  public void addFilters(List<QueryFilter> newFilters) {
+    filters.addAll(newFilters);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
