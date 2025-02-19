@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
-import lombok.experimental.UtilityClass;
-import org.hisp.dhis.common.QueryItem;
+import static org.junit.jupiter.api.Assertions.*;
 
-@UtilityClass
-public class CteUtils {
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.Select;
+import org.hisp.dhis.analytics.util.optimizer.cte.pipeline.CteOptimizerParser;
+import org.junit.jupiter.api.Test;
 
-  public static String computeKey(QueryItem queryItem) {
-    if (queryItem.hasProgramStage()) {
-      return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
-    } else if (queryItem.isProgramIndicator()) {
-      return "pi_" + queryItem.getItemId();
-    }
-    return "";
+class CteOptimizerParserTest {
+
+  @Test
+  void testParse_ValidSelect() throws CteOptimizerException {
+    CteOptimizerParser parser = new CteOptimizerParser();
+    String sql = "SELECT * FROM employees;";
+    Statement statement = parser.parse(sql);
+    assertNotNull(statement, "Statement should not be null for valid SQL");
+    assertInstanceOf(Select.class, statement, "Statement should be a Select statement");
   }
 
-  public static String getIdentifier(QueryItem queryItem) {
-    String stage = queryItem.hasProgramStage() ? queryItem.getProgramStage().getUid() : "default";
-    return stage + "." + queryItem.getItemId();
+  @Test
+  void testParse_InvalidSQL() {
+    CteOptimizerParser parser = new CteOptimizerParser();
+    String sql = "SELECT FROM invalid_table"; // Invalid SQL
+    assertThrows(
+        CteOptimizerException.class,
+        () -> {
+          parser.parse(sql);
+        },
+        "Invalid SQL should throw CteOptimizerException");
+  }
+
+  @Test
+  void testParse_EmptySQL() throws CteOptimizerException {
+    CteOptimizerParser parser = new CteOptimizerParser();
+    String sql = "";
+    assertThrows(
+        CteOptimizerException.class,
+        () -> {
+          parser.parse(sql);
+        },
+        "Invalid SQL should throw CteOptimizerException");
   }
 }
