@@ -185,7 +185,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldThrowNotFoundExceptionWhenTeInPayloadDoesNotExist() throws Exception {
-    String nonExistentUID = CodeGenerator.generateUid();
+    String nonExistentUID = UID.generate();
     PotentialDuplicate potentialDuplicate =
         new PotentialDuplicate(UID.of(origin), UID.of(nonExistentUID));
 
