@@ -97,7 +97,11 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       App app = appManager.getApp(appName, contextPath);
       if (app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS) {
         log.debug("AppOverrideFilter :: Overridden app " + appName + " found, serving override");
-        serveInstalledAppResource(app, resourcePath, request, response);
+        // if resource path is blank, this means the base app dir has been requested
+        // this is due to the complex regex above which has to include '/' at the end, so correct
+        // app names are matched e.g. dhis-web-user v dhis-web-user-profile
+        serveInstalledAppResource(
+            app, resourcePath.isBlank() ? "/" : resourcePath, request, response);
 
         return;
       } else {
