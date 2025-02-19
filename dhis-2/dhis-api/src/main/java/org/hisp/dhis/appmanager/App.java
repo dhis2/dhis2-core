@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 
@@ -312,12 +311,6 @@ public class App implements Serializable {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFolderName() {
     return folderName;
-  }
-
-  public String getFolderNameNoTrailingSlash() {
-    if (this.folderName != null) {
-      return folderName.endsWith("/") ? StringUtils.chop(folderName) : folderName;
-    } else return "";
   }
 
   public void setFolderName(String folderName) {

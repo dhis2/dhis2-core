@@ -340,23 +340,22 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
-    // if the resource is blank, we want to use the folder dir without the trailing '/'
-    // so that we are matching the resource request to the rules correctly
-    String key =
-        resolvedFileResource.isBlank()
-            ? app.getFolderNameNoTrailingSlash()
-            : app.getFolderName() + ("/" + resolvedFileResource);
+    String key = app.getFolderName() + ("/" + resolvedFileResource);
     String cleanedKey = TextUtils.replaceAllRecursively(key, "//", "/");
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
     if (jCloudsStore.blobExists(cleanedKey)) {
       return new ResourceFound(getResourceType(cleanedKey));
     }
-    if (!jCloudsStore.getBlobList(prefix(cleanedKey)).isEmpty()) {
+    if (keyExistsAsDirectory(cleanedKey)) {
       return new Redirect(resource + "/");
     }
     log.debug("ResourceNotFound {} for App {}", cleanedKey, app.getName());
     return new ResourceNotFound(resource);
+  }
+
+  private boolean keyExistsAsDirectory(String cleanedKey) {
+    return !jCloudsStore.getBlobList(prefix(cleanedKey)).isEmpty();
   }
 
   private Resource getResourceType(@Nonnull String filePath) throws MalformedURLException {
