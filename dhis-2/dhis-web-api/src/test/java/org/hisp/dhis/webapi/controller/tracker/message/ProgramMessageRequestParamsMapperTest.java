@@ -52,7 +52,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class ProgramMessageRequestParamsMapperTest {
   private static final UID ENROLLMENT = UID.generate();
-  private static final UID PROGRAM_INSTANCE = UID.generate();
   private static final UID EVENT = UID.generate();
 
   @InjectMocks private ProgramMessageRequestParamMapper subject;
@@ -76,21 +75,6 @@ class ProgramMessageRequestParamsMapperTest {
     ProgramMessageOperationParams operationParams = subject.map(requestParams);
 
     assertEquals(ENROLLMENT, operationParams.getEnrollment());
-  }
-
-  @Test
-  void shouldFailIfBothNewAndDeprecatedParametersProvided() {
-    ProgramMessageRequestParams requestParams = new ProgramMessageRequestParams();
-    requestParams.setEnrollment(ENROLLMENT);
-    requestParams.setProgramInstance(PROGRAM_INSTANCE);
-
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> subject.map(requestParams));
-
-    assertStartsWith(
-        "Only one parameter of 'programInstance' and 'enrollment' must be specified."
-            + " Prefer 'enrollment' as 'programInstance' will be removed.",
-        exception.getMessage());
   }
 
   @Test

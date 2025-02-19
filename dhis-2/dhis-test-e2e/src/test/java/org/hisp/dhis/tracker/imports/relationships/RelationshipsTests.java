@@ -514,7 +514,9 @@ public class RelationshipsTests extends TrackerApiTest {
             .addArray("relationships", relationship1, relationship2)
             .build();
 
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(payload);
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            payload, new QueryParamsBuilder().add("async=false"));
 
     response.validateSuccessfulImport().validate().body("stats.created", equalTo(expectedCount));
 

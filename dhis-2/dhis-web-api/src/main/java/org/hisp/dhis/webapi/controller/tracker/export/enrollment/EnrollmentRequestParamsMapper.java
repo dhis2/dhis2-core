@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
@@ -63,21 +61,9 @@ class EnrollmentRequestParamsMapper {
 
   public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException {
-    Set<UID> orgUnits =
-        validateDeprecatedUidsParameter(
-            "orgUnit",
-            enrollmentRequestParams.getOrgUnit(),
-            "orgUnits",
-            enrollmentRequestParams.getOrgUnits());
-
     OrganisationUnitSelectionMode orgUnitMode =
-        validateDeprecatedParameter(
-            "ouMode",
-            enrollmentRequestParams.getOuMode(),
-            "orgUnitMode",
-            enrollmentRequestParams.getOrgUnitMode());
-
-    orgUnitMode = validateOrgUnitModeForEnrollmentsAndEvents(orgUnits, orgUnitMode);
+        validateOrgUnitModeForEnrollmentsAndEvents(
+            enrollmentRequestParams.getOrgUnits(), enrollmentRequestParams.getOrgUnitMode());
 
     EnrollmentStatus enrollmentStatus =
         validateDeprecatedParameter(
@@ -88,13 +74,6 @@ class EnrollmentRequestParamsMapper {
 
     validateOrderParams(enrollmentRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
     validateRequestParams(enrollmentRequestParams);
-
-    Set<UID> enrollmentUids =
-        validateDeprecatedUidsParameter(
-            "enrollment",
-            enrollmentRequestParams.getEnrollment(),
-            "enrollments",
-            enrollmentRequestParams.getEnrollments());
 
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
@@ -110,10 +89,10 @@ class EnrollmentRequestParamsMapper {
                 applyIfNotNull(enrollmentRequestParams.getEnrolledBefore(), EndDateTime::toDate))
             .trackedEntityType(enrollmentRequestParams.getTrackedEntityType())
             .trackedEntity(enrollmentRequestParams.getTrackedEntity())
-            .orgUnits(orgUnits)
+            .orgUnits(enrollmentRequestParams.getOrgUnits())
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
-            .enrollments(enrollmentUids)
+            .enrollments(enrollmentRequestParams.getEnrollments())
             .enrollmentParams(fieldsParamMapper.map(enrollmentRequestParams.getFields()));
 
     mapOrderParam(builder, enrollmentRequestParams.getOrder());

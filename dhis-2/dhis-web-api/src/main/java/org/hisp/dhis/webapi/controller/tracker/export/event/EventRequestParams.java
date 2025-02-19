@@ -99,24 +99,9 @@ public class EventRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, OrganisationUnit.class})
   private UID orgUnit;
 
-  /**
-   * @deprecated use {@link #orgUnitMode} instead.
-   */
-  @Deprecated(since = "2.41")
-  private OrganisationUnitSelectionMode ouMode;
-
   private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserSelectionMode assignedUserMode;
-
-  /**
-   * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
-   *
-   * @deprecated use {@link #assignedUsers} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, User.class})
-  private String assignedUser;
 
   @OpenApi.Property({UID[].class, User.class})
   private Set<UID> assignedUsers = new HashSet<>();
@@ -147,39 +132,13 @@ public class EventRequestParams implements PageRequestParams {
 
   private EventStatus status;
 
-  /**
-   * @deprecated use {@link #attributeCategoryCombo}
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID.class, CategoryCombo.class})
-  private UID attributeCc;
-
   @OpenApi.Property({UID.class, CategoryCombo.class})
   private UID attributeCategoryCombo;
-
-  /**
-   * Semicolon-delimited list of category option UIDs.
-   *
-   * @deprecated use {@link #attributeCategoryOptions} instead which is comma instead of semicolon
-   *     separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, CategoryOption.class})
-  private String attributeCos;
 
   @OpenApi.Property({UID[].class, CategoryOption.class})
   private Set<UID> attributeCategoryOptions = new HashSet<>();
 
   private boolean includeDeleted = false;
-
-  /**
-   * Semicolon-delimited list of event UIDs.
-   *
-   * @deprecated use {@link #events} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, Event.class})
-  private String event;
 
   @OpenApi.Property({UID[].class, Event.class})
   private Set<UID> events = new HashSet<>();
