@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -70,7 +70,7 @@ class RelationshipOperationParamsMapper {
           .build();
     }
 
-    IdentifiableObject entity =
+    SoftDeletableObject entity =
         switch (params.getType()) {
           case TRACKED_ENTITY ->
               getTrackedEntity(params.getIdentifier(), params.isIncludeDeleted());

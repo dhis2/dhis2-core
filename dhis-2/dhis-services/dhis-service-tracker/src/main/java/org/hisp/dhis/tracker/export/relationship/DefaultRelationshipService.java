@@ -37,13 +37,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -91,7 +88,7 @@ public class DefaultRelationshipService implements RelationshipService {
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
-    return map(getRelationships(queryParams));
+    return map(relationshipStore.getRelationships(queryParams));
   }
 
   @Override
@@ -100,7 +97,7 @@ public class DefaultRelationshipService implements RelationshipService {
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
-    return map(getRelationships(queryParams, pageParams));
+    return map(relationshipStore.getRelationships(queryParams, pageParams));
   }
 
   @Override
@@ -142,77 +139,6 @@ public class DefaultRelationshipService implements RelationshipService {
   public List<Relationship> getRelationshipsByRelationshipKeys(
       List<RelationshipKey> relationshipKeys) {
     return relationshipStore.getRelationshipsByRelationshipKeys(relationshipKeys);
-  }
-
-  private List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
-    return relationshipStore.getByTrackedEntity(trackedEntity, queryParams).stream().toList();
-  }
-
-  private Page<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams) {
-    return relationshipStore.getByTrackedEntity(trackedEntity, queryParams, pageParams);
-  }
-
-  private List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams) {
-    return relationshipStore.getByEnrollment(enrollment, queryParams).stream().toList();
-  }
-
-  private Page<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams) {
-    return relationshipStore.getByEnrollment(enrollment, queryParams, pageParams);
-  }
-
-  private List<Relationship> getRelationshipsByEvent(
-      Event event, RelationshipQueryParams queryParams) {
-    return relationshipStore.getByEvent(event, queryParams).stream().toList();
-  }
-
-  public Page<Relationship> getRelationshipsByEvent(
-      Event event, RelationshipQueryParams queryParams, PageParams pageParams) {
-    return relationshipStore.getByEvent(event, queryParams, pageParams);
-  }
-
-  private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
-    if (queryParams.getEntity() == null) {
-      return relationshipStore.getRelationshipsByUid(queryParams);
-    }
-
-    if (queryParams.getEntity() instanceof TrackedEntity te) {
-      return getRelationshipsByTrackedEntity(te, queryParams);
-    }
-
-    if (queryParams.getEntity() instanceof Enrollment en) {
-      return getRelationshipsByEnrollment(en, queryParams);
-    }
-
-    if (queryParams.getEntity() instanceof Event ev) {
-      return getRelationshipsByEvent(ev, queryParams);
-    }
-
-    throw new IllegalArgumentException("Unknown type");
-  }
-
-  private Page<Relationship> getRelationships(
-      RelationshipQueryParams queryParams, PageParams pageParams) {
-    if (queryParams.getEntity() == null) {
-      return relationshipStore.getRelationshipsByUid(queryParams, pageParams);
-    }
-
-    if (queryParams.getEntity() instanceof TrackedEntity te) {
-      return getRelationshipsByTrackedEntity(te, queryParams, pageParams);
-    }
-
-    if (queryParams.getEntity() instanceof Enrollment en) {
-      return getRelationshipsByEnrollment(en, queryParams, pageParams);
-    }
-
-    if (queryParams.getEntity() instanceof Event ev) {
-      return getRelationshipsByEvent(ev, queryParams, pageParams);
-    }
-
-    throw new IllegalArgumentException("Unknown type");
   }
 
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */

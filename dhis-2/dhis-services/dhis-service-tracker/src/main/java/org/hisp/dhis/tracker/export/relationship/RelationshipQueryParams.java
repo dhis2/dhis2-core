@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @Builder(toBuilder = true)
 class RelationshipQueryParams {
-  private final IdentifiableObject entity;
+  private final SoftDeletableObject entity;
 
   @Builder.Default private List<Order> order = List.of();
 

@@ -91,16 +91,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
-  public @Nonnull List<Relationship> getRelationshipsByUid(RelationshipQueryParams params) {
-    return relationshipsList(params, null);
-  }
-
-  public @Nonnull Page<Relationship> getRelationshipsByUid(
-      RelationshipQueryParams params, PageParams pageParams) {
-    return getPage(
-        pageParams, relationshipsList(params, pageParams), () -> countRelationships(params));
-  }
-
   public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity, boolean includeDeleted) {
     @Language("hql")
     String hql =
@@ -150,46 +140,18 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return events.stream().findFirst();
   }
 
-  public List<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
+  public List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
 
-    return relationshipsList(trackedEntity, queryParams, null);
+    return relationshipsList(queryParams, null);
   }
 
-  public List<Relationship> getByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams) {
-    return relationshipsList(enrollment, queryParams, null);
-  }
-
-  public List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams) {
-    return relationshipsList(event, queryParams, null);
-  }
-
-  public Page<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity,
-      final RelationshipQueryParams queryParams,
-      @Nonnull PageParams pageParams) {
+  public Page<Relationship> getRelationships(
+      final RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
 
     return getPage(
         pageParams,
-        relationshipsList(trackedEntity, queryParams, pageParams),
-        () -> countRelationships(trackedEntity, queryParams));
-  }
-
-  public Page<Relationship> getByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
-    return getPage(
-        pageParams,
-        relationshipsList(enrollment, queryParams, pageParams),
-        () -> countRelationships(enrollment, queryParams));
-  }
-
-  public Page<Relationship> getByEvent(
-      Event event, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
-    return getPage(
-        pageParams,
-        relationshipsList(event, queryParams, pageParams),
-        () -> countRelationships(event, queryParams));
+        relationshipsList(queryParams, pageParams),
+        () -> countRelationships(queryParams));
   }
 
   public List<Relationship> getRelationshipsByRelationshipKeys(
@@ -255,17 +217,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()).list();
   }
 
-  /**
-   * Query to extract relationships with the order by clause and pagination if required
-   *
-   * @param entity to filter the relationships by
-   * @param queryParams
-   * @return
-   * @param <T> relationships list
-   */
-  private <T extends SoftDeletableObject> List<Relationship> relationshipsList(
-      T entity, RelationshipQueryParams queryParams, PageParams pageParams) {
-    CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(entity, queryParams);
+  private List<Relationship> relationshipsList(
+      RelationshipQueryParams queryParams, PageParams pageParams) {
+    CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(queryParams);
 
     TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
@@ -277,44 +231,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return query.getResultList();
   }
 
-  private List<Relationship> relationshipsList(
-      RelationshipQueryParams queryParams, PageParams pageParams) {
-    CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(queryParams);
-
-    TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
-
-    if (pageParams != null) {
-      query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
-      query.setMaxResults(pageParams.getPageSize());
-    }
-
-    return query.getResultList();
-  }
-
-  /**
-   * Query to count relationships avoiding not required constraints such as the order by clause
-   *
-   * @param queryParams
-   * @return
-   * @param <T> relationships count
-   */
-  private <T extends SoftDeletableObject> long countRelationships(
-      T entity, RelationshipQueryParams queryParams) {
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
-
-    Root<Relationship> root = criteriaQuery.from(Relationship.class);
-
-    criteriaQuery.select(builder.count(root));
-
-    criteriaQuery.where(
-        whereConditionPredicates(
-            entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
-
-    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
-  }
-
   private long countRelationships(RelationshipQueryParams queryParams) {
 
     CriteriaBuilder builder = getCriteriaBuilder();
@@ -324,16 +240,25 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     criteriaQuery.select(builder.count(root));
 
-    List<Predicate> predicates = new ArrayList<>();
+    if (queryParams.getEntity() != null) {
+      criteriaQuery.where(
+          whereConditionPredicates(
+              queryParams.getEntity(),
+              builder,
+              criteriaQuery,
+              root,
+              queryParams.isIncludeDeleted()));
+    } else {
+      List<Predicate> predicates = new ArrayList<>();
 
-    predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
+      predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
 
-    if (!queryParams.isIncludeDeleted()) {
-      predicates.add(builder.equal(root.get("deleted"), false));
+      if (!queryParams.isIncludeDeleted()) {
+        predicates.add(builder.equal(root.get("deleted"), false));
+      }
+
+      criteriaQuery.where(predicates.toArray(Predicate[]::new));
     }
-
-    criteriaQuery.where(predicates.toArray(Predicate[]::new));
-
     return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
   }
 
@@ -345,33 +270,25 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     criteriaQuery.select(root);
 
-    List<Predicate> predicates = new ArrayList<>();
+    if (queryParams.getEntity() != null) {
+      criteriaQuery.where(
+          whereConditionPredicates(
+              queryParams.getEntity(),
+              builder,
+              criteriaQuery,
+              root,
+              queryParams.isIncludeDeleted()));
+    } else {
+      List<Predicate> predicates = new ArrayList<>();
 
-    predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
+      predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
 
-    if (!queryParams.isIncludeDeleted()) {
-      predicates.add(builder.equal(root.get("deleted"), false));
+      if (!queryParams.isIncludeDeleted()) {
+        predicates.add(builder.equal(root.get("deleted"), false));
+      }
+
+      criteriaQuery.where(predicates.toArray(Predicate[]::new));
     }
-
-    criteriaQuery.where(predicates.toArray(Predicate[]::new));
-
-    criteriaQuery.orderBy(orderBy(queryParams, builder, root));
-
-    return criteriaQuery;
-  }
-
-  private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(
-      T entity, RelationshipQueryParams queryParams) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
-
-    Root<Relationship> root = criteriaQuery.from(Relationship.class);
-
-    criteriaQuery.select(root);
-
-    criteriaQuery.where(
-        whereConditionPredicates(
-            entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
     criteriaQuery.orderBy(orderBy(queryParams, builder, root));
 
