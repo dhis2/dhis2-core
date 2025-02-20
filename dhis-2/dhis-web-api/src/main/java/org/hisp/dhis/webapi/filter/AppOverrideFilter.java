@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.filter;
 import static java.util.regex.Pattern.compile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,7 +85,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
     String pathInfo = request.getPathInfo();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
 
-    Matcher m = APP_PATH_PATTERN.matcher(pathInfo);
+    Matcher m = APP_PATH_PATTERN.matcher(Strings.nullToEmpty(pathInfo));
     if (m.find()) {
       String appName = m.group(1);
       String resourcePath = m.group(2);
