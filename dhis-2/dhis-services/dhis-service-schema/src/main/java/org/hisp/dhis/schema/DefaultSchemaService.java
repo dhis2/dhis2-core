@@ -35,6 +35,8 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.persistence.EntityManagerFactory;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -53,11 +55,13 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.descriptors.AccessSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AnalyticsPeriodBoundarySchemaDescriptor;
@@ -516,5 +520,55 @@ public class DefaultSchemaService implements SchemaService {
     String[] camelCaseWords =
         org.apache.commons.lang3.StringUtils.capitalize(schema.getPlural()).split("(?=[A-Z])");
     return org.apache.commons.lang3.StringUtils.join(camelCaseWords, " ").trim();
+  }
+  @Override
+  public QueryPath getQueryPath(Schema schema, String path) {
+    Schema curSchema = schema;
+    Property curProperty = null;
+    boolean persisted = true;
+    List<String> alias = new ArrayList<>();
+    String[] pathComponents = path.split("\\.");
+
+    if (pathComponents.length == 0) {
+      return null;
+    }
+
+    for (int idx = 0; idx < pathComponents.length; idx++) {
+      String name = pathComponents[idx];
+      curProperty = curSchema.getProperty(name);
+
+      if (isFilterByAttributeId(curProperty, name)) {
+        // filter by Attribute Uid
+        persisted = false;
+        curProperty = curSchema.getProperty("attributeValues");
+      }
+
+      if (curProperty == null) {
+        throw new RuntimeException("Invalid path property: " + name);
+      }
+
+      if (!curProperty.isPersisted()) {
+        persisted = false;
+      }
+
+      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
+        return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+      }
+
+      if (curProperty.isCollection()) {
+        curSchema = getDynamicSchema(curProperty.getItemKlass());
+        alias.add(curProperty.getFieldName());
+      } else if (!curProperty.isSimple()) {
+        curSchema = getDynamicSchema(curProperty.getKlass());
+        alias.add(curProperty.getFieldName());
+      } else {
+        return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+      }
+    }
+    return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+  }
+
+  private boolean isFilterByAttributeId(Property curProperty, String propertyName) {
+    return curProperty == null && CodeGenerator.isValidUid(propertyName);
   }
 }

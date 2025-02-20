@@ -37,10 +37,4 @@ import org.hisp.dhis.schema.Schema;
  */
 public interface QueryPlanner {
   QueryPlan planQuery(Query query);
-
-  QueryPlan planQuery(Query query, boolean persistedOnly);
-
-  QueryPath getQueryPath(Schema schema, String path);
-
-  Path<?> getQueryPath(Root<?> root, Schema schema, String path);
 }

@@ -32,13 +32,12 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
@@ -47,25 +46,7 @@ import org.hisp.dhis.schema.Property;
  */
 public class GreaterThanOperator<T extends Comparable<? super T>> extends Operator<T> {
   public GreaterThanOperator(T arg) {
-    super("gt", Typed.from(String.class, Boolean.class, Number.class, Date.class), arg);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    Property property = queryPath.getProperty();
-
-    if (property.isCollection()) {
-      Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
-
-      if (value == null) {
-        throw new QueryException(
-            "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
-      }
-
-      return Restrictions.sizeGt(queryPath.getPath(), value);
-    }
-
-    return Restrictions.gt(queryPath.getPath(), args.get(0));
+    super("gt", List.of(String.class, Boolean.class, Number.class, Date.class), arg);
   }
 
   @Override

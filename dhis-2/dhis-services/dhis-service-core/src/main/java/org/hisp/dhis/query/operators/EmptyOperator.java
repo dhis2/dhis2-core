@@ -31,11 +31,10 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
@@ -43,12 +42,7 @@ import org.hisp.dhis.query.planner.QueryPath;
  */
 public class EmptyOperator<T extends Comparable<? super T>> extends Operator<T> {
   public EmptyOperator() {
-    super("empty", Typed.from(Collection.class));
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.sizeEq(queryPath.getPath(), 0);
+    super("empty", List.of(Collection.class));
   }
 
   @Override

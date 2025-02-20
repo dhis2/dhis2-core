@@ -221,7 +221,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           throw new QueryParserException("Invalid filter: " + filter);
         }
 
-        Path<?> queryPath = queryPlanner.getQueryPath(root, schema, split[0]);
+        Path<?> queryPath = getQueryPath(root, schema, split[0]);
 
         Property property = queryParser.getProperty(schema, split[0]);
 
@@ -235,5 +235,42 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     }
 
     return conjunction;
+  }
+
+  private Path<?> getQueryPath(Root<?> root, Schema schema, String path) {
+    Schema curSchema = schema;
+    Property curProperty;
+    String[] pathComponents = path.split("\\.");
+
+    Path<?> currentPath = root;
+
+    if (pathComponents.length == 0) {
+      return null;
+    }
+
+    for (int idx = 0; idx < pathComponents.length; idx++) {
+      String name = pathComponents[idx];
+      curProperty = curSchema.getProperty(name);
+
+      if (curProperty == null) {
+        throw new RuntimeException("Invalid path property: " + name);
+      }
+
+      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
+        return root.join(curProperty.getFieldName());
+      }
+
+      if (curProperty.isCollection()) {
+        currentPath = root.join(curProperty.getFieldName());
+        curSchema = schemaService.getDynamicSchema(curProperty.getItemKlass());
+      } else if (!curProperty.isSimple()) {
+        curSchema = schemaService.getDynamicSchema(curProperty.getKlass());
+        currentPath = root.join(curProperty.getFieldName());
+      } else {
+        return currentPath.get(curProperty.getFieldName());
+      }
+    }
+
+    return currentPath;
   }
 }

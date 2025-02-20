@@ -59,17 +59,15 @@ class DefaultQueryServiceTest {
 
   @Mock private QueryParser queryParser;
 
-  @Mock private JpaCriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
+  @Mock private JpaCriteriaQueryEngine criteriaQueryEngine;
 
-  @Mock private InMemoryQueryEngine<OrganisationUnit> inMemoryQueryEngine;
+  @Mock private InMemoryQueryEngine inMemoryQueryEngine;
 
   @Mock private SchemaService schemaService;
 
-  @Mock private SystemSettingsService settingsService;
-
   @BeforeEach
   public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, settingsService);
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService);
     subject =
         new DefaultQueryService(
             queryParser, queryPlanner, schemaService, criteriaQueryEngine, inMemoryQueryEngine);
@@ -91,9 +89,9 @@ class DefaultQueryServiceTest {
     assertThat(orgUnits.size(), is(20));
   }
 
-  private List<OrganisationUnit> createOrgUnits(int size) {
+  private List<IdentifiableObject> createOrgUnits(int size) {
 
-    List<OrganisationUnit> result = new ArrayList<>();
+    List<IdentifiableObject> result = new ArrayList<>();
     for (int i = 0; i < size; i++) {
       result.add(createOrganisationUnit((char) (i + 'A')));
     }

@@ -58,7 +58,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Autowired private SchemaService schemaService;
 
-  @Autowired private InMemoryQueryEngine<? extends IdentifiableObject> queryEngine;
+  @Autowired private InMemoryQueryEngine queryEngine;
 
   private List<DataElement> dataElements = new ArrayList<>();
 
@@ -316,47 +316,6 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDateRangeWithConjunction() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setObjects(dataElements);
-    Conjunction conjunction = query.conjunction();
-    conjunction.add(Restrictions.ge("created", Year.parseYear("2002").getStart()));
-    conjunction.add(Restrictions.le("created", Year.parseYear("2004").getStart()));
-    query.add(conjunction);
-    List<? extends IdentifiableObject> objects = queryEngine.query(query);
-    assertEquals(3, objects.size());
-    assertTrue(collectionContainsUid(objects, "deabcdefghB"));
-    assertTrue(collectionContainsUid(objects, "deabcdefghC"));
-    assertTrue(collectionContainsUid(objects, "deabcdefghD"));
-  }
-
-  @Test
-  void testDoubleEqConjunction() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setObjects(dataElements);
-    Conjunction conjunction = query.conjunction();
-    conjunction.add(Restrictions.eq("id", "deabcdefghD"));
-    conjunction.add(Restrictions.eq("id", "deabcdefghF"));
-    query.add(conjunction);
-    List<? extends IdentifiableObject> objects = queryEngine.query(query);
-    assertEquals(0, objects.size());
-  }
-
-  @Test
-  void testDoubleEqDisjunction() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    query.setObjects(dataElements);
-    Disjunction disjunction = query.disjunction();
-    disjunction.add(Restrictions.eq("id", "deabcdefghD"));
-    disjunction.add(Restrictions.eq("id", "deabcdefghF"));
-    query.add(disjunction);
-    List<? extends IdentifiableObject> objects = queryEngine.query(query);
-    assertEquals(2, objects.size());
-    assertTrue(collectionContainsUid(objects, "deabcdefghD"));
-    assertTrue(collectionContainsUid(objects, "deabcdefghF"));
-  }
-
-  @Test
   void sortNameDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query query = Query.from(schema);
@@ -446,19 +405,6 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(1, objects.size());
     assertEquals("abcdefghijB", objects.get(0).getUid());
-  }
-
-  @Test
-  void testLikeNamesDeepPath() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
-    query.setObjects(dataElementGroups);
-    Disjunction disjunction = query.disjunction();
-    disjunction.add(Restrictions.like("dataElements.name", "ElementD", MatchMode.END));
-    disjunction.add(Restrictions.like("dataElements.name", "ElementA", MatchMode.END));
-    List<? extends IdentifiableObject> objects = queryEngine.query(query);
-    assertEquals(2, objects.size());
-    assertTrue(collectionContainsUid(objects, "abcdefghijA"));
-    assertTrue(collectionContainsUid(objects, "abcdefghijB"));
   }
 
   @Test

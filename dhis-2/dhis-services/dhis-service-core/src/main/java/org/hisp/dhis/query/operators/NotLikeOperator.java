@@ -30,12 +30,11 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,24 +44,11 @@ public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T
 
   private final JpaQueryUtils.StringSearchMode jpaMatchMode;
 
-  private final org.hibernate.criterion.MatchMode matchMode;
-
   public NotLikeOperator(
       T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super("!like", Typed.from(String.class), arg);
+    super("!like", List.of(String.class), arg);
     this.caseSensitive = caseSensitive;
-    this.matchMode = getMatchMode(matchMode);
     this.jpaMatchMode = getNotLikeJpaMatchMode(matchMode);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    if (caseSensitive) {
-      return Restrictions.like(
-          queryPath.getPath(), String.valueOf(args.get(0)).replace("%", "\\%"), matchMode);
-    }
-    return Restrictions.ilike(
-        queryPath.getPath(), String.valueOf(args.get(0)).replace("%", "\\%"), matchMode);
   }
 
   @Override
@@ -93,20 +79,14 @@ public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T
       String s1 = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
       String s2 = caseSensitive ? (String) value : ((String) value).toLowerCase();
 
-      switch (jpaMatchMode) {
-        case NOT_EQUALS:
-          return !s2.equals(s1);
-        case NOT_STARTING_LIKE:
-          return !s2.startsWith(s1);
-        case NOT_ENDING_LIKE:
-          return !s2.endsWith(s1);
-        case NOT_ANYWHERE:
-          return !s2.contains(s1);
-        default:
-          return false;
-      }
+      return switch (jpaMatchMode) {
+        case NOT_EQUALS -> !s2.equals(s1);
+        case NOT_STARTING_LIKE -> !s2.startsWith(s1);
+        case NOT_ENDING_LIKE -> !s2.endsWith(s1);
+        case NOT_ANYWHERE -> !s2.contains(s1);
+        default -> false;
+      };
     }
-
     return false;
   }
 }

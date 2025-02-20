@@ -67,7 +67,7 @@ class QueryParserTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(user);
 
-    queryParser = new DefaultJpaQueryParser(schemaService);
+    queryParser = new DefaultQueryParser(schemaService);
   }
 
   @Test

@@ -28,15 +28,19 @@
 package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.query.QueryUtils.parseValue;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
@@ -44,17 +48,11 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
-@Component("org.hisp.dhis.query.QueryParser")
-public class DefaultJpaQueryParser implements QueryParser {
-  private static final String IDENTIFIABLE = "identifiable";
+@Component
+@RequiredArgsConstructor
+public class DefaultQueryParser implements QueryParser {
 
   private final SchemaService schemaService;
-
-  public DefaultJpaQueryParser(SchemaService schemaService) {
-    checkNotNull(schemaService);
-
-    this.schemaService = schemaService;
-  }
 
   @Override
   public Query parse(Class<?> klass, @Nonnull List<String> filters) throws QueryParserException {
@@ -81,8 +79,6 @@ public class DefaultJpaQueryParser implements QueryParser {
         String arg = split.length == 3 ? split[2] : Stream.of(split).skip(2).collect(joining(":"));
         if ("mentions".equals(path) && "in".equals(operator)) {
           mentions.add(arg);
-        } else if (path.equals(IDENTIFIABLE) && !schema.hasProperty(IDENTIFIABLE)) {
-          handleIdentifiablePath(schema, operator, arg, query.addDisjunction());
         } else {
           query.add(getRestriction(schema, path, operator, arg));
         }
@@ -90,7 +86,7 @@ public class DefaultJpaQueryParser implements QueryParser {
         query.add(getRestriction(schema, path, operator, null));
       }
       if (!mentions.isEmpty()) {
-        getDisjunctionsFromCustomMentions(mentions, query.getSchema());
+        query.add(getDisjunctionsFromCustomMentions(mentions, query.getSchema()));
       }
     }
     return query;
@@ -100,17 +96,6 @@ public class DefaultJpaQueryParser implements QueryParser {
     if (filter.startsWith("attributeValues.attribute.id:eq:"))
       return filter.substring(filter.lastIndexOf(':') + 1) + ":!null";
     return filter;
-  }
-
-  private void handleIdentifiablePath(
-      Schema schema, String operator, Object arg, Disjunction disjunction) {
-    disjunction.add(getRestriction(schema, "id", operator, arg));
-    disjunction.add(getRestriction(schema, "code", operator, arg));
-    disjunction.add(getRestriction(schema, "name", operator, arg));
-
-    if (schema.hasPersistedProperty("shortName")) {
-      disjunction.add(getRestriction(schema, "shortName", operator, arg));
-    }
   }
 
   private Restriction getRestriction(Schema schema, String path, String operator, Object arg)
@@ -178,18 +163,12 @@ public class DefaultJpaQueryParser implements QueryParser {
     return values;
   }
 
-  private Collection<Disjunction> getDisjunctionsFromCustomMentions(
+  private Restriction getDisjunctionsFromCustomMentions(
       List<String> mentions, Schema schema) {
-    Collection<Disjunction> disjunctions = new ArrayList<>();
-    for (String m : mentions) {
-      Disjunction disjunction = new Disjunction(schema);
-      String[] split = m.substring(1, m.length() - 1).split(",");
-      List<String> items = Lists.newArrayList(split);
-      disjunction.add(Restrictions.in("mentions.username", items));
-      disjunction.add(Restrictions.in("comments.mentions.username", items));
-      disjunctions.add(disjunction);
-    }
-    return disjunctions;
+    List<String> items = new ArrayList<>();
+    for (String m : mentions)
+      items.addAll(asList(m.substring(1, m.length() - 1).split(",")));
+    return Restrictions.in("mentions", items);
   }
 
   @Override

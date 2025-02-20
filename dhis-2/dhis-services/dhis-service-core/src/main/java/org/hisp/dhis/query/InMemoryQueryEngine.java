@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.query;
 
-import static java.util.Collections.singletonList;
-
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +37,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.query.operators.MatchMode;
+import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -47,18 +47,22 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
+import static org.hisp.dhis.query.Restrictions.eq;
+import static org.hisp.dhis.query.Restrictions.ilike;
+import static org.hisp.dhis.query.Restrictions.in;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component("org.hisp.dhis.query.InMemoryQueryEngine")
 @AllArgsConstructor
-public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryEngine<T> {
+public class InMemoryQueryEngine implements QueryEngine {
   private final SchemaService schemaService;
 
   private final AclService aclService;
 
   @Override
-  public List<T> query(Query query) {
+  public <T extends IdentifiableObject> List<T> query(Query query) {
     validateQuery(query);
     List<T> list = runQuery(query);
     list = runSorter(query, list);
@@ -69,10 +73,9 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
   }
 
   @Override
-  public long count(Query query) {
+  public <T extends IdentifiableObject> long count(Query query) {
     validateQuery(query);
     List<T> list = runQuery(query);
-
     return list.size();
   }
 
@@ -91,14 +94,14 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
   }
 
   @SuppressWarnings("unchecked")
-  private List<T> runQuery(Query query) {
+  private <T extends IdentifiableObject> List<T> runQuery(Query query) {
     return query.getObjects().stream()
         .filter(object -> test(query, (T) object))
         .map(object -> (T) object)
         .collect(Collectors.toList());
   }
 
-  private List<T> runSorter(Query query, List<T> objects) {
+  private <T extends IdentifiableObject> List<T> runSorter(Query query, List<T> objects) {
     List<T> sorted = new ArrayList<>(objects);
 
     sorted.sort(
@@ -114,87 +117,56 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
     return sorted;
   }
 
-  private boolean test(Query query, T object) {
-    List<Boolean> testResults = new ArrayList<>();
-
-    for (Criterion criterion : query.getCriterions()) {
-      boolean testResult = false;
-
-      // normal Restriction, just assume Conjunction
-      if (criterion instanceof Restriction) {
-        Restriction restriction = (Restriction) criterion;
-        testResult = testAnd(query, object, singletonList(restriction));
-      } else if (criterion instanceof Conjunction) {
-        Conjunction conjunction = (Conjunction) criterion;
-        testResult = testAnd(query, object, conjunction.getCriterions());
-      } else if (criterion instanceof Disjunction) {
-        Disjunction disjunction = (Disjunction) criterion;
-        testResult = testOr(query, object, disjunction.getCriterions());
-      }
-
-      testResults.add(testResult);
-    }
-
+  private <T> boolean test(Query query, T object) {
     if (query.getRootJunctionType() == Junction.Type.OR) {
-      return testResults.contains(Boolean.TRUE);
-    }
-
-    return !testResults.contains(Boolean.FALSE);
-  }
-
-  private boolean testAnd(Query query, T object, List<? extends Criterion> criterions) {
-    for (Criterion criterion : criterions) {
-      if (criterion instanceof Restriction) {
-        Restriction restriction = (Restriction) criterion;
-        Object value = getValue(query, object, restriction);
-
-        if (!(value instanceof Collection)) {
-          if (!restriction.getOperator().test(value)) {
-            return false;
-          }
-        } else {
-          Collection<?> collection = (Collection<?>) value;
-
-          for (Object item : collection) {
-            if (restriction.getOperator().test(item)) {
-              return true;
-            }
-          }
-
-          return false;
-        }
+      // OR
+      for (Restriction restriction : query.getCriterions()) {
+          if (test(query, object, restriction)) return true;
       }
+      return false;
     }
-
+    // AND
+    for (Restriction restriction : query.getCriterions()) {
+        if (!test(query, object, restriction)) return false;
+    }
     return true;
   }
 
-  private boolean testOr(Query query, T object, List<? extends Criterion> criterions) {
-    for (Criterion criterion : criterions) {
-      if (criterion instanceof Restriction) {
-        Restriction restriction = (Restriction) criterion;
-        Object value = getValue(query, object, restriction);
-
-        if (!(value instanceof Collection)) {
-          if (restriction.getOperator().test(value)) {
-            return true;
-          }
-        } else {
-          Collection<?> collection = (Collection<?>) value;
-
-          for (Object item : collection) {
-            if (restriction.getOperator().test(item)) {
-              return true;
-            }
-          }
-        }
-      }
+  private <T> boolean test(Query query, T object, Restriction restriction) {
+    if (restriction.isVirtual()) {
+      if (restriction.isMentions()) return testMentions(query, object, restriction);
+      if (restriction.isIdentifiable()) return testIdentifiable(query, object, restriction);
+      if (restriction.isQuery()) return testQuery(query, object, restriction);
+      throw new UnsupportedOperationException(
+          "Special filter is not implemented yet :/ " + restriction);
     }
-
-    return false;
+    Object value = getValue(query, object, restriction);
+    if (!(value instanceof Collection<?> collection)) return restriction.getOperator().test(value);
+    return collection.stream().anyMatch(item -> restriction.getOperator().test(item));
   }
 
-  @SuppressWarnings("unchecked")
+  private <T> boolean testMentions(Query query, T object, Restriction restriction) {
+    Operator<?> op = restriction.getOperator();
+    return test(query, object, in("mentions.username", op.getArgs()))
+        || test(query, object, in("comments.mentions.username", op.getArgs()));
+  }
+
+  private <T>  boolean testIdentifiable(Query query, T object, Restriction restriction) {
+    Operator<?> op = restriction.getOperator();
+    return test(query, object, new Restriction("id", op))
+        || test(query, object, new Restriction("code", op))
+        || test(query, object, new Restriction("name", op))
+        || query.getSchema().hasPersistedProperty("shortName")
+            && test(query, object, new Restriction("shortName", op));
+  }
+
+  private <T>  boolean testQuery(Query query, T object, Restriction restriction) {
+    String value = (String) restriction.getOperator().getArgs().get(0);
+    return test(query, object, eq("id", value))
+        || test(query, object, eq("code", value))
+        || test(query, object, ilike("name", value, MatchMode.ANYWHERE));
+  }
+
   private Object getValue(Query query, Object object, Restriction filter) {
     String path = filter.getPath();
     String[] paths = path.split("\\.");
@@ -202,7 +174,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
 
     if (path.contains("access") && query.getSchema().isIdentifiableObject()) {
       ((BaseIdentifiableObject) object)
-          .setAccess(aclService.getAccess((T) object, query.getCurrentUserDetails()));
+          .setAccess(aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
     }
 
     for (int i = 0; i < paths.length; i++) {
@@ -227,11 +199,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
         if (property.isCollection()) {
           for (Object item : ((Collection<?>) object)) {
             ((BaseIdentifiableObject) item)
-                .setAccess(aclService.getAccess((T) item, query.getCurrentUserDetails()));
+                .setAccess(aclService.getAccess((IdentifiableObject) item, query.getCurrentUserDetails()));
           }
         } else {
           ((BaseIdentifiableObject) object)
-              .setAccess(aclService.getAccess((T) object, query.getCurrentUserDetails()));
+              .setAccess(aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
         }
       }
 

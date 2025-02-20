@@ -36,13 +36,15 @@ import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
 
+import java.util.stream.Stream;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
 @Accessors(chain = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Restriction implements Criterion {
+public final class Restriction {
   /**
    * Path to property you want to restrict only, one first-level properties are currently supported.
    */
@@ -52,7 +54,7 @@ public final class Restriction implements Criterion {
   private final Operator<?> operator;
 
   /**
-   * Indicates that the {@link #path} is a attribute UID. This also means the {@link Restriction} is
+   * Indicates that the {@link #path} is an attribute UID. This also means the {@link Restriction} is
    * an in-memory filter.
    */
   private final boolean attribute;
@@ -73,10 +75,44 @@ public final class Restriction implements Criterion {
     return "[" + path + ", op: " + operator + "]";
   }
 
-  @Override
+  /**
+   * @return true, when the condition cannot match any rows, e.g. an in-operator with an empty
+   *     collection to test against
+   */
   public boolean isAlwaysFalse() {
-    if (operator instanceof InOperator<?> in)
-      return in.getCollectionArgs().isEmpty() || in.getCollectionArgs().get(0).isEmpty();
+    if (operator instanceof InOperator<?> in) return in.getArgs().isEmpty();
     return false;
   }
+
+  /**
+   * @return true, if this restriction is not a single condition yet but resolved to a complex
+   *     expression at the engine level.
+   */
+  public boolean isVirtual() {
+    return isIdentifiable() || isQuery() || isMentions();
+  }
+
+  /**
+   * @return true, if this restriction matches id (eq), code (eq) and name (ilike) columns
+   */
+  public boolean isQuery() {
+    return "$query".equals(path);
+  }
+
+  /**
+   * @return true, if this restriction matches on the identifiable set of paths or false if the
+   *     {@link #path} is a specific value
+   */
+  public boolean isIdentifiable() {
+    return "identifiable".equals(path);
+  }
+
+  public boolean isMentions() {
+    return "mentions".equals(path) && operator instanceof InOperator;
+  }
+
+  public Stream<String> aliases() {
+    return queryPath == null ? Stream.empty() : Stream.of(queryPath.getAlias());
+  }
+
 }

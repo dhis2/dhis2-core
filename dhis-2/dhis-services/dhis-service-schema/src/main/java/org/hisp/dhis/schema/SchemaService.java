@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.schema;
 
+import org.hisp.dhis.query.planner.QueryPath;
+
 import java.util.List;
 import java.util.Set;
 
@@ -105,4 +107,6 @@ public interface SchemaService {
   Set<String> collectAuthorities();
 
   Class<?> getConcreteClass(Class<?> klass);
+
+  QueryPath getQueryPath(Schema schema, String path);
 }

@@ -44,7 +44,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,41 +60,9 @@ class DefaultQueryPlannerTest {
 
   @Mock private SchemaService schemaService;
 
-  @Mock private SystemSettingsService settingsService;
-
   @BeforeEach
   public void setUp() {
-    this.subject = new DefaultQueryPlanner(schemaService, settingsService);
-  }
-
-  @Test
-  void verifyPlanQueryReturnsPersistedAndNotPersistedQueries() throws Exception {
-    // Create schema with attributes
-    final Attribute attribute = new Attribute();
-    final Map<String, Property> propertyMap = new HashMap<>();
-    addProperty(propertyMap, attribute, "id", true);
-    addProperty(propertyMap, attribute, "uid", true);
-    Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
-    schema.setPropertyMap(propertyMap);
-
-    // Add restriction
-    Query query = Query.from(schema, Junction.Type.OR);
-    query.add(Restrictions.eq("id", 100L));
-
-    // method under test
-    QueryPlan queryPlan = subject.planQuery(query, true);
-
-    Query persistedQuery = queryPlan.getPersistedQuery();
-
-    assertTrue(persistedQuery.isPlannedQuery());
-    assertEquals(persistedQuery.getCriterions().size(), 1);
-    assertEquals(persistedQuery.getFirstResult().intValue(), 0);
-    assertEquals(persistedQuery.getMaxResults().intValue(), Integer.MAX_VALUE);
-    assertEquals(persistedQuery.getRootJunctionType(), Junction.Type.OR);
-
-    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
-    assertEquals(nonPersistedQuery.getCriterions().size(), 0);
-    assertTrue(nonPersistedQuery.isPlannedQuery());
+    this.subject = new DefaultQueryPlanner(schemaService);
   }
 
   /*
@@ -123,19 +90,17 @@ class DefaultQueryPlannerTest {
     query.add(Restrictions.eq("id", 100));
 
     // method under test
-    QueryPlan queryPlan = subject.planQuery(query, false);
+    QueryPlan queryPlan = subject.planQuery(query);
 
-    Query persistedQuery = queryPlan.getPersistedQuery();
+    Query persistedQuery = queryPlan.dbQuery();
 
-    assertTrue(persistedQuery.isPlannedQuery());
     assertEquals(persistedQuery.getCriterions().size(), 0);
     assertEquals(persistedQuery.getFirstResult().intValue(), 0);
     assertEquals(persistedQuery.getMaxResults().intValue(), Integer.MAX_VALUE);
     assertEquals(persistedQuery.getRootJunctionType(), Junction.Type.AND);
 
-    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+    Query nonPersistedQuery = queryPlan.memoryQuery();
     assertEquals(nonPersistedQuery.getCriterions().size(), 2);
-    assertTrue(nonPersistedQuery.isPlannedQuery());
     assertEquals(nonPersistedQuery.getRootJunctionType(), Junction.Type.OR);
   }
 
@@ -159,19 +124,17 @@ class DefaultQueryPlannerTest {
     query.add(Restrictions.eq("id", 100));
 
     // method under test
-    QueryPlan queryPlan = subject.planQuery(query, false);
+    QueryPlan queryPlan = subject.planQuery(query);
 
-    Query persistedQuery = queryPlan.getPersistedQuery();
+    Query persistedQuery = queryPlan.dbQuery();
 
-    assertTrue(persistedQuery.isPlannedQuery());
     assertEquals(persistedQuery.getCriterions().size(), 2);
     assertEquals(persistedQuery.getFirstResult().intValue(), 500);
     assertEquals(persistedQuery.getMaxResults().intValue(), 10);
     assertEquals(persistedQuery.getRootJunctionType(), Junction.Type.AND);
 
-    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+    Query nonPersistedQuery = queryPlan.memoryQuery();
     assertEquals(nonPersistedQuery.getCriterions().size(), 0);
-    assertTrue(nonPersistedQuery.isPlannedQuery());
     assertEquals(nonPersistedQuery.getRootJunctionType(), Junction.Type.AND);
   }
 
@@ -190,15 +153,13 @@ class DefaultQueryPlannerTest {
     query.add(Restrictions.eq("groups", "dataElementGroupId"));
 
     // method under test
-    QueryPlan queryPlan = subject.planQuery(query, false);
+    QueryPlan queryPlan = subject.planQuery(query);
 
-    Query persistedQuery = queryPlan.getPersistedQuery();
+    Query persistedQuery = queryPlan.dbQuery();
 
-    assertTrue(persistedQuery.isPlannedQuery());
     assertEquals(1, persistedQuery.getCriterions().size());
 
-    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
-    assertTrue(nonPersistedQuery.isPlannedQuery());
+    Query nonPersistedQuery = queryPlan.memoryQuery();
     assertEquals(1, nonPersistedQuery.getCriterions().size());
   }
 

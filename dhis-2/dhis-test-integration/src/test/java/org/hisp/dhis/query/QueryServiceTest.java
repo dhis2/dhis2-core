@@ -416,17 +416,6 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @SuppressWarnings("rawtypes")
-  void resultTransformerTest() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    List<? extends IdentifiableObject> objects =
-        queryService.query(query, result1 -> new ArrayList());
-    assertEquals(0, objects.size());
-    objects = queryService.query(query, result1 -> result1);
-    assertEquals(6, objects.size());
-  }
-
-  @Test
   void sortNameDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query query = Query.from(schema);

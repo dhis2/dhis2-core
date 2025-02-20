@@ -34,22 +34,11 @@ import org.hisp.dhis.schema.Schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class Junction extends Criteria implements Criterion {
+public final class Junction {
+
   @OpenApi.Shared(name = "JunctionType")
   public enum Type {
     AND,
     OR
-  }
-
-  @Getter protected final Type type;
-
-  Junction(Schema schema, Type type) {
-    super(schema);
-    this.type = type;
-  }
-
-  @Override
-  public String toString() {
-    return "[ " + type + ", " + criterions + "]";
   }
 }

@@ -30,16 +30,21 @@ package org.hisp.dhis.query;
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.UserDetails;
+
+import static java.util.Arrays.asList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,29 +52,45 @@ import org.hisp.dhis.user.UserDetails;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class Query extends Criteria {
+@ToString(onlyExplicitlyIncluded = true)
+public class Query {
+
+  @ToString.Include
+  private final List<Restriction> criterions = new ArrayList<>();
+
+  @Getter
+  private final Schema schema;
+
   private UserDetails currentUserDetails;
 
+  @ToString.Include
   private String locale;
 
+  @ToString.Include
   private final List<Order> orders = new ArrayList<>();
 
+  @ToString.Include
   private boolean skipPaging;
 
+  @ToString.Include
   private boolean skipSharing;
 
+  @ToString.Include
   private boolean dataSharing;
 
+  @ToString.Include
   private Integer firstResult = 0;
 
+  @ToString.Include
   private Integer maxResults = Integer.MAX_VALUE;
 
+  @ToString.Include
   private final Junction.Type rootJunctionType;
 
-  private boolean plannedQuery;
-
+  @ToString.Include
   private Defaults defaults = Defaults.EXCLUDE;
 
+  @ToString.Include
   private boolean cacheable = true;
 
   private List<? extends IdentifiableObject> objects;
@@ -82,7 +103,7 @@ public class Query extends Criteria {
     return new Query(schema, rootJunction);
   }
 
-  public static Query from(Query query) {
+  public static Query copy(Query query) {
     Query clone = Query.from(query.getSchema(), query.getRootJunctionType());
     clone.setSkipSharing(query.isSkipSharing());
     clone.setCurrentUserDetails(query.getCurrentUserDetails());
@@ -101,12 +122,8 @@ public class Query extends Criteria {
   }
 
   private Query(Schema schema, Junction.Type rootJunctionType) {
-    super(schema);
+    this.schema = schema;
     this.rootJunctionType = rootJunctionType;
-  }
-
-  public Schema getSchema() {
-    return schema;
   }
 
   public boolean isEmpty() {
@@ -139,44 +156,19 @@ public class Query extends Criteria {
     return this;
   }
 
-  @Override
-  public Query add(Criterion criterion) {
-    super.add(criterion);
+  public Query add(Restriction criterion) {
+    this.criterions.add(criterion);
     return this;
   }
 
-  @Override
-  public Query add(Criterion... criterions) {
-    super.add(criterions);
+  public Query add(Restriction... criterions) {
+    this.criterions.addAll(asList(criterions));
     return this;
   }
 
-  @Override
-  public Query add(Collection<? extends Criterion> criterions) {
-    super.add(criterions);
+  public Query add(Collection<Restriction> criterions) {
+    this.criterions.addAll(criterions);
     return this;
-  }
-
-  public Disjunction addDisjunction() {
-    Disjunction disjunction = new Disjunction(schema);
-    add(disjunction);
-
-    return disjunction;
-  }
-
-  public Disjunction disjunction() {
-    return new Disjunction(schema);
-  }
-
-  public Conjunction addConjunction() {
-    Conjunction conjunction = new Conjunction(schema);
-    add(conjunction);
-
-    return conjunction;
-  }
-
-  public Conjunction conjunction() {
-    return new Conjunction(schema);
   }
 
   public Query setDefaultOrder() {
@@ -193,15 +185,5 @@ public class Query extends Criteria {
     }
 
     return this;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("firstResult", firstResult)
-        .add("maxResults", maxResults)
-        .add("orders", orders)
-        .add("criterions", criterions)
-        .toString();
   }
 }
