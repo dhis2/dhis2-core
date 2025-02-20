@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -185,8 +186,15 @@ public class JsonAssertions {
         () -> "members mismatch between actual: " + actual + ", expected: " + expected);
   }
 
-  public static void assertHasNoMember(JsonObject json, String name) {
-    assertFalse(json.has(name), String.format("member \"%s\" should NOT be in %s", name, json));
+  public static void assertHasNoMember(JsonObject json, String... names) {
+    assertAll(
+        String.format("Unexpected member(s) in %s", json),
+        Arrays.stream(names)
+            .map(
+                name ->
+                    () ->
+                        assertFalse(
+                            json.has(name), String.format("member \"%s\" unexpected ", name))));
   }
 
   public static void assertHasMember(JsonObject json, String name) {

@@ -28,7 +28,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -56,15 +59,19 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +80,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
- * Page} to JSON. The tests use the {@link
- * org.hisp.dhis.webapi.controller.tracker.export.relationship} controller but hold true for any of
- * the export controllers.
+ * Page} to JSON.
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -94,7 +99,9 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
 
   private TrackerObjects trackerObjects;
 
-  private org.hisp.dhis.tracker.imports.domain.Event event;
+  private Enrollment enrollment1;
+  private Enrollment enrollment2;
+  private Event event;
 
   protected ObjectBundle setUpMetadata(String path) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
@@ -128,11 +135,115 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     manager.flush();
     manager.clear();
 
+    enrollment1 = getEnrollment(UID.of("nxP7UnKhomJ"));
+    enrollment2 = getEnrollment(UID.of("nxP8UnKhomJ"));
     event = getEvent(UID.of("pTzf9KYMk72"));
   }
 
+  @BeforeEach
+  void setUpUser() {
+    switchContextToUser(importUser);
+  }
+
   @Test
-  void shouldGetPaginatedItemsWithDefaults() {
+  void shouldGetEmptyEnrollmentsPage() {
+    JsonPage page =
+        GET("/tracker/enrollments?enrollments={uid}", UID.generate())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertIsEmpty(page.getList("enrollments", JsonEnrollment.class).stream().toList());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount", "prevPage", "nextPage");
+  }
+
+  @Test
+  void shouldGetPaginatedEnrollmentsWithDefaults() {
+    JsonPage page =
+        GET(
+                "/tracker/enrollments?enrollments={uid},{uid}",
+                enrollment1.getUid(),
+                enrollment2.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(enrollment1.getUid().getValue(), enrollment2.getUid().getValue()),
+        page.getList("enrollments", JsonEnrollment.class).toList(JsonEnrollment::getEnrollment));
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total");
+    assertHasNoMember(pager, "pageCount");
+  }
+
+  // TODO(ivo) add a test for the first page
+  // TODO(ivo) add a test for the middle page
+  // TODO(ivo) add a test for the last page
+  // TODO(ivo) add a test for being past the last page
+  @Test
+  void shouldGetPaginatedEnrollmentsWithNonDefaultsAndTotals() {
+    JsonPage page =
+        GET(
+                "/tracker/enrollments?enrollments={uid},{uid}&page=2&pageSize=1&totalPages=true",
+                enrollment1.getUid(),
+                enrollment2.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertHasSize(
+        1, page.getList("enrollments", JsonEnrollment.class).toList(JsonEnrollment::getEnrollment));
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertEquals(2, pager.getTotal());
+    assertEquals(2, pager.getPageCount());
+    // TODO(ivo) what do I expect the URL to look like again?
+    //    ### get page of attributes
+    //    GET {{PROTOCOL}}://{{AUTH}}@{{HOST}}/api/attributes?fields=id,name&page=3&pageSize=2
+    //    "pager": {
+    //          "page": 3,
+    //          "total": 11,
+    //          "pageSize": 2,
+    //          "nextPage":
+    // "https://play.im.dhis2.org/dev/api/attributes?page=4&pageSize=2&fields=id%2Cname",
+    //          "prevPage":
+    // "https://play.im.dhis2.org/dev/api/attributes?page=2&pageSize=2&fields=id%2Cname",
+    //          "pageCount": 6
+    //    },
+
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format(
+            "http://localhost/api/tracker/enrollments?enrollments=%s,%s",
+            enrollment1.getUid(), enrollment2.getUid()));
+    assertHasNoMember(pager, "nextPage");
+  }
+
+  @Test
+  void shouldGetEmptyRelationshipsPage() {
+    JsonPage page =
+        GET("/tracker/relationships?event={uid}", "H0PbzJY8bJG")
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertIsEmpty(page.getList("relationships", JsonEnrollment.class).stream().toList());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount", "prevPage", "nextPage");
+  }
+
+  @Test
+  void shouldGetPaginatedRelationshipsWithDefaults() {
     JsonPage page =
         GET("/tracker/relationships?event={uid}", event.getUid())
             .content(HttpStatus.OK)
@@ -151,7 +262,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedItemsWithPagingSetToTrue() {
+  void shouldGetPaginatedRelationshipsWithPagingSetToTrue() {
     JsonPage page =
         GET("/tracker/relationships?event={uid}&paging=true", event.getUid())
             .content(HttpStatus.OK)
@@ -170,7 +281,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedItemsWithDefaultsAndTotals() {
+  void shouldGetPaginatedRelationshipsWithDefaultsAndTotals() {
     JsonPage page =
         GET("/tracker/relationships?event={uid}&paging=true&totalPages=true", event.getUid())
             .content(HttpStatus.OK)
@@ -189,7 +300,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedItemsWithNonDefaults() {
+  void shouldGetPaginatedRelationshipsWithNonDefaults() {
     JsonPage page =
         GET("/tracker/relationships?event={uid}&paging=true&page=2&pageSize=1", event.getUid())
             .content(HttpStatus.OK)
@@ -211,7 +322,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedItemsWithNonDefaultsAndTotals() {
+  void shouldGetPaginatedRelationshipsWithNonDefaultsAndTotals() {
     JsonPage page =
         GET("/tracker/relationships?event={uid}&page=2&pageSize=1&totalPages=true", event.getUid())
             .content(HttpStatus.OK)
@@ -246,7 +357,14 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     assertHasNoMember(page, "pager");
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Event getEvent(UID event) {
+  private org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollment(UID enrollment) {
+    return trackerObjects.getEnrollments().stream()
+        .filter(ev -> ev.getEnrollment().equals(enrollment))
+        .findFirst()
+        .get();
+  }
+
+  private Event getEvent(UID event) {
     return trackerObjects.getEvents().stream()
         .filter(ev -> ev.getEvent().equals(event))
         .findFirst()
