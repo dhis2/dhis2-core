@@ -39,10 +39,14 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.junit.MinIOTestExtension;
+import org.hisp.dhis.test.junit.MinIOTestExtension.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -51,18 +55,21 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Test class configured for use cases when DHIS2 is configured to use local file system storage
- * (default)
+ * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
+ * storage is the local filesystem.
  */
-class AppManagerTest extends PostgresIntegrationTestBase {
+@ExtendWith(MinIOTestExtension.class)
+@ContextConfiguration(classes = {DhisConfig.class})
+class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;
 
   @Test
-  @DisplayName("Can install and then update an App using file system storage")
-  void canUpdateAppUsingFileSystemStorageTest() throws IOException {
+  @DisplayName("Can install and then update an App using MinIO storage")
+  void canUpdateAppUsingMinIOStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     App installedApp =
         appManager.installApp(
@@ -83,6 +90,13 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     assertTrue(updatedApp.getAppState().ok());
     assertEquals("ok", appStatus.getMessage());
+
+    // get app version & index.html
+    App app = appManager.getApp("test minio");
+    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, "index.html");
+
+    assertEquals("2.0.0", app.getVersion());
+    assertEquals(63, appManager.getUriContentLength(resource.resource()));
   }
 
   @Test
@@ -97,6 +111,31 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     // then
     assertEquals(38, uriContentLength);
+  }
+
+  @ParameterizedTest
+  @MethodSource("validPathParams")
+  @DisplayName("Calls with valid app resource paths should resolve correctly")
+  void appPathResolveTest(String path, String expectedPath) throws IOException {
+    // given an app is installed in object storage
+    App installedApp =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    AppStatus appStatus = installedApp.getAppState();
+
+    assertTrue(appStatus.ok());
+    assertEquals("ok", appStatus.getMessage());
+
+    // when an app resource is retrieved with a valid path
+    App app = appManager.getApp("test minio");
+    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, path);
+
+    // then the resource path returned is the full resource path which ends with `/index.html`
+    assertEquals(
+        expectedPath,
+        resource.resource().getURI().getPath(),
+        "resource path should match expected format");
   }
 
   @ParameterizedTest
@@ -119,7 +158,7 @@ class AppManagerTest extends PostgresIntegrationTestBase {
     Redirect resource = (Redirect) appManager.getAppResource(app, path);
 
     // then the path returned should end in a trailing slash
-    assertTrue(resource.path().endsWith(expectedPath), "redirect path should have trailing slash");
+    assertEquals(expectedPath, resource.path(), "redirect path should have trailing slash");
   }
 
   @ParameterizedTest
@@ -144,8 +183,21 @@ class AppManagerTest extends PostgresIntegrationTestBase {
     assertEquals(path, resource.path());
   }
 
+  private static Stream<Arguments> validPathParams() {
+    return Stream.of(
+        Arguments.of("index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("/index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("subDir/", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of("subDir/index.html", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of(
+            "subDir/test-page.html", "/dhis2/apps/test-app-minio-v1/subDir/test-page.html"),
+        Arguments.of(
+            "subDir/subSubDir/", "/dhis2/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
+  }
+
   private static Stream<Arguments> redirectPathParams() {
     return Stream.of(
+        Arguments.of("", "/"),
         Arguments.of("subDir", "subDir/"),
         Arguments.of("emptyDir", "emptyDir/"),
         Arguments.of("subDir/subSubDir", "subDir/subSubDir/"));
