@@ -175,7 +175,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     if (type == TwoFactorType.EMAIL_ENABLED && StringUtils.isBlank(code)) {
       sendEmail2FACode(userDetails);
       // Inform the caller that the email code has been sent.
-      throw new TwoFactorAuthenticationException(ErrorCode.E3051.getMessage(), type);
+      throw new TwoFactorCodeSentException(ErrorCode.E3051.getMessage(), type);
     }
 
     // If the code is blank (null, empty, or only whitespace), reject the login.
