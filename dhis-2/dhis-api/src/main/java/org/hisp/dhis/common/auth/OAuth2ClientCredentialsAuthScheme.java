@@ -85,39 +85,40 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
         applicationContext.getBean(OAuth2AuthorizedClientRepository.class);
     OAuth2AuthorizedClient oAuth2AuthorizedClient =
         oAuth2AuthorizedClientRepository.loadAuthorizedClient(registrationId, authentication, null);
-    if (oAuth2AuthorizedClient == null) {
-      ClientRegistration clientRegistration =
-          ClientRegistration.withRegistrationId(registrationId)
-              .clientId(clientId)
-              .clientSecret(clientSecret)
-              .tokenUri(tokenUri)
-              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-              .build();
-      OAuth2AuthorizationContext oAuth2AuthorizationContext =
-          OAuth2AuthorizationContext.withClientRegistration(clientRegistration)
-              .principal(authentication)
-              .build();
 
-      try {
+    try {
+      if (oAuth2AuthorizedClient == null) {
+        ClientRegistration clientRegistration =
+            ClientRegistration.withRegistrationId(registrationId)
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .tokenUri(tokenUri)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .build();
+        OAuth2AuthorizationContext oAuth2AuthorizationContext =
+            OAuth2AuthorizationContext.withClientRegistration(clientRegistration)
+                .principal(authentication)
+                .build();
+
         OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider =
             applicationContext.getBean(OAuth2AuthorizedClientProvider.class);
         oAuth2AuthorizedClient =
             oAuth2AuthorizedClientProvider.authorize(oAuth2AuthorizationContext);
         oAuth2AuthorizedClientRepository.saveAuthorizedClient(
             oAuth2AuthorizedClient, authentication, null, null);
-      } catch (ClientAuthorizationException e) {
-        log.error(e.getMessage(), e);
-        throw new BadGatewayException(
-            "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response");
+      } else {
+        OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager =
+            applicationContext.getBean(OAuth2AuthorizedClientManager.class);
+        oAuth2AuthorizedClient =
+            oAuth2AuthorizedClientManager.authorize(
+                OAuth2AuthorizeRequest.withAuthorizedClient(oAuth2AuthorizedClient)
+                    .principal(authentication)
+                    .build());
       }
-    } else {
-      OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager =
-          applicationContext.getBean(OAuth2AuthorizedClientManager.class);
-      oAuth2AuthorizedClient =
-          oAuth2AuthorizedClientManager.authorize(
-              OAuth2AuthorizeRequest.withAuthorizedClient(oAuth2AuthorizedClient)
-                  .principal(authentication)
-                  .build());
+    } catch (ClientAuthorizationException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException(
+          "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response");
     }
 
     headers.put(
