@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.relationship;
+package org.hisp.dhis.security.spring2fa;
 
-import java.util.List;
-import java.util.Set;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.springframework.security.authentication.BadCredentialsException;
 
-@Getter
-@RequiredArgsConstructor
-class RelationshipQueryParams {
-  private final SoftDeletableObject entity;
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class TwoFactorCodeSentException extends BadCredentialsException {
+  private final TwoFactorType type;
 
-  private final List<Order> order;
+  public TwoFactorCodeSentException(String msg, TwoFactorType type) {
+    super(msg);
+    this.type = type;
+  }
 
-  private final boolean includeDeleted;
-
-  private final Set<UID> relationships;
+  public TwoFactorType getType() {
+    return type;
+  }
 }
