@@ -29,20 +29,20 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
 import java.util.Set;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
-@Builder(toBuilder = true)
+@RequiredArgsConstructor
 class RelationshipQueryParams {
   private final SoftDeletableObject entity;
 
-  @Builder.Default private List<Order> order = List.of();
+  private final List<Order> order;
 
-  private boolean includeDeleted;
+  private final boolean includeDeleted;
 
-  @Builder.Default private Set<UID> relationships = Set.of();
+  private final Set<UID> relationships;
 }

@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -41,7 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Maps {@link RelationshipOperationParams} to {@link RelationshipQueryParams} which is used to
@@ -54,20 +52,15 @@ class RelationshipOperationParamsMapper {
   private final HibernateRelationshipStore relationshipStore;
   private final TrackerAccessManager trackerAccessManager;
 
-  @Transactional(readOnly = true)
   public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
 
     if (params.getType() == null) {
       if (CollectionUtils.isEmpty(params.getRelationships())) {
-        throw new BadRequestException(
-            "Either one between Relationships or TrackerType must be provided");
+        throw new IllegalArgumentException("relationships cannot be empty when type is null");
       }
-      return RelationshipQueryParams.builder()
-          .order(params.getOrder())
-          .includeDeleted(params.isIncludeDeleted())
-          .relationships(params.getRelationships())
-          .build();
+      return new RelationshipQueryParams(
+          null, params.getOrder(), params.isIncludeDeleted(), params.getRelationships());
     }
 
     SoftDeletableObject entity =
@@ -79,11 +72,7 @@ class RelationshipOperationParamsMapper {
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
-    return RelationshipQueryParams.builder()
-        .entity(entity)
-        .order(params.getOrder())
-        .includeDeleted(params.isIncludeDeleted())
-        .build();
+    return new RelationshipQueryParams(entity, params.getOrder(), params.isIncludeDeleted(), null);
   }
 
   private TrackedEntity getTrackedEntity(UID trackedEntityUid, boolean includeDeleted)

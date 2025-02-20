@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
@@ -44,16 +45,20 @@ import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class RelationshipOperationParams {
-  private TrackerType type;
+  private final TrackerType type;
 
-  private UID identifier;
+  private final UID identifier;
 
-  private Set<UID> relationships;
+  private final Set<UID> relationships;
 
-  private List<Order> order;
+  private final List<Order> order;
 
   public static RelationshipOperationParamsBuilder builder(@Nonnull Set<UID> relationships) {
+    if (relationships.isEmpty()) {
+      throw new IllegalArgumentException("relationships must not be empty");
+    }
     return new RelationshipOperationParamsBuilder().relationships(relationships);
   }
 
@@ -118,21 +123,6 @@ public class RelationshipOperationParams {
     public RelationshipOperationParams build() {
       return new RelationshipOperationParams(
           this.type, this.identifier, this.relationships, this.order, this.includeDeleted);
-    }
-
-    @Override
-    public String toString() {
-      return "RelationshipOperationParams.RelationshipOperationParamsBuilder(order="
-          + this.order
-          + ", type="
-          + this.type
-          + ", identifier="
-          + this.identifier
-          + ", relationships="
-          + this.relationships
-          + ", includeDeleted="
-          + this.includeDeleted
-          + ")";
     }
   }
 

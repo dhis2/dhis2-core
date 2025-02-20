@@ -140,13 +140,13 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return events.stream().findFirst();
   }
 
-  public List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
+  public List<Relationship> getRelationships(@Nonnull RelationshipQueryParams queryParams) {
 
     return relationshipsList(queryParams, null);
   }
 
   public Page<Relationship> getRelationships(
-      final RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
+      @Nonnull final RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
 
     return getPage(
         pageParams,

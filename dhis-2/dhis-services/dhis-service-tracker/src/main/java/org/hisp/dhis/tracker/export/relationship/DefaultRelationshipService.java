@@ -96,8 +96,8 @@ public class DefaultRelationshipService implements RelationshipService {
       @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
-
-    return map(relationshipStore.getRelationships(queryParams, pageParams));
+    Page<Relationship> relationships = relationshipStore.getRelationships(queryParams, pageParams);
+    return relationships.withItems(map(relationships.getItems()));
   }
 
   @Override
@@ -152,11 +152,6 @@ public class DefaultRelationshipService implements RelationshipService {
       }
     }
     return result;
-  }
-
-  /** Map to a non-proxied Relationship to prevent hibernate exceptions. */
-  private Page<Relationship> map(Page<Relationship> relationships) {
-    return relationships.withItems(map(relationships.getItems()));
   }
 
   private Relationship map(Relationship relationship) {
