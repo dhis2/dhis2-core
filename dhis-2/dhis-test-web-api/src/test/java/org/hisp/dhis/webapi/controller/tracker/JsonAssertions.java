@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
@@ -44,6 +46,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -230,5 +233,14 @@ public class JsonAssertions {
     List<String> reportEntityUids =
         jsonTypeReport.getEntityReport().stream().map(JsonEntity::getUid).toList();
     assertEquals(expectedEntityUids, reportEntityUids);
+  }
+
+  public static void assertPagerLink(String actual, int page, int pageSize, String start) {
+    assertNotNull(actual, "expected a link to a prev/nextPage");
+    assertAll(
+        "asserting link to a prev/nextPage",
+        () -> assertStartsWith(start, actual),
+        () -> Assertions.assertContains("page=" + page, actual),
+        () -> Assertions.assertContains("pageSize=" + pageSize, actual));
   }
 }
