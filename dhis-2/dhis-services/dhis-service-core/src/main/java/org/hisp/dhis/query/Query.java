@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.query;
 
-import com.google.common.base.MoreObjects;
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,8 +43,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.UserDetails;
 
-import static java.util.Arrays.asList;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -55,43 +52,31 @@ import static java.util.Arrays.asList;
 @ToString(onlyExplicitlyIncluded = true)
 public class Query {
 
-  @ToString.Include
-  private final List<Restriction> criterions = new ArrayList<>();
+  @ToString.Include private final List<Restriction> criterions = new ArrayList<>();
 
-  @Getter
-  private final Schema schema;
+  @Getter private final Schema schema;
 
   private UserDetails currentUserDetails;
 
-  @ToString.Include
-  private String locale;
+  @ToString.Include private String locale;
 
-  @ToString.Include
-  private final List<Order> orders = new ArrayList<>();
+  @ToString.Include private final List<Order> orders = new ArrayList<>();
 
-  @ToString.Include
-  private boolean skipPaging;
+  @ToString.Include private boolean skipPaging;
 
-  @ToString.Include
-  private boolean skipSharing;
+  @ToString.Include private boolean skipSharing;
 
-  @ToString.Include
-  private boolean dataSharing;
+  @ToString.Include private boolean dataSharing;
 
-  @ToString.Include
-  private Integer firstResult = 0;
+  @ToString.Include private Integer firstResult = 0;
 
-  @ToString.Include
-  private Integer maxResults = Integer.MAX_VALUE;
+  @ToString.Include private Integer maxResults = Integer.MAX_VALUE;
 
-  @ToString.Include
-  private final Junction.Type rootJunctionType;
+  @ToString.Include private final Junction.Type rootJunctionType;
 
-  @ToString.Include
-  private Defaults defaults = Defaults.EXCLUDE;
+  @ToString.Include private Defaults defaults = Defaults.EXCLUDE;
 
-  @ToString.Include
-  private boolean cacheable = true;
+  @ToString.Include private boolean cacheable = true;
 
   private List<? extends IdentifiableObject> objects;
 

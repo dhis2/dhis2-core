@@ -30,16 +30,15 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.util.List;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.planner.QueryPath;
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class NotLikeOperator<T extends Comparable<T>> extends Operator<T> {
   private final boolean caseSensitive;
 
   private final JpaQueryUtils.StringSearchMode jpaMatchMode;

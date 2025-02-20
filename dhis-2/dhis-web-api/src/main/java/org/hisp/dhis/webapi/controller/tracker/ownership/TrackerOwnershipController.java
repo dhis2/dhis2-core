@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -87,25 +88,33 @@ public class TrackerOwnershipController {
   @PutMapping(value = "/transfer", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage updateTrackerProgramOwner(
-      @RequestParam UID trackedEntity, @RequestParam String program, @RequestParam String ou)
+      @RequestParam UID trackedEntity,
+      @RequestParam UID program,
+      @Deprecated(
+              since = "2.41",
+              forRemoval = true) // TODO(tracker) remove `ou` parameter in favor of `orgUnit` in v43
+          @RequestParam(required = false)
+          UID ou,
+      @RequestParam(required = false) UID orgUnit)
       throws BadRequestException, ForbiddenException, NotFoundException {
+    UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
+
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(
-            trackedEntity, UID.of(program), TrackedEntityParams.FALSE),
-        programService.getProgram(program),
-        organisationUnitService.getOrganisationUnit(ou));
+        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
+        programService.getProgram(program.getValue()),
+        organisationUnitService.getOrganisationUnit(orgUnitUid.getValue()));
     return ok("Ownership transferred");
   }
 
   @PostMapping(value = "/override", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage grantTemporaryAccess(
-      @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam String program)
+      @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
       throws BadRequestException, ForbiddenException, NotFoundException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         trackedEntityService.getTrackedEntity(trackedEntity),
-        programService.getProgram(program),
+        programService.getProgram(program.getValue()),
         currentUser,
         reason);
 

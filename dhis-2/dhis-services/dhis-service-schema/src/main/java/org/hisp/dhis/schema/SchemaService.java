@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.schema;
 
-import org.hisp.dhis.query.planner.QueryPath;
-
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

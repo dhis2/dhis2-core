@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.query;
 
+import static org.hisp.dhis.query.Restrictions.eq;
+import static org.hisp.dhis.query.Restrictions.ilike;
+import static org.hisp.dhis.query.Restrictions.in;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,10 +50,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.query.Restrictions.eq;
-import static org.hisp.dhis.query.Restrictions.ilike;
-import static org.hisp.dhis.query.Restrictions.in;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -121,13 +121,13 @@ public class InMemoryQueryEngine implements QueryEngine {
     if (query.getRootJunctionType() == Junction.Type.OR) {
       // OR
       for (Restriction restriction : query.getCriterions()) {
-          if (test(query, object, restriction)) return true;
+        if (test(query, object, restriction)) return true;
       }
       return false;
     }
     // AND
     for (Restriction restriction : query.getCriterions()) {
-        if (!test(query, object, restriction)) return false;
+      if (!test(query, object, restriction)) return false;
     }
     return true;
   }
@@ -151,7 +151,7 @@ public class InMemoryQueryEngine implements QueryEngine {
         || test(query, object, in("comments.mentions.username", op.getArgs()));
   }
 
-  private <T>  boolean testIdentifiable(Query query, T object, Restriction restriction) {
+  private <T> boolean testIdentifiable(Query query, T object, Restriction restriction) {
     Operator<?> op = restriction.getOperator();
     return test(query, object, new Restriction("id", op))
         || test(query, object, new Restriction("code", op))
@@ -160,7 +160,7 @@ public class InMemoryQueryEngine implements QueryEngine {
             && test(query, object, new Restriction("shortName", op));
   }
 
-  private <T>  boolean testQuery(Query query, T object, Restriction restriction) {
+  private <T> boolean testQuery(Query query, T object, Restriction restriction) {
     String value = (String) restriction.getOperator().getArgs().get(0);
     return test(query, object, eq("id", value))
         || test(query, object, eq("code", value))
@@ -174,7 +174,8 @@ public class InMemoryQueryEngine implements QueryEngine {
 
     if (path.contains("access") && query.getSchema().isIdentifiableObject()) {
       ((BaseIdentifiableObject) object)
-          .setAccess(aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
+          .setAccess(
+              aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
     }
 
     for (int i = 0; i < paths.length; i++) {
@@ -199,11 +200,13 @@ public class InMemoryQueryEngine implements QueryEngine {
         if (property.isCollection()) {
           for (Object item : ((Collection<?>) object)) {
             ((BaseIdentifiableObject) item)
-                .setAccess(aclService.getAccess((IdentifiableObject) item, query.getCurrentUserDetails()));
+                .setAccess(
+                    aclService.getAccess((IdentifiableObject) item, query.getCurrentUserDetails()));
           }
         } else {
           ((BaseIdentifiableObject) object)
-              .setAccess(aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
+              .setAccess(
+                  aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
         }
       }
 

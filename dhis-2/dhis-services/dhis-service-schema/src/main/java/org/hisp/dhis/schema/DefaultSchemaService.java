@@ -35,7 +35,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.persistence.EntityManagerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -521,6 +520,7 @@ public class DefaultSchemaService implements SchemaService {
         org.apache.commons.lang3.StringUtils.capitalize(schema.getPlural()).split("(?=[A-Z])");
     return org.apache.commons.lang3.StringUtils.join(camelCaseWords, " ").trim();
   }
+
   @Override
   public QueryPath getQueryPath(Schema schema, String path) {
     Schema curSchema = schema;

@@ -33,7 +33,6 @@ import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
@@ -41,7 +40,7 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class InOperator<T extends Comparable<T>> extends Operator<T> {
   public InOperator(Collection<T> arg) {
     super("in", List.of(Collection.class), arg);
   }
@@ -56,10 +55,7 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
 
     if (property.isCollection()) {
       return root.get(queryPath.getPath())
-          .in(
-              getValue(
-                  Collection.class,
-                  queryPath.getProperty().getItemKlass(), getArgs()));
+          .in(getValue(Collection.class, queryPath.getProperty().getItemKlass(), getArgs()));
     }
 
     return root.get(queryPath.getPath()).in(getArgs());

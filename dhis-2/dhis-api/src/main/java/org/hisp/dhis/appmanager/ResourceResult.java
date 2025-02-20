@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.operators;
+package org.hisp.dhis.appmanager;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import java.util.List;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.planner.QueryPath;
+import javax.annotation.Nonnull;
+import org.springframework.core.io.Resource;
 
 /**
- * @author Henning Håkonsen
+ * Models the potential results when trying to retrieve a Resource. <br>
+ * Can be one of:
+ *
+ * <ul>
+ *   <li>ResourceFound
+ *   <li>ResourceNotFound
+ *   <li>Redirect
+ * </ul>
  */
-public class NotTokenOperator<T extends Comparable<T>> extends Operator<T> {
+public sealed interface ResourceResult {
+  record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
 
-  private final boolean caseSensitive;
-  private final org.hibernate.criterion.MatchMode matchMode;
+  record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
 
-  public NotTokenOperator(
-      T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super("!token", List.of(String.class), arg);
-    this.caseSensitive = caseSensitive;
-    this.matchMode = getMatchMode(matchMode);
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
-    return builder.equal(
-        builder.function(
-            JsonbFunctions.REGEXP_SEARCH,
-            Boolean.class,
-            root.get(queryPath.getPath()),
-            builder.literal(TokenUtils.createRegex(value).toString())),
-        false);
-  }
-
-  @Override
-  public boolean test(Object value) {
-    return !TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
-  }
+  record Redirect(@Nonnull String path) implements ResourceResult {}
 }

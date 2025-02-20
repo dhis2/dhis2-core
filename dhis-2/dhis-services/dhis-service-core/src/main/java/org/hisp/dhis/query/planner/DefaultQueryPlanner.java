@@ -51,9 +51,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public QueryPlan planQuery(Query query) {
     // if only one filter, always set to Junction.Type AND
     if (query.getCriterions().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan(
-          Query.from(query.getSchema()),
-          Query.copy(query));
+      return new QueryPlan(Query.from(query.getSchema()), Query.copy(query));
     }
 
     QueryPlan plan = split(query);
@@ -80,19 +78,20 @@ public class DefaultQueryPlanner implements QueryPlanner {
     dbQuery.setSkipSharing(query.isSkipSharing());
 
     for (Restriction restriction : query.getCriterions()) {
-        if (!restriction.isVirtual())
-          restriction.setQueryPath(schemaService.getQueryPath(query.getSchema(), restriction.getPath()));
+      if (!restriction.isVirtual())
+        restriction.setQueryPath(
+            schemaService.getQueryPath(query.getSchema(), restriction.getPath()));
 
-        if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class)) {
-          //TODO remove Locale from Restriction and get from query
-          setQueryPathLocale(restriction);
-        }
+      if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class)) {
+        // TODO remove Locale from Restriction and get from query
+        setQueryPathLocale(restriction);
+      }
 
-        if (isDbFilter(restriction)) {
-          dbQuery.add(restriction);
-        } else {
-          memoryQuery.add(restriction);
-        }
+      if (isDbFilter(restriction)) {
+        dbQuery.add(restriction);
+      } else {
+        memoryQuery.add(restriction);
+      }
     }
 
     if (query.ordersPersisted()) {

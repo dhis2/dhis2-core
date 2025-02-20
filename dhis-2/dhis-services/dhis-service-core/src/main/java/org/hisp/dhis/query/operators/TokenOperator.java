@@ -30,15 +30,14 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.util.List;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import java.util.List;
 
 /**
  * @author Henning Håkonsen
  */
-public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
   private final boolean caseSensitive;
 
   private final org.hibernate.criterion.MatchMode matchMode;

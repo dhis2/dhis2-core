@@ -33,14 +33,13 @@ import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class EmptyOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class EmptyOperator<T extends Comparable<T>> extends Operator<T> {
   public EmptyOperator() {
     super("empty", List.of(Collection.class));
   }

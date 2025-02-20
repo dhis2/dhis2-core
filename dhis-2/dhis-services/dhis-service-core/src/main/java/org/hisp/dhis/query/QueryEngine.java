@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.query;
 
-import org.hisp.dhis.common.IdentifiableObject;
-
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

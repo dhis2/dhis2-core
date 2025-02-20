@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
@@ -44,7 +43,7 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LessThanOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class LessThanOperator<T extends Comparable<T>> extends Operator<T> {
   public LessThanOperator(T arg) {
     super("lt", List.of(String.class, Boolean.class, Number.class, Date.class), arg);
   }

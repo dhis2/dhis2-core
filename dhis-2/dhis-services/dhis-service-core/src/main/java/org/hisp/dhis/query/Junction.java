@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.query;
 
-import lombok.Getter;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

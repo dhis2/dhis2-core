@@ -34,7 +34,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -45,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.cache.QueryCacheManager;
@@ -258,8 +256,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     Predicate or = builder.disjunction();
     or.getExpressions().add(builder.equal(root.get("id"), value));
     or.getExpressions().add(builder.equal(root.get("code"), value));
-    or.getExpressions().add(
-        stringPredicateIgnoreCase(builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
+    or.getExpressions()
+        .add(
+            stringPredicateIgnoreCase(
+                builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
     return or;
   }
 }

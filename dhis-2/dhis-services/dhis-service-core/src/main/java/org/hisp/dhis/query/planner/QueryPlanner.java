@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.query.planner;
 
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Root;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

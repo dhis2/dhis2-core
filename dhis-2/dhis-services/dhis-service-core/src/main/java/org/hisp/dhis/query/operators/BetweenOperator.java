@@ -33,14 +33,13 @@ import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class BetweenOperator<T extends Comparable<T>> extends Operator<T> {
   public BetweenOperator(T arg0, T arg1) {
     super("between", List.of(String.class, Number.class, Date.class), arg0, arg1);
   }

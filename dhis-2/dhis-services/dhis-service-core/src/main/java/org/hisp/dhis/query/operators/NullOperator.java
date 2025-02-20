@@ -32,13 +32,12 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NullOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class NullOperator<T extends Comparable<T>> extends Operator<T> {
   public NullOperator() {
     super("null", List.of(String.class, Boolean.class, Number.class, Date.class, Enum.class));
   }

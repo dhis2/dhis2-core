@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.query;
 
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +36,6 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,8 +53,8 @@ public final class Restriction {
   private final Operator<?> operator;
 
   /**
-   * Indicates that the {@link #path} is an attribute UID. This also means the {@link Restriction} is
-   * an in-memory filter.
+   * Indicates that the {@link #path} is an attribute UID. This also means the {@link Restriction}
+   * is an in-memory filter.
    */
   private final boolean attribute;
 
@@ -114,5 +113,4 @@ public final class Restriction {
   public Stream<String> aliases() {
     return queryPath == null ? Stream.empty() : Stream.of(queryPath.getAlias());
   }
-
 }

@@ -50,72 +50,69 @@ import org.hisp.dhis.query.operators.TokenOperator;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class Restrictions {
-  public static <T extends Comparable<? super T>> Restriction eq(String path, T value) {
+  public static <T extends Comparable<T>> Restriction eq(String path, T value) {
     return new Restriction(path, new EqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction ne(String path, T value) {
+  public static <T extends Comparable<T>> Restriction ne(String path, T value) {
     return new Restriction(path, new NotEqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction gt(String path, T value) {
+  public static <T extends Comparable<T>> Restriction gt(String path, T value) {
     return new Restriction(path, new GreaterThanOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction lt(String path, T value) {
+  public static <T extends Comparable<T>> Restriction lt(String path, T value) {
     return new Restriction(path, new LessThanOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction ge(String path, T value) {
+  public static <T extends Comparable<T>> Restriction ge(String path, T value) {
     return new Restriction(path, new GreaterEqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction le(String path, T value) {
+  public static <T extends Comparable<T>> Restriction le(String path, T value) {
     return new Restriction(path, new LessEqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction between(
-      String path, T lside, T rside) {
+  public static <T extends Comparable<T>> Restriction between(String path, T lside, T rside) {
     return new Restriction(path, new BetweenOperator<>(lside, rside));
   }
 
-  public static <T extends Comparable<? super T>> Restriction like(
+  public static <T extends Comparable<T>> Restriction like(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new LikeOperator<>(value, true, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notLike(
+  public static <T extends Comparable<T>> Restriction notLike(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new NotLikeOperator<>(value, true, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction ilike(
+  public static <T extends Comparable<T>> Restriction ilike(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new LikeOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notIlike(
+  public static <T extends Comparable<T>> Restriction notIlike(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new NotLikeOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction token(
+  public static <T extends Comparable<T>> Restriction token(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new TokenOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notToken(
+  public static <T extends Comparable<T>> Restriction notToken(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new NotTokenOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction in(
-      String path, Collection<T> values) {
+  public static <T extends Comparable<T>> Restriction in(String path, Collection<T> values) {
     return new Restriction(path, new InOperator<>(values));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notIn(
-      String path, Collection<T> values) {
+  public static <T extends Comparable<T>> Restriction notIn(String path, Collection<T> values) {
     return new Restriction(path, new NotInOperator<>(values));
   }
 

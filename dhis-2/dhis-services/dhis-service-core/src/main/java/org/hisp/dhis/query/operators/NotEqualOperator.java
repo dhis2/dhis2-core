@@ -38,7 +38,7 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotEqualOperator<T extends Comparable<? super T>> extends EqualOperator<T> {
+public class NotEqualOperator<T extends Comparable<T>> extends EqualOperator<T> {
   public NotEqualOperator(T arg) {
     super("ne", arg);
   }

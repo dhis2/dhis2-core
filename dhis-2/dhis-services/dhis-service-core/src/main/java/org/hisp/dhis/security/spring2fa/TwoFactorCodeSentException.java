@@ -25,45 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.operators;
+package org.hisp.dhis.security.spring2fa;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import java.util.List;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.springframework.security.authentication.BadCredentialsException;
 
 /**
- * @author Henning Håkonsen
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class NotTokenOperator<T extends Comparable<T>> extends Operator<T> {
+public class TwoFactorCodeSentException extends BadCredentialsException {
+  private final TwoFactorType type;
 
-  private final boolean caseSensitive;
-  private final org.hibernate.criterion.MatchMode matchMode;
-
-  public NotTokenOperator(
-      T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super("!token", List.of(String.class), arg);
-    this.caseSensitive = caseSensitive;
-    this.matchMode = getMatchMode(matchMode);
+  public TwoFactorCodeSentException(String msg, TwoFactorType type) {
+    super(msg);
+    this.type = type;
   }
 
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
-    return builder.equal(
-        builder.function(
-            JsonbFunctions.REGEXP_SEARCH,
-            Boolean.class,
-            root.get(queryPath.getPath()),
-            builder.literal(TokenUtils.createRegex(value).toString())),
-        false);
-  }
-
-  @Override
-  public boolean test(Object value) {
-    return !TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
+  public TwoFactorType getType() {
+    return type;
   }
 }

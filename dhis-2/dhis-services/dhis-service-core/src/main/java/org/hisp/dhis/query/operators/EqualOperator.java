@@ -43,7 +43,7 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class EqualOperator<T extends Comparable<T>> extends Operator<T> {
 
   public EqualOperator(T arg) {
     super("eq", List.of(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);

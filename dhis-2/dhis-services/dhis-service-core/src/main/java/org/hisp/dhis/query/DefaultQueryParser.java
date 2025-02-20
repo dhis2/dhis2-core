@@ -27,19 +27,15 @@
  */
 package org.hisp.dhis.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.query.QueryUtils.parseValue;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.operators.MatchMode;
@@ -163,11 +159,9 @@ public class DefaultQueryParser implements QueryParser {
     return values;
   }
 
-  private Restriction getDisjunctionsFromCustomMentions(
-      List<String> mentions, Schema schema) {
+  private Restriction getDisjunctionsFromCustomMentions(List<String> mentions, Schema schema) {
     List<String> items = new ArrayList<>();
-    for (String m : mentions)
-      items.addAll(asList(m.substring(1, m.length() - 1).split(",")));
+    for (String m : mentions) items.addAll(asList(m.substring(1, m.length() - 1).split(",")));
     return Restrictions.in("mentions", items);
   }
 
