@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -45,8 +45,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -56,8 +56,7 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -82,13 +81,11 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class DeduplicationController {
   private final DeduplicationService deduplicationService;
 
-  private final IdentifiableObjectManager manager;
-
-  private final TrackedEntityAuditService trackedEntityAuditService;
-
   private final TrackerAccessManager trackerAccessManager;
 
   private final FieldFilterService fieldFilterService;
+
+  private final TrackedEntityService trackedEntityService;
 
   private static final String DEFAULT_FIELDS_PARAM =
       "id, created, lastUpdated, original, duplicate, status";
@@ -96,15 +93,21 @@ public class DeduplicationController {
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
   public Page<ObjectNode> getPotentialDuplicates(
-      PotentialDuplicateCriteria criteria,
+      PotentialDuplicateRequestParams requestParams,
       HttpServletResponse response,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException {
-    if (criteria.getPaging() != null
-        && criteria.getSkipPaging() != null
-        && criteria.getPaging().equals(criteria.getSkipPaging())) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
+    validatePaginationParameters(requestParams);
+
+    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
+    criteria.setStatus(requestParams.getStatus());
+    criteria.setTrackedEntities(requestParams.getTrackedEntities());
+    criteria.setOrder(requestParams.getOrder());
+    if (requestParams.isPaging()) {
+      PageParams pageParams =
+          new PageParams(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isPaging());
+      criteria.setPageParams(pageParams);
     }
 
     List<PotentialDuplicate> potentialDuplicates =
@@ -113,12 +116,12 @@ public class DeduplicationController {
 
     setNoStore(response);
 
-    if (criteria.isPaged()) {
-      org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
-          org.hisp.dhis.tracker.export.Page.withoutTotals(
+    if (requestParams.isPaging()) {
+      org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
+          org.hisp.dhis.tracker.Page.withoutTotals(
               potentialDuplicates,
-              criteria.getPageWithDefault(),
-              criteria.getPageSizeWithDefault());
+              criteria.getPageParams().getPage(),
+              criteria.getPageParams().getPageSize());
       return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
     }
 
@@ -167,7 +170,8 @@ public class DeduplicationController {
       throws NotFoundException,
           PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          BadRequestException {
     PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(uid);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
@@ -175,8 +179,10 @@ public class DeduplicationController {
           "PotentialDuplicate is missing references and cannot be merged.");
     }
 
-    TrackedEntity original = getTrackedEntity(potentialDuplicate.getOriginal());
-    TrackedEntity duplicate = getTrackedEntity(potentialDuplicate.getDuplicate());
+    TrackedEntity original =
+        trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
+    TrackedEntity duplicate =
+        trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
 
     if (mergeObject == null) {
       mergeObject = new MergeObject();
@@ -224,9 +230,9 @@ public class DeduplicationController {
 
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
 
-    canReadTrackedEntity(getTrackedEntity(potentialDuplicate.getOriginal()));
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
 
-    canReadTrackedEntity(getTrackedEntity(potentialDuplicate.getDuplicate()));
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
 
     checkAlreadyExistingDuplicate(potentialDuplicate);
   }
@@ -249,21 +255,6 @@ public class DeduplicationController {
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Missing required input property '" + trackedEntityFieldName + "'");
-    }
-  }
-
-  private TrackedEntity getTrackedEntity(UID uid) throws NotFoundException {
-    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
-    // TODO(tracker) Do we need to apply ACL here?
-    return Optional.ofNullable(trackedEntity)
-        .orElseThrow(() -> new NotFoundException(TrackedEntity.class, uid));
-  }
-
-  private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
-      throw new ForbiddenException(
-          "You don't have read access to '" + trackedEntity.getUid() + "'.");
     }
   }
 }

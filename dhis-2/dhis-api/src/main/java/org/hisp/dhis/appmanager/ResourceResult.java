@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export;
+package org.hisp.dhis.appmanager;
 
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import javax.annotation.Nonnull;
+import org.springframework.core.io.Resource;
 
 /**
- * {@link PageParams} represent the parameters that configure the page of items to be returned. By
- * default, the total number of items will not be fetched.
+ * Models the potential results when trying to retrieve a Resource. <br>
+ * Can be one of:
+ *
+ * <ul>
+ *   <li>ResourceFound
+ *   <li>ResourceNotFound
+ *   <li>Redirect
+ * </ul>
  */
-@Getter
-@ToString
-@EqualsAndHashCode
-public class PageParams {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
+public sealed interface ResourceResult {
+  record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
 
-  public static PageParams single() {
-    return new PageParams(1, 1, false);
-  }
+  record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
 
-  /** The page number to be returned. */
-  final int page;
-
-  /** The number of items to be returned. */
-  final int pageSize;
-
-  /** Indicates whether to fetch the total number of items. */
-  final boolean pageTotal;
-
-  public PageParams(Integer page, Integer pageSize, Boolean pageTotal) {
-    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
-    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
-    this.pageTotal = Boolean.TRUE.equals(pageTotal);
-  }
+  record Redirect(@Nonnull String path) implements ResourceResult {}
 }

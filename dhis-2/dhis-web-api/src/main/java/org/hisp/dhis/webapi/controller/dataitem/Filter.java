@@ -41,6 +41,8 @@ public class Filter {
     SHORT_NAME("shortName"),
     DISPLAY_SHORT_NAME("displayShortName"),
     PROGRAM_ID("programId"),
+    PROGRAM_DATA_ELEMENT_ID("programDataElementId"),
+    PROGRAM_ATTRIBUTE_ID("programAttributeId"),
     OPTION_SET_ID("optionSetId"),
     ID("id");
 
@@ -108,6 +110,9 @@ public class Filter {
     SHORT_NAME_ILIKE("shortName:ilike:"),
     DISPLAY_SHORT_NAME_ILIKE("displayShortName:ilike:"),
     PROGRAM_ID_EQUAL("programId:eq:"),
+
+    PROGRAM_DATA_ELEMENT_ID_EQUAL("programDataElementId:eq:"),
+    PROGRAM_ATTRIBUTE_ID_EQUAL("programAttributeId:eq:"),
     OPTION_SET_ID_EQUAL("optionSetId:eq:"),
     ID_EQUAL("id:eq:"),
     IDENTIFIABLE_TOKEN("identifiable:token:");

@@ -51,14 +51,14 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -230,7 +230,8 @@ class DefaultEventService implements EventService {
     if (operationParams.getEventParams().isIncludeRelationships()) {
       for (Event event : events) {
         event.setRelationshipItems(
-            relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
+            relationshipService.getRelationshipItems(
+                TrackerType.EVENT, UID.of(event), queryParams.isIncludeDeleted()));
       }
     }
     return events;
@@ -246,7 +247,8 @@ class DefaultEventService implements EventService {
     if (operationParams.getEventParams().isIncludeRelationships()) {
       for (Event event : events.getItems()) {
         event.setRelationshipItems(
-            relationshipService.getRelationshipItems(TrackerType.EVENT, UID.of(event)));
+            relationshipService.getRelationshipItems(
+                TrackerType.EVENT, UID.of(event), queryParams.isIncludeDeleted()));
       }
     }
     return events;

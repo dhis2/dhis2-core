@@ -40,13 +40,6 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 Get enrollments with given UID(s).
 
-### `*.parameter.EnrollmentRequestParams.enrollment`
-
-**DEPRECATED as of 2.41:** Use parameter `enrollments` instead where UIDs have to be separated by
-comma!
-
-See `enrollments` for details.
-
 ### `*.parameter.EnrollmentRequestParams.followUp`
 
 Get enrollments with the given follow-up status.
@@ -71,13 +64,6 @@ Get enrollments owned by given `orgUnits` relative to the `orgUnitMode`.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
   is not allowed.
 
-### `*.parameter.EnrollmentRequestParams.orgUnit`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by
-comma!
-
-See `orgUnits` for details.
-
 ### `*.parameter.EnrollmentRequestParams.orgUnitMode`
 
 Get enrollments using given organisation unit selection mode.
@@ -94,12 +80,6 @@ Get enrollments using given organisation unit selection mode.
 - When `orgUnitMode=CAPTURE` enrollments that has an enrollment org unit in the users capture scope
   will
   be returned.
-
-### `*.parameter.EnrollmentRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-See `orgUnitMode` for details.
 
 ### `*.parameter.EnrollmentRequestParams.program`
 

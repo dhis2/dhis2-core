@@ -72,12 +72,6 @@ Get events owned by given `orgUnit`.
 
 Get events using given organisation unit mode.
 
-### `*.parameter.EventRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-Get events using given organisation unit mode.
-
 ### `*.parameter.EventRequestParams.assignedUserMode`
 
 Get events assigned to users according to the specified user mode. By default,
@@ -88,16 +82,6 @@ all events will be retrieved, regardless of whether a user is assigned.
 `<user1-uid>[,<user2-uid>...]`
 
 Get events that are assigned to the given user(s). Specifying `assignedUsers` is only valid
-if `assignedUserMode` is either `PROVIDED` or not specified.
-
-### `*.parameter.EventRequestParams.assignedUser`
-
-**DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by
-comma!
-
-`<user1-uid>[;<user2-uid>...]`
-
-Get events that are assigned to the given user(s). Specifying `assignedUser` is only valid
 if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.EventRequestParams.occurredAfter`
@@ -143,20 +127,9 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.EventRequestParams.attributeCategoryCombo`
 
-### `*.parameter.EventRequestParams.attributeCc`
-
-**DEPRECATED as of 2.41:** Use parameter `attributeCategoryCombo` instead.
-
 ### `*.parameter.EventRequestParams.attributeCategoryOptions`
 
 `<attributeCategoryOption1-uid>[,<attributeCategoryOption2-uid>...]`
-
-### `*.parameter.EventRequestParams.attributeCos`
-
-`<attributeCategoryOption1-uid>[;<attributeCategoryOption2-uid>...]`
-
-**DEPRECATED as of 2.41:** Use parameter `attributeCategoryOptions` instead where UIDs have to be
-separated by comma!
 
 ### `*.parameter.EventRequestParams.includeDeleted`
 
@@ -166,14 +139,6 @@ default.
 ### `*.parameter.EventRequestParams.events`
 
 `<event1-uid>[,<event2-uid>...]`
-
-Get events with given UID(s).
-
-### `*.parameter.EventRequestParams.event`
-
-**DEPRECATED as of 2.41:** Use parameter `events` instead where UIDs have to be separated by comma!
-
-`<event1-uid>[;<event2-uid>...]`
 
 Get events with given UID(s).
 
@@ -199,7 +164,6 @@ case-sensitive properties
 * `enrollment`
 * `enrollmentStatus`
 * `event`
-* `followup` (deprecated)
 * `followUp`
 * `occurredAt`
 * `orgUnit`
