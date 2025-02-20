@@ -127,6 +127,22 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "programIndicatorWithLimitGreaterThanData",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=GT:15&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programIndicatorWithLimitLowerThanData",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=LT:20&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "version": {
+        "min": 42
+      }
     }
+
   ]
 }
+
