@@ -78,19 +78,22 @@ public class DhisOidcUserService extends OidcUserService {
               mappingClaimKey, claimValue));
     }
 
-    if (claimValue != null) {
-      User user = userService.getUserByOpenId((String) claimValue);
-      if (user != null && user.isExternalAuth()) {
-        if (user.isDisabled() || !user.isAccountNonExpired()) {
-          throw new OAuth2AuthenticationException(
-              new OAuth2Error("user_disabled"), "User is disabled");
+    try {
+      if (claimValue != null) {
+        User user = userService.getUserByOpenId((String) claimValue);
+        if (user != null && user.isExternalAuth()) {
+          if (user.isDisabled() || !user.isAccountNonExpired()) {
+            throw new OAuth2AuthenticationException(
+                new OAuth2Error("user_disabled"), "User is disabled");
+          }
+          UserDetails userDetails = userService.createUserDetails(user);
+          return new DhisOidcUser(
+              userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
         }
-
-        UserDetails userDetails = userService.createUserDetails(user);
-
-        return new DhisOidcUser(
-            userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
       }
+    } catch (OAuth2AuthenticationException e) {
+      //      throw new RuntimeException(e);
+      log.info("wtfffff", e);
     }
 
     String errorMessage =

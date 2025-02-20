@@ -622,9 +622,6 @@ public enum ConfigurationKey {
    */
   AUDIT_ENABLED("system.audit.enabled", Constants.ON, false),
 
-  /** OAuth2 authorization server feature. Enable or disable. */
-  ENABLE_OAUTH2_AUTHORIZATION_SERVER("oauth2.authorization.server.enabled", Constants.ON, false),
-
   /** JWT OIDC token authentication feature. Enable or disable. */
   ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION(
       "oidc.jwt.token.authentication.enabled", Constants.OFF, false),
