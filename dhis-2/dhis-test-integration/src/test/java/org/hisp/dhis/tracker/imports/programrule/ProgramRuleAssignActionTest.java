@@ -348,6 +348,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
+
+    assignProgramRule();
   }
 
   private void assignPreviousEventProgramRule() {
