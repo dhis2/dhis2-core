@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -59,6 +60,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -281,6 +283,7 @@ public class EventQueryParams extends DataQueryParams {
     params.option = this.option;
     params.asc = new ArrayList<>(this.asc);
     params.desc = new ArrayList<>(this.desc);
+    params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.completedOnly = this.completedOnly;
     params.organisationUnitMode = this.organisationUnitMode;
     params.page = this.page;
@@ -338,6 +341,7 @@ public class EventQueryParams extends DataQueryParams {
 
     addProgramIndicators(dataQueryParams, builder);
 
+    addMeasureCriteria(dataQueryParams, builder);
     return builder.withAggregateData(true).removeDimension(DATA_X_DIM_ID).build();
   }
 
@@ -351,6 +355,12 @@ public class EventQueryParams extends DataQueryParams {
     for (DimensionalItemObject object : dataQueryParams.getProgramIndicators()) {
       ProgramIndicator programIndicator = (ProgramIndicator) object;
       builder.addItemProgramIndicator(programIndicator);
+    }
+  }
+
+  private static void addMeasureCriteria(DataQueryParams dataQueryParams, Builder builder) {
+    for (Map.Entry<MeasureFilter, Double> entry : dataQueryParams.getMeasureCriteria().entrySet()) {
+      builder.addMeasureCriteria(entry.getKey(), entry.getValue());
     }
   }
 
@@ -1547,6 +1557,10 @@ public class EventQueryParams extends DataQueryParams {
     public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
       this.params.userOrgUnits = userOrgUnits;
       return this;
+    }
+
+    public void addMeasureCriteria(MeasureFilter filter, Double value) {
+      this.params.measureCriteria.put(filter, value);
     }
   }
 }

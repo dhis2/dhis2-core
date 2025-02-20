@@ -646,6 +646,34 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
                 + "\""));
   }
 
+  @Test
+  void verifyGetAggregatedEventQueryWithMeasureCriteria() {
+
+    when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+
+    mockRowSet();
+
+    Grid resultGrid =
+        subject.getAggregatedEventData(
+            createRequestParamsMeasureCriteria(programStage, ValueType.TEXT), createGrid(), 200000);
+
+    assertThat(resultGrid.getRows(), hasSize(1));
+    assertThat(resultGrid.getRow(0), hasSize(4));
+    assertThat(resultGrid.getRow(0).get(0), is("2000"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
+    assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
+    assertThat(resultGrid.getRow(0).get(3), is(100));
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    // Verify that the Measure criteria is applied to the query
+    assertThat(sql.getValue().trim(), containsString("having"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) > 10.0"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) < 20.0"));
+  }
+
   private void verifyFirstOrLastAggregationTypeSubquery(
       AnalyticsAggregationType analyticsAggregationType) {
     DataElement deU = createDataElement('U');
