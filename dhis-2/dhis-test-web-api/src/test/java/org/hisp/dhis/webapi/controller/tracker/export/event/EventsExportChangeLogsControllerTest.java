@@ -28,13 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -476,14 +474,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
         () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()),
         () -> JsonAssertions.assertHasNoMember(actual.getChange(), "eventField"));
-  }
-
-  private static void assertPagerLink(String actual, int page, int pageSize, String start) {
-    assertNotNull(actual);
-    assertAll(
-        () -> assertStartsWith(start, actual),
-        () -> assertContains("page=" + page, actual),
-        () -> assertContains("pageSize=" + pageSize, actual));
   }
 
   private static void assertFieldCreateExists(

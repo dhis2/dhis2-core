@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -111,10 +110,26 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     Query<Enrollment> query = getQuery(hql);
     query.setFirstResult(pageParams.getOffset());
-    query.setMaxResults(pageParams.getPageSize());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get one extra enrollment to determine nextPage
 
-    LongSupplier enrollmentCount = () -> countEnrollments(params);
-    return getPage(pageParams, query.list(), enrollmentCount);
+    List<Enrollment> enrollments = query.list();
+    if (pageParams.isPageTotal()) {
+      return Page.withTotals(
+          enrollments, pageParams.getPage(), pageParams.getPageSize(), countEnrollments(params));
+    }
+
+    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
+    if (enrollments.size() > pageParams.getPageSize()) {
+      return Page.withPrevAndNext(
+          enrollments.subList(0, pageParams.getPageSize()),
+          pageParams.getPage(),
+          pageParams.getPageSize(),
+          prevPage,
+          pageParams.getPage() + 1);
+    }
+
+    return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());
   }
 
   private long countEnrollments(EnrollmentQueryParams params) {
@@ -123,16 +138,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     Query<Long> query = getTypedQuery(hql);
 
     return query.getSingleResult().longValue();
-  }
-
-  private Page<Enrollment> getPage(
-      PageParams pageParams, List<Enrollment> enrollments, LongSupplier enrollmentCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
-    }
-
-    return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {

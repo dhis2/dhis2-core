@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +47,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -182,8 +186,15 @@ public class JsonAssertions {
         () -> "members mismatch between actual: " + actual + ", expected: " + expected);
   }
 
-  public static void assertHasNoMember(JsonObject json, String name) {
-    assertFalse(json.has(name), String.format("member \"%s\" should NOT be in %s", name, json));
+  public static void assertHasNoMember(JsonObject json, String... names) {
+    assertAll(
+        String.format("Unexpected member(s) in %s", json),
+        Arrays.stream(names)
+            .map(
+                name ->
+                    () ->
+                        assertFalse(
+                            json.has(name), String.format("member \"%s\" unexpected ", name))));
   }
 
   public static void assertHasMember(JsonObject json, String name) {
@@ -230,5 +241,14 @@ public class JsonAssertions {
     List<String> reportEntityUids =
         jsonTypeReport.getEntityReport().stream().map(JsonEntity::getUid).toList();
     assertEquals(expectedEntityUids, reportEntityUids);
+  }
+
+  public static void assertPagerLink(String actual, int page, int pageSize, String start) {
+    assertNotNull(actual, "expected a link to a prev/nextPage");
+    assertAll(
+        "asserting link to a prev/nextPage",
+        () -> assertStartsWith(start, actual),
+        () -> Assertions.assertContains("page=" + page, actual),
+        () -> Assertions.assertContains("pageSize=" + pageSize, actual));
   }
 }
