@@ -78,7 +78,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
   /**
    * This method loops through all sortable List of given object and sets the sortOrder value for
-   * each item in the List if it is not already set.
+   * each item in the List if it is not already set. Note that the sortOrder is 1-indexed.
    *
    * @param identifiableObject Object to set sortOrder on
    * @param bundle {@link ObjectBundle}
@@ -101,8 +101,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                   continue;
                 }
                 SortableObject sortableObject = (SortableObject) preheatedItem;
-                if (sortableObject.getSortOrder() == null || sortableObject.getSortOrder() != i) {
-                  sortableObject.setSortOrder(i);
+                if (sortableObject.getSortOrder() == null
+                    || sortableObject.getSortOrder() != (i + 1)) {
+                  sortableObject.setSortOrder((i + 1));
                   bundle.getPreheat().put(bundle.getPreheatIdentifier(), preheatedItem);
                 }
               }
