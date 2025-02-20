@@ -1510,7 +1510,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
-   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause.
+   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. The
+   * expression has to be first cast to a numeric type and then rounded to 10 decimal places,
+   * otherwise the comparison may fail due to floating point precision issues in Postgres.
    *
    * @param params the {@link EventQueryParams}
    * @param aggregateClause the aggregate clause to use in the SQL
@@ -1522,9 +1524,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
+
       String sqlFilter =
           String.format(
-              " %s %s %s ", aggregateClause, getOperatorByMeasureFilter(filter), criterion);
+              " round(%s, 10) %s %s ",
+              sqlBuilder.cast(aggregateClause, org.hisp.dhis.analytics.DataType.NUMERIC),
+              getOperatorByMeasureFilter(filter),
+              criterion);
 
       builder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
