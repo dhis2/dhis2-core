@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import lombok.experimental.Accessors;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Morten Olav Hansen
@@ -54,11 +55,14 @@ import lombok.experimental.Accessors;
       value = ApiQueryParamsAuthScheme.class,
       name = ApiQueryParamsAuthScheme.API_QUERY_PARAMS_TYPE),
   @JsonSubTypes.Type(
-      value = OAuth2ClientCredentialsuthAuthScheme.class,
-      name = OAuth2ClientCredentialsuthAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)
+      value = OAuth2ClientCredentialsAuthScheme.class,
+      name = OAuth2ClientCredentialsAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)
 })
 public interface AuthScheme extends Serializable {
-  void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams)
+  void apply(
+      ApplicationContext applicationContext,
+      Map<String, List<String>> headers,
+      Map<String, List<String>> queryParams)
       throws Exception;
 
   AuthScheme encrypt(UnaryOperator<String> encryptFunc);

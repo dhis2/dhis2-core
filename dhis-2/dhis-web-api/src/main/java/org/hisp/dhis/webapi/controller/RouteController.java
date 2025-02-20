@@ -33,6 +33,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -47,6 +48,8 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,6 +68,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 @OpenApi.Document(classifiers = {"team:extensibility", "purpose:metadata"})
 public class RouteController extends AbstractCrudController<Route, GetObjectListParams> {
   private final RouteService routeService;
+
+  private final OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
   @RequestMapping(
       value = "/{id}/run",
@@ -137,6 +142,12 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
   @Override
   protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
     validateRoute(newRoute);
+    removeOAuth2AuthorizedClient(route);
+  }
+
+  @Override
+  protected void preDeleteEntity(Route route) {
+    removeOAuth2AuthorizedClient(route);
   }
 
   protected void validateRoute(Route route) throws ConflictException {
@@ -165,5 +176,21 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     throw new NotFoundException("Method not allowed");
+  }
+
+  protected void removeOAuth2AuthorizedClient(Route route) {
+    if (route.getAuth() != null
+        && route
+            .getAuth()
+            .getType()
+            .equals(OAuth2ClientCredentialsAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)) {
+      OAuth2ClientCredentialsAuthScheme oAuth2ClientCredentialsAuthScheme =
+          (OAuth2ClientCredentialsAuthScheme) route.getAuth();
+      oAuth2AuthorizedClientRepository.removeAuthorizedClient(
+          oAuth2ClientCredentialsAuthScheme.getRegistrationId(),
+          SecurityContextHolder.getContext().getAuthentication(),
+          contextService.getRequest(),
+          null);
+    }
   }
 }

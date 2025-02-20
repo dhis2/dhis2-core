@@ -31,24 +31,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.BadGatewayException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.OAuth2AuthorizationContext;
+import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 @Getter
 @Setter
 @Accessors(chain = true)
 @Slf4j
-public class OAuth2ClientCredentialsuthAuthScheme implements AuthScheme {
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
   public static final String OAUTH2_CLIENT_CREDENTIALS_TYPE = "oauth2-client-credentials";
 
   @JsonProperty(required = true)
@@ -61,31 +73,51 @@ public class OAuth2ClientCredentialsuthAuthScheme implements AuthScheme {
   private String tokenUri;
 
   @Override
-  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams)
+  public void apply(
+      ApplicationContext applicationContext,
+      Map<String, List<String>> headers,
+      Map<String, List<String>> queryParams)
       throws Exception {
-    ClientRegistration clientRegistration =
-        ClientRegistration.withRegistrationId("dhis2")
-            .clientId(clientId)
-            .clientSecret(clientSecret)
-            .tokenUri(tokenUri)
-            .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-            .build();
-    OAuth2AuthorizationContext oAuth2AuthorizationContext =
-        OAuth2AuthorizationContext.withClientRegistration(clientRegistration)
-            .principal(SecurityContextHolder.getContext().getAuthentication())
-            .build();
 
-    OAuth2AuthorizedClient oAuth2AuthorizedClient;
-    try {
+    String registrationId = getRegistrationId();
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository =
+        applicationContext.getBean(OAuth2AuthorizedClientRepository.class);
+    OAuth2AuthorizedClient oAuth2AuthorizedClient =
+        oAuth2AuthorizedClientRepository.loadAuthorizedClient(registrationId, authentication, null);
+    if (oAuth2AuthorizedClient == null) {
+      ClientRegistration clientRegistration =
+          ClientRegistration.withRegistrationId(registrationId)
+              .clientId(clientId)
+              .clientSecret(clientSecret)
+              .tokenUri(tokenUri)
+              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+              .build();
+      OAuth2AuthorizationContext oAuth2AuthorizationContext =
+          OAuth2AuthorizationContext.withClientRegistration(clientRegistration)
+              .principal(authentication)
+              .build();
+
+      try {
+        OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider =
+            applicationContext.getBean(OAuth2AuthorizedClientProvider.class);
+        oAuth2AuthorizedClient =
+            oAuth2AuthorizedClientProvider.authorize(oAuth2AuthorizationContext);
+        oAuth2AuthorizedClientRepository.saveAuthorizedClient(
+            oAuth2AuthorizedClient, authentication, null, null);
+      } catch (ClientAuthorizationException e) {
+        log.error(e.getMessage(), e);
+        throw new BadGatewayException(
+            "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response");
+      }
+    } else {
+      OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager =
+          applicationContext.getBean(OAuth2AuthorizedClientManager.class);
       oAuth2AuthorizedClient =
-          OAuth2AuthorizedClientProviderBuilder.builder()
-              .clientCredentials()
-              .build()
-              .authorize(oAuth2AuthorizationContext);
-    } catch (ClientAuthorizationException e) {
-      log.error(e.getMessage(), e);
-      throw new BadGatewayException(
-          "An error occurred while attempting to retrieve the OAuth 2.0 Access Token Response");
+          oAuth2AuthorizedClientManager.authorize(
+              OAuth2AuthorizeRequest.withAuthorizedClient(oAuth2AuthorizedClient)
+                  .principal(authentication)
+                  .build());
     }
 
     headers.put(
@@ -95,27 +127,20 @@ public class OAuth2ClientCredentialsuthAuthScheme implements AuthScheme {
 
   @Override
   public AuthScheme encrypt(UnaryOperator<String> encryptFunc) {
-    return copy(clientId, encryptFunc.apply(clientSecret), tokenUri);
+    return this.toBuilder().clientSecret(encryptFunc.apply(clientSecret)).build();
   }
 
   @Override
   public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
-    return copy(clientId, decryptFunc.apply(clientSecret), tokenUri);
+    return this.toBuilder().clientSecret(decryptFunc.apply(clientSecret)).build();
+  }
+
+  public String getRegistrationId() {
+    return clientId + ":" + tokenUri;
   }
 
   @Override
   public String getType() {
     return OAUTH2_CLIENT_CREDENTIALS_TYPE;
-  }
-
-  protected OAuth2ClientCredentialsuthAuthScheme copy(
-      String clientId, String clientSecret, String tokenUri) {
-    OAuth2ClientCredentialsuthAuthScheme oAuth2ClientCredentialsuthAuthScheme =
-        new OAuth2ClientCredentialsuthAuthScheme();
-    oAuth2ClientCredentialsuthAuthScheme.setClientId(clientId);
-    oAuth2ClientCredentialsuthAuthScheme.setClientSecret(clientSecret);
-    oAuth2ClientCredentialsuthAuthScheme.setTokenUri(tokenUri);
-
-    return oAuth2ClientCredentialsuthAuthScheme;
   }
 }

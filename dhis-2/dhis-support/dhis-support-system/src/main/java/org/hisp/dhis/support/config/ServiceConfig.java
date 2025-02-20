@@ -31,6 +31,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -52,5 +63,52 @@ public class ServiceConfig {
   @Bean
   public UriComponentsBuilder uriComponentsBuilder() {
     return UriComponentsBuilder.newInstance();
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientService oAuth2AuthorizedClientService() {
+    ClientRegistrationRepository anyclientRegistrationRepository =
+        registrationId ->
+            ClientRegistration.withRegistrationId(registrationId)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .clientId("*")
+                .clientSecret("*")
+                .tokenUri("*")
+                .build();
+
+    return new InMemoryOAuth2AuthorizedClientService(anyclientRegistrationRepository);
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(
+      OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
+    return new AuthenticatedPrincipalOAuth2AuthorizedClientRepository(
+        oAuth2AuthorizedClientService);
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager(
+      OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository) {
+    OAuth2AuthorizedClientProvider authorizedClientProvider =
+        OAuth2AuthorizedClientProviderBuilder.builder()
+            .clientCredentials()
+            .authorizationCode()
+            .refreshToken()
+            .build();
+
+    DefaultOAuth2AuthorizedClientManager authorizedClientManager =
+        new DefaultOAuth2AuthorizedClientManager(
+            registrationId -> {
+              throw new UnsupportedOperationException();
+            },
+            oAuth2AuthorizedClientRepository);
+    authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+
+    return authorizedClientManager;
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider() {
+    return OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build();
   }
 }

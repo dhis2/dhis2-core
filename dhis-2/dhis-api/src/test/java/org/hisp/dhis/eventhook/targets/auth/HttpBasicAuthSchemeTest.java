@@ -46,7 +46,7 @@ class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
         new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
 
     MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers, null);
+    auth.apply(null, headers, null);
 
     assertTrue(headers.containsKey("Authorization"));
     assertFalse(headers.get("Authorization").isEmpty());

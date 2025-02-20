@@ -47,7 +47,7 @@ class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
         new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
 
     MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers, null);
+    auth.apply(null, headers, null);
 
     assertTrue(headers.containsKey("Authorization"));
     assertFalse(headers.get("Authorization").isEmpty());

@@ -32,8 +32,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -47,6 +51,9 @@ import org.hisp.dhis.common.auth.AuthScheme;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
+@Builder(toBuilder = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public class Route extends BaseIdentifiableObject implements MetadataObject {
   public static final int DEFAULT_RESPONSE_TIMEOUT_SECONDS = 5;
   public static final String PATH_WILDCARD_SUFFIX = "/**";

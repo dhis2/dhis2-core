@@ -48,11 +48,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -80,6 +80,8 @@ import reactor.netty.http.client.HttpClientRequest;
 @RequiredArgsConstructor
 public class RouteService {
   private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
+
+  private final ApplicationContext applicationContext;
 
   private final RouteStore routeStore;
 
@@ -148,14 +150,11 @@ public class RouteService {
       return null;
     }
 
-    // prevents Hibernate from persisting updates made to the route object
-    route = Hibernate.unproxy(route, Route.class);
-
     if (route.getAuth() != null) {
-      route.setAuth(route.getAuth().decrypt(encryptor::decrypt));
+      return route.toBuilder().auth(route.getAuth().decrypt(encryptor::decrypt)).build();
+    } else {
+      return route;
     }
-
-    return route;
   }
 
   /**
@@ -187,7 +186,7 @@ public class RouteService {
                     .addAll(Arrays.asList(value)));
 
     if (route.getAuth() != null) {
-      route.getAuth().apply(headers, queryParameters);
+      route.getAuth().apply(applicationContext, headers, queryParameters);
     }
 
     UriComponentsBuilder uriComponentsBuilder =
