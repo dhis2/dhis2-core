@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -99,7 +98,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapTrackedEntityWhenATrackedEntityIsPassed()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
     when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
     RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
@@ -111,7 +110,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapTrackedEntityWhenASoftDeletedTrackedEntityIsPassedAndIncludeDeletedIsTrue()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
     when(relationshipStore.findTrackedEntity(TE_UID, true)).thenReturn(Optional.of(trackedEntity));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder(trackedEntity).includeDeleted(true).build();
@@ -140,8 +139,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapEnrollmentWhenAEnrollmentIsPassed()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+  void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
     when(relationshipStore.findEnrollment(EN_UID, false)).thenReturn(Optional.of(enrollment));
     RelationshipOperationParams params = RelationshipOperationParams.builder(enrollment).build();
 
@@ -153,7 +151,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapEnrollmentWhenASoftDeletedEnrollmentIsPassedAndIncludeDeletedIsTrue()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
     when(relationshipStore.findEnrollment(EN_UID, true)).thenReturn(Optional.of(enrollment));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder(enrollment).includeDeleted(true).build();
@@ -182,8 +180,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapEventWhenAEventIsPassed()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+  void shouldMapEventWhenAEventIsPassed() throws NotFoundException, ForbiddenException {
     when(relationshipStore.findEvent(EV_UID, false)).thenReturn(Optional.of(event));
     RelationshipOperationParams params = RelationshipOperationParams.builder(event).build();
 
@@ -195,7 +192,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapEventWhenASoftDeletedEventIsPassedAndIncludeDeletedIsTrue()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
     when(relationshipStore.findEvent(EV_UID, true)).thenReturn(Optional.of(event));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder(event).includeDeleted(true).build();
@@ -224,8 +221,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapOrderInGivenOrder()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void shouldMapOrderInGivenOrder() throws ForbiddenException, NotFoundException {
     when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
@@ -240,7 +236,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
