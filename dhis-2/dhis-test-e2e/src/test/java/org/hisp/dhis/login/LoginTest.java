@@ -181,7 +181,7 @@ public class LoginTest {
     // Test Login doesn't work without 2FA code
     ResponseEntity<LoginResponse> failedLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginStatus(failedLoginResp, STATUS.INCORRECT_TWO_FACTOR_CODE_EMAIL);
+    assertLoginStatus(failedLoginResp, STATUS.EMAIL_TWO_FACTOR_CODE_SENT);
 
     // Disable Email 2FA
     disable2FAWithEmail(cookie);
