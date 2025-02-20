@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -142,23 +143,11 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
 
-    // TODO(jan) I would like to assert that the JsonPage has this expected pager. The assertion
-    // should ideally fail with a diff so I don't need to debug to see the actual JSON. I could also
-    // imagine asserting on the result of page.getPager() if that is easier like
-    // assertJSONEquals(expected, page.getPager()). Whitespace and order of keys do not matter here.
-    // I also see a case where both actual and expected are String
-    // representations of some JSON (but that's maybe for later).
-    String expected =
-        """
-"pager" : {
-  "page" : 1,
-  "pageSize" : 50
-}
-""";
-    assertEquals(1, page.getPager().getPage());
-    assertEquals(50, page.getPager().getPageSize());
-    assertHasNoMember(page.getPager(), "total");
-    assertHasNoMember(page.getPager(), "pageCount");
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total");
+    assertHasNoMember(pager, "pageCount");
   }
 
   @Test
@@ -172,10 +161,12 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         List.of("oLT07jKRu9e", "yZxjxJli9mO"),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
-    assertEquals(1, page.getPager().getPage());
-    assertEquals(50, page.getPager().getPageSize());
-    assertHasNoMember(page.getPager(), "total");
-    assertHasNoMember(page.getPager(), "pageCount");
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total");
+    assertHasNoMember(pager, "pageCount");
   }
 
   @Test
@@ -189,10 +180,12 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         List.of("oLT07jKRu9e", "yZxjxJli9mO"),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
-    assertEquals(1, page.getPager().getPage());
-    assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
-    assertEquals(1, page.getPager().getPageCount());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertEquals(2, pager.getTotal());
+    assertEquals(1, pager.getPageCount());
   }
 
   @Test
@@ -209,10 +202,12 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         relationships.size(),
         () ->
             String.format("mismatch in number of expected relationship(s), got %s", relationships));
-    assertEquals(2, page.getPager().getPage());
-    assertEquals(1, page.getPager().getPageSize());
-    assertHasNoMember(page.getPager(), "total");
-    assertHasNoMember(page.getPager(), "pageCount");
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertHasNoMember(pager, "total");
+    assertHasNoMember(pager, "pageCount");
   }
 
   @Test
@@ -229,10 +224,12 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         relationships.size(),
         () ->
             String.format("mismatch in number of expected relationship(s), got %s", relationships));
-    assertEquals(2, page.getPager().getPage());
-    assertEquals(1, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
-    assertEquals(2, page.getPager().getPageCount());
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertEquals(2, pager.getTotal());
+    assertEquals(2, pager.getPageCount());
   }
 
   @Test
@@ -252,13 +249,6 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   private org.hisp.dhis.tracker.imports.domain.Event getEvent(UID event) {
     return trackerObjects.getEvents().stream()
         .filter(ev -> ev.getEvent().equals(event))
-        .findFirst()
-        .get();
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Relationship getRelationship(UID relationship) {
-    return trackerObjects.getRelationships().stream()
-        .filter(r -> r.getRelationship().equals(relationship))
         .findFirst()
         .get();
   }
