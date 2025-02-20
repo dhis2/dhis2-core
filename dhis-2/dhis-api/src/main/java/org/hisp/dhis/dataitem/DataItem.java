@@ -104,6 +104,14 @@ public class DataItem implements Serializable {
   @JacksonXmlProperty(namespace = DXF_2_0)
   private String optionSetId;
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String programDataElementId;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String programAttributeId;
+
   public ValueType getSimplifiedValueType() {
     return valueType != null ? valueType.toSimplifiedValueType() : null;
   }

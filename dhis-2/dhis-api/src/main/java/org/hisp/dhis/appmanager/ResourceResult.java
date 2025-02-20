@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataitem.query.shared;
+package org.hisp.dhis.appmanager;
 
-import static lombok.AccessLevel.PRIVATE;
-
-import lombok.NoArgsConstructor;
+import javax.annotation.Nonnull;
+import org.springframework.core.io.Resource;
 
 /**
- * This class keeps the list of possible query params.
+ * Models the potential results when trying to retrieve a Resource. <br>
+ * Can be one of:
  *
- * @author maikel arabori
+ * <ul>
+ *   <li>ResourceFound
+ *   <li>ResourceNotFound
+ *   <li>Redirect
+ * </ul>
  */
-@NoArgsConstructor(access = PRIVATE)
-public class QueryParam {
-  public static final String NAME = "name";
+public sealed interface ResourceResult {
+  record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
 
-  public static final String SHORT_NAME = "shortName";
+  record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
 
-  public static final String DISPLAY_NAME = "displayName";
-
-  public static final String DISPLAY_SHORT_NAME = "displayShortName";
-
-  public static final String LOCALE = "locale";
-
-  public static final String VALUE_TYPES = "valueTypes";
-
-  public static final String USER_GROUP_UIDS = "userGroupUids";
-
-  public static final String USER_UID = "userUid";
-
-  public static final String PROGRAM_ID = "programId";
-
-  public static final String OPTION_SET_ID = "optionSetId";
-
-  public static final String OPTION_ID = "optionId";
-
-  public static final String MAX_LIMIT = "maxLimit";
-
-  public static final String NAME_ORDER = "nameOrder";
-
-  public static final String SHORT_NAME_ORDER = "shortNameOrder";
-
-  public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
-
-  public static final String DISPLAY_SHORT_NAME_ORDER = "displayShortNameOrder";
-
-  public static final String UID = "uid";
-
-  public static final String ROOT_JUNCTION = "rootJunction";
-
-  public static final String IDENTIFIABLE_TOKEN_COMPARISON = "identifiableTokenComparison";
+  record Redirect(@Nonnull String path) implements ResourceResult {}
 }
