@@ -345,7 +345,9 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleAction.setData("1");
     programRuleAction.setContent("#{prv_cal_val}");
 
-    assignProgramRule();
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
   }
 
   private void assignPreviousEventProgramRule() {
