@@ -142,9 +142,7 @@ public class NepaliCalendar extends AbstractCalendar {
 
   @Override
   public int isoWeek(DateTimeUnit dateTimeUnit) {
-    DateTime dateTime =
-        toIso(dateTimeUnit).toJodaDateTime(ISOChronology.getInstance(DateTimeZone.getDefault()));
-    return dateTime.getWeekyear();
+    return week(dateTimeUnit);
   }
 
   @Override

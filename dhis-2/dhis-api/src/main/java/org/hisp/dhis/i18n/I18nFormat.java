@@ -382,6 +382,141 @@ public class I18nFormat {
     }
   }
 
+  /**
+   * Formats a period. Returns null if value is null. Returns INVALID_DATE if formatting string is
+   * invalid.
+   *
+   * @param period the value to format.
+   */
+  public String formatPeriodToLocal(Period period, boolean shortVersion) {
+    if (period == null) {
+      return null;
+    }
+
+    PeriodType periodType = period.getPeriodType();
+    String typeName = periodType.getName();
+    Calendar calendar = PeriodType.getCalendar();
+
+    if (periodType instanceof WeeklyAbstractPeriodType) // Use ISO dates
+    // due to
+    // potential week
+    // confusion
+    {
+      LocalDate startDate =
+          Instant.ofEpochMilli(period.getStartDate().getTime())
+              .atZone(ZoneId.systemDefault())
+              .toLocalDate();
+      LocalDate endDate =
+          Instant.ofEpochMilli(period.getEndDate().getTime())
+              .atZone(ZoneId.systemDefault())
+              .toLocalDate();
+      WeekFields weekFields = WeekFields.of(PeriodType.MAP_WEEK_TYPE.get(periodType.getName()), 4);
+      String week = String.valueOf(startDate.get(weekFields.weekOfWeekBasedYear()));
+
+      if (!calendar.isIso8601()) {
+        DateTimeUnit startDateTimeUnit =
+            calendar.fromIso(DateTimeUnit.fromJdkDate(period.getStartDate()));
+        DateTimeUnit endDateTimeUnit =
+            calendar.fromIso(DateTimeUnit.fromJdkDate(period.getEndDate()));
+        week = String.valueOf(calendar.week(startDateTimeUnit));
+
+        return String.format(
+            shortVersion
+                ? "W%s %d-%02d-%02d - %d-%02d-%02d"
+                : "Week %s %d-%02d-%02d - %d-%02d-%02d",
+            week,
+            startDateTimeUnit.getYear(),
+            startDateTimeUnit.getMonth(),
+            startDateTimeUnit.getDay(),
+            endDateTimeUnit.getYear(),
+            endDateTimeUnit.getMonth(),
+            endDateTimeUnit.getDay());
+      }
+
+      return String.format(
+          shortVersion ? "W%s %d-%02d-%02d - %d-%02d-%02d" : "Week %s %d-%02d-%02d - %d-%02d-%02d",
+          week,
+          startDate.getYear(),
+          startDate.getMonth().getValue(),
+          startDate.getDayOfMonth(),
+          endDate.getYear(),
+          endDate.getMonth().getValue(),
+          endDate.getDayOfMonth());
+
+    } else if (periodType instanceof BiWeeklyAbstractPeriodType) {
+      int week;
+      BiWeeklyAbstractPeriodType biWeeklyAbstractPeriodType =
+          (BiWeeklyAbstractPeriodType) periodType;
+      DateTimeUnit startDateTimeUnit = DateTimeUnit.fromJdkDate(period.getStartDate());
+      DateTimeUnit endDateTimeUnit = DateTimeUnit.fromJdkDate(period.getEndDate());
+
+      if (calendar.isIso8601()) {
+        LocalDate startDate =
+            LocalDate.of(
+                startDateTimeUnit.getYear(),
+                startDateTimeUnit.getMonth(),
+                startDateTimeUnit.getDay());
+        WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 4);
+
+        week = (startDate.get(weekFields.weekOfWeekBasedYear()) / 2) + 1;
+      } else {
+        DateTimeUnit date =
+            biWeeklyAbstractPeriodType.adjustToStartOfBiWeek(startDateTimeUnit, calendar);
+        week = calendar.week(date);
+
+        if (week == 1 && date.getMonth() == calendar.monthsInYear()) {
+          date.setYear(date.getYear() + 1);
+        }
+      }
+
+      return String.format(
+          "Bi-Week %s %d-%02d-%02d - %d-%02d-%02d",
+          week,
+          startDateTimeUnit.getYear(),
+          startDateTimeUnit.getMonth(),
+          startDateTimeUnit.getDay(),
+          endDateTimeUnit.getYear(),
+          endDateTimeUnit.getMonth(),
+          endDateTimeUnit.getDay());
+    }
+
+    String keyStartDate = getStartDateFormat(typeName, periodType);
+    String keyEndDate = getEndDateFormat(typeName, periodType);
+
+    String startPattern = resourceBundle.getString(keyStartDate);
+    String endPattern = resourceBundle.getString(keyEndDate);
+
+    boolean dayPattern = startPattern.contains("dd") || endPattern.contains("dd");
+
+    Date periodStartDate = period.getStartDate();
+    Date periodEndDate = period.getEndDate();
+
+    DateTimeUnit start = PeriodType.getCalendar().fromIso(periodStartDate);
+    DateTimeUnit end = PeriodType.getCalendar().fromIso(periodEndDate);
+
+    String startDate;
+    String endDate;
+
+    if (!dayPattern) {
+      // Set day to first of month to not overflow when converting to JDK
+      // date
+      start.setDay(1);
+      end.setDay(1);
+
+      startDate = commonFormatting(new DateTimeUnit(start, true).toJdkDate(), startPattern);
+      endDate = commonFormatting(new DateTimeUnit(end, true).toJdkDate(), endPattern);
+    } else {
+      startDate = PeriodType.getCalendar().formattedDate(startPattern, start);
+      endDate = PeriodType.getCalendar().formattedDate(endPattern, end);
+    }
+
+    try {
+      return Character.toUpperCase(startDate.charAt(0)) + startDate.substring(1) + endDate;
+    } catch (IllegalArgumentException ex) {
+      return INVALID_DATE;
+    }
+  }
+
   private boolean isWeeklyPeriodType(PeriodType periodType) {
     return WEEKLY_PERIOD_TYPES.stream().anyMatch(type -> type.isInstance(periodType));
   }

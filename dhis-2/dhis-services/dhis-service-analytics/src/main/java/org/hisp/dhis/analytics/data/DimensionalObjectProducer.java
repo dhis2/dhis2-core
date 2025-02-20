@@ -334,6 +334,8 @@ public class DimensionalObjectProducer {
       period.setShortName(shortName);
 
       if (!calendar.isIso8601()) {
+        period.setName(format != null ? format.formatPeriodToLocal(period, false) : null);
+        period.setShortName(format != null ? format.formatPeriodToLocal(period, true) : null);
         period.setUid(getLocalPeriodIdentifier(period, calendar));
       }
     }
