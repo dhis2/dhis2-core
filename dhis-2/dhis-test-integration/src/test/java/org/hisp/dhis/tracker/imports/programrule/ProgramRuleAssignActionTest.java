@@ -293,7 +293,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignToCalculatedValueProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
+        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
