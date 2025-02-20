@@ -626,26 +626,25 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
-    Page<Enrollment> firstPage =
-        enrollmentService.getEnrollments(operationParams, PageParams.single());
+    Page<String> firstPage =
+        enrollmentService
+            .getEnrollments(operationParams, PageParams.single())
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, firstPage),
-        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
+    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, null, null, 2), firstPage, "first page");
 
-    Page<Enrollment> secondPage =
-        enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, false));
+    Page<String> secondPage =
+        enrollmentService
+            .getEnrollments(operationParams, new PageParams(2, 1, false))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second page is last page",
-        () -> assertPage(2, 1, secondPage),
-        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
+    assertEquals(
+        new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, null), secondPage, "second (last) page");
 
     Page<Enrollment> thirdPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(3, 1, false));
 
-    assertIsEmpty(thirdPage.getItems());
+    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
 
   @Test
@@ -658,26 +657,25 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
 
-    Page<Enrollment> firstPage =
-        enrollmentService.getEnrollments(operationParams, new PageParams(1, 1, true));
+    Page<String> firstPage =
+        enrollmentService
+            .getEnrollments(operationParams, new PageParams(1, 1, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, 2, firstPage),
-        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
+    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 2L, null, 2), firstPage, "first page");
 
-    Page<Enrollment> secondPage =
-        enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, true));
+    Page<String> secondPage =
+        enrollmentService
+            .getEnrollments(operationParams, new PageParams(2, 1, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, 2, secondPage),
-        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
+    assertEquals(
+        new Page<>(List.of("TvctPPhpD8z"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Enrollment> thirdPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(3, 1, true));
 
-    assertIsEmpty(thirdPage.getItems());
+    assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }
 
   @Test
@@ -1563,21 +1561,21 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return t;
   }
 
-  private static <T> void assertPage(int pageNumber, int pageSize, Page<T> page) {
-    assertNotNull(page, "paginated results should have a page");
+  private static <T> void assertPage(int pageNumber, int pageSize, Page<T> actual) {
+    assertNotNull(actual, "paginated results should have a page");
     assertAll(
         "pagination details",
-        () -> assertEquals(pageNumber, page.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, page.getPageSize(), "page size"));
+        () -> assertEquals(pageNumber, actual.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, actual.getPageSize(), "page size"));
   }
 
-  private static <T> void assertPage(int pageNumber, int pageSize, int totalCount, Page<T> page) {
-    assertNotNull(page, "paginated results should have a page");
+  private static <T> void assertPage(int pageNumber, int pageSize, int totalCount, Page<T> actual) {
+    assertNotNull(actual, "paginated results should have a page");
     assertAll(
         "pagination details",
-        () -> assertEquals(pageNumber, page.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, page.getPageSize(), "page size"),
-        () -> assertEquals(totalCount, page.getTotal(), "total count of items"));
+        () -> assertEquals(pageNumber, actual.getPage(), "number of current page"),
+        () -> assertEquals(pageSize, actual.getPageSize(), "page size"),
+        () -> assertEquals(totalCount, actual.getTotal(), "total count of items"));
   }
 
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)

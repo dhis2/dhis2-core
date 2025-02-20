@@ -28,22 +28,24 @@
 package org.hisp.dhis.tracker;
 
 import java.util.List;
-import lombok.AccessLevel;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * Create a page of items. A page is guaranteed to have a page number and size. All other fields are
- * optional.
+ * Create a page of items. A page is guaranteed to have items, a page number and page size. All
+ * other fields are optional.
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 @Getter
 @ToString
 @EqualsAndHashCode
 public class Page<T> {
-  private final List<T> items;
+  @Nonnull private final List<T> items;
   private final int page;
   private final int pageSize;
   private final Long total;
@@ -54,12 +56,43 @@ public class Page<T> {
     return new Page<>(List.of(), 0, 0, 0L, null, null);
   }
 
+  public Page(
+      @Nonnull List<T> items, @Nonnull PageParams pageParams, @Nonnull Supplier<Long> total) {
+    this.page = pageParams.getPage();
+    this.pageSize = pageParams.getPageSize();
+
+    if (pageParams.isPageTotal()) {
+      this.total = total.get();
+    } else {
+      this.total = null;
+    }
+
+    this.prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
+    if (items.size() > pageParams.getPageSize()) {
+      this.items = items.subList(0, pageParams.getPageSize());
+      this.nextPage = pageParams.getPage() + 1;
+    } else {
+      this.items = items;
+      this.nextPage = null;
+    }
+  }
+
   /**
    * Create a new page based on an existing one but with given {@code items}. Page related counts
    * will not be changed so make sure the given {@code items} match the previous page size.
    */
   public <U> Page<U> withItems(List<U> items) {
     return new Page<>(items, this.page, this.pageSize, this.total, this.prevPage, this.nextPage);
+  }
+
+  public <R> Page<R> withItems(Function<T, R> map) {
+    return new Page<>(
+        items.stream().map(map).toList(),
+        this.page,
+        this.pageSize,
+        this.total,
+        this.prevPage,
+        this.nextPage);
   }
 
   public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {

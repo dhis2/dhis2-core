@@ -80,7 +80,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
- * Page} to JSON.
+ * Page} to JSON. The logic and actual items returned in the pages is tested in the {@code
+ * OrderAndPaginationExporterTest}
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -181,12 +182,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     assertHasNoMember(pager, "pageCount");
   }
 
-  // TODO(ivo) add a test for the first page
-  // TODO(ivo) add a test for the middle page
-  // TODO(ivo) add a test for the last page
-  // TODO(ivo) add a test for being past the last page
   @Test
-  void shouldGetPaginatedEnrollmentsWithNonDefaultsAndTotals() {
+  void shouldGetPaginatedEnrollmentsLastPage() {
     JsonPage page =
         GET(
                 "/tracker/enrollments?enrollments={uid},{uid}&page=2&pageSize=1&totalPages=true",
@@ -203,20 +200,6 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     assertEquals(1, pager.getPageSize());
     assertEquals(2, pager.getTotal());
     assertEquals(2, pager.getPageCount());
-    // TODO(ivo) what do I expect the URL to look like again?
-    //    ### get page of attributes
-    //    GET {{PROTOCOL}}://{{AUTH}}@{{HOST}}/api/attributes?fields=id,name&page=3&pageSize=2
-    //    "pager": {
-    //          "page": 3,
-    //          "total": 11,
-    //          "pageSize": 2,
-    //          "nextPage":
-    // "https://play.im.dhis2.org/dev/api/attributes?page=4&pageSize=2&fields=id%2Cname",
-    //          "prevPage":
-    // "https://play.im.dhis2.org/dev/api/attributes?page=2&pageSize=2&fields=id%2Cname",
-    //          "pageCount": 6
-    //    },
-
     assertPagerLink(
         pager.getPrevPage(),
         1,
