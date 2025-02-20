@@ -39,6 +39,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -116,6 +117,12 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleVariablePreviousEvent.setSourceType(
         ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT);
     programRuleVariableService.addProgramRuleVariable(programRuleVariablePreviousEvent);
+
+    ProgramRuleVariable calculatedValuePRV = createProgramRuleVariable('I', program);
+    calculatedValuePRV.setName("prv_cal_val");
+    calculatedValuePRV.setSourceType(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    calculatedValuePRV.setValueType(ValueType.TEXT);
+    programRuleVariableService.addProgramRuleVariable(calculatedValuePRV);
 
     trackerImportService.importTracker(
         new TrackerImportParams(),
@@ -281,6 +288,19 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assertHasOnlyWarnings(importReport, E1308);
   }
 
+  @Test
+  void shouldImportWhenAssigningToCalculatedValueProgramRuleVariable() throws IOException {
+    assignToCalculatedValueProgramRule();
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasOnlyWarnings(importReport, E1308);
+  }
+
   private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/programrule/event_without_date.json");
@@ -313,6 +333,19 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRule.getProgramRuleActions().add(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleActionAttribute);
     programRuleService.updateProgramRule(programRule);
+  }
+
+  private void assignToCalculatedValueProgramRule() {
+    ProgramRule programRule = createProgramRule('I', program, null, "true");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction = createProgramRuleAction('Z', programRule);
+    programRuleAction.setProgramRuleActionType(ASSIGN);
+    programRuleAction.setDataElement(null);
+    programRuleAction.setAttribute(null);
+    programRuleAction.setData("1");
+    programRuleAction.setContent("#{prv_cal_val}");
+
+    assignProgramRule();
   }
 
   private void assignPreviousEventProgramRule() {
