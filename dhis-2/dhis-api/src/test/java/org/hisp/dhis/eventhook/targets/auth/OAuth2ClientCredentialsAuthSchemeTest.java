@@ -51,7 +51,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
-public class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
+class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
 
   @Test
   void testEncrypt() {
