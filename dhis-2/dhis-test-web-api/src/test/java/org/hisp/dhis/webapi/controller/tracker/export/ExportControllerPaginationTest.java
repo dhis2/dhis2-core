@@ -141,6 +141,20 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         List.of("oLT07jKRu9e", "yZxjxJli9mO"),
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
+
+    // TODO(jan) I would like to assert that the JsonPage has this expected pager. The assertion
+    // should ideally fail with a diff so I don't need to debug to see the actual JSON. I could also
+    // imagine asserting on the result of page.getPager() if that is easier like
+    // assertJSONEquals(expected, page.getPager()). Whitespace and order of keys do not matter here.
+    // I also see a case where both actual and expected are String
+    // representations of some JSON (but that's maybe for later).
+    String expected =
+        """
+"pager" : {
+  "page" : 1,
+  "pageSize" : 50
+}
+""";
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
