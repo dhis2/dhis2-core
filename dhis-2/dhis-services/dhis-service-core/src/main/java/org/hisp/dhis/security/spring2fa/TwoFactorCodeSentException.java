@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.twofa;
+package org.hisp.dhis.security.spring2fa;
 
-import lombok.Getter;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.springframework.security.authentication.BadCredentialsException;
 
-@Getter
-public enum TwoFactorType {
-  NOT_ENABLED,
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class TwoFactorCodeSentException extends BadCredentialsException {
+  private final TwoFactorType type;
 
-  // Enabled states
-  TOTP_ENABLED,
-  EMAIL_ENABLED,
-
-  // Enrolling states
-  ENROLLING_TOTP, // User is in the process of enrolling in TOTP 2FA
-  ENROLLING_EMAIL; // User is in the process of enrolling in email-based 2FA
-
-  public boolean isEnrolling() {
-    return this == ENROLLING_TOTP || this == ENROLLING_EMAIL;
+  public TwoFactorCodeSentException(String msg, TwoFactorType type) {
+    super(msg);
+    this.type = type;
   }
 
-  public TwoFactorType getEnabledType() {
-    if (this == ENROLLING_TOTP) {
-      return TOTP_ENABLED;
-    } else if (this == ENROLLING_EMAIL) {
-      return EMAIL_ENABLED;
-    } else {
-      return this;
-    }
-  }
-
-  public boolean isEnabled() {
-    return this == TOTP_ENABLED || this == EMAIL_ENABLED;
+  public TwoFactorType getType() {
+    return type;
   }
 }
