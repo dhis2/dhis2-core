@@ -1359,9 +1359,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.TRACKED_ENTITY)
-            .identifier(UID.of("dUE514NMOlo"))
+        RelationshipOperationParams.builder(TrackerType.TRACKED_ENTITY, UID.of("dUE514NMOlo"))
             .orderBy("createdAtClient", SortDirection.DESC)
             .build();
 
@@ -1382,10 +1380,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .toList();
 
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
-            .build();
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
 
     List<String> relationships = getRelationships(params);
 
@@ -1396,9 +1391,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderRelationshipsByUpdatedAtClientInDescOrder()
       throws ForbiddenException, BadRequestException, NotFoundException {
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72"))
             .orderBy("createdAtClient", SortDirection.DESC)
             .build();
 
@@ -1411,9 +1404,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderRelationshipsByUpdatedAtClientInAscOrder()
       throws ForbiddenException, BadRequestException, NotFoundException {
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72"))
             .orderBy("createdAtClient", SortDirection.ASC)
             .build();
 
@@ -1440,10 +1431,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     String expectedOnPage2 = expected.get(1);
 
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
-            .build();
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
 
     Page<Relationship> firstPage =
         relationshipService.getRelationships(params, PageParams.single());
@@ -1485,10 +1473,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     String expectedOnPage2 = expected.get(1);
 
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
-            .build();
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
 
     Page<Relationship> firstPage =
         relationshipService.getRelationships(params, new PageParams(1, 1, true));
@@ -1519,9 +1504,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
 
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72"))
             .orderBy("created", SortDirection.ASC)
             .build();
 
@@ -1549,9 +1532,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
 
     RelationshipOperationParams params =
-        RelationshipOperationParams.builder()
-            .type(TrackerType.EVENT)
-            .identifier(UID.of("pTzf9KYMk72"))
+        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72"))
             .orderBy("created", SortDirection.DESC)
             .build();
 
