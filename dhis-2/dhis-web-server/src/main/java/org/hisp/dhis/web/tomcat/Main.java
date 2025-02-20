@@ -105,7 +105,7 @@ public class Main {
     context.addServletContainerInitializer(starter, Collections.emptySet());
     context.setName("/");
     context.setDisplayName("/");
-    context.setPath("kuk");
+    context.setPath("");
     context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
 
     context.setResources(new LoaderHidingResourceRoot(context));
