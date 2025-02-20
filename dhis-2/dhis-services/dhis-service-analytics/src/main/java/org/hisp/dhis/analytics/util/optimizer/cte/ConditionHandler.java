@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
-import lombok.experimental.UtilityClass;
-import org.hisp.dhis.common.QueryItem;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import lombok.Getter;
+import org.hisp.dhis.analytics.util.optimizer.cte.data.GeneratedCte;
 
-@UtilityClass
-public class CteUtils {
+public class ConditionHandler {
 
-  public static String computeKey(QueryItem queryItem) {
-    if (queryItem.hasProgramStage()) {
-      return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
-    } else if (queryItem.isProgramIndicator()) {
-      return "pi_" + queryItem.getItemId();
-    }
-    return "";
+  private final Predicate<String> condition;
+  @Getter private final Function<CteInput, GeneratedCte> generator;
+
+  public ConditionHandler(Predicate<String> condition, Function<CteInput, GeneratedCte> generator) {
+    this.condition = condition;
+    this.generator = generator;
   }
 
-  public static String getIdentifier(QueryItem queryItem) {
-    String stage = queryItem.hasProgramStage() ? queryItem.getProgramStage().getUid() : "default";
-    return stage + "." + queryItem.getItemId();
+  public boolean matches(String name) {
+    return condition.test(name);
   }
 }
