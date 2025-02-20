@@ -27,23 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Assertions;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link PdfFormController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class PdfFormControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class PdfFormControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSendFormPdfDataSet_Empty() {
@@ -59,7 +62,7 @@ class PdfFormControllerTest extends DhisControllerConvenienceTest {
   @DisplayName("Should not return Http Error 500 if the DB_Locale is null.")
   void testGetDataSetPdfForm() {
     HttpResponse setting = GET("/userSettings/keyDbLocale");
-    Assertions.assertTrue(setting.content().isNull());
+    assertEquals("en", setting.content("text/plain"));
 
     PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
     DataSet dataSet = createDataSet('A');

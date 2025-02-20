@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -42,13 +43,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginResponse {
   @Getter
+  @OpenApi.Shared(name = "LoginResponseStatus")
   public enum STATUS {
     SUCCESS("loginSuccess"),
     ACCOUNT_DISABLED("accountDisabled"),
     ACCOUNT_LOCKED("accountLocked"),
     ACCOUNT_EXPIRED("accountExpired"),
     PASSWORD_EXPIRED("passwordExpired"),
-    INCORRECT_TWO_FACTOR_CODE("incorrectTwoFactorCode"),
+    INCORRECT_TWO_FACTOR_CODE_TOTP("incorrectTwoFactorCodeTOTP"),
+    INCORRECT_TWO_FACTOR_CODE_EMAIL("incorrectTwoFactorCodeEmail"),
     REQUIRES_TWO_FACTOR_ENROLMENT("requiresTwoFactorEnrolment");
 
     private final String keyName;
@@ -62,6 +65,4 @@ public class LoginResponse {
 
   @JsonProperty private STATUS loginStatus;
   @JsonProperty private String redirectUrl;
-  @JsonProperty private String loginMessage;
-  @JsonProperty private String twoFactorQRCode;
 }

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,90 +40,16 @@ import org.junit.jupiter.api.Test;
 class PageTest {
 
   @Test
-  void shouldSetDeprecatedPagerWithoutTotals() {
-    List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withoutTotals(fruits, 2, 3);
-
-    Page<String> page = Page.withPager("fruits", exportPage);
-
-    // deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(3, page.getPageSize());
-    assertNull(page.getTotal());
-    assertNull(page.getPageCount());
-
-    assertEquals(2, page.getPager().getPage());
-    assertEquals(3, page.getPager().getPageSize());
-    assertNull(page.getPager().getTotal());
-    assertNull(page.getPager().getPageCount());
-    assertNull(page.getPager().getPrevPage());
-    assertNull(page.getPager().getNextPage());
-  }
-
-  @Test
-  void shouldSetDeprecatedPagerWithTotals() {
-    List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withTotals(fruits, 2, 3, 17);
-
-    Page<String> page = Page.withPager("fruits", exportPage);
-
-    // deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(3, page.getPageSize());
-    assertEquals(17, page.getTotal());
-    assertEquals(6, page.getPageCount());
-
-    assertEquals(2, page.getPager().getPage());
-    assertEquals(3, page.getPager().getPageSize());
-    assertEquals(17, page.getPager().getTotal());
-    assertEquals(6, page.getPager().getPageCount());
-    assertNull(page.getPager().getPrevPage());
-    assertNull(page.getPager().getNextPage());
-  }
-
-  @Test
-  void shouldSetDeprecatedPagerWithTotalsAndKeepPageNumberEvenIfPastLastPage() {
-    // so we do not run into common.Pager bug https://dhis2.atlassian.net/browse/DHIS2-16849
-    List<String> fruits = List.of("apple", "banana", "cherry");
-    // page 10 is past last page of 6
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withTotals(fruits, 10, 3, 17);
-
-    Page<String> page = Page.withPager("fruits", exportPage);
-
-    // deprecated fields
-    assertEquals(10, page.getPage());
-    assertEquals(3, page.getPageSize());
-    assertEquals(17, page.getTotal());
-    assertEquals(6, page.getPageCount());
-
-    assertEquals(10, page.getPager().getPage());
-    assertEquals(3, page.getPager().getPageSize());
-    assertEquals(17, page.getPager().getTotal());
-    assertEquals(6, page.getPager().getPageCount());
-    assertNull(page.getPager().getPrevPage());
-    assertNull(page.getPager().getNextPage());
-  }
-
-  @Test
   void shouldNotSetNoPageLinkIfThereAreNone() {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 1, 3, null, null);
+    org.hisp.dhis.tracker.Page<String> exportPage =
+        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 1, 3, null, null);
 
     Page<String> page =
         Page.withPager(
             "fruits",
             exportPage,
             "http://localhost/organisationUnits?page=1&pageSize=3&fields=displayName");
-
-    // deprecated fields should not be returned with this new factory!
-    assertNull(page.getTotal());
-    assertNull(page.getPageCount());
-    assertNull(page.getPage());
-    assertNull(page.getPageSize());
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
@@ -137,20 +63,14 @@ class PageTest {
   @Test
   void shouldSetPrevPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, 1, null);
+    org.hisp.dhis.tracker.Page<String> exportPage =
+        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 2, 3, 1, null);
 
     Page<String> page =
         Page.withPager(
             "fruits",
             exportPage,
             "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
-
-    // deprecated fields should not be returned with this new factory!
-    assertNull(page.getTotal());
-    assertNull(page.getPageCount());
-    assertNull(page.getPage());
-    assertNull(page.getPageSize());
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
@@ -169,20 +89,14 @@ class PageTest {
   @Test
   void shouldSetNextPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    org.hisp.dhis.tracker.export.Page<String> exportPage =
-        org.hisp.dhis.tracker.export.Page.withPrevAndNext(fruits, 2, 3, null, 3);
+    org.hisp.dhis.tracker.Page<String> exportPage =
+        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 2, 3, null, 3);
 
     Page<String> page =
         Page.withPager(
             "fruits",
             exportPage,
             "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
-
-    // deprecated fields should not be returned with this new factory!
-    assertNull(page.getTotal());
-    assertNull(page.getPageCount());
-    assertNull(page.getPage());
-    assertNull(page.getPageSize());
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());

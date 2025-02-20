@@ -60,7 +60,7 @@ public class ExpressionDimensionItem extends BaseDataDimensionalItemObject
 
   public static final String SEPARATOR = ".";
 
-  /** The Expression. */
+  /** The expression. */
   private String expression;
 
   /** This expression should be given sliding window based data */

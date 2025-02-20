@@ -41,14 +41,17 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class CategoryServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   private DataElement deA;
 
@@ -78,12 +81,8 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private CategoryManager categoryManager;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     categoryOptionA = createCategoryOption('A');
     categoryOptionB = createCategoryOption('B');
     categoryOptionC = createCategoryOption('C');
@@ -95,10 +94,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     categoryOptions.add(categoryOptionB);
     categoryOptions.add(categoryOptionC);
   }
-
-  // -------------------------------------------------------------------------
-  // Category
-  // -------------------------------------------------------------------------
 
   @Test
   void testAddGet() {
@@ -166,26 +161,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testGetAll() {
-    categoryA = createCategory('A');
-    categoryB = createCategory('B');
-    categoryC = createCategory('C');
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    categoryService.addCategory(categoryC);
-    List<Category> categories = categoryService.getAllDataElementCategories();
-    // Including default
-    assertEquals(4, categories.size());
-    assertTrue(categories.contains(categoryA));
-    assertTrue(categories.contains(categoryB));
-    assertTrue(categories.contains(categoryC));
-  }
-
-  // -------------------------------------------------------------------------
-  // CategoryOptionGroup
-  // -------------------------------------------------------------------------
-
-  @Test
   void testAddGetCategoryGroup() {
     CategoryOptionGroup groupA = createCategoryOptionGroup('A');
     CategoryOptionGroup groupB = createCategoryOptionGroup('B');
@@ -203,10 +178,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, categoryService.getCategoryOptionGroup(idB).getMembers().size());
     assertEquals(0, categoryService.getCategoryOptionGroup(idC).getMembers().size());
   }
-
-  // -------------------------------------------------------------------------
-  // CategoryOptionGroupSet
-  // -------------------------------------------------------------------------
 
   @Test
   void testAddGetCategoryGroupSet() {
@@ -235,10 +206,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, categoryService.getCategoryOptionGroupSet(idB).getMembers().size());
     assertEquals(0, categoryService.getCategoryOptionGroupSet(idC).getMembers().size());
   }
-
-  // -------------------------------------------------------------------------
-  // DataElementOperand
-  // -------------------------------------------------------------------------
 
   @Test
   void testGetOperands() {
@@ -319,18 +286,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     groupSetA.getMembers().add(groupC);
     categoryService.saveCategoryOptionGroupSet(groupSetA);
     assertEquals(1, categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().size());
-  }
-
-  @Test
-  void testGetDisaggregationCategories() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB, categoryOptionC);
-    categoryA.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-    categoryService.addCategory(categoryA);
-    // Default Category is created so count should be equal 2
-    assertEquals(2, categoryService.getDisaggregationCategories().size());
-    assertEquals(1, categoryStore.getCategories(DataDimensionType.DISAGGREGATION, true).size());
-    assertEquals(
-        1, categoryStore.getCategoriesNoAcl(DataDimensionType.DISAGGREGATION, true).size());
   }
 
   @Test

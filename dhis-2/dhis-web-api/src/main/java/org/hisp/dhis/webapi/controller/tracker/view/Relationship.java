@@ -34,22 +34,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Shared(name = "TrackerRelationship")
+@OpenApi.Identifiable(as = org.hisp.dhis.relationship.Relationship.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Relationship {
-  @OpenApi.Property({UID.class, Relationship.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.relationship.Relationship.class})
   @JsonProperty
-  private String relationship;
+  private UID relationship;
 
   @JsonProperty private String relationshipName;
 

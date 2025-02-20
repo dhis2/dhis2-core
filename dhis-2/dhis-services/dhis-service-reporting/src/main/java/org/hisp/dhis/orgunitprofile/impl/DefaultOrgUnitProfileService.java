@@ -42,7 +42,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -58,6 +57,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -131,7 +131,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   @Override
   @Transactional
-  public void saveOrgUnitProfile(OrgUnitProfile profile) {
+  public void saveOrgUnitProfile(OrgUnitProfile profile) throws ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry(ORG_UNIT_PROFILE_KEY, ORG_UNIT_PROFILE_NAMESPACE);
 
     try {
@@ -157,7 +157,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   @Override
   @Transactional(readOnly = true)
-  public OrgUnitProfile getOrgUnitProfile() {
+  public OrgUnitProfile getOrgUnitProfile() throws ForbiddenException {
     DatastoreEntry value = dataStore.getEntry(ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY);
 
     if (value == null) {
@@ -174,7 +174,8 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   @Override
   @Transactional(readOnly = true)
-  public OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod) {
+  public OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod)
+      throws ForbiddenException {
     // If profile is empty, only fixed info will be included
 
     OrgUnitProfile profile = getOrgUnitProfile();
@@ -249,12 +250,10 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
     List<ProfileItem> items = new ArrayList<>();
 
     for (Attribute attribute : attributes) {
-      AttributeValue attributeValue = orgUnit.getAttributeValue(attribute);
+      String attributeValue = orgUnit.getAttributeValues().get(attribute.getUid());
 
       if (attributeValue != null) {
-        items.add(
-            new ProfileItem(
-                attribute.getUid(), attribute.getDisplayName(), attributeValue.getValue()));
+        items.add(new ProfileItem(attribute.getUid(), attribute.getDisplayName(), attributeValue));
       }
     }
 
@@ -264,7 +263,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
   /**
    * Retrieves a list of org unit group set data items for the given org unit profile and org unit.
    *
-   * @param profile the {@link OrganisationUnitProfile}.
+   * @param profile the {@link OrgUnitProfile}.
    * @param orgUnit the {@link OrganisationUnit}.
    * @return a list of {@link ProfileItem}.
    */

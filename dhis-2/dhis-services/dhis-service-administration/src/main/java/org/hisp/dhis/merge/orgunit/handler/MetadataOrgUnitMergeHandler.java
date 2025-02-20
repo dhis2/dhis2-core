@@ -43,14 +43,14 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for metadata entities.
  *
  * @author Lars Helge Overland
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class MetadataOrgUnitMergeHandler {
   private final UserService userService;

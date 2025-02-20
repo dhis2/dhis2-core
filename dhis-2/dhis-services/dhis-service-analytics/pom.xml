@@ -38,10 +38,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-setting</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-expression-parser</artifactId>
     </dependency>
     <dependency>
@@ -51,6 +47,10 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-sql</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -109,6 +109,14 @@
       <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-main</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.postgis</groupId>
+      <artifactId>postgis-jdbc</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -161,7 +169,10 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-
+    <dependency>
+      <groupId>com.github.jsqlparser</groupId>
+      <artifactId>jsqlparser</artifactId>
+    </dependency>
     <!-- Test -->
 
     <dependency>

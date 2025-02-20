@@ -28,10 +28,10 @@
 package org.hisp.dhis.fileresource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /** This is simple class to represent the list of possible static image resources. */
 @XmlRootElement

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.dataelement;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.staticJsonMapper;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -68,16 +69,15 @@ import org.hisp.dhis.query.JpaCriteriaQueryEngine;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.random.BeanRandomizer;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,24 +110,25 @@ class DataElementOperandControllerTest {
 
   @Mock private CategoryService dataElementCategoryService;
 
-  @Mock private SystemSettingManager systemSettingManager;
-
-  private QueryService queryService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private UserService userService;
 
-  private static final String ENDPOINT = "/dataElementOperands";
+  private QueryService queryService;
+
+  private static final String ENDPOINT = "/api/dataElementOperands";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
   public void setUp() {
-    ContextService contextService = new DefaultContextService();
+    injectSecurityContextNoSettings(new SystemUser());
 
     QueryService _queryService =
         new DefaultQueryService(
             new DefaultJpaQueryParser(schemaService),
-            new DefaultQueryPlanner(schemaService, systemSettingManager),
+            new DefaultQueryPlanner(schemaService, settingsService),
+            schemaService,
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine<>(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
@@ -138,18 +139,11 @@ class DataElementOperandControllerTest {
     // Controller under test
     final DataElementOperandController controller =
         new DataElementOperandController(
-            manager,
-            queryService,
-            fieldFilterService,
-            linkService,
-            contextService,
-            schemaService,
-            dataElementCategoryService);
+            manager, queryService, fieldFilterService, linkService, dataElementCategoryService);
 
     // Set custom Node Message converter //
-    NodeService nodeService = new DefaultNodeService();
     Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer(staticJsonMapper());
-    ReflectionTestUtils.setField(nodeService, "nodeSerializers", Lists.newArrayList(serializer));
+    NodeService nodeService = new DefaultNodeService(List.of(serializer));
     ReflectionTestUtils.invokeMethod(nodeService, "init");
 
     JsonMessageConverter jsonMessageConverter =

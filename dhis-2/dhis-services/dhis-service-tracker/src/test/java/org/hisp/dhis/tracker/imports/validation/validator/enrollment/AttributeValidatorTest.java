@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -36,7 +37,9 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import org.hisp.dhis.common.CodeGenerator;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -45,7 +48,8 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -86,11 +90,11 @@ class AttributeValidatorTest {
 
   @Mock private TrackedEntity trackedEntity;
 
-  private static final String trackedAttribute = "attribute";
+  private static final String TRACKED_ATTRIBUTE = "attribute";
 
-  private static final String trackedAttribute1 = "attribute1";
+  private static final String TRACKED_ATTRIBUTE_1 = "attribute1";
 
-  private static final String trackedAttributeP = "attributeP";
+  private static final String TRACKED_ATTRIBUTE_P = "attributeP";
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -105,34 +109,34 @@ class AttributeValidatorTest {
 
     trackedEntityAttribute =
         new TrackedEntityAttribute("name", "description", ValueType.TEXT, false, false);
-    trackedEntityAttribute.setUid(trackedAttribute);
+    trackedEntityAttribute.setUid(TRACKED_ATTRIBUTE);
 
     trackedEntityAttribute1 =
         new TrackedEntityAttribute("name1", "description1", ValueType.TEXT, false, false);
-    trackedEntityAttribute1.setUid(trackedAttribute1);
+    trackedEntityAttribute1.setUid(TRACKED_ATTRIBUTE_1);
 
     trackedEntityAttributeP =
         new TrackedEntityAttribute("percentage", "percent", ValueType.PERCENTAGE, false, false);
-    trackedEntityAttributeP.setUid(trackedAttributeP);
+    trackedEntityAttributeP.setUid(TRACKED_ATTRIBUTE_P);
 
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getProgram((MetadataIdentifier) any())).thenReturn(program);
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid("program"));
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttribute)))
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE)))
         .thenReturn(trackedEntityAttribute);
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttribute1)))
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)))
         .thenReturn(trackedEntityAttribute1);
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttributeP)))
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_P)))
         .thenReturn(trackedEntityAttributeP);
 
     when(dhisConfigurationProvider.getEncryptionStatus())
         .thenReturn(EncryptionStatus.MISSING_ENCRYPTION_PASSWORD);
 
-    String uid = CodeGenerator.generateUid();
+    UID uid = UID.generate();
     when(enrollment.getUid()).thenReturn(uid);
     when(enrollment.getEnrollment()).thenReturn(uid);
     when(enrollment.getTrackerType()).thenCallRealMethod();
-    enrollment.setTrackedEntity("trackedEntity");
+    enrollment.setTrackedEntity(UID.generate());
 
     bundle = TrackerBundle.builder().preheat(preheat).build();
 
@@ -141,21 +145,169 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory() {
-    // given 1 attribute has null value
+  void shouldPassValidationWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
-            .valueType(ValueType.TEXT)
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Arrays.asList(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
+                    new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void
+      shouldReturnErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentOrInTrackedEntityOrInDB() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of());
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1018);
+  }
+
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInTrackedEntity() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+
+    Attribute attribute1 =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
+            .value("value")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of());
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+    bundle.setTrackedEntities(
+        List.of(
+            org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                .trackedEntity(enrollment.getTrackedEntity())
+                .attributes(List.of(attribute, attribute1))
+                .build()));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                List.of(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
+                    new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void shouldFailValidationWhenCreatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntity.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Collections.singletonList(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1018);
+  }
+
+  @Test
+  void shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -169,7 +321,41 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
     when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1076);
+  }
+
+  @Test
+  void shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+    Attribute attribute1 =
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Arrays.asList(attribute, attribute1));
+    when(trackedEntity.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Arrays.asList(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
+                    new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -178,20 +364,14 @@ class AttributeValidatorTest {
 
   @Test
   void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
-            .valueType(ValueType.TEXT)
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
-    // when only 1 tracked attributes is mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -205,6 +385,7 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
     when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
 
     validator.validate(reporter, bundle, enrollment);
@@ -214,17 +395,14 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValidationWhenValueIsInvalidPercentage() {
-    // given 1 percentage attribute has invalid value
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
-            .valueType(ValueType.TEXT)
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttributeP))
-            .valueType(ValueType.PERCENTAGE)
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_P))
             .value("1000")
             .build();
 
@@ -241,6 +419,7 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttributeP, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
     when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
 
     validator.validate(reporter, bundle, enrollment);
@@ -249,21 +428,16 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and does not exists in Te
+  void
+      shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
     Attribute attribute =
         Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
-            .valueType(ValueType.TEXT)
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
-    // when 2 tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -276,7 +450,9 @@ class AttributeValidatorTest {
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
     when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -286,11 +462,42 @@ class AttributeValidatorTest {
   }
 
   @Test
+  void
+      shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
+            .value("value")
+            .build();
+    Attribute attribute1 =
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Arrays.asList(attribute, attribute1));
+    when(trackedEntity.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Collections.singletonList(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, ValidationCode.E1076);
+  }
+
+  @Test
   void shouldFailValidationWhenAttributeIsNotPresentInDB() {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid("invalidAttribute"))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
@@ -302,6 +509,7 @@ class AttributeValidatorTest {
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
     when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
 
     validator.validate(reporter, bundle, enrollment);

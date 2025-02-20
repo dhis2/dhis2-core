@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardService;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityCheck;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.visualization.VisualizationType;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

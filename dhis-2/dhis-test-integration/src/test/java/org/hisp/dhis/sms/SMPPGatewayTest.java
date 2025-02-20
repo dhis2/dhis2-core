@@ -41,11 +41,14 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPGateway;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * To run this test, make sure that the SMSC is running on: host: localhost port: 2775 user:
@@ -55,7 +58,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @Author Zubair Asghar.
  */
 @Disabled("Test to run manually")
-class SMPPGatewayTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class SMPPGatewayTest extends PostgresIntegrationTestBase {
 
   private static final String SYSTEM_ID = "smppclient1";
 

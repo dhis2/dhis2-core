@@ -27,40 +27,45 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ApiVersionMethodTest extends DhisWebSpringTest {
+class ApiVersionMethodTest extends WebSpringTestBase {
+
+  private static MockHttpServletRequestBuilder get(String urlTemplate, Object... uriVariables) {
+    return org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+        "/api/" + urlTemplate, uriVariables);
+  }
 
   @Test
   void testMethodV31V32() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/method/testV31V32";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint + "/a").session(session)).andExpect(status().isOk());
-    mvc.perform(post("/31" + endpoint + "/a").session(session)).andExpect(status().isOk());
-    mvc.perform(put("/31" + endpoint + "/a").session(session))
+    mvc.perform(post("/api/31" + endpoint + "/a").session(session)).andExpect(status().isOk());
+    mvc.perform(put("/api/31" + endpoint + "/a").session(session))
         .andExpect(status().isMethodNotAllowed());
     mvc.perform(get("/32" + endpoint + "/b").session(session)).andExpect(status().isOk());
-    mvc.perform(post("/32" + endpoint + "/b").session(session))
+    mvc.perform(post("/api/32" + endpoint + "/b").session(session))
         .andExpect(status().isMethodNotAllowed());
-    mvc.perform(put("/32" + endpoint + "/b").session(session)).andExpect(status().isOk());
+    mvc.perform(put("/api/32" + endpoint + "/b").session(session)).andExpect(status().isOk());
   }
 
   @Test
   void testMethodAll() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/method/testAll";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());
@@ -71,7 +76,7 @@ class ApiVersionMethodTest extends DhisWebSpringTest {
 
   @Test
   void testMethodAllExcludeV32() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/method/testAllExcludeV32";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isNotFound());
@@ -83,7 +88,7 @@ class ApiVersionMethodTest extends DhisWebSpringTest {
 
   @Test
   void testMethodDefault() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/method/testDefault";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());

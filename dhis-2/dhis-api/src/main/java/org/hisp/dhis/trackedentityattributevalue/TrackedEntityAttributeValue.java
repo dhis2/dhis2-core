@@ -147,7 +147,7 @@ public class TrackedEntityAttributeValue implements Serializable {
   }
 
   /**
-   * Retrieves the plain-text value is the attribute isn't confidential. If the value is
+   * Retrieves the plain-text value if the attribute isn't confidential. If the value is
    * confidential, this value should be null, unless it was non-confidential at an earlier stage.
    *
    * @return String with plain-text value or null.

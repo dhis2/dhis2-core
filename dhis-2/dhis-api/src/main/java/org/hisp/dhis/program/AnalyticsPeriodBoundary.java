@@ -35,6 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -92,13 +94,16 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
   public static final Pattern COHORT_HAVING_ATTRIBUTE_PATTERN =
       Pattern.compile(COHORT_HAVING_ATTRIBUTE_REGEX);
 
-  public static final String DB_EVENT_DATE = "occurreddate";
+  public static final String DB_EVENT_DATE = EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 
-  public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
+  public static final String DB_ENROLLMENT_DATE =
+      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
 
-  public static final String DB_INCIDENT_DATE = "incidentdate";
+  public static final String DB_INCIDENT_DATE =
+      EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 
-  public static final String DB_SCHEDULED_DATE = "scheduleddate";
+  public static final String DB_SCHEDULED_DATE =
+      EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 
   public static final String DB_QUOTE = "\"";
 
@@ -172,35 +177,35 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     return returnDate;
   }
 
-  public Boolean isCohortDateBoundary() {
+  public boolean isCohortDateBoundary() {
     return !isEventDateBoundary();
   }
 
-  public Boolean isEnrollmentHavingEventDateCohortBoundary() {
+  public boolean isEnrollmentHavingEventDateCohortBoundary() {
     return boundaryTarget.startsWith(COHORT_HAVING_PROGRAM_STAGE_PREFIX);
   }
 
-  public Boolean isDataElementCohortBoundary() {
+  public boolean isDataElementCohortBoundary() {
     return boundaryTarget.startsWith(COHORT_HAVING_DATA_ELEMENT_PREFIX);
   }
 
-  public Boolean isAttributeCohortBoundary() {
+  public boolean isAttributeCohortBoundary() {
     return boundaryTarget.startsWith(COHORT_HAVING_ATTRIBUTE_PREFIX);
   }
 
-  public Boolean isEventDateBoundary() {
+  public boolean isEventDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.EVENT_DATE);
   }
 
-  public Boolean isEnrollmentDateBoundary() {
+  public boolean isEnrollmentDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.ENROLLMENT_DATE);
   }
 
-  public Boolean isIncidentDateBoundary() {
+  public boolean isIncidentDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.INCIDENT_DATE);
   }
 
-  public Boolean isScheduledDateBoundary() {
+  public boolean isScheduledDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.SCHEDULED_DATE);
   }
 

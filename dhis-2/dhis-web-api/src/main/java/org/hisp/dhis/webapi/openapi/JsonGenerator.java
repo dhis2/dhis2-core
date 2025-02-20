@@ -37,6 +37,8 @@ import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
  * A utility to generate JSON based on simple {@link Runnable} callbacks for nesting of arrays and
@@ -48,7 +50,7 @@ import lombok.Value;
 public class JsonGenerator {
   @Value
   @Builder(toBuilder = true)
-  static class Format {
+  public static class Format {
     public static final Format PRETTY_PRINT = new Format(true, true, true, true, true, "  ");
 
     public static final Format SMALL = new Format(false, false, false, false, false, "");
@@ -57,11 +59,8 @@ public class JsonGenerator {
     boolean newLineBeforeItem;
 
     boolean newLineAfterObjectStart;
-
     boolean newLineBeforeObjectEnd;
-
     boolean newLineAfterArrayStart;
-
     boolean newLineBeforeArrayEnd;
 
     /** 1 level of indent */
@@ -70,7 +69,7 @@ public class JsonGenerator {
 
   @Value
   @Builder(toBuilder = true)
-  static class Language {
+  public static class Language {
 
     public static final Language JSON =
         new Language(
@@ -78,6 +77,9 @@ public class JsonGenerator {
             "",
             "]",
             "",
+            "[",
+            ",",
+            "]",
             "{",
             ":",
             "}",
@@ -98,6 +100,9 @@ public class JsonGenerator {
             "- ",
             "",
             "[]",
+            "[",
+            ",",
+            "]",
             "",
             ": ",
             "",
@@ -119,52 +124,45 @@ public class JsonGenerator {
                     .newLineAfterObjectStart(false)
                     .newLineBeforeObjectEnd(false)
                     .build());
-
+    // block array syntax
     String arrayStart;
-
     String arrayItemStart;
-
     String arrayEnd;
-
     String arrayEmpty;
-
+    // inline array syntax
+    String arrayInlineStart;
+    String arrayInlineItemSeparator;
+    String arrayInlineEnd;
+    // block object syntax
     String objectStart;
-
     String objectItemStart;
-
     String objectEnd;
-
     String objectEmpty;
-
-    String itemSeparator;
-
+    // object member syntax
+    String objectItemSeparator;
+    // (inline) string literal syntax
     String stringStart;
-
     String stringEnd;
-
     UnaryOperator<String> escapeString;
-
+    // (block) text block literal syntax
     String textStart;
-
     String textEnd;
-
     boolean textIndent;
-
     Function<String, List<String>> escapeText;
-
+    // initializer for language format defaults that differ from base format
     UnaryOperator<Format> adjustFormat;
   }
 
   private static final JsonStringEncoder JSON_ESCAPE_STRING = JsonStringEncoder.getInstance();
 
   private final StringBuilder out;
-
   private final Format format;
-
   private final Language language;
 
+  /** Current line indent (increased and decreased when entering/exiting a block) */
   private String indent = "";
 
+  /** was the last appended output an array item? */
   private boolean arrayItemLast = false;
 
   @Override
@@ -192,7 +190,7 @@ public class JsonGenerator {
   final void addObjectMember(String name, Runnable addMembers) {
     appendMemberName(name);
     out.append(language.objectStart);
-    if (format.isNewLineAfterObjectStart()) out.append('\n');
+    if (format.isNewLineAfterObjectStart()) appendNewline();
     int length = out.length();
     if (format.isNewLineBeforeItem()) indent += format.getItemIndent();
     appendItems(addMembers);
@@ -200,35 +198,60 @@ public class JsonGenerator {
       indent = indent.substring(0, indent.length() - format.getItemIndent().length());
     discardLastMemberSeparator(length, language.objectEmpty);
     if (format.isNewLineBeforeObjectEnd()) {
-      out.append('\n');
+      appendNewline();
       appendMemberIndent();
     }
     out.append(language.objectEnd);
     appendMemberSeparator();
   }
 
+  /**
+   * Newlines for format purposes, only append one if the last character was not a newline already
+   */
+  private void appendNewline() {
+    if (out.isEmpty() || out.charAt(out.length() - 1) != '\n') out.append('\n');
+  }
+
   final void addArrayMember(String name, Collection<String> values) {
+    if (values.isEmpty()) return;
     addArrayMember(name, values, value -> addStringMember(null, value));
   }
 
   final <E> void addArrayMember(String name, Collection<E> items, Consumer<E> forEach) {
-    if (!items.isEmpty()) {
-      addArrayMember(name, () -> items.forEach(forEach));
-    }
+    if (items.isEmpty()) return;
+    addArrayMember(name, () -> items.forEach(forEach));
   }
 
   final void addArrayMember(String name, Runnable addElements) {
     appendMemberName(name);
     out.append(language.arrayStart);
-    if (format.isNewLineAfterArrayStart()) out.append('\n');
-    int length = out.length();
+    if (format.isNewLineAfterArrayStart()) appendNewline();
+    int lengthAfterStart = out.length();
     appendItems(addElements);
-    discardLastMemberSeparator(length, language.arrayEmpty);
+    discardLastMemberSeparator(lengthAfterStart, language.arrayEmpty);
     if (format.isNewLineBeforeArrayEnd()) {
-      out.append('\n');
+      appendNewline();
       appendMemberIndent();
     }
     out.append(language.arrayEnd);
+    appendMemberSeparator();
+  }
+
+  /**
+   * Same as {@link #addArrayMember(String, Collection)} except that the array will be formatted as
+   * an inline array
+   */
+  final void addInlineArrayMember(String name, Collection<String> values) {
+    if (values.isEmpty()) return;
+    appendMemberName(name);
+    out.append(language.arrayInlineStart);
+    int i = 0;
+    for (String value : values) {
+      if (i > 0) out.append(language.arrayInlineItemSeparator);
+      appendString(value);
+      i++;
+    }
+    out.append(language.arrayInlineEnd);
     appendMemberSeparator();
   }
 
@@ -241,11 +264,21 @@ public class JsonGenerator {
   }
 
   final void addStringMultilineMember(String name, String value) {
-    if (value != null) {
+    if (value != null && !value.isEmpty()) {
       appendMemberName(name);
       appendStringMultiline(value);
       appendMemberSeparator();
     }
+  }
+
+  /**
+   * Only adds a member if the value is {@link Boolean#TRUE}.
+   *
+   * <p>The main reason is to omit members that already have a implied default of false and thereby
+   * stating this does not add information but increates the size of the document.
+   */
+  final void addTrueMember(String name, Boolean value) {
+    if (value == Boolean.TRUE) addBooleanMember(name, true);
   }
 
   final void addBooleanMember(String name, Boolean value) {
@@ -288,6 +321,16 @@ public class JsonGenerator {
     appendMemberSeparator();
   }
 
+  final void addRawMember(String name, JsonValue value) {
+    if (value != null
+        && !value.isNull()
+        && !(value.isString() && value.as(JsonString.class).string("").isEmpty())) {
+      appendMemberName(name);
+      out.append(value.toJson());
+      appendMemberSeparator();
+    }
+  }
+
   private void appendItems(Runnable items) {
     if (items != null) {
       items.run();
@@ -309,14 +352,16 @@ public class JsonGenerator {
     }
     out.append(language.textStart);
     for (String line : language.escapeText.apply(str)) {
-      if (language.textIndent) out.append('\n').append(indent).append(format.itemIndent);
+      if (language.textIndent) {
+        out.append('\n').append(indent).append(format.itemIndent);
+      }
       out.append(line);
     }
     out.append(language.textEnd);
   }
 
   private void appendMemberName(String name) {
-    if (name == null && out.length() == 0) return;
+    if (name == null && out.isEmpty()) return;
     appendMemberIndent();
     if (name != null) {
       arrayItemLast = false;
@@ -328,17 +373,20 @@ public class JsonGenerator {
   }
 
   private void appendMemberIndent() {
-    if (!arrayItemLast && format.isNewLineBeforeItem()) out.append('\n').append(indent);
+    if (!arrayItemLast && format.isNewLineBeforeItem()) {
+      appendNewline();
+      out.append(indent);
+    }
   }
 
   private void appendMemberSeparator() {
     arrayItemLast = false;
-    out.append(language.itemSeparator);
+    out.append(language.objectItemSeparator);
   }
 
-  private void discardLastMemberSeparator(int length, String empty) {
-    if (out.length() > length) {
-      out.setLength(out.length() - language.itemSeparator.length()); // discard last ,
+  private void discardLastMemberSeparator(int lengthAfterStart, String empty) {
+    if (out.length() > lengthAfterStart) {
+      out.setLength(out.length() - language.objectItemSeparator.length()); // discard last ,
     } else {
       out.append(empty);
     }

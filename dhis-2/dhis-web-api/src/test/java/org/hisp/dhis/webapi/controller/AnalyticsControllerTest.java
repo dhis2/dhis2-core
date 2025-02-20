@@ -44,13 +44,12 @@ import java.io.InputStream;
 import java.util.List;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -61,7 +60,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +80,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class AnalyticsControllerTest {
-  private static final String ENDPOINT = "/analytics";
+  private static final String ENDPOINT = "/api/analytics";
 
   private MockMvc mockMvc;
 
@@ -91,19 +90,17 @@ class AnalyticsControllerTest {
 
   @Mock private DimensionService dimensionService;
 
-  @Mock private DimensionalObjectProducer dimensionalObjectProducer;
+  @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @BeforeEach
   public void setUp() {
-
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
             dimensionalObjectProducer,
             mock(IdentifiableObjectManager.class),
-            mock(AnalyticsSecurityManager.class),
-            mock(UserSettingService.class));
+            mock(AnalyticsSecurityManager.class));
 
     when(dimensionalObjectProducer.getPeriodDimension(Mockito.any(), Mockito.any()))
         .thenAnswer(
@@ -115,7 +112,7 @@ class AnalyticsControllerTest {
               when(period.getItems())
                   .thenReturn(
                       ((List<String>) invocation.getArguments()[0])
-                          .stream().map(DhisConvenienceTest::createPeriod).collect(toList()));
+                          .stream().map(TestBase::createPeriod).collect(toList()));
 
               return period;
             });

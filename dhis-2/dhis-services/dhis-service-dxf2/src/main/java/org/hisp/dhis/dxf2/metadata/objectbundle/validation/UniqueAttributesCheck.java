@@ -105,38 +105,31 @@ public class UniqueAttributesCheck implements ObjectValidationCheck {
     object
         .getAttributeValues()
         .forEach(
-            attributeValue -> {
-              Attribute attribute = preheat.get(identifier, attributeValue.getAttribute());
+            (attributeId, value) -> {
+              Attribute attribute = preheat.get(identifier, Attribute.class, attributeId);
 
-              if (attribute == null
-                  || !attribute.isUnique()
-                  || StringUtils.isEmpty(attributeValue.getValue())) {
+              if (attribute == null || !attribute.isUnique() || StringUtils.isEmpty(value)) {
                 return;
               }
 
-              if (uniqueAttributeValues.containsKey(attribute.getUid())) {
-                Map<String, String> values = uniqueAttributeValues.get(attribute.getUid());
+              if (uniqueAttributeValues.containsKey(attributeId)) {
+                Map<String, String> values = uniqueAttributeValues.get(attributeId);
 
-                if (values.containsKey(attributeValue.getValue())
-                    && !values.get(attributeValue.getValue()).equals(object.getUid())) {
+                if (values.containsKey(value) && !values.get(value).equals(object.getUid())) {
                   errorReports.add(
                       new ErrorReport(
                               Attribute.class,
                               ErrorCode.E4009,
                               IdentifiableObjectUtils.getDisplayName(attribute),
-                              attributeValue.getValue())
+                              value)
                           .setMainId(attribute.getUid())
                           .setErrorProperty("value"));
                 } else {
-                  uniqueAttributeValues
-                      .get(attribute.getUid())
-                      .put(attributeValue.getValue(), object.getUid());
+                  uniqueAttributeValues.get(attribute.getUid()).put(value, object.getUid());
                 }
               } else {
                 uniqueAttributeValues.put(attribute.getUid(), new HashMap<>());
-                uniqueAttributeValues
-                    .get(attribute.getUid())
-                    .put(attributeValue.getValue(), object.getUid());
+                uniqueAttributeValues.get(attribute.getUid()).put(value, object.getUid());
               }
             });
 

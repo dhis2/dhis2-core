@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.method;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping("/method/testAll")
+@RequestMapping("/api/method/testAll")
 public class ApiMethodAllController {
   @GetMapping("a")
   @ApiVersion(DhisApiVersion.ALL)

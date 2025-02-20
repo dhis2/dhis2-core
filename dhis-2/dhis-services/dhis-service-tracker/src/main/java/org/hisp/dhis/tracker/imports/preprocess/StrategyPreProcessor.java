@@ -121,4 +121,9 @@ public class StrategyPreProcessor implements BundlePreProcessor {
       }
     }
   }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
 }

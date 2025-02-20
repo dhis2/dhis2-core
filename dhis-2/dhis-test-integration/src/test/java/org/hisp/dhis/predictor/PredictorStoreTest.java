@@ -37,20 +37,25 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class PredictorStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class PredictorStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private PredictorStore predictorStore;
 
@@ -86,11 +91,8 @@ class PredictorStoreTest extends TransactionalIntegrationTest {
 
   private PeriodType periodType;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     organisationUnitService.addOrganisationUnitLevel(orgUnitLevel1);
     dataElementA = createDataElement('A');
@@ -375,5 +377,222 @@ class PredictorStoreTest extends TransactionalIntegrationTest {
     predictorStore.save(predictorB);
     predictorStore.save(predictorC);
     assertEquals(3, predictorStore.getCount());
+  }
+
+  @Test
+  @DisplayName("Retrieving predictors by data element returns expected entries")
+  void getIndicatorsWithDenominatorRef() {
+    // given
+    Predictor predictor1 =
+        createPredictor(
+            dataElementA,
+            defaultCombo,
+            "1",
+            expressionA,
+            expressionB,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+    predictorStore.save(predictor1);
+
+    Predictor predictor2 =
+        createPredictor(
+            dataElementA,
+            defaultCombo,
+            "2",
+            expressionB,
+            expressionC,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(predictor1);
+    predictorStore.save(predictor2);
+
+    predictorStore.save(predictor1);
+    predictorStore.save(predictor2);
+
+    // when
+    List<Predictor> predictors = predictorStore.getAllByDataElement(List.of(dataElementA));
+
+    // then
+    assertEquals(2, predictors.size());
+    assertTrue(predictors.containsAll(List.of(predictor1, predictor2)));
+  }
+
+  @Test
+  @DisplayName(
+      "Retrieving Predictors whose generator contains DataElements returns expected results")
+  void generatorWithDataElementTest() {
+    // given
+    DataElement de1 = createDataElement('1');
+    DataElement de2 = createDataElement('2');
+    dataElementService.addDataElement(de1);
+    dataElementService.addDataElement(de2);
+
+    Predictor p1 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "2",
+            createExpression2('a', "#{test123.%s}".formatted(de1.getUid())),
+            expressionC,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p2 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "3",
+            createExpression2('a', "#{test123.%s}".formatted(de2.getUid())),
+            expressionD,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(p1);
+    predictorStore.save(p2);
+
+    // when
+    List<Predictor> allWithGeneratorDEs =
+        predictorStore.getAllWithGeneratorContainingDataElement(
+            List.of(de1.getUid(), de2.getUid()));
+
+    // then
+    assertEquals(2, allWithGeneratorDEs.size());
+    assertTrue(
+        allWithGeneratorDEs.containsAll(List.of(p1, p2)),
+        "Retrieved result set should contain both Predictors");
+  }
+
+  @Test
+  @DisplayName(
+      "Retrieving Predictors whose sample skip test contains DataElements returns expected results")
+  void sampleSkipTestWithDataElementTest() {
+    // given
+    DataElement de1 = createDataElement('1');
+    DataElement de2 = createDataElement('2');
+    dataElementService.addDataElement(de1);
+    dataElementService.addDataElement(de2);
+
+    Predictor p1 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "2",
+            expressionC,
+            createExpression2('a', "#{test123.%s}".formatted(de1.getUid())),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p2 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "3",
+            expressionD,
+            createExpression2('a', "#{test123.%s}".formatted(de2.getUid())),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(p1);
+    predictorStore.save(p2);
+
+    // when
+    List<Predictor> allWithSampleSkipTestDEs =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
+            List.of(de1.getUid(), de2.getUid()));
+
+    // then
+    assertEquals(2, allWithSampleSkipTestDEs.size());
+    assertTrue(
+        allWithSampleSkipTestDEs.containsAll(List.of(p1, p2)),
+        "Retrieved result set should contain both Predictors");
+  }
+
+  @Test
+  @DisplayName("Retrieving Predictors by CategoryOptionCombo returns expected results")
+  void getByCocTest() {
+    // given
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('1');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc1);
+
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('2');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc2);
+
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('3');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc3);
+
+    Predictor p1 =
+        createPredictor(
+            dataElementA,
+            coc1,
+            "A",
+            expressionC,
+            createExpression2('a', "#{test123}"),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p2 =
+        createPredictor(
+            dataElementX,
+            coc2,
+            "B",
+            expressionD,
+            createExpression2('a', "#{test123}"),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p3 =
+        createPredictor(
+            dataElementB,
+            coc3,
+            "C",
+            expressionB,
+            createExpression2('a', "#{test123}"),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(p1);
+    predictorStore.save(p2);
+    predictorStore.save(p3);
+
+    // when
+    List<Predictor> allByCoc =
+        predictorStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
+
+    // then
+    assertEquals(2, allByCoc.size());
+    assertTrue(
+        allByCoc.containsAll(List.of(p1, p2)),
+        "Retrieved result set should contain both Predictors");
   }
 }

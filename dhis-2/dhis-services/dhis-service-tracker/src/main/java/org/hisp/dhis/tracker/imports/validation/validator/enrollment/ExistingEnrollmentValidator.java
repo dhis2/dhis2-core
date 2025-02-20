@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1015;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1016;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,12 +36,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -59,15 +55,11 @@ class ExistingEnrollmentValidator
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
-    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
-
     if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
       return;
     }
 
     Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
-
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
     if ((EnrollmentStatus.COMPLETED == enrollment.getStatus()
         && Boolean.FALSE.equals(program.getOnlyEnrollOnce()))) {
@@ -82,8 +74,6 @@ class ExistingEnrollmentValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Program program) {
-    checkNotNull(enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
-
     TrackedEntity te = getTrackedEntity(bundle, enrollment.getTrackedEntity());
 
     Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment =
@@ -92,7 +82,7 @@ class ExistingEnrollmentValidator
             .filter(e -> e.getProgram().isEqualTo(program))
             .filter(
                 e ->
-                    e.getTrackedEntity().equals(te.getUid())
+                    e.getTrackedEntity().equals(UID.of(te))
                         && !e.getEnrollment().equals(enrollment.getEnrollment()))
             .filter(
                 e ->
@@ -110,11 +100,11 @@ class ExistingEnrollmentValidator
             .filter(
                 e ->
                     e.getProgram().getUid().equals(program.getUid())
-                        && !e.getUid().equals(enrollment.getEnrollment()))
+                        && !e.getUid().equals(enrollment.getEnrollment().getValue()))
             .filter(
                 e ->
-                    ProgramStatus.ACTIVE == e.getStatus()
-                        || ProgramStatus.COMPLETED == e.getStatus())
+                    EnrollmentStatus.ACTIVE == e.getStatus()
+                        || EnrollmentStatus.COMPLETED == e.getStatus())
             .distinct()
             .map(this::getEnrollmentFromDbEnrollment)
             .collect(Collectors.toSet());
@@ -152,18 +142,18 @@ class ExistingEnrollmentValidator
       Enrollment dbEnrollment) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(dbEnrollment.getUid());
-    enrollment.setStatus(EnrollmentStatus.fromProgramStatus(dbEnrollment.getStatus()));
+    enrollment.setEnrollment(UID.of(dbEnrollment));
+    enrollment.setStatus(dbEnrollment.getStatus());
 
     return enrollment;
   }
 
-  private TrackedEntity getTrackedEntity(TrackerBundle bundle, String uid) {
+  private TrackedEntity getTrackedEntity(TrackerBundle bundle, UID uid) {
     TrackedEntity te = bundle.getPreheat().getTrackedEntity(uid);
 
     if (te == null && bundle.findTrackedEntityByUid(uid).isPresent()) {
       te = new TrackedEntity();
-      te.setUid(uid);
+      te.setUid(uid.getValue());
     }
     return te;
   }

@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
-import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -54,7 +54,7 @@ import org.hisp.dhis.db.model.constraint.Unique;
  * @author maikel arabori
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsIndexHelper {
+public final class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
 
   /**
@@ -77,9 +77,16 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
+          indexes.add(
+              Index.builder()
+                  .name(name)
+                  .tableName(partition.getName())
+                  .indexType(col.getIndexType())
+                  .columns(columns)
+                  .build());
 
           maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
+          maybeAddDateSortOrderIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }
@@ -95,8 +102,7 @@ public class AnalyticsIndexHelper {
    * @param columns the index column names.
    * @param tableType the {@link AnalyticsTableType}
    */
-  protected static String getIndexName(
-      String tableName, List<String> columns, AnalyticsTableType tableType) {
+  static String getIndexName(String tableName, List<String> columns, AnalyticsTableType tableType) {
     String columnName = join(columns, "_");
 
     return PREFIX_INDEX
@@ -147,16 +153,40 @@ public class AnalyticsIndexHelper {
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
-    if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
+    if (column.getDataType() == TEXT
+        && !column.isStaticDimension()
+        && isValidUid(columnName)
+        && isSingleColumn) {
       String name = indexName + "_lower";
       indexes.add(
-          new Index(
-              name,
-              tableName,
-              column.getIndexType(),
-              Unique.NON_UNIQUE,
-              indexColumns,
-              IndexFunction.LOWER));
+          Index.builder()
+              .name(name)
+              .tableName(tableName)
+              .indexType(column.getIndexType())
+              .columns(indexColumns)
+              .function(IndexFunction.LOWER)
+              .build());
+    }
+  }
+
+  private static void maybeAddDateSortOrderIndex(
+      List<Index> indexes,
+      String indexName,
+      String tableName,
+      AnalyticsTableColumn column,
+      List<String> indexColumns) {
+
+    boolean isSingleColumn = indexColumns.size() == 1;
+
+    if (column.getDataType() == TIMESTAMP && column.isStaticDimension() && isSingleColumn) {
+      indexes.add(
+          Index.builder()
+              .name(indexName + "_desc")
+              .tableName(tableName)
+              .indexType(column.getIndexType())
+              .columns(indexColumns)
+              .sortOrder("desc nulls last")
+              .build());
     }
   }
 
@@ -164,7 +194,7 @@ public class AnalyticsIndexHelper {
    * Shortens the given table name.
    *
    * @param table the table name
-   * @param tableType the {@link AnayticsTableType}
+   * @param tableType the {@link AnalyticsTableType}
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
     table = table.replace(tableType.getTableName(), "ax");

@@ -33,9 +33,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertThrowsErrorCode;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertThrowsErrorCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -50,9 +50,9 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -63,6 +63,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -90,20 +91,26 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataQueryServiceTest extends PostgresIntegrationTestBase {
   private Attribute atA;
 
   private Program prA;
@@ -192,8 +199,8 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserService internalUserService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     super.userService = internalUserService;
     atA = createAttribute('A');
     atA.setUnique(true);
@@ -292,12 +299,13 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
     deGroupSetA.addDataElementGroup(deGroupB);
     deGroupSetA.addDataElementGroup(deGroupC);
     dataElementService.updateDataElementGroupSet(deGroupSetA);
-    attributeService.addAttributeValue(deA, new AttributeValue(atA, "AVA"));
-    attributeService.addAttributeValue(deB, new AttributeValue(atA, "AVB"));
-    attributeService.addAttributeValue(deC, new AttributeValue(atA, "AVC"));
-    attributeService.addAttributeValue(deD, new AttributeValue(atA, "AVD"));
-    attributeService.addAttributeValue(deE, new AttributeValue(atA, "AVE"));
-    attributeService.addAttributeValue(deF, new AttributeValue(atA, "AVF"));
+    String attributeId = atA.getUid();
+    attributeService.addAttributeValue(deA, attributeId, "AVA");
+    attributeService.addAttributeValue(deB, attributeId, "AVB");
+    attributeService.addAttributeValue(deC, attributeId, "AVC");
+    attributeService.addAttributeValue(deD, attributeId, "AVD");
+    attributeService.addAttributeValue(deE, attributeId, "AVE");
+    attributeService.addAttributeValue(deF, attributeId, "AVF");
 
     // ---------------------------------------------------------------------
     // Inject user
@@ -307,16 +315,13 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
     userService.addUserRole(role);
     User user = makeUser("A");
     user.addOrganisationUnit(ouA);
+    user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
     user.getUserRoles().add(role);
 
     userService.addUser(user);
 
     injectSecurityContextUser(user);
   }
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
 
   @Test
   void testGetDimensionalObjects() {
@@ -425,9 +430,9 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
     List<DimensionalItemObject> items = List.of(deA, deB, deC);
     List<String> itemAttributeValues =
         List.of(
-            deA.getAttributeValueString(atA),
-            deB.getAttributeValueString(atA),
-            deC.getAttributeValueString(atA));
+            deA.getAttributeValue(atA.getUid()),
+            deB.getAttributeValue(atA.getUid()),
+            deC.getAttributeValue(atA.getUid()));
     DimensionalObject actual =
         dataQueryService.getDimension(
             DimensionalObject.DATA_X_DIM_ID,
@@ -1014,10 +1019,26 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetUserOrgUnits() {
+  void testGetUserOrgUnitsWithGrantedForTrackerOrganisationUnits() {
     String ouParam = ouA.getUid() + ";" + ouB.getUid();
     List<OrganisationUnit> expected = List.of(ouA, ouB);
     assertEquals(expected, dataQueryService.getUserOrgUnits(null, ouParam));
+  }
+
+  @Test
+  void testGetUserOrgUnitsWithGrantedForAnalyticsOrganisationUnits() {
+    // given
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
+
+    // when
+    List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
+
+    // then
+    assertEquals(3, userOrgUnits.size());
+    assertThat(
+        userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
+        containsInAnyOrder("OrganisationUnitB", "OrganisationUnitC", "OrganisationUnitD"));
   }
 
   @Test

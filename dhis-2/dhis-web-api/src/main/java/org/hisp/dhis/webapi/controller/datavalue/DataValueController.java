@@ -30,14 +30,15 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
@@ -68,8 +70,9 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -83,7 +86,6 @@ import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -98,13 +100,14 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @RestController
-@RequestMapping(value = DataValueController.RESOURCE_PATH)
+@RequestMapping("/api/dataValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DataValueController {
-  public static final String RESOURCE_PATH = "/dataValues";
 
   public static final String FILE_PATH = "/file";
 
@@ -114,7 +117,7 @@ public class DataValueController {
 
   private final DataValueService dataValueService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final InputUtils inputUtils;
 
@@ -130,7 +133,7 @@ public class DataValueController {
   // POST
   // ---------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(params = {"de", "pe", "ou"})
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValue(
@@ -166,7 +169,7 @@ public class DataValueController {
     saveDataValueInternal(dataValue, currentUser);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(consumes = "application/json")
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValueWithBody(
@@ -175,7 +178,7 @@ public class DataValueController {
     saveDataValueInternal(dataValue, currentUser);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(FILE_PATH)
   public WebMessage saveFileDataValue(
       @OpenApi.Param({UID.class, DataElement.class}) @RequestParam String de,
@@ -191,7 +194,7 @@ public class DataValueController {
       @RequestParam(required = false) boolean force,
       @RequestParam(required = false) MultipartFile file,
       @CurrentUser UserDetails currentUser)
-      throws WebMessageException, IOException {
+      throws WebMessageException, IOException, ConflictException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
     FileResource fileResource =
@@ -227,21 +230,12 @@ public class DataValueController {
 
     DataValueCategoryDto attribute = dataValue.getAttribute();
 
-    boolean strictPeriods =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
-
-    boolean strictCategoryOptionCombos =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS);
-
-    boolean strictOrgUnits =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
-
-    boolean requireCategoryOptionCombo =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO);
-
-    FileResourceRetentionStrategy retentionStrategy =
-        systemSettingManager.getSystemSetting(
-            SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean strictPeriods = settings.getDataImportStrictPeriods();
+    boolean strictCategoryOptionCombos = settings.getDataImportStrictCategoryOptionCombos();
+    boolean strictOrgUnits = settings.getDataImportStrictOrganisationUnits();
+    boolean requireCategoryOptionCombo = settings.getDataImportRequireCategoryOptionCombo();
+    FileResourceRetentionStrategy retentionStrategy = settings.getFileResourceRetentionStrategy();
 
     // ---------------------------------------------------------------------
     // Input validation
@@ -462,19 +456,17 @@ public class DataValueController {
   // DELETE
   // ---------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @DeleteMapping
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDataValue(
       DataValueQueryParams params,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
       @RequestParam(required = false) boolean force,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response)
+      SystemSettings settings)
       throws WebMessageException {
-    FileResourceRetentionStrategy retentionStrategy =
-        systemSettingManager.getSystemSetting(
-            SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class);
+    FileResourceRetentionStrategy retentionStrategy = settings.getFileResourceRetentionStrategy();
 
     // ---------------------------------------------------------------------
     // Input validation

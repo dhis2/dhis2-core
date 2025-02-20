@@ -27,20 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueQueryParams;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,24 +54,26 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
+@RequestMapping("/api/dataEntry")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MinMaxValueController {
   private final MinMaxDataElementService minMaxValueService;
 
   private final DataValidator dataValidator;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.OK)
   public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValueDto valueDto) {
     saveOrUpdateMinMaxDataElement(valueDto);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @DeleteMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void removeMinMaxValue(MinMaxValueQueryParams params) {

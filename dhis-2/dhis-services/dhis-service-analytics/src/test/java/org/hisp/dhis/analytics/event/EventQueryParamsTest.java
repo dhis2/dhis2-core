@@ -42,7 +42,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -64,6 +63,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +74,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 /**
  * @author Lars Helge Overland
  */
-class EventQueryParamsTest extends DhisConvenienceTest {
+class EventQueryParamsTest extends TestBase {
   private Option opA;
 
   private Option opB;

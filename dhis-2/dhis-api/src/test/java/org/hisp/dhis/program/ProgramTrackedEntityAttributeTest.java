@@ -29,11 +29,13 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.ProgramTest.getNewProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -61,6 +63,27 @@ class ProgramTrackedEntityAttributeTest {
     assertEquals("Copy of Program Name tracked entity attr 1", copy.getName());
   }
 
+  @Test
+  void testDefaultSkipAnalyticsValue() {
+    ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+    assertFalse(
+        ptea.isSkipIndividualAnalytics(),
+        "Default value of skipIndividualAnalytics should be false");
+  }
+
+  @Test
+  void testCopyOfWithSkipAnalytics() {
+    ProgramTrackedEntityAttribute original = getNewProgramAttribute(getNewProgram());
+    original.setSkipIndividualAnalytics(true); // Set to true to check copy behavior
+    ProgramTrackedEntityAttribute copy =
+        ProgramTrackedEntityAttribute.copyOf.apply(original, getNewProgram());
+
+    assertEquals(
+        original.isSkipIndividualAnalytics(),
+        copy.isSkipIndividualAnalytics(),
+        "skipIndividualAnalytics should be copied correctly");
+  }
+
   private ProgramTrackedEntityAttribute getNewProgramAttribute(Program program) {
     ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
@@ -77,7 +100,7 @@ class ProgramTrackedEntityAttributeTest {
     ptea.setSearchable(true);
     ptea.setAccess(new Access());
     ptea.setPublicAccess("rw------");
-    ptea.setAttributeValues(Set.of());
+    ptea.setAttributeValues(AttributeValues.empty());
     ptea.setSharing(new Sharing());
     ptea.setTranslations(Set.of());
     return ptea;

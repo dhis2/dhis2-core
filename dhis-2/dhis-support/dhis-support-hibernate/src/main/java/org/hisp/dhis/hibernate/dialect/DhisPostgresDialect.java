@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.hibernate.dialect;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import java.sql.Types;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
@@ -44,6 +44,9 @@ public class DhisPostgresDialect extends PostgisPG95Dialect {
     registerColumnType(Types.JAVA_OBJECT, "jsonb");
     registerHibernateType(Types.OTHER, "pg-uuid");
     registerHibernateType(Types.ARRAY, StringArrayType.class.getName());
+    registerFunction(
+        "jsonb_exists_any",
+        new StandardSQLFunction("jsonb_exists_any", StandardBasicTypes.BOOLEAN));
     registerFunction(
         JsonbFunctions.EXTRACT_PATH,
         new StandardSQLFunction(JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING));

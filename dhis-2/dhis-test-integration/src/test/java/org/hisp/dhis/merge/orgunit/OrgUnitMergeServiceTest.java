@@ -44,14 +44,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitMergeServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrgUnitMergeService service;
 
@@ -67,8 +73,8 @@ class OrgUnitMergeServiceTest extends SingleSetupIntegrationTestBase {
 
   private OrganisationUnit ouC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     ptA = periodService.getPeriodTypeByClass(MonthlyPeriodType.class);
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');

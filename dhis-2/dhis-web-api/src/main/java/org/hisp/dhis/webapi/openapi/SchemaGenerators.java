@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.PrimaryKeyObject;
+
 /**
  * Home for {@link Api.SchemaGenerator} implementations.
  *
@@ -40,14 +43,18 @@ public interface SchemaGenerators {
   Api.SchemaGenerator UID =
       (endpoint, source, args) -> {
         Class<?> uidOf = args.length == 0 ? endpoint.getEntityType() : args[0];
-        return Api.Schema.uid(uidOf);
+        if (!PrimaryKeyObject.class.isAssignableFrom(uidOf))
+          throw new IllegalArgumentException(
+              "Not an identifiable object type: %s\n\tin endpoint %s"
+                  .formatted(uidOf, endpoint.getSource()));
+        return Api.Schema.ofUID(uidOf);
       };
 
   Api.SchemaGenerator PROPERTY_NAMES =
       (endpoint, source, args) -> {
         Class<?> ofType = args.length == 0 ? endpoint.getEntityType() : args[0];
-        return Api.Schema.enumeration(
-            Api.PropertyNames.class,
+        return Api.Schema.ofEnum(
+            OpenApi.PropertyNames.class,
             ofType,
             getProperties(ofType).stream().map(Property::getName).collect(toList()));
       };

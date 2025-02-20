@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,11 +39,11 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.hisp.dhis.test.webapi.json.domain.JsonFollowupValue;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -79,7 +79,7 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
     assertEquals(categoryOptionComboId, value.getAoc());
     assertEquals("default", value.getAocName());
     assertEquals("5", value.getValue());
-    assertEquals("admin", value.getStoredBy());
+    assertEquals(getAdminUser().getUsername(), value.getStoredBy());
     assertEquals("Needs_check", value.getComment());
     assertEquals("March 2021", value.getPeName());
     assertNotNull(value.getLastUpdated());

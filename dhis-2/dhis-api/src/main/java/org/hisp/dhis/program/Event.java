@@ -117,6 +117,15 @@ public class Event extends SoftDeletableObject {
     this.organisationUnit = organisationUnit;
   }
 
+  public Event(
+      Enrollment enrollment,
+      ProgramStage programStage,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo) {
+    this(enrollment, programStage, organisationUnit);
+    this.attributeOptionCombo = attributeOptionCombo;
+  }
+
   @Override
   public void setAutoFields() {
     super.setAutoFields();
@@ -126,6 +135,11 @@ public class Event extends SoftDeletableObject {
     }
 
     lastUpdatedAtClient = lastUpdated;
+  }
+
+  @JsonIgnore
+  public boolean hasAttributeOptionCombo() {
+    return attributeOptionCombo != null;
   }
 
   // -------------------------------------------------------------------------

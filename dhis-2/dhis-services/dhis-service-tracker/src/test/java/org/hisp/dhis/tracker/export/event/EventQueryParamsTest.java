@@ -33,17 +33,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EventQueryParamsTest extends DhisConvenienceTest {
+class EventQueryParamsTest extends TestBase {
 
   private TrackedEntityAttribute tea1;
 
@@ -70,13 +70,13 @@ class EventQueryParamsTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldAddDataElementToOrderAndDataElementsWhenOrderingByDataElement() {
+  void shouldAddDataElementToOrderButNotToDataElementsWhenOrderingByDataElement() {
     EventQueryParams params = new EventQueryParams();
 
     params.orderBy(de1, SortDirection.ASC);
 
     assertEquals(List.of(new Order(de1, SortDirection.ASC)), params.getOrder());
-    assertEquals(Map.of(de1, List.of()), params.getDataElements());
+    assertTrue(params.getDataElements().isEmpty());
     assertFalse(params.hasDataElementFilter());
   }
 

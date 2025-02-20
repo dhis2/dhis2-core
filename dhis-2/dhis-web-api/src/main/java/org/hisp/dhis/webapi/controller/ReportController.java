@@ -29,15 +29,15 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
-import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -46,16 +46,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
-import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.webapi.servlet.ImageServlet;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,10 +70,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = ReportSchemaDescriptor.API_ENDPOINT)
-public class ReportController extends AbstractCrudController<Report> {
+@RequestMapping("/api/reports")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class ReportController extends AbstractCrudController<Report, GetObjectListParams> {
   @Autowired public ReportService reportService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
@@ -84,7 +85,7 @@ public class ReportController extends AbstractCrudController<Report> {
   // -------------------------------------------------------------------------
 
   @PutMapping("/{uid}/design")
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateReportDesign(
       @PathVariable("uid") String uid,

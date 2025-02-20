@@ -28,6 +28,8 @@
 package org.hisp.dhis.appmanager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -38,7 +40,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -66,49 +67,49 @@ class AppTest {
   // TODO: Verify missing property
   @Test
   void testRequiredProperties() {
-    Assertions.assertEquals("0.1", app.getVersion());
-    Assertions.assertEquals("Test App", app.getName());
-    Assertions.assertEquals("/index.html", app.getLaunchPath());
-    Assertions.assertEquals("/plugin.html", app.getPluginLaunchPath());
-    Assertions.assertEquals("*", app.getInstallsAllowedFrom()[0]);
-    Assertions.assertEquals("en", app.getDefaultLocale());
+    assertEquals("0.1", app.getVersion());
+    assertEquals("Test App", app.getName());
+    assertEquals("/index.html", app.getLaunchPath());
+    assertEquals("/plugin.html", app.getPluginLaunchPath());
+    assertEquals("*", app.getInstallsAllowedFrom()[0]);
+    assertEquals("en", app.getDefaultLocale());
   }
 
   // TODO: Complete test for skipped optional properties
   @Test
   void testOptionalProperties() {
-    Assertions.assertEquals("Test Description", app.getDescription());
-    Assertions.assertEquals(false, app.getSettings().getDashboardWidget().getHideTitle());
+    assertEquals("Test Description", app.getDescription());
+    assertFalse(app.getSettings().getDashboardWidget().getHideTitle());
   }
 
   @Test
   void testIcons() {
-    Assertions.assertEquals("/img/icons/mortar-16.png", app.getIcons().getIcon16());
-    Assertions.assertEquals("/img/icons/mortar-48.png", app.getIcons().getIcon48());
-    Assertions.assertEquals("/img/icons/mortar-128.png", app.getIcons().getIcon128());
+    assertEquals("/img/icons/mortar-16.png", app.getIcons().getIcon16());
+    assertEquals("/img/icons/mortar-48.png", app.getIcons().getIcon48());
+    assertEquals("/img/icons/mortar-128.png", app.getIcons().getIcon128());
   }
 
   @Test
   void testDeveloper() {
-    Assertions.assertEquals("Test Developer", app.getDeveloper().getName());
-    Assertions.assertEquals("http://test", app.getDeveloper().getUrl());
-    Assertions.assertNull(app.getDeveloper().getEmail());
-    Assertions.assertNull(app.getDeveloper().getCompany());
+    assertEquals("Test Developer", app.getDeveloper().getName());
+    assertEquals("http://test", app.getDeveloper().getUrl());
+    assertNull(app.getDeveloper().getEmail());
+    assertNull(app.getDeveloper().getCompany());
   }
 
   @Test
   void testActivities() {
     AppDhis dhisActivity = app.getActivities().getDhis();
-    Assertions.assertEquals("http://localhost:8080/dhis", dhisActivity.getHref());
+    assertEquals("http://localhost:8080/dhis", dhisActivity.getHref());
     dhisActivity.setHref("ALL TEST");
-    Assertions.assertEquals("ALL TEST", dhisActivity.getHref());
+    assertEquals("ALL TEST", dhisActivity.getHref());
   }
 
   @Test
   void testGetAuthorities() {
     Set<String> authorities = app.getAuthorities();
-    Assertions.assertNotNull(authorities);
-    Assertions.assertEquals(4, authorities.size());
+    assertNotNull(authorities);
+    assertEquals(4, authorities.size());
   }
 
   @Test
@@ -128,20 +129,19 @@ class AppTest {
 
   @Test
   void testGetLaunchUrl() {
-    Assertions.assertEquals("https://example.com/api/apps/Test-App/index.html", app.getLaunchUrl());
+    assertEquals("https://example.com/api/apps/Test-App/index.html", app.getLaunchUrl());
   }
 
   @Test
   void testGetPluginLaunchUrl() {
-    Assertions.assertEquals(
-        "https://example.com/api/apps/Test-App/plugin.html", app.getPluginLaunchUrl());
+    assertEquals("https://example.com/api/apps/Test-App/plugin.html", app.getPluginLaunchUrl());
 
     App appWithoutPlugin = new App();
     appWithoutPlugin.setName("Test App");
     appWithoutPlugin.setLaunchPath("/index.html");
     appWithoutPlugin.init("https://example.com");
-    Assertions.assertEquals(
+    assertEquals(
         "https://example.com/api/apps/Test-App/index.html", appWithoutPlugin.getLaunchUrl());
-    Assertions.assertEquals(null, appWithoutPlugin.getPluginLaunchUrl());
+    assertNull(appWithoutPlugin.getPluginLaunchUrl());
   }
 }

@@ -27,31 +27,26 @@
  */
 package org.hisp.dhis.analytics.cache;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.max;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
-import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 
 import java.util.Date;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /** Holds the configuration settings for the analytics caching. */
 @Component
+@RequiredArgsConstructor
 public class AnalyticsCacheSettings {
-  private final SystemSettingManager systemSettingManager;
 
-  public AnalyticsCacheSettings(SystemSettingManager systemSettingManager) {
-    checkNotNull(systemSettingManager);
-    this.systemSettingManager = systemSettingManager;
-  }
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Returns true if the analytics cache mode, at application level, is set to PROGRESSIVE. If
@@ -61,11 +56,7 @@ public class AnalyticsCacheSettings {
    * @return true if the current cache is enabled and set to PROGRESSIVE, false otherwise.
    */
   public boolean isProgressiveCachingEnabled() {
-    AnalyticsCacheTtlMode analyticsCacheMode =
-        systemSettingManager.getSystemSetting(
-            ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class);
-
-    return PROGRESSIVE == analyticsCacheMode;
+    return PROGRESSIVE == settingsProvider.getCurrentSettings().getAnalyticsCacheTtlMode();
   }
 
   /**
@@ -75,16 +66,9 @@ public class AnalyticsCacheSettings {
    * @return true if the current cache mode is set to FIXED, false otherwise.
    */
   public boolean isFixedCachingEnabled() {
-    AnalyticsCacheTtlMode analyticsCacheMode =
-        systemSettingManager.getSystemSetting(
-            ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class);
-
-    CacheStrategy cacheStrategy =
-        systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class);
-
-    return FIXED == analyticsCacheMode
-        && cacheStrategy != null
-        && cacheStrategy.hasExpirationTimeSet();
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    return FIXED == settings.getAnalyticsCacheTtlMode()
+        && settings.getCacheStrategy().hasExpirationTimeSet();
   }
 
   /**
@@ -101,20 +85,19 @@ public class AnalyticsCacheSettings {
 
   /**
    * Retrieves the expiration time in seconds based on the system settings based on the {@link
-   * org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}. If it says not to cache, return 0 so no
-   * caching will take place. Otherwise return a long time. This is because we flush the analytics
-   * cache after on analytics rebuild. For this purpose, two weeks is considered to be "a long
-   * time". Two weeks is likely to be longer than until the next analytics rebuild, and if it isn't,
-   * this ensures that all cache entries will eventually be aged out.
+   * SystemSettings#getCacheStrategy()}. If it says not to cache, return 0 so no caching will take
+   * place. Otherwise return a long time. This is because we flush the analytics cache after on
+   * analytics rebuild. For this purpose, two weeks is considered to be "a long time". Two weeks is
+   * likely to be longer than until the next analytics rebuild, and if it isn't, this ensures that
+   * all cache entries will eventually be aged out.
    *
    * @see CacheStrategy
    * @return the predefined expiration time set or 0 (ZERO) if nothing is set.
    */
   public long fixedExpirationTimeOrDefault() {
-    CacheStrategy cacheStrategy =
-        systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class);
-
-    return (NO_CACHE.equals(cacheStrategy)) ? NO_CACHE.toSeconds() : CACHE_TWO_WEEKS.toSeconds();
+    return settingsProvider.getCurrentSettings().getCacheStrategy() == NO_CACHE
+        ? NO_CACHE.toSeconds()
+        : CACHE_TWO_WEEKS.toSeconds();
   }
 
   /**
@@ -133,9 +116,6 @@ public class AnalyticsCacheSettings {
    * @return the ttl factor
    */
   private int getProgressiveTtlFactorOrDefault() {
-    Integer ttlFactor =
-        systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR);
-
-    return max(ttlFactor, 1);
+    return max(settingsProvider.getCurrentSettings().getAnalyticsCacheProgressiveTtlFactor(), 1);
   }
 }

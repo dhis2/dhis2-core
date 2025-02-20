@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_EXPORT_DATA;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -36,13 +38,12 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.dxf2.sync.AvailabilityStatus;
+import org.hisp.dhis.dxf2.sync.SynchronizationManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,19 +55,20 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
-@RequestMapping(value = SynchronizationController.RESOURCE_PATH)
+@RequestMapping("/api/synchronization")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class SynchronizationController {
-  public static final String RESOURCE_PATH = "/synchronization";
 
   private final SynchronizationManager synchronizationManager;
   private final DhisConfigurationProvider configProvider;
   private final RestTemplate restTemplate;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
+  @RequiresAuthority(anyOf = F_EXPORT_DATA)
   @PostMapping(value = "/dataPush", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportConflicts execute() throws IOException {
@@ -82,14 +84,15 @@ public class SynchronizationController {
    * @param url to retrieve metadata from
    * @return import report
    */
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
     String urlTrimmed = url.trim();
     if (configProvider.remoteServerIsInAllowedList(urlTrimmed)) {
       return synchronizationManager.executeMetadataPull(urlTrimmed);
-    } else throw new ConflictException("Provided URL is not in the remote servers allowed list");
+    }
+    throw new ConflictException("Provided URL is not in the remote servers allowed list");
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
@@ -100,6 +103,7 @@ public class SynchronizationController {
   @GetMapping(value = "/metadataRepo", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody String getMetadataRepoIndex() {
     return restTemplate.getForObject(
-        SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class);
+        "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json",
+        String.class);
   }
 }

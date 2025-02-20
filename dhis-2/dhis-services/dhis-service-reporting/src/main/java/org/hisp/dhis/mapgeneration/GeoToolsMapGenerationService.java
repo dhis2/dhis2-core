@@ -49,8 +49,7 @@ import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -79,7 +78,7 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
 
   private final UserService userService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final I18nManager i18nManager;
 
@@ -210,8 +209,7 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
       period = mapView.getPeriods().get(0);
     } else if (mapView.getRelatives() != null) {
       AnalyticsFinancialYearStartKey financialYearStart =
-          systemSettingManager.getSystemSetting(
-              SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class);
+          settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
       period =
           mapView.getRelatives().getRelativePeriods(date, null, false, financialYearStart).get(0);
     }

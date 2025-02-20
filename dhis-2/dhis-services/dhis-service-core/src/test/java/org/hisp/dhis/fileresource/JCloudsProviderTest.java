@@ -29,7 +29,9 @@ package org.hisp.dhis.fileresource;
 
 import static org.jclouds.ContextBuilder.newBuilder;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,6 +48,16 @@ class JCloudsProviderTest {
   @Test
   void verifyAwsS3() {
     assertDoesNotThrow(() -> newBuilder("aws-s3"));
+  }
+
+  @Test
+  void verifyS3() {
+    assertDoesNotThrow(() -> newBuilder("s3"));
+  }
+
+  @Test
+  void verifyInvalidProvider() {
+    assertThrows(NoSuchElementException.class, () -> newBuilder("s4"));
   }
 
   @Test

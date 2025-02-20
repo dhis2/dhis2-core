@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;

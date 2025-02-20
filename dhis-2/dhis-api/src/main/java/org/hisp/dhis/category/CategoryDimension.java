@@ -33,7 +33,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -81,6 +83,18 @@ public class CategoryDimension implements DimensionalEmbeddedObject {
 
   public void setItems(List<CategoryOption> items) {
     this.items = items;
+  }
+
+  public void addItem(CategoryOption item) {
+    this.getItems().add(item);
+  }
+
+  public void removeItem(CategoryOption item) {
+    this.getItems().remove(item);
+  }
+
+  public void removeItems(@Nonnull Collection<CategoryOption> items) {
+    items.forEach(this::removeItem);
   }
 
   @Override

@@ -82,8 +82,7 @@ public class DefaultImageProcessingService implements ImageProcessingService {
         images.put(dimension, tempFile);
       }
     } catch (IOException e) {
-      log.error("Image file resource cannot be processed");
-      DebugUtils.getStackTrace(e);
+      log.error("Image file resource cannot be processed", e);
       return new EnumMap<>(ImageFileDimension.class);
     }
 

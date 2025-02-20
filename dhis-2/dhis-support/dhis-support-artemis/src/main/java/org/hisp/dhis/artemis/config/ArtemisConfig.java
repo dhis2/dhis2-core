@@ -29,11 +29,11 @@ package org.hisp.dhis.artemis.config;
 
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.DeliveryMode;
+import jakarta.jms.JMSException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.jms.ConnectionFactory;
-import javax.jms.DeliveryMode;
-import javax.jms.JMSException;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
@@ -55,7 +55,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

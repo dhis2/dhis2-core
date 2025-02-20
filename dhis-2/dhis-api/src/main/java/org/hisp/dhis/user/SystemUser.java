@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -41,11 +41,13 @@ import org.springframework.security.core.GrantedAuthority;
  */
 public class SystemUser implements UserDetails {
 
+  @Nonnull
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return List.of((GrantedAuthority) Authorities.ALL::name);
   }
 
+  @Nonnull
   @Override
   public Set<String> getAllAuthorities() {
     return Set.of(Authorities.ALL.name());
@@ -88,8 +90,13 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
+  public String getSecret() {
+    return "";
+  }
+
+  @Override
   public String getUid() {
-    return "system-process";
+    return "XXXXXSystem";
   }
 
   @Override
@@ -112,31 +119,57 @@ public class SystemUser implements UserDetails {
     return "user";
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserGroupIds() {
     return Set.of();
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserOrgUnitIds() {
     return Set.of();
   }
 
+  @Nonnull
+  @Override
+  public Set<String> getUserDataOrgUnitIds() {
+    return Set.of();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserSearchOrgUnitIds() {
+    return Set.of();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserEffectiveSearchOrgUnitIds() {
+    return Set.of();
+  }
+
   @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
-    return false;
+    return true;
+  }
+
+  @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return true;
   }
 
   @Override
   public boolean isAuthorized(String auth) {
-    return false;
+    return true;
   }
 
   @Override
-  public Map<String, Serializable> getUserSettings() {
-    return Map.of();
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return true;
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserRoleIds() {
     return Set.of();
@@ -155,6 +188,16 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isTwoFactorEnabled() {
     return false;
+  }
+
+  @Override
+  public TwoFactorType getTwoFactorType() {
+    return TwoFactorType.NOT_ENABLED;
+  }
+
+  @Override
+  public boolean isEmailVerified() {
+    return true;
   }
 
   @Override

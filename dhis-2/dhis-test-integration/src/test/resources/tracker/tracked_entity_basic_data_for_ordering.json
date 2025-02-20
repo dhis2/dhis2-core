@@ -68,7 +68,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": "88"
         }
       ],
       "enrollments": []
@@ -118,7 +118,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 70
+          "value": "70"
         }
       ],
       "enrollments": []
@@ -168,7 +168,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 70
+          "value": "70"
         }
       ],
       "enrollments": []
@@ -218,7 +218,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 70
+          "value": "70"
         }
       ],
       "enrollments": []

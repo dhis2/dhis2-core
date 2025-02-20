@@ -37,15 +37,15 @@ import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.function.Function;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.IdGenerator;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.actions.metadata.TrackedEntityAttributeActions;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -89,10 +89,12 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
     String tea = teaAttributeActions.create("TEXT");
     programActions.addAttribute(programId, tea, true);
 
-    String tei = importTei();
+    String te = importTrackedEntity();
 
     JsonObject payload =
-        new EnrollmentDataBuilder().setTei(tei).array(programId, Constants.ORG_UNIT_IDS[1]);
+        new EnrollmentDataBuilder()
+            .setTrackedEntity(te)
+            .array(programId, Constants.ORG_UNIT_IDS[1]);
 
     trackerImportExportActions
         .postAndGetJobReport(payload)
@@ -104,12 +106,12 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
 
   @Test
   public void shouldUpdateAttributeValue() throws Exception {
-    String tei = importTei();
+    String te = importTrackedEntity();
 
     JsonObject payload =
         new EnrollmentDataBuilder()
             .setId(new IdGenerator().generateUniqueId())
-            .setTei(tei)
+            .setTrackedEntity(te)
             .addAttribute(numberAttributeId, "5")
             .array(programId, Constants.ORG_UNIT_IDS[1]);
 
@@ -123,7 +125,7 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
     trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
     trackerImportExportActions
-        .getTrackedEntity(tei + "?program=" + programId)
+        .getTrackedEntity(te + "?program=" + programId)
         .validateStatus(200)
         .validate()
         .statusCode(200)
@@ -134,11 +136,11 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
 
   @Test
   public void shouldAddAttributeValue() throws Exception {
-    String tei = importTei();
+    String te = importTrackedEntity();
 
     JsonObject payload =
         new EnrollmentDataBuilder()
-            .setTei(tei)
+            .setTrackedEntity(te)
             .addAttribute(optionSetAttributeId, "TA_YES")
             .array(programId, Constants.ORG_UNIT_IDS[1]);
 
@@ -147,7 +149,7 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
         .validateSuccessfulImport();
 
     trackerImportExportActions
-        .getTrackedEntity(tei + "?program=" + programId)
+        .getTrackedEntity(te + "?program=" + programId)
         .validateStatus(200)
         .validate()
         .statusCode(200)
@@ -158,12 +160,12 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
 
   @Test
   public void shouldRemoveAttributeValue() throws Exception {
-    String tei = importTei();
+    String te = importTrackedEntity();
 
     JsonObject payload =
         new EnrollmentDataBuilder()
             .setId(new IdGenerator().generateUniqueId())
-            .setTei(tei)
+            .setTrackedEntity(te)
             .addAttribute(optionSetAttributeId, "TA_YES")
             .array(programId, Constants.ORG_UNIT_IDS[1]);
 
@@ -177,7 +179,7 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
     trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
     trackerImportExportActions
-        .getTrackedEntity(tei + "?program=" + programId)
+        .getTrackedEntity(te + "?program=" + programId)
         .validateStatus(200)
         .validate()
         .statusCode(200)
@@ -190,12 +192,12 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
   public void shouldRejectTetAttributes() throws Exception {
     String tetAttribute = "dIVt4l5vIOa";
 
-    String tei = importTei();
+    String te = importTrackedEntity();
 
     JsonObject payload =
         new EnrollmentDataBuilder()
             .setId(new IdGenerator().generateUniqueId())
-            .setTei(tei)
+            .setTrackedEntity(te)
             .addAttribute(tetAttribute, "NOT_A_VALUE")
             .array(programId, Constants.ORG_UNIT_IDS[1]);
 
@@ -209,13 +211,13 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
 
   @Test
   public void shouldValidateUniqueness() throws Exception {
-    String tei = importTei();
+    String te = importTrackedEntity();
     String value = DataGenerator.randomString();
 
     JsonObject payload =
         new EnrollmentDataBuilder()
             .setId(new IdGenerator().generateUniqueId())
-            .setTei(tei)
+            .setTrackedEntity(te)
             .addAttribute(uniqueAttributeId, value)
             .array(programId, Constants.ORG_UNIT_IDS[1]);
 
@@ -224,7 +226,7 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
     payload =
         new EnrollmentDataBuilder()
             .setId(new IdGenerator().generateUniqueId())
-            .setTei(importTei())
+            .setTrackedEntity(importTrackedEntity())
             .addAttribute(uniqueAttributeId, value)
             .array(programId, Constants.ORG_UNIT_IDS[1]);
 
@@ -233,25 +235,25 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
 
   @Test
   public void shouldValidateUniquenessWithinThePayload() throws Exception {
-    String tei = importTei();
-    String teiB = importTei();
+    String te = importTrackedEntity();
+    String teB = importTrackedEntity();
     String value = DataGenerator.randomString();
 
     Function<String, JsonObject> singleEnrollment =
-        (teiId) -> {
+        (teId) -> {
           return new EnrollmentDataBuilder()
               .setId(new IdGenerator().generateUniqueId())
-              .setTei(teiId)
+              .setTrackedEntity(teId)
               .addAttribute(uniqueAttributeId, value)
               .setProgram(programId)
-              .setOu(Constants.ORG_UNIT_IDS[1])
+              .setOrgUnit(Constants.ORG_UNIT_IDS[1])
               .single();
         };
 
     JsonObject payload =
         new JsonObjectBuilder()
             .addOrAppendToArray(
-                "enrollments", singleEnrollment.apply(tei), singleEnrollment.apply(teiB))
+                "enrollments", singleEnrollment.apply(te), singleEnrollment.apply(teB))
             .build();
 
     trackerImportExportActions.postAndGetJobReport(payload).validateErrorReport();

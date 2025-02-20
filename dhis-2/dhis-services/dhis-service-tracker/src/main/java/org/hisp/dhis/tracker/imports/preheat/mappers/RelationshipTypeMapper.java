@@ -35,7 +35,14 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, AttributeValueMapper.class})
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      AttributeValuesMapper.class,
+      ProgramMapper.class,
+      TrackedEntityTypeMapper.class,
+      ProgramStageMapper.class
+    })
 public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> {
   RelationshipTypeMapper INSTANCE = Mappers.getMapper(RelationshipTypeMapper.class);
 
@@ -48,6 +55,7 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> 
   @Mapping(target = "fromConstraint", qualifiedByName = "constraintMapper")
   @Mapping(target = "toConstraint", qualifiedByName = "constraintMapper")
   @Mapping(target = "bidirectional")
+  @Mapping(target = "sharing")
   RelationshipType map(RelationshipType relationshipType);
 
   @Named("constraintMapper")

@@ -43,7 +43,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hisp.dhis.helpers.config.TestConfiguration;
+import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 

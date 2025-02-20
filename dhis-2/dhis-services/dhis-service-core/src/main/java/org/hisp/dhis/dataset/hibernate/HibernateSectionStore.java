@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.dataset.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
@@ -66,33 +68,40 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
   }
 
   @Override
-  public List<Section> getSectionsByDataElement(String dataElementUid) {
-    String hql =
-        "select * from section s"
-            + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
-            + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
-            + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
-            + ", dataelement de"
-            + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-    return getSession()
-        .createNativeQuery(hql, Section.class)
-        .setParameter("dataElementId", dataElementUid)
-        .list();
+  public List<Section> getSectionsByDataElement(String uid) {
+    final String sql =
+        """
+        select * from section s \
+        left join sectiondataelements sde on s.sectionid = sde.sectionid \
+        left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid \
+        left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid \
+        , dataelement de \
+        where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);""";
+
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", uid).list();
   }
 
   @Override
-  public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    // language=sql
-    String sql =
+  public List<Section> getSectionsByIndicators(Collection<Indicator> indicators) {
+    final String sql =
         """
-            select s.* from section s
-            join sectionindicators si on s.sectionid = si.sectionid
-            where si.indicatorid in :indicators
-            group by s.sectionid
-          """;
-    return getSession()
-        .createNativeQuery(sql, Section.class)
-        .setParameter("indicators", indicators)
-        .list();
+        select s.* from section s \
+        join sectionindicators si on s.sectionid = si.sectionid \
+        where si.indicatorid in :indicators \
+        group by s.sectionid""";
+
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<Section> getSectionsByDataElement(Collection<DataElement> dataElements) {
+    final String sql =
+        """
+        select s from Section s \
+        join s.dataElements de \
+        where de in :dataElements \
+        group by s.id""";
+
+    return getQuery(sql, Section.class).setParameter("dataElements", dataElements).getResultList();
   }
 }

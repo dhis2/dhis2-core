@@ -28,6 +28,8 @@
 package org.hisp.dhis.dashboard;
 
 /**
+ * Encapsulates type of dashboard item.
+ *
  * @author Lars Helge Overland
  */
 public enum DashboardItemType {

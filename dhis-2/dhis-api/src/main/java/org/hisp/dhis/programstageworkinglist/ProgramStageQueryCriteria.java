@@ -39,7 +39,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
 import org.hisp.dhis.trackedentityfilter.AttributeValueFilter;
@@ -67,7 +67,7 @@ public class ProgramStageQueryCriteria implements Serializable {
   @JsonProperty private DateFilterPeriod eventScheduledAt;
 
   /** Property indicating which enrollment status types to filter */
-  @JsonProperty private ProgramStatus enrollmentStatus;
+  @JsonProperty private EnrollmentStatus enrollmentStatus;
 
   /** Property to filter events based on their enrolment dates */
   @JsonProperty private DateFilterPeriod enrolledAt;
@@ -97,7 +97,7 @@ public class ProgramStageQueryCriteria implements Serializable {
   @JsonProperty @Builder.Default
   private List<EventDataFilter> dataFilters = Collections.emptyList();
 
-  /** Property to filter tracked entity instances based on tracked entity attribute values */
+  /** Property to filter tracked entities based on tracked entity attribute values */
   @JsonProperty @Builder.Default
   private List<AttributeValueFilter> attributeValueFilters = Collections.emptyList();
 

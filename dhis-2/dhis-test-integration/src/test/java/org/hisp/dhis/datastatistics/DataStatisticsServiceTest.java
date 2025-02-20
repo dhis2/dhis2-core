@@ -32,19 +32,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
-import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataStatisticsService dataStatisticsService;
 
@@ -58,8 +64,8 @@ class DataStatisticsServiceTest extends SingleSetupIntegrationTestBase {
 
   private DateTimeFormatter fmt;
 
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     DateTime formatdate;
     fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
     formatdate = fmt.parseDateTime("2016-03-22");
@@ -98,7 +104,7 @@ class DataStatisticsServiceTest extends SingleSetupIntegrationTestBase {
         new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser");
     dataStatisticsService.addEvent(dse1);
     dataStatisticsService.addEvent(dse2);
-    long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(NoopJobProgress.INSTANCE);
+    long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
     assertTrue(snapId2 != 0);
     assertTrue(snapId1 != snapId2);
   }

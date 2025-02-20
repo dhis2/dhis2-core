@@ -86,12 +86,6 @@ public class DefaultSMSCommandService implements SMSCommandService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<SMSCommand> getJ2MESMSCommands() {
-    return smsCommandStore.getJ2MESMSCommands();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public SMSCommand getSMSCommand(String commandName, ParserType parserType) {
     return smsCommandStore.getSMSCommand(commandName, parserType);
   }

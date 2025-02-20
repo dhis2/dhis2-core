@@ -31,8 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,16 +48,21 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
@@ -70,11 +74,7 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataApprovalService dataApprovalService;
 
-  @Autowired private UserService userService;
-
   @Autowired private DataOrgUnitSplitHandler handler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private DataElement deA;
 
@@ -98,8 +98,8 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
 
   private DataApprovalWorkflow dwA;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     cocA = categoryService.getDefaultCategoryOptionCombo();
     deA = createDataElement('A');
     deB = createDataElement('B');
@@ -120,7 +120,8 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
     userService.addUser(usA);
     dlA = new DataApprovalLevel("DataApprovalLevelA", 1);
     idObjectManager.save(dlA);
-    dwA = new DataApprovalWorkflow("DataApprovalWorkflowA", monthly, Sets.newHashSet(dlA));
+    CategoryCombo ccA = categoryService.getDefaultCategoryCombo();
+    dwA = new DataApprovalWorkflow("DataApprovalWorkflowA", monthly, ccA, Sets.newHashSet(dlA));
     idObjectManager.save(dwA);
   }
 

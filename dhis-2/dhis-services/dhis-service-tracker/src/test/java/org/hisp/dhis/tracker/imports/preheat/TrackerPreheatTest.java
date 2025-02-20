@@ -39,27 +39,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerPreheatTest extends DhisConvenienceTest {
+class TrackerPreheatTest extends TestBase {
 
   private TrackerPreheat preheat;
 
@@ -190,10 +191,8 @@ class TrackerPreheatTest extends DhisConvenienceTest {
   void testPutAndGetByAttribute() {
     Attribute attribute = new Attribute();
     attribute.setAutoFields();
-    AttributeValue attributeValue = new AttributeValue("value1");
-    attributeValue.setAttribute(attribute);
     DataElement de1 = new DataElement("dataElementA");
-    de1.setAttributeValues(Collections.singleton(attributeValue));
+    de1.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), "value1")));
 
     preheat.put(TrackerIdSchemeParam.ofAttribute(attribute.getUid()), de1);
 
@@ -285,7 +284,7 @@ class TrackerPreheatTest extends DhisConvenienceTest {
     preheat.put(TrackerIdSchemeParam.NAME, attribute);
 
     DataElement de1 = new DataElement("dataElementA");
-    de1.setAttributeValues(Collections.singleton(new AttributeValue("value1", attribute)));
+    de1.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), "value1")));
     preheat.put(TrackerIdSchemeParam.ofAttribute(attribute.getUid()), de1);
 
     assertEquals(attribute, preheat.get(Attribute.class, MetadataIdentifier.ofName("best")));
@@ -361,57 +360,62 @@ class TrackerPreheatTest extends DhisConvenienceTest {
 
   @Test
   void testExistsTrackedEntity() {
-    assertFalse(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.TRACKED_ENTITY, uid));
 
     TrackedEntity te = new TrackedEntity();
-    te.setUid("uid");
+    te.setUid(uid.getValue());
     preheat.putTrackedEntities(List.of(te));
 
-    assertTrue(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
+    assertTrue(preheat.exists(TrackerType.TRACKED_ENTITY, uid));
     assertTrue(
         preheat.exists(
             org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                .trackedEntity("uid")
+                .trackedEntity(uid)
                 .build()));
   }
 
   @Test
   void testExistsEnrollment() {
-    assertFalse(preheat.exists(TrackerType.ENROLLMENT, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.ENROLLMENT, uid));
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid("uid");
+    enrollment.setUid(uid.getValue());
     preheat.putEnrollments(List.of(enrollment));
 
-    assertTrue(preheat.exists(TrackerType.ENROLLMENT, "uid"));
+    assertTrue(preheat.exists(TrackerType.ENROLLMENT, uid));
   }
 
   @Test
   void testExistsEvent() {
-    assertFalse(preheat.exists(TrackerType.EVENT, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.EVENT, uid));
 
     Event event = new Event();
-    event.setUid("uid");
+    event.setUid(uid.getValue());
     preheat.putEvents(List.of(event));
 
-    assertTrue(preheat.exists(TrackerType.EVENT, "uid"));
+    assertTrue(preheat.exists(TrackerType.EVENT, uid));
   }
 
   @Test
   void testExistsRelationship() {
-    assertFalse(preheat.exists(TrackerType.RELATIONSHIP, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.RELATIONSHIP, uid));
 
     org.hisp.dhis.relationship.Relationship relationship =
         new org.hisp.dhis.relationship.Relationship();
-    relationship.setUid("uid");
+    relationship.setUid(uid.getValue());
     preheat.putRelationship(relationship);
 
-    assertTrue(preheat.exists(TrackerType.RELATIONSHIP, "uid"));
+    assertTrue(preheat.exists(TrackerType.RELATIONSHIP, uid));
   }
 
   @Test
   void testExistsFailsOnNullType() {
-    assertThrows(NullPointerException.class, () -> preheat.exists(null, "uid"));
+    UID uid = UID.generate();
+    assertThrows(NullPointerException.class, () -> preheat.exists(null, uid));
   }
 
   private Set<MetadataIdentifier> categoryOptionIds(

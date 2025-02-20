@@ -143,8 +143,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   private boolean skipOffline;
 
   /**
-   * Property indicating whether a list of tracked entity instances should be displayed, or whether
-   * a query must be made.
+   * Property indicating whether a list of tracked entities should be displayed, or whether a query
+   * must be made.
    */
   private Boolean displayFrontPageList = false;
 

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -45,21 +46,15 @@ public class SetMap<T, V> extends HashMap<T, Set<V>> {
   }
 
   public void putValue(T key, V value) {
-    Set<V> set = this.get(key);
-    set = set == null ? new HashSet<>() : set;
-    set.add(value);
-    super.put(key, set);
+    computeIfAbsent(key, k -> new HashSet<>()).add(value);
   }
 
-  public void putValues(T key, Set<V> values) {
-    Set<V> set = this.get(key);
-    set = set == null ? new HashSet<>() : set;
-    set.addAll(values);
-    super.put(key, set);
+  public void putValues(T key, Collection<? extends V> values) {
+    computeIfAbsent(key, k -> new HashSet<>()).addAll(values);
   }
 
   public void putValues(SetMap<T, V> setMap) {
-    setMap.forEach((k, v) -> putValues(k, v));
+    setMap.forEach(this::putValues);
   }
 
   /**

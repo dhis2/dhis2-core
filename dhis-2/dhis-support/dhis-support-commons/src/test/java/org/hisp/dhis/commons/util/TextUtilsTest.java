@@ -32,12 +32,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.util.MapBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -199,6 +202,26 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceMultiple() {
+    assertEquals(
+        "Hey John, my name is John",
+        TextUtils.replace("Hey ${name}, my name is ${name}", Map.of("name", "John")));
+  }
+
+  @Test
+  void testReplaceWithNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            TextUtils.replace(
+                "Welcome ${first_name} ${last_name}",
+                new MapBuilder<String, String>()
+                    .put("first_name", "John")
+                    .put("last_name", null)
+                    .build()));
+  }
+
+  @Test
   void testReplaceVarargs() {
     assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
   }
@@ -266,5 +289,17 @@ class TextUtilsTest {
   void testEmptyIfTrue() {
     assertEquals("", TextUtils.emptyIfTrue("foo", true));
     assertEquals("foo", TextUtils.emptyIfTrue("foo", false));
+  }
+
+  @Test
+  void testGetVariableNames() {
+    assertEquals(
+        Set.of("animal", "target"),
+        TextUtils.getVariableNames("The ${animal} jumped over the ${target}."));
+  }
+
+  @Test
+  void testGetVariableNamesWithNullInput() {
+    assertEquals(Set.of(), TextUtils.getVariableNames(null));
   }
 }

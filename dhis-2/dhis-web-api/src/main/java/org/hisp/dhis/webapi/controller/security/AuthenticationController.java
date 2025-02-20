@@ -27,26 +27,36 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AccountExpiredException;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,6 +73,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -81,34 +92,53 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"login"})
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
-@RequestMapping("/auth")
-@RequiredArgsConstructor
+@RequestMapping("/api/auth")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@Order(2103)
 public class AuthenticationController {
 
-  private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-  private final SystemSettingManager settingManager;
-  private final RequestCache requestCache;
-  private final SessionRegistry sessionRegistry;
+  @Autowired private AuthenticationManager authenticationManager;
+
+  @Autowired private DhisConfigurationProvider dhisConfig;
+  @Autowired private SystemSettingsProvider settingsProvider;
+  @Autowired private RequestCache requestCache;
+  @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private UserService userService;
+
+  @Autowired protected ApplicationEventPublisher eventPublisher;
+  @Autowired private HttpSessionEventPublisher httpSessionEventPublisher;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
+
   private final SecurityContextHolderStrategy securityContextHolderStrategy =
       SecurityContextHolder.getContextHolderStrategy();
+
   private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
   @PostConstruct
   public void init() {
-    if (sessionRegistry != null) {
-      sessionStrategy =
-          new CompositeSessionAuthenticationStrategy(
-              List.of(
-                  new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry),
-                  new SessionFixationProtectionStrategy(),
-                  new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+    if (sessionRegistry == null) {
+      throw new IllegalStateException("SessionRegistry is null");
     }
+
+    int maxSessions =
+        Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
+
+    ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
+        new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
+    concurrentStrategy.setMaximumSessions(maxSessions);
+
+    sessionStrategy =
+        new CompositeSessionAuthenticationStrategy(
+            List.of(
+                concurrentStrategy,
+                new SessionFixationProtectionStrategy(),
+                new RegisterSessionAuthenticationStrategy(sessionRegistry)));
   }
 
   @PostMapping("/login")
@@ -118,21 +148,29 @@ public class AuthenticationController {
       @RequestBody LoginRequest loginRequest) {
 
     try {
-      Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
-      Authentication authenticationResult = getAuthProvider().authenticate(authenticationToken);
+      validateRequest(loginRequest);
 
+      Authentication authenticationResult = doAuthentication(request, loginRequest);
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
-
       saveContext(request, response, authenticationResult);
 
-      String redirectUrl = getRedirectUrl(request, response);
+      String redirectUrl = getRedirectUrl(authenticationResult, request, response);
+
+      if (this.eventPublisher != null) {
+        this.eventPublisher.publishEvent(
+            new InteractiveAuthenticationSuccessEvent(authenticationResult, this.getClass()));
+      }
+
       return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
 
     } catch (TwoFactorAuthenticationException e) {
-      return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE).build();
+      TwoFactorType twoFactorType = e.getType();
+      if (twoFactorType == TwoFactorType.EMAIL_ENABLED) {
+        return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE_EMAIL).build();
+      }
+      return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE_TOTP).build();
     } catch (TwoFactorAuthenticationEnrolmentException e) {
       return LoginResponse.builder().loginStatus(STATUS.REQUIRES_TWO_FACTOR_ENROLMENT).build();
-
     } catch (CredentialsExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.PASSWORD_EXPIRED).build();
     } catch (LockedException e) {
@@ -142,6 +180,23 @@ public class AuthenticationController {
     } catch (AccountExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_EXPIRED).build();
     }
+  }
+
+  private void validateRequest(LoginRequest loginRequest) {
+    User user = userService.getUserByUsername(loginRequest.getUsername());
+    if (user == null) {
+      throw new BadCredentialsException("Bad credentials");
+    }
+    boolean isOIDCUser =
+        user.isExternalAuth() && (user.getOpenId() != null && !user.getOpenId().isEmpty());
+    if (isOIDCUser) {
+      throw new BadCredentialsException("Bad credentials");
+    }
+  }
+
+  private Authentication doAuthentication(HttpServletRequest request, LoginRequest loginRequest) {
+    Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
+    return authenticationManager.authenticate(authenticationToken);
   }
 
   private static Authentication createAuthenticationToken(
@@ -165,22 +220,57 @@ public class AuthenticationController {
 
     this.securityContextHolderStrategy.setContext(context);
     this.securityContextRepository.saveContext(context, request, response);
+
+    HttpSession session = request.getSession(true);
+    httpSessionEventPublisher.sessionCreated(new HttpSessionEvent(session));
   }
 
-  private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
-    String redirectUrl = "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+  private String getRedirectUrl(
+      Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+    // Default redirect URL
+    String redirectUrl =
+        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
+    if (!redirectUrl.endsWith("/")) {
+      redirectUrl += "/";
+    }
 
+    // Check enforce verified email, redirect to the profile page if email is not verified
+    boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
+    if (enforceVerifiedEmail) {
+      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+      if (!userDetails.isEmailVerified()) {
+        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
+      }
+    }
+
+    // Check for saved request, i.e. the user has tried to access a page directly before logging in.
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-      redirectUrl = defaultSavedRequest.getRequestURI();
+      // Check saved request to avoid redirecting to non-html pages, e.g. images.
+      // If the saved request is not filtered, the user will be redirected to the saved request,
+      // otherwise the default redirect URL is used.
+      if (!filterSavedRequest(defaultSavedRequest)) {
+        if (defaultSavedRequest.getQueryString() != null) {
+          redirectUrl =
+              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+        } else {
+          redirectUrl = defaultSavedRequest.getRequestURI();
+        }
+      }
       this.requestCache.removeRequest(request, response);
     }
-
     return redirectUrl;
   }
 
-  private AuthenticationProvider getAuthProvider() {
-    return twoFactorAuthenticationProvider;
+  /**
+   * Filter saved request to avoid redirecting to non-html pages.
+   *
+   * @param savedRequest
+   * @return true if the saved request should be filtered
+   */
+  private boolean filterSavedRequest(DefaultSavedRequest savedRequest) {
+    String requestURI = savedRequest.getRequestURI();
+    return !requestURI.endsWith(".html") && !requestURI.endsWith("/") && requestURI.contains(".");
   }
 }

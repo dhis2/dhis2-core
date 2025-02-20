@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.Optional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -173,13 +174,13 @@ public class ConstraintValidator implements Validator<Relationship> {
   }
 
   private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     return getTrackedEntityTypeFromTrackedEntity(bundle, uid)
         .or(() -> getTrackedEntityTypeFromTrackedEntityRef(bundle, uid));
   }
 
   private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     final TrackedEntity trackedEntity = bundle.getPreheat().getTrackedEntity(uid);
 
     return trackedEntity != null
@@ -192,7 +193,7 @@ public class ConstraintValidator implements Validator<Relationship> {
   }
 
   private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     final Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> payloadTei =
         bundle.findTrackedEntityByUid(uid);
     return payloadTei.map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getTrackedEntityType);

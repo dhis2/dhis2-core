@@ -30,17 +30,17 @@ package org.hisp.dhis.webapi.utils;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -87,8 +87,6 @@ public class ContextUtils {
 
   public static final String CONTENT_TYPE_PNG = "image/png";
 
-  public static final String CONTENT_TYPE_JPG = "image/jpeg";
-
   public static final String CONTENT_TYPE_EXCEL = "application/vnd.ms-excel";
 
   public static final String CONTENT_TYPE_JAVASCRIPT = "application/javascript; charset=UTF-8";
@@ -101,8 +99,6 @@ public class ContextUtils {
 
   public static final String HEADER_LOCATION = "Location";
 
-  public static final String HEADER_EXPIRES = "Expires";
-
   public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 
   public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
@@ -111,8 +107,6 @@ public class ContextUtils {
 
   public static final String HEADER_VALUE_NO_STORE =
       "no-cache, no-store, max-age=0, must-revalidate";
-
-  public static final String QUERY_PARAM_SEP = ";";
 
   public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
 
@@ -294,7 +288,7 @@ public class ContextUtils {
 
     String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
 
-    return CodecUtils.md5Hex(value);
+    return HashUtils.hashMD5(value.getBytes());
   }
 
   /**

@@ -30,20 +30,25 @@ package org.hisp.dhis.webapi.filter;
 import static java.util.regex.Pattern.compile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -72,12 +77,16 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull FilterChain chain)
       throws IOException, ServletException {
     String requestPath = request.getServletPath();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
 
-    Matcher m = APP_PATH_PATTERN.matcher(requestPath);
+    String appUrl = request.getRequestURI().substring(request.getContextPath().length());
+
+    Matcher m = APP_PATH_PATTERN.matcher(appUrl);
     if (m.find()) {
       String appName = m.group(1);
       String resourcePath = m.group(2);
@@ -87,7 +96,11 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       App app = appManager.getApp(appName, contextPath);
       if (app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS) {
         log.debug("AppOverrideFilter :: Overridden app " + appName + " found, serving override");
-        serveInstalledAppResource(app, resourcePath, request, response);
+        // if resource path is blank, this means the base app dir has been requested
+        // this is due to the complex regex above which has to include '/' at the end, so correct
+        // app names are matched e.g. dhis-web-user v dhis-web-user-profile
+        serveInstalledAppResource(
+            app, resourcePath.isBlank() ? "/" : resourcePath, request, response);
 
         return;
       } else {
@@ -106,47 +119,55 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
     // Handling of 'manifest.webapp'
     if ("manifest.webapp".equals(resourcePath)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if (app.getActivities() != null
-          && app.getActivities().getDhis() != null
-          && "*".equals(app.getActivities().getDhis().getHref())) {
-        String contextPath = HttpServletRequestPaths.getContextPath(request);
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
-        app.getActivities().getDhis().setHref(contextPath);
-      }
-
-      jsonMapper.writeValue(response.getOutputStream(), app);
+      handleManifestWebApp(request, response, app);
     } else if ("index.action".equals(resourcePath)) {
       response.sendRedirect(app.getLaunchUrl());
     }
     // Any other resource
     else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(app, resourcePath);
-      if (resource == null) {
+      ResourceResult resourceResult = appManager.getAppResource(app, resourcePath);
+
+      Resource resource;
+      if (resourceResult instanceof ResourceFound found) {
+        resource = found.resource();
+
+        String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
+        if (new ServletWebRequest(request, response).checkNotModified(etag)) {
+          response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+          return;
+        }
+
+        String filename = resource.getFilename();
+        log.debug(String.format("App filename: '%s'", filename));
+
+        String mimeType = request.getSession().getServletContext().getMimeType(filename);
+        if (mimeType != null) {
+          response.setContentType(mimeType);
+        }
+        response.setContentLength(appManager.getUriContentLength(resource));
+        response.setHeader("ETag", etag);
+        StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+      }
+      if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
-
-      String etag = CodecUtils.md5Hex(String.valueOf(resource.lastModified()));
-      if (new ServletWebRequest(request, response).checkNotModified(etag)) {
-        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        return;
+      if (resourceResult instanceof Redirect redirect) {
+        response.sendRedirect((app.getBaseUrl() + "/" + redirect.path()).replaceAll("/+", "/"));
       }
-
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
-
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
-
-      response.setContentLength((int) resource.contentLength());
-      response.setHeader("ETag", etag);
-
-      StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
+  }
+
+  private void handleManifestWebApp(
+      HttpServletRequest request, HttpServletResponse response, App app) throws IOException {
+    // If request was for manifest.webapp, check for * and replace with host
+    if (app.getActivities() != null
+        && app.getActivities().getDhis() != null
+        && "*".equals(app.getActivities().getDhis().getHref())) {
+      String contextPath = HttpServletRequestPaths.getContextPath(request);
+      log.debug(String.format("Manifest context path: '%s'", contextPath));
+      app.getActivities().getDhis().setHref(contextPath);
+    }
+    jsonMapper.writeValue(response.getOutputStream(), app);
   }
 }

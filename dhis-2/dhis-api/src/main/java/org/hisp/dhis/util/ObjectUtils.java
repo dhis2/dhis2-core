@@ -193,6 +193,22 @@ public class ObjectUtils {
   }
 
   /**
+   * If object is null return null, otherwise return function applied to object.
+   *
+   * @param object to check.
+   * @param <U> the function return type.
+   * @param <T> the object type.
+   * @param function the function to be applied to non-null object.
+   */
+  public static <T, U> U applyIfNotNull(T object, Function<T, U> function) {
+    if (object == null) {
+      return null;
+    }
+
+    return function.apply(object);
+  }
+
+  /**
    * Util method that always returns a new Set, either instantiated from a non-null Set passed as an
    * argument, or if a null arg is passed then returning an empty Set. This helps reduce possible
    * NullPointerExceptions when trying to instantiate a Set with a null value.

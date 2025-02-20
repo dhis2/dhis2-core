@@ -39,10 +39,9 @@
       },
       "orgUnit": {
         "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
+        "identifier": "QfUVllTs6cW"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [
@@ -73,10 +72,9 @@
       },
       "orgUnit": {
         "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
+        "identifier": "QfUVllTs6cZ"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -93,7 +91,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -110,7 +107,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -127,7 +123,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -144,7 +139,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -161,7 +155,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -178,7 +171,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -195,7 +187,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -212,7 +203,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -229,7 +219,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -246,7 +235,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -263,7 +251,6 @@
         "identifier": "QfUVllTs6cS"
       },
       "inactive": false,
-      "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
@@ -288,7 +275,6 @@
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
       "followUp": false,
-      "deleted": false,
       "events": [],
       "relationships": [],
       "attributes": [],
@@ -311,7 +297,6 @@
       "enrolledAt": "2020-03-28T12:05:00.000",
       "occurredAt": "2020-03-28T12:05:00.000",
       "followUp": false,
-      "deleted": false,
       "events": [],
       "relationships": [],
       "attributes": [],
@@ -339,7 +324,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
@@ -373,7 +357,6 @@
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",
       "storedBy": "admin",
-      "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID"
       },
@@ -388,6 +371,33 @@
       "notes": []
     }
   ],
-  "relationships": [],
+  "relationships": [
+    {
+      "relationship": "Nva3Xj2j75W",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX9I7"
+      },
+      "from": {
+        "trackedEntity": "NCc1rCEOKaY"
+      },
+      "to": {
+        "trackedEntity": "PB9VMezGkwA"
+      }
+    },
+    {
+      "relationship": "HiXiipNGsxT",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX9I7"
+      },
+      "from": {
+        "trackedEntity": "NCc1rCEOKaY"
+      },
+      "to": {
+        "trackedEntity": "N0wuhEwexUW"
+      }
+    }
+  ],
   "username": "system-process"
 }

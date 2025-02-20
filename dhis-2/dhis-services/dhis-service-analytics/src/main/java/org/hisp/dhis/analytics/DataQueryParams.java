@@ -49,6 +49,7 @@ import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.program.AnalyticsType.EVENT;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -99,7 +100,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -114,6 +115,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
@@ -525,7 +527,6 @@ public class DataQueryParams {
     params.orgUnitField = this.orgUnitField;
     params.apiVersion = this.apiVersion;
     params.locale = this.locale;
-
     params.currentUser = this.currentUser;
     params.partitions = new Partitions(this.partitions);
     params.tableName = this.tableName;
@@ -1278,6 +1279,10 @@ public class DataQueryParams {
     return startDate != null && endDate != null;
   }
 
+  public boolean hasReportingRates() {
+    return isNotEmpty(getAllReportingRates());
+  }
+
   /**
    * Indicates whether this query has a continuous list of dates range or is empty. It assumes that
    * the datesRange IS SORTED.
@@ -1339,17 +1344,23 @@ public class DataQueryParams {
    * Returns the time field as field (column) value. If the time field is within {@link TimeField}
    * enumeration, the field (column) value is returned.
    */
-  public String getTimeFieldAsField() {
-    return TimeField.fieldIsValid(timeField) ? TimeField.valueOf(timeField).getField() : timeField;
+  public String getTimeFieldAsField(AnalyticsType analyticsType) {
+    if (TimeField.fieldIsValid(timeField)) {
+      TimeField field = TimeField.valueOf(timeField);
+      return analyticsType == EVENT ? field.getEventColumnName() : field.getEnrollmentColumnName();
+    }
+    return timeField;
   }
 
   /**
    * Returns the time field as field (column) value using {@link
-   * DataQueryParams#getTimeFieldAsField()}. Returns the default {@link TimeField#EVENT_DATE} if not
-   * specified.
+   * DataQueryParams#getTimeFieldAsField(AnalyticsType)}. Returns the default {@link
+   * TimeField#EVENT_DATE} if not specified.
    */
   public String getTimeFieldAsFieldFallback() {
-    return ObjectUtils.firstNonNull(getTimeFieldAsField(), TimeField.EVENT_DATE.getField());
+    return ObjectUtils.firstNonNull(
+        // only called in Event flow, so we can safely pass EVENT
+        getTimeFieldAsField(EVENT), TimeField.EVENT_DATE.getEventColumnName());
   }
 
   /** Indicates whether this object has a program. */
@@ -2184,6 +2195,12 @@ public class DataQueryParams {
     return ImmutableList.copyOf(ListUtils.union(getDataElements(), getFilterDataElements()));
   }
 
+  /** Returns all data element operands part of a dimension or filter. */
+  public List<DimensionalItemObject> getAllDataElementOperands() {
+    return ImmutableList.copyOf(
+        ListUtils.union(getDataElementOperands(), getFilterDataElementOperands()));
+  }
+
   /** Returns all reporting rates part of a dimension or filter. */
   public List<DimensionalItemObject> getAllReportingRates() {
     return ImmutableList.copyOf(ListUtils.union(getReportingRates(), getFilterReportingRates()));
@@ -2203,15 +2220,35 @@ public class DataQueryParams {
         ListUtils.union(getProgramAttributes(), getFilterProgramAttributes()));
   }
 
+  /** Returns all program attribute options part of a dimension or filter. */
+  public List<DimensionalItemObject> getAllProgramAttributeOptions() {
+    return ImmutableList.copyOf(
+        ListUtils.union(getProgramAttributeOptions(), getFilterProgramAttributeOptions()));
+  }
+
   /** Returns all program data elements part of a dimension or filter. */
   public List<DimensionalItemObject> getAllProgramDataElements() {
     return ImmutableList.copyOf(
         ListUtils.union(getProgramDataElements(), getFilterProgramDataElements()));
   }
 
-  /** Returns all program attributes part of a dimension or filter. */
+  /** Returns all program data element options part of a dimension or filter. */
+  public List<DimensionalItemObject> getAllProgramDataElementOptions() {
+    return ImmutableList.copyOf(
+        ListUtils.union(getProgramDataElementOptions(), getFilterProgramDataElementOptions()));
+  }
+
+  /** Returns all data element attributes part of a dimension or filter. */
   public List<DimensionalItemObject> getAllProgramDataElementsAndAttributes() {
     return ListUtils.union(getAllProgramAttributes(), getAllProgramDataElements());
+  }
+
+  /**
+   * Returns all options from program attributes and program data elements part of a dimension or
+   * filter.
+   */
+  public List<DimensionalItemObject> getAllProgramDataElementsAndAttributesOptions() {
+    return ListUtils.union(getAllProgramAttributeOptions(), getAllProgramDataElementOptions());
   }
 
   /** Returns all validation results part of a dimension or filter. */
@@ -2330,6 +2367,13 @@ public class DataQueryParams {
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, getDimensionOptions(DATA_X_DIM_ID)));
   }
 
+  /** Returns all program data element options part of the data dimension. */
+  public List<DimensionalItemObject> getProgramDataElementOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION, getDimensionOptions(DATA_X_DIM_ID)));
+  }
+
   /**
    * Returns all data elements, data elements of of data element operands and data elements of
    * program data elements part of the data dimension.
@@ -2352,11 +2396,18 @@ public class DataQueryParams {
     return ImmutableList.copyOf(dataElements);
   }
 
-  /** Returns all indicators part of the data dimension. */
+  /** Returns all program attributes part of the data dimension. */
   public List<DimensionalItemObject> getProgramAttributes() {
     return ImmutableList.copyOf(
         AnalyticsUtils.getByDataDimensionItemType(
             DataDimensionItemType.PROGRAM_ATTRIBUTE, getDimensionOptions(DATA_X_DIM_ID)));
+  }
+
+  /** Returns all program attribute option part of the data dimension. */
+  public List<DimensionalItemObject> getProgramAttributeOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION, getDimensionOptions(DATA_X_DIM_ID)));
   }
 
   /** Returns all expression dimension items part of the data dimension. */
@@ -2457,6 +2508,13 @@ public class DataQueryParams {
             DataDimensionItemType.DATA_ELEMENT, getFilterOptions(DATA_X_DIM_ID)));
   }
 
+  /** Returns all data element operands part of the data filter. */
+  public List<DimensionalItemObject> getFilterDataElementOperands() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.DATA_ELEMENT_OPERAND, getFilterOptions(DATA_X_DIM_ID)));
+  }
+
   /** Returns all reporting rates part of the data filter. */
   public List<DimensionalItemObject> getFilterReportingRates() {
     return ImmutableList.copyOf(
@@ -2471,11 +2529,25 @@ public class DataQueryParams {
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, getFilterOptions(DATA_X_DIM_ID)));
   }
 
+  /** Returns all program data element options part of the data filter. */
+  public List<DimensionalItemObject> getFilterProgramDataElementOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION, getFilterOptions(DATA_X_DIM_ID)));
+  }
+
   /** Returns all program attributes part of the data filter. */
   public List<DimensionalItemObject> getFilterProgramAttributes() {
     return ImmutableList.copyOf(
         AnalyticsUtils.getByDataDimensionItemType(
             DataDimensionItemType.PROGRAM_ATTRIBUTE, getFilterOptions(DATA_X_DIM_ID)));
+  }
+
+  /** Returns all program attribute options part of the data filter. */
+  public List<DimensionalItemObject> getFilterProgramAttributeOptions() {
+    return ImmutableList.copyOf(
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION, getFilterOptions(DATA_X_DIM_ID)));
   }
 
   /** Returns all expression dimension items part of the data filter. */

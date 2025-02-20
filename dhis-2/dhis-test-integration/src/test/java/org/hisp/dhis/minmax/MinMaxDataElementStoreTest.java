@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.minmax;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,24 +37,33 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
  */
-class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MinMaxDataElementStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private CategoryService categoryService;
+  @Autowired private CategoryOptionComboStore categoryOptionComboStore;
 
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
 
@@ -172,5 +181,99 @@ class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
     result = minMaxDataElementStore.query(params);
     assertNotNull(result);
     assertEquals(2, result.size());
+  }
+
+  @Test
+  @DisplayName("retrieving min max data elements by data element returns expected entries")
+  void getMinMaxDataElementsByDataElement() {
+    // given
+    DataElement deW = createDataElementAndSave('W');
+    DataElement deX = createDataElementAndSave('X');
+    DataElement deY = createDataElementAndSave('Y');
+    DataElement deZ = createDataElementAndSave('Z');
+
+    createMinMaxDataElementAndSave(deW);
+    createMinMaxDataElementAndSave(deX);
+    createMinMaxDataElementAndSave(deY);
+    createMinMaxDataElementAndSave(deZ);
+
+    // when
+    List<MinMaxDataElement> allByDataElement =
+        minMaxDataElementStore.getByDataElement(List.of(deW, deX));
+
+    // then
+    assertEquals(2, allByDataElement.size());
+    assertTrue(
+        allByDataElement.stream()
+            .map(mmde -> mmde.getDataElement().getUid())
+            .toList()
+            .containsAll(List.of(deW.getUid(), deX.getUid())));
+  }
+
+  @Test
+  @DisplayName("retrieving min max data elements by cat option combo returns expected entries")
+  void getMinMaxDataElementsByCoc() {
+    // given
+    DataElement deW = createDataElementAndSave('W');
+    DataElement deX = createDataElementAndSave('X');
+    DataElement deY = createDataElementAndSave('Y');
+    DataElement deZ = createDataElementAndSave('Z');
+
+    MinMaxDataElement mmde1 = createMinMaxDataElementAndSave(deW);
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('A');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc1);
+    mmde1.setOptionCombo(coc1);
+
+    MinMaxDataElement mmde2 = createMinMaxDataElementAndSave(deX);
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('B');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc2);
+    mmde2.setOptionCombo(coc2);
+
+    MinMaxDataElement mmde3 = createMinMaxDataElementAndSave(deY);
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('C');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc3);
+    mmde3.setOptionCombo(coc3);
+
+    MinMaxDataElement mmde4 = createMinMaxDataElementAndSave(deZ);
+    CategoryOptionCombo coc4 = createCategoryOptionCombo('D');
+    coc4.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc4);
+    mmde4.setOptionCombo(coc4);
+
+    // when
+    List<MinMaxDataElement> allByCoc =
+        minMaxDataElementStore.getByCategoryOptionCombo(UID.of(coc1, coc2));
+
+    // then
+    assertEquals(2, allByCoc.size());
+    assertTrue(
+        allByCoc.stream()
+            .map(mmde -> mmde.getOptionCombo().getUid())
+            .toList()
+            .containsAll(List.of(coc1.getUid(), coc2.getUid())));
+    assertTrue(
+        allByCoc.stream()
+            .map(mmde -> mmde.getDataElement().getUid())
+            .toList()
+            .containsAll(List.of(deW.getUid(), deX.getUid())));
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    DataElement de = createDataElement(c);
+    dataElementService.addDataElement(de);
+    return de;
+  }
+
+  private MinMaxDataElement createMinMaxDataElementAndSave(DataElement de) {
+    OrganisationUnit ou = createOrganisationUnit(de.getName());
+    organisationUnitService.addOrganisationUnit(ou);
+    MinMaxDataElement minMaxDataElement =
+        new MinMaxDataElement(
+            de, ou, categoryService.getDefaultCategoryOptionCombo(), 0, 100, false);
+    minMaxDataElementStore.save(minMaxDataElement);
+    return minMaxDataElement;
   }
 }

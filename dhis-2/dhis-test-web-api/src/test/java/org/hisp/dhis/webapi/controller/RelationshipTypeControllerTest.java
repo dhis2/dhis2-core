@@ -27,21 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
-class RelationshipTypeControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String program;
 

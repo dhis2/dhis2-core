@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;

@@ -33,13 +33,13 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,9 +58,9 @@ public class OwnershipTests extends TrackerApiTest {
 
   String username;
 
-  String teiInSearchScope;
+  String teInSearchScope;
 
-  String teiInCaptureScope;
+  String teInCaptureScope;
 
   private ProgramActions programActions;
 
@@ -97,13 +97,15 @@ public class OwnershipTests extends TrackerApiTest {
             .validateStatus(200)
             .extractString("programStages.id[0]");
 
-    teiInCaptureScope =
-        super.importTeisWithEnrollmentAndEvent(captureOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+    teInCaptureScope =
+        super.importTrackedEntitiesWithEnrollmentAndEvent(
+                captureOu, protectedProgram, protectedProgramStage)
+            .extractImportedTrackedEntities()
             .get(0);
-    teiInSearchScope =
-        super.importTeisWithEnrollmentAndEvent(searchOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+    teInSearchScope =
+        super.importTrackedEntitiesWithEnrollmentAndEvent(
+                searchOu, protectedProgram, protectedProgramStage)
+            .extractImportedTrackedEntities()
             .get(0);
   }
 
@@ -114,21 +116,22 @@ public class OwnershipTests extends TrackerApiTest {
 
   @Test
   public void shouldUpdateTrackedEntitiesInSearchScopeWhenGlassIsBroken() throws Exception {
-    String teiId =
-        importTeisWithEnrollmentAndEvent(searchOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+    String teId =
+        importTrackedEntitiesWithEnrollmentAndEvent(
+                searchOu, protectedProgram, protectedProgramStage)
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObject updatePayload =
         trackerImportExportActions
-            .getTrackedEntity(teiId + "?fields=*")
+            .getTrackedEntity(teId + "?fields=*")
             .validateStatus(200)
             .getBodyAsJsonBuilder()
             .wrapIntoArray("trackedEntities");
 
     loginActions.loginAsUser(username, userPassword);
 
-    trackerImportExportActions.overrideOwnership(teiId, protectedProgram, "Change in ownership");
+    trackerImportExportActions.overrideOwnership(teId, protectedProgram, "Change in ownership");
 
     trackerImportExportActions.postAndGetJobReport(updatePayload).validateSuccessfulImport();
   }
@@ -136,14 +139,15 @@ public class OwnershipTests extends TrackerApiTest {
   @Test
   public void shouldNotUpdateTrackedEntitiesOutsideCaptureScopeWhenProgramProtected()
       throws Exception {
-    String teiId =
-        importTeisWithEnrollmentAndEvent(searchOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+    String teId =
+        importTrackedEntitiesWithEnrollmentAndEvent(
+                searchOu, protectedProgram, protectedProgramStage)
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObject updatePayload =
         trackerImportExportActions
-            .getTrackedEntity(teiId + "?fields=*")
+            .getTrackedEntity(teId + "?fields=*")
             .validateStatus(200)
             .getBodyAsJsonBuilder()
             .wrapIntoArray("trackedEntities");
@@ -160,14 +164,14 @@ public class OwnershipTests extends TrackerApiTest {
 
   @Test
   public void shouldUpdateTrackedEntitiesOutsideCaptureScopeWhenProgramOpen() throws Exception {
-    String teiId =
-        importTeisWithEnrollmentAndEvent(searchOu, openProgram, openProgramStage)
-            .extractImportedTeis()
+    String teId =
+        importTrackedEntitiesWithEnrollmentAndEvent(searchOu, openProgram, openProgramStage)
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObject updatePayload =
         trackerImportExportActions
-            .getTrackedEntity(teiId + "?fields=*")
+            .getTrackedEntity(teId + "?fields=*")
             .validateStatus(200)
             .getBodyAsJsonBuilder()
             .wrapIntoArray("trackedEntities");
@@ -178,10 +182,10 @@ public class OwnershipTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldNotValidateCaptureScopeForTei() {
+  public void shouldNotValidateCaptureScopeForTrackedEntity() {
     JsonObject object =
         trackerImportExportActions
-            .getTrackedEntity(teiInSearchScope)
+            .getTrackedEntity(teInSearchScope)
             .validateStatus(200)
             .getBodyAsJsonBuilder()
             .wrapIntoArray("trackedEntities");
@@ -196,7 +200,7 @@ public class OwnershipTests extends TrackerApiTest {
   public void shouldValidateEnrollmentOwnership(String importStrategy) {
     JsonObject enrollment =
         trackerImportExportActions
-            .getTrackedEntity(teiInSearchScope + "?fields=enrollments")
+            .getTrackedEntity(teInSearchScope + "?fields=enrollments")
             .validateStatus(200)
             .getBody();
 
@@ -214,7 +218,7 @@ public class OwnershipTests extends TrackerApiTest {
     loginActions.loginAsUser(username, userPassword);
 
     trackerImportExportActions
-        .getTrackedEntity(teiInSearchScope + "?fields=enrollments")
+        .getTrackedEntity(teInSearchScope + "?fields=enrollments")
         .validate()
         .statusCode(200)
         .body("enrollments", hasSize(0));
@@ -222,7 +226,7 @@ public class OwnershipTests extends TrackerApiTest {
     trackerImportExportActions
         .postAndGetJobReport(
             new EnrollmentDataBuilder()
-                .array(protectedProgram, captureOu, teiInSearchScope, "ACTIVE"))
+                .array(protectedProgram, captureOu, teInSearchScope, "ACTIVE"))
         .validateErrorReport()
         .body("errorCode", hasItems("E1102"));
   }
@@ -233,7 +237,7 @@ public class OwnershipTests extends TrackerApiTest {
 
     trackerImportExportActions
         .postAndGetJobReport(
-            new EnrollmentDataBuilder().array(openProgram, captureOu, teiInSearchScope, "ACTIVE"))
+            new EnrollmentDataBuilder().array(openProgram, captureOu, teInSearchScope, "ACTIVE"))
         .validateSuccessfulImport();
   }
 

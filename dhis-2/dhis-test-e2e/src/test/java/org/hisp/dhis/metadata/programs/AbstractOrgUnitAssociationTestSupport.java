@@ -34,8 +34,8 @@ import static org.hamcrest.Matchers.hasKey;
 import java.util.List;
 import java.util.function.Function;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>

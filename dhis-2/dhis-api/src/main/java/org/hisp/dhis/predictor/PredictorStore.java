@@ -27,11 +27,32 @@
  */
 package org.hisp.dhis.predictor;
 
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Ken Haase
  */
 public interface PredictorStore extends IdentifiableObjectStore<Predictor> {
   String ID = PredictorStore.class.getName();
+
+  List<Predictor> getAllByDataElement(Collection<DataElement> dataElements);
+
+  List<Predictor> getAllWithGeneratorContainingDataElement(@Nonnull List<String> dataElementUids);
+
+  List<Predictor> getAllWithSampleSkipTestContainingDataElement(
+      @Nonnull List<String> dataElementUids);
+
+  /**
+   * Retrieve all {@link Predictor}s with references to {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link Predictor}s with references to {@link CategoryOptionCombo} {@link UID} passed in
+   */
+  List<Predictor> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

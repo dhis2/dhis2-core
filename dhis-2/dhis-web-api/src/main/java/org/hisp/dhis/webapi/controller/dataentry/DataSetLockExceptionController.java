@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = LockException.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
+@RequestMapping("/api/dataEntry")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetLockExceptionController {
   private final DataSetService dataSetService;

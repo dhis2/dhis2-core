@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
 
 import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
+import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.persistence.TypedQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.schema.Property;
@@ -118,7 +118,7 @@ public final class QueryUtils {
       if (enumValue != null) {
         return enumValue;
       }
-    } else if (Collection.class.isAssignableFrom(klass)) {
+    } else if (Collection.class.isAssignableFrom(klass) || Map.class.isAssignableFrom(klass)) {
       if (!value.startsWith("[") || !value.endsWith("]")) {
         try {
           return (T) Integer.valueOf(value);

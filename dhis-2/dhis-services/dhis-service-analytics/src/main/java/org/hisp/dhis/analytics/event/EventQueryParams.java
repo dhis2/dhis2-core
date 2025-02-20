@@ -87,12 +87,14 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
@@ -140,6 +142,9 @@ public class EventQueryParams extends DataQueryParams {
 
   /** The program indicator for which to produce aggregated data. */
   private ProgramIndicator programIndicator;
+
+  /** The {@link Option} set as a dimension for aggregated queries. */
+  private Option option;
 
   /** Columns to sort ascending. */
   private List<QueryItem> asc = new ArrayList<>();
@@ -205,8 +210,8 @@ public class EventQueryParams extends DataQueryParams {
   /** Indicates whether to include underlying points for each cluster. */
   private boolean includeClusterPoints;
 
-  /** Indicates the program status. */
-  private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
+  /** Indicates the enrollment status. */
+  private Set<EnrollmentStatus> enrollmentStatus = new LinkedHashSet<>();
 
   /** flag to enable row context in grid response */
   private boolean rowContext = false;
@@ -234,6 +239,8 @@ public class EventQueryParams extends DataQueryParams {
   @Getter protected EndpointAction endpointAction;
 
   @Getter protected boolean multipleQueries = false;
+
+  @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -271,6 +278,7 @@ public class EventQueryParams extends DataQueryParams {
     params.value = this.value;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
+    params.option = this.option;
     params.asc = new ArrayList<>(this.asc);
     params.desc = new ArrayList<>(this.desc);
     params.completedOnly = this.completedOnly;
@@ -292,7 +300,7 @@ public class EventQueryParams extends DataQueryParams {
     params.coordinateFields = this.coordinateFields;
     params.bbox = this.bbox;
     params.includeClusterPoints = this.includeClusterPoints;
-    params.programStatus = new LinkedHashSet<>(this.programStatus);
+    params.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
     params.includeMetadataDetails = this.includeMetadataDetails;
     params.dataIdScheme = this.dataIdScheme;
     params.periodType = this.periodType;
@@ -305,6 +313,7 @@ public class EventQueryParams extends DataQueryParams {
     params.rowContext = this.rowContext;
     params.multipleQueries = this.multipleQueries;
     params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
+    params.userOrgUnits = this.userOrgUnits;
     return params;
   }
 
@@ -315,7 +324,118 @@ public class EventQueryParams extends DataQueryParams {
 
     EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
 
-    for (DimensionalItemObject object : dataQueryParams.getProgramDataElements()) {
+    // Add items.
+    addProgramDataElements(dataQueryParams, builder);
+    addProgramDataElementOptions(dataQueryParams, builder);
+    addProgramAttributes(dataQueryParams, builder);
+    addProgramAttributeOptions(dataQueryParams, builder);
+
+    // Add filters.
+    addProgramDataElementsFilter(dataQueryParams, builder);
+    addProgramDataElementOptionsFilter(dataQueryParams, builder);
+    addProgramAttributesFilter(dataQueryParams, builder);
+    addProgramAttributeOptionsFilter(dataQueryParams, builder);
+
+    addProgramIndicators(dataQueryParams, builder);
+
+    return builder.withAggregateData(true).removeDimension(DATA_X_DIM_ID).build();
+  }
+
+  /**
+   * Add program indicators to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramIndicators(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramIndicators()) {
+      ProgramIndicator programIndicator = (ProgramIndicator) object;
+      builder.addItemProgramIndicator(programIndicator);
+    }
+  }
+
+  /**
+   * Add program data element options filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElementOptionsFilter(
+      DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getFilterProgramDataElementOptions()) {
+      ProgramDataElementOptionDimensionItem element =
+          (ProgramDataElementOptionDimensionItem) object;
+      DataElement dataElement = element.getDataElement();
+      QueryItem item =
+          new QueryItem(
+              dataElement,
+              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
+              dataElement.getValueType(),
+              dataElement.getAggregationType(),
+              dataElement.getOptionSet());
+      item.setProgram(element.getProgram());
+      item.setOption(element.getOption());
+      builder.addItemFilter(item);
+    }
+  }
+
+  /**
+   * Add program attribute options filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributeOptionsFilter(
+      DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getFilterProgramAttributeOptions()) {
+      ProgramTrackedEntityAttributeOptionDimensionItem element =
+          (ProgramTrackedEntityAttributeOptionDimensionItem) object;
+      TrackedEntityAttribute attribute = element.getAttribute();
+      QueryItem item =
+          new QueryItem(
+              attribute,
+              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
+              attribute.getValueType(),
+              attribute.getAggregationType(),
+              attribute.getOptionSet());
+      item.setProgram(element.getProgram());
+      item.setOption(element.getOption());
+      builder.addItemFilter(item);
+    }
+  }
+
+  /**
+   * Add program attribute filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributesFilter(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes()) {
+      ProgramTrackedEntityAttributeDimensionItem element =
+          (ProgramTrackedEntityAttributeDimensionItem) object;
+      TrackedEntityAttribute attribute = element.getAttribute();
+      QueryItem item =
+          new QueryItem(
+              attribute,
+              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
+              attribute.getValueType(),
+              attribute.getAggregationType(),
+              attribute.getOptionSet());
+      item.setProgram(element.getProgram());
+      builder.addItemFilter(item);
+    }
+  }
+
+  /**
+   * Add program data element filters to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElementsFilter(
+      DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements()) {
       ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
       DataElement dataElement = element.getDataElement();
       QueryItem item =
@@ -326,9 +446,41 @@ public class EventQueryParams extends DataQueryParams {
               dataElement.getAggregationType(),
               dataElement.getOptionSet());
       item.setProgram(element.getProgram());
+      builder.addItemFilter(item);
+    }
+  }
+
+  /**
+   * Add program attribute options to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributeOptions(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramAttributeOptions()) {
+      ProgramTrackedEntityAttributeOptionDimensionItem element =
+          (ProgramTrackedEntityAttributeOptionDimensionItem) object;
+      TrackedEntityAttribute attribute = element.getAttribute();
+      QueryItem item =
+          new QueryItem(
+              attribute,
+              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
+              attribute.getValueType(),
+              attribute.getAggregationType(),
+              attribute.getOptionSet());
+      item.setProgram(element.getProgram());
+      item.setOption(element.getOption());
       builder.addItem(item);
     }
+  }
 
+  /**
+   * Add program attributes to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramAttributes(DataQueryParams dataQueryParams, Builder builder) {
     for (DimensionalItemObject object : dataQueryParams.getProgramAttributes()) {
       ProgramTrackedEntityAttributeDimensionItem element =
           (ProgramTrackedEntityAttributeDimensionItem) object;
@@ -343,8 +495,41 @@ public class EventQueryParams extends DataQueryParams {
       item.setProgram(element.getProgram());
       builder.addItem(item);
     }
+  }
 
-    for (DimensionalItemObject object : dataQueryParams.getFilterProgramDataElements()) {
+  /**
+   * Add program data element options to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElementOptions(
+      DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramDataElementOptions()) {
+      ProgramDataElementOptionDimensionItem element =
+          (ProgramDataElementOptionDimensionItem) object;
+      DataElement dataElement = element.getDataElement();
+      QueryItem item =
+          new QueryItem(
+              dataElement,
+              (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get(0)),
+              dataElement.getValueType(),
+              dataElement.getAggregationType(),
+              dataElement.getOptionSet());
+      item.setProgram(element.getProgram());
+      item.setOption(element.getOption());
+      builder.addItem(item);
+    }
+  }
+
+  /**
+   * Add program data elements to the given {@link Builder}, if any.
+   *
+   * @param dataQueryParams the {@link DataQueryParams}.
+   * @param builder the {@link Builder}.
+   */
+  private static void addProgramDataElements(DataQueryParams dataQueryParams, Builder builder) {
+    for (DimensionalItemObject object : dataQueryParams.getProgramDataElements()) {
       ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
       DataElement dataElement = element.getDataElement();
       QueryItem item =
@@ -355,29 +540,8 @@ public class EventQueryParams extends DataQueryParams {
               dataElement.getAggregationType(),
               dataElement.getOptionSet());
       item.setProgram(element.getProgram());
-      builder.addItemFilter(item);
+      builder.addItem(item);
     }
-
-    for (DimensionalItemObject object : dataQueryParams.getFilterProgramAttributes()) {
-      ProgramTrackedEntityAttributeDimensionItem element =
-          (ProgramTrackedEntityAttributeDimensionItem) object;
-      TrackedEntityAttribute attribute = element.getAttribute();
-      QueryItem item =
-          new QueryItem(
-              attribute,
-              (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0)),
-              attribute.getValueType(),
-              attribute.getAggregationType(),
-              attribute.getOptionSet());
-      builder.addItemFilter(item);
-    }
-
-    for (DimensionalItemObject object : dataQueryParams.getProgramIndicators()) {
-      ProgramIndicator programIndicator = (ProgramIndicator) object;
-      builder.addItemProgramIndicator(programIndicator);
-    }
-
-    return builder.withAggregateData(true).removeDimension(DATA_X_DIM_ID).build();
   }
 
   /** Returns a unique key representing this query. The key is suitable for caching. */
@@ -411,9 +575,10 @@ public class EventQueryParams extends DataQueryParams {
         .addIgnoreNull("coordinateFields", coordinateFields)
         .addIgnoreNull("bbox", bbox)
         .addIgnoreNull("includeClusterPoints", includeClusterPoints)
-        .addIgnoreNull("programStatus", programStatus)
+        .addIgnoreNull("enrollmentStatus", enrollmentStatus)
         .addIgnoreNull("includeMetadataDetails", includeMetadataDetails)
         .addIgnoreNull("dataIdScheme", dataIdScheme)
+        .addIgnoreNull("option", option)
         .build();
   }
 
@@ -614,9 +779,9 @@ public class EventQueryParams extends DataQueryParams {
     return false;
   }
 
-  /** Gets program status */
-  public Set<ProgramStatus> getProgramStatus() {
-    return programStatus;
+  /** Gets enrollment statuses. */
+  public Set<EnrollmentStatus> getEnrollmentStatus() {
+    return enrollmentStatus;
   }
 
   /**
@@ -676,6 +841,14 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasAnalyticsVariables() {
     return hasProgramIndicatorDimension() && getProgramIndicator().hasAnalyticsVariables();
+  }
+
+  public boolean hasOption() {
+    return option != null;
+  }
+
+  public boolean hasValue() {
+    return value != null;
   }
 
   public boolean useIndividualQuery() {
@@ -824,8 +997,8 @@ public class EventQueryParams extends DataQueryParams {
     return clusterSize != null;
   }
 
-  public boolean hasProgramStatus() {
-    return isNotEmpty(programStatus);
+  public boolean hasEnrollmentStatuses() {
+    return isNotEmpty(enrollmentStatus);
   }
 
   public boolean hasBbox() {
@@ -865,6 +1038,7 @@ public class EventQueryParams extends DataQueryParams {
         .add("Value", value)
         .add("Item program indicators", itemProgramIndicators)
         .add("Program indicator", programIndicator)
+        .add("Option", option)
         .add("Aggregation type", aggregationType)
         .add("Dimensions", dimensions)
         .add("Filters", filters)
@@ -897,6 +1071,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public ProgramIndicator getProgramIndicator() {
     return programIndicator;
+  }
+
+  public Option getOption() {
+    return option;
   }
 
   public List<QueryItem> getAsc() {
@@ -1120,6 +1298,11 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
+    public Builder withOption(Option option) {
+      this.params.option = option;
+      return this;
+    }
+
     public Builder withOrganisationUnitMode(OrganisationUnitSelectionMode organisationUnitMode) {
       this.params.organisationUnitMode = organisationUnitMode;
       return this;
@@ -1285,9 +1468,9 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
-    public Builder withProgramStatuses(Set<ProgramStatus> programStatuses) {
-      if (isNotEmpty(programStatuses)) {
-        this.params.programStatus.addAll(programStatuses);
+    public Builder withEnrollmentStatuses(Set<EnrollmentStatus> enrollmentStatuses) {
+      if (isNotEmpty(enrollmentStatuses)) {
+        this.params.enrollmentStatus.addAll(enrollmentStatuses);
       }
 
       return this;
@@ -1358,6 +1541,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withMultipleQueries(boolean multipleQueries) {
       this.params.multipleQueries = multipleQueries;
+      return this;
+    }
+
+    public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
+      this.params.userOrgUnits = userOrgUnits;
       return this;
     }
   }

@@ -31,8 +31,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,12 +40,14 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.HiddenNotFoundException;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -56,8 +58,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,9 +77,11 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"user"})
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j
@@ -87,20 +89,24 @@ public class UserAccountController {
 
   private final UserService userService;
   private final UserAccountService userAccountService;
-  private final SystemSettingManager systemSettingManager;
   private final PasswordValidationService passwordValidationService;
+  private final DhisConfigurationProvider configurationProvider;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
-  public void forgotPassword(
-      HttpServletRequest request, @RequestBody ForgotPasswordRequest forgotPasswordRequest)
+  public void forgotPassword(@RequestBody ForgotPasswordRequest request, SystemSettings settings)
       throws HiddenNotFoundException, ConflictException, ForbiddenException {
 
-    if (!systemSettingManager.accountRecoveryEnabled()) {
+    if (!settings.getAccountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");
     }
 
-    User user = getUser(forgotPasswordRequest.getEmailOrUsername());
+    String baseUrl = configurationProvider.getServerBaseUrl();
+    if (StringUtils.isEmpty(baseUrl)) {
+      throw new ConflictException("Server base URL is not configured");
+    }
+
+    User user = getUser(request.getEmailOrUsername());
 
     checkRecoveryLock(user.getUsername());
 
@@ -111,9 +117,7 @@ public class UserAccountController {
     }
 
     if (!userService.sendRestoreOrInviteMessage(
-        user,
-        HttpServletRequestPaths.getContextPath(request),
-        RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+        user, baseUrl, RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       throw new ConflictException("Account could not be recovered");
     }
 
@@ -122,15 +126,15 @@ public class UserAccountController {
 
   @PostMapping("/passwordReset")
   @ResponseStatus(HttpStatus.OK)
-  public void resetPassword(@RequestBody ResetPasswordRequest resetRequest)
+  public void resetPassword(@RequestBody ResetPasswordRequest request, SystemSettings settings)
       throws ConflictException, BadRequestException {
 
-    if (!systemSettingManager.accountRecoveryEnabled()) {
+    if (!settings.getAccountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");
     }
 
-    String token = resetRequest.getToken();
-    String newPassword = resetRequest.getNewPassword();
+    String token = request.getToken();
+    String newPassword = request.getNewPassword();
 
     if (StringUtils.isBlank(token)) {
       throw new BadRequestException("Token is required");
@@ -176,7 +180,7 @@ public class UserAccountController {
 
   @PostMapping("/registration")
   @ResponseStatus(HttpStatus.CREATED)
-  public WebMessageResponse registerUser(
+  public WebMessage registerUser(
       @RequestBody UserRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
@@ -190,7 +194,7 @@ public class UserAccountController {
 
   @PostMapping("/invite")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessageResponse invite(@RequestBody UserInviteParams params, HttpServletRequest request)
+  public WebMessage invite(@RequestBody UserInviteParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Invite registration received");
 

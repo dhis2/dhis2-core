@@ -38,7 +38,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -47,6 +46,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,32 +68,29 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PasswordGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -105,20 +102,23 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Chau Thu Tran
+ * @author Morten Svanæs
  */
 @Slf4j
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
+  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
+
   private final UserStore userStore;
   private final UserGroupService userGroupService;
   private final UserRoleStore userRoleStore;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
   private final PasswordManager passwordManager;
   private final AclService aclService;
   private final OrganisationUnitService organisationUnitService;
   private final SessionRegistry sessionRegistry;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final RestTemplate restTemplate;
   private final MessageSender emailMessageSender;
   private final I18nManager i18nManager;
@@ -127,9 +127,10 @@ public class DefaultUserService implements UserService {
   private final Cache<String> userDisplayNameCache;
   private final Cache<Integer> userFailedLoginAttemptCache;
   private final Cache<Integer> userAccountRecoverAttemptCache;
+  private final Cache<Integer> twoFaDisableFailedAttemptCache;
 
   public DefaultUserService(
-      UserSettingService userSettingService,
+      UserSettingsService userSettingsService,
       RestTemplate restTemplate,
       MessageSender emailMessageSender,
       I18nManager i18nManager,
@@ -137,7 +138,7 @@ public class DefaultUserService implements UserService {
       UserStore userStore,
       UserGroupService userGroupService,
       UserRoleStore userRoleStore,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       CacheProvider cacheProvider,
       PasswordManager passwordManager,
       AclService aclService,
@@ -147,12 +148,12 @@ public class DefaultUserService implements UserService {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
     checkNotNull(passwordManager);
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
     checkNotNull(sessionRegistry);
-    checkNotNull(userSettingService);
+    checkNotNull(userSettingsService);
     checkNotNull(restTemplate);
     checkNotNull(cacheProvider);
     checkNotNull(emailMessageSender);
@@ -162,20 +163,21 @@ public class DefaultUserService implements UserService {
     this.userStore = userStore;
     this.userGroupService = userGroupService;
     this.userRoleStore = userRoleStore;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
     this.passwordManager = passwordManager;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
     this.sessionRegistry = sessionRegistry;
 
-    this.userSettingService = userSettingService;
+    this.userSettingsService = userSettingsService;
     this.restTemplate = restTemplate;
     this.emailMessageSender = emailMessageSender;
     this.i18nManager = i18nManager;
     this.jsonMapper = jsonMapper;
     this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache(0);
     this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache(0);
+    this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
   }
 
   @Override
@@ -309,7 +311,10 @@ public class DefaultUserService implements UserService {
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
     handleUserQueryParams(params);
 
-    if (isNotValidUserQueryParams(params)) {
+    try {
+      validateUserQueryParams(params);
+    } catch (ConflictException ex) {
+      log.warn(ex.getMessage());
       return Lists.newArrayList();
     }
 
@@ -318,10 +323,23 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<UID> getUserIds(UserQueryParams params, @CheckForNull List<String> orders)
+      throws ConflictException {
+    handleUserQueryParams(params);
+    validateUserQueryParams(params);
+
+    return userStore.getUserIds(params, orders);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public int getUserCount(UserQueryParams params) {
     handleUserQueryParams(params);
 
-    if (isNotValidUserQueryParams(params)) {
+    try {
+      validateUserQueryParams(params);
+    } catch (ConflictException ex) {
+      log.warn(ex.getMessage());
       return 0;
     }
 
@@ -337,14 +355,19 @@ public class DefaultUserService implements UserService {
   private void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
-            || systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+            || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
     if (!params.hasUser()) {
       // TODO: MAS: Refactor to use userDetails instead of User in params
-      String currentUsername = CurrentUserUtil.getCurrentUsername();
-      User currentUser = getUserByUsername(currentUsername);
-      params.setUser(currentUser);
+      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+      if (!hasCurrentUser) {
+        params.setUser(null);
+      } else {
+        String currentUsername = CurrentUserUtil.getCurrentUsername();
+        User currentUser = getUserByUsername(currentUsername);
+        params.setUser(currentUser);
+      }
     }
 
     if (params.hasUser() && params.getUser().isSuper()) {
@@ -372,25 +395,21 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  private boolean isNotValidUserQueryParams(UserQueryParams params) {
+  private void validateUserQueryParams(UserQueryParams params) throws ConflictException {
     if (params.isCanManage()
         && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
-      log.warn("Cannot get managed users as user does not have any managed groups");
-      return true;
+      throw new ConflictException(
+          "Cannot get managed users as user does not have any managed groups");
     }
-
     if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
-      log.warn("Cannot get users with authority subset as user does not have any authorities");
-      return true;
+      throw new ConflictException(
+          "Cannot get users with authority subset as user does not have any authorities");
     }
-
     if (params.isDisjointRoles()
         && (params.getUser() == null || !params.getUser().hasUserRoles())) {
-      log.warn("Cannot get users with disjoint roles as user does not have any user roles");
-      return true;
+      throw new ConflictException(
+          "Cannot get users with disjoint roles as user does not have any user roles");
     }
-
-    return false;
   }
 
   @Override
@@ -429,10 +448,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
-    if (currentUser == null) {
-      return false;
-    }
-
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -539,13 +554,15 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public void canIssueFilter(Collection<UserRole> userRoles) {
-    User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
+  public List<UID> getRolesCurrentUserCanIssue() {
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+    boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
-    FilterUtils.filter(userRoles, new UserRoleCanIssueFilter(user, canGrantOwnUserRoles));
+    return userRoleStore.getAll().stream()
+        .filter(role -> user.canIssueUserRole(role, canGrantOwnUserRoles))
+        .map(role -> UID.of(role.getUid()))
+        .toList();
   }
 
   @Override
@@ -580,7 +597,8 @@ public class DefaultUserService implements UserService {
     // Encode and set password
     Matcher matcher = UserService.BCRYPT_PATTERN.matcher(rawPassword);
     if (matcher.matches()) {
-      throw new IllegalArgumentException("Raw password look like BCrypt: " + rawPassword);
+      throw new IllegalArgumentException(
+          "Raw password look like BCrypt encoded password, this is most certainly a bug");
     }
 
     String encode = passwordManager.encode(rawPassword);
@@ -645,13 +663,13 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean userNonExpired(User user) {
-    int credentialsExpires = systemSettingManager.credentialsExpires();
+    int credentialsExpires = settingsProvider.getCurrentSettings().getCredentialsExpires();
 
     if (credentialsExpires == 0) {
       return true;
     }
 
-    if (user == null || user.getPasswordLastUpdated() == null) {
+    if (user.getPasswordLastUpdated() == null) {
       return true;
     }
 
@@ -666,7 +684,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null || currentUser.isSuper()) {
+    if (user == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -726,8 +744,7 @@ public class DefaultUserService implements UserService {
   private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+    boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     if (userRoles != null) {
       List<UserRole> roles =
@@ -754,7 +771,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || role == null) {
+    if (role == null) {
       return errors;
     }
 
@@ -775,62 +792,21 @@ public class DefaultUserService implements UserService {
     return userStore.getExpiringUserAccounts(inDays);
   }
 
-  @Transactional
   @Override
-  public void resetTwoFactor(User user, UserDetails actingUser) {
-    user.setSecret(null);
-    updateUser(user, actingUser);
-  }
-
-  @Transactional
-  @Override
-  public void enableTwoFa(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException(
-          "User has not asked for a QR code yet, call the /qr endpoint first");
-    }
-
-    if (!UserService.hasTwoFactorSecretForApproval(user)) {
-      throw new IllegalStateException(
-          "QR already approved, you must call /disable and then call /qr before you can enable");
-    }
-
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      throw new IllegalStateException("Invalid code");
-    }
-
-    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  @Transactional
-  @Override
-  public void disableTwoFa(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException("Two factor is not enabled, enable first");
-    }
-
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      throw new IllegalStateException("Invalid code");
-    }
-
-    resetTwoFactor(user, CurrentUserUtil.getCurrentUserDetails());
+  public void registerFailed2FADisableAttempt(String username) {
+    Integer attempts = twoFaDisableFailedAttemptCache.get(username).orElse(0);
+    attempts++;
+    twoFaDisableFailedAttemptCache.put(username, attempts);
   }
 
   @Override
-  @Transactional
-  public void privilegedTwoFactorDisable(
-      User currentUser, String userUid, Consumer<ErrorReport> errors) {
-    User user = getUser(userUid);
-    if (user == null) {
-      throw new IllegalArgumentException("User not found");
-    }
+  public void registerSuccess2FADisable(String username) {
+    twoFaDisableFailedAttemptCache.invalidate(username);
+  }
 
-    if (currentUser.getUid().equals(user.getUid())
-        || !canCurrentUserCanModify(currentUser, user, errors)) {
-      throw new UpdateAccessDeniedException(ErrorCode.E3021.getMessage());
-    }
-
-    resetTwoFactor(user, UserDetails.fromUser(currentUser));
+  @Override
+  public boolean is2FADisableEndpointLocked(String username) {
+    return twoFaDisableFailedAttemptCache.get(username).orElse(0) >= LOGIN_MAX_FAILED_ATTEMPTS;
   }
 
   @Override
@@ -907,10 +883,20 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
+    List<String> organisationUnitsUidsByUser =
+        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
 
     return UserDetails.createUserDetails(
-        user, accountNonLocked, credentialsNonExpired, userSettings);
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        new HashSet<>(organisationUnitsUidsByUser),
+        new HashSet<>(searchOrganisationUnitsUidsByUser),
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
   }
 
   @Override
@@ -945,69 +931,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  @Transactional
-  public void generateTwoFactorOtpSecretForApproval(User user) {
-    String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
-    user.setSecret(newSecret);
-    updateUser(user);
-  }
-
-  @Override
-  @Transactional
-  public void approveTwoFactorSecret(User user, UserDetails actingUser) {
-    if (user.getSecret() != null && UserService.hasTwoFactorSecretForApproval(user)) {
-      user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user, actingUser);
-    }
-  }
-
-  @Override
-  public boolean hasTwoFactorRoleRestriction(UserDetails userDetails) {
-    return userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
-  }
-
-  @Override
-  @Transactional
-  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify) {
-    if (before == after) {
-      return;
-    }
-
-    if (!before) {
-      throw new UpdateAccessDeniedException(
-          "You can not enable 2FA with this API endpoint, only disable.");
-    }
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    if (currentUserDetails == null) {
-      throw new UpdateAccessDeniedException("No current user in session, can not update user.");
-    }
-
-    // Current user can not update their own 2FA settings, must use
-    // /2fa/enable or disable API, even if they are admin.
-    if (currentUserDetails.getUid().equals(userToModify.getUid())) {
-      throw new UpdateAccessDeniedException(ErrorCode.E3030.getMessage());
-    }
-
-    // If current user has access to manage this user, they can disable 2FA.
-    if (!aclService.canUpdate(currentUserDetails, userToModify)) {
-      throw new UpdateAccessDeniedException(
-          String.format(
-              "User `%s` is not allowed to update object `%s`.",
-              currentUserDetails.getUsername(), userToModify));
-    }
-
-    User currentUser = userStore.getUserByUsername(currentUserDetails.getUsername());
-
-    if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUserDetails.canModifyUser(userToModify)) {
-      throw new UpdateAccessDeniedException(
-          "You don't have the proper permissions to update this user.");
-    }
-  }
-
-  @Override
   @Nonnull
   @Transactional(readOnly = true)
   public List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser) {
@@ -1035,20 +958,36 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public void invalidateUserSessions(String userUid) {
-    UserDetails principal = getPrincipalFromSessionRegistry(userUid);
-    if (principal != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
-      allSessions.forEach(SessionInformation::expireNow);
+  public List<SessionInformation> listSessions(String userUID) {
+    User user = userStore.getByUid(userUID);
+    if (user == null) {
+      return List.of();
+    }
+    return sessionRegistry.getAllSessions(createUserDetails(user), true);
+  }
+
+  @Override
+  public List<SessionInformation> listSessions(UserDetails principal) {
+    return sessionRegistry.getAllSessions(principal, true);
+  }
+
+  @Override
+  public void invalidateAllSessions() {
+    for (Object allPrincipal : sessionRegistry.getAllPrincipals()) {
+      for (SessionInformation allSession : sessionRegistry.getAllSessions(allPrincipal, true)) {
+        sessionRegistry.removeSessionInformation(allSession.getSessionId());
+      }
     }
   }
 
-  private UserDetails getPrincipalFromSessionRegistry(String userUid) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .map(UserDetails.class::cast)
-        .filter(principal -> userUid.equals(principal.getUid()))
-        .findFirst()
-        .orElse(null);
+  @Override
+  public void invalidateUserSessions(String username) {
+    User user = getUserByUsername(username);
+    UserDetails userDetails = createUserDetails(user);
+    if (userDetails != null) {
+      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(userDetails, false);
+      allSessions.forEach(SessionInformation::expireNow);
+    }
   }
 
   @Override
@@ -1086,7 +1025,7 @@ public class DefaultUserService implements UserService {
 
     RestoreType restoreType = restoreOptions.getRestoreType();
 
-    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
 
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1103,11 +1042,9 @@ public class DefaultUserService implements UserService {
 
     I18n i18n =
         i18nManager.getI18n(
-            ObjectUtils.firstNonNull(
-                (Locale)
-                    userSettingService.getUserSetting(
-                        UserSettingKey.UI_LOCALE, persistedUser.getUsername()),
-                LocaleManager.DEFAULT_LOCALE));
+            userSettingsService
+                .getUserSettings(persistedUser.getUsername(), true)
+                .getUserUiLocale());
 
     vars.put("i18n", i18n);
 
@@ -1247,7 +1184,7 @@ public class DefaultUserService implements UserService {
   }
 
   private boolean isNotBlockOnFailedLogins() {
-    return !systemSettingManager.getBoolSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS);
+    return !settingsProvider.getCurrentSettings().getLockMultipleFailedLogins();
   }
 
   @Override
@@ -1260,7 +1197,7 @@ public class DefaultUserService implements UserService {
       user.setUsername(username);
     }
 
-    int minPasswordLength = systemSettingManager.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH);
+    int minPasswordLength = settingsProvider.getCurrentSettings().getMinPasswordLength();
     char[] plaintextPassword = PasswordGenerator.generateValidPassword(minPasswordLength);
 
     user.setSurname(StringUtils.isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
@@ -1408,7 +1345,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean canView(String type) {
-    boolean requireAddToView = systemSettingManager.getBoolSetting(SettingKey.REQUIRE_ADD_TO_VIEW);
+    boolean requireAddToView = settingsProvider.getCurrentSettings().getRequireAddToView();
 
     return !requireAddToView || (canCreatePrivate(type) || canCreatePublic(type));
   }
@@ -1455,7 +1392,7 @@ public class DefaultUserService implements UserService {
   public RecaptchaResponse verifyRecaptcha(String key, String remoteIp) throws IOException {
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
-    params.add("secret", systemSettingManager.getStringSetting(SettingKey.RECAPTCHA_SECRET));
+    params.add("secret", settingsProvider.getCurrentSettings().getRecaptchaSecret());
     params.add("response", key);
     params.add("remoteip", remoteIp);
 
@@ -1476,5 +1413,97 @@ public class DefaultUserService implements UserService {
   public boolean canDataRead(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
         || aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
+  }
+
+  @Override
+  @Transactional
+  public String generateAndSetNewEmailVerificationToken(User user) {
+    String token = CodeGenerator.getRandomSecureToken();
+    String encodedToken = token + "|" + (System.currentTimeMillis() + EMAIL_TOKEN_EXPIRY_MILLIS);
+    user.setEmailVerificationToken(encodedToken);
+    updateUser(user);
+    return token;
+  }
+
+  @Override
+  public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
+    if (applicationTitle == null || applicationTitle.isEmpty()) {
+      applicationTitle = DEFAULT_APPLICATION_TITLE;
+    }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
+    vars.put("requestUrl", requestUrl + "/api/account/verifyEmail");
+    vars.put("token", token);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+    I18n i18n =
+        i18nManager.getI18n(
+            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
+    vars.put("i18n", i18n);
+
+    VelocityManager vm = new VelocityManager();
+    String messageBody = vm.render(vars, "verify_email_body_template_" + "v1");
+    String messageSubject = i18n.getString("verify_email_subject");
+
+    OutboundMessageResponse status =
+        emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
+
+    return status.getResponseObject() == EmailResponse.SENT;
+  }
+
+  @Override
+  @Transactional
+  public boolean verifyEmail(String token) {
+    User user = getUserByEmailVerificationToken(token);
+    if (user == null) {
+      return false;
+    }
+    String[] tokenParts = user.getEmailVerificationToken().split("\\|");
+    if (tokenParts.length != 2) {
+      return false;
+    }
+    if (System.currentTimeMillis() > Long.parseLong(tokenParts[1])) {
+      return false;
+    }
+    // Someone else could have verified the same email with another account in the meantime
+    if (getUserByVerifiedEmail(user.getEmail()) != null) {
+      return false;
+    }
+
+    user.setEmailVerificationToken(null);
+    user.setVerifiedEmail(user.getEmail());
+    updateUser(user);
+    return true;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByEmailVerificationToken(String token) {
+    return userStore.getUserByEmailVerificationToken(token);
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
+    return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);
+  }
+
+  @Override
+  public boolean isEmailVerified(User user) {
+    return user.isEmailVerified();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByVerifiedEmail(String email) {
+    return userStore.getUserByVerifiedEmail(email);
+  }
+
+  @Transactional
+  @Override
+  public void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername) {
+    userStore.setActiveLinkedAccounts(actingUser, activeUsername);
   }
 }

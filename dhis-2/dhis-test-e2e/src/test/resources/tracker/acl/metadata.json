@@ -1833,7 +1833,6 @@
       },
       "authorities": [
         "M_dhis-web-capture",
-        "M_dhis-web-tracker-capture"
       ],
       "translations": []
     },
@@ -1856,7 +1855,6 @@
         "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
-        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_SKIP_DATA_IMPORT_AUDIT",
         "F_RUN_VALIDATION",
         "F_LOCALE_ADD",

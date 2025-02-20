@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,7 +47,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
@@ -59,6 +57,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -67,18 +66,20 @@ import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
+class ProgramSqlGeneratorFunctionsTest extends TestBase {
   private ProgramIndicator programIndicator;
 
   private Program programA;
@@ -114,6 +115,8 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
   @Mock private ProgramStageService programStageService;
 
   @Mock private DimensionService dimensionService;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   @BeforeEach
   public void setUp() {
@@ -209,7 +212,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "case when (coalesce("
-                + "case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric!=0,false)) "
+                + "case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric != 0,false)) "
                 + "then 10 + 5 else 3 * 2 end"));
   }
 
@@ -300,7 +303,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -318,7 +321,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
@@ -337,7 +340,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
@@ -356,7 +359,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
@@ -376,7 +379,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" > 5 and ps = 'ProgrmStagA')"));
   }
 
@@ -399,7 +402,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" > "
                 + "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
                 + "and ps = 'ProgrmStagA')"));
@@ -416,7 +419,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" = 55 "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -434,7 +437,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" = 'ABC' "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -522,10 +525,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     assertThat(
         sql,
         is(
-            "(select count(*) from relationship r "
-                + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
-                + " where r.deleted is false)"));
+            """
+             (select sum(relationship_count)
+              from analytics_rs_relationship arr
+              where arr.trackedentityid = ax.trackedentity)
+             """));
   }
 
   @Test
@@ -536,11 +540,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     assertThat(
         sql,
         is(
-            "(select count(*) from relationship r "
-                + "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' "
-                + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
-                + " where r.deleted is false)"));
+            """
+                     (select relationship_count
+                      from analytics_rs_relationship arr
+                      where arr.trackedentityid = ax.trackedentity and relationshiptypeuid = 'RelatnTypeA')
+                     """));
   }
 
   @Test
@@ -554,7 +558,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "((cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date) - "
-                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date))/7)"));
+                + "cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentC\" else null end as date)) / 7)"));
   }
 
   @Test
@@ -576,7 +580,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi and occurreddate is not null "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date))))"));
   }
@@ -592,7 +596,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi and occurreddate is not null "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1"));
@@ -643,7 +647,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
   @Test
   void testLog() {
     String sql = test("log(V{enrollment_count})");
-    assertThat(sql, is("ln(distinct pi)"));
+    assertThat(sql, is("ln(distinct enrollment)"));
 
     sql = test("log(V{event_count},3)");
     assertThat(sql, is("log(3,case " + DEFAULT_COUNT_CONDITION + " end)"));
@@ -797,10 +801,11 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(new PostgreSqlBuilder())
             .build();
 
     visitor.setExpressionLiteral(exprLiteral);

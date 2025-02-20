@@ -45,8 +45,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -72,11 +72,13 @@ class PasswordValidationServiceTest {
 
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
-    SystemSettingManager systemSettings = mock(SystemSettingManager.class);
-    when(systemSettings.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH)).thenReturn(8);
-    when(systemSettings.getIntSetting(SettingKey.MAX_PASSWORD_LENGTH)).thenReturn(16);
+    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+    SystemSettings settings = mock(SystemSettings.class);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getMinPasswordLength()).thenReturn(8);
+    when(settings.getMaxPasswordLength()).thenReturn(16);
 
-    validation = new DefaultPasswordValidationService(encoder, userService, systemSettings);
+    validation = new DefaultPasswordValidationService(encoder, userService, settingsProvider);
   }
 
   @Test

@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -53,28 +54,22 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component("emailMessageSender")
-@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Service
 public class EmailMessageSender implements MessageSender {
   private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
@@ -88,9 +83,9 @@ public class EmailMessageSender implements MessageSender {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final DhisConfigurationProvider configurationProvider;
 
@@ -127,6 +122,7 @@ public class EmailMessageSender implements MessageSender {
               emailConfig.getPassword(),
               emailConfig.isTls(),
               emailConfig.getFrom());
+
       email.setSubject(getPrefixedSubject(subject));
       email.setTextMsg(plainContent);
       email.setHtmlMsg(htmlContent);
@@ -136,9 +132,9 @@ public class EmailMessageSender implements MessageSender {
       for (User user : users) {
         boolean doSend =
             forceSend
-                || (Boolean)
-                    userSettingService.getUserSetting(
-                        UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, user.getUsername());
+                || userSettingsService
+                    .getUserSettings(user.getUsername(), true)
+                    .getUserMessageEmailNotification();
 
         if (doSend && ValidationUtils.emailIsValid(user.getEmail())) {
           if (isEmailValid(user.getEmail())) {
@@ -187,7 +183,7 @@ public class EmailMessageSender implements MessageSender {
   public Future<OutboundMessageResponse> sendMessageAsync(
       String subject, String text, String footer, User sender, Set<User> users, boolean forceSend) {
     OutboundMessageResponse response = sendMessage(subject, text, footer, sender, users, forceSend);
-    return new AsyncResult<>(response);
+    return CompletableFuture.completedFuture(response);
   }
 
   @Override
@@ -273,13 +269,6 @@ public class EmailMessageSender implements MessageSender {
   }
 
   @Override
-  public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync(
-      OutboundMessageBatch batch) {
-    OutboundMessageResponseSummary summary = sendMessageBatch(batch);
-    return new AsyncResult<>(summary);
-  }
-
-  @Override
   public boolean isConfigured() {
     return getEmailConfiguration().isOk();
   }
@@ -359,12 +348,12 @@ public class EmailMessageSender implements MessageSender {
   }
 
   private String getPrefixedSubject(String subject) {
-    String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String title = settingsProvider.getCurrentSettings().getApplicationTitle();
     return "[" + title + "] " + subject;
   }
 
   private String getEmailName() {
-    String appTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String appTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
     appTitle =
         ObjectUtils.firstNonNull(
             StringUtils.trimToNull(emailNameEncode(appTitle)), DEFAULT_APPLICATION_TITLE);
@@ -380,12 +369,13 @@ public class EmailMessageSender implements MessageSender {
   }
 
   private EmailConfiguration getEmailConfiguration() {
-    String hostName = systemSettingManager.getStringSetting(SettingKey.EMAIL_HOST_NAME);
-    String username = systemSettingManager.getStringSetting(SettingKey.EMAIL_USERNAME);
-    String password = systemSettingManager.getStringSetting(SettingKey.EMAIL_PASSWORD);
-    String from = systemSettingManager.getStringSetting(SettingKey.EMAIL_SENDER);
-    int port = systemSettingManager.getIntSetting(SettingKey.EMAIL_PORT);
-    boolean tls = systemSettingManager.getBoolSetting(SettingKey.EMAIL_TLS);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    String hostName = settings.getEmailHostName();
+    String username = settings.getEmailUsername();
+    String password = settings.getEmailPassword();
+    String from = settings.getEmailSender();
+    int port = settings.getEmailPort();
+    boolean tls = settings.getEmailTls();
 
     return new EmailConfiguration(hostName, username, password, from, port, tls);
   }

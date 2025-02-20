@@ -31,9 +31,10 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -56,6 +57,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -69,6 +71,7 @@ class AnalyticsServiceProgramDataElementTest extends AnalyticsServiceBaseTest {
    */
   @Test
   void verifyProgramDataElementInQueryCallsEventsAnalytics() {
+    injectSecurityContextNoSettings(new SystemUser());
     ArgumentCaptor<EventQueryParams> capturedParams =
         ArgumentCaptor.forClass(EventQueryParams.class);
 
@@ -100,12 +103,12 @@ class AnalyticsServiceProgramDataElementTest extends AnalyticsServiceBaseTest {
             any(DataQueryParams.class), eq(AnalyticsTableType.DATA_VALUE), eq(0)))
         .thenReturn(CompletableFuture.completedFuture(emptyData));
 
-    when(eventAnalyticsService.getAggregatedEventData(any(EventQueryParams.class)))
+    when(eventAggregatedService.getAggregatedData(any(EventQueryParams.class)))
         .thenReturn(new ListGrid());
 
     target.getAggregatedDataValueGrid(params);
 
-    verify(eventAnalyticsService).getAggregatedEventData(capturedParams.capture());
+    verify(eventAggregatedService).getAggregatedData(capturedParams.capture());
     EventQueryParams data = capturedParams.getValue();
 
     assertThat(data.hasValueDimension(), is(false));

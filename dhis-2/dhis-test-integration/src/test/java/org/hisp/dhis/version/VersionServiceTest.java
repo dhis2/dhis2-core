@@ -33,19 +33,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class VersionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class VersionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private VersionService versionService;
 
   private Version versionA;
 
   private Version versionB;
 
-  @Override
-  protected void setUpTest() {
+  @BeforeEach
+  void setUp() {
     versionA = new Version();
     versionA.setKey("keyA");
     versionA.setValue("valueA");

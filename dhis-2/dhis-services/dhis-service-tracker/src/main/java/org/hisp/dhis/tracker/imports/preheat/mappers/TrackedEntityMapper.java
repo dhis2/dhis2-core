@@ -35,7 +35,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, TrackedEntityTypeMapper.class, AttributeValueMapper.class})
+@Mapper(uses = {DebugMapper.class, TrackedEntityTypeMapper.class, AttributeValuesMapper.class})
 public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
   TrackedEntityMapper INSTANCE = Mappers.getMapper(TrackedEntityMapper.class);
 
@@ -63,6 +63,6 @@ public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
   @Mapping(target = "name")
   @Mapping(target = "attributeValues")
   @Mapping(target = "user")
-  @Mapping(target = "parent")
+  @Mapping(target = "parent", qualifiedByName = "organisationUnit")
   OrganisationUnit map(OrganisationUnit organisationUnit);
 }

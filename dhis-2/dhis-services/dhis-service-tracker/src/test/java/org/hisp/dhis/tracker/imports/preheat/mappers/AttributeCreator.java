@@ -27,28 +27,17 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Set;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 class AttributeCreator {
-  static Set<AttributeValue> attributeValues(String uid, String value) {
-    return Set.of(attributeValue(uid, value));
-  }
-
-  static AttributeValue attributeValue(String uid, String value) {
-    return new AttributeValue(attribute(uid), value);
-  }
-
-  static Attribute attribute(String attributeUid) {
-    Attribute att = new Attribute();
-    att.setUid(attributeUid);
-    return att;
+  static AttributeValues attributeValues(String uid, String value) {
+    return AttributeValues.of(Map.of(uid, value));
   }
 
   static <T extends BaseIdentifiableObject> T setIdSchemeFields(
-      T identifiable, String uid, String name, String code, Set<AttributeValue> attributeValues) {
+      T identifiable, String uid, String name, String code, AttributeValues attributeValues) {
     identifiable.setUid(uid);
     identifiable.setName(name);
     identifiable.setCode(code);

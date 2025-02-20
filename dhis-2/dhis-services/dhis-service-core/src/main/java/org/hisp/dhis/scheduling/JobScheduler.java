@@ -47,8 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Component;
 
@@ -94,7 +93,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private final JobService jobService;
   private final JobSchedulerLoopService service;
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsService settingsProvider;
   private final ExecutorService workers = Executors.newCachedThreadPool();
   private final Map<JobType, Queue<String>> continuousJobsByType = new ConcurrentHashMap<>();
 
@@ -180,7 +179,7 @@ public class JobScheduler implements Runnable, JobRunner {
       String jobId = jobIds.poll();
       while (jobId != null) {
         JobConfiguration config = service.getJobConfiguration(jobId);
-        if (config != null && config.getJobStatus() == JobStatus.SCHEDULED) {
+        if (config != null && (config.getJobStatus() == JobStatus.SCHEDULED)) {
           Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
           Instant dueTime = dueTime(now, config);
           runDueJob(config, dueTime);
@@ -202,7 +201,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private Instant dueTime(Instant now, JobConfiguration config) {
     Duration maxCronDelay =
-        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+        Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
     Instant dueTime = config.nextExecutionTime(now, maxCronDelay);
     return dueTime != null && !dueTime.isAfter(now) ? dueTime : null;
   }
@@ -225,7 +224,8 @@ public class JobScheduler implements Runnable, JobRunner {
     log.debug("Running job %s");
     JobProgress progress = null;
     try {
-      AtomicLong lastAlive = new AtomicLong(currentTimeMillis());
+      settingsProvider.clearCurrentSettings(); // ensure working with recent settings
+      AtomicLong lastAlive = new AtomicLong(0L);
       progress = service.startRun(jobId, config.getExecutedBy(), () -> alive(jobId, lastAlive));
 
       jobService.getJob(config.getJobType()).execute(config, progress);

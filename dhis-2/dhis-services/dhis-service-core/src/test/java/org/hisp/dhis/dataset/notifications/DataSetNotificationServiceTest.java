@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -55,7 +54,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.DefaultMessageService;
-import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageConversationStore;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -70,8 +68,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,7 +85,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class DataSetNotificationServiceTest extends DhisConvenienceTest {
+class DataSetNotificationServiceTest extends TestBase {
   public static final String TEMPALTE_A_UID = "smsTemplateA";
 
   public static final String TEMPALTE_B_UID = "emailTemplateB";
@@ -131,9 +130,9 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private ConfigurationService configurationService;
 
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private DhisConfigurationProvider configurationProvider;
 
@@ -155,7 +154,7 @@ class DataSetNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private EmailMessageSender emailMessageSender;
+  @Mock private MessageSender emailMessageSender;
 
   @Captor private ArgumentCaptor<CompleteDataSetRegistration> registrationCaptor;
 

@@ -32,20 +32,25 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
  */
-class PeriodServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class PeriodServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private EntityManagerFactory entityManagerFactory;

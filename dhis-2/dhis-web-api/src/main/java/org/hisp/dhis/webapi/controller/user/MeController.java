@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -35,19 +34,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -58,15 +53,15 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -77,17 +72,16 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
@@ -111,10 +105,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "query"})
+@OpenApi.Document(
+    entity = User.class,
+    group = OpenApi.Document.GROUP_QUERY,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/me")
+@RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
   @Nonnull private final UserService userService;
@@ -139,8 +136,6 @@ public class MeController {
 
   @Nonnull private final NodeService nodeService;
 
-  @Nonnull private final UserSettingService userSettingService;
-
   @Nonnull private final PasswordValidationService passwordValidationService;
 
   @Nonnull private final ProgramService programService;
@@ -155,39 +150,31 @@ public class MeController {
 
   @Nonnull private ApiTokenService apiTokenService;
 
-  private static final Set<UserSettingKey> USER_SETTING_KEYS =
-      new HashSet<>(Sets.newHashSet(UserSettingKey.values()));
-
   @GetMapping
   @OpenApi.Response(MeDto.class)
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user,
       @RequestParam(defaultValue = "*") List<String> fields) {
 
+    UserDetails userDetails = UserDetails.fromUser(user);
+
     if (fieldsContains("access", fields)) {
       Access access = aclService.getAccess(user, user);
       user.setAccess(access);
     }
 
-    Map<String, Serializable> userSettings =
-        userSettingService.getUserSettingsWithFallbackByUserAsMap(user, USER_SETTING_KEYS, true);
-
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
     List<String> dataSets =
-        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
+        dataSetService.getUserDataRead(userDetails).stream()
             .map(IdentifiableObject::getUid)
             .toList();
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
-    MeDto meDto = new MeDto(user, userSettings, programs, dataSets, patTokens);
+    MeDto meDto = new MeDto(user, UserSettings.getCurrentSettings(), programs, dataSets, patTokens);
     determineUserImpersonation(meDto);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    UserCredentialsDto userCredentialsDto = user.getUserCredentials();
-    meDto.setUserCredentials(userCredentialsDto);
 
     var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of(meDto, fields);
 
@@ -223,11 +210,12 @@ public class MeController {
 
   @GetMapping("/dataApprovalWorkflows")
   public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows(
-      HttpServletResponse response, @CurrentUser(required = true) User user) {
+      @CurrentUser(required = true) User user) {
     ObjectNode objectNode = userControllerUtils.getUserDataApprovalWorkflows(user);
     return ResponseEntity.ok(objectNode);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(value = "", consumes = APPLICATION_JSON_VALUE)
   public void updateCurrentUser(
       HttpServletRequest request,
@@ -239,8 +227,14 @@ public class MeController {
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
 
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
+    if (currentUser.getTwoFactorType() != null
+        && currentUser.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)
+        && currentUser.isEmailVerified()
+        && user.getEmail() != null
+        && !currentUser.getVerifiedEmail().equals(user.getEmail())) {
+      throw new ConflictException(
+          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first");
+    }
 
     merge(currentUser, user);
 
@@ -265,7 +259,7 @@ public class MeController {
     manager.update(currentUser);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     CollectionNode collectionNode =
@@ -298,35 +292,16 @@ public class MeController {
   }
 
   @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Serializable>> getSettings(
-      @CurrentUser(required = true) User currentUser) {
-    Map<String, Serializable> userSettings =
-        userSettingService.getUserSettingsWithFallbackByUserAsMap(
-            currentUser, USER_SETTING_KEYS, true);
-
-    return ResponseEntity.ok().cacheControl(noStore()).body(userSettings);
+  public @ResponseBody UserSettings getSettings() {
+    return UserSettings.getCurrentSettings();
   }
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Serializable> getSetting(
-      @PathVariable String key, @CurrentUser(required = true) User currentUser)
-      throws ConflictException, NotFoundException {
-    Optional<UserSettingKey> keyEnum = UserSettingKey.getByName(key);
-
-    if (keyEnum.isEmpty()) {
-      throw new ConflictException("Key is not supported: " + key);
-    }
-
-    Serializable value =
-        userSettingService.getUserSetting(keyEnum.get(), currentUser.getUsername());
-
-    if (value == null) {
-      throw new NotFoundException("User setting not found for key: " + key);
-    }
-
-    return ResponseEntity.ok().cacheControl(noStore()).body(value);
+  public @ResponseBody JsonValue getSetting(@PathVariable String key) {
+    return UserSettings.getCurrentSettings().toJson(false, Set.of(key)).get(key);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(
       value = "/changePassword",
       consumes = {"text/*", "application/*"})
@@ -350,39 +325,35 @@ public class MeController {
     updatePassword(currentUser, newPassword);
     manager.update(currentUser);
 
-    userService.invalidateUserSessions(currentUser.getUid());
+    userService.invalidateUserSessions(currentUser.getUsername());
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
-      @RequestBody String password,
-      HttpServletResponse response,
-      @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) User currentUser)
       throws ConflictException {
     return verifyPasswordInternal(password, currentUser);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
-      @RequestBody String password,
-      HttpServletResponse response,
-      @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) User currentUser)
       throws ConflictException {
     return validatePasswordInternal(password, currentUser);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
-      @RequestBody Map<String, String> body,
-      HttpServletResponse response,
-      @CurrentUser(required = true) User currentUser)
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
       throws ConflictException {
     return verifyPasswordInternal(body.get("password"), currentUser);
   }
 
   @GetMapping("/dashboard")
-  public @ResponseBody Dashboard getDashboard(
-      HttpServletResponse response, @CurrentUser(required = true) User currentUser) {
+  public @ResponseBody Dashboard getDashboard(HttpServletResponse response) {
     Dashboard dashboard = new Dashboard();
     dashboard.setUnreadMessageConversations(messageService.getUnreadMessageConversationCount());
     dashboard.setUnreadInterpretations(interpretationService.getNewInterpretationCount());
@@ -391,6 +362,7 @@ public class MeController {
     return dashboard;
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/dashboard/interpretations/read")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})

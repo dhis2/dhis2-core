@@ -49,26 +49,8 @@ public class ProgramNotificationInstanceDeletionHandler
 
   @Override
   protected void registerHandler() {
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
-    whenDeleting(Event.class, this::deleteEvent);
     whenVetoing(Enrollment.class, this::allowDeleteEnrollment);
     whenVetoing(Event.class, this::allowDeleteEvent);
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    List<ProgramNotificationInstance> notificationInstances =
-        programNotificationInstanceService.getProgramNotificationInstances(
-            ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
-
-    notificationInstances.forEach(programNotificationInstanceService::delete);
-  }
-
-  private void deleteEvent(Event event) {
-    List<ProgramNotificationInstance> notificationInstances =
-        programNotificationInstanceService.getProgramNotificationInstances(
-            ProgramNotificationInstanceParam.builder().event(event).build());
-
-    notificationInstances.forEach(programNotificationInstanceService::delete);
   }
 
   private DeletionVeto allowDeleteEnrollment(Enrollment enrollment) {

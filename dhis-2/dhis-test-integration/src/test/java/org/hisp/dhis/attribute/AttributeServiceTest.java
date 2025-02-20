@@ -33,21 +33,26 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AttributeServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class AttributeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private AttributeService attributeService;
 
   @Test
   void testAddAttribute() {
     Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
     attributeService.addAttribute(attribute);
-    attribute = attributeService.getAttribute(attribute.getId());
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNotNull(attribute);
     assertEquals(ValueType.TEXT, attribute.getValueType());
     assertEquals("attribute1", attribute.getName());
@@ -57,11 +62,10 @@ class AttributeServiceTest extends SingleSetupIntegrationTestBase {
   void testDeleteAttribute() {
     Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
     attributeService.addAttribute(attribute);
-    attribute = attributeService.getAttribute(attribute.getId());
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNotNull(attribute);
-    long attributeId = attribute.getId();
     attributeService.deleteAttribute(attribute);
-    attribute = attributeService.getAttribute(attributeId);
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNull(attribute);
   }
 
@@ -69,7 +73,7 @@ class AttributeServiceTest extends SingleSetupIntegrationTestBase {
   void testGetAttribute() {
     Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
     attributeService.addAttribute(attribute);
-    attribute = attributeService.getAttribute(attribute.getId());
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNotNull(attribute);
   }
 

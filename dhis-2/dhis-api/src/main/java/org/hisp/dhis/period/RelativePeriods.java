@@ -333,7 +333,7 @@ public class RelativePeriods implements Serializable {
 
   /** Gets a list of Periods relative to current date. */
   public List<Period> getRelativePeriods() {
-    return getRelativePeriods(null, null, false, FINANCIAL_YEAR_OCTOBER);
+    return getRelativePeriods((Date) null, null, false, FINANCIAL_YEAR_OCTOBER);
   }
 
   /**
@@ -344,7 +344,7 @@ public class RelativePeriods implements Serializable {
    * @return a list of relative Periods.
    */
   public List<Period> getRelativePeriods(I18nFormat format, boolean dynamicNames) {
-    return getRelativePeriods(null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER);
+    return getRelativePeriods((Date) null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER);
   }
 
   /**
@@ -352,6 +352,7 @@ public class RelativePeriods implements Serializable {
    *
    * @param date the date representing now. If null the current date will be used.
    * @param format the i18n format.
+   * @param dynamicNames indication of whether dynamic names should be used.
    * @param financialYearStart the start of a financial year. Configurable through system settings
    *     and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
    * @return a list of relative Periods.
@@ -361,7 +362,27 @@ public class RelativePeriods implements Serializable {
       I18nFormat format,
       boolean dynamicNames,
       AnalyticsFinancialYearStartKey financialYearStart) {
-    date = (date != null) ? date : new Date();
+    return getRelativePeriods(
+        DateField.withDefaults().withDate(date), format, dynamicNames, financialYearStart);
+  }
+
+  /**
+   * Gets a list of Periods based on the given input and the state of this RelativePeriods.
+   *
+   * @param dateField the dateAndField representing now. If null the current dateAndField will be
+   *     used.
+   * @param format the i18n format.
+   * @param financialYearStart the start of a financial year. Configurable through system settings
+   *     and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
+   * @return a list of relative Periods.
+   */
+  public List<Period> getRelativePeriods(
+      DateField dateField,
+      I18nFormat format,
+      boolean dynamicNames,
+      AnalyticsFinancialYearStartKey financialYearStart) {
+
+    dateField = DateField.withDefaultsIfNecessary(dateField);
 
     List<Period> periods = new ArrayList<>();
 
@@ -372,7 +393,8 @@ public class RelativePeriods implements Serializable {
     }
 
     if (isThisDay()) {
-      periods.add(getRelativePeriod(new DailyPeriodType(), THISDAY, date, dynamicNames, format));
+      periods.add(
+          getRelativePeriod(new DailyPeriodType(), THISDAY, dateField, dynamicNames, format));
     }
 
     if (isYesterday()) {
@@ -380,7 +402,7 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new DailyPeriodType(),
               YESTERDAY,
-              new DateTime(date).minusDays(1).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusDays(1).toDate()),
               dynamicNames,
               format));
     }
@@ -390,7 +412,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(362, 365));
@@ -401,7 +423,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(358, 365));
@@ -412,7 +434,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(351, 365));
@@ -423,7 +445,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(335, 365));
@@ -434,7 +456,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(305, 365));
@@ -445,7 +467,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(275, 365));
@@ -456,14 +478,15 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new DailyPeriodType(),
                   DAYS_IN_YEAR,
-                  new DateTime(date).minusDays(1).toDate(),
+                  new DateTime(dateField.date()).minusDays(1).toDate(),
                   dynamicNames,
                   format)
               .subList(185, 365));
     }
 
     if (isThisWeek()) {
-      periods.add(getRelativePeriod(new WeeklyPeriodType(), LAST_WEEK, date, dynamicNames, format));
+      periods.add(
+          getRelativePeriod(new WeeklyPeriodType(), LAST_WEEK, dateField, dynamicNames, format));
     }
 
     if (isLastWeek()) {
@@ -471,14 +494,15 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new WeeklyPeriodType(),
               LAST_WEEK,
-              new DateTime(date).minusWeeks(1).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusWeeks(1).toDate()),
               dynamicNames,
               format));
     }
 
     if (isThisBiWeek()) {
       periods.add(
-          getRelativePeriod(new BiWeeklyPeriodType(), LAST_BIWEEK, date, dynamicNames, format));
+          getRelativePeriod(
+              new BiWeeklyPeriodType(), LAST_BIWEEK, dateField, dynamicNames, format));
     }
 
     if (isLastBiWeek()) {
@@ -486,14 +510,14 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new BiWeeklyPeriodType(),
               LAST_BIWEEK,
-              new DateTime(date).minusWeeks(2).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusWeeks(2).toDate()),
               dynamicNames,
               format));
     }
 
     if (isThisMonth()) {
       periods.add(
-          getRelativePeriod(new MonthlyPeriodType(), LAST_MONTH, date, dynamicNames, format));
+          getRelativePeriod(new MonthlyPeriodType(), LAST_MONTH, dateField, dynamicNames, format));
     }
 
     if (isLastMonth()) {
@@ -501,14 +525,15 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new MonthlyPeriodType(),
               LAST_MONTH,
-              new DateTime(date).minusMonths(1).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusMonths(1).toDate()),
               dynamicNames,
               format));
     }
 
     if (isThisBimonth()) {
       periods.add(
-          getRelativePeriod(new BiMonthlyPeriodType(), LAST_BIMONTH, date, dynamicNames, format));
+          getRelativePeriod(
+              new BiMonthlyPeriodType(), LAST_BIMONTH, dateField, dynamicNames, format));
     }
 
     if (isLastBimonth()) {
@@ -516,14 +541,15 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new BiMonthlyPeriodType(),
               LAST_BIMONTH,
-              new DateTime(date).minusMonths(2).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusMonths(2).toDate()),
               dynamicNames,
               format));
     }
 
     if (isThisQuarter()) {
       periods.add(
-          getRelativePeriod(new QuarterlyPeriodType(), LAST_QUARTER, date, dynamicNames, format));
+          getRelativePeriod(
+              new QuarterlyPeriodType(), LAST_QUARTER, dateField, dynamicNames, format));
     }
 
     if (isLastQuarter()) {
@@ -531,14 +557,15 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new QuarterlyPeriodType(),
               LAST_QUARTER,
-              new DateTime(date).minusMonths(3).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusMonths(3).toDate()),
               dynamicNames,
               format));
     }
 
     if (isThisSixMonth()) {
       periods.add(
-          getRelativePeriod(new SixMonthlyPeriodType(), LAST_SIXMONTH, date, dynamicNames, format));
+          getRelativePeriod(
+              new SixMonthlyPeriodType(), LAST_SIXMONTH, dateField, dynamicNames, format));
     }
 
     if (isLastSixMonth()) {
@@ -546,7 +573,7 @@ public class RelativePeriods implements Serializable {
           getRelativePeriod(
               new SixMonthlyPeriodType(),
               LAST_SIXMONTH,
-              new DateTime(date).minusMonths(6).toDate(),
+              dateField.withDate(new DateTime(dateField.date()).minusMonths(6).toDate()),
               dynamicNames,
               format));
     }
@@ -554,29 +581,38 @@ public class RelativePeriods implements Serializable {
     if (isWeeksThisYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new WeeklyPeriodType(), WEEKS_THIS_YEAR, date, dynamicNames, format));
+              new WeeklyPeriodType(), WEEKS_THIS_YEAR, dateField.date(), dynamicNames, format));
     }
 
     if (isMonthsThisYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new MonthlyPeriodType(), MONTHS_THIS_YEAR, date, dynamicNames, format));
+              new MonthlyPeriodType(), MONTHS_THIS_YEAR, dateField.date(), dynamicNames, format));
     }
 
     if (isBiMonthsThisYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new BiMonthlyPeriodType(), BIMONTHS_THIS_YEAR, date, dynamicNames, format));
+              new BiMonthlyPeriodType(),
+              BIMONTHS_THIS_YEAR,
+              dateField.date(),
+              dynamicNames,
+              format));
     }
 
     if (isQuartersThisYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new QuarterlyPeriodType(), QUARTERS_THIS_YEAR, date, dynamicNames, format));
+              new QuarterlyPeriodType(),
+              QUARTERS_THIS_YEAR,
+              dateField.date(),
+              dynamicNames,
+              format));
     }
 
     if (isThisYear()) {
-      periods.add(getRelativePeriod(new YearlyPeriodType(), THIS_YEAR, date, dynamicNames, format));
+      periods.add(
+          getRelativePeriod(new YearlyPeriodType(), THIS_YEAR, dateField, dynamicNames, format));
     }
 
     if (isLast3Months()) {
@@ -584,7 +620,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new MonthlyPeriodType(),
                   MONTHS_LAST_12,
-                  new DateTime(date).minusMonths(1).toDate(),
+                  new DateTime(dateField.date()).minusMonths(1).toDate(),
                   dynamicNames,
                   format)
               .subList(9, 12));
@@ -595,7 +631,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new MonthlyPeriodType(),
                   MONTHS_LAST_12,
-                  new DateTime(date).minusMonths(1).toDate(),
+                  new DateTime(dateField.date()).minusMonths(1).toDate(),
                   dynamicNames,
                   format)
               .subList(6, 12));
@@ -606,7 +642,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
               new MonthlyPeriodType(),
               MONTHS_LAST_12,
-              new DateTime(date).minusMonths(1).toDate(),
+              new DateTime(dateField.date()).minusMonths(1).toDate(),
               dynamicNames,
               format));
     }
@@ -616,7 +652,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
               new BiMonthlyPeriodType(),
               BIMONTHS_LAST_6,
-              new DateTime(date).minusMonths(2).toDate(),
+              new DateTime(dateField.date()).minusMonths(2).toDate(),
               dynamicNames,
               format));
     }
@@ -626,7 +662,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
               new QuarterlyPeriodType(),
               QUARTERS_THIS_YEAR,
-              new DateTime(date).minusMonths(3).toDate(),
+              new DateTime(dateField.date()).minusMonths(3).toDate(),
               dynamicNames,
               format));
     }
@@ -636,7 +672,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
               new SixMonthlyPeriodType(),
               SIXMONHTS_LAST_2,
-              new DateTime(date).minusMonths(6).toDate(),
+              new DateTime(dateField.date()).minusMonths(6).toDate(),
               dynamicNames,
               format));
     }
@@ -646,7 +682,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new WeeklyPeriodType(),
                   WEEKS_LAST_52,
-                  new DateTime(date).minusWeeks(1).toDate(),
+                  new DateTime(dateField.date()).minusWeeks(1).toDate(),
                   dynamicNames,
                   format)
               .subList(48, 52));
@@ -657,7 +693,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new BiWeeklyPeriodType(),
                   BIWEEKS_LAST_26,
-                  new DateTime(date).minusWeeks(2).toDate(),
+                  new DateTime(dateField.date()).minusWeeks(2).toDate(),
                   dynamicNames,
                   format)
               .subList(22, 26));
@@ -668,7 +704,7 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
                   new WeeklyPeriodType(),
                   WEEKS_LAST_52,
-                  new DateTime(date).minusWeeks(1).toDate(),
+                  new DateTime(dateField.date()).minusWeeks(1).toDate(),
                   dynamicNames,
                   format)
               .subList(40, 52));
@@ -679,34 +715,40 @@ public class RelativePeriods implements Serializable {
           getRollingRelativePeriodList(
               new WeeklyPeriodType(),
               WEEKS_LAST_52,
-              new DateTime(date).minusWeeks(1).toDate(),
+              new DateTime(dateField.date()).minusWeeks(1).toDate(),
               dynamicNames,
               format));
     }
 
     // Rewind one year
-    date = new DateTime(date).minusMonths(MONTHS_IN_YEAR).toDate();
+    dateField =
+        dateField.withDate(new DateTime(dateField.date()).minusMonths(MONTHS_IN_YEAR).toDate());
 
     if (isMonthsLastYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new MonthlyPeriodType(), MONTHS_LAST_YEAR, date, dynamicNames, format));
+              new MonthlyPeriodType(), MONTHS_LAST_YEAR, dateField.date(), dynamicNames, format));
     }
 
     if (isQuartersLastYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new QuarterlyPeriodType(), QUARTERS_LAST_YEAR, date, dynamicNames, format));
+              new QuarterlyPeriodType(),
+              QUARTERS_LAST_YEAR,
+              dateField.date(),
+              dynamicNames,
+              format));
     }
 
     if (isLastYear()) {
-      periods.add(getRelativePeriod(new YearlyPeriodType(), LAST_YEAR, date, dynamicNames, format));
+      periods.add(
+          getRelativePeriod(new YearlyPeriodType(), LAST_YEAR, dateField, dynamicNames, format));
     }
 
     if (isLast5Years()) {
       periods.addAll(
           getRollingRelativePeriodList(
-              new YearlyPeriodType(), LAST_5_YEARS, date, dynamicNames, format));
+              new YearlyPeriodType(), LAST_5_YEARS, dateField.date(), dynamicNames, format));
     }
 
     if (isLast10Years()) {
@@ -715,13 +757,13 @@ public class RelativePeriods implements Serializable {
               new YearlyPeriodType(),
               LAST_10_YEARS,
               Iso8601Calendar.getInstance()
-                  .minusYears(DateTimeUnit.fromJdkDate(date), 5)
+                  .minusYears(DateTimeUnit.fromJdkDate(dateField.date()), 5)
                   .toJdkDate(),
               dynamicNames,
               format));
       periods.addAll(
           getRollingRelativePeriodList(
-              new YearlyPeriodType(), LAST_10_YEARS, date, dynamicNames, format));
+              new YearlyPeriodType(), LAST_10_YEARS, dateField.date(), dynamicNames, format));
     }
 
     return periods;
@@ -737,26 +779,29 @@ public class RelativePeriods implements Serializable {
    */
   private List<Period> getRelativeFinancialPeriods(
       FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames) {
-    Date date = new Date();
+    DateField dateField = DateField.withDefaults();
     List<Period> periods = new ArrayList<>();
 
     if (isThisFinancialYear()) {
       periods.add(
-          getRelativePeriod(financialPeriodType, THIS_FINANCIAL_YEAR, date, dynamicNames, format));
+          getRelativePeriod(
+              financialPeriodType, THIS_FINANCIAL_YEAR, dateField, dynamicNames, format));
     }
 
     // Rewind one year
-    date = new DateTime(date).minusMonths(MONTHS_IN_YEAR).toDate();
+    dateField =
+        dateField.withDate(new DateTime(dateField.date()).minusMonths(MONTHS_IN_YEAR).toDate());
 
     if (isLastFinancialYear()) {
       periods.add(
-          getRelativePeriod(financialPeriodType, LAST_FINANCIAL_YEAR, date, dynamicNames, format));
+          getRelativePeriod(
+              financialPeriodType, LAST_FINANCIAL_YEAR, dateField, dynamicNames, format));
     }
 
     if (isLast5FinancialYears()) {
       periods.addAll(
           getRollingRelativePeriodList(
-              financialPeriodType, LAST_5_FINANCIAL_YEARS, date, dynamicNames, format));
+              financialPeriodType, LAST_5_FINANCIAL_YEARS, dateField.date(), dynamicNames, format));
     }
 
     if (isLast10FinancialYears()) {
@@ -765,13 +810,17 @@ public class RelativePeriods implements Serializable {
               financialPeriodType,
               LAST_10_FINANCIAL_YEARS,
               Iso8601Calendar.getInstance()
-                  .minusYears(DateTimeUnit.fromJdkDate(date), 5)
+                  .minusYears(DateTimeUnit.fromJdkDate(dateField.date()), 5)
                   .toJdkDate(),
               dynamicNames,
               format));
       periods.addAll(
           getRollingRelativePeriodList(
-              financialPeriodType, LAST_10_FINANCIAL_YEARS, date, dynamicNames, format));
+              financialPeriodType,
+              LAST_10_FINANCIAL_YEARS,
+              dateField.date(),
+              dynamicNames,
+              format));
     }
 
     return periods;
@@ -848,7 +897,7 @@ public class RelativePeriods implements Serializable {
    *
    * @param periodType the period type.
    * @param periodName the period name.
-   * @param date the current date.
+   * @param dateField the current dateAndField.
    * @param dynamicNames indication of whether dynamic names should be used.
    * @param format the I18nFormat.
    * @return a list of periods.
@@ -856,10 +905,14 @@ public class RelativePeriods implements Serializable {
   private Period getRelativePeriod(
       CalendarPeriodType periodType,
       String periodName,
-      Date date,
+      DateField dateField,
       boolean dynamicNames,
       I18nFormat format) {
-    return setName(periodType.createPeriod(date), periodName, dynamicNames, format);
+    return setName(
+        periodType.createPeriod(dateField.date(), dateField.dateField()),
+        periodName,
+        dynamicNames,
+        format);
   }
 
   /**
@@ -889,7 +942,11 @@ public class RelativePeriods implements Serializable {
   public static List<Period> getRelativePeriodsFromEnum(
       RelativePeriodEnum relativePeriod, Date date) {
     return getRelativePeriodsFromEnum(
-        relativePeriod, date, null, false, AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+        relativePeriod,
+        DateField.withDefaults().withDate(date),
+        null,
+        false,
+        AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
   }
 
   /**
@@ -905,7 +962,7 @@ public class RelativePeriods implements Serializable {
    */
   public static List<Period> getRelativePeriodsFromEnum(
       RelativePeriodEnum relativePeriod,
-      Date date,
+      DateField date,
       I18nFormat format,
       boolean dynamicNames,
       AnalyticsFinancialYearStartKey financialYearStart) {

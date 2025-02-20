@@ -28,10 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.List;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,22 +36,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Service("org.hisp.dhis.program.ProgramNotificationTemplateService")
+@RequiredArgsConstructor
 public class DefaultProgramNotificationTemplateService
     implements ProgramNotificationTemplateService {
   private final ProgramNotificationTemplateStore store;
-
-  private final Cache<Boolean> programWebHookNotificationCache;
-
-  private final Cache<Boolean> programStageWebHookNotificationCache;
-
-  public DefaultProgramNotificationTemplateService(
-      ProgramNotificationTemplateStore store, CacheProvider cacheProvider) {
-    this.store = store;
-    this.programWebHookNotificationCache =
-        cacheProvider.createProgramWebHookNotificationTemplateCache();
-    this.programStageWebHookNotificationCache =
-        cacheProvider.createProgramStageWebHookNotificationTemplateCache();
-  }
+  private final ProgramNotificationTemplateOperationParamsMapper paramsMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -88,49 +74,17 @@ public class DefaultProgramNotificationTemplateService
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType(
-      NotificationTrigger trigger) {
-    return store.getProgramNotificationByTriggerType(trigger);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isProgramLinkedToWebHookNotification(Program program) {
-    return programWebHookNotificationCache.get(
-        program.getUid(), uid -> store.isProgramLinkedToWebHookNotification(program.getId()));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isProgramStageLinkedToWebHookNotification(ProgramStage programStage) {
-    return programStageWebHookNotificationCache.get(
-        programStage.getUid(),
-        uid -> store.isProgramStageLinkedToWebHookNotification(programStage.getId()));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications(Program program) {
-    return store.getProgramLinkedToWebHookNotifications(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications(
-      ProgramStage programStage) {
-    return store.getProgramStageLinkedToWebHookNotifications(programStage);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countProgramNotificationTemplates(ProgramNotificationTemplateParam param) {
-    return store.countProgramNotificationTemplates(param);
+  public int countProgramNotificationTemplates(ProgramNotificationTemplateOperationParams param) {
+    ProgramNotificationTemplateQueryParams queryParams = paramsMapper.map(param);
+    return store.countProgramNotificationTemplates(queryParams);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam programNotificationTemplateParam) {
-    return store.getProgramNotificationTemplates(programNotificationTemplateParam);
+      ProgramNotificationTemplateOperationParams operationParams) {
+    ProgramNotificationTemplateQueryParams queryParams = paramsMapper.map(operationParams);
+
+    return store.getProgramNotificationTemplates(queryParams);
   }
 }

@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class CurrentUserUtil {
@@ -47,12 +46,13 @@ public class CurrentUserUtil {
    *
    * @return the current user's username
    */
+  @Nonnull
   public static String getCurrentUsername() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
         || !authentication.isAuthenticated()
         || authentication.getPrincipal() == null) {
-      return null;
+      throw new IllegalStateException("No authenticated user found");
     }
 
     Object principal = authentication.getPrincipal();
@@ -63,7 +63,7 @@ public class CurrentUserUtil {
       return userDetails.getUsername();
 
     } else {
-      throw new RuntimeException(
+      throw new IllegalStateException(
           "Authentication principal is not supported; principal:" + principal);
     }
   }
@@ -71,15 +71,15 @@ public class CurrentUserUtil {
   /**
    * Get details about the currently authenticated user
    *
-   * @return CurrentUserDetails representing the authenticated user, or null if the user is
-   *     unauthenticated
+   * @return CurrentUserDetails representing the authenticated user
    */
+  @Nonnull
   public static UserDetails getCurrentUserDetails() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
         || !authentication.isAuthenticated()
         || authentication.getPrincipal() == null) {
-      return null;
+      throw new IllegalStateException("No authenticated user found");
     }
 
     Object principal = authentication.getPrincipal();
@@ -87,7 +87,7 @@ public class CurrentUserUtil {
     if (principal instanceof UserDetails) {
       return (UserDetails) authentication.getPrincipal();
     } else {
-      throw new RuntimeException(
+      throw new IllegalStateException(
           "Authentication principal is not supported; principal:" + principal);
     }
   }
@@ -99,18 +99,11 @@ public class CurrentUserUtil {
    * @return list of authority names
    */
   public static List<String> getCurrentUserAuthorities() {
-
     if (!CurrentUserUtil.hasCurrentUser()) {
       return List.of();
     }
 
     UserDetails currentUserDetails = getCurrentUserDetails();
-
-    if (currentUserDetails == null) {
-      // Anonymous user has no authorities
-      return List.of();
-    }
-
     return currentUserDetails.getAuthorities().stream()
         .map(GrantedAuthority::getAuthority)
         .toList();
@@ -127,73 +120,27 @@ public class CurrentUserUtil {
     return candidateAuthorities.stream().anyMatch(currentUserAuthorities::contains);
   }
 
-  /**
-   * Return the value of the user setting referred to by 'key'
-   *
-   * @param key the key of the user setting
-   * @return the value of the user setting
-   */
-  @Nullable
-  @SuppressWarnings("unchecked")
-  public static <T> T getUserSetting(UserSettingKey key) {
-    UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser == null) {
-      return null;
-    }
-
-    return (T) currentUser.getUserSettings().get(key.getName());
-  }
-
-  /**
-   * Return the value of the user setting referred to by 'key'.
-   *
-   * @param defaultValue the default value to return if the setting value is null.
-   * @param key the key of the user setting
-   * @return the value of the user setting
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
-    UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser == null) {
-      return defaultValue;
-    }
-
-    Map<String, Serializable> userSettings = currentUser.getUserSettings();
-
-    Serializable setting = userSettings.get(key.getName());
-
-    return setting != null ? (T) setting : defaultValue;
-  }
-
-  /**
-   * Set the value of the user setting referred to by 'key'
-   *
-   * @param key the key of the user setting
-   * @param value the value to set
-   */
-  public static void setUserSetting(UserSettingKey key, Serializable value) {
-    setUserSettingInternal(key.getName(), value);
-  }
-
-  private static void setUserSettingInternal(String key, Serializable value) {
-    UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser != null) {
-      Map<String, Serializable> userSettings = currentUser.getUserSettings();
-      if (userSettings != null) {
-        if (value != null) {
-          userSettings.put(key, value);
-        } else {
-          userSettings.remove(key);
-        }
-      }
-    }
-  }
-
   public static boolean hasCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     return authentication != null
         && authentication.isAuthenticated()
         && authentication.getPrincipal() != null
         && !authentication.getPrincipal().equals("anonymousUser");
+  }
+
+  public static void injectUserInSecurityContext(UserDetails actingUser) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
+  public static void clearSecurityContext() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
+    SecurityContextHolder.clearContext();
   }
 }

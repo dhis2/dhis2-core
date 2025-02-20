@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.security.Authorities.F_GENERATE_MIN_MAX_VALUES;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collection;
@@ -39,17 +40,17 @@ import org.hisp.dhis.dataanalysis.MinMaxDataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValueParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,12 +65,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Joao Antunes
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
-@RequestMapping(value = MinMaxValueGenerationController.RESOURCE_PATH)
+@RequestMapping("/api/minMaxValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MinMaxValueGenerationController {
-  public static final String RESOURCE_PATH = "/minMaxValues";
 
   @Autowired private MinMaxDataElementService minMaxDataElementService;
 
@@ -79,12 +81,11 @@ public class MinMaxValueGenerationController {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
-
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')")
+  @RequiresAuthority(anyOf = F_GENERATE_MIN_MAX_VALUES)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void generateMinMaxValue(@RequestBody MinMaxValueParams minMaxValueParams)
+  public void generateMinMaxValue(
+      @RequestBody MinMaxValueParams minMaxValueParams, SystemSettings settings)
       throws WebMessageException {
     List<String> dataSets = minMaxValueParams.getDataSets();
     String organisationUnitId = minMaxValueParams.getOrganisationUnit();
@@ -106,14 +107,13 @@ public class MinMaxValueGenerationController {
       dataElements.addAll(dataSet.getDataElements());
     }
 
-    Double factor =
-        this.systemSettingManager.getSystemSetting(SettingKey.FACTOR_OF_DEVIATION, Double.class);
+    double factor = settings.getFactorOfDeviation();
 
-    this.minMaxDataAnalysisService.generateMinMaxValues(organisationUnit, dataElements, factor);
+    minMaxDataAnalysisService.generateMinMaxValues(organisationUnit, dataElements, factor);
   }
 
   @DeleteMapping("/{ou}")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')")
+  @RequiresAuthority(anyOf = F_GENERATE_MIN_MAX_VALUES)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeMinMaxValue(
       @PathVariable("ou") String organisationUnitId, @RequestParam("ds") List<String> dataSetIds)

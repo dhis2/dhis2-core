@@ -42,23 +42,28 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-class DataElementStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataElementStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementStore dataElementStore;
 
@@ -66,16 +71,8 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private UserService _userService;
+  @Autowired private DbmsManager dbmsManager;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-  }
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
   @Test
   void testAddDataElement() {
     DataElement dataElementA = createDataElement('A');
@@ -158,28 +155,6 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataElementsByDomainType() {
-    assertEquals(
-        0, dataElementStore.getDataElementsByDomainType(DataElementDomain.AGGREGATE).size());
-    assertEquals(0, dataElementStore.getDataElementsByDomainType(DataElementDomain.TRACKER).size());
-    DataElement dataElementA = createDataElement('A');
-    dataElementA.setDomainType(DataElementDomain.AGGREGATE);
-    DataElement dataElementB = createDataElement('B');
-    dataElementB.setDomainType(DataElementDomain.TRACKER);
-    DataElement dataElementC = createDataElement('C');
-    dataElementC.setDomainType(DataElementDomain.TRACKER);
-    DataElement dataElementD = createDataElement('D');
-    dataElementD.setDomainType(DataElementDomain.TRACKER);
-    dataElementStore.save(dataElementA);
-    dataElementStore.save(dataElementB);
-    dataElementStore.save(dataElementC);
-    dataElementStore.save(dataElementD);
-    assertEquals(
-        1, dataElementStore.getDataElementsByDomainType(DataElementDomain.AGGREGATE).size());
-    assertEquals(3, dataElementStore.getDataElementsByDomainType(DataElementDomain.TRACKER).size());
-  }
-
-  @Test
   void testGetDataElementAggregationLevels() {
     List<Integer> aggregationLevels = Arrays.asList(3, 5);
     DataElement dataElementA = createDataElement('A');
@@ -237,22 +212,6 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetDataElementsZeroIsSignificant() {
-    DataElement dataElementA = createDataElement('A');
-    DataElement dataElementB = createDataElement('B');
-    DataElement dataElementC = createDataElement('C');
-    DataElement dataElementD = createDataElement('D');
-    dataElementA.setZeroIsSignificant(true);
-    dataElementB.setZeroIsSignificant(true);
-    dataElementStore.save(dataElementA);
-    dataElementStore.save(dataElementB);
-    dataElementStore.save(dataElementC);
-    dataElementStore.save(dataElementD);
-    List<DataElement> dataElements = dataElementStore.getDataElementsByZeroIsSignificant(true);
-    assertTrue(equals(dataElements, dataElementA, dataElementB));
-  }
-
-  @Test
   void testDataElementByNonUniqueAttributeValue() throws NonUniqueAttributeValueException {
     Attribute attribute = new Attribute("cid", ValueType.TEXT);
     attribute.setDataElementAttribute(true);
@@ -263,18 +222,16 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
     dataElementStore.save(dataElementA);
     dataElementStore.save(dataElementB);
     dataElementStore.save(dataElementC);
-    AttributeValue attributeValueA = new AttributeValue("CID1", attribute);
-    AttributeValue attributeValueB = new AttributeValue("CID2", attribute);
-    AttributeValue attributeValueC = new AttributeValue("CID3", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    attributeService.addAttributeValue(dataElementB, attributeValueB);
-    attributeService.addAttributeValue(dataElementC, attributeValueC);
+    attributeService.addAttributeValue(dataElementA, attribute.getUid(), "CID1");
+    attributeService.addAttributeValue(dataElementB, attribute.getUid(), "CID2");
+    attributeService.addAttributeValue(dataElementC, attribute.getUid(), "CID3");
     dataElementStore.update(dataElementA);
     dataElementStore.update(dataElementB);
     dataElementStore.update(dataElementC);
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID1"));
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID2"));
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID3"));
+    UID attributeId = UID.of(attribute);
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID1"));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID2"));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID3"));
   }
 
   @Test
@@ -384,7 +341,7 @@ class DataElementStoreTest extends SingleSetupIntegrationTestBase {
   @Test
   void testExistsByUser() {
     User userA = createAndAddUser("userA");
-    User userB = createAndAddAdminUser("ALL");
+    User userB = getAdminUser();
     DataElement dataElementA = createDataElement('A');
     dataElementA.setCreatedBy(userA);
     dataElementStore.save(dataElementA);

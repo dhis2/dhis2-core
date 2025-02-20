@@ -43,7 +43,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;

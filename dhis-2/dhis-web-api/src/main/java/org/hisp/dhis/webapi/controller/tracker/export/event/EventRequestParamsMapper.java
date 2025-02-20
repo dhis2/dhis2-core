@@ -28,11 +28,12 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseAttributeFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseDataElementFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
 import java.util.List;
 import java.util.Map;
@@ -42,12 +43,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,52 +66,28 @@ class EventRequestParamsMapper {
 
   private final EventFieldsParamMapper eventsMapper;
 
-  public EventOperationParams map(EventRequestParams eventRequestParams)
+  public EventOperationParams map(
+      EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
-        validateDeprecatedParameter(
-            "ouMode",
-            eventRequestParams.getOuMode(),
-            "orgUnitMode",
-            eventRequestParams.getOrgUnitMode());
-
-    orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             eventRequestParams.getOrgUnit() != null
                 ? Set.of(eventRequestParams.getOrgUnit())
                 : emptySet(),
-            orgUnitMode);
+            eventRequestParams.getOrgUnitMode());
 
-    UID attributeCategoryCombo =
+    EnrollmentStatus enrollmentStatus =
         validateDeprecatedParameter(
-            "attributeCc",
-            eventRequestParams.getAttributeCc(),
-            "attributeCategoryCombo",
-            eventRequestParams.getAttributeCategoryCombo());
+            "programStatus",
+            eventRequestParams.getProgramStatus(),
+            "enrollmentStatus",
+            eventRequestParams.getEnrollmentStatus());
 
-    Set<UID> attributeCategoryOptions =
-        validateDeprecatedUidsParameter(
-            "attributeCos",
-            eventRequestParams.getAttributeCos(),
-            "attributeCategoryOptions",
-            eventRequestParams.getAttributeCategoryOptions());
-
-    Set<UID> eventUids =
-        validateDeprecatedUidsParameter(
-            "event", eventRequestParams.getEvent(), "events", eventRequestParams.getEvents());
-
-    validateFilter(eventRequestParams.getFilter(), eventUids);
-    Map<String, List<QueryFilter>> dataElementFilters =
-        parseFilters(eventRequestParams.getFilter());
-    Map<String, List<QueryFilter>> attributeFilters =
-        parseFilters(eventRequestParams.getFilterAttributes());
-
-    Set<UID> assignedUsers =
-        validateDeprecatedUidsParameter(
-            "assignedUser",
-            eventRequestParams.getAssignedUser(),
-            "assignedUsers",
-            eventRequestParams.getAssignedUsers());
+    validateFilter(eventRequestParams.getFilter(), eventRequestParams.getEvents());
+    Map<UID, List<QueryFilter>> dataElementFilters =
+        parseDataElementFilters(eventRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> attributeFilters =
+        parseAttributeFilters(eventRequestParams.getFilterAttributes());
 
     validateUpdateDurationParams(eventRequestParams);
     validateOrderParams(
@@ -114,51 +95,50 @@ class EventRequestParamsMapper {
 
     EventOperationParamsBuilder builder =
         EventOperationParams.builder()
-            .programUid(
-                eventRequestParams.getProgram() != null
-                    ? eventRequestParams.getProgram().getValue()
-                    : null)
-            .programStageUid(
-                eventRequestParams.getProgramStage() != null
-                    ? eventRequestParams.getProgramStage().getValue()
-                    : null)
-            .orgUnitUid(
-                eventRequestParams.getOrgUnit() != null
-                    ? eventRequestParams.getOrgUnit().getValue()
-                    : null)
-            .trackedEntityUid(
-                eventRequestParams.getTrackedEntity() != null
-                    ? eventRequestParams.getTrackedEntity().getValue()
-                    : null)
-            .programStatus(eventRequestParams.getProgramStatus())
+            .program(eventRequestParams.getProgram())
+            .programStage(eventRequestParams.getProgramStage())
+            .orgUnit(eventRequestParams.getOrgUnit())
+            .trackedEntity(eventRequestParams.getTrackedEntity())
+            .enrollmentStatus(enrollmentStatus)
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())
-            .assignedUsers(UID.toValueSet(assignedUsers))
-            .occurredAfter(eventRequestParams.getOccurredAfter())
-            .occurredBefore(eventRequestParams.getOccurredBefore())
-            .scheduledAfter(eventRequestParams.getScheduledAfter())
-            .scheduledBefore(eventRequestParams.getScheduledBefore())
-            .updatedAfter(eventRequestParams.getUpdatedAfter())
-            .updatedBefore(eventRequestParams.getUpdatedBefore())
+            .assignedUsers(eventRequestParams.getAssignedUsers())
+            .occurredAfter(
+                applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
+            .occurredBefore(
+                applyIfNotNull(eventRequestParams.getOccurredBefore(), EndDateTime::toDate))
+            .scheduledAfter(
+                applyIfNotNull(eventRequestParams.getScheduledAfter(), StartDateTime::toDate))
+            .scheduledBefore(
+                applyIfNotNull(eventRequestParams.getScheduledBefore(), EndDateTime::toDate))
+            .updatedAfter(
+                applyIfNotNull(eventRequestParams.getUpdatedAfter(), StartDateTime::toDate))
+            .updatedBefore(
+                applyIfNotNull(eventRequestParams.getUpdatedBefore(), EndDateTime::toDate))
             .updatedWithin(eventRequestParams.getUpdatedWithin())
-            .enrollmentEnrolledBefore(eventRequestParams.getEnrollmentEnrolledBefore())
-            .enrollmentEnrolledAfter(eventRequestParams.getEnrollmentEnrolledAfter())
-            .enrollmentOccurredBefore(eventRequestParams.getEnrollmentOccurredBefore())
-            .enrollmentOccurredAfter(eventRequestParams.getEnrollmentOccurredAfter())
+            .enrollmentEnrolledBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+            .enrollmentEnrolledAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+            .enrollmentOccurredBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
+            .enrollmentOccurredAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
             .eventStatus(eventRequestParams.getStatus())
-            .attributeCategoryCombo(
-                attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
-            .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
-            .idSchemes(eventRequestParams.getIdSchemes())
-            .includeAttributes(false)
-            .includeAllDataElements(false)
+            .attributeCategoryCombo(eventRequestParams.getAttributeCategoryCombo())
+            .attributeCategoryOptions(eventRequestParams.getAttributeCategoryOptions())
             .dataElementFilters(dataElementFilters)
             .attributeFilters(attributeFilters)
-            .events(UID.toValueSet(eventUids))
-            .enrollments(UID.toValueSet(eventRequestParams.getEnrollments()))
+            .events(eventRequestParams.getEvents())
+            .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
-            .eventParams(eventsMapper.map(eventRequestParams.getFields()));
+            .eventParams(eventsMapper.map(eventRequestParams.getFields()))
+            .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());
 
@@ -191,7 +171,8 @@ class EventRequestParamsMapper {
         && (eventRequestParams.getUpdatedAfter() != null
             || eventRequestParams.getUpdatedBefore() != null)) {
       throw new BadRequestException(
-          "Last updated from and/or to and last updated duration cannot be specified simultaneously");
+          "Last updated from and/or to and last updated duration cannot be specified"
+              + " simultaneously");
     }
 
     if (eventRequestParams.getUpdatedWithin() != null

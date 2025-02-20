@@ -30,6 +30,7 @@ package org.hisp.dhis.orgunitprofile;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
  * Main interface for org unit profile management.
@@ -42,7 +43,7 @@ public interface OrgUnitProfileService {
    *
    * @param profile the {@link OrgUnitProfile}.
    */
-  void saveOrgUnitProfile(OrgUnitProfile profile);
+  void saveOrgUnitProfile(OrgUnitProfile profile) throws ForbiddenException;
 
   /**
    * Validates the {@link OrgUnitProfile}.
@@ -58,7 +59,7 @@ public interface OrgUnitProfileService {
    *
    * @return the {@link OrgUnitProfile}, never null.
    */
-  OrgUnitProfile getOrgUnitProfile();
+  OrgUnitProfile getOrgUnitProfile() throws ForbiddenException;
 
   /**
    * Retrieves data for the current {@link OrgUnitProfile}.
@@ -67,5 +68,6 @@ public interface OrgUnitProfileService {
    * @param isoPeriod the ISO period, optional.
    * @return the {@link OrgUnitProfileData}.
    */
-  OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod);
+  OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod)
+      throws ForbiddenException;
 }

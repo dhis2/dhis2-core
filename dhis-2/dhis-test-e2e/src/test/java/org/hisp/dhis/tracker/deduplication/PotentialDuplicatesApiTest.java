@@ -28,15 +28,15 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
-import org.hisp.dhis.actions.tracker.TrackerImportExportActions;
-import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.TestRunStorage;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.tracker.PotentialDuplicatesActions;
+import org.hisp.dhis.test.e2e.actions.tracker.TrackerImportExportActions;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -77,28 +77,36 @@ public class PotentialDuplicatesApiTest extends TrackerApiTest {
     return username;
   }
 
-  protected String createTei() {
+  protected String createTrackedEntity() {
     JsonObject object =
-        new TeiDataBuilder().array(Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0]);
+        new TrackedEntityDataBuilder()
+            .array(Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0]);
 
-    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+    return trackerImportExportActions
+        .postAndGetJobReport(object)
+        .extractImportedTrackedEntities()
+        .get(0);
   }
 
-  protected String createTei(String teiType) {
-    JsonObject object = new TeiDataBuilder().array(teiType, Constants.ORG_UNIT_IDS[0]);
+  protected String createTrackedEntity(String teType) {
+    JsonObject object = new TrackedEntityDataBuilder().array(teType, Constants.ORG_UNIT_IDS[0]);
 
-    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+    return trackerImportExportActions
+        .postAndGetJobReport(object)
+        .extractImportedTrackedEntities()
+        .get(0);
   }
 
-  protected TrackerApiResponse createTeiWithEnrollmentsAndEvents() {
-    return createTeiWithEnrollmentsAndEvents(TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID);
+  protected TrackerApiResponse createTrackedEntityWithEnrollmentsAndEvents() {
+    return createTrackedEntityWithEnrollmentsAndEvents(
+        TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID);
   }
 
-  protected TrackerApiResponse createTeiWithEnrollmentsAndEvents(
+  protected TrackerApiResponse createTrackedEntityWithEnrollmentsAndEvents(
       String program, String programStage) {
     return trackerImportExportActions
         .postAndGetJobReport(
-            new TeiDataBuilder()
+            new TrackedEntityDataBuilder()
                 .buildWithEnrollmentAndEvent(
                     Constants.TRACKED_ENTITY_TYPE,
                     Constants.ORG_UNIT_IDS[0],

@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -44,17 +43,22 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
+
+  public EventTimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
+    super(sqlBuilder);
+  }
+
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 
   @Override
@@ -89,7 +93,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
                 statementBuilder.getBoundaryCondition(
                     analyticsPeriodBoundary,
                     params.getProgramIndicator(),
-                    params.getTimeFieldAsField(),
+                    params.getTimeFieldAsField(AnalyticsType.EVENT),
                     params.getEarliestStartDate(),
                     params.getLatestEndDate()))
         .collect(Collectors.joining(" and "));
@@ -97,17 +101,17 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   private String getTimeCol(Optional<TimeField> timeField, EventOutputType outputType) {
     if (timeField.isPresent()) {
-      return quoteAlias(timeField.get().getField());
+      return sqlBuilder.quoteAx(timeField.get().getEventColumnName());
     } else if (ENROLLMENT == outputType) {
-      return quoteAlias(ENROLLMENT_DATE.getField());
+      return sqlBuilder.quoteAx(ENROLLMENT_DATE.getEnrollmentColumnName());
     } else {
       // EVENTS
-      return quoteAlias(EVENT_DATE.getField());
+      return sqlBuilder.quoteAx(EVENT_DATE.getEventColumnName());
     }
   }
 
   private String toSqlCondition(Period period, TimeField timeField) {
-    String timeCol = quoteAlias(timeField.getField());
+    String timeCol = sqlBuilder.quoteAx(timeField.getEventColumnName());
     return "( "
         + timeCol
         + " >= '"

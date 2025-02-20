@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1118;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1120;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class AssignedUserValidatorTest extends DhisConvenienceTest {
+class AssignedUserValidatorTest extends TestBase {
 
   private static final String USER_NAME = "Username";
 
@@ -139,7 +139,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest {
   void testEventWithNotValidUsername() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(INVALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 
@@ -154,7 +154,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest {
   void testEventWithUserNotPresentInPreheat() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(VALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 
@@ -173,7 +173,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest {
   void testEventWithNotEnabledUserAssignment() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(VALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 
@@ -191,7 +191,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest {
   void testEventWithNullEnabledUserAssignment() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(VALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 

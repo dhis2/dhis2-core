@@ -31,14 +31,14 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -194,8 +194,7 @@ public class HibernateUserDatastoreStore
             else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
             end
           where namespace = :ns and userkey = :key""";
-    return getSession()
-            .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -220,8 +219,7 @@ public class HibernateUserDatastoreStore
         else cast(:value as jsonb)
         end
       where namespace = :ns and userkey = :key""";
-    return getSession()
-            .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -232,8 +230,7 @@ public class HibernateUserDatastoreStore
 
   private boolean updateEntryPathSetToValue(
       @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull String path) {
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -245,8 +242,7 @@ public class HibernateUserDatastoreStore
 
   private boolean updateEntryRootSetToValue(
       @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "update userkeyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -257,8 +253,7 @@ public class HibernateUserDatastoreStore
 
   private boolean updateEntryPathSetToNull(
       @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "update userkeyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -269,8 +264,7 @@ public class HibernateUserDatastoreStore
 
   private boolean updateEntryRootDelete(@Nonnull String ns, @Nonnull String key) {
     // delete
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "delete from userkeyjsonvalue where namespace = :ns and userkey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)

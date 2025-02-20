@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
@@ -41,6 +41,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExte
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -49,14 +51,13 @@ import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -66,11 +67,11 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -79,7 +80,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -91,18 +91,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequiredArgsConstructor
-@RequestMapping(value = "/dataValueSets")
+@RequestMapping("/api/dataValueSets")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataValueSetController {
 
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
   private final UserService userService;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
   // Get
@@ -228,10 +229,10 @@ public class DataValueSetController {
   // -------------------------------------------------------------------------
 
   @PostMapping(consumes = APPLICATION_XML_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
@@ -239,29 +240,30 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetXml(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
     ImportSummary summary =
-        adxDataService.saveDataValueSet(request.getInputStream(), importOptions, null);
+        adxDataService.saveDataValueSet(
+            request.getInputStream(), importOptions, JobProgress.noop());
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postJsonDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
@@ -269,14 +271,14 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetJson(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = "application/csv")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postCsvDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
@@ -284,14 +286,14 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetCsv(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
@@ -299,7 +301,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------
@@ -309,14 +311,13 @@ public class DataValueSetController {
   /** Starts an asynchronous import task. */
   private WebMessage startAsyncImport(
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
-      throws ConflictException, IOException, NotFoundException {
+      throws ConflictException, IOException {
     JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     config.setExecutedBy(currentUser.getUid());
     config.setJobParameters(importOptions);
 
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, mimeType, request.getInputStream()));
+    jobExecutionService.executeOnceNow(config, mimeType, request.getInputStream());
 
     return jobConfigurationReport(config);
   }

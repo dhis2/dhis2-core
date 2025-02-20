@@ -34,6 +34,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
@@ -50,9 +51,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(
+    entity = Expression.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
-@RequestMapping(value = "/expressions")
+@RequestMapping("/api/expressions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ExpressionController {
   @Autowired private ExpressionService expressionService;

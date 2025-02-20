@@ -28,8 +28,15 @@
 package org.hisp.dhis.system.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Lars Helge Overland
@@ -72,5 +79,46 @@ class SqlUtilsTest {
     assertEquals("Prescribed ''rx82''", SqlUtils.escape("Prescribed 'rx82'"));
     assertEquals("Some regular value", SqlUtils.escape("Some regular value"));
     assertEquals("C:\\\\Downloads\\\\Temp", SqlUtils.escape("C:\\Downloads\\Temp"));
+  }
+
+  @ParameterizedTest
+  @DisplayName("should throw an exception with incorrect args")
+  @MethodSource("multiLIkeParams")
+  void multiLikeTest(String column, List<String> targets) {
+    assertThrows(IllegalArgumentException.class, () -> SqlUtils.likeAny(column, targets));
+  }
+
+  @Test
+  @DisplayName("should return string with multi like query when 1 param search")
+  void multiLikeSingleTest() {
+    // given
+    List<String> searches = List.of("search1");
+
+    // when
+    String multiLike = SqlUtils.likeAny("col", searches);
+
+    // then
+    assertEquals("col like '%search1%'", multiLike);
+  }
+
+  @Test
+  @DisplayName("should return string with multi like query when multiple param searches")
+  void multiLikeMultiTest() {
+    // given
+    List<String> searches = List.of("search1", "search2", "search3");
+
+    // when
+    String multiLike = SqlUtils.likeAny("col", searches);
+
+    // then
+    assertEquals("col like '%search1%' or col like '%search2%' or col like '%search3%'", multiLike);
+  }
+
+  public static Stream<Arguments> multiLIkeParams() {
+    return Stream.of(
+        Arguments.of(null, null),
+        Arguments.of(null, List.of("search1")),
+        Arguments.of("column1", null),
+        Arguments.of("column1", List.of()));
   }
 }

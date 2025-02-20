@@ -30,8 +30,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component("programRuleActionObjectBundle")
+@Slf4j
 public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction> {
   @Nonnull
   private final Map<ProgramRuleActionType, ProgramRuleActionValidator>
@@ -69,6 +72,17 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
     }
   }
 
+  @Override
+  public void preCreate(ProgramRuleAction object, ObjectBundle bundle) {
+    getNotificationTemplate(object, bundle);
+  }
+
+  @Override
+  public void preUpdate(
+      ProgramRuleAction object, ProgramRuleAction persistedObject, ObjectBundle bundle) {
+    getNotificationTemplate(object, bundle);
+  }
+
   private ProgramRuleActionValidationResult validateProgramRuleAction(
       ProgramRuleAction ruleAction, ObjectBundle bundle) {
     ProgramRuleActionValidationResult validationResult;
@@ -82,5 +96,33 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
     validationResult = validator.validate(ruleAction, validationContext);
 
     return validationResult;
+  }
+
+  private void getNotificationTemplate(ProgramRuleAction object, ObjectBundle bundle) {
+    if (object.getTemplateUid() == null) {
+      // Nothing to do when templateUid is null
+      return;
+    }
+
+    // try to get the template from the preheated bundle.
+    ProgramNotificationTemplate template =
+        bundle
+            .getPreheat()
+            .get(
+                bundle.getPreheatIdentifier(),
+                ProgramNotificationTemplate.class,
+                object.getTemplateUid());
+
+    // If not found in preheated objects, fetch from the database.
+    if (template == null) {
+      template = manager.get(ProgramNotificationTemplate.class, object.getTemplateUid());
+    }
+
+    if (template == null) {
+      log.info("No ProgramNotificationTemplate found for {}: ", object.getTemplateUid());
+      return;
+    }
+
+    object.setNotificationTemplate(template);
   }
 }

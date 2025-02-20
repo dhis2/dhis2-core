@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,13 +46,13 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
   @Test
   void testPager_Total_ResultBased() {
     String baseUrl = "/users/{uid}/userGroups/gist?fields=name,users";
-    JsonObject gist = GET(baseUrl + "&total=true", getSuperuserUid()).content();
+    JsonObject gist = GET(baseUrl + "&total=true", getAdminUid()).content();
     assertHasPager(gist, 1, 50, 1);
-    gist = GET(baseUrl + "&totalPages=true", getSuperuserUid()).content();
+    gist = GET(baseUrl + "&totalPages=true", getAdminUid()).content();
     assertHasPager(gist, 1, 50, 1);
 
     JsonWebMessage msg =
-        GET(baseUrl + "&totalPages=true&total=false", getSuperuserUid())
+        GET(baseUrl + "&totalPages=true&total=false", getAdminUid())
             .content(HttpStatus.BAD_REQUEST)
             .as(JsonWebMessage.class);
     assertEquals(
@@ -64,7 +64,7 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
     JsonObject gist =
         GET(
                 "/users/{uid}/userGroups/gist?fields=name,users&total=true&pageListName=matches",
-                getSuperuserUid())
+                getAdminUid())
             .content();
     JsonArray matches = gist.getArray("matches");
     assertTrue(matches.exists());
@@ -74,7 +74,7 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
   @Test
   void testPager_Total_CountQueryNonExistingPage() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6", getAdminUid())
             .content();
     assertHasPager(gist, 6, 50, 1);
   }
@@ -109,14 +109,14 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
     String baseUrl = "/users/{uid}/userGroups/gist";
     assertEquals(
         JsonNodeType.OBJECT,
-        GET(baseUrl, getSuperuserUid()).content().node().getType(),
+        GET(baseUrl, getAdminUid()).content().node().getType(),
         "by default list should have a pager");
 
     assertEquals(
         JsonNodeType.ARRAY,
-        GET(baseUrl + "?headless=true", getSuperuserUid()).content().node().getType());
+        GET(baseUrl + "?headless=true", getAdminUid()).content().node().getType());
     assertEquals(
         JsonNodeType.OBJECT,
-        GET(baseUrl + "?headless=false", getSuperuserUid()).content().node().getType());
+        GET(baseUrl + "?headless=false", getAdminUid()).content().node().getType());
   }
 }

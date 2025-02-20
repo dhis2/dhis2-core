@@ -29,10 +29,10 @@ package org.hisp.dhis.reservedvalue.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;

@@ -59,6 +59,8 @@ public enum DateUnitType {
   YEARLY(PeriodTypeEnum.YEARLY, "\\b(\\d{4})\\b"),
   FINANCIAL_APRIL(PeriodTypeEnum.FINANCIAL_APRIL, "\\b(\\d{4})April\\b"),
   FINANCIAL_JULY(PeriodTypeEnum.FINANCIAL_JULY, "\\b(\\d{4})July\\b"),
+
+  FINANCIAL_SEPTEMBER(PeriodTypeEnum.FINANCIAL_SEP, "\\b(\\d{4})Sep\\b"),
   FINANCIAL_OCTOBER(PeriodTypeEnum.FINANCIAL_OCT, "\\b(\\d{4})Oct\\b"),
   FINANCIAL_NOVEMBER(PeriodTypeEnum.FINANCIAL_NOV, "\\b(\\d{4})Nov\\b");
 

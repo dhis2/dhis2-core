@@ -54,7 +54,7 @@ class UpdatableFieldsValidator
     reporter.addErrorIf(
         () -> !enrollment.getProgram().isEqualTo(program), enrollment, E1127, "program");
     reporter.addErrorIf(
-        () -> !trackedEntity.getUid().equals(enrollment.getTrackedEntity()),
+        () -> !trackedEntity.getUid().equals(enrollment.getTrackedEntity().getValue()),
         enrollment,
         E1127,
         "trackedEntity");

@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -64,7 +63,7 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier {
         preheat.getAll(OrganisationUnit.class).stream()
             .map(IdentifiableObject::getId)
             .distinct()
-            .collect(Collectors.toList());
+            .toList();
 
     if (orgUnitIds.isEmpty()) {
       return;

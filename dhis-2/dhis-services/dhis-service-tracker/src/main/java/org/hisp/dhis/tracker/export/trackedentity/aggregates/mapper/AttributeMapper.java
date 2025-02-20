@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_ATTRIBUTE_VALUES;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_CODE;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_NAME;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS.ATTR_SKIP_SYNC;
@@ -39,6 +40,7 @@ import static org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttr
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -55,8 +57,10 @@ public interface AttributeMapper {
 
     TrackedEntityAttribute attribute = new TrackedEntityAttribute();
     attribute.setUid(rs.getString(TeAttributeQuery.getColumnName(ATTR_UID)));
-    attribute.setName(rs.getString(TeAttributeQuery.getColumnName(ATTR_NAME)));
     attribute.setCode(rs.getString(TeAttributeQuery.getColumnName(ATTR_CODE)));
+    attribute.setName(rs.getString(TeAttributeQuery.getColumnName(ATTR_NAME)));
+    attribute.setAttributeValues(
+        AttributeValues.of(rs.getString(TeAttributeQuery.getColumnName(ATTR_ATTRIBUTE_VALUES))));
     attribute.setValueType(
         ValueType.fromString(rs.getString(TeAttributeQuery.getColumnName(ATTR_VALUE_TYPE))));
     attribute.setSkipSynchronization(rs.getBoolean(TeAttributeQuery.getColumnName(ATTR_SKIP_SYNC)));

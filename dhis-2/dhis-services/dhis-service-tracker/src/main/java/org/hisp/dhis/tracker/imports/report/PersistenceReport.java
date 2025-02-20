@@ -34,6 +34,7 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hisp.dhis.tracker.TrackerType;
 
 /**
@@ -43,6 +44,7 @@ import org.hisp.dhis.tracker.TrackerType;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class PersistenceReport {

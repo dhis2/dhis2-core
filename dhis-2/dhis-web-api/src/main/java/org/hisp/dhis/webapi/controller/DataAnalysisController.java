@@ -29,10 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,8 +43,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -77,11 +78,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
@@ -96,7 +97,6 @@ import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -109,14 +109,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Joao Antunes
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = ValidationRule.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
-@RequestMapping(value = DataAnalysisController.RESOURCE_PATH)
+@RequestMapping("/api/dataAnalysis")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j
-@PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
+@RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class DataAnalysisController {
-  public static final String RESOURCE_PATH = "/dataAnalysis";
 
   private static final String KEY_ANALYSIS_DATA_VALUES = "analysisDataValues";
 
@@ -182,7 +183,7 @@ public class DataAnalysisController {
             .build();
 
     List<ValidationResult> validationResults =
-        validationService.validationAnalysis(params, NoopJobProgress.INSTANCE);
+        validationService.validationAnalysis(params, JobProgress.noop());
 
     validationResults.sort(new ValidationResultComparator());
 
@@ -443,7 +444,7 @@ public class DataAnalysisController {
         false);
 
     GridUtils.toPdf(
-        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
+        UserSettings.getCurrentSettings().getUserDbLocale(), grid, response.getOutputStream());
   }
 
   @GetMapping("/report.xls")
@@ -505,7 +506,7 @@ public class DataAnalysisController {
         false);
 
     GridUtils.toPdf(
-        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
+        UserSettings.getCurrentSettings().getUserDbLocale(), grid, response.getOutputStream());
   }
 
   @GetMapping("validationRules/report.xls")
@@ -671,7 +672,7 @@ public class DataAnalysisController {
       if (organisationUnit != null) {
         validationResultView.setOrganisationUnitId(organisationUnit.getUid());
         validationResultView.setOrganisationUnitDisplayName(organisationUnit.getDisplayName());
-        validationResultView.setOrganisationUnitPath(organisationUnit.getPath());
+        validationResultView.setOrganisationUnitPath(organisationUnit.getStoredPath());
         validationResultView.setOrganisationUnitAncestorNames(organisationUnit.getAncestorNames());
       }
 

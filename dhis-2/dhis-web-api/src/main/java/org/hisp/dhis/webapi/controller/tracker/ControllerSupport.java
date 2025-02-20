@@ -38,8 +38,6 @@ public class ControllerSupport {
     throw new IllegalStateException("Utility class");
   }
 
-  public static final String RESOURCE_PATH = "/tracker";
-
   /**
    * Ensures that {@code fieldsAdvocatedByWeb} advocated by {@link
    * org.hisp.dhis.webapi.controller.tracker.export} as orderable are in fact orderable by the

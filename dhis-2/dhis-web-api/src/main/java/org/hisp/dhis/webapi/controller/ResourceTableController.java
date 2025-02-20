@@ -37,33 +37,34 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.MONITORING;
 import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -72,31 +73,34 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland. This is the AnalyticsExportController
  */
-@OpenApi.Tags("analytics")
+@Slf4j
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
-@RequestMapping(value = "/resourceTables")
+@RequestMapping("/api/resourceTables")
 @ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 public class ResourceTableController {
 
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequestMapping(
       value = "/analytics",
       method = {PUT, POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
   public WebMessage analytics(
       @RequestParam(defaultValue = "false") Boolean skipResourceTables,
       @RequestParam(defaultValue = "false") Boolean skipAggregate,
+      @RequestParam(defaultValue = "false") Boolean skipValidationResult,
       @RequestParam(defaultValue = "false") Boolean skipEvents,
       @RequestParam(defaultValue = "false") Boolean skipEnrollment,
       @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
       @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
       @RequestParam(required = false) Integer lastYears,
       @RequestParam(defaultValue = "false") Boolean skipOutliers)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<String> skipPrograms = new HashSet<>();
 
@@ -104,6 +108,10 @@ public class ResourceTableController {
       skipTableTypes.add(DATA_VALUE);
       skipTableTypes.add(COMPLETENESS);
       skipTableTypes.add(COMPLETENESS_TARGET);
+    }
+
+    if (isTrue(skipValidationResult)) {
+      skipTableTypes.add(VALIDATION_RESULT);
     }
 
     if (isTrue(skipEvents)) {
@@ -134,10 +142,9 @@ public class ResourceTableController {
   }
 
   @RequestMapping(method = {PUT, POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
-  public WebMessage resourceTables(@CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage resourceTables(@CurrentUser UserDetails currentUser) throws ConflictException {
     JobConfiguration config = new JobConfiguration(RESOURCE_TABLE);
     config.setExecutedBy(currentUser.getUid());
     return execute(config);
@@ -146,17 +153,18 @@ public class ResourceTableController {
   @RequestMapping(
       value = "/monitoring",
       method = {PUT, POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
-  public WebMessage monitoring() throws ConflictException, @OpenApi.Ignore NotFoundException {
+  public WebMessage monitoring() throws ConflictException {
     JobConfiguration config = new JobConfiguration(MONITORING);
     config.setJobParameters(new MonitoringJobParameters());
     return execute(config);
   }
 
-  private WebMessage execute(JobConfiguration configuration)
-      throws ConflictException, NotFoundException {
-    jobSchedulerService.executeNow(jobConfigurationService.create(configuration));
+  private WebMessage execute(JobConfiguration configuration) throws ConflictException {
+    log.debug("Executing requested job of type: '{}'", configuration.getJobType());
+
+    jobExecutionService.executeOnceNow(configuration);
 
     return jobConfigurationReport(configuration);
   }

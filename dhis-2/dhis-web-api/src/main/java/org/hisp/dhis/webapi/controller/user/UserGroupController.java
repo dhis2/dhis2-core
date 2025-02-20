@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
@@ -37,18 +38,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "management"})
 @Controller
-@RequestMapping(value = UserGroupSchemaDescriptor.API_ENDPOINT)
-public class UserGroupController extends AbstractCrudController<UserGroup> {
+@RequestMapping("/api/userGroups")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class UserGroupController extends AbstractCrudController<UserGroup, GetObjectListParams> {
 
   @Override
   protected void postUpdateEntity(UserGroup entity) {
     hibernateCacheManager.clearCache();
+    aclService.invalidateCurrentUserGroupInfoCache();
+  }
+
+  @Override
+  protected void postUpdateItems(UserGroup entity, IdentifiableObjects items) {
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
   protected void postDeleteEntity(String entityUid) {
     manager.removeUserGroupFromSharing(entityUid);
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 }

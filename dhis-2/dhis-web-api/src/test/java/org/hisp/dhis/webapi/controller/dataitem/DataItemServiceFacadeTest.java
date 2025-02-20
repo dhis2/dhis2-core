@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.getDefaultEntities;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -57,6 +57,7 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -88,6 +89,7 @@ class DataItemServiceFacadeTest {
 
   @BeforeEach
   public void setUp() {
+    injectSecurityContext(new SystemUser());
     dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
   }
 
@@ -189,7 +191,7 @@ class DataItemServiceFacadeTest {
         dataItemServiceFacade.extractTargetEntities(noTargetEntitiesFilters);
 
     // Then
-    assertThat(actualTargetEntities, containsInAnyOrder(getEntities().toArray()));
+    assertThat(actualTargetEntities, containsInAnyOrder(getDefaultEntities().toArray()));
   }
 
   private WebOptions mockWebOptions(final int pageSize, final int pageNumber) {

@@ -30,4 +30,13 @@ package org.hisp.dhis.query;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Criterion {}
+public interface Criterion {
+
+  /**
+   * @return true, when the condition cannot match any rows, e.g. an in-operator with an empty
+   *     collection to test against
+   */
+  default boolean isAlwaysFalse() {
+    return false;
+  }
+}

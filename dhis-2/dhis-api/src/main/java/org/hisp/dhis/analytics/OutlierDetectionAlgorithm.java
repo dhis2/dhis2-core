@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.common.OpenApi;
+
 /**
  * Algorithm for outlier value detection.
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Shared(name = "AnalyticsOutlierDetectionAlgorithm")
 public enum OutlierDetectionAlgorithm {
   Z_SCORE,
   MIN_MAX,

@@ -38,7 +38,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.auth.Auth;
+import org.hisp.dhis.common.auth.AuthScheme;
 
 /**
  * @author Morten Olav Hansen
@@ -48,6 +48,7 @@ import org.hisp.dhis.common.auth.Auth;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class Route extends BaseIdentifiableObject implements MetadataObject {
+  public static final int DEFAULT_RESPONSE_TIMEOUT_SECONDS = 5;
   public static final String PATH_WILDCARD_SUFFIX = "/**";
 
   @JsonProperty private String description;
@@ -61,9 +62,14 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(required = true)
   private Map<String, String> headers = new HashMap<>();
 
-  @JsonProperty private Auth auth;
+  /** Optional. Authentication to be passed as part of the route request. */
+  @JsonProperty private AuthScheme auth;
 
+  /** Optional. Required authorities for invoking the route. */
   @JsonProperty private List<String> authorities = new ArrayList<>();
+
+  @JsonProperty(defaultValue = "" + DEFAULT_RESPONSE_TIMEOUT_SECONDS)
+  private int responseTimeoutSeconds = DEFAULT_RESPONSE_TIMEOUT_SECONDS;
 
   /**
    * If the route url ends with /** return true. Otherwise return false.

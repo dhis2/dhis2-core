@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.util.DateUtils.getDate;
 import static org.hisp.dhis.util.DateUtils.minusOneDay;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
@@ -454,6 +455,15 @@ class DateUtilsTest {
     // Assert yyyyyMMddd INVALID format
     date = safeParseDate("2025011120");
     assertNull(date);
+  }
+
+  @Test
+  void testDateTruncMonth() {
+    Date dateA = getDate(2024, 3, 9);
+    Date dateB = getDate(2024, 10, 20);
+
+    assertEquals(getDate(2024, 3, 1), DateUtils.dateTruncMonth(dateA));
+    assertEquals(getDate(2024, 10, 1), DateUtils.dateTruncMonth(dateB));
   }
 
   @Test

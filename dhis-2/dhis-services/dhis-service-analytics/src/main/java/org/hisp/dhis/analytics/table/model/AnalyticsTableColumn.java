@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.db.model.Collation;
@@ -42,6 +43,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
  * @author Lars Helge Overland
  */
 @Getter
+@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalyticsTableColumn {
   /** Column name. */
@@ -51,211 +53,32 @@ public class AnalyticsTableColumn {
   private final DataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  private final Nullable nullable;
+  @Builder.Default private final Nullable nullable = Nullable.NULL;
 
   /** Column collation. */
-  private final Collation collation;
+  @Builder.Default private final Collation collation = Collation.DEFAULT;
 
   /** Column analytics value type, i.e. dimension or fact. */
-  private final AnalyticsValueType valueType;
+  @Builder.Default private final AnalyticsValueType valueType = AnalyticsValueType.DIMENSION;
 
   /** The expression to use in select clauses. */
   private final String selectExpression;
 
   /** Whether to skip or include an index for column. */
-  private final Skip skipIndex;
+  @Builder.Default private final Skip skipIndex = Skip.INCLUDE;
 
   /** Index type, defaults to database default type {@link IndexType#BTREE}. */
-  private final IndexType indexType;
+  @Builder.Default private final IndexType indexType = IndexType.BTREE;
 
-  /** Index column names, defaults to column name. */
-  private final List<String> indexColumns;
+  /** Index column names. */
+  @Builder.Default private final List<String> indexColumns = List.of();
+
+  /** The column type indicates the column origin. */
+  @Builder.Default
+  private final AnalyticsDimensionType dimensionType = AnalyticsDimensionType.STATIC;
 
   /** Date of creation of the underlying data dimension. */
-  private Date created;
-
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param selectExpression source table select expression.
-   */
-  public AnalyticsTableColumn(String name, DataType dataType, String selectExpression) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = Nullable.NULL;
-    this.collation = Collation.DEFAULT;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = Skip.INCLUDE;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = List.of();
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param collation the analytics table column collation.
-   * @param selectExpression source table select expression.
-   */
-  public AnalyticsTableColumn(
-      String name, DataType dataType, Collation collation, String selectExpression) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = Nullable.NULL;
-    this.collation = collation;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = Skip.INCLUDE;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = List.of();
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param nullable analytics table column not null constraint.
-   * @param selectExpression source table select expression.
-   */
-  public AnalyticsTableColumn(
-      String name, DataType dataType, Nullable nullable, String selectExpression) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = nullable;
-    this.collation = Collation.DEFAULT;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = Skip.INCLUDE;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = List.of();
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param selectExpression source table select expression.
-   * @param indexType the index type.
-   */
-  public AnalyticsTableColumn(
-      String name, DataType dataType, String selectExpression, Skip skipIndex) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = Nullable.NULL;
-    this.collation = Collation.DEFAULT;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = skipIndex;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = List.of();
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param selectExpression source table select expression.
-   * @param indexType the index type.
-   */
-  public AnalyticsTableColumn(
-      String name, DataType dataType, String selectExpression, IndexType indexType) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = Nullable.NULL;
-    this.collation = Collation.DEFAULT;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = Skip.INCLUDE;
-    this.indexType = indexType;
-    this.indexColumns = List.of();
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param selectExpression source table select expression.
-   * @param created the created date.
-   */
-  public AnalyticsTableColumn(
-      String name, DataType dataType, String selectExpression, Date created) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = Nullable.NULL;
-    this.collation = Collation.DEFAULT;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = Skip.INCLUDE;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = List.of();
-    this.created = created;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param nullable analytics table column not null constraint.
-   * @param selectExpression source table select expression.
-   * @param indexColumns index column names.
-   */
-  public AnalyticsTableColumn(
-      String name,
-      DataType dataType,
-      Nullable nullable,
-      String selectExpression,
-      List<String> indexColumns) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = nullable;
-    this.collation = Collation.DEFAULT;
-    this.valueType = AnalyticsValueType.DIMENSION;
-    this.selectExpression = selectExpression;
-    this.skipIndex = Skip.INCLUDE;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = indexColumns;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param selectExpression source table select expression.
-   */
-  public AnalyticsTableColumn(
-      String name,
-      DataType dataType,
-      Nullable notNull,
-      AnalyticsValueType valueType,
-      String selectExpression) {
-    this.name = name;
-    this.dataType = dataType;
-    this.nullable = notNull;
-    this.collation = Collation.DEFAULT;
-    this.valueType = valueType;
-    this.skipIndex = Skip.INCLUDE;
-    this.selectExpression = selectExpression;
-    this.indexType = IndexType.BTREE;
-    this.indexColumns = List.of();
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+  private final Date created;
 
   /** Indicates whether this column is not null. */
   public boolean isNotNull() {
@@ -275,6 +98,11 @@ public class AnalyticsTableColumn {
   /** Indicates whether an index should not be created for this column. */
   public boolean isSkipIndex() {
     return Skip.SKIP == skipIndex;
+  }
+
+  /** Indicates whether the column type is set to a non-default value. */
+  public boolean isStaticDimension() {
+    return AnalyticsDimensionType.STATIC == dimensionType;
   }
 
   @Override

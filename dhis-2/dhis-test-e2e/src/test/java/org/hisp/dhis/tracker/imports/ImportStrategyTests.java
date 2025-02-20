@@ -34,14 +34,14 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.function.Consumer;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -59,21 +59,21 @@ public class ImportStrategyTests extends TrackerApiTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json",
-        "src/test/resources/tracker/importer/teis/teiAndEnrollment.json",
-        "src/test/resources/tracker/importer/teis/teis.json",
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesWithEnrollmentsAndEvents.json",
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntityAndEnrollment.json",
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntities.json",
         "src/test/resources/tracker/importer/events/events.json"
       })
   public void shouldDeleteWithDeleteStrategy(String fileName) throws Exception {
     // arrange
-    JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData(new File(fileName));
+    JsonObject teBody = new FileReaderUtils().readJsonAndGenerateData(new File(fileName));
 
-    trackerImportExportActions.postAndGetJobReport(teiBody).validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(teBody).validateSuccessfulImport();
 
     // act
     ApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            teiBody, new QueryParamsBuilder().add("importStrategy=DELETE"));
+            teBody, new QueryParamsBuilder().add("importStrategy=DELETE"));
 
     // assert
     response
@@ -84,16 +84,17 @@ public class ImportStrategyTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldDeleteReferencingDataWhenTeiIsDeleted() throws Exception {
+  public void shouldDeleteReferencingDataWhenTrackedEntityIsDeleted() throws Exception {
     // arrange
     JsonObject body =
         new FileReaderUtils()
             .readJsonAndGenerateData(
-                new File("src/test/resources/tracker/importer/teis/teiAndEnrollment.json"));
+                new File(
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntityAndEnrollment.json"));
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(body).validateSuccessfulImport();
-    String teiId = response.extractImportedTeis().get(0);
+    String teId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
     body.remove("enrollments");
@@ -107,7 +108,7 @@ public class ImportStrategyTests extends TrackerApiTest {
     // assert
     response.validateSuccessfulImport().validate().body("stats.deleted", Matchers.equalTo(1));
 
-    trackerImportExportActions.getTrackedEntity(teiId).validate().statusCode(404);
+    trackerImportExportActions.getTrackedEntity(teId).validate().statusCode(404);
     trackerImportExportActions.get("/enrollments/" + enrollmentId).validate().statusCode(404);
   }
 
@@ -115,7 +116,7 @@ public class ImportStrategyTests extends TrackerApiTest {
   public void shouldDeleteReferencingEventsWhenEnrollmentIsDeleted() {
     // arrange
     JsonObject body =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollmentAndEvent(
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],
@@ -124,7 +125,7 @@ public class ImportStrategyTests extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(body).validateSuccessfulImport();
-    String teiId = response.extractImportedTeis().get(0);
+    String teId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
     String eventId1 = response.extractImportedEvents().get(0);
 
@@ -145,7 +146,7 @@ public class ImportStrategyTests extends TrackerApiTest {
     response.validateSuccessfulImport().validate().body("stats.deleted", Matchers.equalTo(1));
 
     trackerImportExportActions
-        .getTrackedEntity(teiId + "?fields=*")
+        .getTrackedEntity(teId + "?fields=*")
         .validate()
         .statusCode(200)
         .body("enrollments", hasSize(0));
@@ -156,11 +157,11 @@ public class ImportStrategyTests extends TrackerApiTest {
 
   @Test
   public void shouldDeleteWithOnlyIdInThePayload() throws Exception {
-    TrackerApiResponse response = super.importTeisWithEnrollmentAndEvent();
+    TrackerApiResponse response = super.importTrackedEntitiesWithEnrollmentAndEvent();
 
     String eventId = response.extractImportedEvents().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
-    String teiId = response.extractImportedTeis().get(0);
+    String teId = response.extractImportedTrackedEntities().get(0);
 
     Consumer<JsonObject> deleteAndValidate =
         (payload) -> {
@@ -179,7 +180,7 @@ public class ImportStrategyTests extends TrackerApiTest {
             .wrapIntoArray("enrollments"));
     deleteAndValidate.accept(
         new JsonObjectBuilder()
-            .addProperty("trackedEntity", teiId)
+            .addProperty("trackedEntity", teId)
             .wrapIntoArray("trackedEntities"));
   }
 }

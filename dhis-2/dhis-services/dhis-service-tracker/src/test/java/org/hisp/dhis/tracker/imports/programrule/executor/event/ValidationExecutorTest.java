@@ -40,19 +40,21 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationAction;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,16 +65,16 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class ValidationExecutorTest extends DhisConvenienceTest {
-  private static final String RULE_UID = "Rule uid";
+class ValidationExecutorTest extends TestBase {
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
   private static final String CONTENT = "SHOW ERROR DATA";
 
   private static final String EVALUATED_DATA = "4.0";
 
-  private static final String ACTIVE_EVENT_ID = "EventUid";
+  private static final UID ACTIVE_EVENT_UID = UID.generate();
 
-  private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
+  private static final UID COMPLETED_EVENT_UID = UID.generate();
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
@@ -81,16 +83,18 @@ class ValidationExecutorTest extends DhisConvenienceTest {
   private static final String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
   private final ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
-      new ShowWarningOnCompleteExecutor(getValidationRuleAction(WARNING));
+      new ShowWarningOnCompleteExecutor(
+          getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING_ON_COMPLETE));
 
   private final ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
-      new ShowErrorOnCompleteExecutor(getValidationRuleAction(ERROR));
+      new ShowErrorOnCompleteExecutor(
+          getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR_ON_COMPLETE));
 
   private final ShowErrorExecutor showErrorExecutor =
-      new ShowErrorExecutor(getValidationRuleAction(ERROR));
+      new ShowErrorExecutor(getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR));
 
   private final ShowWarningExecutor showWarningExecutor =
-      new ShowWarningExecutor(getValidationRuleAction(WARNING));
+      new ShowWarningExecutor(getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING));
 
   private TrackerBundle bundle;
 
@@ -193,8 +197,10 @@ class ValidationExecutorTest extends DhisConvenienceTest {
     assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
   }
 
-  private ValidationRuleAction getValidationRuleAction(IssueType issueType) {
-    return new ValidationRuleAction(RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
+  private ValidationEffect getValidationRuleAction(
+      IssueType issueType, ValidationAction actionType) {
+    return new ValidationEffect(
+        actionType, RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
   }
 
   private List<Event> getEvents() {
@@ -203,7 +209,7 @@ class ValidationExecutorTest extends DhisConvenienceTest {
 
   private Event activeEvent() {
     return Event.builder()
-        .event(ACTIVE_EVENT_ID)
+        .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .build();
@@ -211,7 +217,7 @@ class ValidationExecutorTest extends DhisConvenienceTest {
 
   private Event completedEvent() {
     return Event.builder()
-        .event(COMPLETED_EVENT_ID)
+        .event(COMPLETED_EVENT_UID)
         .status(EventStatus.COMPLETED)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .build();

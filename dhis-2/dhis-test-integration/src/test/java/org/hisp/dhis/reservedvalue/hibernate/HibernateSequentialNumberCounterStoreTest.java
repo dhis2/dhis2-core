@@ -45,14 +45,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class HibernateSequentialNumberCounterStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private SequentialNumberCounterStore sequentialNumberCounterStore;
 

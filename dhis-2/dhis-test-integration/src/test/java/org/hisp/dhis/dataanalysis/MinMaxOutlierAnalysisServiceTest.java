@@ -44,11 +44,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
+class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private MinMaxOutlierAnalysisService minMaxOutlierAnalysisService;
 
@@ -104,11 +105,8 @@ class MinMaxOutlierAnalysisServiceTest extends IntegrationTestBase {
 
   private OrganisationUnit organisationUnitA;
 
-  // ----------------------------------------------------------------------
-  // Fixture
-  // ----------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     categoryCombo = categoryService.getDefaultCategoryCombo();
     categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     dataElementA = createDataElement('A', categoryCombo);

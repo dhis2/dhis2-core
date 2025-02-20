@@ -28,56 +28,74 @@
 package org.hisp.dhis.icon;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.springframework.core.io.Resource;
 
 /**
  * @author Kristian Wærstad
  */
 public interface IconService {
+
   /**
-   * Gets data about all the icons in the system
+   * The {@link Icon}s returned by this method are not persisted in DB.
    *
-   * @param iconOperationParams params to fetch icons
-   * @return a collection of data about all the icons in the system
+   * @return an {@link Icon} for all {@link DefaultIcon}s variants that do not yet exist
    */
-  List<Icon> getIcons(IconOperationParams iconOperationParams);
+  @Nonnull
+  Map<DefaultIcon, List<AddIconRequest>> findNonExistingDefaultIcons();
+
+  /**
+   * To creates the {@link org.hisp.dhis.fileresource.FileResource} for the default icon provided
+   *
+   * @param key of the default icon to create (includes variant)
+   * @param origin of th {@link DefaultIcon} this represents
+   * @return the UID of the crated {@link org.hisp.dhis.fileresource.FileResource}
+   */
+  @Nonnull
+  String addDefaultIconImage(@Nonnull String key, @Nonnull DefaultIcon origin)
+      throws ConflictException;
+
+  /**
+   * A phantom default icon is an icon that exists as {@link
+   * org.hisp.dhis.fileresource.FileResource} but for some reason has lost its file in the store. To
+   * repair the icon the file is re-uploaded.
+   *
+   * @return the number of {@link DefaultIcon} {@link org.hisp.dhis.fileresource.FileResource}s that
+   *     were repaired.
+   * @throws ConflictException when an exception occurred during repair
+   */
+  int repairPhantomDefaultIcons() throws ConflictException;
+
+  /**
+   * Get the count of Icons based on filters provided in {@link IconQueryParams}
+   *
+   * @param params filters
+   * @return total count
+   */
+  long count(@Nonnull IconQueryParams params) throws BadRequestException;
+
+  /**
+   * Get list of Icons based on filters provided in {@link IconQueryParams}
+   *
+   * @param params filters to build query
+   * @return list of Icons
+   */
+  @Nonnull
+  List<Icon> getIcons(@Nonnull IconQueryParams params) throws BadRequestException;
 
   /**
    * Gets the icon associated to a key, if it exists
    *
    * @param key key of the icon to find
-   * @return icon associated to the key, if found
-   * @throws NotFoundException if no icon exists in the database with the provided key
-   */
-  Icon getIcon(String key) throws NotFoundException;
-
-  /**
-   * Gets the custom icon associated to a key, if it exists
-   *
-   * @param key key of the icon to find
    * @return custom icon associated to the key, if found
-   * @throws NotFoundException if no custom icon exists with the provided key
+   * @throws NotFoundException if no icon exists with the provided key
    */
-  CustomIcon getCustomIcon(String key) throws NotFoundException;
-
-  /**
-   * Gets the icon with the correct key if one exists
-   *
-   * @param key key of the icon
-   * @return the icon resource
-   * @throws NotFoundException if no default icon exists with the provided key
-   */
-  Resource getDefaultIconResource(String key) throws NotFoundException;
-
-  /**
-   * Gets a set of all unique keywords assigned to icons
-   *
-   * @return set of unique keywords
-   */
-  Set<String> getKeywords();
+  @Nonnull
+  Icon getIcon(@Nonnull String key) throws NotFoundException;
 
   /**
    * Checks whether an icon with a given key exists, either default or custom
@@ -85,41 +103,43 @@ public interface IconService {
    * @param key key of the icon
    * @return true if the icon exists, false otherwise
    */
-  boolean iconExists(String key);
+  boolean iconExists(@Nonnull String key);
 
   /**
-   * Persists the provided custom icon to the database
+   * Persists the provided icon to the database
    *
-   * @param customIcon the icon to be persisted
+   * @param request details the icon to be created
+   * @param origin in case the icon represents a variant of a {@link DefaultIcon}
    * @throws BadRequestException when an icon already exists with the same key or the file resource
    *     id is not specified
    * @throws NotFoundException when no file resource with the provided id exists
+   * @throws BadRequestException when another icon with the same key already exists
+   * @return the created and persisted {@link Icon}
    */
-  void addCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
-
-  /**
-   * Updates the description of a given custom icon
-   *
-   * @param key the key of the icon to update
-   * @param description the new icons description
-   * @param keywords the new icons keywords
-   * @param isCustom Icon is CustomIcon or default.
-   * @throws BadRequestException when icon key is not specified
-   * @throws NotFoundException when no icon with the provided key exists
-   */
-  void updateCustomIcon(String key, String description, String[] keywords)
+  @Nonnull
+  Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
       throws BadRequestException, NotFoundException;
 
-  void updateCustomIcon(CustomIcon customIcon) throws BadRequestException, NotFoundException;
+  /**
+   * Updated the provided icon
+   *
+   * @param request the icon to be updated
+   */
+  void updateIcon(@Nonnull String key, @Nonnull UpdateIconRequest request)
+      throws BadRequestException, NotFoundException;
 
   /**
-   * Deletes a custom icon given its key
+   * Deletes a given Icon
    *
-   * @param key the key of the icon to delete
+   * @param key of the icon to be deleted
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteCustomIcon(String key) throws BadRequestException, NotFoundException;
+  void deleteIcon(@Nonnull String key) throws BadRequestException, NotFoundException;
 
-  long count(IconOperationParams iconOperationParams);
+  /**
+   * @return number of icons deleted because they were not custom but refer to a non-existing {@link
+   *     org.hisp.dhis.fileresource.FileResource}
+   */
+  int deleteOrphanDefaultIcons();
 }

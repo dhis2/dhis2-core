@@ -1,0 +1,125 @@
+# Copyright (c) 2004-2024, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: category_option_combos_have_duplicates
+description: Category option combo duplicates, same category options and same category combo
+section: Categories
+section_order: 6
+summary_sql: >-
+  WITH coc_long AS (
+  SELECT coc.name as coc_name,coc.uid as coc_uid,
+  cc.uid as cc_uid,cc.name as cc_name,
+  co.uid as co_uid,co.name as co_name
+  FROM(
+  SELECT a.categorycomboid,
+  b.categoryoptioncomboid,
+  b.categoryoptionid
+  FROM categorycombos_optioncombos a
+  RIGHT OUTER JOIN categoryoptioncombos_categoryoptions b on a.categoryoptioncomboid = b.categoryoptioncomboid
+  ORDER BY a.categorycomboid,b.categoryoptionid
+  
+  ) as x
+  JOIN categorycombo cc on cc.categorycomboid = x.categorycomboid
+  JOIN categoryoptioncombo coc on coc.categoryoptioncomboid = x.categoryoptioncomboid
+  JOIN categoryoption co on co.categoryoptionid = x.categoryoptionid
+  ORDER BY coc.name,cc.name,co.name
+  ),
+  coc_wide AS (
+  SELECT coc_name,coc_uid,
+  array_agg(cc_uid) as cc_uids,
+  array_agg(cc_name) as cc_names,
+  array_agg(co_uid) as co_uids,
+  array_agg(co_name) as co_names
+  FROM coc_long
+  GROUP BY coc_name,coc_uid
+  ),
+  coc_summary AS(
+  SELECT cc_uids,cc_names,co_uids,co_names,COUNT(*) as coc_count
+  FROM coc_wide
+  GROUP BY cc_uids,cc_names,co_uids,co_names
+  HAVING COUNT(*) > 1
+  )
+  SELECT COUNT(*) as value,
+   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
+  FROM categoryoptioncombo),0 ) percent
+  FROM coc_summary;
+details_sql: >-
+  WITH coc_long AS (
+  SELECT coc.name as coc_name,coc.uid as coc_uid,
+  cc.uid as cc_uid,cc.name as cc_name,
+  co.uid as co_uid,co.name as co_name
+  FROM(
+  SELECT a.categorycomboid,
+  b.categoryoptioncomboid,
+  b.categoryoptionid
+  FROM categorycombos_optioncombos a
+  RIGHT OUTER JOIN categoryoptioncombos_categoryoptions b on a.categoryoptioncomboid = b.categoryoptioncomboid
+  ORDER BY a.categorycomboid,b.categoryoptionid
+
+  ) as x
+  JOIN categorycombo cc on cc.categorycomboid = x.categorycomboid
+  JOIN categoryoptioncombo coc on coc.categoryoptioncomboid = x.categoryoptioncomboid
+  JOIN categoryoption co on co.categoryoptionid = x.categoryoptionid
+  ORDER BY coc.name,cc.name,co.name
+  ),
+  coc_wide AS (
+  SELECT coc_name,coc_uid,
+  array_agg(cc_uid) as cc_uids,
+  array_agg(cc_name) as cc_names,
+  array_agg(co_uid) as co_uids,
+  array_agg(co_name) as co_names
+  FROM coc_long
+  GROUP BY coc_name,coc_uid
+  ),
+  coc_summary AS(
+  SELECT cc_uids,cc_names,co_uids,co_names,COUNT(*) as coc_count
+  FROM coc_wide
+  GROUP BY cc_uids,cc_names,co_uids,co_names
+  HAVING COUNT(*) > 1
+  )
+  SELECT coc_wide.coc_uid as uid,
+    coc_wide.coc_name as name,
+    array_to_string(coc_wide.cc_names,',') as comment,
+    coc_wide.cc_names  as refs
+    FROM coc_wide
+    JOIN coc_summary on coc_wide.cc_uids = coc_summary.cc_uids and coc_wide.co_uids = coc_summary.co_uids
+severity: WARNING
+introduction: >
+  Category option combos with the exact same category options should be considered
+  to be merged when they associated with the same category combination. 
+  Category option combos with the exact same category options
+  may be easily confused by users in analysis. The details view will
+  provide a list of category option combos which have the exact same category options along
+  with the category combo that they are associated with.
+details_id_type: categoryOptionCombos
+recommendation: |
+  Duplicate category option combinations can arise from a number of different factors. Metadata
+  may have been imported which may lead to duplicates in certain situations. Other causes
+  may include manual creation of these category option combinations through either the database
+  or the API. Once you have identified the potential duplicates, you should consider merging
+  these category option combinations. 
+    

@@ -30,12 +30,13 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -46,20 +47,19 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,9 +70,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(
+    entity = DataElement.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
-@RequestMapping(value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/minMaxDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MinMaxDataElementController {
@@ -98,7 +100,7 @@ public class MinMaxDataElementController {
     query.setFilters(filters);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<MinMaxDataElement> minMaxDataElements = minMaxService.getMinMaxDataElements(query);
@@ -122,7 +124,7 @@ public class MinMaxDataElementController {
   // --------------------------------------------------------------------------
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseBody
   public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
     MinMaxDataElement minMax =
@@ -151,7 +153,7 @@ public class MinMaxDataElementController {
   // --------------------------------------------------------------------------
 
   @DeleteMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseBody
   public WebMessage deleteObject(HttpServletRequest request) throws Exception {
     MinMaxDataElement minMax =

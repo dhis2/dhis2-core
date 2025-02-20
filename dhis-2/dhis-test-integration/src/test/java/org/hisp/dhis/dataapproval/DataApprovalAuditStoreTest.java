@@ -46,16 +46,22 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataApprovalAuditStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
 
@@ -66,8 +72,6 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -112,13 +116,8 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
 
   private DataApprovalAudit auditB;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
-    //    preCreateInjectAdminUser();
+  @BeforeAll
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -127,8 +126,12 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
     PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA = new DataApprovalWorkflow("workflowA", periodType, newHashSet(level1));
-    workflowB = new DataApprovalWorkflow("workflowB", periodType, newHashSet(level1, level2));
+    CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+    workflowA =
+        new DataApprovalWorkflow("workflowA", periodType, defaultCategoryCombo, newHashSet(level1));
+    workflowB =
+        new DataApprovalWorkflow(
+            "workflowB", periodType, defaultCategoryCombo, newHashSet(level1, level2));
     dataApprovalService.addWorkflow(workflowA);
     dataApprovalService.addWorkflow(workflowB);
     periodA = createPeriod(new MonthlyPeriodType(), getDate(2017, 1, 1), getDate(2017, 1, 31));
@@ -243,5 +246,46 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
     audits = dataApprovalAuditStore.getDataApprovalAudits(params);
     assertEquals(1, audits.size());
     assertEquals(auditB, audits.get(0));
+  }
+
+  @Test
+  @DisplayName("Deleting audits by category option combo deletes the correct entries")
+  void deleteByCocTest() {
+    // given
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('1');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc1);
+
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('2');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc2);
+
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('3');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc3);
+
+    DataApproval approvalX =
+        new DataApproval(level1, workflowA, periodA, sourceA, coc1, false, dateA, userA);
+    DataApproval approvalY =
+        new DataApproval(level2, workflowB, periodB, sourceB, coc2, false, dateB, userA);
+    DataApproval approvalZ =
+        new DataApproval(level2, workflowB, periodB, sourceA, coc3, false, dateB, userA);
+
+    DataApprovalAudit auditA = new DataApprovalAudit(approvalX, APPROVE);
+    DataApprovalAudit auditB = new DataApprovalAudit(approvalY, UNAPPROVE);
+    DataApprovalAudit auditC = new DataApprovalAudit(approvalZ, UNAPPROVE);
+    dataApprovalAuditStore.save(auditA);
+    dataApprovalAuditStore.save(auditB);
+    dataApprovalAuditStore.save(auditC);
+
+    // when
+    dataApprovalAuditStore.deleteDataApprovalAudits(coc1);
+    dataApprovalAuditStore.deleteDataApprovalAudits(coc2);
+
+    // then
+    List<DataApprovalAudit> audits =
+        dataApprovalAuditStore.getDataApprovalAudits(new DataApprovalAuditQueryParams());
+    assertEquals(1, audits.size());
+    assertEquals(auditC, audits.get(0));
   }
 }

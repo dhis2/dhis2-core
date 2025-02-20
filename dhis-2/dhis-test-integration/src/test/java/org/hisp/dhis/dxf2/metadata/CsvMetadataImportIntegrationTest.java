@@ -44,21 +44,21 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests special validation for {@link org.hisp.dhis.organisationunit.OrganisationUnit} move during
- * metadata import.
+ * Tests special validation for {@link OrganisationUnit} move during metadata import.
  *
  * @author Jan Bernitt
  */
-class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
+@Transactional
+class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CsvImportService csvImportService;
 
@@ -66,13 +66,10 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private MetadataImportService importService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @BeforeEach
   void setUp() throws IOException {
-    userService = _userService;
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits.csv",
@@ -83,7 +80,7 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testOrgUnitImport_MoveLacksMoveAuthority() throws Exception {
-    createAndInjectAdminUser(new String[0]);
+    createAndInjectRandomUser();
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits_move.csv",
@@ -96,7 +93,7 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testOrgUnitImport_MoveLacksWriteAuthority() throws Exception {
-    createAndInjectAdminUser("F_ORGANISATIONUNIT_MOVE");
+    createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE");
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits_move.csv",
@@ -109,7 +106,7 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testOrgUnitImport_MoveFromParentNotInHierarchy() throws Exception {
-    User user = createAndInjectAdminUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
+    User user = createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
     HashSet<OrganisationUnit> orgUnits = new HashSet<>();
     orgUnits.add(organisationUnitService.getOrganisationUnitByCode("L2b"));
     user.setOrganisationUnits(orgUnits);
@@ -127,7 +124,7 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testOrgUnitImport_MoveToParentNotInHierarchy() throws Exception {
-    User user = createAndInjectAdminUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
+    User user = createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
     HashSet<OrganisationUnit> orgUnits = new HashSet<>();
     orgUnits.add(organisationUnitService.getOrganisationUnitByCode("L2a"));
     user.setOrganisationUnits(orgUnits);
@@ -145,7 +142,7 @@ class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
 
   @Test
   void testOrgUnitImport_Success() throws Exception {
-    User user = createAndInjectAdminUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
+    User user = createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
     HashSet<OrganisationUnit> orgUnits = new HashSet<>();
     orgUnits.add(organisationUnitService.getOrganisationUnitByCode("L1"));
     user.setOrganisationUnits(orgUnits);

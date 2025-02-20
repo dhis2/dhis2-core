@@ -36,9 +36,9 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -68,8 +68,8 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(5)))
-        .body("height", equalTo(5))
+        .body("rows", hasSize(equalTo(6)))
+        .body("height", equalTo(6))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
@@ -87,11 +87,11 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
         response, 3, "A03MvHHogjR.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
 
     // Assert rows.
-    validateRow(response, List.of("16", "YuQRtpLP10I", "2022", "Female"));
+    validateRow(response, List.of("14", "YuQRtpLP10I", "2022", "Female"));
     validateRow(response, List.of("12", "YuQRtpLP10I", "2022", "Male"));
-    validateRow(response, List.of("2", "YuQRtpLP10I", "2022", ""));
+    validateRow(response, List.of("4", "YuQRtpLP10I", "2022", ""));
     validateRow(response, List.of("10", "YuQRtpLP10I", "2023", "Female"));
-    validateRow(response, List.of("8", "YuQRtpLP10I", "2023", "Male"));
+    validateRow(response, List.of("7", "YuQRtpLP10I", "2023", "Male"));
   }
 
   @Test
@@ -115,8 +115,8 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(23)))
-        .body("height", equalTo(23))
+        .body("rows", hasSize(equalTo(24)))
+        .body("height", equalTo(24))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
@@ -146,7 +146,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("1", "YuQRtpLP10I", "202302", "Male"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202303", "Female"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202305", "Female"));
-    validateRow(response, List.of("1", "YuQRtpLP10I", "202305", "Male"));
+    validateRow(response, List.of("1", "YuQRtpLP10I", "202305", ""));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202306", "Female"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202309", "Male"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "202310", "Female"));
@@ -156,7 +156,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("8", "YuQRtpLP10I", "2022", "Male"));
     validateRow(response, List.of("1", "YuQRtpLP10I", "2022", ""));
     validateRow(response, List.of("10", "YuQRtpLP10I", "2023", "Female"));
-    validateRow(response, List.of("8", "YuQRtpLP10I", "2023", "Male"));
+    validateRow(response, List.of("7", "YuQRtpLP10I", "2023", "Male"));
   }
 
   @Test
@@ -179,8 +179,8 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(4)))
-        .body("height", equalTo(4))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
@@ -199,7 +199,7 @@ public class EnrollmentsAggregate2AutoTest extends AnalyticsApiTest {
 
     // Assert rows.
     validateRow(response, List.of("421", "O6uvpzGd5pu", "2023", "Female"));
-    validateRow(response, List.of("441", "O6uvpzGd5pu", "2023", "Male"));
+    validateRow(response, List.of("440", "O6uvpzGd5pu", "2023", "Male"));
     validateRow(response, List.of("421", "kJq2mPyFEHo", "2023", "Female"));
     validateRow(response, List.of("452", "kJq2mPyFEHo", "2023", "Male"));
   }

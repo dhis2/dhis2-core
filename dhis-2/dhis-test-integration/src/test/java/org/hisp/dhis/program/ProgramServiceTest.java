@@ -34,20 +34,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
+import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class ProgramServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private ProgramStageService programStageService;
+
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private MappingService mappingService;
 
   private OrganisationUnit organisationUnitA;
 
@@ -59,8 +67,8 @@ class ProgramServiceTest extends TransactionalIntegrationTest {
 
   private Program programC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');

@@ -44,17 +44,18 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.SystemActions;
-import org.hisp.dhis.actions.aggregate.DataValueActions;
-import org.hisp.dhis.actions.aggregate.DataValueSetActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.SystemActions;
+import org.hisp.dhis.test.e2e.actions.aggregate.DataValueActions;
+import org.hisp.dhis.test.e2e.actions.aggregate.DataValueSetActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.ImportSummary;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled
 @Tag("category:aggregate")
 class DataImportTest extends ApiTest {
   private DataValueSetActions dataValueSetActions;

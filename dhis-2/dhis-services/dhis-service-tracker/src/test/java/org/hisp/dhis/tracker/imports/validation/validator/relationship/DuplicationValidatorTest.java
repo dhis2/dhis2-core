@@ -28,15 +28,16 @@
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -74,7 +75,7 @@ class DuplicationValidatorTest {
   void shouldFailWhenRelationshipIsDuplicated() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
@@ -91,7 +92,7 @@ class DuplicationValidatorTest {
   void shouldBeValidWhenRelationshipIsNotDuplicated() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
@@ -121,6 +122,6 @@ class DuplicationValidatorTest {
   }
 
   private RelationshipItem trackedEntityRelationshipItem() {
-    return RelationshipItem.builder().trackedEntity(CodeGenerator.generateUid()).build();
+    return RelationshipItem.builder().trackedEntity(UID.generate()).build();
   }
 }

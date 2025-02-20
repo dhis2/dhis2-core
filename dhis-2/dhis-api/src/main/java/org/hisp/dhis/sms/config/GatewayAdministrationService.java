@@ -28,16 +28,21 @@
 package org.hisp.dhis.sms.config;
 
 import javax.annotation.CheckForNull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 public interface GatewayAdministrationService {
-  void setDefaultGateway(SmsGatewayConfig config);
 
-  boolean removeGatewayByUid(String uid);
+  void setDefaultGateway(SmsGatewayConfig config)
+      throws ForbiddenException, ConflictException, BadRequestException;
+
+  boolean removeGatewayByUid(String uid)
+      throws ForbiddenException, ConflictException, BadRequestException;
 
   boolean hasGateways();
 
@@ -47,9 +52,10 @@ public interface GatewayAdministrationService {
 
   SmsGatewayConfig getByUid(String uid);
 
-  boolean addGateway(SmsGatewayConfig config);
+  boolean addGateway(SmsGatewayConfig config)
+      throws ForbiddenException, ConflictException, BadRequestException;
 
   void updateGateway(
       @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updatedConfig)
-      throws NotFoundException, ConflictException;
+      throws NotFoundException, ConflictException, ForbiddenException, BadRequestException;
 }

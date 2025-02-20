@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.monitoring.prometheus.config;
 
-import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
 import java.time.Duration;
 
 /**

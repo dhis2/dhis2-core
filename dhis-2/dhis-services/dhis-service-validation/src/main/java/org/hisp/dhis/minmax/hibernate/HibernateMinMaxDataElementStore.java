@@ -29,16 +29,18 @@ package org.hisp.dhis.minmax.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -177,8 +179,33 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     getQuery(hql)
         .setParameterList("dataElements", dataElements)
-        .setParameter("path", parent.getPath() + "%")
+        .setParameter("path", parent.getStoredPath() + "%")
         .executeUpdate();
+  }
+
+  @Override
+  public List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from  MinMaxDataElement mmde
+            where mmde.dataElement in :dataElements
+            """,
+            MinMaxDataElement.class)
+        .setParameter("dataElements", dataElements)
+        .list();
+  }
+
+  @Override
+  public List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct mmde from  MinMaxDataElement mmde
+            join mmde.optionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .list();
   }
 
   private Predicate parseFilter(CriteriaBuilder builder, Root<?> root, List<String> filters) {

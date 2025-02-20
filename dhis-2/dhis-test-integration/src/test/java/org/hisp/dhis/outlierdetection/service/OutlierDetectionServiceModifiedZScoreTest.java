@@ -54,6 +54,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest.Builder;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
@@ -61,11 +62,12 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
+class OutlierDetectionServiceModifiedZScoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -91,8 +93,8 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
 
   private CategoryOptionCombo coc;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     MonthlyPeriodType pt = new MonthlyPeriodType();
     m01 = pt.createPeriod("202001");
     m02 = pt.createPeriod("202002");
@@ -167,7 +169,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
         new DataValue(deB, m11, ouA, coc, coc, "11"),
         new DataValue(deB, m12, ouA, coc, coc, "87"));
     OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+        new Builder()
             .withDataElements(List.of(deA, deB))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2021, 1, 1))
             .withOrgUnits(List.of(ouA))
@@ -199,7 +201,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
         new DataValue(deA, m06, ouA, coc, coc, "12"),
         new DataValue(deA, m12, ouA, coc, coc, "91"));
     OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+        new Builder()
             .withDataElements(List.of(deA, deB))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2021, 1, 1))
             .withOrgUnits(List.of(ouA))
@@ -243,7 +245,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
         new DataValue(deB, m11, ouA, coc, coc, "11"),
         new DataValue(deB, m12, ouA, coc, coc, "87"));
     OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+        new Builder()
             .withDataElements(List.of(deA, deB))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2021, 1, 1))
             .withOrgUnits(List.of(ouA))
@@ -275,24 +277,26 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
 
   @Test
   void testGetOutlierValue() {
-    int[] values = {31, 34, 38, 81, 39, 33};
+    final double scalingFactor = 0.6745;
+    double[] values = {31, 34, 38, 81, 39, 33};
     StatsAccumulator stats = new StatsAccumulator();
     stats.addAll(values);
     double outlierValue = 81d;
     double threshold = 2.0;
     double median = median(values);
     double stdDev = stats.populationStandardDeviation();
-    double zScore = Math.abs(outlierValue - median) / stdDev;
+    double mad = mad(values);
+    double zScore = scalingFactor * Math.abs(outlierValue - median) / mad;
     double medianAbsDev = Math.abs(outlierValue - median);
-    double lowerBound = median - (stdDev * threshold);
-    double upperBound = median + (stdDev * threshold);
+    double lowerBound = median - (mad * threshold / scalingFactor);
+    double upperBound = median + (mad * threshold / scalingFactor);
     // (34+38) / 2
     assertEquals(median, DELTA, 36d);
     assertEquals(stdDev, DELTA, 17.365);
-    assertEquals(zScore, DELTA, 2.591);
+    assertEquals(zScore, DELTA, 10.117);
     assertEquals(medianAbsDev, DELTA, 45d);
-    assertEquals(lowerBound, DELTA, 1.269);
-    assertEquals(upperBound, DELTA, 70.73);
+    assertEquals(lowerBound, DELTA, 27.104);
+    assertEquals(upperBound, DELTA, 44.895);
     addDataValues(
         new DataValue(deA, m01, ouA, coc, coc, "31"),
         new DataValue(deA, m02, ouA, coc, coc, "34"),
@@ -301,7 +305,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
         new DataValue(deA, m05, ouA, coc, coc, "39"),
         new DataValue(deA, m06, ouA, coc, coc, "33"));
     OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+        new Builder()
             .withDataElements(List.of(deA, deB))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2021, 1, 1))
             .withOrgUnits(List.of(ouA))
@@ -339,9 +343,21 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
     Stream.of(dataValues).forEach(dataValueService::addDataValue);
   }
 
-  private static double median(int... values) {
+  private static double median(double... values) {
     Arrays.sort(values);
     int n = values.length;
     return n % 2 == 0 ? (values[n / 2] + values[n / 2 - 1]) / 2d : values[n / 2];
+  }
+
+  private static Double mad(double[] input) {
+    double median = median(input);
+    arrayAbsDistance(input, median);
+    return median(input);
+  }
+
+  private static void arrayAbsDistance(double[] array, double value) {
+    for (int i = 0; i < array.length; i++) {
+      array[i] = Math.abs(array[i] - value);
+    }
   }
 }

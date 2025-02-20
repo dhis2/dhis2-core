@@ -131,7 +131,7 @@ class ProgramStageSectionTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramStageSection.class);
-    assertEquals(28, allClassFieldsIncludingInherited.length);
+    assertEquals(27, allClassFieldsIncludingInherited.length);
   }
 
   public static ProgramStageSection getNewProgramStageSection(

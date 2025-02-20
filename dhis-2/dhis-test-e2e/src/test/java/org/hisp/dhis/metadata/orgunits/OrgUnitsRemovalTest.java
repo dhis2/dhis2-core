@@ -34,10 +34,10 @@ import static org.hamcrest.CoreMatchers.is;
 import java.io.File;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.OrgUnitActions;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.actions.metadata.OrgUnitActions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

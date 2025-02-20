@@ -35,23 +35,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-program-rule</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-setting</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-field-filtering</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-artemis</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -112,20 +100,12 @@
       <artifactId>spring-web</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
+      <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -180,10 +160,6 @@
       <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-csv</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.hisp</groupId>
       <artifactId>staxwax</artifactId>
     </dependency>
@@ -192,15 +168,10 @@
       <artifactId>spring-retry</artifactId>
     </dependency>
     <dependency>
-      <groupId>net.postgis</groupId>
-      <artifactId>postgis-jdbc</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>xerces</groupId>
       <artifactId>xercesImpl</artifactId>
@@ -208,10 +179,6 @@
     <dependency>
       <groupId>de.grundid.opendatalab</groupId>
       <artifactId>geojson-jackson</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geotools</groupId>
-      <artifactId>gt-main</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
@@ -228,10 +195,6 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -287,18 +250,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

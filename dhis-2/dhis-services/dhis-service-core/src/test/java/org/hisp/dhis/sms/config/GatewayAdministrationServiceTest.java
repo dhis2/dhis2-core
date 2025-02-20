@@ -99,7 +99,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testGetByUid() {
+  void testGetByUid() throws Exception {
     subject.addGateway(bulkConfig);
     String uid = subject.getDefaultGateway().getUid();
 
@@ -116,7 +116,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testSetDefaultGateway() {
+  void testSetDefaultGateway() throws Exception {
     subject.addGateway(bulkConfig);
     subject.addGateway(clickatellConfig);
 
@@ -129,7 +129,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testAddGateway() {
+  void testAddGateway() throws Exception {
     boolean isAdded = subject.addGateway(bulkConfig);
 
     assertTrue(isAdded);
@@ -198,7 +198,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testSecondGatewayIsSetToFalse() {
+  void testSecondGatewayIsSetToFalse() throws Exception {
     when(smsConfigurationManager.getSmsConfiguration()).thenReturn(spyConfiguration);
 
     subject.addGateway(bulkConfig);
@@ -215,7 +215,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testRemoveDefaultGateway() {
+  void testRemoveDefaultGateway() throws Exception {
     subject.addGateway(bulkConfig);
     subject.addGateway(clickatellConfig);
 
@@ -233,7 +233,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testRemoveGateway() {
+  void testRemoveGateway() throws Exception {
     subject.addGateway(bulkConfig);
     subject.addGateway(clickatellConfig);
 
@@ -249,7 +249,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testRemoveSingleGateway() {
+  void testRemoveSingleGateway() throws Exception {
     subject.addGateway(bulkConfig);
 
     String bulkId = getConfigByClassName(BULKSMS).getUid();
@@ -261,7 +261,7 @@ class GatewayAdministrationServiceTest {
   }
 
   @Test
-  void testReturnFalseIfConfigIsNull() {
+  void testReturnFalseIfConfigIsNull() throws Exception {
     assertFalse(subject.addGateway(null));
   }
 

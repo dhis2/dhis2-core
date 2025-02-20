@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -50,20 +50,24 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -71,6 +75,8 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -101,19 +107,24 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.util.Assert;
 
 /**
@@ -121,7 +132,7 @@ import org.springframework.util.Assert;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsUtils {
+public final class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 
   private static final String KEY_AGG_VALUE = "[aggregated]";
@@ -194,7 +205,7 @@ public class AnalyticsUtils {
     }
 
     sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.deleted is false " + "limit 100000";
+    sql += "and dv.deleted = false limit 100000";
 
     return sql;
   }
@@ -213,7 +224,7 @@ public class AnalyticsUtils {
     for (DimensionalItemObject object : dataDimensionOptions) {
       Class<?> type = HibernateProxyUtils.getRealClass(object);
 
-      if (type.equals(DATA_DIM_TYPE_CLASS_MAP.get(itemType))) {
+      if (type.equals(DataDimensionItem.getType(itemType))) {
         list.add(object);
       }
     }
@@ -352,13 +363,23 @@ public class AnalyticsUtils {
       Map<String, T> valueMap, TotalType totalType) {
     Map<String, T> map = Maps.newHashMap();
 
+    final int upperBoundaryMarginOfDimensionalObjectItems = 1;
+    final int upperBoundaryOfDimensionalObjectItems =
+        totalType.getPropertyCount() + upperBoundaryMarginOfDimensionalObjectItems;
+
     for (Entry<String, T> entry : valueMap.entrySet()) {
       List<String> items =
           Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
+
+      if (items.size() < upperBoundaryOfDimensionalObjectItems) {
+        map.put(entry.getKey(), entry.getValue());
+        continue;
+      }
+
       List<String> operands =
-          Lists.newArrayList(items.subList(0, totalType.getPropertyCount() + 1));
+          Lists.newArrayList(items.subList(0, upperBoundaryOfDimensionalObjectItems));
       List<String> dimensions =
-          Lists.newArrayList(items.subList(totalType.getPropertyCount() + 1, items.size()));
+          Lists.newArrayList(items.subList(upperBoundaryOfDimensionalObjectItems, items.size()));
 
       // Add wild card in place of category option combination
 
@@ -490,6 +511,26 @@ public class AnalyticsUtils {
   }
 
   /**
+   * Retrieve fallback date parsed by dhis modified format yyyy-MM-dd'T'HH.mm or ..mm.ss
+   * 2024-04-04T15.00
+   *
+   * @param dateAsString
+   */
+  public static Date toAnalyticsFallbackDate(String dateAsString) {
+    try {
+      return org.apache.commons.lang3.time.DateUtils.parseDate(
+          dateAsString,
+          // known formats
+          "yyyy-MM-dd'T'HH.mm",
+          "yyyy-MM-dd'T'HH.mm.ss");
+    } catch (ParseException pe) {
+      throwIllegalQueryEx(ErrorCode.E7135, dateAsString);
+    }
+
+    return null;
+  }
+
+  /**
    * Generates a data value set as a grid based on the given grid with aggregated data. Sets the
    * created and last updated fields to the current date.
    *
@@ -505,8 +546,6 @@ public class AnalyticsUtils {
     int coInx = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
     int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
     int vlInx = grid.getHeaderWidth() - 1;
-
-    String created = DateUtils.getMediumDateString();
 
     Grid dvs = new ListGrid();
 
@@ -531,9 +570,9 @@ public class AnalyticsUtils {
       objects.add(row.get(coInx));
       objects.add(row.get(aoInx));
       objects.add(row.get(vlInx));
-      objects.add("");
-      objects.add(created);
-      objects.add(created);
+      objects.add(null);
+      objects.add(null);
+      objects.add(null);
       objects.add(KEY_AGG_VALUE);
       objects.add(false);
 
@@ -610,8 +649,8 @@ public class AnalyticsUtils {
         coc = dataItem.getAggregateExportCategoryOptionCombo();
         aoc = dataItem.getAggregateExportAttributeOptionCombo();
       } else if (DataElementOperand.class.isAssignableFrom(item.getClass())) {
-        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifer(dx));
-        coc = DimensionalObjectUtils.getSecondIdentifer(dx);
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        coc = DimensionalObjectUtils.getSecondIdentifier(dx);
       }
 
       cocCol.add(coc);
@@ -792,6 +831,24 @@ public class AnalyticsUtils {
                     includeMetadataDetails ? coc : null));
           }
         }
+
+        if (DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramDataElementOptionDimensionItem dimensionItem) {
+          addOptionSetToMap(
+              dimensionItem.getOptionSet(),
+              map,
+              dimensionItem.getDataElement(),
+              includeMetadataDetails);
+        }
+
+        if (DimensionItemType.PROGRAM_ATTRIBUTE_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramTrackedEntityAttributeOptionDimensionItem dimensionItem) {
+          addOptionSetToMap(
+              dimensionItem.getOption().getOptionSet(),
+              map,
+              dimensionItem.getAttribute(),
+              includeMetadataDetails);
+        }
       }
 
       for (OrganisationUnit unit : organisationUnitList) {
@@ -828,7 +885,7 @@ public class AnalyticsUtils {
     Program program = params.getProgram();
     ProgramStage stage = params.getProgramStage();
 
-    if (ObjectUtils.allNotNull(program)) {
+    if (program != null) {
       map.put(
           program.getUid(),
           new MetadataItem(
@@ -853,6 +910,30 @@ public class AnalyticsUtils {
     }
 
     return map;
+  }
+
+  /**
+   * Adds the given {@link OptionSet} data into the given map, respecting the internal business
+   * rules.
+   *
+   * @param optionSet the {@link OptionSet} to add.
+   * @param map the source map where to add the given {@link OptionSet}.
+   * @param element the {@link BaseDimensionalItemObject} associated with the {@link OptionSet}.
+   * @param includeDetails include {@link OptionSet} details or not.
+   */
+  private static void addOptionSetToMap(
+      OptionSet optionSet,
+      Map<String, MetadataItem> map,
+      BaseDimensionalItemObject element,
+      boolean includeDetails) {
+    if (optionSet != null) {
+      map.put(
+          element.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid(),
+          includeDetails
+              ? new MetadataItem(
+                  optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
+              : new MetadataItem(optionSet.getName()));
+    }
   }
 
   /**
@@ -1122,16 +1203,8 @@ public class AnalyticsUtils {
       Supplier<T> supplier, boolean isMultipleQueries) {
     try {
       return Optional.ofNullable(supplier.get());
-    } catch (BadSqlGrammarException ex) {
-      if (relationDoesNotExist(ex.getSQLException())) {
-        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-        throw ex;
-      }
-      if (!isMultipleQueries) {
-        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
-        throw ex;
-      }
-      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } catch (UncategorizedSQLException | BadSqlGrammarException usq) {
+      handleDataAccessException(usq, isMultipleQueries);
     } catch (QueryRuntimeException ex) {
       log.error("Internal runtime exception", ex);
       throw ex;
@@ -1144,5 +1217,35 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  private static void handleDataAccessException(DataAccessException ex, boolean isMultipleQueries) {
+    if (ex.getCause() instanceof SQLException sqlexception) {
+      if (relationDoesNotExist(sqlexception)) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        throw ex;
+      }
+      if (!isMultipleQueries) {
+        log.error(ERR_MSG_SQL_SYNTAX_ERROR, ex);
+        throw ex;
+      }
+      log.info(ERR_MSG_SILENT_FALLBACK, ex);
+    } else {
+      throw ex;
+    }
+  }
+
+  /**
+   * Retrieves the sql string with content replacement between for example select and from
+   *
+   * @param original original sql string
+   * @param replacement the replacement content
+   */
+  public static String replaceStringBetween(
+      String original, String startToken, String endToken, String replacement) {
+    Pattern pattern =
+        Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
+    Matcher matcher = pattern.matcher(original);
+    return matcher.replaceAll(startToken + replacement + endToken);
   }
 }

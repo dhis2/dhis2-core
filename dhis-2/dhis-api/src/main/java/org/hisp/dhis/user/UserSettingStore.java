@@ -27,55 +27,38 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
 
 public interface UserSettingStore {
-  /**
-   * Adds a UserSetting.
-   *
-   * @param userSetting the UserSetting to add.
-   */
-  void addUserSetting(UserSetting userSetting);
 
   /**
-   * Updates a UserSetting.
-   *
-   * @param userSetting the UserSetting to update.
+   * @return a map of all settings keys and values, all values are as stored in database
    */
-  void updateUserSetting(UserSetting userSetting);
+  @Nonnull
+  Map<String, String> getAll(@Nonnull String username);
 
   /**
-   * Retrieves the UserSetting associated with the given User for the given UserSetting name.
+   * Update or insert a key-value pair for a user.
    *
-   * <p>Note: This method invocation will occur within a transaction.
-   *
-   * @param username the User.
-   * @param name the name of the UserSetting.
-   * @return the UserSetting.
+   * @param username of the user whose settings add updated
+   * @param key name of the setting
+   * @param value value of the setting
    */
-  UserSetting getUserSettingTx(String username, String name);
+  void put(@Nonnull String username, @Nonnull String key, @Nonnull String value);
 
   /**
-   * Retrieves the UserSetting associated with the given User for the given UserSetting name.
-   *
-   * @param username the User.
-   * @param name the name of the UserSetting.
-   * @return the UserSetting.
+   * @param username of the user whose settings are deleted
+   * @param keys the setting to delete
+   * @return number of settings that were deleted
    */
-  UserSetting getUserSetting(String username, String name);
+  int delete(@Nonnull String username, @Nonnull Set<String> keys);
 
   /**
-   * Retrieves all UserSettings for the given User.
+   * Deletes all user settings
    *
-   * @param username the User.
-   * @return a List of UserSettings.
+   * @param username of the user whose settings are deleted
    */
-  List<UserSetting> getAllUserSettings(String username);
-
-  /**
-   * Deletes a UserSetting.
-   *
-   * @param userSetting the UserSetting to delete.
-   */
-  void deleteUserSetting(UserSetting userSetting);
+  void deleteAll(@Nonnull String username);
 }

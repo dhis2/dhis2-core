@@ -54,10 +54,6 @@ public class MergeReport implements ErrorMessageContainer {
   @JsonProperty private Set<String> sourcesDeleted = new HashSet<>();
   @JsonProperty private String message;
 
-  public MergeReport(MergeType mergeType) {
-    this.mergeType = mergeType;
-  }
-
   @Override
   public boolean hasErrorMessages() {
     return !mergeErrors.isEmpty();

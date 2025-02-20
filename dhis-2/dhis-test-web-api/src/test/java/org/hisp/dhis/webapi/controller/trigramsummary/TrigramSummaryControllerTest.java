@@ -46,17 +46,17 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummary;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -66,9 +66,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
-class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final List<FieldPath> DEFAULT_FIELDS =
       FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
@@ -91,7 +93,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
 
   private Program program;
 
-  private TrackedEntity tei;
+  private TrackedEntity trackedEntity;
 
   private Enrollment enrollment;
 
@@ -181,15 +183,14 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
     program.getProgramAttributes().add(pteaB);
     manager.update(program);
 
-    tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    manager.save(tei);
+    trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
+    manager.save(trackedEntity);
 
-    enrollment = new Enrollment(program, tei, orgUnit);
+    enrollment = new Enrollment(program, trackedEntity, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     enrollment.setFollowup(true);
     manager.save(enrollment);
   }

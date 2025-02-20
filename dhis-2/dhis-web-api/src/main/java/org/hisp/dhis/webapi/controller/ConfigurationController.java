@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -42,6 +45,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -51,15 +55,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -73,9 +76,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(
+    entity = Configuration.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
-@RequestMapping("/configuration")
+@RequestMapping("/api/configuration")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ConfigurationController {
   @Autowired private ConfigurationService configurationService;
@@ -87,8 +92,6 @@ public class ConfigurationController {
   @Autowired private PeriodService periodService;
 
   @Autowired private RenderService renderService;
-
-  @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private AppManager appManager;
 
@@ -107,7 +110,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getSystemId();
   }
 
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @PostMapping("/systemId")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void setSystemId(@RequestBody(required = false) String systemId) {
@@ -123,7 +126,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getFeedbackRecipients();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/feedbackRecipients")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setFeedbackRecipients(@RequestBody String uid) throws NotFoundException {
@@ -142,7 +145,7 @@ public class ConfigurationController {
     configurationService.setConfiguration(configuration);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @DeleteMapping("/feedbackRecipients")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeFeedbackRecipients() {
@@ -159,7 +162,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/systemUpdateNotificationRecipients")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setSystemUpdateNotificationRecipients(@RequestBody String uid)
@@ -179,7 +182,7 @@ public class ConfigurationController {
     configurationService.setConfiguration(configuration);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @DeleteMapping("/systemUpdateNotificationRecipients")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeSystemUpdateNotificationRecipients() {
@@ -196,7 +199,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getOfflineOrganisationUnitLevel();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/offlineOrganisationUnitLevel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setOfflineOrganisationUnitLevel(@RequestBody String uid) throws NotFoundException {
@@ -216,7 +219,7 @@ public class ConfigurationController {
     configurationService.setConfiguration(configuration);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @DeleteMapping("/offlineOrganisationUnitLevel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeOfflineOrganisationUnitLevel() {
@@ -233,7 +236,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getInfrastructuralIndicators();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/infrastructuralIndicators")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setInfrastructuralIndicators(@RequestBody String uid) throws NotFoundException {
@@ -258,7 +261,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getInfrastructuralDataElements();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/infrastructuralDataElements")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setInfrastructuralDataElements(@RequestBody String uid) throws NotFoundException {
@@ -289,7 +292,7 @@ public class ConfigurationController {
     return new BaseIdentifiableObject(name, name, name);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/infrastructuralPeriodType")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setInfrastructuralPeriodType(@RequestBody String name) throws NotFoundException {
@@ -315,7 +318,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getSelfRegistrationRole();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/selfRegistrationRole")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setSelfRegistrationRole(@RequestBody String uid) throws NotFoundException {
@@ -334,7 +337,7 @@ public class ConfigurationController {
     configurationService.setConfiguration(configuration);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @DeleteMapping("/selfRegistrationRole")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeSelfRegistrationRole() {
@@ -351,7 +354,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getSelfRegistrationOrgUnit();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/selfRegistrationOrgUnit")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setSelfRegistrationOrgUnit(@RequestBody String uid) throws NotFoundException {
@@ -370,7 +373,7 @@ public class ConfigurationController {
     configurationService.setConfiguration(configuration);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @DeleteMapping("/selfRegistrationOrgUnit")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeSelfRegistrationOrgUnit() {
@@ -382,13 +385,13 @@ public class ConfigurationController {
   }
 
   @GetMapping("/remoteServerUrl")
-  public @ResponseBody String getRemoteServerUrl(Model model, HttpServletRequest request) {
-    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL);
+  public @ResponseBody String getRemoteServerUrl(SystemSettings settings) {
+    return settings.getRemoteInstanceUrl();
   }
 
   @GetMapping("/remoteServerUsername")
-  public @ResponseBody String getRemoteServerUsername(Model model, HttpServletRequest request) {
-    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
+  public @ResponseBody String getRemoteServerUsername(SystemSettings settings) {
+    return settings.getRemoteInstanceUsername();
   }
 
   @GetMapping("/facilityOrgUnitGroupSet")
@@ -396,7 +399,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getFacilityOrgUnitGroupSet();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/facilityOrgUnitGroupSet")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setFacilityOrgUnitGroupSet(@RequestBody String uid) throws NotFoundException {
@@ -421,7 +424,7 @@ public class ConfigurationController {
     return configurationService.getConfiguration().getFacilityOrgUnitLevel();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping("/facilityOrgUnitLevel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setFacilityOrgUnitLevel(@RequestBody String uid) throws NotFoundException {
@@ -448,7 +451,7 @@ public class ConfigurationController {
   }
 
   @SuppressWarnings("unchecked")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping(
       value = {"/corsWhitelist", "/corsAllowlist"},
       consumes = APPLICATION_JSON_VALUE)
@@ -471,6 +474,16 @@ public class ConfigurationController {
   @GetMapping("/appHubUrl")
   public @ResponseBody String getAppHubUrl(Model model, HttpServletRequest request) {
     return appManager.getAppHubUrl();
+  }
+
+  public record TwoFactorMethods(
+      @JsonProperty boolean totp2faEnabled, @JsonProperty boolean email2faEnabled) {}
+
+  @GetMapping("/twoFactorMethods")
+  public @ResponseBody TwoFactorMethods getTwoFactorMethods() {
+    return new TwoFactorMethods(
+        config.isEnabled(ConfigurationKey.TOTP_2FA_ENABLED),
+        config.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED));
   }
 
   /**

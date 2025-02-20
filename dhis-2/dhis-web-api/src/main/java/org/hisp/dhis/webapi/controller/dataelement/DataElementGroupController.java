@@ -42,11 +42,10 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.schema.descriptors.DataElementGroupSchemaDescriptor;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -62,23 +61,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = DataElementGroupSchemaDescriptor.API_ENDPOINT)
-public class DataElementGroupController extends AbstractCrudController<DataElementGroup> {
+@RequestMapping("/api/dataElementGroups")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class DataElementGroupController
+    extends AbstractCrudController<DataElementGroup, GetObjectListParams> {
   @Autowired private CategoryService dataElementCategoryService;
 
   @Autowired private DataElementService dataElementService;
 
   @GetMapping("/{uid}/operands")
   public String getOperands(
-      @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> parameters,
-      Model model,
-      TranslateParams translateParams)
+      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters, Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
-    setTranslationParams(translateParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DataElementOperand> dataElementOperands =
@@ -107,11 +103,9 @@ public class DataElementGroupController extends AbstractCrudController<DataEleme
       @PathVariable("uid") String uid,
       @PathVariable("q") String q,
       @RequestParam Map<String, String> parameters,
-      TranslateParams translateParams,
       Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
-    setTranslationParams(translateParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DataElementOperand> dataElementOperands = Lists.newArrayList();

@@ -42,18 +42,20 @@ import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class MetadataExportServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class MetadataExportServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private IdentifiableObjectManager manager;

@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -43,7 +44,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class RuleEngineErrorExecutor implements RuleActionExecutor<Event> {
-  private final String ruleUid;
+  private final UID ruleUid;
 
   private final String error;
 

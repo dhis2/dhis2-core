@@ -1,0 +1,53 @@
+{
+  "scenarios": [
+    {
+      "name": "multiPeriodMultiProgramStatusPagingFalse",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=A03MvHHogjR.UXz7xuGCEhU&dimension=p2Zxg0wcPQ3&dimension=cejWyOfXge6&outputType=EVENT&stage=A03MvHHogjR&enrollmentDate=THIS_MONTH&programStatus=ACTIVE,COMPLETED&eventDate=LAST_MONTH,LAST_12_MONTHS&eventStatus=SCHEDULE&lastUpdated=LAST_12_MONTHS,LAST_5_YEARS,LAST_10_YEARS&headers=ouname,A03MvHHogjR.UXz7xuGCEhU,enrollmentdate,scheduleddate,incidentdate,programstatus,eventdate,eventstatus,p2Zxg0wcPQ3,lastupdated,cejWyOfXge6&paging=false&outputIdScheme=CODE&relativePeriodDate=2022-07-01",
+      "version": {
+        "min": 39
+      }
+    },
+    {
+      "name": "someDimensionsWithFilter",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=ou:O6uvpzGd5pu,eMyVanycQSC,qrur9Dvnyt5-Yf6UHoPkdS6:IN:TvM2MQgD7Jd,tUdBD1JDxpn:GT:21,sGna2pquXOO,Kswd1r4qWLh,gWxh7DiRmG7,x7PaHGvgWY2:GT:20,XCMi7Wvnplm:GE:22,hlPt8H4bUOQ,Thkx2BnO5Kq,Y7hKDSuqEtH,K6uUAvq500H:IN:D303,msodh3rEMJa,oZg33kd9taw,GieVkTxp4HH-TBxGTceyzwy:IN:wgbW2ZQnlIc,HS8QXAJtuKV,fWIAEtYVEGk,SWfdB5lX0fk,vV9UWAZohSf-OrkEzxZEH4X&headers=eventdate,ouname,eMyVanycQSC,qrur9Dvnyt5,tUdBD1JDxpn,sGna2pquXOO,Kswd1r4qWLh,gWxh7DiRmG7,x7PaHGvgWY2,XCMi7Wvnplm,hlPt8H4bUOQ,Thkx2BnO5Kq,Y7hKDSuqEtH,K6uUAvq500H,msodh3rEMJa,oZg33kd9taw,GieVkTxp4HH,HS8QXAJtuKV,fWIAEtYVEGk,SWfdB5lX0fk,vV9UWAZohSf&totalPages=false&eventDate=THIS_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=Zj7UnCAulEk&relativePeriodDate=2022-07-01",
+      "version": {
+        "min": 39
+      }
+    },
+    {
+      "name": "financialYear2023Sep",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&lastUpdated=2023Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programIndicatorMalariaCaseMicroscopyPv5_14YearsFemale",
+      "query": "/api/analytics/events/query/qDkgAbB5Jlk.json?dimension=TEmaOXaSPe7,ou:USER_ORGUNIT&headers=ouname,TEmaOXaSPe7&totalPages=false&displayProperty=NAME&pageSize=10&page=1&includeMetadataDetails=true&outputType=EVENT&stage=hYyB7FUS5eR&enrollmentDate=MONTHS_THIS_YEAR&relativePeriodDate=2022-07-01&desc=lastupdated",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "programIndicatorNumberOfOrgUnitsWithOngoingArv",
+      "query": "/api/analytics/events/query/WSGAb5XwJ3Y.json?dimension=ou:USER_ORGUNIT,rxNjqzJ7dkK:GE:0&headers=ouname,rxNjqzJ7dkK,lastupdated&totalPages=false&displayProperty=NAME&includeMetadataDetails=true&outputType=EVENT&stage=PUZaKR0Jh2k&lastUpdated=LAST_YEAR&pageSize=10&page=1&relativePeriodDate=2019-07-01&desc=lastupdated",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "programIndicatorBMIFemaleUnder5y",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=hlPt8H4bUOQ,ou:USER_ORGUNIT&headers=ouname,lastupdated,hlPt8H4bUOQ&totalPages=false&lastUpdated=LAST_12_MONTHS&displayProperty=NAME&pageSize=5&page=1&includeMetadataDetails=true&outputType=EVENT&stage=Zj7UnCAulEk&relativePeriodDate=2019-02-01&desc=lastupdated",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "programIndicatorChildProgramComplex",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,qZOBw051LSf&headers=ouname,qZOBw051LSf,lastupdated,eventstatus&totalPages=false&lastUpdated=LAST_10_YEARS&eventStatus=SCHEDULE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR&asc=lastupdated&relativePeriodDate=2025-01-20",
+      "version": {
+        "min": 42
+      }
+    }
+  ]
+}

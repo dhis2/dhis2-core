@@ -30,10 +30,16 @@ package org.hisp.dhis.analytics.common;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.notNull;
 
+import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 
 /**
  * @see org.hisp.dhis.analytics.common.Query
@@ -41,23 +47,47 @@ import lombok.extern.slf4j.Slf4j;
  */
 @EqualsAndHashCode
 @Slf4j
-@Getter
 public class SqlQuery implements Query {
-  private final String statement;
 
-  private final Map<String, Object> params;
+  @Getter private final String statement;
+  private final SqlQueryContext sqlQueryContext;
 
   /**
    * @throws IllegalArgumentException if statement or params are null/empty/blank.
    */
-  public SqlQuery(String statement, Map<String, Object> params) {
+  private SqlQuery(String statement, SqlQueryContext sqlQueryContext) {
     hasText(statement, "The 'statement' must not be null/empty/blank");
-    notNull(params, "The 'params' must not be null");
+    notNull(sqlQueryContext, "The 'params' must not be null");
 
     this.statement = statement;
-    this.params = params;
+    this.sqlQueryContext = sqlQueryContext;
 
     log.debug("STATEMENT: " + statement);
-    log.debug("PARAMS: " + params);
+    log.debug("PARAMS: " + sqlQueryContext);
+  }
+
+  public static SqlQuery of(String render, QueryContext queryContext) {
+    return new SqlQuery(
+        render,
+        new SqlQueryContext(
+            queryContext.getParametersPlaceHolder(),
+            queryContext.getContextParams().getCommonParsed().streamDimensions().toList()));
+  }
+
+  @Nonnull
+  @Override
+  public Map<String, Object> getParams() {
+    return sqlQueryContext.getParams();
+  }
+
+  public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers() {
+    return sqlQueryContext.getDimensionIdentifiers();
+  }
+
+  @RequiredArgsConstructor
+  @Getter
+  private static class SqlQueryContext {
+    private final Map<String, Object> params;
+    private final List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers;
   }
 }

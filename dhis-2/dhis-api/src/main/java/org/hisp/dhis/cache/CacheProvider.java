@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.cache;
 
-import java.time.Duration;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.common.event.CacheInvalidationEvent;
 
 /**
  * The {@link CacheProvider} has a factory method for each {@link Cache} use case in DHIS2.
@@ -41,7 +41,6 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  * @author Jan Bernitt
  */
 public interface CacheProvider {
-  <V> Cache<V> createAnalyticsResponseCache(Duration initialExpirationTime);
 
   <V> Cache<V> createAnalyticsCache();
 
@@ -55,15 +54,13 @@ public interface CacheProvider {
 
   <V> Cache<V> createInUserOrgUnitHierarchyCache();
 
-  <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
-
   <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
-
-  <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
 
   <V> Cache<V> createPeriodIdCache();
 
   <V> Cache<V> createUserFailedLoginAttemptCache(V defaultValue);
+
+  <V> Cache<V> createDisable2FAFailedAttemptCache(V defaultValue);
 
   <V> Cache<V> createUserAccountRecoverAttemptCache(V defaultValue);
 
@@ -71,15 +68,9 @@ public interface CacheProvider {
 
   <V> Cache<V> createProgramTempOwnerCache();
 
-  <V> Cache<V> createUserIdCache();
-
   <V> Cache<V> createCurrentUserGroupInfoCache();
 
-  <V> Cache<V> createUserSettingCache();
-
   <V> Cache<V> createAttrOptionComboIdCache();
-
-  <V> Cache<V> createSystemSettingCache();
 
   <V> Cache<V> createGoogleAccessTokenCache();
 
@@ -91,13 +82,9 @@ public interface CacheProvider {
 
   <V> Cache<V> createAnalyticsSqlCache();
 
-  <V> Cache<V> createDataElementCache();
-
   <V> Cache<V> createPropertyTransformerCache();
 
   <V> Cache<V> createProgramHasRulesCache();
-
-  <V> Cache<V> createProgramRuleVariablesCache();
 
   <V> Cache<V> createUserGroupNameCache();
 
@@ -105,9 +92,7 @@ public interface CacheProvider {
 
   void handleApplicationCachesCleared(ApplicationCacheClearedEvent event);
 
-  <V> Cache<V> createProgramWebHookNotificationTemplateCache();
-
-  <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
+  void handleCacheInvalidationEvent(CacheInvalidationEvent event);
 
   <V> Cache<V> createProgramOrgUnitAssociationCache();
 
@@ -117,20 +102,17 @@ public interface CacheProvider {
 
   <V> Cache<V> createApiKeyCache();
 
-  <V> Cache<V> createProgramCache();
+  <V> Cache<V> createTeAttributesCache();
 
-  <V> Cache<V> createTeiAttributesCache();
-
-  <V> Cache<V> createProgramTeiAttributesCache();
+  <V> Cache<V> createProgramTeAttributesCache();
 
   <V> Cache<V> createUserGroupUIDCache();
-
-  // TODO(tracker): remove with old tracker
-  <V> Cache<V> createOldTrackerSecurityCache();
 
   <V> Cache<V> createSecurityCache();
 
   <V> Cache<V> createDataIntegritySummaryCache();
 
   <V> Cache<V> createDataIntegrityDetailsCache();
+
+  <V> Cache<V> createQueryAliasCache();
 }

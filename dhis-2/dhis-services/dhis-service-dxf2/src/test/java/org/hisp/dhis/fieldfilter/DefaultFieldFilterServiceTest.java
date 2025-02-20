@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.node.Node;
@@ -68,8 +67,6 @@ class DefaultFieldFilterServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private AttributeService attributeService;
-
   @Mock private UserGroupService userGroupService;
 
   @Mock private UserService userService;
@@ -85,7 +82,6 @@ class DefaultFieldFilterServiceTest {
             fieldParser,
             schemaService,
             aclService,
-            attributeService,
             cacheProvider,
             userGroupService,
             userService,

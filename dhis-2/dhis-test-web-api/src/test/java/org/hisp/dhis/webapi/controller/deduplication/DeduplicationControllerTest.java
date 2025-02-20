@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.deduplication;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,22 +37,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author luca@dhis2.org
  */
-class DeduplicationControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private static final String ENDPOINT = "/" + "potentialDuplicates/";
 
   @Autowired private IdentifiableObjectManager dbmsManager;
@@ -61,36 +64,40 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Autowired private ObjectMapper objectMapper;
 
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
   private TrackedEntity origin;
   private TrackedEntity duplicate1;
   private PotentialDuplicate potentialDuplicate1;
   private PotentialDuplicate potentialDuplicate2;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 
-    origin = createTrackedEntity(orgUnit);
-    duplicate1 = createTrackedEntity(orgUnit);
-    TrackedEntity duplicate2 = createTrackedEntity(orgUnit);
+    trackedEntityType = createTrackedEntityType('A');
+    dbmsManager.save(trackedEntityType);
+
+    origin = createTrackedEntity(orgUnit, trackedEntityType);
+    duplicate1 = createTrackedEntity(orgUnit, trackedEntityType);
+    TrackedEntity duplicate2 = createTrackedEntity(orgUnit, trackedEntityType);
 
     dbmsManager.save(origin);
     dbmsManager.save(duplicate1);
     dbmsManager.save(duplicate2);
 
-    potentialDuplicate1 = new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+    potentialDuplicate1 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate1));
     save(potentialDuplicate1);
-    potentialDuplicate2 = new PotentialDuplicate(origin.getUid(), duplicate2.getUid());
+    potentialDuplicate2 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate2));
     save(potentialDuplicate2);
   }
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    dbmsManager.save(te);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
+    dbmsManager.save(trackedEntity);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(te.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(UID.of(trackedEntity), UID.of(duplicate1));
 
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -118,12 +125,6 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -143,12 +144,6 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     assertEquals(1, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -166,31 +161,6 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/potentialDuplicates?skipPaging=true").content(HttpStatus.OK).asA(JsonPage.class);
-
-    JsonList<JsonPotentialDuplicate> list =
-        page.getList("potentialDuplicates", JsonPotentialDuplicate.class);
-    assertContainsOnly(
-        List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
-        list.toList(JsonPotentialDuplicate::getUid));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -204,39 +174,11 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
         List.of(potentialDuplicate1.getUid(), potentialDuplicate2.getUid()),
         list.toList(JsonPotentialDuplicate::getUid));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET("/potentialDuplicates?paging=false&skipPaging=false")
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET("/potentialDuplicates?paging=true&skipPaging=true")
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingDuplicateTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(origin.getUid(), null);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.of(origin), null);
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -244,7 +186,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingOriginTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate1.getUid());
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, UID.of(duplicate1));
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -253,7 +195,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateAlreadyMerged() {
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(UID.of(origin), UID.of(duplicate1));
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     save(potentialDuplicate);
 
@@ -301,11 +243,11 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowNotFoundWhenPotentialDuplicateDoNotExists() {
-    assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + "uid"));
+    assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + UID.generate()));
   }
 
   private PotentialDuplicate potentialDuplicate(String original, String duplicate) {
-    return save(new PotentialDuplicate(original, duplicate));
+    return save(new PotentialDuplicate(UID.of(original), UID.of(duplicate)));
   }
 
   private PotentialDuplicate save(PotentialDuplicate potentialDuplicate) {

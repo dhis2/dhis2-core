@@ -38,6 +38,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Nguyen Hong Duc
@@ -63,6 +65,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<User> getUsers(UserQueryParams params, @Nullable List<String> orders);
 
+  List<UID> getUserIds(UserQueryParams params, @Nullable List<String> orders);
+
   /**
    * Returns the number of users based on the given query parameters.
    *
@@ -87,15 +91,17 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays);
 
-  /**
-   * Returns User for given username.
-   *
-   * @param username username for which the User will be returned
-   * @param ignoreCase
-   * @return User for given username or null
-   */
+  @CheckForNull
   User getUserByUsername(String username);
 
+  /**
+   * Returns User for given username. Returns null if no user is found.
+   *
+   * @param username username for which the User will be returned
+   * @param ignoreCase match name ignoreing case
+   * @return User for given username or null
+   */
+  @CheckForNull
   User getUserByUsername(String username, boolean ignoreCase);
 
   /**
@@ -159,10 +165,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getUserByUsernames(Collection<String> usernames);
 
   /**
-   * Retrieves the User associated with the User with the given open ID.
+   * Retrieves the most recently-used enabled User associated with the given open ID.
+   *
+   * <p>This only returns enabled users.
+   *
+   * <p>A newly-created User (last login is null) will only be returned if there is no enabled User
+   * with the given open ID and a non-null last login.
    *
    * @param openId open ID.
-   * @return the User or null if there is no match.
+   * @return the User or null if there is no enabled user match.
    */
   @CheckForNull
   User getUserByOpenId(@Nonnull String openId);
@@ -204,13 +215,31 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getLinkedUserAccounts(User currentUser);
 
   /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUid);
 
   /**
-   * Get active linked user accounts for the given user
+   * Sets the active account for the next login session.
+   *
+   * <p>This method updates the last login timestamp of the target account 'activeUsername', to one
+   * hour in the future. This future timestamp ensures the account appears first when sorting linked
+   * accounts by last login date, and hence the top of the list will be the 'active'.
    *
    * @param actingUser the acting/current user
    * @param activeUsername the username of the user to set as active
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
+
+  User getUserByEmailVerificationToken(String token);
+
+  User getUserByVerifiedEmail(String email);
+
+  /**
+   * Retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in the given
+   * table
+   *
+   * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
+   * @param uid {@link OrganisationUnit} {@link UID} to match on
+   * @return matching {@link User}s
+   */
+  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
 }

@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1124;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4001;
 
+import java.util.Objects;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
@@ -66,7 +66,7 @@ class MandatoryFieldsValidator implements Validator<Relationship> {
 
   private boolean hasUnexpectedReferences(RelationshipItem item) {
     return Stream.of(item.getTrackedEntity(), item.getEnrollment(), item.getEvent())
-            .filter(StringUtils::isNotBlank)
+            .filter(Objects::nonNull)
             .count()
         != 1;
   }

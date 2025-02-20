@@ -28,7 +28,6 @@
 package org.hisp.dhis.preheat;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -54,7 +53,8 @@ import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -301,17 +301,18 @@ public class DefaultPreheatService implements PreheatService {
                   .computeIfAbsent(klass, key -> new HashSet<>())
                   .add(attribute.getUid()));
 
-      List<Attribute> uniqueAttributes =
+      List<UID> uniqueAttributes =
           attributesByObjectType.getOrDefault(klass, List.of()).stream()
               .filter(Attribute::isUnique)
-              .collect(toUnmodifiableList());
+              .map(a -> UID.of(a.getUid()))
+              .toList();
 
       uniqueAttributes.forEach(
-          attribute ->
+          attributeId ->
               preheat
                   .getUniqueAttributes()
                   .computeIfAbsent(klass, key -> new HashSet<>())
-                  .add(attribute.getUid()));
+                  .add(attributeId.getValue()));
 
       List<? extends IdentifiableObject> uniqueAttributeValues =
           manager.getAllByAttributes(klass, uniqueAttributes);
@@ -388,25 +389,15 @@ public class DefaultPreheatService implements PreheatService {
             object
                 .getAttributeValues()
                 .forEach(
-                    attributeValue -> {
+                    (attributeId, value) -> {
                       Set<String> uids = preheat.getUniqueAttributes().get(klass);
-
-                      if (uids != null && uids.contains(attributeValue.getAttribute().getUid())) {
-                        if (!preheat
-                            .getUniqueAttributeValues()
-                            .get(klass)
-                            .containsKey(attributeValue.getAttribute().getUid())) {
-                          preheat
-                              .getUniqueAttributeValues()
-                              .get(klass)
-                              .put(attributeValue.getAttribute().getUid(), new HashMap<>());
+                      if (uids != null && uids.contains(attributeId)) {
+                        Map<String, Map<String, String>> values =
+                            preheat.getUniqueAttributeValues().get(klass);
+                        if (!values.containsKey(attributeId)) {
+                          values.put(attributeId, new HashMap<>());
                         }
-
-                        preheat
-                            .getUniqueAttributeValues()
-                            .get(klass)
-                            .get(attributeValue.getAttribute().getUid())
-                            .put(attributeValue.getValue(), object.getUid());
+                        values.get(attributeId).put(value, object.getUid());
                       }
                     }));
   }
@@ -486,13 +477,15 @@ public class DefaultPreheatService implements PreheatService {
               .collect(toList());
 
       for (Object object : targets.get(klass)) {
-        handleLegacyUserCredentials(klass, object);
-
         if (schema.isIdentifiableObject()) {
           IdentifiableObject identifiableObject = (IdentifiableObject) object;
           identifiableObject
               .getAttributeValues()
-              .forEach(av -> addIdentifiers(map, av.getAttribute()));
+              .forEach(
+                  (attributeId, value) ->
+                      map.get(PreheatIdentifier.UID)
+                          .computeIfAbsent(Attribute.class, k -> new HashSet<>())
+                          .add(attributeId));
           identifiableObject
               .getSharing()
               .getUserGroups()
@@ -773,7 +766,13 @@ public class DefaultPreheatService implements PreheatService {
           }
 
           objects.forEach(
-              o -> list.addAll(ReflectionUtils.invokeMethod(o, property.getGetterMethod())));
+              o -> {
+                Collection<Object> propertyValue =
+                    ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                if (!org.apache.commons.collections4.CollectionUtils.isEmpty(propertyValue)) {
+                  list.addAll(propertyValue);
+                }
+              });
           targets.put(property.getItemKlass(), list);
         } else {
           List<Object> list = new ArrayList<>();
@@ -783,7 +782,12 @@ public class DefaultPreheatService implements PreheatService {
           }
 
           objects.forEach(
-              o -> list.add(ReflectionUtils.invokeMethod(o, property.getGetterMethod())));
+              o -> {
+                Object item = ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                if (item != null) {
+                  list.add(item);
+                }
+              });
           targets.put(property.getKlass(), list);
         }
       }
@@ -977,17 +981,5 @@ public class DefaultPreheatService implements PreheatService {
 
   private boolean isOnlyUID(Class<?> klass) {
     return UserGroup.class.isAssignableFrom(klass) || User.class.isAssignableFrom(klass);
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  /**
-   * This is a temporary fix to maintain backwards compatibility with the old UserCredentials class
-   */
-  private void handleLegacyUserCredentials(Class<?> klass, Object object) {
-    if (!User.class.isAssignableFrom(klass) || object == null) {
-      return;
-    }
-
-    User.populateUserCredentialsDtoFields((User) object);
   }
 }

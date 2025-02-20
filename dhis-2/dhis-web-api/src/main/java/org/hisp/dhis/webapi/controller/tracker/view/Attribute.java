@@ -34,20 +34,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Shared(name = "TrackerAttribute")
+@OpenApi.Identifiable(as = org.hisp.dhis.attribute.Attribute.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Attribute {
-  @OpenApi.Property({UID.class, Attribute.class})
+
+  @OpenApi.Property({UID.class, org.hisp.dhis.attribute.Attribute.class})
   @JsonProperty
   private String attribute;
 

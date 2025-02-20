@@ -30,11 +30,8 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.Optional;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
@@ -79,11 +76,9 @@ class TrackedEntityAttributeServiceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  private TrackedEntity teiPassedInPayload;
+  private TrackedEntity tePassedInPayload;
 
-  private final String identicalTeiUid = "TeiUid12345";
-
-  private final String differentTeiUid = "TeiUid54321";
+  private final String identicalTrackedEntityUid = "TrackedEntityUid12345";
 
   private OrganisationUnit orgUnit;
 
@@ -106,9 +101,9 @@ class TrackedEntityAttributeServiceTest {
 
     orgUnit = new OrganisationUnit("orgUnitA");
 
-    teiPassedInPayload = new TrackedEntity();
-    teiPassedInPayload.setUid(identicalTeiUid);
-    teiPassedInPayload.setOrganisationUnit(orgUnit);
+    tePassedInPayload = new TrackedEntity();
+    tePassedInPayload.setUid(identicalTrackedEntityUid);
+    tePassedInPayload.setOrganisationUnit(orgUnit);
 
     tea = new TrackedEntityAttribute();
     tea.setUid("TeaUid12345");
@@ -122,48 +117,6 @@ class TrackedEntityAttributeServiceTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> trackedEntityAttributeService.validateValueType(null, ""));
-  }
-
-  @Test
-  void identicalTeiWithTheSameUniqueAttributeExistsInSystem() {
-    when(trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(
-            any(TrackedEntityQueryParams.class)))
-        .thenReturn(Optional.of(identicalTeiUid));
-
-    String teaValue = "Firstname";
-
-    String result =
-        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            tea, teaValue, teiPassedInPayload, orgUnit);
-    assertNull(result);
-  }
-
-  @Test
-  void differentTeiWithTheSameUniqueAttributeExistsInSystem() {
-    when(trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(
-            any(TrackedEntityQueryParams.class)))
-        .thenReturn(Optional.of(differentTeiUid));
-
-    String teaValue = "Firstname";
-
-    String result =
-        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            tea, teaValue, teiPassedInPayload, orgUnit);
-    assertNotNull(result);
-  }
-
-  @Test
-  void attributeIsUniqueWithinTheSystem() {
-    when(trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(
-            any(TrackedEntityQueryParams.class)))
-        .thenReturn(Optional.empty());
-
-    String teaValue = "Firstname";
-
-    String result =
-        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            tea, teaValue, teiPassedInPayload, orgUnit);
-    assertNull(result);
   }
 
   @Test

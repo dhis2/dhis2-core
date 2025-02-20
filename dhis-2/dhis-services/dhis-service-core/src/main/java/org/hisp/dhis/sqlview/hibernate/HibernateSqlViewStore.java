@@ -30,13 +30,13 @@ package org.hisp.dhis.sqlview.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.TransactionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -58,7 +58,7 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
 
   private final JdbcTemplate readOnlyJdbcTemplate;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public HibernateSqlViewStore(
       EntityManager entityManager,
@@ -66,14 +66,14 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
       ApplicationEventPublisher publisher,
       AclService aclService,
       @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingsProvider settingsProvider) {
     super(entityManager, jdbcTemplate, publisher, SqlView.class, aclService, false);
 
     checkNotNull(readOnlyJdbcTemplate);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
 
     this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
   }
 
   // -------------------------------------------------------------------------
@@ -118,10 +118,14 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   }
 
   @Override
-  public void populateSqlViewGrid(Grid grid, String sql) {
-    SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet(sql);
+  public void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode) {
+    SqlRowSet rs =
+        switch (transactionMode) {
+          case READ -> readOnlyJdbcTemplate.queryForRowSet(sql);
+          case WRITE -> jdbcTemplate.queryForRowSet(sql);
+        };
 
-    int maxLimit = systemSettingManager.getIntSetting(SettingKey.SQL_VIEW_MAX_LIMIT);
+    int maxLimit = settingsProvider.getCurrentSettings().getSqlViewMaxLimit();
 
     log.debug("Get view SQL: " + sql + ", max limit: " + maxLimit);
 

@@ -28,11 +28,11 @@
 package org.hisp.dhis;
 
 import com.epam.reportportal.junit5.ReportPortalExtension;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
 import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;

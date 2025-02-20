@@ -31,10 +31,11 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
@@ -67,8 +68,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -78,6 +80,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
@@ -286,25 +289,13 @@ final class GistBuilder {
   }
 
   private Object attributeValue(String attributeUid, Object attributeValues, Attribute attribute) {
-    @SuppressWarnings("unchecked")
-    Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
-    for (AttributeValue v : values) {
-      if (attributeUid.equals(v.getAttribute().getUid())) {
-        return attribute != null
-            ? support.getTypedAttributeValue(attribute, v.getValue())
-            : v.getValue();
-      }
-    }
-    return null;
+    AttributeValues values = (AttributeValues) attributeValues;
+    String value = values.get(attributeUid);
+    return attribute != null ? support.getTypedAttributeValue(attribute, value) : value;
   }
 
   private Map<String, String> attributeValues(Object attributeValues) {
-    @SuppressWarnings("unchecked")
-    Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
-    return values == null || values.isEmpty()
-        ? Map.of()
-        : values.stream()
-            .collect(toMap(value -> value.getAttribute().getUid(), AttributeValue::getValue));
+    return attributeValues instanceof AttributeValues attrs ? attrs.toMap() : Map.of();
   }
 
   @SuppressWarnings("unchecked")
@@ -834,14 +825,19 @@ final class GistBuilder {
   }
 
   private String createFilterHQL(int index, Filter filter) {
-    if (!isNonNestedPath(filter.getPropertyPath())) {
-      List<Property> path = context.resolvePath(filter.getPropertyPath());
+    String propertyPath = filter.getPropertyPath();
+    if (isAttributeValuesAttributePropertyPath(propertyPath)) {
+      filter = filter.withPropertyPath(attributePath(propertyPath));
+      return "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where %s)) = true"
+          .formatted(createFilterHQL(index, filter, "a." + filter.getPropertyPath()));
+    }
+    if (!isNonNestedPath(propertyPath)) {
+      List<Property> path = context.resolvePath(propertyPath);
       if (isExistsInCollectionFilter(path)) {
         return createExistsFilterHQL(index, filter, path);
       }
     }
-    String memberPath =
-        filter.isAttribute() ? ATTRIBUTES_PROPERTY : getMemberPath(filter.getPropertyPath());
+    String memberPath = filter.isAttribute() ? ATTRIBUTES_PROPERTY : getMemberPath(propertyPath);
     return createFilterHQL(index, filter, "e." + memberPath);
   }
 
@@ -877,12 +873,17 @@ final class GistBuilder {
     String fieldTemplate = "%s";
     if (filter.isAttribute()) {
       fieldTemplate = "jsonb_extract_path_text(%s, '" + filter.getPropertyPath() + "', 'value')";
-    } else if (isStringLengthFilter(filter, context.resolveMandatory(filter.getPropertyPath()))) {
-      fieldTemplate = "length(%s)";
-    } else if (isCollectionSizeFilter(filter, context.resolveMandatory(filter.getPropertyPath()))) {
-      fieldTemplate = "size(%s)";
-    } else if (operator.isCaseInsensitive()) {
-      fieldTemplate = "lower(%s)";
+    } else {
+      Property property = context.resolveMandatory(filter.getPropertyPath());
+      if (property.getPropertyType() == PropertyType.PASSWORD)
+        throw new IllegalQueryException("Filter not allowed: " + filter);
+      if (isStringLengthFilter(filter, property)) {
+        fieldTemplate = "length(%s)";
+      } else if (isCollectionSizeFilter(filter, property)) {
+        fieldTemplate = "size(%s)";
+      } else if (operator.isCaseInsensitive()) {
+        fieldTemplate = "lower(%s)";
+      }
     }
     str.append(String.format(fieldTemplate, field));
     str.append(" ").append(createOperatorLeftSideHQL(operator));
@@ -1059,7 +1060,7 @@ final class GistBuilder {
       Comparison operator = filter.getOperator();
       if (!operator.isUnary() && !operator.isAccessCompare()) {
         Object value =
-            filter.isAttribute()
+            filter.isAttribute() || isAttributeValuesAttributePropertyPath(filter.getPropertyPath())
                 ? filter.getValue()[0]
                 : getParameterValue(
                     context.resolveMandatory(filter.getPropertyPath()), filter, argumentParser);

@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -49,6 +51,7 @@ import org.hisp.dhis.db.model.IndexType;
 /**
  * @author Luciano Fiandesio
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsTableAsserter {
   /** The analytics table to verify. */
   private AnalyticsTable table;
@@ -66,8 +69,6 @@ public class AnalyticsTableAsserter {
   private String name;
 
   private String mainName;
-
-  private AnalyticsTableAsserter() {}
 
   public void verify() {
     // verify column size
@@ -156,7 +157,12 @@ public class AnalyticsTableAsserter {
     public Builder addColumn(
         String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
-          new AnalyticsTableColumn(name, dataType, selectExpression, created);
+          AnalyticsTableColumn.builder()
+              .name(name)
+              .dataType(dataType)
+              .selectExpression(selectExpression)
+              .created(created)
+              .build();
       this._columns.add(col);
       return this;
     }
@@ -183,8 +189,18 @@ public class AnalyticsTableAsserter {
         IndexType indexType) {
       AnalyticsTableColumn col =
           Skip.SKIP == skipIndex
-              ? new AnalyticsTableColumn(name, dataType, selectExpression, skipIndex)
-              : new AnalyticsTableColumn(name, dataType, selectExpression, indexType);
+              ? AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(dataType)
+                  .selectExpression(selectExpression)
+                  .skipIndex(skipIndex)
+                  .build()
+              : AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(dataType)
+                  .selectExpression(selectExpression)
+                  .indexType(indexType)
+                  .build();
       this._columns.add(col);
       return this;
     }

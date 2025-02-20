@@ -29,7 +29,6 @@ package org.hisp.dhis.external.config;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.META_DATA_SYNC_RETRY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC;
-import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_SESSION_TIMEOUT;
 
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.external.location.DefaultLocationManager;
@@ -51,18 +50,13 @@ public class ServiceConfig {
     return DefaultLocationManager.getDefault();
   }
 
-  @Bean("maxAttempts")
+  @Bean
   public ConfigurationPropertyFactoryBean maxAttempts() {
     return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY);
   }
 
-  @Bean("initialInterval")
+  @Bean
   public ConfigurationPropertyFactoryBean initialInterval() {
     return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC);
-  }
-
-  @Bean("sessionTimeout")
-  public ConfigurationPropertyFactoryBean sessionTimeout() {
-    return new ConfigurationPropertyFactoryBean(SYSTEM_SESSION_TIMEOUT);
   }
 }

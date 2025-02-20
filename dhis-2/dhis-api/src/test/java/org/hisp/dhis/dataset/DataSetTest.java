@@ -28,11 +28,13 @@
 package org.hisp.dhis.dataset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
@@ -123,21 +125,34 @@ class DataSetTest {
     assertIsLocked(false, Period::getEndDate);
   }
 
-  @Test
-  void testIsLocked_AfterLastDayOfPeriod() {
-    // expiryDays is 1 so 1 extra day after the end is still ok
-    assertIsLocked(
-        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(1)));
-    // but 2 is too much
-    assertIsLocked(
-        true, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(2)));
-  }
-
   private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {
     Date now = new Date();
     Period thisMonth = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY).createPeriod(now);
     DataSet ds = new DataSet();
     ds.setExpiryDays(1);
     assertEquals(expected, ds.isLocked(null, thisMonth, actual.apply(thisMonth)));
+  }
+
+  private static Date createDateFromSimpleDateFormat(String date) {
+    try {
+      return new SimpleDateFormat("MMM d yyyy HH:mm:ss").parse(date);
+    } catch (ParseException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  void isLockedAtCertainTime() {
+    Date someTimeAgo = createDateFromSimpleDateFormat("Jan 1 2022 12:15:56");
+    Period thisMonth = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY).createPeriod(someTimeAgo);
+    Date periodEndDate = createDateFromSimpleDateFormat("Jan 31 2022 00:00:00");
+    assertEquals("202201", thisMonth.getIsoDate());
+    assertEquals(periodEndDate, thisMonth.getEndDate());
+    DataSet ds = new DataSet();
+    ds.setExpiryDays(1.5);
+    Date dataEntryClosed = createDateFromSimpleDateFormat("Feb 2 2022 12:00:01");
+    assertTrue(ds.isLocked(null, thisMonth, dataEntryClosed));
+    Date dataEntryOpen = createDateFromSimpleDateFormat("Feb 2 2022 12:00:00");
+    assertFalse(ds.isLocked(null, thisMonth, dataEntryOpen));
   }
 }

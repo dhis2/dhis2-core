@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -36,12 +38,12 @@ import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,9 +51,11 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DeletedObject.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
-@RequestMapping(value = "/deletedObjects")
+@RequestMapping("/api/deletedObjects")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DeletedObjectController {
   private final FieldFilterService fieldFilterService;
@@ -71,14 +75,14 @@ public class DeletedObjectController {
 
   @OpenApi.Response(DeletedObject[].class)
   @GetMapping
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   public RootNode getDeletedObjects(DeletedObjectQuery query) {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     int totalDeletedObjects = deletedObjectService.countDeletedObjects(query);
     query.setTotal(totalDeletedObjects);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects(query);

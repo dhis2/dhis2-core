@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -51,6 +50,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -63,8 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -85,42 +84,58 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   private static final String HISTORY_TABLE_ID = "1001-01-01";
 
   // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
-  private static final String TEI_OWN_TABLE_ID = "2002-02-02";
+  private static final String TRACKED_ENTITY_OWN_TABLE_ID = "2002-02-02";
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-          new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+          AnalyticsTableColumn.builder()
+              .name("teuid")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("te.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("startdate")
+              .dataType(DATE)
+              .selectExpression("a.startdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enddate")
+              .dataType(DATE)
+              .selectExpression("a.enddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build());
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
@@ -155,14 +170,13 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
-      return; // Builds an empty table, but it may be joined in queries.
+      return; // Builds an empty table which may be joined in queries
     }
 
     String sql = getInputSql(program);
@@ -208,64 +222,56 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     }
   }
 
+  /**
+   * Returns a SQL select query. For the from clause, for tracked entities in this program in
+   * programownershiphistory, get one row for each programownershiphistory row and then get a final
+   * row from the trackedentityprogramowner table to show the final owner.
+   *
+   * <p>The start date values are dummy so that all the history table rows will be ordered first and
+   * the tracked entity owner table row will come last.
+   *
+   * <p>The start date in the analytics table will be a far past date for the first row for each
+   * tracked entity, or the previous row's end date plus one day in subsequent rows for that tracked
+   * entity.
+   *
+   * <p>Rows in programownershiphistory that don't have organisationunitid will be filtered out.
+   *
+   * @param program the {@link Program}.
+   * @return a SQL select query.
+   */
   private String getInputSql(Program program) {
-    // SELECT clause
+    List<AnalyticsTableColumn> columns = getColumns();
 
-    StringBuilder sb = new StringBuilder("select ");
+    StringBuilder sql = new StringBuilder("select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
-    for (AnalyticsTableColumn col : getColumns()) {
-      sb.append(col.getSelectExpression()).append(",");
-    }
-
-    sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
-
-    // FROM clause
-
-    // For TEIs in this program that are in programownershiphistory, get
-    // one row for each programownershiphistory row and then get a final
-    // row from the trackedentityprogramowner table to show the final owner.
-    //
-    // The start date values are dummy so that all the history table rows
-    // will be ordered first and the tei owner table row will come last.
-    //
-    // (The start date in the analytics table will be a far past date for
-    // the first row for each TEI, or the previous row's end date plus one
-    // day in subsequent rows for that TEI.)
-    //
-    // Rows in programownershiphistory that don't have organisationunitid
-    // will be filtered out.
-
-    return sb.append(
-            " from ("
-                + "select h.trackedentityid, '"
-                + HISTORY_TABLE_ID
-                + "' as startdate, h.enddate as enddate, h.organisationunitid "
-                + "from programownershiphistory h "
-                + "where h.programid="
-                + program.getId()
-                + SPACE
-                + "and h.organisationunitid is not null "
-                + "union "
-                + "select o.trackedentityid, '"
-                + TEI_OWN_TABLE_ID
-                + "' as startdate, null as enddate, o.organisationunitid "
-                + "from trackedentityprogramowner o "
-                + "where o.programid="
-                + program.getId()
-                + SPACE
-                + "and exists (select 1 from programownershiphistory p "
-                + "where o.trackedentityid = p.trackedentityid "
-                + "and p.programid="
-                + program.getId()
-                + SPACE
-                + "and p.organisationunitid is not null)"
-                + ") a "
-                + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
-                + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-                + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-                + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
-                + "order by tei.uid, a.startdate, a.enddate")
-        .toString();
+    sql.append(
+        replaceQualify(
+            """
+            \sfrom (\
+            select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
+            from ${programownershiphistory} h \
+            where h.programid = ${programId} \
+            and h.organisationunitid is not null \
+            union distinct \
+            select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
+            from ${trackedentityprogramowner} o \
+            where o.programid = ${programId} \
+            and o.trackedentityid in (\
+            select distinct p.trackedentityid \
+            from ${programownershiphistory} p \
+            where p.programid = ${programId} \
+            and p.organisationunitid is not null)) a \
+            inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
+            inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
+            order by te.uid, a.startdate, a.enddate""",
+            Map.of(
+                "historyTableId", HISTORY_TABLE_ID,
+                "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
+                "programId", String.valueOf(program.getId()))));
+    return sql.toString();
   }
 
   private Map<String, Object> getRowMap(List<String> columnNames, ResultSet resultSet)
@@ -286,10 +292,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    */
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
-    columns.addAll(FIXED_COLS);
 
     return filterDimensionColumns(columns);
   }

@@ -27,26 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest {
+@Transactional
+class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegrationTestBase {
   final JsonDataIntegrityDetails getDetails(String check) {
     JsonObject content = GET("/dataIntegrity/details?checks={check}&timeout=1000", check).content();
     JsonDataIntegrityDetails details =
@@ -60,7 +63,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
   final void postDetails(String check) {
     HttpResponse trigger = POST("/dataIntegrity/details?checks=" + check);
     assertStatus(HttpStatus.OK, trigger);
-    assertEquals("http://localhost/dataIntegrity/details?checks=" + check, trigger.location());
+    assertEquals("http://localhost/api/dataIntegrity/details?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
 
@@ -76,7 +79,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
   public final void postSummary(String check) {
     HttpResponse trigger = POST("/dataIntegrity/summary?checks=" + check);
     assertStatus(HttpStatus.OK, trigger);
-    assertEquals("http://localhost/dataIntegrity/summary?checks=" + check, trigger.location());
+    assertEquals("http://localhost/api/dataIntegrity/summary?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
 
@@ -318,6 +321,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     return ccDefault.getArray("categoryOptionCombos").getString(0).string();
   }
 
+  @Nonnull
   @Override
   public HttpResponse GET(String url, Object... args) {
     return super.GET(url, args);

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 
 public class SharingJsonBinaryType extends JsonBinaryType {

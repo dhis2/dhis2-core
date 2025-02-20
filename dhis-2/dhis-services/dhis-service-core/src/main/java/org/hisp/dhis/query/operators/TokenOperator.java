@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.query.operators;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
@@ -61,7 +61,9 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
   @Override
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
+    if (skipUidToken(value, queryPath)) {
+      return null;
+    }
     Predicate defaultSearch =
         builder.equal(
             builder.function(
@@ -76,19 +78,33 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
         || queryPath.getProperty().getTranslationKey() == null) {
       return defaultSearch;
     }
-    return builder.equal(
-        builder.function(
-            JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
-            Boolean.class,
-            root.get("translations"),
-            builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
-            builder.literal(queryPath.getLocale().getLanguage()),
-            builder.literal(TokenUtils.createRegex(value).toString())),
-        true);
+
+    return builder.or(
+        builder.equal(
+            builder.function(
+                JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
+                Boolean.class,
+                root.get("translations"),
+                builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
+                builder.literal(queryPath.getLocale().getLanguage()),
+                builder.literal(TokenUtils.createRegex(value).toString())),
+            true),
+        defaultSearch);
   }
 
   @Override
   public boolean test(Object value) {
     return TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
+  }
+
+  /**
+   * Return
+   *
+   * @param value
+   * @param query
+   * @return
+   */
+  private boolean skipUidToken(String value, QueryPath query) {
+    return "uid".equals(query.getProperty().getFieldName()) && value.length() < 4;
   }
 }

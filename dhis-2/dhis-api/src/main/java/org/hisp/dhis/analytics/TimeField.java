@@ -37,19 +37,35 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 
 /** Enum that maps database column names to their respective "business" names. */
+@RequiredArgsConstructor
 public enum TimeField {
-  EVENT_DATE("occurreddate"),
-  ENROLLMENT_DATE("enrollmentdate"),
-  INCIDENT_DATE("incidentdate"),
-  // Not a typo, different naming convention between FE and database
-  SCHEDULED_DATE("scheduleddate"),
-  COMPLETED_DATE("completeddate"),
-  CREATED("created"),
-  LAST_UPDATED("lastupdated");
+  EVENT_DATE(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+  ENROLLMENT_DATE(
+      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+      EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+      "enrollmentdate"),
+  INCIDENT_DATE(
+      EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+      EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+      "occurreddate"),
+  OCCURRED_DATE("occurreddate"),
+  SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
+  COMPLETED_DATE(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME),
+  CREATED(EventAnalyticsColumnName.CREATED_COLUMN_NAME),
+  LAST_UPDATED(
+      EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+      EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+      "lastupdated");
 
-  @Getter private String field;
+  @Getter private final String enrollmentColumnName;
+  @Getter private final String eventColumnName;
+  @Getter private final String trackedEntityColumnName;
 
   public static final Collection<String> DEFAULT_TIME_FIELDS =
       List.of(EVENT_DATE.name(), LAST_UPDATED.name(), ENROLLMENT_DATE.name());
@@ -58,22 +74,26 @@ public enum TimeField {
    * These constants represent the columns that can be compared using the raw period column (in the
    * analytics tables), instead of dates. This is preferable for performance reasons.
    */
-  private static final Collection<TimeField> TIME_FIELDS_SUPPORT_RAW_PERIODS =
+  private static final Collection<TimeField> SUPPORTING_RAW_FIELD_TIME_FIELDS =
       List.of(EVENT_DATE, SCHEDULED_DATE, ENROLLMENT_DATE);
 
   private static final Set<String> FIELD_NAMES =
       newHashSet(TimeField.values()).stream().map(TimeField::name).collect(toSet());
 
   TimeField(final String field) {
-    this.field = field;
+    this.trackedEntityColumnName = field;
+    this.eventColumnName = field;
+    this.enrollmentColumnName = field;
   }
 
   public static Optional<TimeField> of(final String timeField) {
     return Arrays.stream(values()).filter(tf -> tf.name().equals(timeField)).findFirst();
   }
 
-  public static Optional<TimeField> from(final String field) {
-    return Arrays.stream(values()).filter(tf -> tf.getField().equals(field)).findFirst();
+  private static Optional<TimeField> from(final String field) {
+    return Arrays.stream(values())
+        .filter(timeField -> timeField.getEventColumnName().equals(field))
+        .findFirst();
   }
 
   public static boolean fieldIsValid(final String field) {
@@ -81,8 +101,10 @@ public enum TimeField {
   }
 
   public boolean supportsRawPeriod() {
-    return isNotBlank(field)
-        && from(field).isPresent()
-        && TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(from(field).get());
+    return Optional.of(eventColumnName)
+        .filter(StringUtils::isNotBlank)
+        .flatMap(TimeField::from)
+        .map(SUPPORTING_RAW_FIELD_TIME_FIELDS::contains)
+        .orElse(false);
   }
 }

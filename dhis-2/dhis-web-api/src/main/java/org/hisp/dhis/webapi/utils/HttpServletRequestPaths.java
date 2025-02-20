@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 
 public class HttpServletRequestPaths {
   private static final Pattern API_VERSION = Pattern.compile("(/api/(\\d+)?/)");
@@ -46,7 +46,7 @@ public class HttpServletRequestPaths {
       version = "/" + matcher.group(2);
     }
 
-    return getServletPath(request) + version;
+    return getContextPath(request) + request.getServletPath() + "/api" + version;
   }
 
   public static String getServletPath(HttpServletRequest request) {
@@ -81,6 +81,7 @@ public class HttpServletRequestPaths {
     }
 
     builder.append(request.getContextPath());
+
     return builder.toString();
   }
 }

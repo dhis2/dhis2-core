@@ -51,14 +51,15 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class PredictorServiceTest extends IntegrationTestBase {
+class PredictorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PredictorService predictorService;
 
@@ -110,11 +111,8 @@ class PredictorServiceTest extends IntegrationTestBase {
 
   private long predictorGroupIdB;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     organisationUnitService.addOrganisationUnitLevel(orgUnitLevel1);
     dataElementA = createDataElement('A');

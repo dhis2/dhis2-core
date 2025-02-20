@@ -33,7 +33,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -109,6 +111,9 @@ public class DateUtils {
       ObjectArrays.concat(
           SUPPORTED_DATE_ONLY_PARSERS, SUPPORTED_DATE_TIME_FORMAT_PARSERS, DateTimeParser.class);
 
+  private static final DateTimeFormatter ONLY_DATE_FORMATTER =
+      new DateTimeFormatterBuilder().append(null, SUPPORTED_DATE_ONLY_PARSERS).toFormatter();
+
   private static final DateTimeFormatter DATE_FORMATTER =
       new DateTimeFormatterBuilder().append(null, SUPPORTED_DATE_FORMAT_PARSERS).toFormatter();
 
@@ -137,6 +142,12 @@ public class DateUtils {
   private static final DateTimeFormatter LONG_DATE_FORMAT =
       DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
 
+  private static final DateTimeFormatter LONG_DATE_FORMAT_WITH_MILLIS =
+      DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+  private static final DateTimeFormatter LONG_DATE_FORMAT_NO_T =
+      DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
   private static final DateTimeFormatter HTTP_DATE_FORMAT =
       DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(Locale.ENGLISH);
 
@@ -148,6 +159,8 @@ public class DateUtils {
   private static final long MS_PER_DAY = 86400000;
 
   private static final long MS_PER_S = 1000;
+
+  public static final long SECONDS_PER_DAY = 86400;
 
   private static final Pattern DURATION_PATTERN = Pattern.compile("^(\\d+)(d|h|m|s)$");
 
@@ -179,6 +192,16 @@ public class DateUtils {
   }
 
   /**
+   * Formats a Date to the format yyyy-MM-dd HH:mm:ss.SSS.
+   *
+   * @param date the Date to parse.
+   * @return A formatted date string.
+   */
+  public static String toLongDateWithMillis(Date date) {
+    return date != null ? LONG_DATE_FORMAT_WITH_MILLIS.print(new DateTime(date)) : null;
+  }
+
+  /**
    * Formats a Date to the format yyyy-MM-dd HH:mm:ss.
    *
    * @param date the Date to parse.
@@ -186,6 +209,16 @@ public class DateUtils {
    */
   public static String toLongDate(Date date) {
     return date != null ? LONG_DATE_FORMAT.print(new DateTime(date)) : null;
+  }
+
+  /**
+   * Formats a Date to the format yyyy-MM-dd HH:mm:ss.S
+   *
+   * @param date the Date to parse.
+   * @return A formatted date string.
+   */
+  public static String toLongDateNoT(Date date) {
+    return date != null ? LONG_DATE_FORMAT_NO_T.print(new DateTime(date)) : null;
   }
 
   /**
@@ -248,6 +281,18 @@ public class DateUtils {
    */
   public static Date getDate(int year, int month, int dayOfMonth, int hourOfDay, int minuteOfHour) {
     return new DateTime(year, month, dayOfMonth, hourOfDay, minuteOfHour).toDate();
+  }
+
+  /**
+   * Creates a {@link Date} representing the given year, month and day.
+   *
+   * @param year the year.
+   * @param month the month, from 1.
+   * @param dayOfMonth the day of the month, from 1.
+   * @return a {@link Date}.
+   */
+  public static Date getDate(int year, int month, int dayOfMonth) {
+    return new DateTime(year, month, dayOfMonth, 0, 0).toDate();
   }
 
   /**
@@ -606,11 +651,11 @@ public class DateUtils {
    * @param date the date.
    * @param days the number of days to add.
    */
-  public static Date addDays(Date date, int days) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DATE, days);
-    return cal.getTime();
+  public static Date addDays(Date date, double days) {
+    final long millisPerDay = SECONDS_PER_DAY * 1000;
+    long currentTimeInMillis = date.getTime();
+    long additionalMillis = (long) (days * millisPerDay);
+    return new Date(currentTimeInMillis + additionalMillis);
   }
 
   /**
@@ -662,13 +707,36 @@ public class DateUtils {
   }
 
   /**
-   * Parses the given string into a Date using the supported date formats. Returns null if the
-   * string cannot be parsed.
+   * Parses the given string into a Date using the supported date formats. Add time at the beginning
+   * of the day if no time was provided. Returns null if the string cannot be parsed.
    *
    * @param dateString the date string.
    * @return a date.
    */
   public static Date parseDate(String dateString) {
+    return safeParseDateTime(dateString, DATE_FORMATTER);
+  }
+
+  /**
+   * Parses the given string into a Date using the supported date formats. Add time at the end of
+   * the day if no time was provided. Returns null if the string cannot be parsed.
+   *
+   * @param dateString the date string.
+   * @return a date.
+   */
+  public static Date parseDateEndOfTheDay(String dateString) {
+    if (StringUtils.isEmpty(dateString)) {
+      return null;
+    }
+
+    try {
+      Date date = safeParseDateTime(dateString, ONLY_DATE_FORMATTER);
+      LocalDateTime localDateTime =
+          LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).with(LocalTime.MAX);
+      return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    } catch (IllegalArgumentException e) {
+      // dateString has time defined
+    }
     return safeParseDateTime(dateString, DATE_FORMATTER);
   }
 
@@ -742,19 +810,29 @@ public class DateUtils {
    * UTC time zone.
    *
    * @param time the LocalDateTime.
-   * @return a Date.
+   * @return a {@link Date}.
    */
   public static Date getDate(LocalDateTime time) {
     Instant instant = time.toInstant(ZoneOffset.UTC);
-
     return Date.from(instant);
+  }
+
+  /**
+   * Truncates the given date to the first day of the month.
+   *
+   * @param date the date to truncate.
+   * @return a {@link Date}.
+   */
+  public static Date dateTruncMonth(Date date) {
+    LocalDate localDate = new LocalDate(date);
+    return localDate.withDayOfMonth(1).toDate();
   }
 
   /**
    * Return the current date minus the duration specified by the given string.
    *
    * @param duration the duration string.
-   * @return a Date.
+   * @return a {@link Date}.
    */
   public static Date nowMinusDuration(String duration) {
     Duration dr = DateUtils.getDuration(duration);

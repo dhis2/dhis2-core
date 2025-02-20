@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 
 /**
  * @author Lars Helge Overland
@@ -72,10 +71,7 @@ public interface GenericStore<T> {
   @CheckForNull
   T get(long id);
 
-  long countAllValuesByAttributes(@Nonnull List<Attribute> attributes);
-
-  @Nonnull
-  List<AttributeValue> getAttributeValueByAttribute(@Nonnull Attribute attribute);
+  long countAllValuesByAttributes(@Nonnull Collection<UID> attributes);
 
   /**
    * Gets the count of objects.
@@ -93,31 +89,19 @@ public interface GenericStore<T> {
   List<T> getAll();
 
   @Nonnull
-  List<T> getByAttribute(@Nonnull Attribute attribute);
+  List<T> getByAttribute(@Nonnull UID attribute);
 
   @Nonnull
-  List<T> getByAttributeAndValue(@Nonnull Attribute attribute, String value);
+  List<T> getByAttributeAndValue(@Nonnull UID attribute, String value);
 
   @Nonnull
-  List<T> getAllByAttributes(@Nonnull List<Attribute> attributes);
+  List<T> getAllByAttributes(@Nonnull Collection<UID> attributes);
+
+  boolean isAttributeValueUniqueTo(
+      @Nonnull UID object, @Nonnull UID attribute, @Nonnull String value);
 
   @Nonnull
-  List<AttributeValue> getAllValuesByAttributes(@Nonnull List<Attribute> attributes);
-
-  @Nonnull
-  List<AttributeValue> getAttributeValueByAttributeAndValue(
-      @Nonnull Attribute attribute, @Nonnull String value);
-
-  @Nonnull
-  List<T> getByAttributeValue(@Nonnull AttributeValue attributeValue);
-
-  boolean isAttributeValueUnique(@Nonnull T object, @Nonnull AttributeValue attributeValue);
-
-  boolean isAttributeValueUnique(
-      @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value);
-
-  @Nonnull
-  List<T> getAllByAttributeAndValues(@Nonnull Attribute attribute, @Nonnull List<String> values);
+  List<T> getAllByAttributeAndValues(@Nonnull UID attribute, @Nonnull List<String> values);
 
   /**
    * Update a specific attribute of all objects.
@@ -132,5 +116,5 @@ public interface GenericStore<T> {
    *     values that changed by this update and those that stay the same)
    */
   int updateAllAttributeValues(
-      @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing);
+      @Nonnull UID attribute, @Nonnull String newValue, boolean createMissing);
 }

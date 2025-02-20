@@ -108,7 +108,7 @@ class EnrollmentTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Enrollment.class);
-    assertEquals(37, allClassFieldsIncludingInherited.length);
+    assertEquals(36, allClassFieldsIncludingInherited.length);
   }
 
   private Enrollment getNewEnrollmentWithNoNulls() {

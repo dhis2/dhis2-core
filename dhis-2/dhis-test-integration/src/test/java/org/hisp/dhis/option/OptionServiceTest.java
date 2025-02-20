@@ -37,14 +37,17 @@ import java.util.List;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class OptionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class OptionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OptionService optionService;
 
@@ -78,8 +81,8 @@ class OptionServiceTest extends TransactionalIntegrationTest {
 
   private Option option4;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     option1 = new Option("OptA1", "OptA1");
     option2 = new Option("OptA2", "OptA2");
     option3 = new Option("OptB1", "OptB1");

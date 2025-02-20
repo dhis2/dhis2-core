@@ -29,15 +29,15 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
 /**

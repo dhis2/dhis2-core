@@ -28,6 +28,8 @@
 package org.hisp.dhis.dataapproval;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,24 +45,24 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService _userService;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -133,12 +135,8 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit organisationUnitK;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
-    this.userService = _userService;
+  @BeforeEach
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -530,7 +528,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     Set<OrganisationUnit> dataViewOrgUnits = new HashSet<>();
     dataViewOrgUnits.add(organisationUnitB);
 
-    User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE);
+    User cu = createAndAddUserWithAuth(assignedOrgUnits, dataViewOrgUnits, F_APPROVE_DATA);
     injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
@@ -587,11 +585,8 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu =
-        createAndAddUser(
-            assignedOrgUnits,
-            dataViewOrgUnits,
-            DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS);
+        createAndAddUserWithAuth(
+            assignedOrgUnits, dataViewOrgUnits, F_APPROVE_DATA, F_APPROVE_DATA_LOWER_LEVELS);
     injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =

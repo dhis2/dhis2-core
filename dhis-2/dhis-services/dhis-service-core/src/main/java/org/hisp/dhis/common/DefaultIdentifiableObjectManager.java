@@ -36,11 +36,10 @@ import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.gson.internal.Primitives;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,13 +50,11 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
@@ -65,8 +62,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.schema.Schema;
@@ -226,17 +223,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   }
 
   @Override
-  public <T extends IdentifiableObject> List<T> findByUser(Class<T> type, @Nonnull User user) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return findByUser(store, user);
-  }
-
-  @Override
   public <T extends IdentifiableObject> boolean existsByUser(Class<T> type, @Nonnull User user) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
@@ -271,6 +257,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     return store.getByUid(uid);
+  }
+
+  @CheckForNull
+  @Override
+  @Transactional(readOnly = true)
+  public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull UID uid) {
+    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
+
+    if (store == null) {
+      return null;
+    }
+
+    return store.getByUid(uid.getValue());
   }
 
   @Nonnull
@@ -387,30 +386,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getByName(name);
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value) {
-    return getByUniqueAttributeValue(type, attribute, value, CurrentUserUtil.getCurrentUsername());
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type,
-      @Nonnull Attribute attribute,
-      @Nonnull String value,
-      String username) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByUniqueAttributeValue(attribute, value);
-  }
-
   private User getCurrentUser() {
     return get(User.class, CurrentUserUtil.getCurrentUsername());
   }
@@ -430,34 +405,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     return object;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> filter(
-      @Nonnull Class<T> type, @Nonnull String query) {
-    Set<T> uniqueObjects = new HashSet<>();
-
-    T uidObject = get(type, query);
-
-    if (uidObject != null) {
-      uniqueObjects.add(uidObject);
-    }
-
-    T codeObject = getByCode(type, query);
-
-    if (codeObject != null) {
-      uniqueObjects.add(codeObject);
-    }
-
-    uniqueObjects.addAll(getLikeName(type, query, false));
-
-    List<T> objects = new ArrayList<>(uniqueObjects);
-
-    Collections.sort(objects);
-
-    return objects;
   }
 
   @Nonnull
@@ -516,41 +463,17 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAllByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes) {
-    if (!hasAttributeValues(type) || attributes.isEmpty()) {
-      return List.of();
-    }
+      @Nonnull Class<T> type, @Nonnull Collection<UID> attributes) {
+    if (!hasAttributeValues(type) || attributes.isEmpty()) return List.of();
 
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
+    if (store == null) return List.of();
     return store.getAllByAttributes(attributes);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes) {
-    if (!hasAttributeValues(type) || attributes.isEmpty()) {
-      return List.of();
-    }
-
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllValuesByAttributes(attributes);
   }
 
   @Override
   public <T extends IdentifiableObject> long countAllValuesByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes) {
+      @Nonnull Class<T> type, @Nonnull Collection<UID> attributes) {
     if (!hasAttributeValues(type) || attributes.isEmpty()) {
       return 0;
     }
@@ -710,20 +633,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getLikeName(
-      @Nonnull Class<T> type, @Nonnull String name) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllLikeName(name);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getLikeName(
       @Nonnull Class<T> type, @Nonnull String name, boolean caseSensitive) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
@@ -778,14 +687,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> Map<String, T> getIdMap(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property) {
-    return getIdMap(type, IdScheme.from(property));
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMap(
       @Nonnull Class<T> type, @Nonnull IdScheme idScheme) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
@@ -794,30 +695,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     List<T> objects = store.getAll();
-
-    return IdentifiableObjectUtils.getIdMap(objects, idScheme);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property) {
-    return getIdMapNoAcl(type, IdScheme.from(property));
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl(
-      @Nonnull Class<T> type, @Nonnull IdScheme idScheme) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return Map.of();
-    }
-
-    List<T> objects = store.getAllNoAcl();
 
     return IdentifiableObjectUtils.getIdMap(objects, idScheme);
   }
@@ -836,6 +713,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     switch (property) {
+      case ID:
       case UID:
         return store.getByUid(identifiers);
       case CODE:
@@ -901,8 +779,9 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         throw new InvalidIdentifierReferenceException(
             "Attribute does not exist: " + idScheme.getAttribute());
       }
+      if (!attribute.isUnique() || value.isEmpty()) return null;
 
-      return store.getByUniqueAttributeValue(attribute, value);
+      return store.getByUniqueAttributeValue(UID.of(attribute), value);
     }
     if (idScheme.is(IdentifiableProperty.ID) && Integer.parseInt(value) > 0) {
       return store.get(Integer.parseInt(value));
@@ -950,7 +829,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   public void resetNonOwnerProperties(@Nonnull Object object) {
     Schema schema = schemaService.getDynamicSchema(getRealClass(object));
 
-    schema.getProperties().stream()
+    schema.getPersistedProperties().values().stream()
         .filter(
             p ->
                 !p.isOwner()
@@ -984,12 +863,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional
   public void clear() {
     entityManager.clear();
-  }
-
-  @Override
-  @Transactional
-  public void evict(@Nonnull Object object) {
-    entityManager.unwrap(Session.class).evict(object);
   }
 
   @Override
@@ -1063,50 +936,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getByDataDimensionNoAcl(true);
   }
 
-  @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getByAttributeAndValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value) {
-    Schema schema = schemaService.getDynamicSchema(type);
-
-    if (schema == null || !schema.hasPersistedProperty("attributeValues")) {
-      return List.of();
-    }
-
+  public <T extends IdentifiableObject> boolean isAttributeValueUniqueTo(
+      @Nonnull Class<T> type, @Nonnull UID object, @Nonnull UID attributeId, String value) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByAttributeAndValue(attribute, value);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      @Nonnull Class<T> type, @Nonnull T object, @Nonnull AttributeValue attributeValue) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null && store.isAttributeValueUnique(object, attributeValue);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      @Nonnull Class<T> type,
-      @Nonnull T object,
-      @Nonnull Attribute attribute,
-      @Nonnull String value) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null && store.isAttributeValueUnique(object, attribute, value);
+    return store != null && store.isAttributeValueUniqueTo(object, attributeId, value);
   }
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAllByAttributeAndValues(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull List<String> values) {
+      @Nonnull Class<T> type, @Nonnull UID attribute, @Nonnull List<String> values) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
     return store != null ? store.getAllByAttributeAndValues(attribute, values) : List.of();
   }
@@ -1234,33 +1076,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
           }
           return store;
         });
-  }
-
-  /**
-   * Look up list objects by property createdBy or lastUpdatedBy. Among those properties, only
-   * persisted ones will be used for looking up.
-   *
-   * @param store the store to be used for looking up objects.
-   * @param user the {@link User} that is linked to createdBy or lastUpdateBy property.
-   * @return list of {@link IdentifiableObject} found.
-   */
-  private <T extends IdentifiableObject> List<T> findByUser(
-      IdentifiableObjectStore<T> store, User user) {
-    Schema schema = schemaService.getDynamicSchema(store.getClazz());
-    boolean hasCreatedBy = schema.getPersistedProperty(BaseIdentifiableObject_.CREATED_BY) != null;
-    boolean hasLastUpdatedBy =
-        schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
-
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    if (hasCreatedBy && hasLastUpdatedBy) {
-      return store.findByUser(currentUserDetails);
-    } else if (hasLastUpdatedBy) {
-      return store.findByLastUpdatedBy(currentUserDetails);
-    } else if (hasCreatedBy) {
-      return store.findByCreatedBy(currentUserDetails);
-    }
-
-    return List.of();
   }
 
   /**

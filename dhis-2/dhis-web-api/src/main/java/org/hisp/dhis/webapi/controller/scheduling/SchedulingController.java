@@ -40,6 +40,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobProgress.Stage;
@@ -61,9 +62,11 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(
+    entity = JobConfiguration.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
-@RequestMapping(value = "/scheduling")
+@RequestMapping("/api/scheduling")
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SchedulingController {

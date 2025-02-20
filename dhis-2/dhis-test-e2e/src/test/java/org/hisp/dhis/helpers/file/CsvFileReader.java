@@ -37,7 +37,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
-import org.hisp.dhis.actions.IdGenerator;
+import org.hisp.dhis.test.e2e.actions.IdGenerator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

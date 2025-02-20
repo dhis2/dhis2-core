@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -56,7 +57,7 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(71, checks.size());
+    assertEquals(88, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -74,6 +75,11 @@ class DataIntegrityYamlReaderTest {
     // Assert that all "codes" are unique.
     List<String> codeList = checks.stream().map(DataIntegrityCheck::getCode).sorted().toList();
     assertEquals(codeList.size(), Set.copyOf(codeList).size());
+
+    // Assert that all the descriptions are unique.
+    List<String> nameList =
+        checks.stream().map(DataIntegrityCheck::getDescription).sorted().toList();
+    assertEquals(nameList.size(), Set.copyOf(nameList).size());
 
     // Assert that codes consist of upper case letter and numbers only
     String regEx = "^[A-Z0-9]+$";
@@ -139,6 +145,29 @@ class DataIntegrityYamlReaderTest {
     readYaml(
         checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks.yaml", FILE_SYSTEM);
     assertEquals(0, checks.size());
+  }
+
+  @Test
+  void testChecksHaveTranslations() {
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
+
+    List<String> translationsSuffix = new ArrayList<>();
+    /* Require the name only for now, but we can add the other translations strings later when needed.
+    e.g. description, introduction, recommendation, section
+     */
+    translationsSuffix.add("name");
+
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
+    // Check for names
+    for (DataIntegrityCheck check : checks) {
+      for (String suffix : translationsSuffix) {
+        String translationKey = "data_integrity." + check.getName() + "." + suffix;
+        assertTrue(
+            resourceBundle.containsKey(translationKey),
+            "data integrity check translations should contain " + translationKey);
+      }
+    }
   }
 
   private void readYaml(

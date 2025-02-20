@@ -33,17 +33,19 @@ import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_CHART_V
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_REPORT_VIEW;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_VISUALIZATION_VIEW;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
+import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
@@ -52,13 +54,13 @@ import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,13 +74,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataStatistics.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping(DataStatisticsController.RESOURCE_PATH)
+@RequestMapping("/api/dataStatistics")
 public class DataStatisticsController {
-  public static final String RESOURCE_PATH = "/dataStatistics";
 
   private final DataStatisticsService dataStatisticsService;
 
@@ -162,10 +165,10 @@ public class DataStatisticsController {
     return dataStatisticsService.getFavoriteStatistics(uid);
   }
 
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping("/snapshot")
   public void saveSnapshot() {
-    dataStatisticsService.saveDataStatisticsSnapshot(NoopJobProgress.INSTANCE);
+    dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
   }
 }

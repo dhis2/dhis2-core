@@ -47,7 +47,7 @@ import org.hisp.dhis.system.grid.ListGrid;
  * @author Lars Helge Overland
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class GridRenderUtils {
+public final class GridRenderUtils {
   /**
    * Generates a grid according to the provided columns, rows and values.
    *

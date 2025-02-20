@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -155,7 +154,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @return the attribute value or null if not found
    */
   @CheckForNull
-  T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value);
+  T getByUniqueAttributeValue(@Nonnull UID attribute, @Nonnull String value);
 
   /**
    * Retrieves the attribute value associated with the unique attribute, the given value and given
@@ -168,7 +167,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   @CheckForNull
   T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails userDetails);
+      @Nonnull UID attribute, @Nonnull String value, @Nonnull UserDetails userDetails);
 
   /**
    * Retrieves a List of all objects (sorted on name).
@@ -196,6 +195,16 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   @Nonnull
   List<T> getAllEqName(@Nonnull String name);
+
+  /**
+   * Retrieves a List of objects where the name is equal the given name.
+   *
+   * @param name the name.
+   * @param userDetails the user details of the acting user.
+   * @return a List of objects.
+   */
+  @Nonnull
+  List<T> getAllEqName(@Nonnull String name, UserDetails userDetails);
 
   /**
    * Retrieves a List of objects where the name is like the given name.

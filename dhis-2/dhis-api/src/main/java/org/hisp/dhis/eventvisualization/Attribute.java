@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import org.hisp.dhis.common.OpenApi;
+
 /**
  * Holds the name of existing event visualization attributes that might be associated to any
  * dimension.
@@ -35,6 +37,7 @@ package org.hisp.dhis.eventvisualization;
  *
  * @author maikel arabori
  */
+@OpenApi.Shared(name = "DimensionAttribute")
 public enum Attribute {
   COLUMN,
   ROW,

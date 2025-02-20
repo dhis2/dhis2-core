@@ -29,14 +29,14 @@ package org.hisp.dhis.dataset.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
@@ -174,8 +174,7 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   @Override
   public int deleteExpiredLockExceptions(Date createdBefore) {
     String sql = "delete from lockexception where created < :date";
-
-    return getSession().createNativeQuery(sql).setParameter("date", createdBefore).executeUpdate();
+    return nativeSynchronizedQuery(sql).setParameter("date", createdBefore).executeUpdate();
   }
 
   @Override

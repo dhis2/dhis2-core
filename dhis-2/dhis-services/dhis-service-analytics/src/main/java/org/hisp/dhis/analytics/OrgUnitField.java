@@ -43,6 +43,8 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -55,18 +57,18 @@ import org.hisp.dhis.program.AnalyticsType;
  * <li>{@link OrgUnitFieldType#ATTRIBUTE} use an event attribute or data element
  * of type orgUnit. OrgUnit structure tables are joined to the attribute or data
  * element column.</li>
- * <li>{@link OrgUnitFieldType#REGISTRATION} use the TEI registration orgUnit.
+ * <li>{@link OrgUnitFieldType#REGISTRATION} use the TE registration orgUnit.
  * OrgUnit structure tables are joined to the analytics table registrationou
  * column.</li>
  * <li>{@link OrgUnitFieldType#ENROLLMENT use the program instance enrollment
  * orgUnit. OrgUnit structure columns are included in the analytics table for
  * enrollment queries. For event queries, orgUnit structure tables are joined to
  * the enrolmentou column.</li>
- * <li>{@link OrgUnitFieldType#OWNER_AT_START} use the TEI owner at the start of
+ * <li>{@link OrgUnitFieldType#OWNER_AT_START} use the TE owner at the start of
  * reporting period. OrgUnit columns are coalesced from the ownership analytics
  * table when present, and from the enrollment orgUnit when not (the ou column
  * for enrollment queries, or the enrollmentou column for event queries.)</li>
- * <li>{@link OrgUnitFieldType#OWNER_AT_END} use the TEI owner at the end of
+ * <li>{@link OrgUnitFieldType#OWNER_AT_END} use the TE owner at the end of
  * reporting period. OrgUnit columns are coalesced from the ownership analytics
  * table when present, and from the enrollment orgUnit when not (the ou column
  * for enrollment queries, or the enrollmentou column for event queries.)</li>
@@ -82,6 +84,8 @@ public class OrgUnitField {
   private final String field;
 
   private final OrgUnitFieldType type;
+
+  private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   public OrgUnitField(String field) {
     this.field = field;
@@ -197,7 +201,7 @@ public class OrgUnitField {
   private String getTableAndColumn(String tableAlias, String col, boolean noColumnAlias) {
     if (type.isOwnership()) {
       return "coalesce("
-          + quote(OWNERSHIP_TBL_ALIAS, col)
+          + sqlBuilder.quote(OWNERSHIP_TBL_ALIAS, col)
           + ","
           + ouQuote(tableAlias, col, true)
           + ")"
@@ -215,14 +219,20 @@ public class OrgUnitField {
    */
   private String ouQuote(String tableAlias, String col, boolean noColumnAlias) {
     if (ORG_UNIT_STRUCT_ALIAS.equals(tableAlias) && DEFAULT_ORG_UNIT_COL.equals(col)) {
-      return quote(tableAlias, "organisationunituid") + ((noColumnAlias) ? "" : " as " + col);
+      return sqlBuilder.quote(tableAlias, "organisationunituid")
+          + ((noColumnAlias) ? "" : " as " + col);
     }
 
-    return quote(tableAlias, col);
+    return sqlBuilder.quote(tableAlias, col);
   }
 
   @Override
   public String toString() {
     return "[" + field + "-" + type + "]";
+  }
+
+  public OrgUnitField withSqlBuilder(SqlBuilder sqlBuilder) {
+    this.sqlBuilder = sqlBuilder;
+    return this;
   }
 }

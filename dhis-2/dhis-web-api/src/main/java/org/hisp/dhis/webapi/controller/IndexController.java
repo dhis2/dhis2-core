@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.SystemSetting;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.IndexResource;
@@ -45,44 +48,43 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(
+    entity = SystemSetting.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
+@RequiredArgsConstructor
 public class IndexController {
-  private final SchemaService schemaService;
 
+  private final SchemaService schemaService;
   private final ContextService contextService;
 
-  public IndexController(SchemaService schemaService, ContextService contextService) {
-    this.schemaService = schemaService;
-    this.contextService = contextService;
-  }
+  @GetMapping("/")
+  public void getIndexWithSlash(
+      HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
+      throws IOException {
+    String redirectUrl = request.getContextPath() + "/" + settings.getStartModule();
 
-  // --------------------------------------------------------------------------
-  // GET
-  // --------------------------------------------------------------------------
+    if (!redirectUrl.endsWith("/")) {
+      redirectUrl += "/";
+    }
+    String location = response.encodeRedirectURL(redirectUrl);
+    response.sendRedirect(location);
+  }
 
   @GetMapping("/api")
   public void getIndex(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    String location = response.encodeRedirectURL("/resources");
+    String location = response.encodeRedirectURL("/api/resources");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
-  @GetMapping("/")
-  public void getIndexWithSlash(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
-    String location = response.encodeRedirectURL("/resources");
-    response.sendRedirect(ContextUtils.getRootPath(request) + location);
-  }
-
-  @GetMapping("/resources")
+  @GetMapping("/api/resources")
   public @ResponseBody IndexResources getResources() {
     return createIndexResources();
   }
 
   private IndexResources createIndexResources() {
     IndexResources indexResources = new IndexResources();
-
     for (Schema schema : schemaService.getSchemas()) {
       if (schema.hasApiEndpoint()) {
         indexResources
@@ -95,7 +97,6 @@ public class IndexController {
                     contextService.getApiPath() + schema.getRelativeApiEndpoint()));
       }
     }
-
     return indexResources;
   }
 

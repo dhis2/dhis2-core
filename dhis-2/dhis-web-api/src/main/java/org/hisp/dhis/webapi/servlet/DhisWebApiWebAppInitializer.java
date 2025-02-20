@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.webapi.servlet;
 
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.SessionTrackingMode;
 import java.util.EnumSet;
-import javax.servlet.FilterRegistration;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
-import javax.servlet.SessionTrackingMode;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
@@ -44,6 +46,7 @@ import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -54,15 +57,20 @@ import org.springframework.web.servlet.DispatcherServlet;
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(ServletContext context) {
+    context.getSessionCookieConfig().setName("JSESSIONID");
+    context.getSessionCookieConfig().setHttpOnly(true);
+
     boolean httpsOnly = getConfig().isEnabled(ConfigurationKey.SERVER_HTTPS);
-
-    log.debug(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
-
+    log.info(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
     if (httpsOnly) {
       context.getSessionCookieConfig().setSecure(true);
-      context.getSessionCookieConfig().setHttpOnly(true);
-
       log.info("HTTPS only is enabled, cookies configured as secure");
+    }
+
+    String sameSite = getConfig().getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE);
+    log.info("SameSite cookie attribute set to: " + sameSite);
+    if (sameSite != null) {
+      context.getSessionCookieConfig().setAttribute("SameSite", sameSite);
     }
 
     context.setSessionTrackingModes(EnumSet.of(SessionTrackingMode.COOKIE));
@@ -91,13 +99,23 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
-    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
+    context
+        .addFilter(
+            "SpringSessionRepositoryFilter",
+            new DelegatingFilterProxy("springSessionRepositoryFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
-    dispatcher.addMapping("/api/*");
-    dispatcher.addMapping("/uaa/*");
+    dispatcher.addMapping("/*");
+    dispatcher.setMultipartConfig(new MultipartConfigElement(""));
+
+    context
+        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
     context
         .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
@@ -118,7 +136,19 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
+        .addFilter(
+            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
+      headers using ContextUtils.setNoStore(response).
+    */
+    context
+        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
@@ -126,8 +156,17 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
-        .addFilter(
-            "SwitchUserProcessingFilter", new DelegatingFilterProxy("switchUserProcessingFilter"))
+        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
+
+    context
+        .addServlet("RootPageServlet", LoginFallbackServlet.class)
+        .addMapping("/login.html", "/dhis-web-commons/security/login.action");
+
+    String profile = System.getProperty("spring.profiles.active");
+    if (profile == null || !profile.equals("embeddedJetty")) {
+      RequestContextListener requestContextListener = new RequestContextListener();
+      context.addListener(requestContextListener);
+    }
   }
 }

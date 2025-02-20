@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
 import org.hisp.dhis.common.CodeGenerator;
@@ -54,27 +53,28 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Dusan Bernat
  */
-class QueryItemHelperTest extends DhisConvenienceTest {
-  private String UID_A = CodeGenerator.generateUid();
+class QueryItemHelperTest extends TestBase {
+  private final String UID_A = CodeGenerator.generateUid();
 
-  private String UID_B = CodeGenerator.generateUid();
+  private final String UID_B = CodeGenerator.generateUid();
 
-  private String OPTION_NAME_A = "OptionA";
+  private final String OPTION_NAME_A = "OptionA";
 
-  private String OPTION_NAME_B = "OptionB";
+  private final String OPTION_NAME_B = "OptionB";
 
-  private String LEGEND_NAME_A = "LegendA";
+  private final String LEGEND_NAME_A = "LegendA";
 
-  private String LEGEND_NAME_B = "LegendB";
+  private final String LEGEND_NAME_B = "LegendB";
 
-  private String LEGEND_CODE_A = "LegendCodeA";
+  private final String LEGEND_CODE_A = "LegendCodeA";
 
-  private String LEGEND_CODE_B = "LegendCodeB";
+  private final String LEGEND_CODE_B = "LegendCodeB";
 
   @Test
   void testGeItemOptionValueWithIdSchemeNAME() {

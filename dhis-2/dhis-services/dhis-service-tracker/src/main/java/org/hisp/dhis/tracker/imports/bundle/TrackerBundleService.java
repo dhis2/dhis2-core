@@ -28,11 +28,14 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,40 +47,48 @@ public interface TrackerBundleService {
    * @param params Params object for this bundle.
    * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
    */
-  TrackerBundle create(TrackerImportParams params, TrackerObjects trackerObjects, User user);
+  @Nonnull
+  TrackerBundle create(
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull UserDetails user);
 
   /**
    * Call rule engine for tracker bundle.
    *
    * @return Tracker bundle populated with rule effects
    */
-  TrackerBundle runRuleEngine(TrackerBundle bundle);
+  @Nonnull
+  TrackerBundle runRuleEngine(@Nonnull TrackerBundle bundle);
 
   /**
    * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
    *
    * @param bundle TrackerBundle to commit.
    */
-  PersistenceReport commit(TrackerBundle bundle);
+  @Nonnull
+  PersistenceReport commit(@Nonnull TrackerBundle bundle);
 
   /**
-   * Carry out side effect for TrackerImporter i.e audits, notifications and program rule actions.
+   * Carry out notifications for TrackerImporter.
    *
-   * @param bundles {@link TrackerSideEffectDataBundle} to hold data for side effects.
+   * @param bundles {@link TrackerNotificationDataBundle} to hold data for notifications.
    */
-  void handleTrackerSideEffects(List<TrackerSideEffectDataBundle> bundles);
+  void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles);
 
   /**
    * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.
    *
    * @param bundle TrackerBundle to delete.
    */
-  PersistenceReport delete(TrackerBundle bundle);
+  @Nonnull
+  PersistenceReport delete(@Nonnull TrackerBundle bundle)
+      throws ForbiddenException, NotFoundException;
 
   /**
    * Finalize bundle objects
    *
    * @param bundle to process in post commit operations if any
    */
-  void postCommit(TrackerBundle bundle);
+  void postCommit(@Nonnull TrackerBundle bundle);
 }

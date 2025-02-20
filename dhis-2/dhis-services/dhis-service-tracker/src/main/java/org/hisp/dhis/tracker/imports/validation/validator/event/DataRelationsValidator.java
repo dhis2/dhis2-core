@@ -33,14 +33,15 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1079;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1089;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1115;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1116;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1313;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -65,10 +66,18 @@ class DataRelationsValidator implements Validator<Event> {
     OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
     Program program = bundle.getPreheat().getProgram(event.getProgram());
 
+    validateProgramWithRegistrationHasTrackedEntity(reporter, bundle, program, event);
     validateProgramStageInProgram(reporter, event, programStage, program);
     validateRegistrationProgram(reporter, bundle, event, program);
     validateProgramHasOrgUnit(reporter, bundle.getPreheat(), event, organisationUnit, program);
     validateEventCategoryOptionCombo(reporter, bundle.getPreheat(), event, program);
+  }
+
+  private void validateProgramWithRegistrationHasTrackedEntity(
+      Reporter reporter, TrackerBundle bundle, Program program, Event event) {
+    if (program.isRegistration() && !enrollmentFromEventHasTrackedEntity(bundle, event)) {
+      reporter.addError(event, E1313, event.getEvent());
+    }
   }
 
   private void validateProgramStageInProgram(
@@ -79,16 +88,18 @@ class DataRelationsValidator implements Validator<Event> {
   }
 
   private void validateRegistrationProgram(
-      Reporter reporter, TrackerBundle bundle, Event event, Program eventProgram) {
-    if (eventProgram.isRegistration()) {
-      if (StringUtils.isEmpty(event.getEnrollment())) {
-        reporter.addError(event, E1033, event.getEvent());
-      } else {
-        Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
+      Reporter reporter, TrackerBundle bundle, Event event, Program program) {
+    if (program.isWithoutRegistration()) {
+      return;
+    }
 
-        if (!eventProgram.equals(enrollmentProgram)) {
-          reporter.addError(event, E1079, event, eventProgram, event.getEnrollment());
-        }
+    if (event.getEnrollment() == null) {
+      reporter.addError(event, E1033, event.getEvent());
+    } else {
+      Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
+
+      if (!program.equals(enrollmentProgram)) {
+        reporter.addError(event, E1079, event, program, event.getEnrollment());
       }
     }
   }
@@ -321,5 +332,33 @@ class DataRelationsValidator implements Validator<Event> {
       }
     }
     return null;
+  }
+
+  /**
+   * Given a program with registration, check whether an event in the preheat or payload refers to
+   * enrollment with an existing tracked entity. It should always find a tracked entity, because an
+   * enrollment without a tracked entity is not allowed see {@link
+   * org.hisp.dhis.tracker.imports.validation.validator.enrollment.MandatoryFieldsValidator}
+   *
+   * @param bundle to load the enrollment from the preheat or the payload if not in the database
+   * @param event the event of an enrollment
+   * @return whether the enrollment of the event has an existing tracked entity
+   */
+  private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, Event event) {
+    if (event.getEnrollment() == null) {
+      return true;
+    }
+
+    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
+
+    if (enrollment == null) {
+      return !Objects.isNull(
+          bundle
+              .findEnrollmentByUid(event.getEnrollment())
+              .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
+              .orElse(null));
+    }
+
+    return !Objects.isNull(enrollment.getTrackedEntity());
   }
 }

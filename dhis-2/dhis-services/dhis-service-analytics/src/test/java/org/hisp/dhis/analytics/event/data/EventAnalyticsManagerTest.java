@@ -32,12 +32,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
@@ -49,6 +43,13 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
+import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -76,8 +77,10 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -86,6 +89,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,6 +97,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -108,6 +113,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -116,20 +123,26 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private static final String TABLE_NAME = "analytics_event";
 
+  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private DhisConfigurationProvider config;
+
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
-      "psi,ps,occurreddate,storedby,"
+      "event,ps,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
-          + "oucode,pistatus,psistatus";
+          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
+          + "oucode,enrollmentstatus,eventstatus";
 
   @BeforeEach
   public void setUp() {
-    EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer();
+    EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(sqlBuilder);
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -138,9 +151,14 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
-            sqlBuilder);
+            systemSettingsService,
+            config,
+            sqlBuilder,
+            analyticsSqlBuilder,
+            organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
   }
 
   @Test
@@ -154,12 +172,12 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select psi,ps,occurreddate,storedby,"
+        "select event,ps,occurreddate,storedby,"
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
-            + "longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,psistatus,ax.\"quarterly\",ax.\"ou\"  from "
+            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,"
+            + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
@@ -215,13 +233,13 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select psi,ps,occurreddate,storedby,"
+        "select event,ps,occurreddate,storedby,"
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,pistatus,"
-            + "psistatus,ax.\"quarterly\",ax.\"ou\",\""
+            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
+            + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
             + "\"  from "
@@ -319,7 +337,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
+            + " and enrollmentstatus in ('ACTIVE','COMPLETED') and eventstatus in ('SCHEDULE') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -337,7 +355,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax left join analytics_rs_dateperiodstructure as ps on cast(ax.\"scheduleddate\" as date) = ps.\"dateperiod\" "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
+            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -355,7 +373,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax "
             + "where ((( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )) and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
+            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -485,7 +503,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select count(ax.\"psi\") as value,ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
+        "select count(ax.\"event\") as value,ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
@@ -514,7 +532,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     verify(jdbcTemplate).queryForRowSet(sql.capture());
     String expected =
-        "select count(ax.\"psi\") as value,ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
+        "select count(ax.\"event\") as value,ax.\"quarterly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
@@ -561,7 +579,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String subquery =
-        "from (select \"psi\",ax.\"deabcdefghX\",\"ou\","
+        "from (select \"event\",ax.\"deabcdefghX\",\"ou\","
             + "\"monthly\",\"jkYhtGth12t\","
             + "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" "
             + "order by ax.\"occurreddate\" desc, ax.\"created\" desc) as pe_rank "
@@ -646,7 +664,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String order = (analyticsAggregationType == AnalyticsAggregationType.LAST) ? "desc" : "asc";
 
     String expectedFirstOrLastSubquery =
-        "from (select \"psi\",ax.\""
+        "from (select \"event\",ax.\""
             + deU.getUid()
             + "\",\"quarterly\",\"ou\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"occurreddate\" "

@@ -29,14 +29,15 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.schema.descriptors.DataEntryFormSchemaDescriptor;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = DataEntryFormSchemaDescriptor.API_ENDPOINT)
-public class DataEntryFormController extends AbstractCrudController<DataEntryForm> {}
+@RequestMapping("/api/dataEntryForms")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class DataEntryFormController
+    extends AbstractCrudController<DataEntryForm, GetObjectListParams> {}

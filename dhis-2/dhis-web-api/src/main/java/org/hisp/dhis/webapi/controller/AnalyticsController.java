@@ -29,12 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -47,12 +48,13 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -60,12 +62,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class AnalyticsController {
-  private static final String RESOURCE_PATH = "/analytics";
+  private static final String RESOURCE_PATH = "/api/analytics";
 
   private static final String EXPLAIN_PATH = "/explain";
 
@@ -85,7 +89,7 @@ public class AnalyticsController {
   // Resources
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = RESOURCE_PATH + EXPLAIN_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
@@ -160,6 +164,18 @@ public class AnalyticsController {
     GridUtils.toXls(
         getGridWithAttachment(
             criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".xlsx")
+  public void getXlsx(
+      AggregateAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXlsx(
+        getGridWithAttachment(
+            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xlsx", response),
         response.getOutputStream());
   }
 

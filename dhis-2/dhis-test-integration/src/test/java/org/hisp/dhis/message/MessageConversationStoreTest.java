@@ -34,25 +34,26 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
-class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MessageConversationStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageConversationStore messageConversationStore;
 
   @Autowired private MessageService messageService;
-
-  @Autowired private UserService _userService;
-
-  @Autowired private EntityManager entityManager;
 
   private User userB;
 
@@ -62,12 +63,8 @@ class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
 
   private Collection<String> conversationIds;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
-    userService = _userService;
+  @BeforeAll
+  void setUp() {
     // 'A' used as currentUser
     setupUser("A");
     userB = setupUser("B");
@@ -80,7 +77,7 @@ class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
     conversationIds = new HashSet<>();
     conversationA = messageService.sendPrivateMessage(usersA, "Subject1", "Text", "Meta", null);
     MessageConversation mc = messageService.getMessageConversation(conversationA);
-    mc.markRead(userC);
+    mc.markRead(UID.of(userC.getUid()));
     messageService.updateMessageConversation(mc);
     conversationIds.add(mc.getUid());
     messageService.sendReply(mc, "Message 1", "Meta", false, null);
@@ -118,7 +115,6 @@ class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetMessageConversationsReturnCorrectNumberOfMessages() {
     MessageConversation conversation = messageConversationStore.get(conversationA);
-    entityManager.flush();
     assertTrue((conversation.getMessageCount() == 4));
   }
 

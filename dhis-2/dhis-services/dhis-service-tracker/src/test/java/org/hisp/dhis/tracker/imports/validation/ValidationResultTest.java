@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
@@ -70,22 +70,10 @@ class ValidationResultTest {
   }
 
   private Error newError() {
-    return newError(ValidationCode.E9999);
-  }
-
-  private Error newError(ValidationCode code) {
-    return newError(CodeGenerator.generateUid(), code);
-  }
-
-  private Error newError(String uid, ValidationCode code) {
-    return new Error("", code, TrackerType.EVENT, uid, List.of());
+    return new Error("", ValidationCode.E9999, TrackerType.EVENT, UID.generate(), List.of());
   }
 
   private Warning newWarning() {
-    return newWarning(CodeGenerator.generateUid(), ValidationCode.E9999);
-  }
-
-  private Warning newWarning(String uid, ValidationCode code) {
-    return new Warning("", code, TrackerType.EVENT, uid);
+    return new Warning("", ValidationCode.E9999, TrackerType.EVENT, UID.generate());
   }
 }

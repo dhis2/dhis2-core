@@ -27,21 +27,17 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,27 +49,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class RelationshipOperationParamsMapper {
 
-  private final TrackedEntityService trackedEntityService;
-
-  private final EnrollmentService enrollmentService;
-
-  private final EventService eventService;
-
-  private final TrackerAccessManager accessManager;
-
-  private final UserService userService;
+  private final HibernateRelationshipStore relationshipStore;
+  private final TrackerAccessManager trackerAccessManager;
 
   @Transactional(readOnly = true)
-  public RelationshipQueryParams map(RelationshipOperationParams params)
+  public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
       throws NotFoundException, ForbiddenException {
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> validateTrackedEntity(currentUser, params.getIdentifier());
-          case ENROLLMENT -> validateEnrollment(currentUser, params.getIdentifier());
-          case EVENT -> validateEvent(currentUser, params.getIdentifier());
+          case TRACKED_ENTITY ->
+              getTrackedEntity(params.getIdentifier(), params.isIncludeDeleted());
+          case ENROLLMENT -> getEnrollment(params.getIdentifier(), params.isIncludeDeleted());
+          case EVENT -> getEvent(params.getIdentifier(), params.isIncludeDeleted());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
@@ -84,47 +72,48 @@ class RelationshipOperationParamsMapper {
         .build();
   }
 
-  private TrackedEntity validateTrackedEntity(User user, String uid)
+  private TrackedEntity getTrackedEntity(UID trackedEntityUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
+    TrackedEntity trackedEntity =
+        relationshipStore
+            .findTrackedEntity(trackedEntityUid)
+            .filter(te -> (includeDeleted || !te.isDeleted()))
+            .orElseThrow(() -> new NotFoundException(TrackedEntity.class, trackedEntityUid));
+    if (!trackerAccessManager
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), trackedEntity)
+        .isEmpty()) {
+      throw new ForbiddenException(TrackedEntity.class, trackedEntityUid);
     }
-
-    List<String> errors = accessManager.canRead(user, trackedEntity);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(TrackedEntity.class, uid);
-    }
-
     return trackedEntity;
   }
 
-  private Enrollment validateEnrollment(User user, String uid)
+  private Enrollment getEnrollment(UID enrollmentUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
-    if (enrollment == null) {
-      throw new NotFoundException(Enrollment.class, uid);
+    Enrollment enrollment =
+        relationshipStore
+            .findEnrollment(enrollmentUid)
+            .filter(te -> (includeDeleted || !te.isDeleted()))
+            .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
+    if (!trackerAccessManager
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
+        .isEmpty()) {
+      throw new ForbiddenException(Enrollment.class, enrollmentUid);
     }
-
-    List<String> errors = accessManager.canRead(user, enrollment, false);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(Enrollment.class, uid);
-    }
-
     return enrollment;
   }
 
-  private Event validateEvent(User user, String uid) throws NotFoundException, ForbiddenException {
-    Event event = eventService.getEvent(uid);
-    if (event == null) {
-      throw new NotFoundException(Event.class, uid);
+  private Event getEvent(UID eventUid, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    Event event =
+        relationshipStore
+            .findEvent(eventUid)
+            .filter(te -> (includeDeleted || !te.isDeleted()))
+            .orElseThrow(() -> new NotFoundException(Event.class, eventUid));
+    if (!trackerAccessManager
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), event, false)
+        .isEmpty()) {
+      throw new ForbiddenException(Event.class, eventUid);
     }
-
-    List<String> errors = accessManager.canRead(user, event, false);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(Event.class, uid);
-    }
-
     return event;
   }
 }

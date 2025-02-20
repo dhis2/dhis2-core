@@ -51,6 +51,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
@@ -58,9 +59,9 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -114,7 +115,7 @@ public class MapView extends BaseAnalyticalObject
   /** Tracked entity instance layer. */
   private TrackedEntityType trackedEntityType;
 
-  private ProgramStatus programStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   private Boolean followUp;
 
@@ -312,17 +313,6 @@ public class MapView extends BaseAnalyticalObject
     return LAYER_EVENT.equals(layer);
   }
 
-  @Override
-  public String getName() {
-    if (!dataDimensionItems.isEmpty()
-        && dataDimensionItems.get(0) != null
-        && dataDimensionItems.get(0).getDimensionalItemObject() != null) {
-      return dataDimensionItems.get(0).getDimensionalItemObject().getName();
-    }
-
-    return uid;
-  }
-
   // -------------------------------------------------------------------------
   // EventAnalyticalObject
   // -------------------------------------------------------------------------
@@ -401,12 +391,12 @@ public class MapView extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getProgramStatus() {
+    return enrollmentStatus;
   }
 
-  public void setProgramStatus(ProgramStatus programStatus) {
-    this.programStatus = programStatus;
+  public void setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
   }
 
   @JsonProperty
@@ -745,6 +735,7 @@ public class MapView extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Property(org.hisp.dhis.event.EventStatus.class)
   public EventStatus getEventStatus() {
     return eventStatus;
   }

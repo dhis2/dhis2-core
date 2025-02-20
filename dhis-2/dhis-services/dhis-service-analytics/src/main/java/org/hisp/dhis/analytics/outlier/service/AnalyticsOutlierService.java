@@ -63,7 +63,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.TableInfoReader;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.outlier.data.Outlier;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -80,6 +80,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -103,7 +104,7 @@ public class AnalyticsOutlierService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final DimensionalObjectProvider dimensionalObjectProducer;
 
   /**
    * Transform the incoming request into api response (json).
@@ -160,6 +161,16 @@ public class AnalyticsOutlierService {
   public void getOutliersAsXls(OutlierRequest request, OutputStream outputStream)
       throws IllegalQueryException, IOException {
     GridUtils.toXls(getOutliers(request), outputStream);
+  }
+
+  /**
+   * Transform the incoming request into api response (xlsx download).
+   *
+   * @param request the {@link OutlierRequest}.
+   */
+  public void getOutliersAsXlsx(OutlierRequest request, OutputStream outputStream)
+      throws IllegalQueryException, IOException {
+    GridUtils.toXlsx(getOutliers(request), outputStream);
   }
 
   /**
@@ -374,6 +385,9 @@ public class AnalyticsOutlierService {
                 .stream()
                 .map(p -> (Period) p);
 
-    return periodStream.map(IdentifiableObject::getName).findFirst().orElse(outlier.getPe());
+    return periodStream
+        .min(AscendingPeriodComparator.INSTANCE)
+        .map(Period::getName)
+        .orElse(outlier.getPe());
   }
 }

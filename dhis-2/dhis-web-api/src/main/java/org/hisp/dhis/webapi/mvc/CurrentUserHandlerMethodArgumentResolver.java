@@ -32,7 +32,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.user.UserService;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -61,10 +60,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
       return false;
     }
 
-    return type == String.class
-        || type == UserDetails.class
-        || type == UserDetailsImpl.class
-        || type == User.class;
+    return type == String.class || type == UserDetails.class || type == User.class;
   }
 
   @Override
@@ -72,8 +68,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
       MethodParameter parameter,
       ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest,
-      WebDataBinderFactory binderFactory)
-      throws Exception {
+      WebDataBinderFactory binderFactory) {
 
     Class<?> type = parameter.getParameterType();
 
@@ -82,10 +77,6 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
     }
 
     if (type == UserDetails.class) {
-      return CurrentUserUtil.getCurrentUserDetails();
-    }
-
-    if (type == UserDetailsImpl.class) {
       return CurrentUserUtil.getCurrentUserDetails();
     }
 

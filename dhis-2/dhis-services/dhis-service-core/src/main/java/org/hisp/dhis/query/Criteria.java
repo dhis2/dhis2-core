@@ -61,7 +61,7 @@ public abstract class Criteria {
     return this;
   }
 
-  public Criteria add(Collection<Criterion> criterions) {
+  public Criteria add(Collection<? extends Criterion> criterions) {
     this.criterions.addAll(criterions);
     return this;
   }

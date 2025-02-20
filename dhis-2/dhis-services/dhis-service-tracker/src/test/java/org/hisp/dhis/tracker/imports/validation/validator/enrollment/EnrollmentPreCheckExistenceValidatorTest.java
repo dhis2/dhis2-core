@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1080;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1081;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1113;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -52,11 +53,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class EnrollmentPreCheckExistenceValidatorTest {
-  private static final String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
+  private static final UID SOFT_DELETED_ENROLLMENT_UID = UID.generate();
 
-  private static final String ENROLLMENT_UID = "EnrollmentId";
+  private static final UID ENROLLMENT_UID = UID.generate();
 
-  private static final String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
+  private static final UID NOT_PRESENT_ENROLLMENT_UID = UID.generate();
 
   @Mock private TrackerBundle bundle;
 
@@ -162,14 +163,14 @@ class EnrollmentPreCheckExistenceValidatorTest {
 
   private Enrollment getSoftDeletedEnrollment() {
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(SOFT_DELETED_ENROLLMENT_UID);
+    enrollment.setUid(SOFT_DELETED_ENROLLMENT_UID.getValue());
     enrollment.setDeleted(true);
     return enrollment;
   }
 
   private Enrollment getEnrollment() {
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(ENROLLMENT_UID);
+    enrollment.setUid(ENROLLMENT_UID.getValue());
     enrollment.setDeleted(false);
     return enrollment;
   }

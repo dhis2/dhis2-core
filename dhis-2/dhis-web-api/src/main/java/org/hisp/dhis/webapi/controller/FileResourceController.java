@@ -28,15 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeToDefaultIconSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import com.google.common.base.MoreObjects;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
@@ -54,7 +55,8 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceOwner;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -75,13 +77,14 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Halvdan Hoem Grelland
  */
-@OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = FileResourceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/fileResources")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class FileResourceController extends AbstractFullReadOnlyController<FileResource> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class FileResourceController
+    extends AbstractFullReadOnlyController<FileResource, GetObjectListParams> {
   private final FileResourceService fileResourceService;
 
   private final FileResourceUtils fileResourceUtils;
@@ -94,12 +97,12 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
   @GetMapping(value = "/{uid}", params = "fields")
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
-      Map<String, String> rpParameters,
+      GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-    return super.getObject(uid, rpParameters, currentUser, request, response);
+    return super.getObject(uid, params, currentUser, request, response);
   }
 
   @GetMapping(value = "/{uid}")
@@ -142,10 +145,12 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
     }
 
     response.setContentType(fileResource.getContentType());
+
     response.setHeader(
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
@@ -166,11 +171,27 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam MultipartFile file,
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
-      throws WebMessageException, IOException {
+      throws IOException, ConflictException {
+
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+
     FileResource fileResource;
-    if (domain.equals(FileResourceDomain.CUSTOM_ICON)) {
+    if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
-      fileResource = fileResourceUtils.saveFileResource(uid, resizeToDefaultIconSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
+
+    } else if (domain.equals(FileResourceDomain.USER_AVATAR)) {
+      fileResourceUtils.validateUserAvatar(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
+
+    } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
+      fileResourceUtils.validateOrgUnitImage(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(
+              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
+
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
     }

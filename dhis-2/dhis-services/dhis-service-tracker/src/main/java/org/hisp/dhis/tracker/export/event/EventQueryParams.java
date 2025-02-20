@@ -40,19 +40,21 @@ import lombok.Getter;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
@@ -63,7 +65,7 @@ class EventQueryParams {
 
   private ProgramStage programStage;
 
-  private ProgramStatus programStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   private ProgramType programType;
 
@@ -102,8 +104,6 @@ class EventQueryParams {
 
   private CategoryOptionCombo categoryOptionCombo;
 
-  private IdSchemes idSchemes = new IdSchemes();
-
   private boolean includeRelationships;
 
   /**
@@ -123,7 +123,7 @@ class EventQueryParams {
 
   private boolean includeAllDataElements;
 
-  private Set<String> events = new HashSet<>();
+  private Set<UID> events = new HashSet<>();
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
@@ -138,18 +138,20 @@ class EventQueryParams {
 
   private boolean includeDeleted;
 
-  private Set<String> accessiblePrograms;
+  private Set<UID> accessiblePrograms;
 
-  private Set<String> accessibleProgramStages;
+  private Set<UID> accessibleProgramStages;
 
   private boolean synchronizationQuery;
 
   /** Indicates a point in the time used to decide the data that should not be synchronized */
   private Date skipChangedBefore;
 
-  private Set<String> enrollments;
+  private Set<UID> enrollments;
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
+
+  @Getter private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   public EventQueryParams() {}
 
@@ -202,12 +204,12 @@ class EventQueryParams {
     return this;
   }
 
-  public ProgramStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getEnrollmentStatus() {
+    return enrollmentStatus;
   }
 
-  public EventQueryParams setProgramStatus(ProgramStatus programStatus) {
-    this.programStatus = programStatus;
+  public EventQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
     return this;
   }
 
@@ -375,15 +377,6 @@ class EventQueryParams {
     return this;
   }
 
-  public IdSchemes getIdSchemes() {
-    return idSchemes;
-  }
-
-  public EventQueryParams setIdSchemes(IdSchemes idSchemes) {
-    this.idSchemes = idSchemes;
-    return this;
-  }
-
   public boolean isIncludeAttributes() {
     return includeAttributes;
   }
@@ -422,7 +415,6 @@ class EventQueryParams {
   /** Order by the given data element {@code de} in given sort {@code direction}. */
   public EventQueryParams orderBy(DataElement de, SortDirection direction) {
     this.order.add(new Order(de, direction));
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 
@@ -441,11 +433,11 @@ class EventQueryParams {
     return this;
   }
 
-  public Set<String> getEvents() {
+  public Set<UID> getEvents() {
     return events;
   }
 
-  public EventQueryParams setEvents(Set<String> events) {
+  public EventQueryParams setEvents(Set<UID> events) {
     this.events = events;
     return this;
   }
@@ -481,6 +473,11 @@ class EventQueryParams {
     return this;
   }
 
+  public EventQueryParams filterBy(DataElement de) {
+    this.dataElements.putIfAbsent(de, List.of(new QueryFilter(QueryOperator.NNULL)));
+    return this;
+  }
+
   public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
@@ -490,20 +487,20 @@ class EventQueryParams {
     return this.includeDeleted;
   }
 
-  public Set<String> getAccessiblePrograms() {
+  public Set<UID> getAccessiblePrograms() {
     return accessiblePrograms;
   }
 
-  public EventQueryParams setAccessiblePrograms(Set<String> accessiblePrograms) {
+  public EventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
     this.accessiblePrograms = accessiblePrograms;
     return this;
   }
 
-  public Set<String> getAccessibleProgramStages() {
+  public Set<UID> getAccessibleProgramStages() {
     return accessibleProgramStages;
   }
 
-  public EventQueryParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
+  public EventQueryParams setAccessibleProgramStages(Set<UID> accessibleProgramStages) {
     this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
@@ -530,11 +527,11 @@ class EventQueryParams {
     return this;
   }
 
-  public Set<String> getEnrollments() {
+  public Set<UID> getEnrollments() {
     return enrollments;
   }
 
-  public EventQueryParams setEnrollments(Set<String> enrollments) {
+  public EventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
   }
@@ -554,7 +551,12 @@ class EventQueryParams {
 
   public boolean isPathOrganisationUnitMode() {
     return orgUnitMode != null
-        && (orgUnitMode.equals(OrganisationUnitSelectionMode.DESCENDANTS)
-            || orgUnitMode.equals(OrganisationUnitSelectionMode.CHILDREN));
+        && (OrganisationUnitSelectionMode.DESCENDANTS.equals(orgUnitMode)
+            || OrganisationUnitSelectionMode.CHILDREN.equals(orgUnitMode));
+  }
+
+  public EventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
+    this.idSchemeParams = idSchemeParams;
+    return this;
   }
 }

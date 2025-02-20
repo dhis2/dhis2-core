@@ -46,7 +46,7 @@
 
     <property name="status" length="50">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="enumClass">org.hisp.dhis.program.EnrollmentStatus</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
@@ -69,7 +69,10 @@
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 
-    <list name="notes" table="enrollment_notes" cascade="all-delete-orphan">
+<!-- eagerly fetch notes to avoid lazy init exceptions in code outside a hibernate session we do not
+exclude notes like we do other collections if the fields parameter does not contain them like in
+fields=!notes. reconsider this if we do implement that optimization -->
+    <list name="notes" table="enrollment_notes" cascade="all-delete-orphan" lazy="false" fetch="join">
       <key column="enrollmentid" foreign-key="fk_programinstancecomments_programinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.note.Note" column="noteid"
@@ -77,7 +80,7 @@
     </list>
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
-      foreign-key="fk_programinstance_organisationunitid" />
+      foreign-key="fk_programinstance_organisationunitid" not-null="true"/>
 
   </class>
 

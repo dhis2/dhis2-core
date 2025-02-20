@@ -41,18 +41,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class CategoryOptionComboServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class CategoryOptionComboServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
@@ -80,11 +83,8 @@ class CategoryOptionComboServiceTest extends TransactionalIntegrationTest {
 
   private CategoryOptionCombo categoryOptionComboC;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     categoryOptionA = new CategoryOption("Male");
     categoryOptionB = new CategoryOption("Female");
     categoryOptionC = new CategoryOption("0-20");
@@ -316,13 +316,11 @@ class CategoryOptionComboServiceTest extends TransactionalIntegrationTest {
     Attribute attribute1 = new Attribute("attribute 1", ValueType.TEXT);
     attribute1.setCategoryOptionComboAttribute(true);
     attributeService.addAttribute(attribute1);
-    AttributeValue avA = new AttributeValue("value 1");
-    avA.setAttribute(attribute1);
-    categoryOptionComboA.getAttributeValues().add(avA);
+    categoryOptionComboA.addAttributeValue(attribute1.getUid(), "value 1");
     categoryService.updateCategoryOptionCombo(categoryOptionComboA);
     categoryOptionComboA = categoryService.getCategoryOptionCombo(id);
     assertFalse(categoryOptionComboA.getAttributeValues().isEmpty());
-    categoryOptionComboA.getAttributeValues().clear();
+    categoryOptionComboA.setAttributeValues(AttributeValues.empty());
     categoryService.updateCategoryOptionCombo(categoryOptionComboA);
     categoryOptionComboA = categoryService.getCategoryOptionCombo(id);
     assertTrue(categoryOptionComboA.getAttributeValues().isEmpty());

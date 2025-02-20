@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -41,24 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * @author Abyot Asalefew
  */
 public interface ProgramService {
-  String ID = ProgramService.class.getName();
-
-  Pattern INPUT_PATTERN = Pattern.compile("(<input.*?/>)", Pattern.DOTALL);
-
-  Pattern DYNAMIC_ATTRIBUTE_PATTERN = Pattern.compile("attributeid=\"(\\w+)\"");
-
-  Pattern PROGRAM_PATTERN = Pattern.compile("programid=\"(\\w+)\"");
-
-  Pattern VALUE_TAG_PATTERN = Pattern.compile("value=\"(.*?)\"", Pattern.DOTALL);
-
-  Pattern TITLE_TAG_PATTERN = Pattern.compile("title=\"(.*?)\"", Pattern.DOTALL);
-
-  Pattern SUGGESTED_VALUE_PATTERN = Pattern.compile("suggested=('|\")(\\w*)('|\")");
-
-  Pattern CLASS_PATTERN = Pattern.compile("class=('|\")(\\w*)('|\")");
-
-  Pattern STYLE_PATTERN = Pattern.compile("style=('|\")([\\w|\\d\\:\\;]+)('|\")");
-
   /**
    * Adds an {@link Program}
    *
@@ -161,15 +142,4 @@ public interface ProgramService {
    */
   SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser(
       Set<String> programUids);
-
-  /**
-   * Look for a program - org Unit association in a Cache. If the association exists we return true,
-   * otherwise we do a database lookup in the Store and add to the cache. This method checks the
-   * associations irrespective of the sharing settings or org unit scopes.
-   *
-   * @param program input program uid
-   * @param orgUnit
-   * @return whether a org Unit is associated to the input program
-   */
-  boolean checkProgramOrganisationUnitsAssociations(String program, String orgUnit);
 }

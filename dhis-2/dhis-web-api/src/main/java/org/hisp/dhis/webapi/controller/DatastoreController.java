@@ -30,27 +30,31 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.datastore.DatastoreQuery.parseFields;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -71,9 +75,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DatastoreEntry.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
-@RequestMapping("/dataStore")
+@RequestMapping("/api/dataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DatastoreController extends AbstractDatastoreController {
@@ -104,7 +110,7 @@ public class DatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false) Date lastUpdated,
       @PathVariable String namespace,
       HttpServletResponse response)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException {
     return getKeysInNamespaceLegacy(lastUpdated, namespace, response);
   }
 
@@ -115,7 +121,7 @@ public class DatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false) Date lastUpdated,
       @PathVariable String namespace,
       HttpServletResponse response)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException {
     setNoStore(response);
 
     List<String> keys = service.getKeysInNamespace(namespace, lastUpdated);
@@ -127,6 +133,19 @@ public class DatastoreController extends AbstractDatastoreController {
     return keys;
   }
 
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
+  @GetMapping(value = "/protections", params = "namespace", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody DatastoreNamespaceProtection getNamespaceProtection(
+      @RequestParam String namespace) {
+    return service.getProtection(namespace);
+  }
+
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
+  @GetMapping(value = "/protections", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<DatastoreNamespaceProtection> getNamespaceProtections() {
+    return service.getProtections();
+  }
+
   @OpenApi.Response(status = Status.OK, value = EntriesResponse.class)
   @GetMapping(value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE)
   public void getEntries(
@@ -135,7 +154,7 @@ public class DatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false, defaultValue = "false") boolean includeAll,
       DatastoreParams params,
       HttpServletResponse response)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, ForbiddenException {
     DatastoreQuery query =
         service.plan(
             DatastoreQuery.builder()
@@ -151,7 +170,8 @@ public class DatastoreController extends AbstractDatastoreController {
   /** Deletes all keys with the given namespace. */
   @ResponseBody
   @DeleteMapping("/{namespace}")
-  public WebMessage deleteNamespace(@PathVariable String namespace) throws NotFoundException {
+  public WebMessage deleteNamespace(@PathVariable String namespace)
+      throws NotFoundException, ForbiddenException {
     if (!service.isUsedNamespace(namespace)) {
       throw new NotFoundException(String.format("Namespace not found: '%s'", namespace));
     }
@@ -166,7 +186,7 @@ public class DatastoreController extends AbstractDatastoreController {
    */
   @GetMapping(value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody String getEntry(@PathVariable String namespace, @PathVariable String key)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException {
     return getExistingEntry(namespace, key).getValue();
   }
 
@@ -176,7 +196,10 @@ public class DatastoreController extends AbstractDatastoreController {
       @PathVariable String namespace,
       @PathVariable String key,
       @CurrentUser UserDetails currentUser)
-      throws NotFoundException, InvocationTargetException, IllegalAccessException {
+      throws NotFoundException,
+          InvocationTargetException,
+          IllegalAccessException,
+          ForbiddenException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
 
     DatastoreEntry metaData = new DatastoreEntry();
@@ -200,7 +223,7 @@ public class DatastoreController extends AbstractDatastoreController {
       @PathVariable String key,
       @RequestBody String value,
       @RequestParam(defaultValue = "false") boolean encrypt)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry();
     entry.setKey(key);
     entry.setNamespace(namespace);
@@ -235,7 +258,7 @@ public class DatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false) String path,
       @RequestParam(required = false) Integer roll,
       @RequestParam(defaultValue = "false") boolean encrypt)
-      throws BadRequestException, ConflictException {
+      throws BadRequestException, ConflictException, ForbiddenException {
     DatastoreEntry dataEntry = service.getEntry(namespace, key);
 
     if (dataEntry == null) return addEntry(namespace, key, value, encrypt);
@@ -248,14 +271,15 @@ public class DatastoreController extends AbstractDatastoreController {
   @ResponseBody
   @DeleteMapping(value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE)
   public WebMessage deleteEntry(@PathVariable String namespace, @PathVariable String key)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
     service.deleteEntry(entry);
 
     return ok(String.format("Key '%s' deleted from namespace '%s'", key, namespace));
   }
 
-  private DatastoreEntry getExistingEntry(String namespace, String key) throws NotFoundException {
+  private DatastoreEntry getExistingEntry(String namespace, String key)
+      throws NotFoundException, ForbiddenException {
     DatastoreEntry entry = service.getEntry(namespace, key);
 
     if (entry == null) {

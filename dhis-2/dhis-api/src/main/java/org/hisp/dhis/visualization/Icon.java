@@ -35,6 +35,7 @@ import java.io.Serializable;
 import lombok.Data;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * Representation of an icon object that can be used by clients to manage and show/hide icons.
@@ -44,6 +45,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author maikel arabori
  */
 @Data
+@OpenApi.Shared(name = "VisualizationIcon")
 public class Icon implements Serializable {
   public enum IconType {
     DATA_ITEM;

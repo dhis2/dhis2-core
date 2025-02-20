@@ -33,37 +33,38 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
+class ProgramSqlGeneratorVariablesTest extends TestBase {
   private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 
   private final String SQL_CASE_VALUE = "case when \"%s\" >= 0 then 1 else 0 end";
@@ -81,6 +82,8 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Mock private DimensionService dimensionService;
 
   @Mock private I18n i18n;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   private CommonExpressionVisitor subject;
 
@@ -121,7 +124,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
                 + enrollmentIndicator.getProgram().getUid()
                 + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
-                + ".pi = ax.pi and created is not null order by occurreddate desc limit 1 )"));
+                + ".enrollment = ax.enrollment and created is not null order by occurreddate desc limit 1 )"));
   }
 
   @Test
@@ -159,7 +162,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Test
   void testEnrollmentCount() {
     String sql = castString(test("V{enrollment_count}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("distinct pi"));
+    assertThat(sql, is("distinct enrollment"));
   }
 
   @Test
@@ -238,7 +241,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Test
   void testTeiCount() {
     String sql = castString(test("V{tei_count}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("distinct tei"));
+    assertThat(sql, is("distinct trackedentity"));
   }
 
   @Test
@@ -304,10 +307,11 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(ITEM_GET_SQL)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(sqlBuilder)
             .build();
 
     subject.setExpressionLiteral(exprLiteral);

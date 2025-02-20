@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import java.util.function.Consumer;

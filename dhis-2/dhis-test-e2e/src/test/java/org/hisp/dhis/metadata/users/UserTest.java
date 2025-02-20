@@ -32,12 +32,12 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import com.google.gson.JsonObject;
 import java.util.stream.Stream;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -109,7 +109,12 @@ public class UserTest extends ApiTest {
               password,
               "Testtest?",
               "Password must have at least one digit",
-              "newPassword doesn't contain a digit")
+              "newPassword doesn't contain a digit"),
+          Arguments.of(
+              password,
+              "TESTTEST1",
+              "Password must have at least one lower case",
+              "newPassword doesn't contain lowercase")
         });
   }
 

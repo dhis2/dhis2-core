@@ -45,7 +45,8 @@ public class BaseLinkableObject implements LinkableObject {
   private transient String href;
 
   @Override
-  @JsonProperty
+  @Sortable(value = false)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(isAttribute = true)
   @Property(PropertyType.URL)
   public String getHref() {

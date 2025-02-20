@@ -43,7 +43,7 @@ import org.mapstruct.factory.Mappers;
       TrackedEntityTypeMapper.class,
       ProgramStageMapper.class,
       ProgramTrackedEntityAttributeMapper.class,
-      AttributeValueMapper.class,
+      AttributeValuesMapper.class,
       SharingMapper.class
     })
 public interface ProgramMapper extends PreheatMapper<Program> {

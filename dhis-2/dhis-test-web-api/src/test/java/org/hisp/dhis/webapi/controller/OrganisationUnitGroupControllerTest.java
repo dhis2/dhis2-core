@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} using (mocked) REST
@@ -41,7 +42,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class OrganisationUnitGroupControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class OrganisationUnitGroupControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testCreateWithDescription() {
     String id =

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;

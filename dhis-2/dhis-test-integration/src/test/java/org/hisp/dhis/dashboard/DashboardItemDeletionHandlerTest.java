@@ -45,18 +45,20 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class DashboardItemDeletionHandlerTest extends TransactionalIntegrationTest {
+@Transactional
+class DashboardItemDeletionHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private DashboardService dashboardService;
 
@@ -70,8 +72,6 @@ class DashboardItemDeletionHandlerTest extends TransactionalIntegrationTest {
 
   @Autowired private EventChartService eventChartService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private ReportService reportService;
 
   @Autowired private ProgramService programService;
@@ -84,9 +84,8 @@ class DashboardItemDeletionHandlerTest extends TransactionalIntegrationTest {
 
   private Program program;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     dashboardItem = new DashboardItem();
     dashboard = new Dashboard("A");
     dashboard.getItems().add(dashboardItem);

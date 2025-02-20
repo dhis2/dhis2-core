@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.outlier.data;
 
 import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.feedback.ErrorCode.E7617;
 import static org.hisp.dhis.feedback.ErrorCode.E7622;
 
@@ -40,7 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -61,7 +60,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
-  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final DimensionalObjectProvider dimensionalObjectProducer;
   private final UserService userService;
 
   /**
@@ -173,18 +172,16 @@ public class OutlierQueryParser {
    * @return a list of the {@link OrganisationUnit}.
    */
   private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    User currentUser = userService.getUserByUsername(currentUsername);
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Set<OrganisationUnit> userOrganisationUnits;
 
-    if (currentUser != null && currentUser.hasOrganisationUnit()) {
+    if (currentUser.hasOrganisationUnit()) {
       userOrganisationUnits = currentUser.getOrganisationUnits();
-    } else if (currentUser != null && currentUser.hasDataViewOrganisationUnit()) {
+    } else if (currentUser.hasDataViewOrganisationUnit()) {
       userOrganisationUnits = currentUser.getDataViewOrganisationUnits();
     } else {
-      throw new IllegalQueryException(
-          E7622, currentUser == null ? EMPTY : currentUser.getUsername());
+      throw new IllegalQueryException(E7622, currentUser.getUsername());
     }
 
     if (queryParams.getOu().isEmpty()) {

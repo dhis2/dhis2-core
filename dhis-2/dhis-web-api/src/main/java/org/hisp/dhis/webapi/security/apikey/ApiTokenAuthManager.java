@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
-import java.io.Serializable;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
@@ -39,7 +40,6 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
@@ -57,11 +57,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
-
+  private final OrganisationUnitService organisationUnitService;
   private final UserService userService;
   private final UserStore userStore;
-
-  private final UserSettingService userSettingService;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
@@ -70,12 +68,11 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       ApiTokenService apiTokenService,
       CacheProvider cacheProvider,
       @Lazy UserService userService,
-      UserSettingService userSettingService) {
+      OrganisationUnitService organisationUnitService) {
     this.userService = userService;
     this.userStore = userStore;
     this.apiTokenService = apiTokenService;
-    this.userSettingService = userSettingService;
-
+    this.organisationUnitService = organisationUnitService;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -139,10 +136,20 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
+    List<String> organisationUnitsUidsByUser =
+        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
 
     return UserDetails.createUserDetails(
-        user, accountNonLocked, credentialsNonExpired, userSettings);
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        new HashSet<>(organisationUnitsUidsByUser),
+        new HashSet<>(searchOrganisationUnitsUidsByUser),
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
   }
 
   private static void validateTokenExpiry(Long expiry) {

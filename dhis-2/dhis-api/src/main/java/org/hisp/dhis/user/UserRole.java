@@ -40,13 +40,13 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.security.Authorities;
 
 /**
  * @author Nguyen Hong Duc
  */
 @JacksonXmlRootElement(localName = "userRole", namespace = DxfNamespaces.DXF_2_0)
 public class UserRole extends BaseIdentifiableObject implements MetadataObject {
-  public static final String AUTHORITY_ALL = "ALL";
 
   private String description;
 
@@ -61,7 +61,7 @@ public class UserRole extends BaseIdentifiableObject implements MetadataObject {
   }
 
   public boolean isSuper() {
-    return authorities != null && authorities.contains(AUTHORITY_ALL);
+    return authorities != null && authorities.contains(Authorities.ALL.toString());
   }
 
   public void addUser(User user) {

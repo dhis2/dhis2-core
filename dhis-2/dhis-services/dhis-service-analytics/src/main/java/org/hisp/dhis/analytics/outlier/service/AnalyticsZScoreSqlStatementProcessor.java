@@ -241,6 +241,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
         "from analytics ax "
             + "where "
             + getDataDimensionSql(withParams, request.getDataDimensions())
+            + " "
             + ouPathClause
             + getPeriodSqlSnippet(request, withParams)
             + ") t1 "
@@ -266,6 +267,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
    */
   private String getDataDimensionSql(boolean withParams, List<DataDimension> dataDimensions) {
     StringBuilder sql = new StringBuilder("(");
+
     if (withParams) {
       for (int i = 0; i < dataDimensions.size(); i++) {
         sql.append(i == 0 ? "(ax.dataelementid = :" : " or (ax.dataelementid = :")
@@ -278,23 +280,25 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
         }
         sql.append(")");
       }
-      sql.append(") ");
+    } else {
+      sql.append(
+          dataDimensions.stream()
+              .map(
+                  dd -> {
+                    String s = "(ax.dataelementid = " + dd.getDataElement().getId();
+                    if (dd.getCategoryOptionCombo() != null) {
+                      s += " and ax.categoryoptioncomboid = " + dd.getCategoryOptionCombo().getId();
+                    }
+                    s += ")";
 
-      return sql.toString();
+                    return s;
+                  })
+              .collect(Collectors.joining(" or ")));
     }
 
-    return dataDimensions.stream()
-        .map(
-            dd -> {
-              String s = "(ax.dataelementid = " + dd.getDataElement().getId();
-              if (dd.getCategoryOptionCombo() != null) {
-                s += " and ax.categoryoptioncomboid = " + dd.getCategoryOptionCombo().getId();
-              }
-              s += ")";
+    sql.append(")");
 
-              return s;
-            })
-        .collect(Collectors.joining(" or "));
+    return sql.toString();
   }
 
   /**

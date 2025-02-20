@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
@@ -80,26 +77,13 @@ public class HibernateProgramStageDataElementStore
   }
 
   @Override
-  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue() {
-    final String sql =
-        "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde "
-            + "join programstage ps on psde.programstageid = ps.programstageid "
-            + "join dataelement de on psde.dataelementid = de.dataelementid "
-            + "where psde.programstageid in (select distinct ( programstageid ) from event ev where ev.lastupdated > ev.lastsynchronized) "
-            + "and psde.skipsynchronization = true";
-
-    final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
-    jdbcTemplate.query(
-        sql,
-        rs -> {
-          String programStageUid = rs.getString("ps_uid");
-          String dataElementUid = rs.getString("de_uid");
-
-          psdesWithSkipSync
-              .computeIfAbsent(programStageUid, p -> new HashSet<>())
-              .add(dataElementUid);
-        });
-
-    return psdesWithSkipSync;
+  public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from ProgramStageDataElement psde
+            where psde.dataElement in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

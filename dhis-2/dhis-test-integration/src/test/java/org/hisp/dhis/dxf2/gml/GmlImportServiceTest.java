@@ -47,19 +47,21 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-class GmlImportServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class GmlImportServiceTest extends PostgresIntegrationTestBase {
 
   private InputStream inputStream;
   private InputStream maliciousInputStream;
@@ -79,10 +81,8 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService _userService;
-
-  @Override
-  public void setUpTest() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     inputStream = new ClassPathResource("dxf2/gml/testGmlPayload.gml").getInputStream();
     maliciousInputStream =
         new ClassPathResource("dxf2/gml/testMaliciousGmlPayload.gml").getInputStream();
@@ -95,7 +95,6 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
      * Note: some of these are included to cover different coordinate
      * element schemes such as <posList>, <coordinates> and <pos>.
      */
-    userService = _userService;
     boOrgUnit = createOrganisationUnit('A');
     boOrgUnit.setName("Bo");
     organisationUnitService.addOrganisationUnit(boOrgUnit);
@@ -117,7 +116,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
     forskOrgUnit = createOrganisationUnit('E');
     forskOrgUnit.setName("Forskningsparken");
     organisationUnitService.addOrganisationUnit(forskOrgUnit);
-    user = createAndInjectAdminUser();
+    user = getAdminUser();
     id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid());
     importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATE);
     importOptions.setDryRun(false);
@@ -131,7 +130,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
   void testImportGml() {
     MetadataImportParams importParams = new MetadataImportParams();
     importParams.setUser(UID.of(user));
-    gmlImportService.importGml(inputStream, importParams, NoopJobProgress.INSTANCE);
+    gmlImportService.importGml(inputStream, importParams, JobProgress.noop());
     assertNotNull(boOrgUnit.getGeometry());
     assertNotNull(bontheOrgUnit.getGeometry());
     assertNotNull(ojdOrgUnit.getGeometry());
@@ -156,7 +155,7 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
     importParams.setUser(UID.of(user));
 
     ImportReport importReport =
-        gmlImportService.importGml(maliciousInputStream, importParams, NoopJobProgress.INSTANCE);
+        gmlImportService.importGml(maliciousInputStream, importParams, JobProgress.noop());
 
     ErrorReport errorReport = importReport.getFirstObjectReport().getErrorReports().get(0);
     assertTrue(

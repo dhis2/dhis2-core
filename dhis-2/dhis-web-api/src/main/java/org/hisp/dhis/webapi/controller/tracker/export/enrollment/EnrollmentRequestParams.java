@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,13 +39,15 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /** Represents query parameters sent to {@link EnrollmentsExportController}. */
 @OpenApi.Shared(name = "EnrollmentRequestParams")
@@ -62,75 +63,43 @@ public class EnrollmentRequestParams implements PageRequestParams {
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean totalPages = false;
+  private boolean totalPages = false;
 
-  /**
-   * @deprecated use {@link #paging} instead
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean skipPaging;
-
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
-  // enabled
-  @OpenApi.Property(defaultValue = "true")
-  private Boolean paging;
+  private boolean paging = true;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
-  /**
-   * Semicolon-delimited list of organisation unit UIDs.
-   *
-   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private String orgUnit;
-
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
-
-  /**
-   * @deprecated use {@link #orgUnitMode} instead.
-   */
-  @Deprecated(since = "2.41")
-  private OrganisationUnitSelectionMode ouMode;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
 
-  private ProgramStatus programStatus;
+  /**
+   * @deprecated use {@link #status} instead
+   */
+  @Deprecated(since = "2.42")
+  private EnrollmentStatus programStatus;
+
+  private EnrollmentStatus status;
 
   private Boolean followUp;
 
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   private String updatedWithin;
 
-  private Date enrolledAfter;
+  private StartDateTime enrolledAfter;
 
-  private Date enrolledBefore;
+  private EndDateTime enrolledBefore;
 
   @OpenApi.Property({UID.class, TrackedEntityType.class})
   private UID trackedEntityType;
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
   private UID trackedEntity;
-
-  /**
-   * Semicolon-delimited list of enrollment UIDs.
-   *
-   * @deprecated use {@link #enrollments} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, Enrollment.class})
-  private String enrollment;
 
   @OpenApi.Property({UID[].class, Enrollment.class})
   private Set<UID> enrollments = new HashSet<>();

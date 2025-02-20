@@ -45,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -52,28 +53,27 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
 @Disabled("until we can inject dhis.conf property overrides")
-class AuditIntegrationTest extends IntegrationTestBase {
+class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
 
   @Autowired private AuditService auditService;
 
   @Autowired private DataElementService dataElementService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
@@ -84,6 +84,10 @@ class AuditIntegrationTest extends IntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ObjectMapper objectMapper;
+
+  @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private DbmsManager dbmsManager;
 
   @Test
   void testSaveMetadata() {
@@ -105,16 +109,19 @@ class AuditIntegrationTest extends IntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
-    trackedEntityService.addTrackedEntity(tei);
-    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(tei.getUid())).build();
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
+    manager.save(trackedEntity);
+    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
     assertEquals(TrackedEntity.class.getName(), audit.getKlass());
-    assertEquals(tei.getUid(), audit.getUid());
-    assertEquals(tei.getUid(), audit.getAttributes().get("uid"));
+    assertEquals(trackedEntity.getUid(), audit.getUid());
+    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("uid"));
     assertNotNull(audit.getData());
   }
 
@@ -124,13 +131,18 @@ class AuditIntegrationTest extends IntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
-    trackedEntityService.addTrackedEntity(tei);
-    TrackedEntityAttributeValue dataValue = createTrackedEntityAttributeValue('A', tei, attribute);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
+    manager.save(trackedEntity);
+    TrackedEntityAttributeValue dataValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
     attributeValueService.addTrackedEntityAttributeValue(dataValue);
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("attribute", attribute.getUid());
-    attributes.put("trackedEntity", tei.getUid());
+    attributes.put("trackedEntity", trackedEntity.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
@@ -138,7 +150,7 @@ class AuditIntegrationTest extends IntegrationTestBase {
     Audit audit = audits.get(0);
     assertEquals(TrackedEntityAttributeValue.class.getName(), audit.getKlass());
     assertEquals(attribute.getUid(), audit.getAttributes().get("attribute"));
-    assertEquals(tei.getUid(), audit.getAttributes().get("trackedEntity"));
+    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("trackedEntity"));
     assertNotNull(audit.getData());
   }
 

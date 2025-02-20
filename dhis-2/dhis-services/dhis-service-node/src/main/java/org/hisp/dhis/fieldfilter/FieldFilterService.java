@@ -29,7 +29,6 @@ package org.hisp.dhis.fieldfilter;
 
 import java.util.List;
 import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,9 +42,6 @@ public interface FieldFilterService {
           "!userAccesses",
           "!externalAccess",
           "!sharing");
-
-  /** Perform inclusion/exclusion on a list of objects. */
-  ComplexNode toComplexNode(FieldFilterParams params);
 
   /** Perform inclusion/exclusion on a list of objects. */
   CollectionNode toCollectionNode(Class<?> wrapper, FieldFilterParams params);

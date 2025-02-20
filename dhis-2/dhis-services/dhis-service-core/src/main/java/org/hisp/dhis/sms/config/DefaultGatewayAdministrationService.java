@@ -41,7 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,7 +56,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.sms.config.GatewayAdministrationService")
+@Service
 public class DefaultGatewayAdministrationService implements GatewayAdministrationService {
 
   private final AtomicBoolean hasGateways = new AtomicBoolean();
@@ -64,10 +66,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   @Qualifier("tripleDesStringEncryptor")
   private final PBEStringEncryptor pbeStringEncryptor;
 
-  // -------------------------------------------------------------------------
-  // GatewayAdministrationService implementation
-  // -------------------------------------------------------------------------
-
   @EventListener
   public void handleContextRefresh(ContextRefreshedEvent event) {
     updateHasGatewaysState();
@@ -75,7 +73,8 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
 
   @Override
   @IndirectTransactional
-  public void setDefaultGateway(SmsGatewayConfig config) {
+  public void setDefaultGateway(SmsGatewayConfig config)
+      throws ForbiddenException, ConflictException, BadRequestException {
     SmsConfiguration configuration = getSmsConfiguration();
 
     configuration
@@ -88,7 +87,8 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
 
   @Override
   @IndirectTransactional
-  public boolean addGateway(SmsGatewayConfig config) {
+  public boolean addGateway(SmsGatewayConfig config)
+      throws ForbiddenException, ConflictException, BadRequestException {
     if (config == null) {
       return false;
     }
@@ -122,7 +122,7 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   @IndirectTransactional
   public void updateGateway(
       @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updated)
-      throws NotFoundException, ConflictException {
+      throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
     if (updated == null) throw new ConflictException("Gateway configuration cannot be null");
     if (persisted == null) throw new NotFoundException(SmsGatewayConfig.class, updated.getUid());
     if (persisted.getClass() != updated.getClass())
@@ -180,7 +180,8 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
 
   @Override
   @IndirectTransactional
-  public boolean removeGatewayByUid(String uid) {
+  public boolean removeGatewayByUid(String uid)
+      throws ForbiddenException, ConflictException, BadRequestException {
     SmsConfiguration smsConfiguration = getSmsConfiguration();
 
     List<SmsGatewayConfig> gateways = smsConfiguration.getGateways();
@@ -228,40 +229,13 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
     return hasGateways.get();
   }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
   private SmsConfiguration getSmsConfiguration() {
-    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-
-    if (smsConfiguration != null) {
-      return smsConfiguration;
-    }
-
-    return new SmsConfiguration();
+    return smsConfigurationManager.getSmsConfiguration();
   }
 
   private void updateHasGatewaysState() {
-    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-
-    if (smsConfiguration == null) {
-      log.info("SMS configuration not found");
-      hasGateways.set(false);
-      return;
-    }
-
-    List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
-
-    if (gatewayList == null || gatewayList.isEmpty()) {
-      log.info("No Gateway configuration found");
-
-      hasGateways.set(false);
-      return;
-    }
-
-    log.info("Gateway configuration found: " + gatewayList);
-
-    hasGateways.set(true);
+    SmsConfiguration config = smsConfigurationManager.getSmsConfiguration();
+    List<SmsGatewayConfig> gateways = config.getGateways();
+    hasGateways.set(gateways != null && !gateways.isEmpty());
   }
 }

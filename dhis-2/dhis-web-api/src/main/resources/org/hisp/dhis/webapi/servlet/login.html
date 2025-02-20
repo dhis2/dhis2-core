@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="./dhis-web-commons/fonts/roboto.css"
+    />
+
+    <title>DHIS2 Demo Login</title>
+    <style>
+      body {
+        padding: 0;
+        background-color: #2a5298;
+        font-family: "Roboto", sans-serif;
+        height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+
+      .notification-content {
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        line-height: 20px;
+      }
+
+      .wrapper {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        width: 20%;
+        padding-bottom: 60px;
+      }
+
+      .nav-right {
+        margin-top: 10px;
+        display: flex;
+        align-items: start;
+        gap: 10px;
+        justify-content: start;
+      }
+
+      .nav-right img {
+        max-height: 64px;
+        border: 1px solid white;
+        width: 100px;
+      }
+
+      .logo {
+        margin-top: 25px;
+        margin-right: 10px;
+      }
+
+      .right-content {
+        display: flex;
+        height: 10px;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .right-content h3 {
+        margin: 0px;
+      }
+
+      .right-content p {
+        margin: 0px;
+      }
+
+      .notification-container {
+        background: #ddedf7;
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        padding: 1rem 2rem;
+        align-items: start;
+        justify-content: center;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .login-container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+      }
+
+      .login-container h1 {
+        margin-bottom: 12px;
+        font-size: 1rem;
+        color: #333;
+      }
+
+      .login-container label {
+        font-size: 0.9rem;
+        color: #333;
+        display: block;
+        text-align: left;
+      }
+
+      form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      form div {
+        width: 100%;
+      }
+
+      input {
+        width: 93%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .login-container input[type="submit"] {
+        background-color: #1565c0;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        width: 100%;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .login-container input[type="submit"]:hover {
+        background-color: #004a8b;
+      }
+
+      .logo-container {
+        color: white;
+        width: 100%;
+        margin-bottom: 100px;
+      }
+
+      .container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-x: hidden;
+      }
+
+      .nav {
+        margin: 0px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      p {
+        color: #a0adba;
+      }
+
+      .footer {
+        color: rgb(206, 203, 203);
+        border-top: solid 1px #004a8b;
+        width: 100%;
+        height: 50px !important;
+        padding-top: 2px;
+      }
+
+      .footer div {
+        margin: 0px 20px;
+        display: flex;
+        height: 50px !important;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .footer a {
+        color: rgb(206, 203, 203);
+      }
+
+      .checkbox-input {
+        width: 12px;
+        height: 12px;
+      }
+      .checkbox-label {
+        width: 100%;
+      }
+
+      /* Loading spinner */
+      .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #005fb3;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 10px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Error message */
+      .error-message {
+        color: red;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 600px) {
+        .nav-right img {
+          max-height: 34px;
+          width: 50px;
+        }
+        .right-content {
+          display: none;
+        }
+        .logo {
+          max-height: 30px;
+          width: 60px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Logo and Title Section -->
+      <div class="logo-container">
+        <div class="nav">
+          <div class="nav-right">
+            <img id="flag" src="" alt="Country flag" style="display: none" />
+            <div class="right-content">
+              <span id="appTitle" class="app-title">DHIS2 Login</span>
+              <p id="appWelcomeMessage">Welcome to the DHIS2 application</p>
+            </div>
+          </div>
+          <img
+            class="logo"
+            src="./dhis-web-commons/security/logo_front.png"
+            alt="DHIS2 Logo"
+          />
+        </div>
+      </div>
+
+      <!-- Body/form Section -->
+      <div class="wrapper">
+        <!-- Login Form Section -->
+        <div class="login-container">
+          <h1>Log in</h1>
+          <form id="loginForm">
+            <div>
+              <label for="username">Username</label>
+              <input type="text" id="username" required />
+            </div>
+
+            <div>
+              <label for="password">Password</label>
+              <input type="password" id="password" required />
+            </div>
+
+            <div>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="twoFAToggle"
+                  class="checkbox-input"
+                />
+                <span>Enter a two-factor authentication code</span>
+              </label>
+            </div>
+
+            <div id="twoFAContainer" style="display: none">
+              <input type="text" id="twoFA" placeholder="TFA code" />
+            </div>
+
+            <input type="submit" value="Log in" />
+          </form>
+
+          <div id="spinner" class="spinner" style="display: none"></div>
+          <div id="errorMessage" class="error-message"></div>
+        </div>
+
+        <!-- Notification  -->
+        <div class="notification-container">
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m12 2c5.5228475 0 10 4.4771525 10 10s-4.4771525 10-10 10-10-4.4771525-10-10 4.4771525-10 10-10zm1 9h-2v6h2zm-1-4c-.5522847 0-1 .44771525-1 1s.4477153 1 1 1 1-.44771525 1-1-.4477153-1-1-1z"
+              fill="#093371"
+            />
+          </svg>
+          <div class="notification-content">
+            You are logging in using the fallback login page.
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Section -->
+      <div class="footer">
+        <div>
+          <p>Powered by DHIS2.</p>
+          <span
+            >Learn more at <a href="https://www.dhis2.org">dhis2.org</a></span
+          >
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Fetch the login configuration dynamically
+      async function fetchLoginConfig() {
+        try {
+          const response = await fetch("./api/loginConfig");
+
+          if (!response.ok) {
+            let errorMessage = "Login failed: " + response.status;
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.message || errorMessage;
+            } catch (jsonError) {
+              console.warn(
+                "Failed to parse error response as JSON:",
+                jsonError
+              );
+            }
+            throw new Error(errorMessage);
+          }
+
+          const config = await response.json();
+          document.getElementById("appTitle").innerText =
+            config.applicationTitle || "DHIS2 Login";
+          document.getElementById("appWelcomeMessage").innerText =
+            config.applicationDescription || "Welcome to the DHIS2 application";
+          if (config.countryFlag) {
+            const flag = document.getElementById("flag");
+            flag.src = `./dhis-web-commons/flags/${config.countryFlag}.png`;
+            flag.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const twoFAToggle = document.getElementById("twoFAToggle");
+        const twoFAContainer = document.getElementById("twoFAContainer");
+
+        const toggleTwoFAInput = () => {
+          if (twoFAToggle.checked) {
+            twoFAContainer.style.display = "block";
+          } else {
+            twoFAContainer.style.display = "none";
+            document.getElementById("twoFA").value = "";
+          }
+        };
+
+        toggleTwoFAInput();
+        twoFAToggle.addEventListener("change", toggleTwoFAInput);
+      });
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          const submitButton = document.querySelector('input[type="submit"]');
+          const spinner = document.getElementById("spinner");
+          const errorMessage = document.getElementById("errorMessage");
+          const twoFA = document.getElementById("twoFA").value.trim();
+
+          spinner.style.display = "block";
+          errorMessage.innerText = "";
+          submitButton.disabled = true;
+
+          let requestBody;
+          if (twoFAToggle.checked && twoFA) {
+            requestBody = { username, password, twoFactorCode: twoFA };
+          } else {
+            requestBody = { username, password };
+          }
+
+          try {
+            const response = await fetch("./api/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+              let errorMessage = "Login failed: " + response.status;
+              try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+              } catch (jsonError) {
+                console.warn(
+                  "Failed to parse error response as JSON:",
+                  jsonError
+                );
+              }
+              throw new Error(errorMessage);
+            }
+
+            const user = await response.json();
+
+            if (user.loginStatus === "SUCCESS") {
+              const redirectUrl = user.redirectUrl || "./";
+              window.location.href = redirectUrl;
+            } else {
+              throw new Error("Login failed. Status: " + user.loginStatus);
+            }
+          } catch (error) {
+            errorMessage.innerText = error.message;
+          } finally {
+            spinner.style.display = "none";
+            submitButton.disabled = false;
+          }
+        });
+
+      fetchLoginConfig();
+    </script>
+  </body>
+</html>

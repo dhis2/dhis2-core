@@ -1,0 +1,80 @@
+{
+  "categories": [
+    {
+      "name": "sex",
+      "id": "Tv9b9dYOHMG",
+      "code": "sex",
+      "shortName": "sex",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "j8ft17oIEID"
+        },
+        {
+          "id": "paLPcwxxBRs"
+        }
+      ]
+    }
+  ],
+  "categoryOptions": [
+    {
+      "name": "Male3",
+      "id": "j8ft17oIEID",
+      "code": "M",
+      "shortName": "M"
+    },
+    {
+      "name": "Female3",
+      "id": "paLPcwxxBRs",
+      "code": "F",
+      "shortName": "F"
+    }
+  ],
+  "categoryCombos": [
+    {
+      "name": "ageGroup_sex",
+      "id": "UBCZTtKoxWg",
+      "code": "age_sex",
+      "shortName": "age_sex",
+      "categories": [
+        {
+          "id": "Tv9b9dYOHMG"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    }
+  ],
+  "dataElements": [
+    {
+      "name": "NB_INSUREES",
+      "id": "IjXDFHSWw8n",
+      "code": "NB_INSUREES",
+      "shortName": "NB_INSUREES",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "UBCZTtKoxWg"
+      }
+    }
+  ],
+  "dataSets": [
+    {
+      "name": "Enrolment",
+      "id": "tS4D4c2HiTk",
+      "code": "Enrolment",
+      "shortName": "Enrolment",
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "IjXDFHSWw8n"
+          },
+          "dataSet": {
+            "id": "tS4D4c2HiTk"
+          }
+        }
+      ],
+      "periodType": "Monthly"
+    }
+  ]
+}

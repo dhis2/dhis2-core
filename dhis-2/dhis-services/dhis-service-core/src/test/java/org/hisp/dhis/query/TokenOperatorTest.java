@@ -28,11 +28,15 @@
 package org.hisp.dhis.query;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.TokenOperator;
+import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.schema.Property;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,6 +46,16 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class TokenOperatorTest {
+
+  @Test
+  @DisplayName("Uid Token filter must have at least 4 characters. Otherwise return null.")
+  void testUidLength() {
+    TokenOperator operator = new TokenOperator("ABC", false, MatchMode.ANYWHERE);
+    Property property = new Property();
+    property.setFieldName("uid");
+    QueryPath queryPath = new QueryPath(property, true);
+    assertNull(operator.getPredicate(null, null, queryPath));
+  }
 
   @Test
   void nullValue() {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.system.util;
 
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
 
 /** Created by vanyas on 3/15/16. */
 public class DhisHttpResponse {

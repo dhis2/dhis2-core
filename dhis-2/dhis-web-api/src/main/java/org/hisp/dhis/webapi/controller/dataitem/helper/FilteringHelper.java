@@ -49,6 +49,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_SET_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
@@ -59,8 +60,6 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacin
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.query.operators.TokenUtils.getTokens;
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
-import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
@@ -68,6 +67,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLA
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.IDENTIFIABLE_TOKEN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.OPTION_SET_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
@@ -83,14 +83,13 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -252,9 +251,7 @@ public class FilteringHelper {
    */
   public static void setFilteringParams(
       Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
-    Locale currentLocale =
-        ObjectUtils.defaultIfNull(
-            CurrentUserUtil.getUserSetting(DB_LOCALE), CurrentUserUtil.getUserSetting(UI_LOCALE));
+    Locale currentLocale = UserSettings.getCurrentSettings().evalUserLocale();
 
     if (currentLocale != null && isNotBlank(currentLocale.getLanguage())) {
       paramsMap.addValue(LOCALE, trimToEmpty(currentLocale.getLanguage()));
@@ -302,6 +299,10 @@ public class FilteringHelper {
     // Add program id filtering id, if present.
     String programId = extractValueFromFilter(filters, PROGRAM_ID_EQUAL, true);
     addIfNotBlank(paramsMap, PROGRAM_ID, programId);
+
+    // Add optionSet id filtering id, if present.
+    String optionSetId = extractValueFromFilter(filters, OPTION_SET_ID_EQUAL, true);
+    addIfNotBlank(paramsMap, OPTION_SET_ID, optionSetId);
 
     // Add user group filtering, when present.
     if (currentUser != null && CollectionUtils.isNotEmpty(currentUser.getGroups())) {

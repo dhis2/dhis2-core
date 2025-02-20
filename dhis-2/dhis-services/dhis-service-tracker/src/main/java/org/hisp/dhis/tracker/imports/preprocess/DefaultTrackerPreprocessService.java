@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.preprocess;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,10 +46,13 @@ public class DefaultTrackerPreprocessService implements TrackerPreprocessService
     this.preProcessors = preProcessors;
   }
 
+  @Nonnull
   @Override
-  public TrackerBundle preprocess(TrackerBundle bundle) {
+  public TrackerBundle preprocess(@Nonnull TrackerBundle bundle) {
     for (BundlePreProcessor preProcessor : preProcessors) {
-      preProcessor.process(bundle);
+      if (preProcessor.needsToRun(bundle.getImportStrategy())) {
+        preProcessor.process(bundle);
+      }
     }
 
     return bundle;

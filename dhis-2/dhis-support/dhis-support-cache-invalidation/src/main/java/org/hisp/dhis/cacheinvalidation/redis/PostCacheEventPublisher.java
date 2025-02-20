@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.CHANNEL_NAME;
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.EXCLUDE_LIST;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.CHANNEL_NAME;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.EXCLUDE_LIST;
 
 import java.io.Serializable;
 import lombok.extern.slf4j.Slf4j;
@@ -40,19 +40,14 @@ import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,20 +57,11 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledCondition.class)
 public class PostCacheEventPublisher
     implements PostCommitUpdateEventListener,
         PostCommitInsertEventListener,
         PostCommitDeleteEventListener {
-
-  @Autowired protected IdentifiableObjectManager idObjectManager;
-
-  @Autowired protected PeriodService periodService;
-
-  @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired protected TrackedEntityService trackedEntityService;
 
   @Autowired private CacheInvalidationMessagePublisher messagePublisher;
 
@@ -157,9 +143,9 @@ public class PostCacheEventPublisher
     TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity;
 
     long trackedEntityAttributeId = trackedEntityAttributeValue.getAttribute().getId();
-    long entityInstanceId = trackedEntityAttributeValue.getTrackedEntity().getId();
+    long trackedEntityId = trackedEntityAttributeValue.getTrackedEntity().getId();
 
-    return trackedEntityAttributeId + ";" + entityInstanceId;
+    return trackedEntityAttributeId + ";" + trackedEntityId;
   }
 
   private Serializable getCompleteDataSetRegistrationId(Object entity) {

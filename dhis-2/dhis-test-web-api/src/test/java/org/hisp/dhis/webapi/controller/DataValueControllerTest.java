@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,8 +38,10 @@ import java.util.List;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.web.HttpMethod;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.http.HttpMethod;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -202,5 +204,12 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
     return format(
         "{'dataElement':'%s', 'period':'%s', 'orgUnit':'%s', 'categoryOptionCombo':'%s', 'followup':%b}",
         dataElementId, period, orgUnitId, categoryOptionComboId, followup);
+  }
+
+  private void switchToUserWithOrgUnitDataView(String userName, String orgUnitId) {
+    User user = makeUser(userName, Collections.singletonList("ALL"));
+    user.getDataViewOrganisationUnits().add(manager.get(OrganisationUnit.class, orgUnitId));
+    userService.addUser(user);
+    switchContextToUser(user);
   }
 }

@@ -49,7 +49,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;

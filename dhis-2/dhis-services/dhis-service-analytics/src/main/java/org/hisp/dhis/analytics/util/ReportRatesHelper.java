@@ -44,8 +44,7 @@ import org.hisp.dhis.period.PeriodTypeEnum;
  * @author maikel arabori
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ReportRatesHelper {
-
+public final class ReportRatesHelper {
   /**
    * Use number of days for daily data sets as target, as query periods might
    * often span/contain different numbers of days.

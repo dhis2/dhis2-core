@@ -28,14 +28,16 @@
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
+import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParams;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParser;
@@ -45,9 +47,10 @@ import org.hisp.dhis.analytics.outlier.service.AnalyticsOutlierService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,19 +60,21 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Dusan Bernat
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:analytics", "purpose:data"})
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
+@RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class AnalyticsOutlierDetectionController {
-  private static final String RESOURCE_PATH = "/analytics/outlierDetection";
+  private static final String RESOURCE_PATH = "/api/analytics/outlierDetection";
   private final AnalyticsOutlierService outlierService;
   private final ContextUtils contextUtils;
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = RESOURCE_PATH + "/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
@@ -122,6 +127,17 @@ public class AnalyticsOutlierDetectionController {
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
     outlierService.getOutliersAsXls(request, response.getOutputStream());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".xlsx")
+  public void getOutliersXlsx(OutlierQueryParams queryParams, HttpServletResponse response)
+      throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
+    contextUtils.configureResponse(
+        response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xlsx", true);
+
+    outlierService.getOutliersAsXlsx(request, response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html")

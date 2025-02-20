@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,27 +37,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgram;
+import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonProgram;
-import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.metadata.MetadataImportExportController} using
@@ -64,7 +77,11 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private DataElementService dataElementService;
+
   @Test
   void testPostJsonMetadata() {
     assertWebMessage(
@@ -74,23 +91,14 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         null,
         POST(
                 "/38/metadata",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}")
+                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate':"
+                    + " '2020-01-01'}]}")
             .content(HttpStatus.OK));
   }
 
   @Test
   void testPostJsonMetadata_Empty() {
     assertWebMessage("OK", 200, "OK", null, POST("/38/metadata", "{}").content(HttpStatus.OK));
-  }
-
-  @Test
-  void testPostJsonMetadata_Pre38() {
-    JsonObject report =
-        POST(
-                "/37/metadata",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}")
-            .content(HttpStatus.OK);
-    assertEquals("OK", report.getString("status").string());
   }
 
   @Test
@@ -105,14 +113,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostCsvMetadata_Pre38() {
-    JsonObject report =
-        POST("/37/metadata?classKey=ORGANISATION_UNIT", Body(","), ContentType("application/csv"))
-            .content(HttpStatus.OK);
-    assertEquals("OK", report.getString("status").string());
-  }
-
-  @Test
   void testPostGmlMetadata() {
     assertWebMessage(
         "OK",
@@ -121,15 +121,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         null,
         POST("/38/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
             .content(HttpStatus.OK));
-  }
-
-  @Test
-  void testPostGmlMetadata_Pre38() {
-    JsonObject report =
-        POST("/37/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
-            .content(HttpStatus.OK);
-    assertEquals("OK", report.getString("status").string());
-    assertEquals("ImportReport", report.getString("responseType").string());
   }
 
   @Test
@@ -157,7 +148,9 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   void testPostProgramStageWithProgram() {
     POST(
             "/metadata/",
-            "{'programs':[{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION','programStages':[{'id':'VoZMWi7rBgf'}] }],'programStages':[{'id':'VoZMWi7rBgf','name':'test programStage'}]}")
+            "{'programs':[{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test"
+                + " program','programType':'WITH_REGISTRATION','programStages':[{'id':'VoZMWi7rBgf'}]"
+                + " }],'programStages':[{'id':'VoZMWi7rBgf','name':'test programStage'}]}")
         .content(HttpStatus.OK);
     assertEquals(
         "VoZMWi7rBgj",
@@ -171,7 +164,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   void testGetWithIeqFilter() {
     POST(
             "/metadata/",
-            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test"
+                + " program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
         .content(HttpStatus.OK);
 
     assertEquals(
@@ -187,7 +181,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   void testGetWithIeqFilterNonString() {
     POST(
             "/metadata/",
-            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test"
+                + " program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
         .content(HttpStatus.OK);
 
     JsonWebMessage response =
@@ -205,10 +200,11 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   void testPostValidGeoJsonAttribute() throws IOException {
     POST(
             "/metadata",
-            "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\","
-                + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\","
-                + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
-                + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
+            "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit"
+                + " 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\",\"attributeValues\":"
+                + " [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\",\\\"coordinates\\\": "
+                + " [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\",\"attribute\": {\"id\":"
+                + " \"RRH9IFiZZYN\"}}]}],"
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
         .content(HttpStatus.OK);
 
@@ -229,9 +225,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonWebMessage message =
         POST(
                 "/metadata",
-                "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\","
-                    + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\"}\","
-                    + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
+                "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit"
+                    + " 2\",\"shortName\": \"OU2\",\"openingDate\":"
+                    + " \"2020-01-01\",\"attributeValues\": [{\"value\":  \"{\\\"type\\\":"
+                    + " \\\"Polygon\\\"}\",\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
                     + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
@@ -245,10 +242,15 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -267,10 +269,15 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -287,10 +294,15 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"},{\"id\": \"Uh4HvjK6zg3\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"},{\"id\":"
+                + " \"Uh4HvjK6zg3\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -306,10 +318,15 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
@@ -323,10 +340,15 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\":"
+                + " 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -342,10 +364,14 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\"}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\":"
+                + " 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -358,9 +384,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   @DisplayName(
-      "Should not include null objects in collection Category.categorycombos or CategoryCombo.categories after importing")
+      "Should not include null objects in collection Category.categorycombos or"
+          + " CategoryCombo.categories after importing")
   void testImportCategoryComboAndCategory() {
-    POST("/metadata", Body("metadata/category_and_categorycombo.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("metadata/category_and_categorycombo.json")).content(HttpStatus.OK);
     JsonMixed response = GET("/categories/{uid}?fields=id,categoryCombos", "IjOK1aXkjVO").content();
     JsonList<JsonObject> catCombos = response.getList("categoryCombos", JsonObject.class);
     assertNotNull(catCombos);
@@ -375,7 +402,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testImportDashboardWithInvalidLayout_UpdateFlow() {
     JsonImportSummary createReport =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_valid_layout.json"))
             .content(HttpStatus.OK)
             .get("response")
             .as(JsonImportSummary.class);
@@ -387,7 +414,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(1, createReport.getStats().getTotal());
 
     JsonImportSummary updateReport =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_invalid_layout.json"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -402,7 +429,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testImportDashboardWithValidLayout_CreateFlow() {
     JsonImportSummary report =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_valid_layout.json"))
             .content(HttpStatus.OK)
             .get("response")
             .as(JsonImportSummary.class);
@@ -417,7 +444,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testImportDashboardWithInvalidLayout_CreateFlow() {
     JsonImportSummary report =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_invalid_layout.json"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -451,7 +478,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/metadata",
                 "{\"optionSets\":\n"
-                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                    + " 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
             .content(HttpStatus.OK);
 
     assertNotNull(report.get("response"));
@@ -466,7 +494,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/metadata?skipSharing=true",
                 "{\"optionSets\":\n"
-                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                    + " 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
             .content(HttpStatus.OK);
 
     assertNotNull(report.get("response"));
@@ -475,28 +504,32 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertTrue(optionSet.get("createdBy").exists());
   }
 
-  @Test
+  /**
+   * After upgrading Spring 6.1 this test failed. The reason is the DataElementDeletionHandler use a
+   * JDBC template to execute the exists query and this query doesn't see the changes made in the
+   * main test transaction. In result, deletion event is not vetoed.
+   */
+  @Disabled
   @DisplayName(
       "Should return error in import report if deleting object is referenced by other object")
   void testDeleteWithException() {
     POST(
             "/metadata",
             """
-             {'optionSets':
-                 [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
-             ,'dataElements':
-             [{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
-             }]}""")
+{'optionSets':
+    [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
+,'dataElements':
+[{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
+}]}""")
         .content(HttpStatus.OK);
-    JsonImportSummary report =
+    JsonMixed response =
         POST(
                 "/metadata?importStrategy=DELETE",
                 """
                 {'optionSets':
                 [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
-            .content(HttpStatus.CONFLICT)
-            .get("response")
-            .as(JsonImportSummary.class);
+            .content(HttpStatus.CONFLICT);
+    JsonImportSummary report = response.get("response").as(JsonImportSummary.class);
     assertEquals(0, report.getStats().getDeleted());
     assertEquals(1, report.getStats().getIgnored());
     assertEquals(
@@ -510,11 +543,12 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
   @Test()
   @DisplayName("Should not return error E6305 when PATCH any property of an AggregateDataExchange")
   void testPatchAggregateDataExchange() {
-    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     PATCH(
             "/aggregateDataExchanges/PnWccbwCJLQ",
             Body(
-                "[{'op': 'replace', 'path': '/name', 'value': 'External basic auth data exchange updated'}]"))
+                "[{'op': 'replace', 'path': '/name', 'value': 'External basic auth data exchange"
+                    + " updated'}]"))
         .content(HttpStatus.OK);
 
     JsonObject object =
@@ -524,15 +558,17 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   @DisplayName(
-      "Should return error E6305 if create a new AggregateDataExchange without authentication details")
+      "Should return error E6305 if create a new AggregateDataExchange without authentication"
+          + " details")
   void testCreateAggregateDataExchangeWithoutAuthentication() {
     JsonImportSummary report =
-        POST("/metadata/", Body("metadata/aggregate_data_exchange_no_auth.json"))
+        POST("/metadata/", Path.of("metadata/aggregate_data_exchange_no_auth.json"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals(
-        "Aggregate data exchange target API must specify either access token or username and password",
+        "Aggregate data exchange target API must specify either access token or username and"
+            + " password",
         report
             .find(
                 JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
@@ -541,9 +577,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   @DisplayName(
-      "Should return error if user doesn't have Data Write permission for given AggregateDataExchange")
+      "Should return error if user doesn't have Data Write permission for given"
+          + " AggregateDataExchange")
   void testAggregateDataExchangeFail() {
-    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     User userA = createAndAddUser("UserA");
     PATCH(
             "/aggregateDataExchanges/iFOyIpQciyk",
@@ -570,7 +607,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testAggregateDataExchangeSuccess() {
-    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     JsonTypeReport typeReport =
         POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
             .content(HttpStatus.OK)
@@ -586,7 +623,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
                 + "      \"locale\": \"en_GB\",\n"
                 + "      \"property\": \"NAME\",\n"
                 + "      \"value\": \"Device category 1\"\n"
@@ -596,7 +634,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
                 + "      \"locale\": \"en_GB\",\n"
                 + "      \"property\": \"NAME\",\n"
                 + "      \"value\": \"Device category 2\"\n"
@@ -609,5 +648,93 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "Device category 2",
         response.getArray("translations").getObject(0).getString("value").string());
+  }
+
+  @Test
+  @DisplayName(
+      "DataElements with default categoryCombo should be present in payload when defaults are"
+          + " INCLUDE by default")
+  void metadataWithCatComboFieldsIncludingDefaultsTest() {
+    CategoryCombo catComboA = createCategoryCombo('A');
+    CategoryCombo catComboB = createCategoryCombo('B');
+    CategoryCombo catComboC = createCategoryCombo('C');
+    categoryService.addCategoryCombo(catComboA);
+    categoryService.addCategoryCombo(catComboB);
+    categoryService.addCategoryCombo(catComboC);
+
+    setupDataElementsWithCatCombos(catComboA, catComboB, catComboC);
+
+    JsonArray dataElements =
+        GET("/metadata?fields=id,name,categoryCombo[id,name]&dataElements=true")
+            .content(HttpStatus.OK)
+            .getArray("dataElements");
+
+    assertEquals(
+        Set.of(catComboA.getUid(), catComboB.getUid(), catComboC.getUid(), "bjDvmb4bfuf"),
+        dataElements.stream()
+            .map(jde -> jde.as(JsonDataElement.class))
+            .map(JsonDataElement::getCategoryCombo)
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "Returned cat combo IDs equal custom cat combos and default cat combo Ids");
+  }
+
+  @Test
+  @DisplayName(
+      "DataElements in payload should not include the default categoryCombo when EXCLUDE used")
+  void metadataExcludingDefaultCatComboTest() {
+    CategoryCombo catComboA = createCategoryCombo('A');
+    CategoryCombo catComboB = createCategoryCombo('B');
+    CategoryCombo catComboC = createCategoryCombo('C');
+    categoryService.addCategoryCombo(catComboA);
+    categoryService.addCategoryCombo(catComboB);
+    categoryService.addCategoryCombo(catComboC);
+
+    setupDataElementsWithCatCombos(catComboA, catComboB, catComboC);
+
+    JsonArray dataElements =
+        GET("/metadata?fields=id,name,categoryCombo[id,name]&defaults=EXCLUDE&dataElements=true")
+            .content(HttpStatus.OK)
+            .getArray("dataElements");
+
+    // get map of data elements with/without cat combo
+    Map<Boolean, List<JsonValue>> deWithCatCombo =
+        dataElements.stream()
+            .collect(
+                Collectors.partitioningBy(
+                    jv -> {
+                      JsonDataElement jsonDataElement = jv.as(JsonDataElement.class);
+                      return jsonDataElement.getCategoryCombo() != null;
+                    }));
+
+    assertEquals(
+        3,
+        deWithCatCombo.get(true).size(),
+        "There should be 3 dataElements with a cat combo field");
+
+    assertEquals(
+        1,
+        deWithCatCombo.get(false).size(),
+        "There should be 1 dataElement without a cat combo field");
+
+    assertEquals(
+        Set.of(catComboA.getUid(), catComboB.getUid(), catComboC.getUid()),
+        deWithCatCombo.get(true).stream()
+            .map(jde -> jde.as(JsonDataElement.class))
+            .map(JsonDataElement::getCategoryCombo)
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "Returned cat combo IDs equal custom cat combos Ids only");
+  }
+
+  private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {
+    DataElement deA = createDataElement('A', categoryCombos[0]);
+    DataElement deB = createDataElement('B', categoryCombos[1]);
+    DataElement deC = createDataElement('C', categoryCombos[2]);
+    DataElement deZ = createDataElement('Z');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deZ);
   }
 }

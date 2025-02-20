@@ -34,7 +34,7 @@ public interface ResourceTableStore {
   /**
    * Generates the given resource table.
    *
-   * @param resourceTable the resource table.
+   * @param resourceTable the {@link ResourceTable}.
    */
   void generateResourceTable(ResourceTable resourceTable);
 }

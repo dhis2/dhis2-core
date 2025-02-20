@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.mapping.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ExternalMapLayerStore;

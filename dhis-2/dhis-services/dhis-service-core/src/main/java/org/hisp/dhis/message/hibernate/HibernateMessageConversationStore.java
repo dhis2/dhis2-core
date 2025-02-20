@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.message.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageConversationStore;
@@ -152,7 +153,7 @@ public class HibernateMessageConversationStore
             + sender.getId()
             + ")";
 
-    getSqlQuery(sql).executeUpdate();
+    nativeSynchronizedQuery(sql).addSynchronizedEntityClass(Message.class).executeUpdate();
 
     String hql = "delete Message m where m.sender = :sender";
 
@@ -169,7 +170,7 @@ public class HibernateMessageConversationStore
             + user.getId()
             + ")";
 
-    getSqlQuery(sql).executeUpdate();
+    nativeSynchronizedQuery(sql).addSynchronizedEntityClass(UserMessage.class).executeUpdate();
 
     String hql = "delete UserMessage u where u.user = :user";
 

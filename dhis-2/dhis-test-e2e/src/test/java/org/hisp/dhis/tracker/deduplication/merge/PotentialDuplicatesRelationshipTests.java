@@ -33,11 +33,10 @@ import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.deprecated.tracker.RelationshipActions;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,19 +54,19 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
   @Test
   public void shouldAutoMergeRelationshipsWithNonSuperUser() {
     // arrange
-    String teiA = createTei();
-    String teiB = createTei();
-    String teiC = createTei();
+    String teA = createTrackedEntity();
+    String teB = createTrackedEntity();
+    String teC = createTrackedEntity();
 
-    createUniDirectionalRelationship(teiB, teiC).validateSuccessfulImport();
+    createUniDirectionalRelationship(teB, teC).validateSuccessfulImport();
     String relationship2 =
-        createUniDirectionalRelationship(teiA, teiC).extractImportedRelationships().get(0);
+        createUniDirectionalRelationship(teA, teC).extractImportedRelationships().get(0);
     String relationship3 =
-        createUniDirectionalRelationship(teiC, teiB).extractImportedRelationships().get(0);
-    createUniDirectionalRelationship(teiA, teiB).validateSuccessfulImport();
+        createUniDirectionalRelationship(teC, teB).extractImportedRelationships().get(0);
+    createUniDirectionalRelationship(teA, teB).validateSuccessfulImport();
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     // act
     String username = createUserWithAccessToMerge();
@@ -80,7 +79,7 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
 
     // assert
     trackerImportExportActions
-        .getTrackedEntity(teiA + "?fields=*")
+        .getTrackedEntity(teA + "?fields=*")
         .validate()
         .statusCode(200)
         .body("relationships", hasSize(2))
@@ -89,14 +88,14 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
 
   @Test
   public void shouldManuallyMergeRelationship() {
-    String teiA = createTei();
-    String teiB = createTei();
-    String teiC = createTei();
+    String teA = createTrackedEntity();
+    String teB = createTrackedEntity();
+    String teC = createTrackedEntity();
 
-    String relationship = createRelationship(teiB, teiC).extractImportedRelationships().get(0);
+    String relationship = createRelationship(teB, teC).extractImportedRelationships().get(0);
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     potentialDuplicatesActions
         .manualMergePotentialDuplicate(
@@ -106,7 +105,7 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
         .statusCode(200);
 
     trackerImportExportActions
-        .getTrackedEntity(teiA + "?fields=*")
+        .getTrackedEntity(teA + "?fields=*")
         .validate()
         .statusCode(200)
         .body("relationships", hasSize(1))
@@ -115,13 +114,13 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
 
   @Test
   public void shouldRemoveDuplicateRelationshipWhenAutoMerging() {
-    String teiA = createTei();
-    String teiB = createTei();
+    String teA = createTrackedEntity();
+    String teB = createTrackedEntity();
 
-    String relationship = createRelationship(teiA, teiB).extractImportedRelationships().get(0);
+    String relationship = createRelationship(teA, teB).extractImportedRelationships().get(0);
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     potentialDuplicatesActions
         .autoMergePotentialDuplicate(potentialDuplicate)
@@ -129,23 +128,23 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
         .statusCode(200);
 
     trackerImportExportActions
-        .getTrackedEntity(teiA + "?fields=*")
+        .getTrackedEntity(teA + "?fields=*")
         .validate()
         .statusCode(200)
         .body("relationships", hasSize(0));
 
-    new RelationshipActions().get(relationship).validateStatus(404);
+    trackerImportExportActions.getRelationship(relationship).validateStatus(404);
   }
 
   @Test
   public void shouldNotMergeManuallyWhenThereAreDuplicateRelationships() {
-    String teiA = createTei();
-    String teiB = createTei();
+    String teA = createTrackedEntity();
+    String teB = createTrackedEntity();
 
-    String relationship = createRelationship(teiA, teiB).extractImportedRelationships().get(0);
+    String relationship = createRelationship(teA, teB).extractImportedRelationships().get(0);
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     potentialDuplicatesActions
         .manualMergePotentialDuplicate(
@@ -156,16 +155,16 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
         .body("message", containsString("A similar relationship already exists on original"));
   }
 
-  private TrackerApiResponse createRelationship(String teiA, String teiB) {
+  private TrackerApiResponse createRelationship(String teA, String teB) {
     JsonObject payload =
-        new RelationshipDataBuilder().buildBidirectionalRelationship(teiA, teiB).array();
+        new RelationshipDataBuilder().buildBidirectionalRelationship(teA, teB).array();
 
     return trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
   }
 
-  private TrackerApiResponse createUniDirectionalRelationship(String teiA, String teiB) {
+  private TrackerApiResponse createUniDirectionalRelationship(String teA, String teB) {
     JsonObject payload =
-        new RelationshipDataBuilder().buildUniDirectionalRelationship(teiA, teiB).array();
+        new RelationshipDataBuilder().buildUniDirectionalRelationship(teA, teB).array();
 
     return trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
   }

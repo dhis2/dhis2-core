@@ -40,6 +40,8 @@ import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.hc.client5.http.utils.Base64.encodeBase64;
 import static org.apache.hc.core5.http.HttpHeaders.AUTHORIZATION;
+import static org.apache.http.client.fluent.Request.Get;
+import static org.hisp.dhis.test.e2e.helpers.config.TestConfiguration.get;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
@@ -50,7 +52,6 @@ import java.util.Map;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Request;
 
 /** Helper class that provides auxiliary methods for the test generation. */
 public class GeneratorHelper {
@@ -61,13 +62,21 @@ public class GeneratorHelper {
   static final int MAX_TESTS_PER_CLASS = GEN.getMaxTestsPerClass();
 
   static final String CLASS_NAME_PREFIX = GEN.getClassNamePrefix();
-  static final String FILE = GEN.getFile();
+  static final String SCENARIO_FILE = GEN.getScenarioFile();
+  static final String SCENARIO_FILE_LOCATION =
+      "./src/test/java/org/hisp/dhis/analytics/generator/"
+          + GEN.getScenarioFolder()
+          + "/"
+          + SCENARIO_FILE;
+  static final String[] SCENARIOS = GEN.getScenarios();
   static final boolean ASSERT_META_DATA = GEN.assertMetaData();
   static final boolean ASSERT_ROW_INDEX = GEN.assertRowIndex();
   static final String ACTION = GEN.getAction();
   static final String ACTION_INSTANCE = GEN.getActionDeclaration();
   static final String PACKAGE = GEN.getPackage();
   static final String TOP_CLASS_COMMENT = GEN.getTopClassComment();
+  static final String TEST_OUTPUT_LOCATION =
+      "./src/test/java/org/hisp/dhis/analytics/generator/output/";
 
   /**
    * Generic header of the class including imports and class declaration. Some imports might be
@@ -123,21 +132,21 @@ public class GeneratorHelper {
   }
 
   /**
-   * Generates the test method for the given method "name" and "url".
+   * Generates the test method for the given method "name" and "query".
    *
    * @param name the method's name.
-   * @param url the full URL associated with this test.
+   * @param query the full URL associated with this test.
    * @return the full test method.
    */
-  static String generateTestMethod(String name, String url) {
-    if (isBlank(name) || isBlank(url)) {
+  static String generateTestMethod(String name, String query) {
+    if (isBlank(name) || isBlank(query)) {
       return EMPTY;
     }
 
     String testDeclaration = "@Test\n public void " + name + "() throws JSONException {\n";
 
-    StringBuilder params = buildTestParams(url);
-    String dimensionUid = getTargetDim(url);
+    StringBuilder params = buildTestParams(query);
+    String dimensionUid = getTargetDim(query);
 
     String testTarget = "\n// When \nApiResponse response = actions.get(params);\n";
 
@@ -156,10 +165,10 @@ public class GeneratorHelper {
               + "().get(\"\",JSON, JSON, params);\n";
     }
 
-    String response = getResponse(url);
+    String response = getResponse(query);
 
     if (isNotBlank(response)) {
-      ReadContext ctx = JsonPath.parse(getResponse(url));
+      ReadContext ctx = JsonPath.parse(getResponse(query));
 
       String headersAssertion = buildHeadersAssertion(ctx);
       String responseAssertions = buildResponseAssertion(ctx);
@@ -285,11 +294,11 @@ public class GeneratorHelper {
     return headersAssertion.toString();
   }
 
-  private static StringBuilder buildTestParams(String url) {
+  private static StringBuilder buildTestParams(String query) {
     String testParamsBuilder = "// Given \nQueryParamsBuilder params = new QueryParamsBuilder()";
     StringBuilder params = new StringBuilder(testParamsBuilder);
 
-    Map<String, String> paramsMap = getParamsMap(url);
+    Map<String, String> paramsMap = getParamsMap(query);
 
     paramsMap.forEach((k, v) -> params.append(".add(\"" + k + "=" + v + "\")\n"));
     params.append(";\n");
@@ -297,44 +306,46 @@ public class GeneratorHelper {
     return params;
   }
 
-  private static Map<String, String> getParamsMap(String url) {
-    Map<String, String> urlMap = new HashMap<>();
-    String queryString = substringAfter(url, "?");
+  private static Map<String, String> getParamsMap(String query) {
+    Map<String, String> queryMap = new HashMap<>();
+    String queryString = substringAfter(query, "?");
 
     for (String param : queryString.split("&")) {
       String paramName = substringBefore(param, "=");
       String paramValue = decode(substringAfter(param, "="), UTF_8);
 
-      if (!urlMap.containsKey(paramName)) {
-        urlMap.put(paramName, paramValue);
+      if (!queryMap.containsKey(paramName)) {
+        queryMap.put(paramName, paramValue);
       } else {
         // In case of multiple parameters with the same name ("arrays").
-        String currentValue = urlMap.get(paramName);
-        urlMap.put(paramName, currentValue + "," + paramValue);
+        String currentValue = queryMap.get(paramName);
+        queryMap.put(paramName, currentValue + "," + paramValue);
       }
     }
 
-    return urlMap;
+    return queryMap;
   }
 
-  private static String getTargetDim(String url) {
-    return substringAfterLast(substringBetween(url, "/", ".json"), "/");
+  private static String getTargetDim(String query) {
+    return substringAfterLast(substringBetween(query, "/", ".json"), "/");
   }
 
   /**
-   * This method will authenticate and send a request based on the given "url".
+   * This method will authenticate and send a request based on the given "query". It uses the
+   * definitions in "resources/config.properties".
    *
-   * @param url the URL to query.
+   * @param query the URL to query.
    * @return the HTTP response for the request.
    */
-  private static String getResponse(String url) {
-    String auth = "admin:district";
+  private static String getResponse(String query) {
+    String baseUri = get().baseUrl().replace("/api", "");
+    String auth = get().adminUserUsername() + ":" + get().adminUserPassword();
     byte[] encodedAuth = encodeBase64(auth.getBytes(ISO_8859_1));
     String authHeader = "Basic " + new String(encodedAuth);
 
     try {
       Content response =
-          Request.Get(url).addHeader(AUTHORIZATION, authHeader).execute().returnContent();
+          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnContent();
 
       return response.asString();
     } catch (IOException e) {

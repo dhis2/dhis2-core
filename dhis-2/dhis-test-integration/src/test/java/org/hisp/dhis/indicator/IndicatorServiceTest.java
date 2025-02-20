@@ -35,28 +35,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.setting.ThreadUserSettings;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class IndicatorServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private PeriodService periodService;
+
   @Autowired private IndicatorService indicatorService;
 
   @Autowired private UserService injectUserService;
 
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     this.userService = injectUserService;
     createUserAndInjectSecurityContext(true);
   }
@@ -64,6 +78,7 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
   // Support methods
   // -------------------------------------------------------------------------
+
   private void assertEq(char uniqueCharacter, Indicator indicator) {
     assertEquals("Indicator" + uniqueCharacter, indicator.getName());
     assertEquals("IndicatorShort" + uniqueCharacter, indicator.getShortName());
@@ -74,6 +89,7 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
   // IndicatorType
   // -------------------------------------------------------------------------
+
   @Test
   void testAddIndicatorType() {
     IndicatorType typeA = new IndicatorType("IndicatorTypeA", 100, false);
@@ -132,6 +148,7 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
   // IndicatorGroup
   // -------------------------------------------------------------------------
+
   @Test
   void testAddIndicatorGroup() {
     IndicatorGroup groupA = new IndicatorGroup("IndicatorGroupA");
@@ -190,6 +207,7 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------------------------------------
   // Indicator
   // -------------------------------------------------------------------------
+
   @Test
   void testAddIndicator() {
     IndicatorType type = new IndicatorType("IndicatorType", 100, false);
@@ -256,7 +274,7 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testNumeratorTranslation() {
     Locale locale = Locale.FRENCH;
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, locale);
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
     IndicatorType type = new IndicatorType("IndicatorType", 100, false);
     indicatorService.addIndicatorType(type);
     Indicator indicatorA = createIndicator('A', type);
@@ -274,5 +292,33 @@ class IndicatorServiceTest extends SingleSetupIntegrationTestBase {
     identifiableObjectManager.updateTranslations(indicatorA, listObjectTranslation);
     assertEquals(numeratorTranslated, indicatorA.getDisplayNumeratorDescription());
     assertEquals(denominatorTranslated, indicatorA.getDisplayDenominatorDescription());
+  }
+
+  @Test
+  void testRemoveIndicator() {
+    IndicatorType type = new IndicatorType("IndicatorType", 100, false);
+    indicatorService.addIndicatorType(type);
+    Indicator indicatorA = createIndicator('A', type);
+    Indicator indicatorB = createIndicator('B', type);
+
+    PeriodType ptA = periodService.getPeriodType(PeriodTypeEnum.MONTHLY);
+    DataElement dataElementA = createDataElement('A');
+    DataSet dataSetA = createDataSet('A', ptA);
+    Section sectionA = createSection('A', dataSetA, List.of(dataElementA), List.of(indicatorA));
+    identifiableObjectManager.save(dataElementA);
+    identifiableObjectManager.save(dataSetA);
+    identifiableObjectManager.save(sectionA);
+
+    long idA = indicatorService.addIndicator(indicatorA);
+    long idB = indicatorService.addIndicator(indicatorB);
+    assertNotNull(indicatorService.getIndicator(idA));
+    assertNotNull(indicatorService.getIndicator(idB));
+
+    indicatorService.deleteIndicator(indicatorB);
+    assertNotNull(indicatorService.getIndicator(idA));
+    assertNull(indicatorService.getIndicator(idB));
+    indicatorService.deleteIndicator(indicatorA);
+    assertNull(indicatorService.getIndicator(idA));
+    assertNull(indicatorService.getIndicator(idB));
   }
 }

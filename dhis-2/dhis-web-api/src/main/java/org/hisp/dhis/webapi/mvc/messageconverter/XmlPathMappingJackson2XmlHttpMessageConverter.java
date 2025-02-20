@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
@@ -68,9 +68,12 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter
     }
 
     String pathInfo = request.getPathInfo();
+    if (pathInfo == null) {
+      return false;
+    }
 
     for (var pathPattern : WebMvcConfig.XML_PATTERNS) {
-      if (pathPattern.matcher(pathInfo).matches()) {
+      if (pathPattern != null && pathPattern.matcher(pathInfo).matches()) {
         return super.canWrite(clazz, mediaType);
       }
     }

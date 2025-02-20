@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -73,11 +74,21 @@ public class AnalyticsTable extends Table {
    *
    * @param tableType the {@link AnalyticsTableType}.
    * @param columns the list of {@link Column}.
+   * @param sortKey the sort key.
    * @param logged the {@link Logged} property.
    */
   public AnalyticsTable(
-      AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
-    super(toStaging(tableType.getTableName()), toColumns(columns), List.of(), logged);
+      AnalyticsTableType tableType,
+      List<AnalyticsTableColumn> columns,
+      List<String> sortKey,
+      Logged logged) {
+    super(
+        toStaging(tableType.getTableName()),
+        toColumns(columns),
+        List.of(),
+        sortKey,
+        List.of(),
+        logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
   }
@@ -252,9 +263,17 @@ public class AnalyticsTable extends Table {
         .orElse(null);
   }
 
+  // implement toString method
+
   @Override
   public String toString() {
-    return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
+    return "[Table name: "
+        + getName()
+        + ", partitions: "
+        + (tablePartitions.isEmpty()
+            ? ""
+            : StringUtils.join(",", tablePartitions.stream().map(Table::getName).toArray()))
+        + "]";
   }
 
   @Override

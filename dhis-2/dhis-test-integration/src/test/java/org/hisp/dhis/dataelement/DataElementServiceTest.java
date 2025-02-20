@@ -45,14 +45,16 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
  */
-class DataElementServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataElementServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private IdentifiableObjectStore<OptionSet> optionStore;
@@ -244,31 +246,6 @@ class DataElementServiceTest extends TransactionalIntegrationTest {
     dataElementsRef.add(dataElementC);
     dataElementsRef.add(dataElementD);
     List<DataElement> dataElements = dataElementService.getAllDataElements();
-    assertNotNull(dataElements);
-    assertEquals(dataElementsRef.size(), dataElements.size());
-    assertTrue(dataElements.containsAll(dataElementsRef));
-  }
-
-  @Test
-  void testGetAllDataElementsByType() {
-    assertEquals(0, dataElementService.getAllDataElements().size());
-    DataElement dataElementA = createDataElement('A');
-    DataElement dataElementB = createDataElement('B');
-    DataElement dataElementC = createDataElement('C');
-    DataElement dataElementD = createDataElement('D');
-    dataElementA.setValueType(ValueType.FILE_RESOURCE);
-    dataElementB.setValueType(ValueType.EMAIL);
-    dataElementC.setValueType(ValueType.BOOLEAN);
-    dataElementD.setValueType(ValueType.FILE_RESOURCE);
-    dataElementService.addDataElement(dataElementA);
-    dataElementService.addDataElement(dataElementB);
-    dataElementService.addDataElement(dataElementC);
-    dataElementService.addDataElement(dataElementD);
-    List<DataElement> dataElementsRef = new ArrayList<>();
-    dataElementsRef.add(dataElementA);
-    dataElementsRef.add(dataElementD);
-    List<DataElement> dataElements =
-        dataElementService.getAllDataElementsByValueType(ValueType.FILE_RESOURCE);
     assertNotNull(dataElements);
     assertEquals(dataElementsRef.size(), dataElements.size());
     assertTrue(dataElements.containsAll(dataElementsRef));

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.relationships;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
@@ -38,29 +39,26 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.deprecated.tracker.RelationshipActions;
-import org.hisp.dhis.actions.deprecated.tracker.TrackedEntityInstancesAction;
-import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.test.e2e.actions.IdGenerator;
+import org.hisp.dhis.test.e2e.actions.MaintenanceActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.actions.metadata.RelationshipTypeActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -82,88 +80,10 @@ public class RelationshipsTests extends TrackerApiTest {
 
   private RelationshipTypeActions relationshipTypeActions;
 
-  private TrackedEntityInstancesAction trackedEntityInstancesAction;
-
-  private RelationshipActions relationshipActions;
-
-  private MetadataActions metadataActions;
-
-  private static Stream<Arguments> provideRelationshipData() {
-    return Stream.of(
-        /*
-         * Arguments.of( "WmNgnmedbQj", "trackedEntity", trackedEntities.get( 0 ),
-         * "enrollment", enrollments.get( 1 )), // trackedEntity to enrollment todo:
-         * uncomment when DHIS2-12625 is fixed
-         */
-        Arguments.of(
-            "HrS7b5Lis6E",
-            "event",
-            events.get(0),
-            "trackedEntity",
-            trackedEntities.get(0)), // event
-        // to
-        // trackedEntity
-        Arguments.of(
-            "HrS7b5Lis6w",
-            "trackedEntity",
-            trackedEntities.get(0),
-            "event",
-            events.get(0)), // trackedEntity
-        // to
-        // event
-        Arguments.of("HrS7b5Lis6P", "event", events.get(0), "event", events.get(1)), // event
-        // to
-        // event
-        Arguments.of(
-            relationshipType,
-            "trackedEntity",
-            trackedEntities.get(0),
-            "trackedEntity",
-            trackedEntities.get(1))); // trackedEntity to trackedEntity
-  }
-
-  private static Stream<Arguments> provideDuplicateRelationshipData() {
-    return Stream.of(
-        Arguments.of(
-            trackedEntities.get(0),
-            trackedEntities.get(1),
-            trackedEntities.get(1),
-            trackedEntities.get(0),
-            true,
-            1,
-            "bi: reversed direction should import 1"),
-        Arguments.of(
-            trackedEntities.get(0),
-            trackedEntities.get(1),
-            trackedEntities.get(0),
-            trackedEntities.get(1),
-            false,
-            1,
-            "uni: same direction should import 1"),
-        Arguments.of(
-            trackedEntities.get(0),
-            trackedEntities.get(1),
-            trackedEntities.get(0),
-            trackedEntities.get(1),
-            true,
-            1,
-            "bi: same direction should import 1"),
-        Arguments.of(
-            trackedEntities.get(0),
-            trackedEntities.get(1),
-            trackedEntities.get(1),
-            trackedEntities.get(0),
-            false,
-            2,
-            "uni: reversed direction should import 2"));
-  }
-
   @BeforeAll
   public void beforeAll() throws Exception {
-    trackedEntityInstancesAction = new TrackedEntityInstancesAction();
-    metadataActions = new MetadataActions();
+    MetadataActions metadataActions = new MetadataActions();
     relationshipTypeActions = new RelationshipTypeActions();
-    relationshipActions = new RelationshipActions();
 
     loginActions.loginAsSuperUser();
 
@@ -171,14 +91,13 @@ public class RelationshipsTests extends TrackerApiTest {
         new File("src/test/resources/tracker/relationshipTypes.json"));
 
     TrackerApiResponse importResponse =
-        importTeisWithEnrollmentAndEvent().validateSuccessfulImport();
-    trackedEntities = importResponse.extractImportedTeis();
+        importTrackedEntitiesWithEnrollmentAndEvent().validateSuccessfulImport();
+    trackedEntities = importResponse.extractImportedTrackedEntities();
     events = importEvents();
   }
 
   @Test
   public void shouldNotUpdateRelationship() {
-    // arrange
     String relationshipId = new IdGenerator().generateUniqueId();
 
     JsonObject originalRelationship =
@@ -225,7 +144,6 @@ public class RelationshipsTests extends TrackerApiTest {
                                                             "trackedEntity",
                                                             trackedEntities.get(1))))))));
 
-    // act
     trackerImportExportActions
         .postAndGetJobReport(
             updatedRelationship.getDeclaration(),
@@ -243,8 +161,8 @@ public class RelationshipsTests extends TrackerApiTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "src/test/resources/tracker/importer/teis/teisAndRelationship.json",
-        "src/test/resources/tracker/importer/teis/teisWithRelationship.json"
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesAndRelationship.json",
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesWithRelationship.json"
       })
   public void shouldImportObjectsWithRelationship(String file) throws Exception {
     JsonObject jsonObject = new FileReaderUtils().read(new File(file)).get(JsonObject.class);
@@ -266,23 +184,25 @@ public class RelationshipsTests extends TrackerApiTest {
         .body("to.trackedEntity.trackedEntity", notNullValue());
 
     response
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .forEach(
             trackedEntity ->
-                trackedEntityInstancesAction
-                    .get(trackedEntity, new QueryParamsBuilder().add("fields=relationships"))
+                trackerImportExportActions
+                    .getTrackedEntity(
+                        trackedEntity, new QueryParamsBuilder().add("fields=relationships"))
                     .validate()
                     .statusCode(200)
                     .body("relationships.relationship", contains(createdRelationships.get(0))));
+
+    hardDeleteRelationships(createdRelationships);
   }
 
   @Test
   public void shouldNotDuplicateNonBidirectionalRelationship() throws Exception {
     // Given 2 existing tracked entities and a unidirectional relationship
     // between them
-
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject jsonObject =
         new RelationshipDataBuilder()
@@ -325,9 +245,8 @@ public class RelationshipsTests extends TrackerApiTest {
   public void shouldNotDuplicateBidirectionalRelationship() throws Exception {
     // Given 2 existing tracked entities and a bidirectional relationship
     // between them
-
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject jsonObject =
         new RelationshipDataBuilder()
@@ -364,14 +283,14 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @Test
   public void shouldDeleteRelationshipWithDeleteStrategy() {
-    // arrage
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
+                new File(
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesAndRelationship.json"))
             .validateSuccessfulImport();
 
-    List<String> trackedEntities = response.extractImportedTeis();
+    List<String> trackedEntities = response.extractImportedTrackedEntities();
     String relationship = response.extractImportedRelationships().get(0);
 
     JsonObject obj =
@@ -382,12 +301,10 @@ public class RelationshipsTests extends TrackerApiTest {
             .addProperty("relationship", relationship)
             .wrapIntoArray("relationships");
 
-    // act
     response =
         trackerImportExportActions.postAndGetJobReport(
             obj, new QueryParamsBuilder().add("importStrategy=DELETE"));
 
-    // assert
     response.validate().body("status", equalTo("OK")).body("stats.deleted", equalTo(1));
 
     trackerImportExportActions.get("/relationships/" + relationship).validate().statusCode(404);
@@ -395,7 +312,7 @@ public class RelationshipsTests extends TrackerApiTest {
     trackerImportExportActions
         .getTrackedEntity(trackedEntities.get(0) + "?fields=relationships")
         .validate()
-        .body("relationships", Matchers.empty());
+        .body("relationships", empty());
   }
 
   @Test
@@ -418,8 +335,8 @@ public class RelationshipsTests extends TrackerApiTest {
     JsonObject object =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", "xLmPUYJX8Ks")
-            .addObject("from", relationshipItem("trackedEntity", "invalid-trackedEntity"))
-            .addObject("to", relationshipItem("trackedEntity", "more-invalid"))
+            .addObject("from", relationshipItem("trackedEntity", "xLmPUYJXXXX"))
+            .addObject("to", relationshipItem("trackedEntity", "xLmPUYJXYYY"))
             .wrapIntoArray("relationships");
 
     trackerImportExportActions
@@ -429,7 +346,42 @@ public class RelationshipsTests extends TrackerApiTest {
         .body("errorCode", everyItem(equalTo("E4012")));
   }
 
-  @MethodSource("provideRelationshipData")
+  private static Stream<Arguments> shouldImportRelationshipsToExistingEntities() {
+    return Stream.of(
+        /*
+         * Arguments.of( "WmNgnmedbQj", "trackedEntity", trackedEntities.get( 0 ),
+         * "enrollment", enrollments.get( 1 )), // trackedEntity to enrollment todo:
+         * uncomment when DHIS2-12625 is fixed
+         */
+        Arguments.of(
+            "HrS7b5Lis6E",
+            "event",
+            events.get(0),
+            "trackedEntity",
+            trackedEntities.get(0)), // event
+        // to
+        // trackedEntity
+        Arguments.of(
+            "HrS7b5Lis6w",
+            "trackedEntity",
+            trackedEntities.get(0),
+            "event",
+            events.get(0)), // trackedEntity
+        // to
+        // event
+        Arguments.of("HrS7b5Lis6P", "event", events.get(0), "event", events.get(1)), //
+        // event
+        // to
+        // event
+        Arguments.of(
+            relationshipType,
+            "trackedEntity",
+            trackedEntities.get(0),
+            "trackedEntity",
+            trackedEntities.get(1))); // trackedEntity to trackedEntity
+  }
+
+  @MethodSource
   @ParameterizedTest(name = "{index} {1} to {3}")
   public void shouldImportRelationshipsToExistingEntities(
       String relType,
@@ -437,7 +389,6 @@ public class RelationshipsTests extends TrackerApiTest {
       String fromInstanceId,
       String toInstance,
       String toInstanceId) {
-    // arrange
     JsonObject relationship =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", relType)
@@ -481,18 +432,57 @@ public class RelationshipsTests extends TrackerApiTest {
         toInstance,
         toInstanceId,
         createdRelationships.get(0));
+
+    hardDeleteRelationships(createdRelationships);
   }
 
-  @MethodSource("provideDuplicateRelationshipData")
+  private static Stream<Arguments> shouldNotImportDuplicateRelationships() {
+    return Stream.of(
+        Arguments.of(
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
+            true,
+            1,
+            "bi: reversed direction should import 1"),
+        Arguments.of(
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            false,
+            1,
+            "uni: same direction should import 1"),
+        Arguments.of(
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            true,
+            1,
+            "bi: same direction should import 1"),
+        Arguments.of(
+            trackedEntities.get(0),
+            trackedEntities.get(1),
+            trackedEntities.get(1),
+            trackedEntities.get(0),
+            false,
+            2,
+            "uni: reversed direction should import 2"));
+  }
+
+  @MethodSource
   @ParameterizedTest(name = "{index} {6}")
   public void shouldNotImportDuplicateRelationships(
-      String fromTei1,
-      String toTei1,
-      String fromTei2,
-      String toTei2,
+      String fromTrackedEntity1,
+      String toTrackedEntity1,
+      String fromTrackedEntity2,
+      String toTrackedEntity2,
       boolean bidirectional,
-      int expectedCount) {
-    // arrange
+      int expectedCount,
+      // do not remove used for the parametrized test name
+      @SuppressWarnings("unused") String testName) {
     String relationshipTypeId =
         relationshipTypeActions
             .get(
@@ -501,6 +491,8 @@ public class RelationshipsTests extends TrackerApiTest {
                     .addAll(
                         "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
                         "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
+                        "filter=toConstraint.trackedEntityType.id:eq:Q9GufDoplCL",
+                        "filter=fromConstraint.trackedEntityType.id:eq:Q9GufDoplCL",
                         "filter=bidirectional:eq:" + bidirectional,
                         "filter=name:like:TA"))
             .extractString("relationshipTypes.id[0]");
@@ -508,15 +500,15 @@ public class RelationshipsTests extends TrackerApiTest {
     JsonObject relationship1 =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", relationshipTypeId)
-            .addObject("from", relationshipItem("trackedEntity", fromTei1))
-            .addObject("to", relationshipItem("trackedEntity", toTei1))
+            .addObject("from", relationshipItem("trackedEntity", fromTrackedEntity1))
+            .addObject("to", relationshipItem("trackedEntity", toTrackedEntity1))
             .build();
 
     JsonObject relationship2 =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", relationshipTypeId)
-            .addObject("from", relationshipItem("trackedEntity", fromTei2))
-            .addObject("to", relationshipItem("trackedEntity", toTei2))
+            .addObject("from", relationshipItem("trackedEntity", fromTrackedEntity2))
+            .addObject("to", relationshipItem("trackedEntity", toTrackedEntity2))
             .build();
 
     JsonObject payload =
@@ -524,19 +516,20 @@ public class RelationshipsTests extends TrackerApiTest {
             .addArray("relationships", relationship1, relationship2)
             .build();
 
-    // act
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(payload);
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            payload, new QueryParamsBuilder().add("async=false"));
 
-    // assert
     response.validateSuccessfulImport().validate().body("stats.created", equalTo(expectedCount));
 
     createdRelationships = response.extractImportedRelationships();
+    hardDeleteRelationships(createdRelationships);
   }
 
   @Test
   public void shouldReturnErrorWhenUpdatingSoftDeletedEvent() throws Exception {
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject relationships =
         new RelationshipDataBuilder()
@@ -574,32 +567,27 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @Test
   public void shouldSuccessfullyCreateHardDeletedRelationship() throws Exception {
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject relationships =
         new RelationshipDataBuilder()
             .buildBidirectionalRelationship(trackedEntity_1, trackedEntity_2)
             .array();
 
-    // Create Relationship
+    // Create a relationship
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(relationships).validateSuccessfulImport();
 
     String relationshipId = response.extractImportedRelationships().get(0);
+    hardDeleteRelationships(List.of(relationshipId));
 
-    // Hard Delete Relationship
-    ApiResponse deleteResponse = relationshipActions.delete(relationshipId);
-
-    Assertions.assertEquals(200, deleteResponse.statusCode());
-
+    // Create the relationship again
     JsonObject relationshipsToImportAgain =
         new RelationshipDataBuilder()
             .setRelationshipId(relationshipId)
             .buildBidirectionalRelationship(trackedEntity_1, trackedEntity_2)
             .array();
-
-    // Create again Relationship
     TrackerApiResponse responseImportAgain =
         trackerImportExportActions.postAndGetJobReport(relationshipsToImportAgain);
 
@@ -641,9 +629,23 @@ public class RelationshipsTests extends TrackerApiTest {
         .body(String.format("to.%s.%s", toInstance, toInstance), equalTo(toInstanceId));
   }
 
-  @AfterEach
-  public void cleanup() {
-    createdRelationships.forEach(rel -> new TestCleanUp().deleteEntity("relationships", rel));
+  private void hardDeleteRelationships(List<String> relationships) {
+    if (relationships.isEmpty()) {
+      return;
+    }
+
+    JsonArray relationshipsJson = new JsonArray();
+    for (String relationship : relationships) {
+      relationshipsJson.add(
+          new JsonObjectBuilder().addProperty("relationship", relationship).build());
+    }
+    JsonObject body = new JsonObject();
+    body.add("relationships", relationshipsJson);
+    trackerImportExportActions
+        .postAndGetJobReport(
+            body, new QueryParamsBuilder().add("importStrategy=DELETE").add("async=false"))
+        .validateStatus(200);
+    new MaintenanceActions().removeSoftDeletedRelationships();
   }
 
   private JsonObjectBuilder relationshipItem(String type, String identifier) {

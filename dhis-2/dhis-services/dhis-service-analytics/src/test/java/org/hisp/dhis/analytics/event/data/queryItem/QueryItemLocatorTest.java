@@ -31,17 +31,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createLegendSet;
-import static org.hisp.dhis.DhisConvenienceTest.createOptionSet;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStageDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
-import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createLegendSet;
+import static org.hisp.dhis.test.TestBase.createOptionSet;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createProgramStageDataElement;
+import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -78,6 +77,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -100,7 +100,7 @@ class QueryItemLocatorTest {
 
   @Mock private RelationshipTypeService relationshipTypeService;
 
-  private QueryItemLocator subject;
+  @InjectMocks private DefaultQueryItemLocator subject;
 
   private Program programA;
 
@@ -114,20 +114,10 @@ class QueryItemLocatorTest {
 
     dimension = CodeGenerator.generateUid();
     programStageUid = CodeGenerator.generateUid();
-
-    subject =
-        new DefaultQueryItemLocator(
-            programStageService,
-            dataElementService,
-            attributeService,
-            programIndicatorService,
-            legendSetService,
-            relationshipTypeService,
-            dataQueryService);
   }
 
   @Test
-  void verifyDynamicDimensionsDoesntThrowException() {
+  void verifyDynamicDimensionsDoesNotThrowException() {
     String dimension = "dynamicDimension";
 
     when(dataQueryService.getDimension(
@@ -228,146 +218,6 @@ class QueryItemLocatorTest {
     QueryItem queryItem =
         subject.getQueryItemFromDimension(
             programStageUid + "[-1]" + DIMENSION_IDENTIFIER_SEP + dimension,
-            programA,
-            EventOutputType.ENROLLMENT);
-
-    assertThat(queryItem, is(notNullValue()));
-    assertThat(queryItem.getItem(), is(dataElementA));
-    assertThat(queryItem.getProgram(), is(programA));
-    assertThat(queryItem.getProgramStage(), is(programStageA));
-  }
-
-  @Test
-  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCount() {
-    DataElement dataElementA = createDataElement('A');
-
-    ProgramStage programStageA = createProgramStage('A', programA);
-
-    configureDimensionForQueryItem(dataElementA, programStageA);
-
-    QueryItem queryItem =
-        subject.getQueryItemFromDimension(
-            programStageUid + "[-1~1]" + DIMENSION_IDENTIFIER_SEP + dimension,
-            programA,
-            EventOutputType.ENROLLMENT);
-
-    assertThat(queryItem, is(notNullValue()));
-    assertThat(queryItem.getItem(), is(dataElementA));
-    assertThat(queryItem.getProgram(), is(programA));
-    assertThat(queryItem.getProgramStage(), is(programStageA));
-  }
-
-  @Test
-  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndBothDates() {
-    DataElement dataElementA = createDataElement('A');
-
-    ProgramStage programStageA = createProgramStage('A', programA);
-
-    configureDimensionForQueryItem(dataElementA, programStageA);
-
-    QueryItem queryItem =
-        subject.getQueryItemFromDimension(
-            programStageUid
-                + "[-1~1~ 2022-01-01~ 2022-01-31]"
-                + DIMENSION_IDENTIFIER_SEP
-                + dimension,
-            programA,
-            EventOutputType.ENROLLMENT);
-
-    assertThat(queryItem, is(notNullValue()));
-    assertThat(queryItem.getItem(), is(dataElementA));
-    assertThat(queryItem.getProgram(), is(programA));
-    assertThat(queryItem.getProgramStage(), is(programStageA));
-  }
-
-  @Test
-  void
-      verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndRelativePeriod() {
-    DataElement dataElementA = createDataElement('A');
-
-    ProgramStage programStageA = createProgramStage('A', programA);
-
-    configureDimensionForQueryItem(dataElementA, programStageA);
-
-    QueryItem queryItem =
-        subject.getQueryItemFromDimension(
-            programStageUid + "[1~1~LAST_3_MONTHS]" + DIMENSION_IDENTIFIER_SEP + dimension,
-            programA,
-            EventOutputType.ENROLLMENT);
-
-    assertThat(queryItem, is(notNullValue()));
-    assertThat(queryItem.getItem(), is(dataElementA));
-    assertThat(queryItem.getProgram(), is(programA));
-    assertThat(queryItem.getProgramStage(), is(programStageA));
-
-    assertThrows(
-        IllegalQueryException.class,
-        () ->
-            subject.getQueryItemFromDimension(
-                programStageUid + "[-1~1~ LAST_A3_MONTHS]" + DIMENSION_IDENTIFIER_SEP + dimension,
-                programA,
-                EventOutputType.ENROLLMENT));
-  }
-
-  @Test
-  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartBothDates() {
-    DataElement dataElementA = createDataElement('A');
-
-    ProgramStage programStageA = createProgramStage('A', programA);
-
-    configureDimensionForQueryItem(dataElementA, programStageA);
-
-    QueryItem queryItem =
-        subject.getQueryItemFromDimension(
-            programStageUid + "[2022-01-01~ 2022-01-31]" + DIMENSION_IDENTIFIER_SEP + dimension,
-            programA,
-            EventOutputType.ENROLLMENT);
-
-    assertThat(queryItem, is(notNullValue()));
-    assertThat(queryItem.getItem(), is(dataElementA));
-    assertThat(queryItem.getProgram(), is(programA));
-    assertThat(queryItem.getProgramStage(), is(programStageA));
-  }
-
-  @Test
-  void verifyDimensionReturnsDataElementForEnrollmentQueryWithRelativePeriod() {
-    DataElement dataElementA = createDataElement('A');
-
-    ProgramStage programStageA = createProgramStage('A', programA);
-
-    configureDimensionForQueryItem(dataElementA, programStageA);
-
-    QueryItem queryItem =
-        subject.getQueryItemFromDimension(
-            programStageUid + "[LAST_10_YEARS]" + DIMENSION_IDENTIFIER_SEP + dimension,
-            programA,
-            EventOutputType.ENROLLMENT);
-
-    assertThat(queryItem, is(notNullValue()));
-    assertThat(queryItem.getItem(), is(dataElementA));
-    assertThat(queryItem.getProgram(), is(programA));
-    assertThat(queryItem.getProgramStage(), is(programStageA));
-
-    assertThrows(
-        IllegalQueryException.class,
-        () ->
-            subject.getQueryItemFromDimension(
-                programStageUid + "[LAST_A3_MONTHS]" + DIMENSION_IDENTIFIER_SEP + dimension,
-                programA,
-                EventOutputType.ENROLLMENT));
-  }
-
-  @Test
-  void verifyDimensionReturnsDataElementForEnrollmentQueryWithAsterisk() {
-    DataElement dataElementA = createDataElement('A');
-
-    ProgramStage programStageA = createProgramStage('A', programA);
-
-    configureDimensionForQueryItem(dataElementA, programStageA);
-
-    QueryItem queryItem =
-        subject.getQueryItemFromDimension(
-            programStageUid + "[*]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA,
             EventOutputType.ENROLLMENT);
 

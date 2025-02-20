@@ -28,59 +28,56 @@
 package org.hisp.dhis.merge.indicator;
 
 import com.google.common.collect.ImmutableList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.merge.CommonMergeHandler;
+import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.indicator.handler.IndicatorMergeHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for indicator merge.
  *
  * @author david mackessy
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
   private final IndicatorMergeHandler indicatorMergeHandler;
+  private final CommonMergeHandler commonMergeHandler;
   private final MergeValidator validator;
-  private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> handlers;
+  private ImmutableList<MergeHandler> commonMergeHandlers;
+  private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> mergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    // sources
-    Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, Indicator.class);
-
-    // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, Indicator.class);
-
-    return validator.verifyTarget(mergeReport, sources, params, Indicator.class);
+    return validator.validateUIDs(params, mergeReport, MergeType.INDICATOR);
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     List<Indicator> sources =
         indicatorService.getIndicatorsByUid(UID.toValueList(request.getSources()));
     Indicator target = indicatorService.getIndicator(request.getTarget().getValue());
 
     // merge metadata
-    handlers.forEach(h -> h.merge(sources, target));
+    mergeHandlers.forEach(h -> h.merge(sources, target));
+    commonMergeHandlers.forEach(h -> h.merge(sources, target));
 
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
@@ -97,15 +94,19 @@ public class IndicatorMergeService implements MergeService {
 
   @PostConstruct
   private void initMergeHandlers() {
-    handlers =
+    mergeHandlers =
         ImmutableList.<org.hisp.dhis.merge.indicator.IndicatorMergeHandler>builder()
             .add(indicatorMergeHandler::handleDataSets)
             .add(indicatorMergeHandler::handleIndicatorGroups)
             .add(indicatorMergeHandler::handleSections)
-            .add(indicatorMergeHandler::handleIndicatorRefsInIndicator)
-            .add(indicatorMergeHandler::handleIndicatorRefsInCustomForms)
             .add(indicatorMergeHandler::handleDataDimensionItems)
             .add(indicatorMergeHandler::handleVisualizations)
+            .build();
+
+    commonMergeHandlers =
+        ImmutableList.<MergeHandler>builder()
+            .add(commonMergeHandler::handleRefsInIndicatorExpression)
+            .add(commonMergeHandler::handleRefsInCustomForms)
             .build();
   }
 }

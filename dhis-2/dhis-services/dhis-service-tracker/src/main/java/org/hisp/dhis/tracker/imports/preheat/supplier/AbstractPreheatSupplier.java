@@ -45,9 +45,9 @@ import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
  */
 @Slf4j
 public abstract class AbstractPreheatSupplier implements PreheatSupplier {
-  private final int CACHE_TTL = 60;
+  private static final int CACHE_TTL = 60;
 
-  private final long CACHE_CAPACITY = 1000;
+  private static final long CACHE_CAPACITY = 1000;
 
   @Override
   public void add(TrackerObjects trackerObjects, TrackerPreheat preheat) {
@@ -60,14 +60,12 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier {
 
     preheatAdd(trackerObjects, preheat);
 
-    if (log.isDebugEnabled()) {
-      if (watch != null && watch.isStarted()) {
-        watch.stop();
-        log.debug(
-            "Supplier {} executed in : {}",
-            this.getClass().getName(),
-            TimeUnit.SECONDS.convert(watch.getNanoTime(), TimeUnit.NANOSECONDS));
-      }
+    if (log.isDebugEnabled() && watch != null && watch.isStarted()) {
+      watch.stop();
+      log.debug(
+          "Supplier {} executed in : {}",
+          this.getClass().getName(),
+          TimeUnit.SECONDS.convert(watch.getNanoTime(), TimeUnit.NANOSECONDS));
     }
   }
 

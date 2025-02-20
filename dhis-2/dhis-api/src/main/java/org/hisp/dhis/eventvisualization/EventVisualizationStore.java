@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * DEPRECATED Needed to keep EventChart and EventReports backward compatible with the new entity
@@ -125,4 +127,12 @@ public interface EventVisualizationStore extends IdentifiableObjectStore<EventVi
    * @return the total of EventVisualization found.
    */
   int countEventVisualizationsCreated(Date startingAt);
+
+  /**
+   * Method that gets all {@link EventVisualization}s by {@link DataElement}.
+   *
+   * @param dataElements dataElements
+   * @return matching {@link EventVisualization}s
+   */
+  List<EventVisualization> getByDataElement(Collection<DataElement> dataElements);
 }

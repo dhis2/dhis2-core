@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController} using
@@ -37,7 +40,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class TrackerImportControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(
@@ -55,6 +59,30 @@ class TrackerImportControllerTest extends DhisControllerIntegrationTest {
                     + "&validationMode=FULL",
                 "{}")
             .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenThereIsAnInvalidUidInThePayload() {
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter, but was: invalid_uid",
+        POST(
+                "/tracker?async=false",
+                """
+
+                    {
+                    "trackedEntities": [
+                      {
+                        "trackedEntity": "invalid_uid",
+                        "trackedEntityType": "PrZMWi7rBga",
+                        "orgUnit": "PSeMWi7rBgb"
+                      }
+                    ]
+                  }
+                  """)
+            .content(HttpStatus.BAD_REQUEST));
   }
 
   @Test

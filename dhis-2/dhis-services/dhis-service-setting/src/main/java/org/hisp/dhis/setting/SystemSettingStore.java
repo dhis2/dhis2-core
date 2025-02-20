@@ -27,17 +27,33 @@
  */
 package org.hisp.dhis.setting;
 
-import org.hisp.dhis.common.GenericStore;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
 
 /**
  * @author Lars Helge Overland
  */
-public interface SystemSettingStore extends GenericStore<SystemSetting> {
+public interface SystemSettingStore {
+
   /**
-   * Returns the {@link SystemSetting} with the given name.
-   *
-   * @param name the system setting name.
-   * @return a system setting.
+   * @return a map of all settings keys and values, all values are as stored in database, that means
+   *     encoded values are still encoded
    */
-  SystemSetting getByName(String name);
+  @Nonnull
+  Map<String, String> getAll();
+
+  /**
+   * Update or insert a key-value pair.
+   *
+   * @param key name of the setting
+   * @param value value of the setting
+   */
+  void put(@Nonnull String key, @Nonnull String value);
+
+  /**
+   * @param keys the setting to delete
+   * @return number of settings that were deleted
+   */
+  int delete(@Nonnull Set<String> keys);
 }

@@ -39,11 +39,13 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPathHelper;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class FieldFilterServiceTest extends DhisControllerConvenienceTest {
+@Transactional
+class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
 
   @Autowired FieldFilterService fieldFilterService;
 

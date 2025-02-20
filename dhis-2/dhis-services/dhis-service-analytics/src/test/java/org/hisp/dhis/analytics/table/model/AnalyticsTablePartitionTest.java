@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+import static org.hisp.dhis.db.model.DataType.BIGINT;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.joda.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -45,14 +47,24 @@ import org.junit.jupiter.api.Test;
 class AnalyticsTablePartitionTest {
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
-          new AnalyticsTableColumn("id", DataType.BIGINT, "id"),
-          new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
-          new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
+          AnalyticsTableColumn.builder().name("id").dataType(BIGINT).selectExpression("id").build(),
+          AnalyticsTableColumn.builder()
+              .name("data")
+              .dataType(CHARACTER_11)
+              .selectExpression("data")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("value")
+              .dataType(DOUBLE)
+              .selectExpression("value")
+              .build());
+
+  private final List<String> sortKeyA = List.of("data");
 
   @Test
   void testGetName() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
 
     List<String> checks = List.of("value = 2023");
 
@@ -73,7 +85,7 @@ class AnalyticsTablePartitionTest {
   @Test
   void testIsLatestPartition() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, sortKeyA, Logged.UNLOGGED);
 
     AnalyticsTablePartition partition =
         new AnalyticsTablePartition(

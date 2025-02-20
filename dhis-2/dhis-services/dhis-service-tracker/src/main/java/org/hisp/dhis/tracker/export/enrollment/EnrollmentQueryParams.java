@@ -37,13 +37,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,7 +53,7 @@ import org.hisp.dhis.user.User;
 class EnrollmentQueryParams {
 
   /** Set of enrollment uids to explicitly select. */
-  private Set<String> enrollmentUids = new HashSet<>();
+  private Set<UID> enrollments = new HashSet<>();
 
   /** Last updated for enrollment. */
   private Date lastUpdated;
@@ -73,12 +73,10 @@ class EnrollmentQueryParams {
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
 
-  /** Status of the tracked entity instance in the given program. */
-  private ProgramStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private EnrollmentStatus enrollmentStatus;
 
-  /**
-   * Indicates whether tracked entity instance is marked for follow up for the specified program.
-   */
+  /** Indicates whether tracked entity is marked for follow up for the specified program. */
   private Boolean followUp;
 
   /** Start date for enrollment in the given program. */
@@ -90,20 +88,12 @@ class EnrollmentQueryParams {
   /** Tracked entity of the instances in the response. */
   private TrackedEntityType trackedEntityType;
 
-  /** Tracked entity instance. */
   private TrackedEntity trackedEntity;
 
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;
 
   private List<Order> order;
-
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
-
-  /** Current user for query. */
-  private transient User user;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -144,9 +134,9 @@ class EnrollmentQueryParams {
     return program != null;
   }
 
-  /** Indicates whether this params specifies a program status. */
-  public boolean hasProgramStatus() {
-    return programStatus != null;
+  /** Indicates whether this params specifies an enrollment status. */
+  public boolean hasEnrollmentStatus() {
+    return enrollmentStatus != null;
   }
 
   /**
@@ -172,13 +162,13 @@ class EnrollmentQueryParams {
     return trackedEntityType != null;
   }
 
-  /** Indicates whether this params specifies a tracked entity instance. */
+  /** Indicates whether this params specifies a tracked entity. */
   public boolean hasTrackedEntity() {
     return this.trackedEntity != null;
   }
 
   public boolean hasEnrollmentUids() {
-    return isNotEmpty(this.enrollmentUids);
+    return isNotEmpty(this.enrollments);
   }
 
   /** Indicates whether this params is of the given organisation unit mode. */

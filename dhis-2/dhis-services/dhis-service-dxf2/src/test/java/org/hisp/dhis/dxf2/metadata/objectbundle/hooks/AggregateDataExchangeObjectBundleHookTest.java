@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.DhisConvenienceTest.getAggregateDataExchange;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.TestBase.getAggregateDataExchange;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;

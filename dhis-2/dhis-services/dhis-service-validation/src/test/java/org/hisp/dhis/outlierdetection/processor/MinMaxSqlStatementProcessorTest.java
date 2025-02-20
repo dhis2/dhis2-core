@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.outlierdetection.processor;
 
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;

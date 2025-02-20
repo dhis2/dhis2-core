@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -43,11 +44,12 @@ import java.util.Collections;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -151,6 +153,7 @@ class EventProgramPreProcessorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .program(MetadataIdentifier.EMPTY_UID)
             .programStage(MetadataIdentifier.ofUid(programStage))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -199,6 +202,20 @@ class EventProgramPreProcessorTest {
         MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION),
         bundle.getEvents().get(0).getProgram());
     assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getProgramStage());
+  }
+
+  @Test
+  void shouldNotProcessEventWhenEventIsInvalidWithNoProgramAndNoProgramStage() {
+    Event event = invalidProgramEventWithNoProgramAndNoProgramStage();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    verify(preheat, never()).getProgram(PROGRAM_WITH_REGISTRATION);
+    verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITH_REGISTRATION);
+    assertNull(bundle.getEvents().get(0).getProgram());
+    assertNull(bundle.getEvents().get(0).getProgramStage());
   }
 
   @Test
@@ -442,8 +459,18 @@ class EventProgramPreProcessorTest {
     return program;
   }
 
+  private Event invalidProgramEventWithNoProgramAndNoProgramStage() {
+    return Event.builder()
+        .event(UID.generate())
+        .program(null)
+        .programStage(null)
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
+
   private Event programEventWithProgram() {
     return Event.builder()
+        .event(UID.generate())
         .program(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION))
         .programStage(MetadataIdentifier.EMPTY_UID)
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -452,6 +479,7 @@ class EventProgramPreProcessorTest {
 
   private Event programEventWithProgramStage() {
     return Event.builder()
+        .event(UID.generate())
         .program(MetadataIdentifier.EMPTY_UID)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION))
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -460,6 +488,7 @@ class EventProgramPreProcessorTest {
 
   private Event completeProgramEvent() {
     return Event.builder()
+        .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION))
         .program(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION))
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -468,6 +497,7 @@ class EventProgramPreProcessorTest {
 
   private Event trackerEventWithProgramStage() {
     return Event.builder()
+        .event(UID.generate())
         .program(MetadataIdentifier.EMPTY_UID)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITH_REGISTRATION))
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -476,6 +506,7 @@ class EventProgramPreProcessorTest {
 
   private Event trackerEventWithProgram() {
     return Event.builder()
+        .event(UID.generate())
         .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION))
         .programStage(MetadataIdentifier.EMPTY_UID)
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -484,6 +515,7 @@ class EventProgramPreProcessorTest {
 
   private Event completeTrackerEvent() {
     return Event.builder()
+        .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITH_REGISTRATION))
         .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION))
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)

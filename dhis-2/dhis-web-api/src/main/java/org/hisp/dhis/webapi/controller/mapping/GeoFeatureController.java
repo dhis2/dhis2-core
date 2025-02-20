@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.mapping;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.OpenApi;
@@ -56,12 +56,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(
+    entity = GeoFeature.class,
+    classifiers = {"team:analytics", "purpose:metadata"})
 @Controller
-@RequestMapping(value = GeoFeatureController.RESOURCE_PATH)
+@RequestMapping("/api/geoFeatures")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class GeoFeatureController {
-  public static final String RESOURCE_PATH = "/geoFeatures";
 
   private static final CacheControl GEOFEATURE_CACHE =
       CacheControl.maxAge(2, TimeUnit.HOURS).cachePrivate();

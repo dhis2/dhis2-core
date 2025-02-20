@@ -28,10 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
-import static org.hisp.dhis.web.WebClient.Accept;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpStatus.Series.SUCCESSFUL;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,78 +42,75 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
  *
  * @author Jan Bernitt
  */
-class UserControllerTest extends DhisControllerConvenienceTest {
-  @Autowired private MessageSender messageSender;
+@Transactional
+class UserControllerTest extends H2ControllerIntegrationTestBase {
+  @Autowired private MessageSender emailMessageSender;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private SessionRegistry sessionRegistry;
 
-  @Autowired private UserService userService;
+  @Autowired ObjectMapper objectMapper;
+
+  @Autowired private DhisConfigurationProvider config;
 
   private User peter;
 
-  @Autowired ObjectMapper objectMapper;
-
   @BeforeEach
   void setUp() {
+    // TODO(DHIS2-17768 platform) intentional? you are creating 2 users with username `peter` and
+    // `Peter` and
+    // assigning it to field peter
+    // also why switch to the user and then immediately back to the admin user?
     peter = createUserWithAuth("peter");
 
     this.peter = switchToNewUser("Peter");
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(
         HttpStatus.OK,
         PATCH(
@@ -123,9 +122,14 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals("peter@pan.net", user.getEmail());
   }
 
+  @AfterEach
+  void afterEach() {
+    emailMessageSender.clearMessages();
+  }
+
   @Test
   void updateRolesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
@@ -135,7 +139,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
 
     PATCH(
-            "/users/" + superUser.getUid(),
+            "/users/" + getAdminUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -144,13 +148,13 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);
 
     PATCH(
-            "/users/" + superUser.getUid(),
+            "/users/" + getAdminUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -194,35 +198,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateValueInLegacyUserCredentials() {
-    assertStatus(
-        HttpStatus.OK,
-        PATCH(
-            "/users/{id}",
-            peter.getUid() + "?importReportMode=ERRORS",
-            Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
-
-    User user = userService.getUser(peter.getUid());
-    assertEquals("mapping value", user.getOpenId());
-  }
-
-  @Test
-  void testUpdateOpenIdInLegacyFormat() {
-    assertStatus(
-        HttpStatus.OK,
-        PATCH(
-            "/users/{id}",
-            peter.getUid() + "?importReportMode=ERRORS",
-            Body("[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]")));
-
-    User user = userService.getUser(peter.getUid());
-    assertEquals("mapping value", user.getOpenId());
-    assertEquals("mapping value", user.getUserCredentials().getOpenId());
-  }
-
-  @Test
-  @DisplayName(
-      "Make sure an update after first setting OpenID works, has special handling logic in UserObjectBundleHook.")
+  @DisplayName("Check updates after setting an OpenID value works")
   void testSetOpenIdThenUpdate() {
     assertStatus(
         HttpStatus.OK,
@@ -242,6 +218,60 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
   }
 
+  @Test
+  @DisplayName(
+      "Check you can set same OpenID value on multiple accounts when linked accounts are enabled")
+  void testSetOpenIdThenUpdateWithLinkedAccountsEnabled() {
+    config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "on");
+
+    User wendy = createUserWithAuth("wendy");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            wendy.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+  }
+
+  @Test
+  @DisplayName(
+      "Check you can't set same OpenID value on multiple accounts when linked accounts are disabled")
+  void testSetOpenIdThenUpdateWithLinkedAccountsDisabled() {
+    config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "off");
+
+    User wendy = createUserWithAuth("wendy");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/{id}",
+                wendy.getUid() + "?importReportMode=ERRORS",
+                Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "Property `OIDC mapping value` already exists, was given `peter@mail.org`.",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4054)
+            .getMessage());
+  }
+
   /**
    * Test that a user admin without the ALL authority can not update a user having the ALL
    * authority.
@@ -249,7 +279,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testUpdateRolesWithNoAllAndCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -268,7 +298,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", false);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -305,7 +335,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     JsonImportSummary response =
         PATCH(
-                "/users/" + superUser.getUid(),
+                "/users/" + getAdminUid(),
                 "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
             .content(HttpStatus.CONFLICT)
             .get("response")
@@ -366,7 +396,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testChangeOrgUnitLevelGivesAccessError() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     OrganisationUnit orgA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(orgA);
@@ -407,7 +437,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);
@@ -426,7 +456,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         PUT(
             "/users/" + user.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'someone',"
                 + "'userRoles': ["
                 + "{"
@@ -460,33 +491,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             this.peter.getUid() + "?importReportMode=ERRORS",
             Body(
                 "[{'op':'add','path':'/userRoles','value':[{'id':'"
-                    + newRoleUid
-                    + "'},{'id':'"
-                    + mainRoleUid
-                    + "'}]}]")));
-
-    User peterAfter = userService.getUser(this.peter.getUid());
-    Set<UserRole> userRoles = peterAfter.getUserRoles();
-
-    assertEquals(2, userRoles.size());
-  }
-
-  @Test
-  void testUpdateRolesLegacy() {
-    UserRole userRole = createUserRole("ROLE_B", "ALL");
-    userService.addUserRole(userRole);
-    String newRoleUid = userService.getUserRoleByName("ROLE_B").getUid();
-
-    User peterBefore = userService.getUser(this.peter.getUid());
-    String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
-
-    assertStatus(
-        HttpStatus.OK,
-        PATCH(
-            "/users/{id}",
-            this.peter.getUid() + "?importReportMode=ERRORS",
-            Body(
-                "[{'op':'add','path':'/userCredentials/userRoles','value':[{'id':'"
                     + newRoleUid
                     + "'},{'id':'"
                     + mainRoleUid
@@ -659,6 +663,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testReplicateUser_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertWebMessage(
         "Conflict",
         409,
@@ -666,31 +671,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "Password must have at least 8, and at most 72 characters",
         POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}")
             .content(HttpStatus.CONFLICT));
-  }
-
-  @Test
-  void testGetUserLegacyUserCredentialsIdPresent() {
-    JsonObject response = GET("/users/{id}", peter.getUid()).content();
-    JsonObject userCredentials = response.getObject("userCredentials");
-    JsonValue id = userCredentials.get("id");
-    assertTrue(id.exists());
-  }
-
-  @Test
-  void testNewTwoFAStatusExistsInUserCredentials() {
-    JsonObject response = GET("/users/{id}", peter.getUid()).content();
-    JsonObject userCredentials = response.getObject("userCredentials");
-    Boolean twoFA = userCredentials.get("twoFA").as(JsonBoolean.class).bool();
-    assertFalse(twoFA);
-
-    User user = userService.getUserByUsername(peter.getUsername());
-    user.setSecret("secret");
-    userService.updateUser(user);
-
-    response = GET("/users/{id}", peter.getUid()).content();
-    userCredentials = response.getObject("userCredentials");
-    twoFA = userCredentials.get("twoFA").as(JsonBoolean.class).bool();
-    assertTrue(twoFA);
   }
 
   @Test
@@ -736,7 +716,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     PUT(
             "/users/" + newUser.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'test',"
                 + "'userRoles': ["
                 + "{"
@@ -755,7 +736,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     manager.flush();
     manager.clear();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     // assert lastUpdated has been updated by new user & users not empty
     JsonUserGroup userGroupUserAdded =
@@ -801,7 +782,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     PUT(
             "/users/" + newUser.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'test',"
                 + "'userRoles': ["
                 + "{"
@@ -833,11 +815,12 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals("test", lastUpdatedByNewUser.getUsername());
 
     // switch back to admin and remove group from user
-    switchToSuperuser();
+    switchToAdminUser();
     PUT(
             "/users/" + newUser.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'test',"
                 + "'userRoles': ["
                 + "{"
@@ -854,40 +837,30 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
     JsonUser updatedByAdminAgain = userGroupUserRemoved.getLastUpdatedBy();
     assertTrue(userGroupUserRemoved.getUsers().isEmpty());
-    assertEquals(superUser.getUid(), updatedByAdminAgain.getId());
+    assertEquals(getAdminUid(), updatedByAdminAgain.getId());
     assertEquals("admin", updatedByAdminAgain.getUsername());
   }
 
   @Test
   void testPutJsonObject_WithSettings() {
-    JsonUser user = GET("/users/{id}", peter.getUid()).content().as(JsonUser.class);
+    String userId = peter.getUid();
+    JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     assertWebMessage(
         "OK",
         200,
         "OK",
         null,
         PUT(
-                "/38/users/" + peter.getUid(),
-                user.node().addMember("settings", "{\"uiLocale\":\"de\"}").toString())
+                "/38/users/" + userId,
+                user.node()
+                    .addMembers(
+                        obj -> obj.addObject("settings", s -> s.addString("keyUiLocale", "de")))
+                    .toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",
-        GET("/userSettings/keyUiLocale?userId=" + user.getId(), Accept("text/plain"))
+        GET("/userSettings/keyUiLocale?userId=" + userId, Accept("text/plain"))
             .content("text/plain"));
-  }
-
-  @Test
-  void testPutJsonObject_Pre38() {
-    JsonObject user = GET("/users/{uid}", peter.getUid()).content();
-    JsonImportSummary summary =
-        PUT("/37/users/" + peter.getUid(), user.toString())
-            .content(HttpStatus.OK)
-            .as(JsonImportSummary.class);
-    assertEquals("ImportReport", summary.getResponseType());
-    assertEquals("OK", summary.getStatus());
-    assertEquals(1, summary.getStats().getUpdated());
-    assertEquals(
-        peter.getUid(), summary.getTypeReports().get(0).getObjectReports().get(0).getUid());
   }
 
   @Test
@@ -937,24 +910,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostJsonObjectInvalidUsernameLegacyFormat() {
-    JsonWebMessage msg =
-        assertWebMessage(
-            "Conflict",
-            409,
-            "ERROR",
-            "One or more errors occurred, please see full details in import report.",
-            POST(
-                    "/users/",
-                    "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'_Harrys'}}")
-                .content(HttpStatus.CONFLICT));
-    JsonErrorReport report =
-        msg.getResponse()
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049);
-    assertEquals("username", report.getErrorProperty());
-  }
-
-  @Test
   void testPostJsonObjectInvalidUsername() {
     JsonWebMessage msg =
         assertWebMessage(
@@ -968,78 +923,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         msg.getResponse()
             .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049);
     assertEquals("username", report.getErrorProperty());
-  }
-
-  @Test
-  void testPutLegacyFormat() {
-    JsonObject user = GET("/users/{id}", peter.getUid()).content();
-
-    String jsonString = "{'openId':'test'}";
-    JsonElement jsonElement = new Gson().fromJson(jsonString, JsonElement.class);
-
-    com.google.gson.JsonObject asJsonObject =
-        new Gson().fromJson(user.toString(), JsonElement.class).getAsJsonObject();
-    asJsonObject.add("userCredentials", jsonElement);
-
-    PUT("/37/users/" + peter.getUid(), asJsonObject.toString());
-
-    User userAfter = userService.getUser(peter.getUid());
-    assertEquals("test", userAfter.getOpenId());
-  }
-
-  @Test
-  void testRemoveCogCatDimFromUserCredentialsLegacyFormat() {
-    CategoryOption coA = createCategoryOption('A');
-    CategoryOption coB = createCategoryOption('B');
-    categoryService.addCategoryOption(coA);
-    categoryService.addCategoryOption(coB);
-
-    Category caA = createCategory('A', coA);
-    Category caB = createCategory('B', coB);
-    categoryService.addCategory(caA);
-    categoryService.addCategory(caB);
-
-    Set<Category> catDimensionConstraints = Sets.newHashSet(caA, caB);
-
-    CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
-    categoryOptionGroupSet.setAutoFields();
-    categoryOptionGroupSet.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-    categoryOptionGroupSet.setName("cogA");
-    categoryOptionGroupSet.setShortName("cogA");
-    manager.save(categoryOptionGroupSet);
-
-    User userByUsername = userService.getUserByUsername(peter.getUsername());
-
-    userByUsername.setCogsDimensionConstraints(Sets.newHashSet(categoryOptionGroupSet));
-    userByUsername.setCatDimensionConstraints(catDimensionConstraints);
-
-    userService.updateUser(userByUsername);
-
-    JsonObject user = GET("/users/{id}", peter.getUid()).content();
-
-    JsonArray constraints = user.getArray("catDimensionConstraints");
-    assertEquals(2, constraints.size());
-
-    String emptyCatDim = "{'catDimensionConstraints':[]}";
-    JsonElement emptyCatDimJsonElm = new Gson().fromJson(emptyCatDim, JsonElement.class);
-    String emptyCogDim = "{'cogsDimensionConstraints':[]}";
-    JsonElement emptyCogDimJsonElm = new Gson().fromJson(emptyCogDim, JsonElement.class);
-
-    com.google.gson.JsonObject userJsonObject =
-        new Gson().fromJson(user.toString(), JsonElement.class).getAsJsonObject();
-
-    userJsonObject.add("userCredentials", emptyCatDimJsonElm);
-    userJsonObject.add("userCredentials", emptyCogDimJsonElm);
-
-    PUT("/37/users/" + peter.getUid(), userJsonObject.toString());
-
-    User userAfter = userService.getUser(peter.getUid());
-    Set<CategoryOptionGroupSet> cogsDimensionConstraintsAfter =
-        userAfter.getCogsDimensionConstraints();
-    Set<Category> catDimensionConstraintsAfter = userAfter.getCatDimensionConstraints();
-
-    assertEquals(0, cogsDimensionConstraintsAfter.size());
-    assertEquals(0, catDimensionConstraintsAfter.size());
   }
 
   @Test
@@ -1132,9 +1015,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail =
-        ((FakeMessageSender) messageSender).getMessagesByEmail(email);
-    assertTrue(messagesByEmail.size() > 0);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
+    assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }
 
@@ -1143,7 +1025,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     switchContextToUser(this.peter);
     assertEquals(
         "You don't have the proper permissions to update this user.",
-        PUT("/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}")
+        PUT("/37/users/" + peter.getUid(), "{\"firstName\":\"nils\"}")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
   }

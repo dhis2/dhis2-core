@@ -86,7 +86,7 @@ public class ProgramVariableItem extends ProgramExpressionItem {
           .put(V_PROGRAM_STAGE_ID, new vProgramStageId())
           .put(V_PROGRAM_STAGE_NAME, new vProgramStageName())
           .put(V_SYNC_DATE, new vSyncDate())
-          .put(V_TEI_COUNT, new vTeiCount())
+          .put(V_TEI_COUNT, new vTrackedEntityCount())
           .put(V_VALUE_COUNT, new vValueCount())
           .put(V_ZERO_POS_VALUE_COUNT, new vZeroPosValueCount())
           .build();

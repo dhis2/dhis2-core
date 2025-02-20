@@ -36,7 +36,6 @@ import static org.hisp.dhis.dxf2.Constants.SYSTEM_VERSION;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,10 +68,10 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
@@ -95,6 +95,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.report.Report;
@@ -161,6 +162,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       schemaService.getMetadataSchemas().stream()
           .filter(schema -> schema.isIdentifiableObject() && schema.isPersisted())
           .filter(s -> !s.isSecondaryMetadata())
+          .filter(DEPRECATED_ANALYTICS_SCHEMAS)
           .forEach(
               schema ->
                   params.getClasses().add((Class<? extends IdentifiableObject>) schema.getKlass()));
@@ -174,12 +176,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
       if (params.getQuery(klass) != null) {
         query = params.getQuery(klass);
       } else {
-        OrderParams orderParams = new OrderParams(Sets.newHashSet(params.getDefaultOrder()));
-        query =
-            queryService.getQueryFromUrl(
-                klass,
-                params.getDefaultFilter(),
-                orderParams.getOrders(schemaService.getDynamicSchema(klass)));
+        GetObjectListParams queryParams =
+            new GetObjectListParams()
+                .setPaging(false)
+                .setOrders(params.getDefaultOrder())
+                .setFilters(params.getDefaultFilter());
+        query = queryService.getQueryFromUrl(klass, queryParams);
       }
 
       if (query.getCurrentUserDetails() == null && params.getCurrentUserDetails() != null) {
@@ -208,6 +210,15 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     return metadata;
   }
+
+  /**
+   * This predicate is used to filter out deprecated Analytics schemas, {@link EventChart} & {@link
+   * EventReport}.As they are no longer used ({@link EventVisualization} has replaced them), they
+   * should be removed from the metadata export flow. This was causing issues otherwise. See <a
+   * href="https://dhis2.atlassian.net/browse/BETA-177">Jira issue</a>
+   */
+  public static final Predicate<Schema> DEPRECATED_ANALYTICS_SCHEMAS =
+      schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
 
   @Override
   @Transactional(readOnly = true)
@@ -288,7 +299,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
         String plural = schemaService.getDynamicSchema(klass).getPlural();
         generator.writeArrayFieldStart(plural);
-        fieldFilterService.toObjectNodesStream(fieldFilterParams, generator);
+        fieldFilterService.toObjectNodesStream(
+            fieldFilterParams, params.getDefaults().isExclude(), generator);
         generator.writeEndArray();
       }
 
@@ -429,6 +441,11 @@ public class DefaultMetadataExportService implements MetadataExportService {
       parameters.remove("skipSharing");
     }
 
+    if (parameters.containsKey("defaults")) {
+      params.setDefaults(Defaults.valueOf(parameters.get("defaults").get(0)));
+      parameters.remove("defaults");
+    }
+
     for (String parameterKey : parameters.keySet()) {
       String[] parameter = parameterKey.split(":");
       Schema schema = schemaService.getSchemaByPluralName(parameter[0]);
@@ -477,29 +494,15 @@ public class DefaultMetadataExportService implements MetadataExportService {
     for (Map.Entry<Class<? extends IdentifiableObject>, Map<String, List<String>>> entry :
         map.entrySet()) {
       Map<String, List<String>> classMap = entry.getValue();
-      Schema schema = schemaService.getDynamicSchema(entry.getKey());
+      Class<? extends IdentifiableObject> objectType = entry.getKey();
+      if (classMap.containsKey("fields")) params.addFields(objectType, classMap.get("fields"));
 
-      if (classMap.containsKey("fields")) params.addFields(entry.getKey(), classMap.get("fields"));
-
-      if (classMap.containsKey("filter") && classMap.containsKey("order")) {
-        OrderParams orderParams = new OrderParams(Sets.newHashSet(classMap.get("order")));
-        Query query =
-            queryService.getQueryFromUrl(
-                entry.getKey(), classMap.get("filter"), orderParams.getOrders(schema));
-        query.setDefaultOrder();
-        params.addQuery(query);
-      } else if (classMap.containsKey("filter")) {
-        Query query =
-            queryService.getQueryFromUrl(entry.getKey(), classMap.get("filter"), new ArrayList<>());
-        query.setDefaultOrder();
-        params.addQuery(query);
-      } else if (classMap.containsKey("order")) {
-        OrderParams orderParams = new OrderParams();
-        orderParams.setOrder(Sets.newHashSet(classMap.get("order")));
-
-        Query query =
-            queryService.getQueryFromUrl(
-                entry.getKey(), new ArrayList<>(), orderParams.getOrders(schema));
+      List<String> filters = classMap.get("filter");
+      List<String> orders = classMap.get("order");
+      if (filters != null || orders != null) {
+        GetObjectListParams queryParams =
+            new GetObjectListParams().setPaging(false).setFilters(filters).setOrders(orders);
+        Query query = queryService.getQueryFromUrl(objectType, queryParams);
         query.setDefaultOrder();
         params.addQuery(query);
       }
@@ -1104,13 +1107,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       IdentifiableObject identifiableObject) {
     if (identifiableObject == null) return metadata;
-    identifiableObject
-        .getAttributeValues()
-        .forEach(
-            av ->
-                metadata.putValue(
-                    Attribute.class, attributeService.getAttribute(av.getAttribute().getUid())));
-
+    if (identifiableObject.getAttributeValues().isEmpty()) return metadata;
+    List<Attribute> attributes =
+        attributeService.getAttributesByIds(identifiableObject.getAttributeValues().keys());
+    metadata.putValues(Attribute.class, attributes);
     return metadata;
   }
 

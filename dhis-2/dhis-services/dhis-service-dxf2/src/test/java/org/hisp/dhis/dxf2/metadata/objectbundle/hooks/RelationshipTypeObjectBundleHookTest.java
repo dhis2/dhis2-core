@@ -36,8 +36,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -51,6 +49,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -67,7 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
-public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
+public class RelationshipTypeObjectBundleHookTest extends TestBase {
   @InjectMocks private RelationshipTypeObjectBundleHook subject;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
@@ -80,11 +79,11 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
 
   private ProgramStage programStage;
 
-  private RelationshipType teiToTeiRelationshipType;
+  private RelationshipType teToTrackedEntityRelationshipType;
 
-  private RelationshipType teiToEnrollmentRelationshipType;
+  private RelationshipType teToEnrollmentRelationshipType;
 
-  private RelationshipType teiToEventRelationshipType;
+  private RelationshipType teToEventRelationshipType;
 
   private RelationshipConstraint personConstraint;
 
@@ -175,20 +174,20 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
             .dataElements(Sets.newLinkedHashSet(Sets.newHashSet(dataElement.getUid())))
             .build());
 
-    teiToTeiRelationshipType =
+    teToTrackedEntityRelationshipType =
         createPersonToPersonRelationshipType('A', program, personTrackedEntityType, false);
-    teiToTeiRelationshipType.setToConstraint(personConstraint);
-    teiToTeiRelationshipType.setFromConstraint(personConstraint);
+    teToTrackedEntityRelationshipType.setToConstraint(personConstraint);
+    teToTrackedEntityRelationshipType.setFromConstraint(personConstraint);
 
-    teiToEnrollmentRelationshipType =
+    teToEnrollmentRelationshipType =
         createPersonToPersonRelationshipType('B', program, personTrackedEntityType, false);
-    teiToEnrollmentRelationshipType.setToConstraint(enrollmentConstraint);
-    teiToEnrollmentRelationshipType.setFromConstraint(enrollmentConstraint);
+    teToEnrollmentRelationshipType.setToConstraint(enrollmentConstraint);
+    teToEnrollmentRelationshipType.setFromConstraint(enrollmentConstraint);
 
-    teiToEventRelationshipType =
+    teToEventRelationshipType =
         createPersonToPersonRelationshipType('D', program, personTrackedEntityType, false);
-    teiToEventRelationshipType.setToConstraint(eventConstraint);
-    teiToEventRelationshipType.setFromConstraint(eventConstraint);
+    teToEventRelationshipType.setToConstraint(eventConstraint);
+    teToEventRelationshipType.setFromConstraint(eventConstraint);
   }
 
   @Test
@@ -196,7 +195,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
     when(trackedEntityTypeService.getTrackedEntityType(anyString()))
         .thenReturn(personTrackedEntityType);
 
-    List<ErrorReport> errorReportList = subject.validate(teiToTeiRelationshipType, null);
+    List<ErrorReport> errorReportList = subject.validate(teToTrackedEntityRelationshipType, null);
 
     assertNotNull(errorReportList);
     assertTrue(errorReportList.isEmpty());
@@ -206,7 +205,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
   public void test_successful_TrackerDataView_For_TrackedEnrollment_Relationship() {
     when(programService.getProgram(anyString())).thenReturn(program);
 
-    List<ErrorReport> errorReportList = subject.validate(teiToEnrollmentRelationshipType, null);
+    List<ErrorReport> errorReportList = subject.validate(teToEnrollmentRelationshipType, null);
 
     assertNotNull(errorReportList);
     assertTrue(errorReportList.isEmpty());
@@ -216,7 +215,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
   public void test_successful_TrackerDataView_For_Event_Relationship() {
     when(programStageService.getProgramStage(anyString())).thenReturn(programStage);
 
-    List<ErrorReport> errorReportList = subject.validate(teiToEventRelationshipType, null);
+    List<ErrorReport> errorReportList = subject.validate(teToEventRelationshipType, null);
 
     assertNotNull(errorReportList);
     assertTrue(errorReportList.isEmpty());
@@ -227,8 +226,8 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
     when(trackedEntityTypeService.getTrackedEntityType(anyString()))
         .thenReturn(personTrackedEntityType);
 
-    teiToTeiRelationshipType.setToConstraint(personConstraintWithNoAttribute);
-    List<ErrorReport> errorReportList = subject.validate(teiToTeiRelationshipType, null);
+    teToTrackedEntityRelationshipType.setToConstraint(personConstraintWithNoAttribute);
+    List<ErrorReport> errorReportList = subject.validate(teToTrackedEntityRelationshipType, null);
 
     assertNotNull(errorReportList);
     assertTrue(errorReportList.isEmpty());
@@ -239,14 +238,13 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
     when(trackedEntityTypeService.getTrackedEntityType(anyString()))
         .thenReturn(personTrackedEntityType);
 
-    teiToTeiRelationshipType.setToConstraint(personConstraintWithMultipleAttribute);
-    List<ErrorReport> errorReportList = subject.validate(teiToTeiRelationshipType, null);
+    teToTrackedEntityRelationshipType.setToConstraint(personConstraintWithMultipleAttribute);
+    List<ErrorReport> errorReportList = subject.validate(teToTrackedEntityRelationshipType, null);
 
     assertNotNull(errorReportList);
     assertFalse(errorReportList.isEmpty());
 
-    List<ErrorCode> errorCodes =
-        errorReportList.stream().map(ErrorReport::getErrorCode).collect(Collectors.toList());
+    List<ErrorCode> errorCodes = errorReportList.stream().map(ErrorReport::getErrorCode).toList();
 
     assertTrue(errorCodes.contains(ErrorCode.E4314));
     assertTrue(errorReportList.get(0).getMessage().contains(teaNotPartOfProgram.getUid()));

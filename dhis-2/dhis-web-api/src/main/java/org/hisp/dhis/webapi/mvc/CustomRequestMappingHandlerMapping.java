@@ -41,6 +41,17 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
+ * This class is a custom implementation of the RequestMappingHandlerMapping class. It is used to
+ * handle the versioning of the API endpoints. The class overrides the getMappingForMethod method to
+ * add the versioning to the API endpoints.
+ *
+ * <p>During startup of the application, the Spring framework will create a
+ * RequestMappingHandlerMapping bean. This bean is responsible for mapping the request to the
+ * appropriate controller method. By creating a custom implementation of the
+ * RequestMappingHandlerMapping class, we can add the versioning to the API endpoints.
+ *
+ * <p>
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
@@ -66,30 +77,19 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     }
 
     Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
-    Set<String> patterns = new HashSet<>();
+    Set<String> allPaths = new HashSet<>();
 
     Set<DhisApiVersion> versions = getVersions(typeApiVersion, methodApiVersion);
 
-    for (String pattern : rqmPatterns) {
+    for (String path : rqmPatterns) {
       versions.stream()
           .filter(version -> !version.isIgnore())
-          .forEach(
-              version -> {
-                if (!pattern.startsWith(version.getVersionString())) {
-                  if (pattern.startsWith("/")) {
-                    patterns.add("/" + version.getVersion() + pattern);
-                  } else {
-                    patterns.add("/" + version.getVersion() + "/" + pattern);
-                  }
-                } else {
-                  patterns.add(pattern);
-                }
-              });
+          .forEach(version -> addVersionedPath(version, path, allPaths));
     }
 
     PatternsRequestCondition patternsRequestCondition =
         new PatternsRequestCondition(
-            patterns.toArray(new String[] {}), null, null, true, true, null);
+            allPaths.toArray(new String[] {}), null, null, true, true, null);
 
     return new RequestMappingInfo(
         null,
@@ -100,6 +100,28 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
         info.getConsumesCondition(),
         info.getProducesCondition(),
         info.getCustomCondition());
+  }
+
+  private static void addVersionedPath(DhisApiVersion version, String path, Set<String> allPaths) {
+    // Normalize path to start with "/api/"
+    String normalizedPath = path.startsWith("/api/") ? path : path.replaceFirst("^api/", "/api/");
+
+    // Skip path that don't start with "/api/"
+    if (!normalizedPath.startsWith("/api/")) {
+      return;
+    }
+
+    // Check if the path corresponds directly to a versioned API endpoint
+    if (normalizedPath.startsWith("/api/" + version.getVersionString())) {
+      allPaths.add(normalizedPath);
+      return;
+    }
+
+    // Remove the leading "/api/" for further processing
+    String pathWithoutApi = normalizedPath.substring(5); // Skip "/api/"
+
+    // Add the versioned API path
+    allPaths.add("/api/" + version.getVersionString() + "/" + pathWithoutApi);
   }
 
   private Set<DhisApiVersion> getVersions(ApiVersion typeApiVersion, ApiVersion methodApiVersion) {

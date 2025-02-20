@@ -43,14 +43,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
@@ -209,11 +209,34 @@ public class FieldFilterService {
     return objectNodes;
   }
 
+  /**
+   * Method allowing calls without an exclude defaults boolean parameter. This keeps current
+   * behaviour as is. If callers require different behaviour regarding excluding defaults, then they
+   * can call the toObjectNodes method which takes a value for excluding defaults. This method
+   * passes false as the default value for excluding defaults.
+   *
+   * @param objects objects to render
+   * @param filter filters
+   * @param user user
+   * @param isSkipSharing skip sharing
+   * @param consumer consumer action
+   * @param <T> type of objects
+   */
   private <T> void toObjectNodes(
       List<T> objects,
       List<FieldPath> filter,
       User user,
       boolean isSkipSharing,
+      Consumer<ObjectNode> consumer) {
+    toObjectNodes(objects, filter, user, isSkipSharing, false, consumer);
+  }
+
+  private <T> void toObjectNodes(
+      List<T> objects,
+      List<FieldPath> filter,
+      User user,
+      boolean isSkipSharing,
+      boolean excludeDefaults,
       Consumer<ObjectNode> consumer) {
 
     UserDetails currentUserDetails = null;
@@ -229,25 +252,81 @@ public class FieldFilterService {
     List<FieldPath> paths =
         fieldPathHelper.apply(filter, HibernateProxyUtils.getRealClass(firstObject));
 
-    SimpleFilterProvider filterProvider = getSimpleFilterProvider(paths, isSkipSharing);
+    SimpleFilterProvider filterProvider =
+        getSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
 
     // only set filter provider on a local copy so that we don't affect
     // other object mappers (running across other threads)
     ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider(filterProvider);
 
     Map<String, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
+    List<FieldPath> absoluteAttributePaths = getAttributePropertyPathsInAttributeValues(paths);
+    List<FieldPath> relativeAttributePaths =
+        absoluteAttributePaths.stream().map(e -> e.relativeTo("attribute")).toList();
+
+    Map<String, ObjectNode> attributeProperties = new HashMap<>();
 
     for (Object object : objects) {
       applyAccess(object, paths, isSkipSharing, currentUserDetails);
       applySharingDisplayNames(object, paths, isSkipSharing);
-      applyAttributeValuesAttribute(object, paths, isSkipSharing);
 
       ObjectNode objectNode = objectMapper.valueToTree(object);
-      applyAttributeValueFields(object, objectNode, paths);
+      addAttributeFieldsInAttributeValues(
+          object, objectNode, relativeAttributePaths, attributeProperties);
+      applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, null, "", fieldTransformers);
+
+      if (excludeDefaults) removeEmptyObjects(objectNode);
 
       consumer.accept(objectNode);
     }
+  }
+
+  /**
+   * Method that removes empty objects from an ObjectNode, at root level.
+   *
+   * <p>e.g. json input: <br>
+   * <code>
+   *   {
+   *      "name": "dhis2",
+   *      "system": {}
+   *   }
+   * </code>
+   *
+   * <p><br>
+   *
+   * <p>resulting output: <br>
+   * <code>
+   *   {
+   *      "name": "dhis2"
+   *   }
+   * </code>
+   *
+   * @param objectNode object node to process on
+   */
+  private void removeEmptyObjects(ObjectNode objectNode) {
+    Iterator<JsonNode> elements = objectNode.elements();
+
+    while (elements.hasNext()) {
+      JsonNode next = elements.next();
+      if (next.isObject() && next.isEmpty()) {
+        elements.remove();
+      }
+    }
+  }
+
+  private static final Pattern ATTRIBUTE_VALUES_PATH =
+      Pattern.compile("attributeValues\\.attribute\\.(?!id).*");
+
+  /**
+   * @param paths all paths requested
+   * @return only paths that belong to a property of {@link Attribute} that is not "id" with the
+   *     "attributeValues"
+   */
+  private static List<FieldPath> getAttributePropertyPathsInAttributeValues(List<FieldPath> paths) {
+    return paths.stream()
+        .filter(path -> ATTRIBUTE_VALUES_PATH.matcher(path.toFullPath()).matches())
+        .toList();
   }
 
   /**
@@ -259,7 +338,8 @@ public class FieldFilterService {
    *     to the generator
    */
   @Transactional(readOnly = true)
-  public void toObjectNodesStream(FieldFilterParams<?> params, JsonGenerator generator)
+  public void toObjectNodesStream(
+      FieldFilterParams<?> params, boolean excludeDefaults, JsonGenerator generator)
       throws IOException {
     if (params.getObjects().isEmpty()) {
       return;
@@ -272,6 +352,7 @@ public class FieldFilterService {
           fieldPaths,
           params.getUser(),
           params.isSkipSharing(),
+          excludeDefaults,
           n -> {
             try {
               generator.writeObject(n);
@@ -284,38 +365,77 @@ public class FieldFilterService {
     }
   }
 
-  private void applyAttributeValueFields(
-      Object object, ObjectNode objectNode, List<FieldPath> fieldPaths) {
-    if (!(object instanceof BaseIdentifiableObject)) {
+  /**
+   * Adds in properties of {@link Attribute} that are not contained in the serialization of {@link
+   * org.hisp.dhis.attribute.AttributeValues} if the {@link FieldPath}s contains a path to an {@link
+   * Attribute} property other than "id".
+   */
+  private void addAttributeFieldsInAttributeValues(
+      Object object,
+      ObjectNode objectNode,
+      List<FieldPath> relativeAttributePaths,
+      Map<String, ObjectNode> attributeProperties) {
+    if (relativeAttributePaths.isEmpty()) return;
+    if (!(object instanceof IdentifiableObject source)) return;
+    ArrayNode attributes = objectNode.putArray("attributeValues");
+    source
+        .getAttributeValues()
+        .forEach(
+            (attributeId, value) -> {
+              ObjectNode attrValueNode = attributes.addObject();
+              attrValueNode.put("value", value);
+              attrValueNode.set(
+                  "attribute",
+                  attributeProperties.computeIfAbsent(
+                      attributeId,
+                      key -> {
+                        Attribute attribute = attributeService.getAttribute(attributeId);
+                        List<ObjectNode> res = new ArrayList<>(1);
+                        toObjectNodes(
+                            List.of(attribute), relativeAttributePaths, null, true, res::add);
+                        ObjectNode attr = res.get(0);
+                        attr.put("id", attributeId);
+                        return attr;
+                      }));
+            });
+  }
+
+  /**
+   * Adds in those property paths that end with a UID of an attribute treating attributes as if they
+   * were usual properties of the parent object.
+   */
+  private void applyAttributeAsPropertyFields(
+      Object object, ObjectNode node, List<FieldPath> fieldPaths) {
+    if (!(object instanceof IdentifiableObject identifiableObject)) {
       return;
     }
-
     for (FieldPath path : fieldPaths) {
-      applyFieldPath(object, objectNode, path);
+      applyAttributeAsPropertyField(identifiableObject, node, path);
     }
   }
 
-  private void applyFieldPath(Object object, ObjectNode objectNode, FieldPath path) {
-    if (path.getProperty() != null || !CodeGenerator.isValidUid(path.getFullPath())) {
+  private void applyAttributeAsPropertyField(
+      IdentifiableObject object, ObjectNode node, FieldPath path) {
+    String attributeId = path.getFullPath();
+    if (path.getProperty() != null || !CodeGenerator.isValidUid(attributeId)) {
       return;
     }
 
-    AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue(path.getFullPath());
-    if (value == null) {
+    String fieldValue = object.getAttributeValues().get(attributeId);
+    if (fieldValue == null) {
       return;
     }
 
-    String fieldValue = value.getValue();
-    Attribute attribute = attributeService.getAttribute(value.getAttribute().getUid());
+    Attribute attribute = attributeService.getAttribute(attributeId);
 
-    if (fieldValue != null && !fieldValue.isBlank() && attribute.getValueType().isJson()) {
+    if (!fieldValue.isBlank() && attribute.getValueType().isJson()) {
       try {
-        objectNode.set(path.getFullPath(), jsonMapper.readTree(fieldValue));
+        node.set(attributeId, jsonMapper.readTree(fieldValue));
       } catch (JsonProcessingException e) {
-        objectNode.put(path.getFullPath(), fieldValue);
+        node.put(attributeId, fieldValue);
       }
     } else {
-      objectNode.put(path.getFullPath(), fieldValue);
+      node.put(attributeId, fieldValue);
     }
   }
 
@@ -385,10 +505,11 @@ public class FieldFilterService {
   }
 
   private SimpleFilterProvider getSimpleFilterProvider(
-      List<FieldPath> fieldPaths, boolean skipSharing) {
+      List<FieldPath> fieldPaths, boolean skipSharing, boolean excludeDefaults) {
     SimpleFilterProvider filterProvider = new SimpleFilterProvider();
     filterProvider.addFilter(
-        "field-filter", new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing));
+        "field-filter",
+        new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing, excludeDefaults));
 
     return filterProvider;
   }
@@ -420,21 +541,6 @@ public class FieldFilterService {
     }
 
     return transformerMap;
-  }
-
-  private void applyAttributeValuesAttribute(
-      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing) {
-    applyFieldPathVisitor(
-        object,
-        fieldPaths,
-        isSkipSharing,
-        s -> s.equals("attributeValues.attribute") || s.endsWith(".attributeValues.attribute"),
-        o -> {
-          if (o instanceof AttributeValue a) {
-            a.setAttribute(
-                attributeService.getAttribute(((AttributeValue) o).getAttribute().getUid()));
-          }
-        });
   }
 
   private void applySharingDisplayNames(
@@ -479,9 +585,8 @@ public class FieldFilterService {
         isSkipSharing,
         s -> s.equals("access") || s.endsWith(".access"),
         o -> {
-          if (o instanceof BaseIdentifiableObject identifiableObject) {
-            identifiableObject.setAccess(
-                aclService.getAccess(((IdentifiableObject) o), userDetails));
+          if (o instanceof IdentifiableObject identifiableObject) {
+            identifiableObject.setAccess(aclService.getAccess(identifiableObject, userDetails));
           }
         });
   }

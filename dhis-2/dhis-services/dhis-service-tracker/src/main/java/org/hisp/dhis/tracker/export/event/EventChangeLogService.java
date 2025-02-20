@@ -28,10 +28,16 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 
 public interface EventChangeLogService {
 
@@ -42,13 +48,36 @@ public interface EventChangeLogService {
    */
   Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
+
+  void addEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String previousValue,
+      String value,
+      ChangeLogType changeLogType,
+      String userName);
+
+  void addFieldChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
+
+  void deleteEventChangeLog(Event event);
+
+  void deleteEventChangeLog(DataElement dataElement);
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
-   * event change logs by. Ordering by fields other than these is considered a programmer error.
+   * event change logs by. Ordering by fields other than these, is considered a programmer error.
    * Validation of user provided field names should occur before calling {@link
    * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can
+   * filter event change logs by. Filtering by fields other than these, is considered a programmer
+   * error. Validation of user provided field names should occur before calling {@link
+   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
+   */
+  Set<Pair<String, Class<?>>> getFilterableFields();
 }

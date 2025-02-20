@@ -41,6 +41,7 @@ public class Filter {
     SHORT_NAME("shortName"),
     DISPLAY_SHORT_NAME("displayShortName"),
     PROGRAM_ID("programId"),
+    OPTION_SET_ID("optionSetId"),
     ID("id");
 
     private String name;
@@ -107,6 +108,7 @@ public class Filter {
     SHORT_NAME_ILIKE("shortName:ilike:"),
     DISPLAY_SHORT_NAME_ILIKE("displayShortName:ilike:"),
     PROGRAM_ID_EQUAL("programId:eq:"),
+    OPTION_SET_ID_EQUAL("optionSetId:eq:"),
     ID_EQUAL("id:eq:"),
     IDENTIFIABLE_TOKEN("identifiable:token:");
 

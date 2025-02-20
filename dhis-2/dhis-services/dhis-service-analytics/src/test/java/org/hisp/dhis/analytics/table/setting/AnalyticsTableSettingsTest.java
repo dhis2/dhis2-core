@@ -28,16 +28,16 @@
 package org.hisp.dhis.analytics.table.setting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.db.model.Database;
+import java.util.Set;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,30 +45,47 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class AnalyticsTableSettingsTest {
   @Mock private DhisConfigurationProvider config;
 
-  @Mock private SystemSettingManager systemSettings;
+  @Mock private SystemSettingsService systemSettings;
 
-  private AnalyticsTableSettings settings;
+  @InjectMocks private AnalyticsTableSettings settings;
 
-  @BeforeEach
-  public void before() {
-    settings = new AnalyticsTableSettings(config, systemSettings);
+  @Test
+  void testGetSkipIndexDimensionsDefault() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX.getDefaultValue());
+
+    assertEquals(Set.of(), settings.getSkipIndexDimensions());
   }
 
   @Test
-  void testGetAndValidateDatabase() {
-    assertEquals(Database.POSTGRESQL, settings.getAndValidateDatabase("POSTGRESQL"));
+  void testGetSkipIndexDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq");
+
+    assertEquals(
+        Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq"),
+        settings.getSkipIndexDimensions());
   }
 
   @Test
-  void testGetAndValidateInvalidDatabase() {
-    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
+  void testGetSkipColumnDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN))
+        .thenReturn("sixmonthlyapril, financialapril  , financialjuly,financialnov");
+
+    assertEquals(
+        Set.of("sixmonthlyapril", "financialapril", "financialjuly", "financialnov"),
+        settings.getSkipColumnDimensions());
   }
 
   @Test
-  void testGetAnalyticsDatabase() {
-    when(config.getProperty(ConfigurationKey.ANALYTICS_DATABASE))
-        .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
+  void testToSet() {
+    Set<String> expected = Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq");
+    assertEquals(expected, settings.toSet("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq"));
+  }
 
-    assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
+  @Test
+  void testToSkip() {
+    assertEquals(Skip.INCLUDE, settings.toSkip(true));
+    assertEquals(Skip.SKIP, settings.toSkip(false));
   }
 }

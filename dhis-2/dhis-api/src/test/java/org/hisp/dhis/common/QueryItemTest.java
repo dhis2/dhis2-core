@@ -102,12 +102,10 @@ class QueryItemTest {
     deB.setLegendSets(Lists.newArrayList(lsA));
 
     rspA = new RepeatableStageParams();
-    rspA.setStartIndex(1);
-    rspA.setCount(2);
+    rspA.setIndex(1);
 
     rspB = new RepeatableStageParams();
-    rspB.setStartIndex(10);
-    rspB.setCount(20);
+    rspB.setIndex(10);
   }
 
   @Test

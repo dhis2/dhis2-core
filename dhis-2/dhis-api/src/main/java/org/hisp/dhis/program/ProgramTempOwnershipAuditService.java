@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
@@ -42,28 +40,4 @@ public interface ProgramTempOwnershipAuditService {
    * @param programTempOwnershipAudit the audit to add
    */
   void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit);
-
-  /**
-   * Deletes program temp ownership audit for the given enrollment
-   *
-   * @param program the program
-   */
-  void deleteProgramTempOwnershipAudit(Program program);
-
-  /**
-   * Returns program temp ownership audits matching query params
-   *
-   * @param params program temp ownership audit query params
-   * @return matching ProgramTempOwnershipAuditQueryParams
-   */
-  List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits(
-      ProgramTempOwnershipAuditQueryParams params);
-
-  /**
-   * Returns count of program temp ownership audits matching query params
-   *
-   * @param params program temp ownership audit query params
-   * @return count of ProgramTempOwnershipAuditQueryParams
-   */
-  int getProgramTempOwnershipAuditsCount(ProgramTempOwnershipAuditQueryParams params);
 }

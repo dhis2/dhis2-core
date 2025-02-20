@@ -28,20 +28,21 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.schema.descriptors.ValidationResultSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
@@ -49,7 +50,6 @@ import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,9 +61,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(entity = ValidationResult.class)
 @RestController
-@RequestMapping(value = ValidationResultSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/validationResults")
 @ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 public class ValidationResultController {
   private final FieldFilterService fieldFilterService;
@@ -87,7 +87,7 @@ public class ValidationResultController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<ValidationResult> validationResults = validationResultService.getValidationResults(query);
@@ -114,7 +114,7 @@ public class ValidationResultController {
     return result;
   }
 
-  @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @DeleteMapping(value = "/{id}")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void delete(@PathVariable int id) throws WebMessageException {
@@ -123,7 +123,7 @@ public class ValidationResultController {
     validationResultService.deleteValidationResult(result);
   }
 
-  @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @DeleteMapping
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void deleteValidationResults(ValidationResultsDeletionRequest request) {

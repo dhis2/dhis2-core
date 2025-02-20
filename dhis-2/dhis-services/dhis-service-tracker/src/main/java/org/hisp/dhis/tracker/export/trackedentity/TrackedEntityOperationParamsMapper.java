@@ -49,6 +49,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -57,7 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,29 +79,31 @@ class TrackedEntityOperationParamsMapper {
 
   // TODO Remove this dependency from the mapper when working on
   // https://dhis2.atlassian.net/browse/DHIS2-15915
-  @Nonnull private final TrackedEntityStore trackedEntityStore;
+  @Nonnull private final HibernateTrackedEntityStore trackedEntityStore;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+  @Nonnull private final ProgramService programService;
 
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
+  public TrackedEntityQueryParams map(
+      TrackedEntityOperationParams operationParams, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    User user = operationParams.getUser();
-
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
     TrackedEntityType requestedTrackedEntityType =
-        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
 
-    List<TrackedEntityType> trackedEntityTypes =
-        getTrackedEntityTypes(requestedTrackedEntityType, program, user);
+    List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
+
+    List<Program> programs = getTrackerPrograms(program, user);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     mapAttributeFilters(params, operationParams.getFilters());
@@ -111,9 +114,10 @@ class TrackedEntityOperationParamsMapper {
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
 
     params
-        .setProgram(program)
+        .setEnrolledInTrackerProgram(program)
+        .setAccessibleTrackerPrograms(programs)
         .setProgramStage(programStage)
-        .setProgramStatus(operationParams.getProgramStatus())
+        .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setLastUpdatedStartDate(operationParams.getLastUpdatedStartDate())
         .setLastUpdatedEndDate(operationParams.getLastUpdatedEndDate())
@@ -130,29 +134,26 @@ class TrackedEntityOperationParamsMapper {
         .setEventStartDate(operationParams.getEventStartDate())
         .setEventEndDate(operationParams.getEventEndDate())
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
-        .setUser(user)
-        .setTrackedEntityUids(operationParams.getTrackedEntityUids())
+        .setTrackedEntities(operationParams.getTrackedEntities())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateGlobalSearchParameters(params);
+    validateGlobalSearchParameters(params, user);
 
     return params;
   }
 
-  private List<TrackedEntityType> getTrackedEntityTypes(
-      TrackedEntityType trackedEntityType, Program program, User user) throws BadRequestException {
+  private List<TrackedEntityType> getTrackedEntityTypes(Program program, UserDetails user)
+      throws BadRequestException {
 
-    if (program != null && program.getTrackedEntityType() != null) {
+    if (program != null) {
       return List.of(program.getTrackedEntityType());
-    } else if (trackedEntityType == null) {
+    } else {
       return filterAndValidateTrackedEntityTypes(user);
     }
-
-    return emptyList();
   }
 
-  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user)
+  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(UserDetails user)
       throws BadRequestException {
     List<TrackedEntityType> trackedEntityTypes =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
@@ -166,12 +167,23 @@ class TrackedEntityOperationParamsMapper {
     return trackedEntityTypes;
   }
 
+  private List<Program> getTrackerPrograms(Program program, UserDetails user) {
+    if (program == null) {
+      return programService.getAllPrograms().stream()
+          .filter(Program::isRegistration)
+          .filter(p -> aclService.canDataRead(user, p))
+          .toList();
+    }
+
+    return emptyList();
+  }
+
   private void mapAttributeFilters(
-      TrackedEntityQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
+      TrackedEntityQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
-          attributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+          attributeService.getTrackedEntityAttribute(attributeFilter.getKey().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
@@ -193,24 +205,24 @@ class TrackedEntityOperationParamsMapper {
       TrackedEntityOperationParams requestParams, Program program) throws BadRequestException {
 
     ProgramStage ps =
-        requestParams.getProgramStageUid() != null
-            ? getProgramStageFromProgram(program, requestParams.getProgramStageUid())
+        requestParams.getProgramStage() != null
+            ? getProgramStageFromProgram(program, requestParams.getProgramStage())
             : null;
-    if (requestParams.getProgramStageUid() != null && ps == null) {
+    if (requestParams.getProgramStage() != null && ps == null) {
       throw new BadRequestException(
           "Program does not contain the specified programStage: "
-              + requestParams.getProgramStageUid());
+              + requestParams.getProgramStage());
     }
     return ps;
   }
 
-  private ProgramStage getProgramStageFromProgram(Program program, String programStage) {
+  private ProgramStage getProgramStageFromProgram(Program program, UID programStage) {
     if (program == null) {
       return null;
     }
 
     return program.getProgramStages().stream()
-        .filter(ps -> ps.getUid().equals(programStage))
+        .filter(ps -> ps.getUid().equals(programStage.getValue()))
         .findFirst()
         .orElse(null);
   }
@@ -253,12 +265,12 @@ class TrackedEntityOperationParamsMapper {
         && trackedEntityType == null
         && operationParams.getFilters() != null
         && orgUnits.isEmpty()) {
-      List<String> uniqueAttributeIds =
+      List<UID> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
-              .map(TrackedEntityAttribute::getUid)
+              .map(UID::of)
               .toList();
 
-      for (String att : params.getFilterIds()) {
+      for (UID att : params.getFilterIds()) {
         if (!uniqueAttributeIds.contains(att)) {
           throw new IllegalQueryException(
               "Either a program or tracked entity type must be specified");
@@ -267,12 +279,12 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private void validateGlobalSearchParameters(TrackedEntityQueryParams params)
+  private void validateGlobalSearchParameters(TrackedEntityQueryParams params, UserDetails user)
       throws IllegalQueryException {
-    if (!isLocalSearch(params, params.getUser())) {
+    if (!isLocalSearch(params, user)) {
 
       if (params.hasFilters()) {
-        List<String> searchableAttributeIds = getSearchableAttributeIds(params);
+        List<UID> searchableAttributeIds = getSearchableAttributeIds(params);
         validateSearchableAttributes(params, searchableAttributeIds);
       }
 
@@ -282,21 +294,23 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private List<String> getSearchableAttributeIds(TrackedEntityQueryParams params) {
-    List<String> searchableAttributeIds = new ArrayList<>();
+  private List<UID> getSearchableAttributeIds(TrackedEntityQueryParams params) {
+    List<UID> searchableAttributeIds = new ArrayList<>();
 
-    if (params.hasProgram()) {
-      searchableAttributeIds.addAll(params.getProgram().getSearchableAttributeIds());
+    if (params.hasEnrolledInTrackerProgram()) {
+      searchableAttributeIds.addAll(
+          UID.of(params.getEnrolledInTrackerProgram().getSearchableAttributeIds()));
     }
 
     if (params.hasTrackedEntityType()) {
-      searchableAttributeIds.addAll(params.getTrackedEntityType().getSearchableAttributeIds());
+      searchableAttributeIds.addAll(
+          UID.of(params.getTrackedEntityType().getSearchableAttributeIds()));
     }
 
-    if (!params.hasProgram() && !params.hasTrackedEntityType()) {
+    if (!params.hasEnrolledInTrackerProgram() && !params.hasTrackedEntityType()) {
       searchableAttributeIds.addAll(
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
-              .map(TrackedEntityAttribute::getUid)
+              .map(UID::of)
               .toList());
     }
 
@@ -304,10 +318,10 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private void validateSearchableAttributes(
-      TrackedEntityQueryParams params, List<String> searchableAttributeIds) {
-    List<String> violatingAttributes = new ArrayList<>();
+      TrackedEntityQueryParams params, List<UID> searchableAttributeIds) {
+    List<UID> violatingAttributes = new ArrayList<>();
 
-    for (String attributeId : params.getFilterIds()) {
+    for (UID attributeId : params.getFilterIds()) {
       if (!searchableAttributeIds.contains(attributeId)) {
         violatingAttributes.add(attributeId);
       }
@@ -333,13 +347,13 @@ class TrackedEntityOperationParamsMapper {
       }
     }
 
-    if (params.hasProgram()) {
-      maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+    if (params.hasEnrolledInTrackerProgram()) {
+      maxTeiLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
 
       if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
         throw new IllegalQueryException(
             "At least "
-                + params.getProgram().getMinAttributesRequiredToSearch()
+                + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
                 + " attributes should be mentioned in the search criteria.");
       }
     }
@@ -347,9 +361,9 @@ class TrackedEntityOperationParamsMapper {
     return maxTeiLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
-    Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
-
+  private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
+    List<OrganisationUnit> localOrgUnits =
+        organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds());
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
@@ -362,7 +376,8 @@ class TrackedEntityOperationParamsMapper {
     } else if (params.isOrganisationUnitMode(ALL)) {
       searchOrgUnits.addAll(organisationUnitService.getRootOrganisationUnits());
     } else {
-      searchOrgUnits.addAll(user.getTeiSearchOrganisationUnitsWithFallback());
+      searchOrgUnits.addAll(
+          organisationUnitService.getOrganisationUnitsByUid(user.getUserSearchOrgUnitIds()));
     }
 
     for (OrganisationUnit ou : searchOrgUnits) {
@@ -391,9 +406,11 @@ class TrackedEntityOperationParamsMapper {
       return false;
     }
 
-    return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+    return (!params.hasFilters()
+            && params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
-            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+            && params.getFilters().size()
+                < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {

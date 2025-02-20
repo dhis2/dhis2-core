@@ -29,38 +29,48 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.handler.timeout.ReadTimeoutException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.Auth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClientRequest;
 
 /**
  * @author Morten Olav Hansen
@@ -69,17 +79,21 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @RequiredArgsConstructor
 public class RouteService {
-  private final RouteStore routeStore;
+  private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
 
-  private final ObjectMapper objectMapper;
+  private final RouteStore routeStore;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
-  private static final RestTemplate restTemplate = new RestTemplate();
+  private final ClientHttpConnector clientHttpConnector;
 
-  private static final List<String> ALLOWED_REQUEST_HEADERS =
-      List.of(
+  private DataBufferFactory dataBufferFactory;
+
+  private WebClient webClient;
+
+  private static final Set<String> ALLOWED_REQUEST_HEADERS =
+      Set.of(
           "accept",
           "accept-encoding",
           "accept-language",
@@ -98,8 +112,8 @@ public class RouteService {
           "x-forwarded-prefix",
           "forwarded");
 
-  private static final List<String> ALLOWED_RESPONSE_HEADERS =
-      List.of(
+  private static final Set<String> ALLOWED_RESPONSE_HEADERS =
+      Set.of(
           "content-encoding",
           "content-language",
           "content-length",
@@ -109,28 +123,21 @@ public class RouteService {
           "last-modified",
           "etag");
 
-  static {
-    HttpComponentsClientHttpRequestFactory requestFactory =
-        new HttpComponentsClientHttpRequestFactory();
-    requestFactory.setConnectionRequestTimeout(1_000);
-    requestFactory.setConnectTimeout(5_000);
-    requestFactory.setReadTimeout(10_000);
-    requestFactory.setBufferRequestBody(true);
-
-    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
-
-    requestFactory.setHttpClient(httpClient);
-
-    restTemplate.setRequestFactory(requestFactory);
+  @PostConstruct
+  public void postConstruct() {
+    webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
+    dataBufferFactory = new DefaultDataBufferFactory();
   }
 
   /**
-   * Retrieves a {@link Route} by UID or code, decrypts its password/token and returns it.
+   * Retrieves a {@link Route} by UID or code, where the authentication secrets will be decrypted.
+   * The route UID or code can be passed as route identifier. Returns null if the route does not
+   * exist.
    *
-   * @param id the UID or code,
+   * @param id the route UID or code.
    * @return {@link Route}.
    */
-  public Route getDecryptedRoute(@Nonnull String id) {
+  public Route getRouteWithDecryptedAuth(@Nonnull String id) {
     Route route = routeStore.getByUidNoAcl(id);
 
     if (route == null) {
@@ -141,88 +148,187 @@ public class RouteService {
       return null;
     }
 
-    try {
-      route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Unable to create clone of route: '{}'", route.getUid());
-      return null;
-    }
+    // prevents Hibernate from persisting updates made to the route object
+    route = Hibernate.unproxy(route, Route.class);
 
-    decrypt(route);
+    if (route.getAuth() != null) {
+      route.setAuth(route.getAuth().decrypt(encryptor::decrypt));
+    }
 
     return route;
   }
 
-  public ResponseEntity<String> exec(
-      Route route,
-      UserDetails currentUserDetails,
-      Optional<String> subPath,
-      HttpServletRequest request)
+  /**
+   * Executes the given route and returns the response from the target API.
+   *
+   * @param route the {@link Route}.
+   * @param userDetails the {@link UserDetails} of the current user.
+   * @param subPath the sub path.
+   * @param request the {@link HttpServletRequest}.
+   * @return an {@link ResponseEntity}.
+   * @throws IOException
+   * @throws BadRequestException
+   */
+  public ResponseEntity<StreamingResponseBody> execute(
+      Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws IOException, BadRequestException {
+
     HttpHeaders headers = filterRequestHeaders(request);
-    headers.forEach(
-        (String name, List<String> values) ->
-            log.debug(String.format("Forwarded header %s=%s", name, values.toString())));
-
     route.getHeaders().forEach(headers::add);
+    addForwardedUserHeader(userDetails, headers);
 
-    if (currentUserDetails != null && StringUtils.hasText(currentUserDetails.getUsername())) {
-      log.debug("Route accessed by user: '{}'", currentUserDetails.getUsername());
-      headers.add("X-Forwarded-User", currentUserDetails.getUsername());
-    }
+    Map<String, List<String>> queryParameters = new HashMap<>();
+    request
+        .getParameterMap()
+        .forEach(
+            (key, value) ->
+                queryParameters
+                    .computeIfAbsent(key, k -> new LinkedList<>())
+                    .addAll(Arrays.asList(value)));
 
     if (route.getAuth() != null) {
-      route.getAuth().apply(headers);
+      route.getAuth().apply(headers, queryParameters);
     }
 
-    HttpHeaders queryParameters = new HttpHeaders();
-    request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
-
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
+        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+
+    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      uriComponentsBuilder =
+          uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
+    }
 
     if (subPath.isPresent()) {
       if (!route.allowsSubpaths()) {
         throw new BadRequestException(
-            String.format("Route %s does not allow subpaths", route.getId()));
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
       }
       uriComponentsBuilder.path(subPath.get());
     }
 
-    String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
-    HttpEntity<String> entity = new HttpEntity<>(body, headers);
     HttpMethod httpMethod =
-        Objects.requireNonNullElse(HttpMethod.resolve(request.getMethod()), HttpMethod.GET);
+        Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     String targetUri = uriComponentsBuilder.toUriString();
 
+    Flux<DataBuffer> requestBodyFlux =
+        DataBufferUtils.read(
+                new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+            .doOnNext(DataBufferUtils.releaseConsumer());
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+        webClient
+            .method(httpMethod)
+            .uri(targetUri)
+            .httpRequest(
+                clientHttpRequest -> {
+                  Object nativeRequest = clientHttpRequest.getNativeRequest();
+                  if (nativeRequest instanceof HttpClientRequest httpClientRequest) {
+                    httpClientRequest.responseTimeout(
+                        Duration.ofSeconds(route.getResponseTimeoutSeconds()));
+                  }
+                })
+            .body(requestBodyFlux, DataBuffer.class);
+
+    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+      requestHeadersSpec =
+          requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
+    }
+
     log.info(
-        "Sending {} {} via route {} ({})", httpMethod, targetUri, route.getName(), route.getUid());
-
-    ResponseEntity<String> response =
-        restTemplate.exchange(targetUri, httpMethod, entity, String.class);
-
-    HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
-
-    String responseBody = response.getBody();
-
-    responseHeaders.forEach(
-        (String name, List<String> values) ->
-            log.debug(String.format("Response header %s=%s", name, values.toString())));
-    log.info(
-        "Request {} {} responded with HTTP status {} via route {} ({})",
+        "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
         targetUri,
-        response.getStatusCode().toString(),
         route.getName(),
         route.getUid());
 
-    return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
+    WebClient.ResponseSpec responseSpec =
+        requestHeadersSpec
+            .retrieve()
+            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
+        responseSpec
+            .toEntityFlux(DataBuffer.class)
+            .onErrorReturn(
+                throwable -> throwable.getCause() instanceof ReadTimeoutException,
+                new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+            .block();
+
+    log.info(
+        "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
+        httpMethod,
+        targetUri,
+        responseEntityFlux.getStatusCode(),
+        route.getName(),
+        route.getUid());
+
+    StreamingResponseBody streamingResponseBody =
+        out -> {
+          if (responseEntityFlux.getBody() != null) {
+            try {
+              Flux<DataBuffer> dataBufferFlux =
+                  DataBufferUtils.write(responseEntityFlux.getBody(), out)
+                      .doOnNext(DataBufferUtils.releaseConsumer());
+              dataBufferFlux.blockLast(Duration.ofMinutes(5));
+            } catch (Exception e) {
+              out.close();
+              throw e;
+            }
+          }
+        };
+    return new ResponseEntity<>(
+        streamingResponseBody,
+        filterResponseHeaders(responseEntityFlux.getHeaders()),
+        responseEntityFlux.getStatusCode());
   }
 
+  /**
+   * Adds the user as an HTTP header, if it exists.
+   *
+   * @param userDetails the {@link UserDetails} of the current user.
+   * @param headers the {@link HttpHeaders}.
+   */
+  private void addForwardedUserHeader(UserDetails userDetails, HttpHeaders headers) {
+    if (userDetails != null && StringUtils.hasText(userDetails.getUsername())) {
+      log.debug("Route accessed by user: '{}'", userDetails.getUsername());
+      headers.add(HEADER_X_FORWARDED_USER, userDetails.getUsername());
+    }
+  }
+
+  /**
+   * Returns the allowed HTTP headers only for the given request.
+   *
+   * @param request the {@link HttpServletRequest}.
+   * @return an {@link HttpHeaders}.
+   */
+  private HttpHeaders filterRequestHeaders(HttpServletRequest request) {
+    return filterHeaders(
+        Collections.list(request.getHeaderNames()),
+        ALLOWED_REQUEST_HEADERS,
+        (String name) -> Collections.list(request.getHeaders(name)));
+  }
+
+  /**
+   * Returns the allowed HTTP headers only for the given response headers.
+   *
+   * @param responseHeaders the {@link HttpHeaders}.
+   * @return an {@link HttpHeaders}.
+   */
+  private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
+    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+  }
+
+  /**
+   * Filters the given HTTP headers.
+   *
+   * @param names the header names.
+   * @param allowedHeaders the allowed headers.
+   * @param valueGetter the function for retrieving the value for a header name.
+   * @return an {@link HttpHeaders}.
+   */
   private HttpHeaders filterHeaders(
       Iterable<String> names,
-      List<String> allowedHeaders,
-      Function<String, List<String>> valuesGetter) {
+      Collection<String> allowedHeaders,
+      Function<String, List<String>> valueGetter) {
     HttpHeaders headers = new HttpHeaders();
     names.forEach(
         (String name) -> {
@@ -231,36 +337,9 @@ public class RouteService {
             log.debug("Blocked header: '{}'", name);
             return;
           }
-          List<String> values = valuesGetter.apply(name);
+          List<String> values = valueGetter.apply(name);
           headers.addAll(name, values);
         });
     return headers;
-  }
-
-  private HttpHeaders filterRequestHeaders(HttpServletRequest request) {
-    return filterHeaders(
-        Collections.list(request.getHeaderNames()),
-        ALLOWED_REQUEST_HEADERS,
-        (String name) -> Collections.list(request.getHeaders(name)));
-  }
-
-  private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
-  }
-
-  private void decrypt(Route route) {
-    Auth auth = route.getAuth();
-
-    if (auth == null) {
-      return;
-    }
-
-    if (auth.getType().equals(ApiTokenAuth.TYPE)) {
-      ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-      apiTokenAuth.setToken(encryptor.decrypt(apiTokenAuth.getToken()));
-    } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
-      HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-      httpBasicAuth.setPassword(encryptor.decrypt(httpBasicAuth.getPassword()));
-    }
   }
 }

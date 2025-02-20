@@ -40,12 +40,12 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -59,10 +59,9 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
-  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -74,9 +73,9 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     log.info("Generating resource table: '{}'", tableName);
 
-    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(stagingTable));
+    dropTable(stagingTable);
 
-    jdbcTemplate.execute(sqlBuilder.createTable(stagingTable));
+    createTable(stagingTable);
 
     populateTable(resourceTable, stagingTable);
 
@@ -91,6 +90,28 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
     log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
+  }
+
+  /**
+   * Drops the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void dropTable(Table table) {
+    String sql = sqlBuilder.dropTableIfExists(table);
+    log.debug("Drop table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Creates the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void createTable(Table table) {
+    String sql = sqlBuilder.createTable(table);
+    log.debug("Create table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
   }
 
   /**
@@ -111,7 +132,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       List<Object[]> content = populateTableContent.get();
       log.debug("Populate table content rows: {}", content.size());
 
-      if (content.size() > 0) {
+      if (isNotEmpty(content)) {
         int columns = content.get(0).length;
         batchUpdate(columns, table.getName(), content);
       }
@@ -128,7 +149,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
         analyticsTableHookService.getByPhaseAndResourceTableType(
             AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, tableType);
 
-    if (!hooks.isEmpty()) {
+    if (isNotEmpty(hooks)) {
       analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
 
       log.info("Invoked resource table hooks: '{}'", hooks.size());
@@ -141,7 +162,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param indexes the list of {@link Index} to create.
    */
   private void createIndexes(List<Index> indexes) {
-    if (isNotEmpty(indexes)) {
+    if (isNotEmpty(indexes) && sqlBuilder.requiresIndexesForAnalytics()) {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }

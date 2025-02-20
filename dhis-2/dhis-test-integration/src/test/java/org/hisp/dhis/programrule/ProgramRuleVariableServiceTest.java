@@ -39,13 +39,19 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleVariableServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramRuleVariableServiceTest extends PostgresIntegrationTestBase {
 
   private Program programA;
 
@@ -69,8 +75,8 @@ class ProgramRuleVariableServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramRuleVariableService variableService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     programA = createProgram('A', null, null);
     programB = createProgram('B', null, null);
     programC = createProgram('C', null, null);
@@ -239,50 +245,6 @@ class ProgramRuleVariableServiceTest extends SingleSetupIntegrationTestBase {
     variableService.deleteProgramRuleVariable(ruleVariableJ);
     assertNull(variableService.getProgramRuleVariable(idI));
     assertNull(variableService.getProgramRuleVariable(idJ));
-  }
-
-  @Test
-  void testShouldReturnTrueIfDataElementIsLinkedToProgramRuleVariable() {
-    ProgramRuleVariable variableA =
-        new ProgramRuleVariable(
-            "RuleVariableA",
-            programA,
-            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
-            null,
-            dataElementA,
-            false,
-            null,
-            ValueType.TEXT);
-    ProgramRuleVariable variableB =
-        new ProgramRuleVariable(
-            "RuleVariableB",
-            programA,
-            ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM,
-            null,
-            dataElementB,
-            true,
-            null,
-            ValueType.TEXT);
-    variableService.addProgramRuleVariable(variableA);
-    variableService.addProgramRuleVariable(variableB);
-    assertTrue(variableService.isLinkedToProgramRuleVariableCached(programA, dataElementA));
-    assertTrue(variableService.isLinkedToProgramRuleVariableCached(programA, dataElementB));
-  }
-
-  @Test
-  void testShouldReturnFalseIfDataElementIsNOTLinkedToProgramRuleVariable() {
-    ProgramRuleVariable variableA =
-        new ProgramRuleVariable(
-            "RuleVariableA",
-            programA,
-            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
-            null,
-            dataElementA,
-            false,
-            null,
-            ValueType.TEXT);
-    variableService.addProgramRuleVariable(variableA);
-    assertFalse(variableService.isLinkedToProgramRuleVariableCached(programA, dataElementC));
   }
 
   @Test

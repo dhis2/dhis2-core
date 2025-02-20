@@ -43,8 +43,8 @@ public class DebugMapper {
   public void before(Object anySource) {
     if (anySource != null) {
       String uid = "";
-      if (anySource instanceof IdentifiableObject) {
-        uid = ((IdentifiableObject) anySource).getUid();
+      if (anySource instanceof IdentifiableObject anySourceObject) {
+        uid = anySourceObject.getUid();
       }
       log.debug(anySource.getClass().getSimpleName() + " -> " + uid);
     } else {

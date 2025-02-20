@@ -49,5 +49,5 @@ public class MergeParams {
 
   @JsonProperty private boolean deleteSources;
 
-  private MergeType mergeType;
+  @JsonProperty private DataMergeStrategy dataMergeStrategy;
 }

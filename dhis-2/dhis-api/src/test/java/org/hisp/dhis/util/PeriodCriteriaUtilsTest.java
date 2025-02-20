@@ -32,7 +32,6 @@ import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_YEARS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
@@ -51,11 +50,11 @@ class PeriodCriteriaUtilsTest {
         configureEventsAnalyticsQueryCriteriaWithPeriod(LAST_5_YEARS.name());
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertTrue(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -68,11 +67,11 @@ class PeriodCriteriaUtilsTest {
         configureEventsAnalyticsQueryCriteriaWithPeriod(null);
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertTrue(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -117,11 +116,11 @@ class PeriodCriteriaUtilsTest {
         configureEventsAnalyticsQueryCriteriaWithDateRange(new Date(), new Date());
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertFalse(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
@@ -131,11 +130,11 @@ class PeriodCriteriaUtilsTest {
         configureEventsAnalyticsQueryCriteriaWithEventDate();
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(eventsAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertFalse(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
@@ -145,12 +144,11 @@ class PeriodCriteriaUtilsTest {
         configureEnrollmentAnalyticsQueryCriteriaWithPeriod(LAST_5_YEARS.name());
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        enrollmentsAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(enrollmentsAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertTrue(enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentsAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -163,12 +161,11 @@ class PeriodCriteriaUtilsTest {
         configureEnrollmentAnalyticsQueryCriteriaWithPeriod(null);
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        enrollmentAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(enrollmentAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertTrue(enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -181,12 +178,11 @@ class PeriodCriteriaUtilsTest {
         configureEnrollmentsAnalyticsQueryCriteriaWithDateRange(new Date(), new Date());
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        enrollmentAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(enrollmentAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertFalse(enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
@@ -196,12 +192,33 @@ class PeriodCriteriaUtilsTest {
         configureEnrollmentAnalyticsQueryCriteriaWithEventDate();
 
     // when
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        enrollmentsAnalyticsQueryCriteria, LAST_5_YEARS);
+    PeriodCriteriaUtils.addDefaultPeriodIfAbsent(enrollmentsAnalyticsQueryCriteria, LAST_5_YEARS);
 
     // then
     assertFalse(enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentsAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentsAnalyticsQueryCriteria.getDesc().isEmpty());
+  }
+
+  @Test
+  void testCriteriaHasPeriodWhenDimensionNotSet() {
+    // given
+    EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
+
+    // when
+    criteria.setEventDate("2020-12-01");
+
+    // then
+    assertTrue(PeriodCriteriaUtils.hasPeriod(criteria));
+  }
+
+  @Test
+  void testCriteriaHasPeriodWhenDimensionAndPeriodNotSet() {
+    // given
+    EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
+
+    // when
+    // then
+    assertFalse(PeriodCriteriaUtils.hasPeriod(criteria) && criteria.getDimension().isEmpty());
   }
 
   private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithPeriod(

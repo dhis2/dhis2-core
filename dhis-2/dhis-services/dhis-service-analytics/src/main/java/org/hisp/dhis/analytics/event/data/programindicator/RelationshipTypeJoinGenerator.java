@@ -29,15 +29,12 @@ package org.hisp.dhis.analytics.event.data.programindicator;
 
 import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 
 /**
- * Generates a SQL JOIN to join an enrollment or event with one ore more related entities, based on
+ * Generates a SQL JOIN to join an enrollment or event with one or more related entities, based on
  * the specified relationship type
  *
  * @author Luciano Fiandesio
@@ -46,7 +43,7 @@ public class RelationshipTypeJoinGenerator {
   static final String RELATIONSHIP_JOIN = " WHERE rty.relationshiptypeid = ${relationshipid}";
 
   /**
-   * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related
+   * Generate a sub query that joins an incoming Event/Enrollment/TE UID to one or more related
    * entities, based on the selected relationship type
    *
    * @param alias the table alias to use for the main analytics table
@@ -64,9 +61,9 @@ public class RelationshipTypeJoinGenerator {
             programIndicatorType);
 
     sql +=
-        " LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
+        " left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
 
     sql += getToJoin(relationshipType.getToConstraint().getRelationshipEntity());
 
@@ -79,53 +76,43 @@ public class RelationshipTypeJoinGenerator {
   }
 
   private static String getToJoin(RelationshipEntity relationshipEntity) {
-    String sql = "LEFT JOIN ";
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return sql + "trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
-      case PROGRAM_STAGE_INSTANCE:
-        return sql + "event psi on psi.eventid = ri2.eventid";
-      case PROGRAM_INSTANCE:
-        return sql + "enrollment pi on pi.enrollmentid = ri2.enrollmentid";
-      default:
-        throw new IllegalQueryException(
-            new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
-    }
+    final String sql = "left join ";
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE ->
+          sql + "trackedentity te2 on te2.trackedentityid = ri2.trackedentityid";
+      case PROGRAM_STAGE_INSTANCE -> sql + "event ev2 on ev2.eventid = ri2.eventid";
+      case PROGRAM_INSTANCE -> sql + "enrollment en2 on en2.enrollmentid = ri2.enrollmentid";
+    };
   }
 
   private static String getFromRelationshipEntity(
       String alias, RelationshipEntity relationshipEntity, AnalyticsType programIndicatorType) {
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return getTei(alias);
-      case PROGRAM_STAGE_INSTANCE:
-      case PROGRAM_INSTANCE:
-        return (programIndicatorType.equals(AnalyticsType.EVENT)
-            ? getEvent(alias)
-            : getEnrollment(alias));
-    }
-    throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE -> getTei(alias);
+      case PROGRAM_STAGE_INSTANCE, PROGRAM_INSTANCE ->
+          programIndicatorType.equals(AnalyticsType.EVENT) ? getEvent(alias) : getEnrollment(alias);
+    };
   }
 
   private static String getTei(String alias) {
     return " "
         + alias
-        + ".tei in (select tei.uid from trackedentity tei"
-        + " LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid ";
+        + ".trackedentity in (select te.uid from trackedentity te"
+        + " left join relationshipitem ri on te.trackedentityid = ri.trackedentityid ";
   }
 
   private static String getEnrollment(String alias) {
     return " "
         + alias
-        + ".pi in (select pi.uid from enrollment pi"
-        + " LEFT JOIN relationshipitem ri on pi.enrollmentid = ri.enrollmentid ";
+        + ".enrollment in (select en.uid from enrollment en"
+        + " left join relationshipitem ri on en.enrollmentid = ri.enrollmentid ";
   }
 
   private static String getEvent(String alias) {
     return " "
         + alias
-        + ".psi in (select psi.uid from event psi"
-        + " LEFT JOIN relationshipitem ri on psi.eventid = ri.eventid ";
+        + ".event in (select ev.uid from event ev"
+        + " left join relationshipitem ri on ev.eventid = ri.eventid ";
   }
 
   private static String addRelationshipWhereClause(
@@ -134,18 +121,12 @@ public class RelationshipTypeJoinGenerator {
         new StringSubstitutor(Map.of("relationshipid", relationshipTypeId))
             .replace(RELATIONSHIP_JOIN);
 
-    sql += " AND ";
+    sql += " and ";
 
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return sql + "tei.uid = ax.tei ";
-      case PROGRAM_STAGE_INSTANCE:
-        return sql + "psi.uid = ax.psi ";
-      case PROGRAM_INSTANCE:
-        return sql + "pi.uid = ax.pi ";
-      default:
-        throw new IllegalQueryException(
-            new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
-    }
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE -> sql + "te2.uid = ax.trackedentity ";
+      case PROGRAM_STAGE_INSTANCE -> sql + "ev2.uid = ax.event ";
+      case PROGRAM_INSTANCE -> sql + "en2.uid = ax.enrollment ";
+    };
   }
 }

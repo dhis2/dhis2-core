@@ -28,8 +28,10 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -47,6 +49,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -55,8 +58,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -64,6 +67,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
@@ -270,35 +274,44 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public AppStatus installApp(File file, String fileName) {
+  public App installApp(File file, String fileName) {
     App app = jCloudsAppStorageService.installApp(file, fileName, appCache);
+
+    log.info(
+        String.format(
+            "Installed App with ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
 
     if (app.getAppState().ok()) {
       appCache.put(app.getKey(), app);
       registerDatastoreProtection(app);
     }
 
-    return app.getAppState();
+    return app;
   }
 
   @Override
-  public AppStatus installApp(UUID appHubId) {
+  public App installApp(UUID appHubId) {
+
+    App installedApp = new App();
     if (appHubId == null) {
-      return AppStatus.NOT_FOUND;
+      installedApp.setAppState(AppStatus.NOT_FOUND);
+      return installedApp;
     }
 
     try {
       String versionJson = appHubService.getAppHubApiResponse("v2", "appVersions/" + appHubId);
       if (versionJson == null || versionJson.isEmpty()) {
         log.info(String.format("No version found for id %s", appHubId));
-        return AppStatus.NOT_FOUND;
+        installedApp.setAppState(AppStatus.NOT_FOUND);
+        return installedApp;
       }
       JsonString downloadUrlNode = JsonMixed.of(versionJson).getString("downloadUrl");
       if (downloadUrlNode.isUndefined()) {
         log.info(
             String.format(
                 "No download URL property found in response for id %s: %s", appHubId, versionJson));
-        return AppStatus.NOT_FOUND;
+        installedApp.setAppState(AppStatus.NOT_FOUND);
+        return installedApp;
       }
       String downloadUrl = downloadUrlNode.string();
       URL url = new URL(downloadUrl);
@@ -309,11 +322,13 @@ public class DefaultAppManager implements AppManager {
 
     } catch (IOException ex) {
       log.info(String.format("No version found for id %s", appHubId));
-      return AppStatus.NOT_FOUND;
+      installedApp.setAppState(AppStatus.NOT_FOUND);
     } catch (ConflictException | URISyntaxException e) {
       log.error("Failed to install app with id " + appHubId, e);
-      return AppStatus.INSTALLATION_FAILED;
+      installedApp.setAppState(AppStatus.INSTALLATION_FAILED);
     }
+
+    return installedApp;
   }
 
   @Override
@@ -382,12 +397,40 @@ public class DefaultAppManager implements AppManager {
     return app.getKey().equals("login")
         || CurrentUserUtil.hasAnyAuthority(
             List.of(
-                "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()));
+                Authorities.ALL.toString(),
+                Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(),
+                app.getSeeAppAuthority()));
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
+  }
+
+  /**
+   * We need to handle scenarios when the Resource is a File (knowing the content length) or when
+   * it's URL (not knowing the content length and having to make a call, e.g. remote web link in AWS
+   * S3/MinIO) - otherwise content length can be set to 0 which causes issues at the front-end,
+   * returning an empty body. If it's a URL resource, an underlying HEAD request is made to get the
+   * content length.
+   *
+   * @param resource resource to check content length
+   * @return the content length or -1 (unknown size) if exception caught
+   */
+  @Override
+  public int getUriContentLength(@Nonnull Resource resource) {
+    try {
+      if (resource.isFile()) {
+        return (int) resource.contentLength();
+      } else {
+        URLConnection urlConnection = resource.getURL().openConnection();
+        return urlConnection.getContentLength();
+      }
+    } catch (IOException e) {
+      log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
+      e.printStackTrace();
+      return -1;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -410,21 +453,46 @@ public class DefaultAppManager implements AppManager {
   }
 
   private void registerDatastoreProtection(App app) {
+    registerMainNamespaceProtection(app);
+    registerAdditionalNamespaceProtection(app);
+  }
+
+  private void registerMainNamespaceProtection(App app) {
     String namespace = app.getActivities().getDhis().getNamespace();
-    if (namespace != null && !namespace.isEmpty()) {
-      String[] authorities =
-          app.getShortName() == null
-              ? new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY}
-              : new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()};
+    if (namespace == null || namespace.isEmpty()) return;
+    String adminAuthority = Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString();
+    String[] authorities =
+        app.getShortName() == null
+            ? new String[] {adminAuthority}
+            : new String[] {adminAuthority, app.getSeeAppAuthority()};
+    datastoreService.addProtection(
+        new DatastoreNamespaceProtection(namespace, RESTRICTED, authorities));
+  }
+
+  private void registerAdditionalNamespaceProtection(App app) {
+    List<DatastoreNamespace> additionalNamespaces =
+        app.getActivities().getDhis().getAdditionalNamespaces();
+    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return;
+    for (DatastoreNamespace ns : additionalNamespaces) {
+      Set<String> readAuthorities = ns.getAllAuthorities();
+      Set<String> writeAuthorities = ns.getAuthorities();
+      if (writeAuthorities == null || writeAuthorities.isEmpty()) writeAuthorities = Set.of();
+      String namespace = requireNonNull(ns.getNamespace());
       datastoreService.addProtection(
-          new DatastoreNamespaceProtection(namespace, ProtectionType.RESTRICTED, authorities));
+          new DatastoreNamespaceProtection(
+              namespace, RESTRICTED, readAuthorities, RESTRICTED, writeAuthorities));
     }
   }
 
   private void unregisterDatastoreProtection(App app) {
-    String namespace = app.getActivities().getDhis().getNamespace();
+    AppDhis dhis = app.getActivities().getDhis();
+    String namespace = dhis.getNamespace();
     if (namespace != null && !namespace.isEmpty()) {
       datastoreService.removeProtection(namespace);
+    }
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces != null && !additionalNamespaces.isEmpty()) {
+      additionalNamespaces.forEach(ns -> datastoreService.removeProtection(ns.getNamespace()));
     }
   }
 

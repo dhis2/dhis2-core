@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -39,14 +38,20 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class ResourceTableServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ResourceTableServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -54,8 +59,8 @@ class ResourceTableServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataSetService dataSetService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     PeriodType pt = new MonthlyPeriodType();
     DataElement deA = createDataElement('A');
     DataElement deB = createDataElement('B');
@@ -81,12 +86,8 @@ class ResourceTableServiceTest extends SingleSetupIntegrationTestBase {
     idObjectManager.save(degsA);
     idObjectManager.save(degsB);
     OrganisationUnit ouA = createOrganisationUnit('A');
-    OrganisationUnit ouB = createOrganisationUnit('B');
-    OrganisationUnit ouC = createOrganisationUnit('C');
-    ouB.setParent(ouA);
-    ouC.setParent(ouA);
-    ouA.getChildren().add(ouB);
-    ouA.getChildren().add(ouC);
+    OrganisationUnit ouB = createOrganisationUnit('B', ouA);
+    OrganisationUnit ouC = createOrganisationUnit('C', ouA);
     idObjectManager.save(ouA);
     idObjectManager.save(ouB);
     idObjectManager.save(ouC);
@@ -102,19 +103,6 @@ class ResourceTableServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGenerateAllResourceTables() {
-    List<Runnable> generators =
-        List.of(
-            resourceTableService::generateOrganisationUnitStructureTable,
-            resourceTableService::generateDataSetOrganisationUnitCategoryTable,
-            resourceTableService::generateCategoryOptionComboNameTable,
-            resourceTableService::generateDataElementGroupSetTable,
-            resourceTableService::generateIndicatorGroupSetTable,
-            resourceTableService::generateOrganisationUnitGroupSetTable,
-            resourceTableService::generateCategoryTable,
-            resourceTableService::generateDataElementTable,
-            resourceTableService::generatePeriodTable,
-            resourceTableService::generateDatePeriodTable,
-            resourceTableService::generateCategoryOptionComboTable);
-    generators.forEach(gen -> assertDoesNotThrow(gen::run));
+    assertDoesNotThrow(resourceTableService::generateResourceTables);
   }
 }

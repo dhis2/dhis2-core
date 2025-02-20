@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.metadata.sync;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
@@ -42,15 +43,14 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableExcepti
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,25 +60,26 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author vanyas
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(
+    entity = Metadata.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
-@RequestMapping("/metadata/sync")
+@RequestMapping("/api/metadata/sync")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MetadataSyncController {
   @Autowired private ContextService contextService;
 
   @Autowired private MetadataSyncService metadataSyncService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_MANAGE')")
+  @RequiresAuthority(anyOf = F_METADATA_MANAGE)
   @GetMapping
-  public ResponseEntity<? extends WebMessageResponse> metadataSync(
-      HttpServletRequest request, HttpServletResponse response)
+  public ResponseEntity<MetadataSyncSummary> metadataSync()
       throws MetadataSyncException,
           BadRequestException,
           MetadataImportConflictException,
           ForbiddenException {
     MetadataSyncParams syncParams;
-    MetadataSyncSummary metadataSyncSummary = null;
+    MetadataSyncSummary metadataSyncSummary;
 
     synchronized (metadataSyncService) {
       try {

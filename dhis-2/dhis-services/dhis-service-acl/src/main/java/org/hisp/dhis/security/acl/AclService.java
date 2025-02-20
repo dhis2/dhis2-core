@@ -28,8 +28,10 @@
 package org.hisp.dhis.security.acl;
 
 import java.util.List;
+import java.util.function.Function;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -44,6 +46,13 @@ public interface AclService {
   String LIKE_READ_DATA = "__r_____";
 
   String LIKE_WRITE_DATA = "___w____";
+
+  CurrentUserGroupInfo getCurrentUserGroupInfo(
+      String userUid, Function<String, CurrentUserGroupInfo> cacheSupplier);
+
+  void invalidateCurrentUserGroupInfoCache();
+
+  void invalidateCurrentUserGroupInfoCache(String userUid);
 
   /**
    * Is type supported for acl?

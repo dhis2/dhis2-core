@@ -27,22 +27,18 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -52,9 +48,9 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,37 +63,27 @@ public class DhisMessageAlertListener extends CommandSMSListener {
   private final MessageService messageService;
 
   public DhisMessageAlertListener(
-      EnrollmentService enrollmentService,
-      CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       MessageService messageService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
-    checkNotNull(smsCommandService);
-    checkNotNull(messageService);
-
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.messageService = messageService;
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(SmsUtils.getCommandString(sms), ParserType.ALERT_PARSER);
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     String message = sms.getText();
 
     UserGroup userGroup = smsCommand.getUserGroup();
@@ -139,8 +125,8 @@ public class DhisMessageAlertListener extends CommandSMSListener {
           confirmMessage = SMSCommand.ALERT_FEEDBACK;
         }
 
-        if (smsSender.isConfigured()) {
-          smsSender.sendMessage(
+        if (smsMessageSender.isConfigured()) {
+          smsMessageSender.sendMessage(
               smsCommand.getName(), confirmMessage, null, null, feedbackList, false);
         } else {
           log.info("No sms configuration found.");

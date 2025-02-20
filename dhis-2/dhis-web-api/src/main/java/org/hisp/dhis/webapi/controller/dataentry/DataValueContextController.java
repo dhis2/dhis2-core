@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 
 import java.util.List;
 import java.util.Set;
@@ -53,10 +53,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
+@RequestMapping("/api/dataEntry")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataValueContextController {
   private final DataValueAuditService dataValueAuditService;

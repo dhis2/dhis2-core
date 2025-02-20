@@ -39,7 +39,7 @@ public enum FileResourceDomain {
   MESSAGE_ATTACHMENT("messageAttachment"),
   USER_AVATAR("userAvatar"),
   ORG_UNIT("organisationUnit"),
-  CUSTOM_ICON("customIcon"),
+  ICON("icon"),
   JOB_DATA("jobData");
 
   /** Container name to use when storing blobs of this FileResourceDomain */

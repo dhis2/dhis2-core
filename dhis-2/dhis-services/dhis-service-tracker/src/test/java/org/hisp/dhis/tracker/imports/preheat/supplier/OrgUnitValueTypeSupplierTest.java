@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -36,13 +36,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -58,7 +59,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest {
+class OrgUnitValueTypeSupplierTest extends TestBase {
 
   private OrgUnitValueTypeSupplier supplier;
 
@@ -183,26 +184,25 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest {
   }
 
   private Attribute numericAttribute() {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid("numeric"))
-        .valueType(ValueType.NUMBER)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid("numeric")).build();
   }
 
   private Attribute orgUnitAttribute(String uid, String value) {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(uid))
-        .valueType(ValueType.ORGANISATION_UNIT)
-        .value(value)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid(uid)).value(value).build();
   }
 
   private TrackedEntity trackedEntity(Attribute... attributes) {
-    return TrackedEntity.builder().attributes(attributes(attributes)).build();
+    return TrackedEntity.builder()
+        .trackedEntity(UID.generate())
+        .attributes(attributes(attributes))
+        .build();
   }
 
   private Enrollment enrollment(Attribute... attributes) {
-    return Enrollment.builder().attributes(attributes(attributes)).build();
+    return Enrollment.builder()
+        .enrollment(UID.generate())
+        .attributes(attributes(attributes))
+        .build();
   }
 
   private List<Attribute> attributes(Attribute[] attributes) {
@@ -226,7 +226,7 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest {
   }
 
   private Event event(DataValue... dataValues) {
-    return Event.builder().dataValues(dataValues(dataValues)).build();
+    return Event.builder().event(UID.generate()).dataValues(dataValues(dataValues)).build();
   }
 
   private Set<DataValue> dataValues(DataValue[] dataValues) {

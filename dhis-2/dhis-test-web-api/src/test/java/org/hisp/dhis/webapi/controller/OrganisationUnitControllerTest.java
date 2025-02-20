@@ -27,29 +27,31 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.web.WebClientUtils.objectReference;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnit} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   private String ou0, ou1, ou21, ou22;
 
   @BeforeEach
@@ -88,6 +90,20 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void getOrgUnitNameableFieldsTest() {
+    JsonWebMessage jsonWebMessage =
+        GET("/organisationUnits/" + ou0 + "?fields=:nameable").content().as(JsonWebMessage.class);
+    JsonOrganisationUnit organisationUnit = jsonWebMessage.as(JsonOrganisationUnit.class);
+    assertEquals("L0", organisationUnit.getName());
+    assertEquals("L0", organisationUnit.getString("shortName").string());
+    assertEquals("Org desc", organisationUnit.getString("description").string());
+    assertEquals("Org code", organisationUnit.getString("code").string());
+    assertNotNull(organisationUnit.getCreated());
+    assertNotNull(organisationUnit.getLastUpdated());
+    assertNotNull(organisationUnit.getId());
+  }
+
+  @Test
   void testGetIncludeChildren() {
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}?includeChildren=true", ou0).content(), "L0", "L1", "L1x");
@@ -95,6 +111,11 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{id}?includeChildren=true", ou1).content(), "L1", "L21", "L22");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}?includeChildren=true", ou21).content(), "L21", "L31");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}?includeChildren=true&filter=displayName:ilike:L2", ou1)
+            .content(),
+        "L21",
+        "L22");
   }
 
   @Test
@@ -103,6 +124,9 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{id}/children?level=1", ou1).content(), "L21", "L22");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/children?level=2", ou1).content(), "L31", "L32");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/children?level=2&filter=displayName:ilike:31", ou1).content(),
+        "L31");
   }
 
   @Test
@@ -124,6 +148,10 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         "L32");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/descendants", ou21).content(), "L21", "L31");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/descendants?filter=displayName:ilike:L2", ou1).content(),
+        "L21",
+        "L22");
   }
 
   @Test
@@ -143,6 +171,9 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
   void testGetAncestors() {
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/ancestors", ou22).content(), "L22", "L1", "L0");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/ancestors?filter=displayName:ilike:22", ou22).content(),
+        "L22");
   }
 
   @Test
@@ -155,16 +186,33 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
   void testGetParents() {
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/parents", ou21).content(), "L1", "L0");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/parents?filter=displayName:ilike:L0", ou21).content(), "L0");
+  }
+
+  @Test
+  void testGetParents_Root() {
+    assertListOfOrganisationUnits(GET("/organisationUnits/{id}/parents", ou0).content());
   }
 
   @Test
   void testGetQuery() {
     assertListOfOrganisationUnits(GET("/organisationUnits?query=L21").content(), "L21");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?query=L21&filter=displayName:ilike:L2").content(), "L21");
   }
 
   @Test
   void testGetLevel() {
     assertListOfOrganisationUnits(GET("/organisationUnits?level=3").content(), "L21", "L22", "L2x");
+  }
+
+  @Test
+  void testGetLevelAndQuery() {
+    // just to show what the result without level filter looks like
+    assertListOfOrganisationUnits(GET("/organisationUnits?query=x").content(), "L1x", "L2x", "L3x");
+    // now the filter of level and query combined only L2x matches x and level 3
+    assertListOfOrganisationUnits(GET("/organisationUnits?level=3&query=x").content(), "L2x");
   }
 
   @Test
@@ -195,7 +243,16 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         HttpStatus.CREATED,
         POST(
             "/organisationUnits",
-            "{'name':'" + name + "', 'shortName':'" + name + "', 'openingDate':'2021'}"));
+            """
+              {
+                'name':'%s',
+                'shortName':'%s',
+                'openingDate':'2021',
+                'description':'Org desc',
+                'code':'Org code'
+              }
+            """
+                .formatted(name, name)));
   }
 
   private String addOrganisationUnit(String name, String parentId) {
@@ -208,7 +265,9 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
                 + "', 'shortName':'"
                 + name
                 + "', 'openingDate':'2021', 'parent': "
-                + objectReference(parentId)
+                + "{'id':'"
+                + parentId
+                + "'}"
                 + " }"));
   }
 }

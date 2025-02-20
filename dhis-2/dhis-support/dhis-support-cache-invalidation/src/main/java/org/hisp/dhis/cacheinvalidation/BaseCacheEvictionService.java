@@ -37,7 +37,6 @@ import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
@@ -52,8 +51,6 @@ public class BaseCacheEvictionService {
 
   @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Autowired protected TrackedEntityService trackedEntityService;
-
   @Autowired protected PeriodService periodService;
 
   public BaseCacheEvictionService(
@@ -62,7 +59,6 @@ public class BaseCacheEvictionService {
       QueryCacheManager queryCacheManager,
       IdentifiableObjectManager idObjectManager,
       TrackedEntityAttributeService trackedEntityAttributeService,
-      TrackedEntityService trackedEntityService,
       PeriodService periodService) {
 
     this.sessionFactory = sessionFactory;
@@ -70,7 +66,6 @@ public class BaseCacheEvictionService {
     this.queryCacheManager = queryCacheManager;
     this.idObjectManager = idObjectManager;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
-    this.trackedEntityService = trackedEntityService;
     this.periodService = periodService;
   }
 

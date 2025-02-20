@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
 import java.util.Set;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**

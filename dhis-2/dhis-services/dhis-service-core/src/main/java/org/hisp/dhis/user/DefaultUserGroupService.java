@@ -80,7 +80,7 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public long addUserGroup(UserGroup userGroup) {
     userGroupStore.save(userGroup);
-
+    aclService.invalidateCurrentUserGroupInfoCache();
     return userGroup.getId();
   }
 
@@ -88,6 +88,7 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void deleteUserGroup(UserGroup userGroup) {
     userGroupStore.delete(userGroup);
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -98,6 +99,7 @@ public class DefaultUserGroupService implements UserGroupService {
     // Clear query cache due to sharing and user group membership
 
     cacheManager.clearQueryCache();
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -126,10 +128,10 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrRemoveMember(String uid, UserDetails userDetails) {
+  public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails) {
     UserGroup userGroup = getUserGroup(uid);
 
-    if (userGroup == null || userDetails == null) {
+    if (userGroup == null) {
       return false;
     }
 
@@ -150,6 +152,7 @@ public class DefaultUserGroupService implements UserGroupService {
         userGroupStore.updateNoAcl(userGroup);
       }
     }
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -162,6 +165,7 @@ public class DefaultUserGroupService implements UserGroupService {
         userGroupStore.updateNoAcl(userGroup);
       }
     }
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -195,6 +199,7 @@ public class DefaultUserGroupService implements UserGroupService {
             userGroupStore.updateNoAcl(userGroup);
           }
         });
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {

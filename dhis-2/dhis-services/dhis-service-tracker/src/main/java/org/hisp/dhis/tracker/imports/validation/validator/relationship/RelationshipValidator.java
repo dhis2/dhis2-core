@@ -42,17 +42,17 @@ import org.springframework.stereotype.Component;
 public class RelationshipValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
-  public RelationshipValidator() {
+  public RelationshipValidator(SecurityOwnershipValidator securityOwnershipValidator) {
     validator =
         each(
             TrackerBundle::getRelationships,
             seq(
-                new UidValidator(),
                 new ExistenceValidator(),
                 new MandatoryFieldsValidator(),
                 new MetaValidator(),
                 new LinkValidator(),
                 new ConstraintValidator(),
+                securityOwnershipValidator,
                 new DuplicationValidator()));
   }
 

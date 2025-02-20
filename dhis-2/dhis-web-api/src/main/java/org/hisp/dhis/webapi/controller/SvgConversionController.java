@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.system.util.GeoUtils.replaceUnsafeSvgText;
 import static org.hisp.dhis.system.util.SvgUtils.replaceUnicodeZeroWidthSpace;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.Color;
 import java.io.OutputStream;
 import java.io.StringReader;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -53,7 +53,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@OpenApi.Tags("system")
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -61,7 +63,7 @@ public class SvgConversionController {
   @Autowired private ContextUtils contextUtils;
 
   @OpenApi.Response(byte[].class)
-  @PostMapping(value = "/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
+  @PostMapping(value = "/api/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
   public void toPng(
       @RequestParam String svg,
       @RequestParam(required = false) String filename,
@@ -76,7 +78,7 @@ public class SvgConversionController {
   }
 
   @OpenApi.Response(byte[].class)
-  @PostMapping(value = "/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
+  @PostMapping(value = "/api/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
   public void toPdf(
       @RequestParam String svg,
       @RequestParam(required = false) String filename,

@@ -44,6 +44,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.util.Date;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.hisp.dhis.dataexchange.aggregate.Api;
@@ -75,7 +76,7 @@ public class JacksonObjectMapperConfig {
   public static final ObjectMapper hibernateAwareJsonMapper = configureMapper(new ObjectMapper());
 
   /*
-   * Standard JSON mapper for Program Stage Instance data values.
+   * Standard JSON mapper for event data values.
    */
   public static final ObjectMapper dataValueJsonMapper = configureMapper(new ObjectMapper(), true);
 
@@ -88,12 +89,12 @@ public class JacksonObjectMapperConfig {
   public static final CsvMapper csvMapper = configureCsvMapper(new CsvMapper());
 
   @Primary
-  @Bean("jsonMapper")
+  @Bean
   public ObjectMapper jsonMapper() {
     return jsonMapper;
   }
 
-  @Bean("hibernateAwareJsonMapper")
+  @Bean
   public ObjectMapper hibernateAwareJsonMapper() {
     Hibernate5Module hibernate5Module = new Hibernate5Module();
     hibernate5Module.enable(
@@ -102,7 +103,7 @@ public class JacksonObjectMapperConfig {
     return hibernateAwareJsonMapper;
   }
 
-  @Bean("dataValueJsonMapper")
+  @Bean
   public ObjectMapper dataValueJsonMapper() {
     return dataValueJsonMapper;
   }
@@ -198,10 +199,11 @@ public class JacksonObjectMapperConfig {
     mapper.registerModule(
         new SimpleModule()
             .addSerializer(Date.class, new WriteDateStdSerializer())
-            .addSerializer(Instant.class, new WriteInstantStdSerializer()));
+            .addSerializer(Instant.class, new WriteInstantStdSerializer())
+            .addSerializer(UID.class, new UIDStdSerializer())
+            .addDeserializer(UID.class, new UIDStdDeserializer()));
 
     mapper.registerModule(new Jdk8Module());
-
     return mapper;
   }
 }

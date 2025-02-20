@@ -45,12 +45,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@OpenApi.Tags("ui")
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:extensibility", "purpose:support"})
 @Controller
-@RequestMapping(value = MenuController.RESOURCE_PATH)
+@RequestMapping("/api/menu")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MenuController {
-  public static final String RESOURCE_PATH = "/menu";
 
   @Autowired private UserService userService;
 

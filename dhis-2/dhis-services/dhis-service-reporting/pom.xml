@@ -48,10 +48,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-setting</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-commons</artifactId>
     </dependency>
     <dependency>
@@ -88,6 +84,10 @@
       <artifactId>spring-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
     </dependency>
@@ -104,8 +104,8 @@
       <artifactId>spring-web</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>
@@ -117,11 +117,11 @@
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>
-      <artifactId>velocity</artifactId>
+      <artifactId>velocity-engine-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
+      <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -138,10 +138,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -179,6 +175,10 @@
       <artifactId>jfreechart</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jcommon</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
     </dependency>
@@ -201,7 +201,14 @@
       <groupId>org.locationtech.jts</groupId>
       <artifactId>jts-core</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-epsg-hsql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-cql</artifactId>
+    </dependency>
     <!-- Test -->
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -231,6 +238,11 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-geojson</artifactId>
       <scope>test</scope>
     </dependency>
 

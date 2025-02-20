@@ -28,23 +28,31 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
+@Transactional
+class ProgramStageSectionStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramStageSectionStore programStageSectionStore;
 
@@ -58,6 +66,8 @@ class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
+  @Autowired private IdentifiableObjectManager manager;
+
   private OrganisationUnit organisationUnit;
 
   private ProgramStage stageA;
@@ -70,8 +80,8 @@ class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
 
   private List<DataElement> dataElements;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     Program program = createProgram('A', new HashSet<>(), organisationUnit);
@@ -112,5 +122,52 @@ class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
     programStageSectionStore.save(sectionA);
     long idA = sectionA.getId();
     assertEquals(sectionA, programStageSectionStore.get(idA));
+  }
+
+  @Test
+  @DisplayName("retrieving program stage sections by data element returns expected entries")
+  void getProgramStageSectionsByDataElement() {
+    // given
+    DataElement de1 = createDataElementAndSave('q');
+    DataElement de2 = createDataElementAndSave('r');
+    DataElement de3 = createDataElementAndSave('s');
+    DataElement de4 = createDataElementAndSave('t');
+
+    createProgramStageSectionAndSave('a', 1, de1, de2);
+    createProgramStageSectionAndSave('b', 2, de3);
+    createProgramStageSectionAndSave('c', 3, de4);
+
+    // when
+    List<ProgramStageSection> programStageSections =
+        programStageSectionStore.getAllByDataElement(List.of(de1, de2, de3));
+
+    // then
+    assertEquals(2, programStageSections.size());
+    assertTrue(
+        programStageSections.stream()
+            .flatMap(pss -> pss.getDataElements().stream())
+            .toList()
+            .containsAll(List.of(de1, de2, de3)));
+
+    assertFalse(
+        programStageSections.stream()
+            .flatMap(pss -> pss.getDataElements().stream())
+            .toList()
+            .contains(de4));
+  }
+
+  private void createProgramStageSectionAndSave(char c, int order, DataElement... des) {
+    ProgramStageSection pss = createProgramStageSection(c, order);
+    pss.getDataElements().addAll(List.of(des));
+    programStageSectionStore.save(pss);
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    CategoryCombo cc = createCategoryCombo(c);
+    manager.save(cc);
+
+    DataElement de = createDataElement(c, cc);
+    dataElementService.addDataElement(de);
+    return de;
   }
 }

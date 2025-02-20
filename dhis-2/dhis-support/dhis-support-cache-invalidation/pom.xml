@@ -10,7 +10,7 @@
 
   <artifactId>dhis-support-cache-invalidation</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Cache invalidation Support</name>
+  <name>DHIS Cache Invalidation Support</name>
   <properties>
     <rootDir>../../</rootDir>
   </properties>
@@ -64,11 +64,11 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
+      <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
 
     <dependency>

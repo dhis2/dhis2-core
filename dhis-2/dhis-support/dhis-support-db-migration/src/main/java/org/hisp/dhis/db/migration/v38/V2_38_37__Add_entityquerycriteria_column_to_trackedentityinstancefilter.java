@@ -39,7 +39,7 @@ import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.trackedentityfilter.FilterPeriod;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.postgresql.util.PGobject;
@@ -91,7 +91,7 @@ public class V2_38_37__Add_entityquerycriteria_column_to_trackedentityinstancefi
         TrackedEntityFilter filter = new TrackedEntityFilter();
         filter.setId(rs.getLong(1));
         filter.setEnrollmentStatus(
-            rs.getString(2) == null ? null : ProgramStatus.valueOf(rs.getString(2)));
+            rs.getString(2) == null ? null : EnrollmentStatus.valueOf(rs.getString(2)));
         filter.setFollowup(rs.getBoolean(3));
         filter.setEnrollmentCreatedPeriod(
             rs.getString(4) == null

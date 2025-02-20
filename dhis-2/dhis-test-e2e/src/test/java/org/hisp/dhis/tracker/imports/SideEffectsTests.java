@@ -33,17 +33,17 @@ import static org.hamcrest.Matchers.hasSize;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.File;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.MessageConversationsActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.metadata.ProgramStageActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.MessageConversationsActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramStageActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -73,7 +73,7 @@ public class SideEffectsTests extends TrackerApiTest {
   @Disabled("todo: fix this test 12098")
   public void shouldSendNotificationIfNotSkipSideEffects(Boolean shouldSkipSideEffects) {
     JsonObject object =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollmentAndEvent(
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],

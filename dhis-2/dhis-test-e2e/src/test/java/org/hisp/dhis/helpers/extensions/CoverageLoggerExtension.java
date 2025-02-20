@@ -35,7 +35,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.EndpointTracker;
+import org.hisp.dhis.test.e2e.EndpointTracker;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 

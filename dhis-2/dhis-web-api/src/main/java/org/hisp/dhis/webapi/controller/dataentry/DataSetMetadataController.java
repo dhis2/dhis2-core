@@ -30,10 +30,11 @@ package org.hisp.dhis.webapi.controller.dataentry;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -47,10 +48,12 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
+@RequestMapping("/api/dataEntry")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetMetadataController {
   private final DataSetMetadataExportService exportService;

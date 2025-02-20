@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.datadimensionitem.hibernate;
 
+import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,15 +54,37 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
 
   @Override
   public List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators) {
-    // language=sql
     String sql =
         """
       select * from datadimensionitem d
       where d.indicatorid in :indicators
     """;
-    return getSession()
-        .createNativeQuery(sql, DataDimensionItem.class)
-        .setParameter("indicators", indicators)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<DataDimensionItem> getDataElementDataDimensionItems(List<DataElement> dataElements) {
+    return getQuery(
+            """
+             from DataDimensionItem d
+             where d.dataElement in :dataElements
+             """)
+        .setParameter("dataElements", dataElements)
+        .getResultList();
+  }
+
+  @Override
+  public int updateDeoCategoryOptionCombo(@Nonnull Collection<Long> cocIds, long newCocId) {
+    if (cocIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        update datadimensionitem
+        set dataelementoperand_categoryoptioncomboid = %s
+        where dataelementoperand_categoryoptioncomboid in (%s)
+        """
+            .formatted(
+                newCocId, cocIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+    return jdbcTemplate.update(sql);
   }
 }

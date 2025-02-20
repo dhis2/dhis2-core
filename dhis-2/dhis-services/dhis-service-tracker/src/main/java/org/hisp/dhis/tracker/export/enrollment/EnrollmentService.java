@@ -29,29 +29,39 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 
 public interface EnrollmentService {
-  Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+  @Nonnull
+  Enrollment getEnrollment(UID uid) throws ForbiddenException, NotFoundException;
+
+  @Nonnull
+  Enrollment getEnrollment(UID uid, EnrollmentParams params)
       throws NotFoundException, ForbiddenException;
 
-  Enrollment getEnrollment(
-      Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, User user)
-      throws ForbiddenException;
-
   /** Get all enrollments matching given params. */
+  @Nonnull
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
+  @Nonnull
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
+
+  /**
+   * Get event matching given {@code UID} under the privileges the user in the context. This method
+   * does not get the events relationships.
+   */
+  @Nonnull
+  List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.

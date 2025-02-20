@@ -43,14 +43,19 @@ import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class SchemaServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class SchemaServiceTest extends PostgresIntegrationTestBase {
   @Autowired private SchemaService schemaService;
 
   @Test

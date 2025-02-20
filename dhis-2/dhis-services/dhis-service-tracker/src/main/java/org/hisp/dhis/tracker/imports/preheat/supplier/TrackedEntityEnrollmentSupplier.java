@@ -32,11 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
@@ -98,49 +98,47 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<String> trackedEntityList =
+    List<UID> trackedEntityList =
         trackerObjects.getEnrollments().stream()
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> programList =
-        preheat.getAll(Program.class).stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toList());
+        preheat.getAll(Program.class).stream().map(IdentifiableObject::getUid).toList();
 
-    List<List<String>> trackedEntities =
+    List<List<UID>> trackedEntities =
         Lists.partition(new ArrayList<>(trackedEntityList), Constant.SPLIT_LIST_PARTITION_SIZE);
 
     if (programList.isEmpty() || trackedEntities.isEmpty()) return;
 
-    Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
+    Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
     if (trackerObjects.getEnrollments().isEmpty()) return;
 
-    for (List<String> trackedEntityListSubList : trackedEntities) {
-      queryTeiAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
+    for (List<UID> trackedEntityListSubList : trackedEntities) {
+      queryTeAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
     }
 
     preheat.setTrackedEntityToEnrollmentMap(trackedEntityToEnrollmentMap);
   }
 
-  private void queryTeiAndAddToMap(
-      Map<String, List<Enrollment>> trackedEntityToEnrollmentMap,
-      List<String> trackedEntityListSubList,
+  private void queryTeAndAddToMap(
+      Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap,
+      List<UID> trackedEntityListSubList,
       List<String> programList) {
     MapSqlParameterSource parameters = new MapSqlParameterSource();
-    parameters.addValue("teuids", trackedEntityListSubList);
+    parameters.addValue("teuids", UID.toValueList(trackedEntityListSubList));
     parameters.addValue("pruids", programList);
 
     jdbcTemplate.query(
         SQL,
         parameters,
         resultSet -> {
-          String te = resultSet.getString(TE_UID_COLUMN_ALIAS);
+          UID te = UID.of(resultSet.getString(TE_UID_COLUMN_ALIAS));
 
           Enrollment newPi = new Enrollment();
           newPi.setUid(resultSet.getString(PI_UID_COLUMN_ALIAS));
-          newPi.setStatus(ProgramStatus.valueOf(resultSet.getString(PI_STATUS_COLUMN_ALIAS)));
+          newPi.setStatus(EnrollmentStatus.valueOf(resultSet.getString(PI_STATUS_COLUMN_ALIAS)));
 
           Program program = new Program();
           program.setUid(resultSet.getString(PR_UID_COLUMN_ALIAS));

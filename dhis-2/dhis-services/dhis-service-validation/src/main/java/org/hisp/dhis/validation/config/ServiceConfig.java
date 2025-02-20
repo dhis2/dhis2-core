@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration("validationServiceConfig")
 public class ServiceConfig {
-  @Bean("dataAnalysisServiceProvider")
+  @Bean
   public ServiceProvider<DataAnalysisService> dataAnalysisServiceProvider(
       StdDevOutlierAnalysisService stdDevOutlierAnalysisService,
       MinMaxOutlierAnalysisService minMaxOutlierAnalysisService) {

@@ -154,7 +154,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition);
 
   /**
-   * Change the {@link SchedulingType} so the job runs {@link SchedulingType#ONCE_ASAP}.
+   * Changes the {@link SchedulingType} so the job runs {@link SchedulingType#ONCE_ASAP}.
    *
    * <p>After that run it changes back to another {@link SchedulingType} based on if a cron
    * expression or delay is defined.
@@ -163,6 +163,17 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return true, if the update was successful, otherwise false
    */
   boolean tryExecuteNow(@Nonnull String jobId);
+
+  /**
+   * Changes the {@link JobStatus} from {@link JobStatus#RUNNING} to a failed execution status. The
+   * run is considered as failed.
+   *
+   * <p>This is the manual equivalent to {@link #rescheduleStaleJobs(int)}.
+   *
+   * @param jobId of the job to revert now
+   * @return true, if update was successful, otherwise false
+   */
+  boolean tryRevertNow(@Nonnull String jobId);
 
   /**
    * A successful update means the DB state flipped from {@link JobStatus#SCHEDULED} to {@link

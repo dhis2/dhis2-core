@@ -27,29 +27,17 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Kristian Nordal
  */
 public interface DataSetStore
     extends IdentifiableObjectStore<DataSet>, DataSetDataIntegrityProvider {
-  String ID = DataSetStore.class.getName();
-
-  // -------------------------------------------------------------------------
-  // DataSet
-  // -------------------------------------------------------------------------
-
-  /**
-   * Gets all DataSets associated with the given PeriodType.
-   *
-   * @param periodType the PeriodType.
-   * @return a list of DataSets.
-   */
-  List<DataSet> getDataSetsByPeriodType(PeriodType periodType);
 
   /**
    * Gets all DataSets associated with the given DataEntryForm.
@@ -58,4 +46,6 @@ public interface DataSetStore
    * @return a list of DataSets.
    */
   List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
+
+  List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> dataElements);
 }

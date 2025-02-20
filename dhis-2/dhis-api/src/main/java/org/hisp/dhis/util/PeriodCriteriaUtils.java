@@ -40,12 +40,12 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 @NoArgsConstructor(access = PRIVATE)
 public class PeriodCriteriaUtils {
   /**
-   * Defines a default period for the given criteria, if none is present.
+   * Add a default period for the given criteria, if none is present.
    *
    * @param criteria {@link EventsAnalyticsQueryCriteria} query criteria.
    * @param defaultPeriod the default period to set, based on {@link RelativePeriodEnum}.
    */
-  public static void defineDefaultPeriodForCriteria(
+  public static void addDefaultPeriodIfAbsent(
       EventsAnalyticsQueryCriteria criteria, RelativePeriodEnum defaultPeriod) {
     if (!hasPeriod(criteria)) {
       criteria.getDimension().add(PERIOD_DIM_ID + ":" + defaultPeriod.name());
@@ -53,12 +53,12 @@ public class PeriodCriteriaUtils {
   }
 
   /**
-   * Defines a default period for the given criteria, if none is present.
+   * Adds a default period for the given criteria, if none is present.
    *
    * @param criteria {@link EnrollmentAnalyticsQueryCriteria} query criteria.
    * @param defaultPeriod the default period to set, based on {@link RelativePeriodEnum}.
    */
-  public static void defineDefaultPeriodForCriteria(
+  public static void addDefaultPeriodIfAbsent(
       EnrollmentAnalyticsQueryCriteria criteria, RelativePeriodEnum defaultPeriod) {
     if (!hasPeriod(criteria)) {
       criteria.getDimension().add(PERIOD_DIM_ID + ":" + defaultPeriod.name());
@@ -72,14 +72,15 @@ public class PeriodCriteriaUtils {
    * @return true if the criteria contains a period dimension, (start and end date) or event date.
    *     False, otherwise.
    */
-  private static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
-    return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
-        || (criteria.getFilter() != null
-            && criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+  public static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
+    return (criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+        || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEventDate())
+        || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
+        || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
         || criteria.getRelativePeriodDate() != null;
@@ -92,11 +93,12 @@ public class PeriodCriteriaUtils {
    * @return true if the criteria contains a period dimension, (start and end date) or enrollment
    *     date. False, otherwise.
    */
-  private static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
+  public static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
+        || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || criteria.getRelativePeriodDate() != null;
   }

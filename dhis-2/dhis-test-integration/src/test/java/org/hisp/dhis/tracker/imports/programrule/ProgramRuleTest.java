@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1300;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.io.IOException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -58,16 +59,17 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleTest extends TrackerTest {
-  private static final String ENROLLMENT_UID = "TvctPPhpD8u";
+  private static final UID ENROLLMENT_UID = UID.of("TvctPPhpD8u");
 
-  private static final String EVENT_UID = "D9PbzJY8bJO";
+  private static final UID EVENT_UID = UID.of("D9PbzJY8bJO");
 
-  private static final String PROGRAM_EVENT_UID = "PEVENT12345";
+  private static final UID PROGRAM_EVENT_UID = UID.of("PEVENT12345");
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -89,14 +91,13 @@ class ProgramRuleTest extends TrackerTest {
 
   private ProgramStage programStageOnComplete;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  public void initTest() throws IOException {
-
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() throws IOException {
     ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
     programWithoutRegistration =
         bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJne");
@@ -111,15 +112,13 @@ class ProgramRuleTest extends TrackerTest {
         createProgramRuleVariableWithDataElement('A', program, dataElement2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     constantService.saveConstant(constant());
-
-    injectAdminUser();
   }
 
   @Test
   void shouldImportEnrollmentWithNoWarningsWhenThereAreNoProgramRules() throws IOException {
     ImportReport report =
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/programrule/tei_enrollment.json"));
+            new TrackerImportParams(), fromJson("tracker/programrule/te_enrollment.json"));
 
     assertNoErrorsAndNoWarnings(report);
   }
@@ -129,7 +128,7 @@ class ProgramRuleTest extends TrackerTest {
     alwaysTrueWarningProgramRule();
     ImportReport report =
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/programrule/tei_enrollment.json"));
+            new TrackerImportParams(), fromJson("tracker/programrule/te_enrollment.json"));
 
     assertHasOnlyWarnings(report, E1300);
   }
@@ -139,7 +138,7 @@ class ProgramRuleTest extends TrackerTest {
     alwaysTrueErrorProgramRule();
     ImportReport report =
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/programrule/tei_enrollment.json"));
+            new TrackerImportParams(), fromJson("tracker/programrule/te_enrollment.json"));
 
     assertHasOnlyErrors(report, E1300);
   }
@@ -180,7 +179,7 @@ class ProgramRuleTest extends TrackerTest {
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            fromJson("tracker/programrule/tei_enrollment_completed_event.json"));
+            fromJson("tracker/programrule/te_enrollment_completed_event.json"));
 
     assertNoErrorsAndNoWarnings(report);
   }
@@ -189,7 +188,7 @@ class ProgramRuleTest extends TrackerTest {
   void shouldImportEventWithWarningsWhenAWarningIsTriggered() throws IOException {
     ImportReport report =
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/programrule/tei_enrollment.json"));
+            new TrackerImportParams(), fromJson("tracker/programrule/te_enrollment.json"));
     assertNoErrors(report);
 
     alwaysTrueWarningProgramRule();
@@ -204,7 +203,7 @@ class ProgramRuleTest extends TrackerTest {
   void shouldNotImportEventWhenAnErrorIsTriggered() throws IOException {
     ImportReport report =
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/programrule/tei_enrollment.json"));
+            new TrackerImportParams(), fromJson("tracker/programrule/te_enrollment.json"));
     assertNoErrors(report);
 
     alwaysTrueErrorProgramRule();
@@ -222,7 +221,7 @@ class ProgramRuleTest extends TrackerTest {
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            fromJson("tracker/programrule/tei_enrollment_completed_event.json"));
+            fromJson("tracker/programrule/te_enrollment_completed_event.json"));
 
     assertHasOnlyErrors(report, E1300);
   }
@@ -233,7 +232,7 @@ class ProgramRuleTest extends TrackerTest {
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            fromJson("tracker/programrule/tei_completed_enrollment_event.json"));
+            fromJson("tracker/programrule/te_completed_enrollment_event.json"));
 
     assertAll(
         () -> assertHasError(report, E1300, ENROLLMENT_UID),
@@ -245,7 +244,7 @@ class ProgramRuleTest extends TrackerTest {
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            fromJson("tracker/programrule/tei_completed_enrollment.json"));
+            fromJson("tracker/programrule/te_completed_enrollment.json"));
     assertNoErrorsAndNoWarnings(report);
 
     onCompleteErrorProgramRule();
@@ -263,7 +262,7 @@ class ProgramRuleTest extends TrackerTest {
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            fromJson("tracker/programrule/tei_enrollment_event_programevent.json"));
+            fromJson("tracker/programrule/te_enrollment_event_programevent.json"));
 
     assertAll(
         () -> assertHasError(report, E1300, ENROLLMENT_UID),
@@ -274,7 +273,7 @@ class ProgramRuleTest extends TrackerTest {
   @Test
   void shouldImportWithWarningWhenARuleWithASyntaxErrorIsTriggered() throws IOException {
     syntaxErrorRule();
-    TrackerObjects trackerObjects = fromJson("tracker/programrule/tei_enrollment.json");
+    TrackerObjects trackerObjects = fromJson("tracker/programrule/te_enrollment.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -287,7 +286,7 @@ class ProgramRuleTest extends TrackerTest {
       throws IOException {
     programStageWarningRule();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/tei_enrollment_completed_event.json");
+        fromJson("tracker/programrule/te_enrollment_completed_event.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -301,7 +300,7 @@ class ProgramRuleTest extends TrackerTest {
     programStageWarningRule();
     TrackerObjects trackerObjects =
         fromJson(
-            "tracker/programrule/tei_enrollment_completed_event_from_another_program_stage.json");
+            "tracker/programrule/te_enrollment_completed_event_from_another_program_stage.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -314,7 +313,7 @@ class ProgramRuleTest extends TrackerTest {
       throws IOException {
     programStage2WarningRule();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/tei_enrollment_event_from_another_program_stage.json");
+        fromJson("tracker/programrule/te_enrollment_event_from_another_program_stage.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -328,7 +327,7 @@ class ProgramRuleTest extends TrackerTest {
     programStage2WarningRule();
     TrackerObjects trackerObjects =
         fromJson(
-            "tracker/programrule/tei_enrollment_completed_event_from_another_program_stage.json");
+            "tracker/programrule/te_enrollment_completed_event_from_another_program_stage.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -342,7 +341,7 @@ class ProgramRuleTest extends TrackerTest {
     programStage2WrongDataElementWarningRule();
     TrackerObjects trackerObjects =
         fromJson(
-            "tracker/programrule/tei_enrollment_completed_event_from_another_program_stage.json");
+            "tracker/programrule/te_enrollment_completed_event_from_another_program_stage.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -354,7 +353,7 @@ class ProgramRuleTest extends TrackerTest {
   void shouldNotImportWithWhenDataElementHasValue() throws IOException {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/tei_completed_enrollment_event.json");
+        fromJson("tracker/programrule/te_completed_enrollment_event.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -366,7 +365,7 @@ class ProgramRuleTest extends TrackerTest {
   void shouldImportWithNoWarningsWhenDataElementHasNoValue() throws IOException {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+        fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -378,7 +377,7 @@ class ProgramRuleTest extends TrackerTest {
   void shouldImportWithNoWarningsWhenDataElementHasNullValue() throws IOException {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/tei_enrollment_event_with_null_data_value.json");
+        fromJson("tracker/programrule/te_enrollment_event_with_null_data_value.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);

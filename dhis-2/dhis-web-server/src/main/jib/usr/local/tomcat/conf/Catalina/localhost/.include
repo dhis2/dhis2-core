@@ -1,0 +1,5 @@
+# Used to create parent folder structure by Jib
+# Tomcat is having issues when running as non-root as it tries to create this folder while it does not have permission
+# to. See
+# https://github.com/docker-library/tomcat/issues/209
+# https://github.com/docker-library/tomcat/issues/128

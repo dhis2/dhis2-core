@@ -33,15 +33,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
@@ -54,9 +49,16 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,6 +77,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -83,6 +86,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryFilter;
@@ -93,6 +97,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -101,11 +106,14 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
@@ -122,11 +130,29 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Mock private OrganisationUnitService organisationUnitService;
 
-  private JdbcEventAnalyticsManager eventSubject;
+  @Mock private SystemSettingsService systemSettingsService;
 
-  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Spy
+  private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Spy
+  private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer =
+      new EventTimeFieldSqlRenderer(sqlBuilder);
+
+  @Spy
+  private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
+      new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
+
+  @InjectMocks private JdbcEventAnalyticsManager eventSubject;
+
+  @InjectMocks private JdbcEnrollmentAnalyticsManager enrollmentSubject;
 
   private Program programA;
 
@@ -142,29 +168,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @BeforeEach
   public void setUp() {
-    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
-
-    eventSubject =
-        new JdbcEventAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            new EventTimeFieldSqlRenderer(),
-            executionPlanStore,
-            sqlBuilder);
-
-    enrollmentSubject =
-        new JdbcEnrollmentAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(),
-            executionPlanStore,
-            sqlBuilder);
-
     programA = createProgram('A');
-
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
   }
@@ -237,8 +241,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
                 + colName
                 + ")::numeric, 6) || ']' as "
                 + colName));
-
-    return;
   }
 
   @Test
@@ -321,7 +323,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String aggregateClause = eventSubject.getAggregateClause(params);
 
-    assertEquals("count(ax.\"psi\")", aggregateClause);
+    assertEquals("count(ax.\"event\")", aggregateClause);
   }
 
   @Test
@@ -340,7 +342,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String aggregateClause = eventSubject.getAggregateClause(params);
 
-    assertEquals("count(distinct ax.\"pi\")", aggregateClause);
+    assertEquals("count(distinct ax.\"enrollment\")", aggregateClause);
   }
 
   @Test
@@ -533,44 +535,71 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(
         whereClause,
-        containsString("and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
+        containsString("and ax.\"uidlevel1\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
   }
 
   @Test
   void testValidCoordinatesFieldInSqlWhereClauseForEvent() {
     EventQueryParams params =
         getEventQueryParamsForCoordinateFieldsTest(
-            List.of("pigeometry", "psigeometry", "teigeometry", "ougeometry"));
+            List.of("enrollmentgeometry", "eventgeometry", "tegeometry", "ougeometry"));
 
     String whereClause = this.eventSubject.getWhereClause(params);
 
     assertThat(
         whereClause,
         containsString(
-            "coalesce(ax.\"pigeometry\",ax.\"psigeometry\",ax.\"teigeometry\",ax.\"ougeometry\") is not null"));
+            "coalesce(ax.\"enrollmentgeometry\",ax.\"eventgeometry\",ax.\"tegeometry\",ax.\"ougeometry\") is not null"));
   }
 
   @Test
   void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause() {
     EventQueryParams params =
         getEventQueryParamsForCoordinateFieldsTest(
-            List.of("pigeometry", "teigeometry", "ougeometry"));
+            List.of("enrollmentgeometry", "tegeometry", "ougeometry"));
 
     String whereClause = this.eventSubject.getSelectClause(params);
 
     assertThat(
         whereClause,
-        containsString("coalesce(ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\")"));
+        containsString("coalesce(ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\")"));
   }
 
   @Test
   void testValidExplicitCoordinatesFieldInSqlSelectClause() {
     EventQueryParams params =
-        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "psigeometry"));
+        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "eventgeometry"));
 
     String whereClause = this.eventSubject.getSelectClause(params);
 
-    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"psigeometry\")"));
+    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"eventgeometry\")"));
+  }
+
+  @Test
+  void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldIsEmpty() {
+    String sql =
+        this.eventSubject.getCoalesce(
+            List.of(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
+    assertEquals(FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue(), sql);
+  }
+
+  @Test
+  void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldCollectionIsNull() {
+    String sqlSnippet =
+        this.eventSubject.getCoalesce(null, FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
+    assertEquals(FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue(), sqlSnippet);
+  }
+
+  @Test
+  void testGetCoalesceReturnsCoalesceWhenCoordinateFieldCollectionIsNotEmpty() {
+    String sqlSnippet =
+        this.eventSubject.getCoalesce(
+            List.of("coorA", "coorB", "coorC"),
+            FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
+    assertEquals("coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet);
   }
 
   @Test
@@ -798,7 +827,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getObject(index)).thenReturn(nullObject);
     when(resultSet.getMetaData()).thenReturn(metaData);
-
     EventQueryParams queryParams = new EventQueryParams.Builder().withSkipRounding(false).build();
 
     GridHeader header = new GridHeader("header-1", NUMBER);
@@ -828,7 +856,25 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     // When
     String select = enrollmentSubject.getSelectClause(params);
     // Then
-    assertEquals("select pi,Yearly ", select);
+    assertEquals("select enrollment,Yearly ", select);
+  }
+
+  @Test
+  void testItemsInFilterAreQuotedForOrganisationUnit() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
   }
 
   @Test
@@ -847,7 +893,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals(
-        "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
         select);
   }
 

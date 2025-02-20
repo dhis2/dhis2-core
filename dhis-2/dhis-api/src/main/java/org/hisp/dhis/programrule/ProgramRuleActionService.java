@@ -63,22 +63,6 @@ public interface ProgramRuleActionService {
    */
   ProgramRuleAction getProgramRuleAction(long id);
 
-  /**
-   * Returns all {@link ProgramRuleAction}.
-   *
-   * @return a collection of all ProgramRuleAction, or an empty collection if there are no
-   *     ProgramRuleActions.
-   */
-  List<ProgramRuleAction> getAllProgramRuleAction();
-
-  /**
-   * Get validation by {@link ProgramRule}.
-   *
-   * @param programRule the program rule.
-   * @return a list of ProgramRuleActions.
-   */
-  List<ProgramRuleAction> getProgramRuleAction(ProgramRule programRule);
-
   List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject();
 
   List<ProgramRuleAction> getProgramActionsWithNoLinkToNotification();

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.UUID;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
@@ -111,6 +112,7 @@ public class UserMessage {
     this.key = key;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)

@@ -1,0 +1,86 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: categories_dimensions_no_visualizations
+description: Categories which are enabled as a data dimension but which have no associated visualizations.
+section: Categories
+summary_sql: >-
+  select
+  COUNT(*) as value,
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM category), 0) as percent
+  from category where categoryid
+  in (
+  SELECT categoryid
+  FROM category where datadimension = TRUE
+  AND categoryid NOT IN (
+  SELECT categoryid from
+  categorydimension where categorydimensionid IN (
+  SELECT categorydimensionid
+  from eventvisualization_categorydimensions
+  UNION
+  SELECT categorydimensionid
+  from mapview_categorydimensions
+  UNION
+  SELECT categorydimensionid
+  FROM visualization_categorydimensions
+  )));
+details_sql: >-
+  SELECT uid,name,datadimensiontype as comment
+  FROM category where datadimension = TRUE
+  AND categoryid NOT IN (
+  SELECT categoryid from
+  categorydimension where categorydimensionid IN (
+  SELECT categorydimensionid
+  from eventvisualization_categorydimensions
+  UNION
+  SELECT categorydimensionid
+  from mapview_categorydimensions
+  UNION
+  SELECT categorydimensionid
+  FROM visualization_categorydimensions
+  )
+  );
+details_id_type: categories
+severity: WARNING
+introduction: >
+  Categories can be enabled as data dimensions. 
+  This is useful for generating sub-totals for category combos
+  which consist of more than one category. For each category 
+  which is enabled as a dimension, a column in the analytics 
+  tables is created and then indexed. If many categories
+  are enabled as a dimensions, this may lead to an increase 
+  in the amount of time which is required to export the analytics tables.
+  If the category is never used for any analytical purpose (map, chart, table, etc)
+  or to generate sub-totals in a data set report,
+  then there is little point to enable it as a dimension.
+section_order: 17
+recommendation: >
+  Review the list of categories which have been flagged by this integrity check
+  and consider whether they are actually needed as dimensions. If they are not
+  needed, then disable them as dimensions. If they are needed, then create
+  visualizations which use them. Categories can always be re-enabled as dimensions
+  if they are needed once again. 

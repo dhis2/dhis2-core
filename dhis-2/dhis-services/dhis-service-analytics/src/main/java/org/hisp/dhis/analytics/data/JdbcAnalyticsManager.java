@@ -45,7 +45,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
+import static org.hisp.dhis.common.collection.CollectionUtils.concat;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -59,6 +60,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +97,6 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -184,14 +185,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = getParamsWithOffsetPartitions(params, tableType);
       }
 
-      String sql = getSql(params, tableType);
+      final String sql = getSql(params, tableType);
 
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
       if (params.analyzeOnly()) {
         withExceptionHandling(
             () -> executionPlanStore.addExecutionPlan(immutableParams.getExplainOrderId(), sql));
-        return new AsyncResult<>(Maps.newHashMap());
+        return CompletableFuture.completedFuture(Maps.newHashMap());
       }
 
       Map<String, Object> map;
@@ -205,12 +206,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
           throw ex;
         }
         log.warn(ERR_MSG_SILENT_FALLBACK, ex);
-        return new AsyncResult<>(Maps.newHashMap());
+        return CompletableFuture.completedFuture(Maps.newHashMap());
       }
 
       replaceDataPeriodsWithAggregationPeriods(map, params, dataPeriodAggregationPeriodMap);
 
-      return new AsyncResult<>(map);
+      return CompletableFuture.completedFuture(map);
     } catch (DataAccessResourceFailureException ex) {
       throw new QueryRuntimeException(ErrorCode.E7131);
     } catch (RuntimeException ex) {
@@ -313,7 +314,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     StringBuilder builder = new StringBuilder();
 
     builder.append(getSelectClause(params));
-
     builder.append(getFromClause(params, tableType));
 
     // Skip the where clause here if already in sub query
@@ -323,7 +323,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     builder.append(getGroupByClause(params));
 
-    if (params.hasMeasureCriteria() && params.isDataType(DataType.NUMERIC)) {
+    if (params.hasMeasureCriteria()
+        && params.isDataType(DataType.NUMERIC)
+        && !params.hasReportingRates()) {
+      // Reporting rates applies the measure criteria after the rates calculation phase
       builder.append(getMeasureCriteriaSql(params));
     }
 
@@ -370,9 +373,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    */
   protected String getAggregateValueColumn(DataQueryParams params) {
     String sql;
-
     AnalyticsAggregationType aggType = params.getAggregationType();
-
     String valueColumn = params.getValueColumn();
 
     if (aggType.isAggregationType(SUM)
@@ -385,8 +386,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       sql = "sum(daysxvalue) / sum(daysno) * 100";
     } else if (SIMPLE_AGGREGATION_TYPES.contains(aggType.getAggregationType())) {
       sql = String.format("%s(%s)", aggType.getAggregationType().getValue(), valueColumn);
-    } else // SUM and no value
-    {
+    } else { // SUM and no value
       sql = "sum(" + valueColumn + ")";
     }
 
@@ -606,7 +606,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     if (params.isTimely()) {
-      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " is true ");
+      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " = true ");
     }
 
     // ---------------------------------------------------------------------
@@ -908,16 +908,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
+      String sqlFilter =
+          String.format(
+              " %s %s %s ",
+              getAggregateValueColumn(params), OPERATOR_SQL_MAP.get(filter), criterion);
 
-      sql +=
-          sqlHelper.havingAnd()
-              + " "
-              + getAggregateValueColumn(params)
-              + " "
-              + OPERATOR_SQL_MAP.get(filter)
-              + " "
-              + criterion
-              + " ";
+      sql += sqlHelper.havingAnd() + sqlFilter;
     }
 
     return sql;
@@ -952,9 +948,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       for (DimensionalObject dim : params.getDimensions()) {
         String value =
             dim.isFixed() ? dim.getDimensionName() : rowSet.getString(dim.getDimensionName());
-
         String queryModsId = params.getQueryModsId(dim);
-
         key.append(value).append(queryModsId).append(DIMENSION_SEP);
       }
 
@@ -962,12 +956,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
-
         map.put(key.toString(), value);
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);
-
         map.put(key.toString(), value);
       }
     }

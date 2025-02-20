@@ -31,13 +31,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.Collection;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Iterator;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -47,32 +43,23 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.query.Disjunction;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -87,49 +74,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = InterpretationSchemaDescriptor.API_ENDPOINT)
-public class InterpretationController extends AbstractCrudController<Interpretation> {
+@RequestMapping("/api/interpretations")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
+public class InterpretationController
+    extends AbstractCrudController<Interpretation, GetObjectListParams> {
   @Autowired private InterpretationService interpretationService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected List<Interpretation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
-      throws QueryParserException {
-    // If custom filter (mentions:in:[username]) in filters -> Remove from
-    // filters
-    List<String> mentionsFromCustomFilters = MentionUtils.removeCustomFilters(filters);
-
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(),
-            filters,
-            orders,
-            getPaginationData(options),
-            options.getRootJunction());
-    query.setDefaultOrder();
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    // If custom filter (mentions:in:[username]) in filters -> Add as
-    // disjunction including interpretation mentions and comments mentions
-    for (Disjunction disjunction :
-        (Collection<Disjunction>)
-            getDisjunctionsFromCustomMentions(mentionsFromCustomFilters, query.getSchema())) {
-      query.add(disjunction);
-    }
-
-    List<Interpretation> entityList;
-    if (options.getOptions().containsKey("query")) {
-      entityList =
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    } else {
-      entityList = (List<Interpretation>) queryService.query(query);
-    }
-    return entityList;
-  }
 
   // -------------------------------------------------------------------------
   // Interpretation create
@@ -334,8 +286,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @PutMapping("/{uid}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
-  public WebMessage updateInterpretation(
-      @PathVariable("uid") String uid, @RequestBody String text) {
+  public WebMessage updateInterpretation(@PathVariable("uid") String uid, @RequestBody String text)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -344,7 +296,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (!currentUser.equals(interpretation.getCreatedBy()) && !currentUser.isSuper()) {
-      throw new AccessDeniedException("You are not allowed to update this interpretation.");
+      throw new ForbiddenException("You are not allowed to update this interpretation.");
     }
 
     interpretationService.updateInterpretationText(interpretation, text);
@@ -357,7 +309,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       @PathVariable String uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -366,7 +319,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     if (!currentUser.equals(UserDetails.fromUser(interpretation.getCreatedBy()))
         && !currentUser.isSuper()) {
-      throw new AccessDeniedException("You are not allowed to delete this interpretation.");
+      throw new ForbiddenException("You are not allowed to delete this interpretation.");
     }
 
     interpretationService.deleteInterpretation(interpretation);
@@ -406,7 +359,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   public WebMessage updateComment(
       @PathVariable("uid") String uid,
       @PathVariable("cuid") String cuid,
-      @RequestBody String content) {
+      @RequestBody String content)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -418,7 +372,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     for (InterpretationComment comment : interpretation.getComments()) {
       if (comment.getUid().equals(cuid)) {
         if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
-          throw new AccessDeniedException("You are not allowed to update this comment.");
+          throw new ForbiddenException("You are not allowed to update this comment.");
         }
 
         comment.setText(content);
@@ -434,7 +388,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   public WebMessage deleteComment(
       @PathVariable("uid") String uid,
       @PathVariable("cuid") String cuid,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -449,7 +404,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       InterpretationComment comment = iterator.next();
       if (comment.getUid().equals(cuid)) {
         if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
-          throw new AccessDeniedException("You are not allowed to delete this comment.");
+          throw new ForbiddenException("You are not allowed to delete this comment.");
         }
 
         iterator.remove();
@@ -492,23 +447,5 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       return created("Like removed from interpretation");
     }
     return conflict("Could not remove like, user had not previously liked interpretation");
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  private Collection<Disjunction> getDisjunctionsFromCustomMentions(
-      List<String> mentions, Schema schema) {
-    Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
-    for (String m : mentions) {
-      Disjunction disjunction = new Disjunction(schema);
-      String[] split = m.substring(1, m.length() - 1).split(",");
-      List<String> items = Lists.newArrayList(split);
-      disjunction.add(Restrictions.in("mentions.username", items));
-      disjunction.add(Restrictions.in("comments.mentions.username", items));
-      disjunctions.add(disjunction);
-    }
-    return disjunctions;
   }
 }

@@ -39,10 +39,11 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Jim Grace
  */
-class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
+class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -70,8 +71,8 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   private Date endDate = new GregorianCalendar(2020, Calendar.JANUARY, 31).getTime();
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
 
@@ -125,7 +126,7 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
   void testCreationDate() {
     assertEquals("created", getSql("V{creation_date}"));
     assertEquals(
-        "(select created from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and created is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
+        "(select created from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and created is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
         getSqlEnrollment("V{creation_date}"));
   }
 
@@ -140,14 +141,14 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
   void testDueDate() {
     assertEquals("scheduleddate", getSql("V{due_date}"));
     assertEquals(
-        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and scheduleddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
+        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and scheduleddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
         getSqlEnrollment("V{due_date}"));
   }
 
   @Test
   void testEnrollmentCount() {
-    assertEquals("distinct pi", getSql("V{enrollment_count}"));
-    assertEquals("pi", getSqlEnrollment("V{enrollment_count}"));
+    assertEquals("distinct enrollment", getSql("V{enrollment_count}"));
+    assertEquals("enrollment", getSqlEnrollment("V{enrollment_count}"));
   }
 
   @Test
@@ -164,32 +165,32 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   @Test
   void testEventStatus() {
-    assertEquals("psistatus", getSql("V{event_status}"));
+    assertEquals("eventstatus", getSql("V{event_status}"));
     assertEquals(
-        "(select psistatus from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and psistatus is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
+        "(select eventstatus from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and eventstatus is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) order by occurreddate desc limit 1 )",
         getSqlEnrollment("V{event_status}"));
   }
 
   @Test
   void testEventStatusWithComparison() {
-    assertEquals("psistatus = 'SCHEDULE'", getSql("V{event_status} == 'SCHEDULE'"));
+    assertEquals("eventstatus = 'SCHEDULE'", getSql("V{event_status} == 'SCHEDULE'"));
   }
 
   @Test
   void testEventCount() {
     assertEquals(
-        "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end", getSql("V{event_count}"));
+        "case when eventstatus in ('ACTIVE', 'COMPLETED') then 1 end", getSql("V{event_count}"));
     assertEquals(
-        "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end",
+        "case when eventstatus in ('ACTIVE', 'COMPLETED') then 1 end",
         getSqlEnrollment("V{event_count}"));
   }
 
   @Test
   void testScheduledEventCount() {
     assertEquals(
-        " case when psistatus = 'SCHEDULE' then 1 end ", getSql("V{scheduled_event_count}"));
+        " case when eventstatus = 'SCHEDULE' then 1 end ", getSql("V{scheduled_event_count}"));
     assertEquals(
-        " case when psistatus = 'SCHEDULE' then 1 end ",
+        " case when eventstatus = 'SCHEDULE' then 1 end ",
         getSqlEnrollment("V{scheduled_event_count}"));
   }
 
@@ -197,7 +198,7 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
   void testExecutionDate() {
     assertEquals("occurreddate", getSql("V{execution_date}"));
     assertEquals(
-        "(select occurreddate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and occurreddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and psistatus IN ('COMPLETED', 'ACTIVE') order by occurreddate desc limit 1 )",
+        "(select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and eventstatus IN ('COMPLETED', 'ACTIVE') order by occurreddate desc limit 1 )",
         getSqlEnrollment("V{execution_date}"));
   }
 
@@ -205,7 +206,7 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
   void testEventDate() {
     assertEquals("occurreddate", getSql("V{event_date}"));
     assertEquals(
-        "(select occurreddate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and occurreddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and psistatus IN ('COMPLETED', 'ACTIVE') order by occurreddate desc limit 1 )",
+        "(select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and eventstatus IN ('COMPLETED', 'ACTIVE') order by occurreddate desc limit 1 )",
         getSqlEnrollment("V{event_date}"));
   }
 
@@ -213,7 +214,7 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
   void testScheduledDate() {
     assertEquals("scheduleddate", getSql("V{scheduled_date}"));
     assertEquals(
-        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and scheduleddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and psistatus = 'SCHEDULE' order by occurreddate desc limit 1 )",
+        "(select scheduleddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and scheduleddate is not null and occurreddate < cast( '2020-02-01' as date ) and occurreddate >= cast( '2020-01-01' as date )  and eventstatus = 'SCHEDULE' order by occurreddate desc limit 1 )",
         getSqlEnrollment("V{scheduled_date}"));
   }
 
@@ -249,8 +250,8 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   @Test
   void testTeiCount() {
-    assertEquals("distinct tei", getSql("V{tei_count}"));
-    assertEquals("distinct tei", getSqlEnrollment("V{tei_count}"));
+    assertEquals("distinct trackedentity", getSql("V{tei_count}"));
+    assertEquals("distinct trackedentity", getSqlEnrollment("V{tei_count}"));
   }
 
   @Test
@@ -280,10 +281,6 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
         "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
         getSqlEnrollment("A{TEAttribute} + V{zero_pos_value_count}"));
   }
-
-  // -------------------------------------------------------------------------
-  // Get description
-  // -------------------------------------------------------------------------
 
   @Test
   void testOrgUnitCountDescription() {

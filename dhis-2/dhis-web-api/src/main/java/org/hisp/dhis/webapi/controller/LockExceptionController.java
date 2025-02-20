@@ -32,12 +32,12 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
@@ -51,11 +51,10 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -87,12 +86,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Tags("data")
 @Controller
-@RequestMapping(LockExceptionController.RESOURCE_PATH)
+@RequestMapping("/api/lockExceptions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class LockExceptionController extends AbstractGistReadOnlyController<LockException> {
-  public static final String RESOURCE_PATH = "/lockExceptions";
 
   @Autowired private ContextService contextService;
 
@@ -125,7 +123,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<LockException> lockExceptions = new ArrayList<>();
@@ -179,7 +177,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
@@ -272,7 +270,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       @RequestParam("ds") String dataSetId,
       HttpServletRequest request,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
     Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
@@ -289,8 +287,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     }
 
     if (!aclService.canDelete(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
-      throw new ReadAccessDeniedException(
-          "You don't have the proper permissions to delete this object.");
+      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
     if (organisationUnit != null) {
@@ -304,6 +301,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     return currentUser.isSuper()
         || currentUser.getOrganisationUnits().stream()
-            .anyMatch(ou -> captureTarget.getPath().startsWith(ou.getPath()));
+            .anyMatch(ou -> captureTarget.getStoredPath().startsWith(ou.getStoredPath()));
   }
 }

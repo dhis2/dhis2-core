@@ -28,18 +28,20 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfWriter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -49,17 +51,17 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,9 +72,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(
+    entity = DataEntryForm.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
-@RequestMapping(value = "/pdfForm")
+@RequestMapping("/api/pdfForm")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class PdfFormController {
   // -------------------------------------------------------------------------
@@ -107,8 +111,7 @@ public class PdfFormController {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PdfWriter writer = PdfWriter.getInstance(document, baos);
     PdfFormFontSettings pdfFormFontSettings =
-        new PdfFormFontSettings(
-            CurrentUserUtil.getUserSetting(UserSettingKey.UI_LOCALE, LocaleManager.DEFAULT_LOCALE));
+        new PdfFormFontSettings(UserSettings.getCurrentSettings().getUserUiLocale());
 
     PdfDataEntryFormUtil.setDefaultFooterOnDocument(
         document,
@@ -138,7 +141,7 @@ public class PdfFormController {
   }
 
   @PostMapping("/dataSet")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage sendFormPdfDataSet(HttpServletRequest request) throws Exception {
     JobConfiguration jobId =
@@ -147,15 +150,15 @@ public class PdfFormController {
             JobType.DATAVALUE_IMPORT,
             CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    notifier.clear(jobId);
-
     InputStream in = request.getInputStream();
 
     in = StreamUtils.wrapAndCheckCompressionFormat(in);
 
     ImportSummary summary =
         dataValueSetService.importDataValueSetPdf(
-            in, ImportOptions.getDefaultImportOptions(), jobId);
+            in,
+            ImportOptions.getDefaultImportOptions(),
+            RecordingJobProgress.transitory(jobId, notifier));
 
     return importSummary(summary);
   }

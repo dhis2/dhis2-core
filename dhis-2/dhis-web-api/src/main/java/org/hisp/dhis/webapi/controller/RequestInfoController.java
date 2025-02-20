@@ -44,10 +44,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/request")
+@RequestMapping("/api/request")
 @AllArgsConstructor
 public class RequestInfoController {
 

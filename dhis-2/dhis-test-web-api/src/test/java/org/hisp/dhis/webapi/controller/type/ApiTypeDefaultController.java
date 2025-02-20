@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.type;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Ignore
 @Controller
-@RequestMapping("/type/testDefault")
+@RequestMapping("/api/type/testDefault")
 @ApiVersion(DhisApiVersion.DEFAULT)
 public class ApiTypeDefaultController {
   @GetMapping

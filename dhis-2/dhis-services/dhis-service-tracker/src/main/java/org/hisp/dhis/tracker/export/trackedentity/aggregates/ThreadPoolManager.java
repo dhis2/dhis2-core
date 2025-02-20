@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author Luciano Fiandesio
  */
-public class ThreadPoolManager {
+class ThreadPoolManager {
   // Thread factory that sets a user-defined thread name (useful for debugging
   // purposes)
   private ThreadPoolManager() {
@@ -45,7 +45,7 @@ public class ThreadPoolManager {
   }
 
   private static final ThreadFactory threadFactory =
-      new ThreadFactoryBuilder().setNameFormat("TRACKER-TEI-FETCH-%d").setDaemon(true).build();
+      new ThreadFactoryBuilder().setNameFormat("TRACKER-TE-FETCH-%d").setDaemon(true).build();
 
   /** Cached thread pool: not bound to a size, but can reuse existing threads. */
   private static final Executor AGGREGATE_THREAD_POOL =

@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.analytics.AggregationType.MIN;
 import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -38,6 +34,10 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
+import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -60,11 +60,12 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -80,19 +81,14 @@ class JdbcSubexpressionQueryGeneratorTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Mock private QueryPlanner queryPlanner;
 
-  private JdbcAnalyticsManager jam;
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @InjectMocks private JdbcAnalyticsManager manager;
 
   /** Matches a UID with an initial single quote. */
   private static final Pattern QUOTED_UID = Pattern.compile("'\\w{11}'");
-
-  @BeforeAll
-  public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(partitionManager);
-
-    jam = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, sqlBuilder);
-  }
 
   @Test
   void testGetSql() {
@@ -147,7 +143,7 @@ class JdbcSubexpressionQueryGeneratorTest {
             .build();
 
     JdbcSubexpressionQueryGenerator target =
-        new JdbcSubexpressionQueryGenerator(jam, params, DATA_VALUE);
+        new JdbcSubexpressionQueryGenerator(manager, params, DATA_VALUE);
 
     String expected =
         "select ax.\"pe\",'subexprxUID' as \"dx\","

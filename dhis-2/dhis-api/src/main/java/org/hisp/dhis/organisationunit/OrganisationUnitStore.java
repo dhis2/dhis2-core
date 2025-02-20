@@ -30,8 +30,6 @@ package org.hisp.dhis.organisationunit;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -43,6 +41,31 @@ import org.hisp.dhis.program.Program;
  */
 public interface OrganisationUnitStore
     extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider {
+
+  /**
+   * Returns all OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all search scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getSearchOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all data view scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getDataViewOrganisationUnitsUidsByUser(String username);
+
   /**
    * Returns all OrganisationUnits by lastUpdated.
    *
@@ -69,6 +92,22 @@ public interface OrganisationUnitStore
   List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program);
 
   /**
+   * Retrieves organisation units associated with the given program uid.
+   *
+   * @param programUid the {@link Program} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getOrganisationUnitsByProgram(String programUid);
+
+  /**
+   * Retrieves organisation units associated with the given data set uid.
+   *
+   * @param dataSetUid the {@link DataSet} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid);
+
+  /**
    * Returns the count of OrganisationUnits which are part of the sub-hierarchy of the given parent
    * OrganisationUnit and members of the given object based on the collection of the given
    * collection name.
@@ -90,18 +129,6 @@ public interface OrganisationUnitStore
   List<OrganisationUnit> getOrganisationUnits(OrganisationUnitQueryParams params);
 
   /**
-   * Creates a mapping between organisation unit UID and set of data set UIDs being assigned to the
-   * organisation unit.
-   *
-   * @param organisationUnits the parent organisation units of the hierarchy to include, ignored if
-   *     null.
-   * @param dataSets the data set to include, ignored if null.
-   * @return a map of sets.
-   */
-  Map<String, Set<String>> getOrganisationUnitDataSetAssocationMap(
-      Collection<OrganisationUnit> organisationUnits, Collection<DataSet> dataSets);
-
-  /**
    * Retrieves the objects where its coordinate is within the 4 area points. 4 area points are Index
    * 0: Maximum latitude (north edge of box shape) Index 1: Maxium longitude (east edge of box
    * shape) Index 2: Minimum latitude (south edge of box shape) Index 3: Minumum longitude (west
@@ -112,8 +139,10 @@ public interface OrganisationUnitStore
    */
   List<OrganisationUnit> getWithinCoordinateArea(double[] box);
 
+  /** Updates the <code>path</code> property of all org units. */
   void updatePaths();
 
+  /** Explicitly updates the <code>path</code> property of all org units. */
   void forceUpdatePaths();
 
   /**
@@ -125,24 +154,17 @@ public interface OrganisationUnitStore
   int getMaxLevel();
 
   /**
-   * Check if the number of orgunits that satisfies the conditions in the queryParams is greater
-   * than the threshold provided. Note: groups, maxLevels and levels are not supported yet.
+   * Sets the geometry field for org units to null.
    *
-   * @param params The Org unit query params
-   * @param threshold the threshold count to check against
-   * @return true if the org units satisfying the params criteria is above the threshold, false
-   *     otherwise.
+   * @return then number of affected org units.
    */
-  boolean isOrgUnitCountAboveThreshold(OrganisationUnitQueryParams params, int threshold);
+  int updateAllOrganisationUnitsGeometryToNull();
 
   /**
-   * Get list of organisation unit uids satisfying the query params. Note: groups, maxLevels and
-   * levels are not supported yet.
+   * Get OrganisationUnits with refs to any of the CategoryOptions passed in
    *
-   * @param params The Org unit query params
-   * @return the list of org unit uids satisfying the params criteria
+   * @param categoryOptions categoryOptions refs
+   * @return OrganisationUnits with refs to any of the CategoryOptions passed in
    */
-  List<String> getOrganisationUnitUids(OrganisationUnitQueryParams params);
-
-  int updateAllOrganisationUnitsGeometryToNull();
+  List<OrganisationUnit> getByCategoryOption(Collection<String> categoryOptions);
 }

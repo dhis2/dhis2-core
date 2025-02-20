@@ -40,7 +40,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E2210;
 import static org.hisp.dhis.feedback.ErrorCode.E2211;
 import static org.hisp.dhis.feedback.ErrorCode.E2212;
 import static org.hisp.dhis.feedback.ErrorCode.E2213;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /** OutlierDetectionRequest validator. */
@@ -59,7 +58,7 @@ public class OutlierRequestValidator {
 
   public static final int DEFAULT_LIMIT = 500;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Validates the given request.
@@ -82,9 +81,7 @@ public class OutlierRequestValidator {
 
   private ErrorMessage validateForErrorMessage(OutlierRequest request, boolean isAnalytics) {
     int maxLimit =
-        isAnalytics
-            ? systemSettingManager.getSystemSetting(ANALYTICS_MAX_LIMIT, Integer.class)
-            : DEFAULT_LIMIT;
+        isAnalytics ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit() : DEFAULT_LIMIT;
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 
     if (errorMessage != null) {

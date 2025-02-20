@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.data;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -62,17 +61,24 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests analytics with {@see QueryModifiers}.
  *
  * @author Jim Grace
  */
-class AnalyticsServiceQueryModifiersTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
   @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
   @Autowired private DataElementService dataElementService;
@@ -107,12 +113,8 @@ class AnalyticsServiceQueryModifiersTest extends SingleSetupIntegrationTestBase 
 
   List<String> result;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void setUpTest() throws IOException, InterruptedException {
+  @BeforeAll
+  void setUp() {
     jan = createPeriod("2022-01");
     feb = createPeriod("2022-02");
     mar = createPeriod("2022-03");
@@ -178,21 +180,17 @@ class AnalyticsServiceQueryModifiersTest extends SingleSetupIntegrationTestBase 
         Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
 
     // Generate analytics tables
-    analyticsTableGenerator.generateTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
-        NoopJobProgress.INSTANCE);
+    analyticsTableGenerator.generateAnalyticsTables(
+        AnalyticsTableUpdateParams.newBuilder().startTime(oneSecondFromNow).build(),
+        JobProgress.noop());
   }
 
-  @Override
-  public void tearDownTest() {
+  @AfterAll
+  void tearDown() {
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }
   }
-
-  // -------------------------------------------------------------------------
-  // aggregationType
-  // -------------------------------------------------------------------------
 
   @Test
   void testNoAggregationType() {
@@ -265,10 +263,6 @@ class AnalyticsServiceQueryModifiersTest extends SingleSetupIntegrationTestBase 
     assertEquals(expected, result);
   }
 
-  // -------------------------------------------------------------------------
-  // periodOffset
-  // -------------------------------------------------------------------------
-
   @Test
   void testSimplePeriodOffset() {
     expected = List.of("inabcdefghA-202202-1.0", "inabcdefghA-202203-2.0");
@@ -320,10 +314,6 @@ class AnalyticsServiceQueryModifiersTest extends SingleSetupIntegrationTestBase 
 
     assertEquals(expected, result);
   }
-
-  // -------------------------------------------------------------------------
-  // minDate and maxDate
-  // -------------------------------------------------------------------------
 
   @Test
   void testMinDate() {

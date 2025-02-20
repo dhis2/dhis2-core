@@ -121,7 +121,7 @@ class TrackedAttributeValidationServiceTest {
     tea.setValueType(ValueType.DATE);
     assertThrows(
         IllegalFieldValueException.class,
-        () -> assertNotNull(trackedEntityAttributeService.validateValueType(tea, "1970-01-32")));
+        () -> trackedEntityAttributeService.validateValueType(tea, "1970-01-32"));
   }
 
   @Test

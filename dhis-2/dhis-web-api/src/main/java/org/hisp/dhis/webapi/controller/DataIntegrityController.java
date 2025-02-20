@@ -28,10 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -46,19 +49,18 @@ import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,33 +73,35 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataIntegrityCheck.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
-@RequestMapping("/dataIntegrity")
+@RequestMapping("/api/dataIntegrity")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class DataIntegrityController {
 
   private final DataIntegrityService dataIntegrityService;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  private final JobExecutionService jobExecutionService;
+
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping
   @ResponseBody
   public WebMessage runDataIntegrity(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
-    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.REPORT)
+    return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
   private WebMessage runDataIntegrityAsync(
       @Nonnull Set<String> checks, UserDetails currentUser, DataIntegrityReportType type)
-      throws ConflictException, NotFoundException {
+      throws ConflictException {
     JobType jobType =
         type == DataIntegrityReportType.DETAILS
             ? JobType.DATA_INTEGRITY_DETAILS
@@ -110,7 +114,7 @@ public class DataIntegrityController {
             : new DataIntegrityJobParameters(type, checks);
     config.setJobParameters(parameters);
 
-    jobSchedulerService.executeNow(jobConfigurationService.create(config));
+    jobExecutionService.executeOnceNow(config);
 
     return jobConfigurationReport(config);
   }
@@ -143,7 +147,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getCompletedSummaryChecks();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/summary")
   @ResponseBody
   public Map<String, DataIntegritySummary> getSummaries(
@@ -152,14 +156,80 @@ public class DataIntegrityController {
     return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  /**
+   * Handles the GET request to retrieve data integrity check metrics in Prometheus format. All
+   * checks present in the cache are returned.
+   *
+   * @return A string containing the metrics in Prometheus format.
+   */
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
+  @ResponseBody
+  public String getSummariesMetrics() {
+    // Get everything which is in the cache
+    Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
+
+    Map<String, Integer> countMetrics = new HashMap<>();
+    Map<String, Double> percentMetrics = new HashMap<>();
+    Map<String, Long> durationMetrics = new HashMap<>();
+    Map<String, String> metricLabels = new HashMap<>();
+
+    Collection<DataIntegrityCheck> checks = dataIntegrityService.getDataIntegrityChecks(Set.of());
+
+    summaries.forEach(
+        (key, summary) -> {
+          DataIntegrityCheck check =
+              checks.stream().filter(c -> c.getName().equals(key)).findFirst().orElse(null);
+          if (check != null) {
+            String severity = check.getSeverity().name();
+            String objectType = check.getIssuesIdType();
+            StringBuilder metricLabel = new StringBuilder();
+            metricLabel.append(
+                "check=\"%s\",severity=\"%s\",object_type=\"%s\""
+                    .formatted(key, severity, objectType));
+            countMetrics.put(key, summary.getCount());
+            metricLabels.put(key, metricLabel.toString());
+            // Percentage might not be present
+            if (summary.getPercentage() != null) {
+              percentMetrics.put(key, summary.getPercentage());
+            }
+            long duration = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
+            durationMetrics.put(key, duration);
+          }
+        });
+    metrics.updateMetricsWithLabelsMap(
+        countMetrics,
+        "dhis_data_integrity_issues_count_total",
+        metricLabels,
+        "Data integrity check counts",
+        "gauge");
+
+    metrics.updateMetricsWithLabelsMap(
+        percentMetrics,
+        "dhis_data_integrity_issues_percentage",
+        metricLabels,
+        "Data integrity check percentages",
+        "gauge");
+
+    metrics.updateMetricsWithLabelsMap(
+        durationMetrics,
+        "dhis_data_integrity_check_duration_milliseconds",
+        metricLabels,
+        "Data integrity check durations",
+        "gauge");
+
+    return metrics.getMetrics();
+  }
+
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("/summary")
   @ResponseBody
   public WebMessage runSummariesCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @CheckForNull @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.SUMMARY)
         .setLocation("/dataIntegrity/summary?checks=" + toChecksList(names));
@@ -177,7 +247,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getCompletedDetailsChecks();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/details")
   @ResponseBody
   public Map<String, DataIntegrityDetails> getDetails(
@@ -186,20 +256,20 @@ public class DataIntegrityController {
     return dataIntegrityService.getDetails(getCheckNames(checks), timeout);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("/details")
   @ResponseBody
   public WebMessage runDetailsCheck(
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
     Set<String> names = getCheckNames(checksBody, checks);
     return runDataIntegrityAsync(names, currentUser, DataIntegrityReportType.DETAILS)
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/{check}/summary")
   @ResponseBody
   public DataIntegritySummary getSummary(
@@ -210,7 +280,7 @@ public class DataIntegrityController {
     return summaries.isEmpty() ? null : summaries.iterator().next();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/{check}/details")
   @ResponseBody
   public DataIntegrityDetails getDetails(

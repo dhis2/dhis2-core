@@ -39,9 +39,9 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,7 +60,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
   @ValueSource(strings = {"OPEN", "INVALID", "MERGED"})
   public void shouldFilterByStatus(String status) {
     potentialDuplicatesActions.createAndValidatePotentialDuplicate(
-        createTei(), createTei(), status);
+        createTrackedEntity(), createTrackedEntity(), status);
 
     potentialDuplicatesActions
         .get("", new QueryParamsBuilder().add("status=" + status))
@@ -73,10 +73,9 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
   public void shouldReturnAllStatuses() {
     Arrays.asList("OPEN", "MERGED", "INVALID")
         .forEach(
-            status -> {
-              potentialDuplicatesActions.createAndValidatePotentialDuplicate(
-                  createTei(), createTei(), status);
-            });
+            status ->
+                potentialDuplicatesActions.createAndValidatePotentialDuplicate(
+                    createTrackedEntity(), createTrackedEntity(), status));
 
     potentialDuplicatesActions
         .get("", new QueryParamsBuilder().add("status=ALL"))
@@ -88,9 +87,9 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
   }
 
   @Test
-  public void shouldRequireBothTeis() {
+  public void shouldRequireBothTrackedEntitys() {
     potentialDuplicatesActions
-        .postPotentialDuplicate(null, createTei(), "OPEN")
+        .postPotentialDuplicate(null, createTrackedEntity(), "OPEN")
         .validate()
         .statusCode(equalTo(400))
         .body("status", equalTo("ERROR"))
@@ -101,7 +100,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
   @ValueSource(strings = {"ALL", "INVALID", "MERGED"})
   public void shouldNotCreateWithStatusNotAllowed(String status) {
     potentialDuplicatesActions
-        .postPotentialDuplicate(createTei(), createTei(), status)
+        .postPotentialDuplicate(createTrackedEntity(), createTrackedEntity(), status)
         .validate()
         .statusCode(equalTo(409))
         .body("httpStatus", equalTo("Conflict"))
@@ -112,7 +111,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
   public void shouldNotUpdateToMerged() {
     String duplicateId =
         potentialDuplicatesActions.createAndValidatePotentialDuplicate(
-            createTei(), createTei(), "OPEN");
+            createTrackedEntity(), createTrackedEntity(), "OPEN");
 
     ApiResponse response =
         potentialDuplicatesActions.update(
@@ -122,15 +121,15 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
   }
 
   @Test
-  public void shouldGetAllTeiPotentialDuplicatesWhenPaginationIsNotRequested() {
-    String tei = createTei();
+  public void shouldGetAllTrackedEntityPotentialDuplicatesWhenPaginationIsNotRequested() {
+    String te = createTrackedEntity();
 
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(createTei(), tei);
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(createTrackedEntity(), te);
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
 
     potentialDuplicatesActions
-        .get(new QueryParamsBuilder().add("trackedEntities=" + tei).add("skipPaging=true"))
+        .get(new QueryParamsBuilder().add("trackedEntities=" + te).add("paging=false"))
         .validate()
         .body("potentialDuplicates", hasSize(equalTo(3)))
         .body("potentialDuplicates.status", allOf(hasItem("OPEN")));
@@ -138,21 +137,21 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
 
   @Test
   public void shouldGetSortedPotentialDuplicatesWhenOrderAndPagingIsRequested() {
-    String tei = createTei();
-    String firstDuplicate = createTei();
-    String secondDuplicate = createTei();
+    String te = createTrackedEntity();
+    String firstDuplicate = createTrackedEntity();
+    String secondDuplicate = createTrackedEntity();
 
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, firstDuplicate);
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, secondDuplicate);
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, firstDuplicate);
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, secondDuplicate);
 
     JsonObject response =
         potentialDuplicatesActions
             .get(
                 new QueryParamsBuilder()
-                    .add("teis=" + tei)
+                    .add("teis=" + te)
                     .add("order=created:DESC")
                     .add("pageSize=2")
                     .add("page=1"))
@@ -165,11 +164,11 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
                 .addArray(
                     "potentialDuplicates",
                     new JsonObjectBuilder()
-                        .addProperty("original", tei)
+                        .addProperty("original", te)
                         .addProperty("duplicate", secondDuplicate)
                         .build(),
                     new JsonObjectBuilder()
-                        .addProperty("original", tei)
+                        .addProperty("original", te)
                         .addProperty("duplicate", firstDuplicate)
                         .build())
                 .build()));
@@ -177,12 +176,12 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
 
   @Test
   public void shouldGetBadRequestWhenWrongOrderField() {
-    String tei = createTei();
-    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
+    String te = createTrackedEntity();
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
 
     assertThat(
         potentialDuplicatesActions
-            .get(new QueryParamsBuilder().add("teis=" + tei).add("order=creatd:DESC"))
+            .get(new QueryParamsBuilder().add("teis=" + te).add("order=creatd:DESC"))
             .statusCode(),
         equalTo(400));
   }

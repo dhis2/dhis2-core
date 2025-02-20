@@ -29,7 +29,6 @@ package org.hisp.dhis.hibernate;
 
 import java.util.Objects;
 import org.hibernate.Hibernate;
-import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -54,16 +53,5 @@ public class HibernateProxyUtils {
   @SuppressWarnings({"unchecked"})
   public static <T> T unproxy(T proxy) {
     return (T) Hibernate.unproxy(proxy);
-  }
-
-  public static <T> void initializeAndUnproxy(T entity) {
-    if (entity == null) {
-      return;
-    }
-
-    Hibernate.initialize(entity);
-    if (entity instanceof HibernateProxy) {
-      ((HibernateProxy) entity).getHibernateLazyInitializer().getImplementation();
-    }
   }
 }

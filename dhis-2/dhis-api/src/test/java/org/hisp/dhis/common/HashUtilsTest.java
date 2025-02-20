@@ -37,6 +37,21 @@ import org.junit.jupiter.api.Test;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class HashUtilsTest {
+
+  @Test
+  void testMd5Hex() {
+    String value = "10-05-2022T12:55:45";
+    assertEquals(32, HashUtils.hashMD5(value.getBytes()).length());
+    assertEquals("c149820871470e3ab15eb24d42b3561a", HashUtils.hashMD5(value.getBytes()));
+  }
+
+  @Test
+  void testSha1Hex() {
+    String value = "/api/me";
+    assertEquals(40, HashUtils.hashSHA1(value.getBytes()).length());
+    assertEquals("4f8cc3f306852ecb642ba4375453be1a4b860e71", HashUtils.hashSHA1(value.getBytes()));
+  }
+
   @Test
   void testIsValidSHA256HexFormat() {
     String validSHA256Hex = "635e253fddd8466788d9580983bda99c258e9dd8c5a60a032623fde6c3a2789d";

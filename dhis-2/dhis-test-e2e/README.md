@@ -140,16 +140,16 @@ how often the request was made.
 Note: if you run the tests inside a Docker container you will need to make sure to either write
 the file to a mounted volume or copy it out of the container. Otherwise, it will be deleted with the
 container.
- 
+
 ## Writing Tests
 
 ### Actions
- 
+
 For convenience, every REST endpoint should be represented by object of type RestApiActions. RestApiActions class will provide way of sending different types of requests and will control keeping track of created or deleted data.
- 
- *Examples*: 
+
+ *Examples*:
  1) endpoint that doesn't require any specific actions:
- 
+
  > private RestApiActions optionSetActions = new RestApiActions("/optionSets");
 
 ### Connecting to Selenium Grid (for debugging)
@@ -160,32 +160,32 @@ http://selenium:7900/?autoconnect=1&resize=scale&password=secret
 
 We have the capability to auto-generate analytics e2e tests.
 The class located at `src/test/java/org/hisp/dhis/analytics/generator/Main.java`
-can be executed in order to generate e2e tests based on the URL(s) present in `src/test/java/org/hisp/dhis/analytics/generator/test-urls.txt`
+can be executed in order to generate e2e tests based on the URL(s)/queries present in `src/test/java/org/hisp/dhis/analytics/generator/scenarios`
 
 There are a few different generators available. The usage of the correct one depends on the URL/API to be tested.
 Based on the URL/API, the respective generator implementation should be set at `src/test/java/org/hisp/dhis/analytics/generator/TestGenerator.java`.
 Currently, the supported generators are (along with their respective accepted URL format):
 
 ```
-AnalyticsAggregatedTestGenerator.java -> /analytics?
-EnrollmentQueryTestGenerator.java -> /analytics/enrollments/query/{program}.json?
-EnrollmentAggregatedTestGenerator.java -> /analytics/enrollments/aggregate/{program}.json?
-EventAggregatedTestGenerator.java -> /analytics/events/aggregate/{program}.json?
-EventQueryTestGenerator.java -> /analytics/events/query/{program}.json?
-TeiQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
+AnalyticsAggregatedGenerator.java -> /analytics?
+EnrollmentQueryGenerator.java -> /analytics/enrollments/query/{program}.json?
+EnrollmentAggregatedGenerator.java -> /analytics/enrollments/aggregate/{program}.json?
+EventAggregatedGenerator.java -> /analytics/events/aggregate/{program}.json?
+EventQueryGenerator.java -> /analytics/events/query/{program}.json?
+TrackedEntityQueryGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
+OutlierDetectionGenerator.java -> /analytics/outlierDetection?
 ```
 _**NOTE**_: The `.json` extension in some URLs above. It's mandatory for all cases where we expect and `uid` of the respective entity/object.
 
 ### How to generate the test(s)
-1. Add the URL(s) into `test-urls.txt` (check inside the file for examples)
-2. Define the generator implementation to use, in `TestGenerator.java`
+1. Add the URL(s) into the respective `<scenario-file>.json`
+2. Define the generator implementation to use, in `TestGenerator.java`, and the scenario(s) to be tested
 3. Go to the class `Main.java` and run it from your IDE
-4. Check the generated file(s) at the root level
+4. Check the generated file(s) in the folder `src/test/java/org/hisp/dhis/analytics/generator/output`
 
 _**NOTE**_: You need to ensure that the URL(s) you have defined is pointing to a DHIS2 instance
-that is up and running. The tests are based on the request/response of each URL.
+that is up and running. The tests are based on the request/response of each URL. The server and user/password settings are defined in `src/main/resources/config.properties`.
 
 **Important**: This generator only supports "happy" paths at the moment. In order to test validation
-errors or invalid requests, one should implement them programmatically. Also, if multiple URL(s) are defined
-in the `test-urls.txt` file, they must have the same format - remember that the implementation of the generator
-must match the URL(s) format expected, and we can pick only one generator at time.
+errors or invalid requests, one should implement them programmatically. Remember that the implementation of the generator
+must match the URL(s)/queries format expected, and we can pick only one generator at time.

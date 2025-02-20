@@ -27,16 +27,12 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
-import org.hisp.dhis.category.CategoryService;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -45,9 +41,9 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,50 +57,35 @@ public class UnregisteredSMSListener extends CommandSMSListener {
   private final MessageService messageService;
 
   public UnregisteredSMSListener(
-      EnrollmentService enrollmentService,
-      CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       UserService userService1,
       MessageService messageService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
-    checkNotNull(smsCommandService);
-    checkNotNull(userService);
-    checkNotNull(messageService);
-
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.userService = userService1;
     this.messageService = messageService;
   }
 
-  // -------------------------------------------------------------------------
-  // IncomingSmsListener implementation
-  // -------------------------------------------------------------------------
-
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.UNREGISTERED_PARSER);
   }
 
   @Override
-  protected boolean hasCorrectFormat(IncomingSms sms, SMSCommand smsCommand) {
+  protected boolean hasCorrectFormat(@Nonnull IncomingSms sms, @Nonnull SMSCommand smsCommand) {
     return true;
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     UserGroup userGroup = smsCommand.getUserGroup();
 
     String userName = sms.getOriginator();

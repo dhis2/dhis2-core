@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
-import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.fromFullDimensionId;
@@ -42,16 +41,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 
 @Getter
 @RequiredArgsConstructor
 public enum DimensionParamType {
-  DIMENSIONS(CommonQueryRequest::getDimension),
-  FILTERS(CommonQueryRequest::getFilter),
-  HEADERS(CommonQueryRequest::getHeaders),
+  DIMENSIONS(CommonRequestParams::getAllDimensions),
+  FILTERS(CommonRequestParams::getFilter),
+  HEADERS(CommonRequestParams::getHeaders),
   DATE_FILTERS(
       commonQueryRequest ->
           Arrays.stream(AnalyticsDateFilter.values())
@@ -76,9 +76,11 @@ public enum DimensionParamType {
               .collect(Collectors.toList()));
 
   private static List<String> parseDate(
-      CommonQueryRequest commonQueryRequest, AnalyticsDateFilter analyticsDateFilter) {
+      CommonRequestParams commonRequestParams, AnalyticsDateFilter analyticsDateFilter) {
 
-    return emptyIfNull(analyticsDateFilter.getTeiExtractor().apply(commonQueryRequest)).stream()
+    return SetUtils.emptyIfNull(
+            analyticsDateFilter.getTrackedEntityExtractor().apply(commonRequestParams))
+        .stream()
         .filter(StringUtils::isNotEmpty)
         .map(df -> df.split(";"))
         .flatMap(Arrays::stream)
@@ -109,6 +111,8 @@ public enum DimensionParamType {
     return String.join(":", dimensionIdentifier.toString(), period, analyticsDateFilter.name());
   }
 
-  /** Getter method that retrieves the dimensions or filters from the {@link CommonQueryRequest}. */
-  private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
+  /**
+   * Getter method that retrieves the dimensions or filters from the {@link CommonRequestParams}.
+   */
+  private final Function<CommonRequestParams, Collection<String>> uidsGetter;
 }

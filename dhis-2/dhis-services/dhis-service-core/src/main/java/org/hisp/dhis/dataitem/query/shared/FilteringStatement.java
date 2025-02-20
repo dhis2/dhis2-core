@@ -38,6 +38,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_SET_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
@@ -90,6 +91,22 @@ public class FilteringStatement {
   public static String programIdFiltering(String column, MapSqlParameterSource paramsMap) {
     if (hasNonBlankStringPresence(paramsMap, PROGRAM_ID)) {
       return equalsFiltering(column, PROGRAM_ID);
+    }
+
+    return EMPTY;
+  }
+
+  /**
+   * Returns a SQL string related to optionSetId equality to be reused as part of data items
+   * optionSetId filtering.
+   *
+   * @param column the uid column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String optionSetIdFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, OPTION_SET_ID)) {
+      return equalsFiltering(column, OPTION_SET_ID);
     }
 
     return EMPTY;
@@ -197,6 +214,27 @@ public class FilteringStatement {
       String columnOne, String columnTwo, MapSqlParameterSource paramsMap) {
     if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
       return ilikeOrFiltering(columnOne, columnTwo, DISPLAY_NAME);
+    }
+
+    return EMPTY;
+  }
+
+  /**
+   * Returns a SQL string related to 'displayName' "ilike" comparison to be reused as part of data
+   * items 'displayName' filtering. It required two columns so it can compare two different
+   * displayNames. It will always use 'or' condition, which translates to "columnOne ilike
+   * :displayName OR columnTwo ilike :displayName".
+   *
+   * @param columnOne the displayName's first column
+   * @param columnTwo the displayName's second column
+   * @param columnThree the displayName's three column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayNameFiltering(
+      String columnOne, String columnTwo, String columnThree, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, columnThree, DISPLAY_NAME);
     }
 
     return EMPTY;

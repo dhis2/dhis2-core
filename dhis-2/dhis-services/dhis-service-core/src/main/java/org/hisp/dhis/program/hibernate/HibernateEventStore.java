@@ -27,29 +27,18 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import java.util.ArrayList;
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.query.Query;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -57,15 +46,10 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew
  */
+@Slf4j
 @Repository("org.hisp.dhis.program.EventStore")
 public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     implements EventStore {
-  private static final String EVENT_HQL_BY_UIDS = "from Event as ev where ev.uid in (:uids)";
-
-  private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
-      Sets.intersection(
-          NotificationTrigger.getAllApplicableToEvent(),
-          NotificationTrigger.getAllScheduledTriggers());
 
   public HibernateEventStore(
       EntityManager entityManager,
@@ -76,151 +60,99 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
   }
 
   @Override
-  public List<Event> get(Collection<Enrollment> enrollments, EventStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement) {
+    if (sourceDataElements.isEmpty()) return;
+    String sourceUidsInSingleQuotesString =
+        sourceDataElements.stream()
+            .map(uid -> SqlUtils.singleQuote(uid.getValue()))
+            .collect(Collectors.joining(","));
+    String sourceUidsString =
+        sourceDataElements.stream().map(UID::getValue).collect(Collectors.joining(","));
 
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("status"), status))
-            .addPredicate(root -> root.get("enrollment").in(enrollments)));
+    String sql =
+        """
+        do
+        $$
+        declare
+          source_event record;
+          lastupdated_dv jsonb;
+          target_de varchar default '%s';
+        begin
+
+          -- loop through each event that has a source DataElement in its event data values json
+          for source_event in
+            select eventid, eventdatavalues from event, jsonb_each(eventdatavalues)
+            where key in (%s)
+            loop
+
+            -- get last updated data value for the event data value set (sources + target)
+            select value
+              into lastupdated_dv
+              from jsonb_each(source_event.eventdatavalues)
+            WHERE key IN (%s)
+            order by DATE(value ->> 'lastUpdated') desc
+            limit 1;
+
+            -- use the last updated value as the new value for the target key
+            -- this will override any value for the target key if it is already present
+            update event
+            set eventdatavalues = jsonb_set(eventdatavalues, '{%s}', lastupdated_dv)
+            where event.eventid = source_event.eventid;
+
+            -- remove all source key values as no longer needed
+            update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
+            where event.eventid = source_event.eventid;
+
+          end loop;
+        end;
+        $$
+        language plpgsql;
+        """
+            .formatted(
+                targetDataElement.getValue(),
+                sourceUidsInSingleQuotesString,
+                sourceUidsInSingleQuotesString
+                    + ","
+                    + SqlUtils.singleQuote(targetDataElement.getValue()),
+                targetDataElement.getValue(),
+                sourceUidsString);
+
+    log.debug("Event data values merging SQL query to be used: \n{}", sql);
+    jdbcTemplate.update(sql);
   }
 
   @Override
-  public List<Event> get(TrackedEntity trackedEntity, EventStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements) {
+    if (sourceDataElements.isEmpty()) return;
+    String sourceUidsInSingleQuotesString =
+        sourceDataElements.stream()
+            .map(uid -> SqlUtils.singleQuote(uid.getValue()))
+            .collect(Collectors.joining(","));
+    String sourceUidsString =
+        sourceDataElements.stream().map(UID::getValue).collect(Collectors.joining(","));
 
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("status"), status))
-            .addPredicate(
-                root ->
-                    builder.equal(root.join("enrollment").get("trackedEntity"), trackedEntity)));
+    String sql =
+        """
+        update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
+        where eventdatavalues::jsonb ?| array[%s];
+        """
+            .formatted(sourceUidsString, sourceUidsInSingleQuotesString);
+    log.debug("Event data values deleting SQL query to be used: \n{}", sql);
+    jdbcTemplate.update(sql);
   }
 
   @Override
-  public long getEventCountLastUpdatedAfter(Date time) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public void setAttributeOptionCombo(Set<Long> cocs, long coc) {
+    if (cocs.isEmpty()) return;
+    String sql =
+        """
+        update event
+        set attributeoptioncomboid = %s
+        where attributeoptioncomboid in (%s)
+        """
+            .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
-    return getCount(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.greaterThanOrEqualTo(root.get("lastUpdated"), time))
-            .count(builder::countDistinct));
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query =
-        getSession()
-            .createNativeQuery(
-                "select exists(select 1 from event where uid=:uid and deleted is false)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public boolean existsIncludingDeleted(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query =
-        getSession().createNativeQuery("select exists(select 1 from event where uid=:uid)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public List<String> getUidsIncludingDeleted(List<String> uids) {
-    final String hql = "select ev.uid " + EVENT_HQL_BY_UIDS;
-    List<String> resultUids = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        resultUids.addAll(
-            getSession().createQuery(hql, String.class).setParameter("uids", uidsPartition).list());
-      }
-    }
-
-    return resultUids;
-  }
-
-  @Override
-  public List<Event> getIncludingDeleted(List<String> uids) {
-    List<Event> events = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        events.addAll(
-            getSession()
-                .createQuery(EVENT_HQL_BY_UIDS, Event.class)
-                .setParameter("uids", uidsPartition)
-                .list());
-      }
-    }
-
-    return events;
-  }
-
-  @Override
-  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
-    String hql = "update Event set lastSynchronized = :lastSynchronized WHERE uid in :events";
-
-    getQuery(hql)
-        .setParameter("lastSynchronized", lastSynchronized)
-        .setParameter("events", eventUids)
-        .executeUpdate();
-  }
-
-  @Override
-  public List<Event> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate) {
-    if (notificationDate == null
-        || !SCHEDULED_EVENT_TRIGGERS.contains(template.getNotificationTrigger())) {
-      return Lists.newArrayList();
-    }
-
-    if (template.getRelativeScheduledDays() == null) {
-      return Lists.newArrayList();
-    }
-
-    Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
-
-    String hql =
-        "select distinct ev from Event as ev "
-            + "inner join ev.programStage as ps "
-            + "where :notificationTemplate in elements(ps.notificationTemplates) "
-            + "and ev.scheduledDate is not null "
-            + "and ev.occurredDate is null "
-            + "and ev.status != :skippedEventStatus "
-            + "and cast(:targetDate as date) = ev.scheduledDate "
-            + "and ev.deleted is false";
-
-    return getQuery(hql)
-        .setParameter("notificationTemplate", template)
-        .setParameter("skippedEventStatus", EventStatus.SKIPPED)
-        .setParameter("targetDate", targetDate)
-        .list();
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Event>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Event postProcessObject(Event event) {
-    return (event == null || event.isDeleted()) ? null : event;
+    entityManager.createNativeQuery(sql).executeUpdate();
   }
 }

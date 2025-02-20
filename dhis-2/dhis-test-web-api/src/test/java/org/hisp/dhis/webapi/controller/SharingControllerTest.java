@@ -27,27 +27,30 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOption;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonCategoryOption;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SharingController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class SharingControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class SharingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPutSharing() {
@@ -153,7 +156,7 @@ class SharingControllerTest extends DhisControllerConvenienceTest {
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.OK);
     switchToNewUser("A", "test");
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.FORBIDDEN);
-    switchToSuperuser();
+    switchToAdminUser();
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.OK);
   }
 
@@ -173,7 +176,7 @@ class SharingControllerTest extends DhisControllerConvenienceTest {
         "The lastUpdatedBy value should match the user who just created the object");
 
     // when a different user updates it
-    switchToSuperuser();
+    switchToAdminUser();
     PUT("/sharing?type=categoryOption&id=xYerKDKCef1", sharingPrivate()).content(HttpStatus.OK);
 
     // then

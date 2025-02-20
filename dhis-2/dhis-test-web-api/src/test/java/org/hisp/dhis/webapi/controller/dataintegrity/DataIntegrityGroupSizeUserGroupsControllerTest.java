@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the metadata check for category option groups which have fewer than two members. {@see
@@ -44,8 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-  @Autowired UserService userService;
-
   private static final String check = "user_groups_scarce";
 
   private static final String detailsIdType = "userGroups";
@@ -54,7 +50,6 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
 
   @Test
   void testUserGroupsScarce() {
-
     setUpTest();
 
     String userGroupB =
@@ -106,7 +101,6 @@ class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegri
   }
 
   void setUpTest() {
-
     bill = createUser("Bill");
     User mary = createUser("Mary");
 

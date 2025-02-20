@@ -40,16 +40,18 @@ import java.util.stream.IntStream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.util.Timer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AuditRepositoryTest extends TransactionalIntegrationTest {
+@Transactional
+class AuditRepositoryTest extends PostgresIntegrationTestBase {
 
   @Autowired private AuditRepository auditRepository;
 

@@ -68,7 +68,9 @@ class DashboardControllerTest {
 
   @InjectMocks private DashboardController dashboardController;
 
-  private static final String ENDPOINT = "/dashboards/q";
+  private static final String BASE_ENDPOINT_URL = "/api/dashboards";
+
+  private static final String QUERY_ENDPOINT = BASE_ENDPOINT_URL + "/q";
 
   @BeforeEach
   public void setUp() {
@@ -77,21 +79,23 @@ class DashboardControllerTest {
 
   @Test
   void verifyEndpointWithNoArgs() throws Exception {
-    mockMvc.perform(get(ENDPOINT)).andExpect(status().isOk());
+    mockMvc.perform(get(QUERY_ENDPOINT)).andExpect(status().isOk());
 
     verify(dashboardService).search(null, null, null);
   }
 
   @Test
   void verifyEndpointWithSearchParameterArgs() throws Exception {
-    mockMvc.perform(get(new URI("/dashboards/search?q=HIV%2FTB"))).andExpect(status().isOk());
+    mockMvc
+        .perform(get(new URI(BASE_ENDPOINT_URL + "/search?q=HIV%2FTB")))
+        .andExpect(status().isOk());
 
     verify(dashboardService).search("HIV/TB", null, null, null);
   }
 
   @Test
   void verifyEndpointWithMaxArg() throws Exception {
-    mockMvc.perform(get(ENDPOINT).param("max", "VISUALIZATION")).andExpect(status().isOk());
+    mockMvc.perform(get(QUERY_ENDPOINT).param("max", "VISUALIZATION")).andExpect(status().isOk());
 
     verify(dashboardService).search(Sets.newHashSet(DashboardItemType.VISUALIZATION), null, null);
   }
@@ -100,7 +104,7 @@ class DashboardControllerTest {
   void verifyEndpointWithAllArg() throws Exception {
     mockMvc
         .perform(
-            get(ENDPOINT)
+            get(QUERY_ENDPOINT)
                 .param("max", "VISUALIZATION")
                 .param("count", "10")
                 .param("maxCount", "20"))
@@ -111,7 +115,7 @@ class DashboardControllerTest {
 
   @Test
   void verifyEndpointWithSearchQueryWithNoArgs() throws Exception {
-    mockMvc.perform(get(ENDPOINT + "/alfa")).andExpect(status().isOk());
+    mockMvc.perform(get(QUERY_ENDPOINT + "/alfa")).andExpect(status().isOk());
 
     verify(dashboardService).search("alfa", null, null, null);
   }
@@ -119,7 +123,7 @@ class DashboardControllerTest {
   @Test
   void verifyEndpointWithSearchQueryWithMaxArg() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/alfa").param("max", "VISUALIZATION"))
+        .perform(get(QUERY_ENDPOINT + "/alfa").param("max", "VISUALIZATION"))
         .andExpect(status().isOk());
 
     verify(dashboardService)
@@ -130,7 +134,7 @@ class DashboardControllerTest {
   void verifyEndpointWithSearchQueryWithAllArg() throws Exception {
     mockMvc
         .perform(
-            get(ENDPOINT + "/alfa")
+            get(QUERY_ENDPOINT + "/alfa")
                 .param("max", "VISUALIZATION")
                 .param("count", "10")
                 .param("maxCount", "20"))

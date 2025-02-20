@@ -27,30 +27,33 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class LockExceptionStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class LockExceptionStoreTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private PeriodStore periodStore;
 
   @Autowired private LockExceptionStore store;
-  @PersistenceContext private EntityManager entityManager;
 
   private PeriodType pt;
 
@@ -66,8 +69,8 @@ class LockExceptionStoreTest extends SingleSetupIntegrationTestBase {
 
   private DataSet dsC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     pt = periodStore.getPeriodType(MonthlyPeriodType.class);
     pA = createPeriod(pt, getDate(2021, 1, 1), getDate(2021, 1, 31));
     periodStore.addPeriod(pA);

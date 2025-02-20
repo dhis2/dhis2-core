@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -316,6 +317,7 @@ public class DashboardItem extends BaseIdentifiableObject implements EmbeddedObj
     this.text = text;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto[].class)
   @JsonProperty
   @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
   @PropertyTransformer(UserPropertyTransformer.class)

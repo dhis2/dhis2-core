@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +41,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
@@ -52,6 +50,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,11 +58,13 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -73,7 +74,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
+class ProgramSqlGeneratorItemsTest extends TestBase {
   private ProgramIndicator programIndicator;
 
   private ProgramStage programStageA;
@@ -99,6 +100,8 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private DimensionService dimensionService;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   @BeforeEach
   public void setUp() {
@@ -234,10 +237,11 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
             .constantMap(constantMap)
-            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(itemMethod)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(sqlBuilder)
             .build();
 
     visitor.setExpressionLiteral(exprLiteral);

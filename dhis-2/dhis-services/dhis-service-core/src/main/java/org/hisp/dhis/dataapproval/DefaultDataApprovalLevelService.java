@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
@@ -407,7 +409,7 @@ public class DefaultDataApprovalLevelService implements DataApprovalLevelService
     // Add user organisation units if authorized to approve at lower levels
     // ---------------------------------------------------------------------
 
-    if (currentUser.isAuthorized(DataApproval.AUTH_APPROVE_LOWER_LEVELS)) {
+    if (currentUser.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS)) {
       for (OrganisationUnit orgUnit : currentUser.getOrganisationUnits()) {
         map.put(orgUnit, APPROVAL_LEVEL_UNAPPROVED);
       }

@@ -74,7 +74,7 @@ public class TrackedEntity extends SoftDeletableObject {
 
   @AuditAttribute private TrackedEntityType trackedEntityType;
 
-  @AuditAttribute private Boolean inactive = false;
+  @AuditAttribute private boolean inactive;
 
   private Geometry geometry;
 
@@ -223,11 +223,11 @@ public class TrackedEntity extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
-  public Boolean isInactive() {
+  public boolean isInactive() {
     return inactive;
   }
 
-  public void setInactive(Boolean inactive) {
+  public void setInactive(boolean inactive) {
     this.inactive = inactive;
   }
 

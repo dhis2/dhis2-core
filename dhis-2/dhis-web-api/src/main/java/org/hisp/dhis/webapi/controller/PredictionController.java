@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
+import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 
 import java.util.Date;
 import java.util.List;
@@ -37,20 +38,19 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
+import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobExecutionService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -60,19 +60,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(
+    entity = Predictor.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
-@RequestMapping(value = "/predictions")
+@RequestMapping("/api/predictions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class PredictionController {
 
   private final PredictionService predictionService;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictors(
       @RequestParam Date startDate,
@@ -81,7 +82,7 @@ public class PredictionController {
       @RequestParam(value = "predictorGroup", required = false) List<String> predictorGroups,
       @RequestParam(defaultValue = "false", required = false) boolean async,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
 
     if (async) {
       JobConfiguration config = new JobConfiguration(PREDICTOR);
@@ -95,16 +96,14 @@ public class PredictionController {
       config.setJobParameters(params);
       config.setExecutedBy(currentUser.getUid());
 
-      jobSchedulerService.executeNow(jobConfigurationService.create(config));
+      jobExecutionService.executeOnceNow(config);
 
       return jobConfigurationReport(config);
     }
     PredictionSummary predictionSummary =
         predictionService.predictTask(
-            startDate, endDate, predictors, predictorGroups, NoopJobProgress.INSTANCE);
+            startDate, endDate, predictors, predictorGroups, JobProgress.noop());
 
-    return new WebMessage(Status.OK, HttpStatus.OK)
-        .setResponse(predictionSummary)
-        .withPlainResponseBefore(DhisApiVersion.V38);
+    return new WebMessage(Status.OK, HttpStatus.OK).setResponse(predictionSummary);
   }
 }

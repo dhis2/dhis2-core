@@ -29,10 +29,10 @@ package org.hisp.dhis.dataintegrity.hibernate;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
@@ -57,7 +57,9 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   @Transactional(readOnly = true)
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
-    Object summary = entityManager.createNativeQuery(sql).getSingleResult();
+    // Note! that the SQL here can be touching any table so we cannot sync it
+    Object summary =
+        entityManager.createNativeQuery(sql).getResultStream().findFirst().orElse(null);
     return new DataIntegritySummary(
         check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
   }
@@ -66,6 +68,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   @Transactional(readOnly = true)
   public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
+    // Note! that the SQL here can be touching any table so we cannot sync it
     @SuppressWarnings("unchecked")
     List<Object[]> rows = entityManager.createNativeQuery(sql).getResultList();
     return new DataIntegrityDetails(

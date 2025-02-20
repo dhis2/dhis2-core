@@ -76,12 +76,6 @@ public class DefaultRelationshipTypeService implements RelationshipTypeService {
   }
 
   @Override
-  @Transactional
-  public void updateRelationshipType(RelationshipType relationshipType) {
-    relationshipTypeStore.update(relationshipType);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public RelationshipType getRelationshipType(String aIsToB, String bIsToA) {
     return relationshipTypeStore.getRelationshipType(aIsToB, bIsToA);

@@ -27,20 +27,25 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import static java.util.Map.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.dxf2.synch.SystemInstance;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import java.util.Map;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-class SyncUtilsTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class SyncUtilsTest extends PostgresIntegrationTestBase {
 
   private static final String USERNAME = "user";
 
@@ -48,31 +53,21 @@ class SyncUtilsTest extends SingleSetupIntegrationTestBase {
 
   private static final String URL = "https://localhost:8080";
 
-  private static final String EVENTS_URL = URL + SyncEndpoint.EVENTS.getPath();
-
-  private static final String EVENTS_URL_WITH_SYNC_STRATEGY =
-      EVENTS_URL + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
-
-  @Autowired SystemSettingManager systemSettingManager;
+  @Autowired SystemSettingsService settingsService;
 
   @Test
-  void getRemoteInstanceTest() {
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_USERNAME, USERNAME);
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_PASSWORD, PASSWORD);
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
+  void getRemoteInstanceTest() throws Exception {
+    settingsService.putAll(
+        Map.ofEntries(
+            entry("keyRemoteInstanceUsername", USERNAME),
+            entry("keyRemoteInstancePassword", PASSWORD),
+            entry("keyRemoteInstanceUrl", URL)));
+    settingsService.clearCurrentSettings();
     SystemInstance systemInstance =
-        SyncUtils.getRemoteInstance(systemSettingManager, SyncEndpoint.EVENTS);
+        SyncUtils.getRemoteInstance(
+            settingsService.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
     assertThat(systemInstance.getUsername(), is(USERNAME));
     assertThat(systemInstance.getPassword(), is(PASSWORD));
-    assertThat(systemInstance.getUrl(), is(EVENTS_URL));
-  }
-
-  @Test
-  void getRemoteInstanceWithSyncImportStrategyTest() {
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
-    SystemInstance systemInstance =
-        SyncUtils.getRemoteInstanceWithSyncImportStrategy(
-            systemSettingManager, SyncEndpoint.EVENTS);
-    assertThat(systemInstance.getUrl(), is(EVENTS_URL_WITH_SYNC_STRATEGY));
+    assertThat(systemInstance.getUrl(), is(URL + SyncEndpoint.DATA_VALUE_SETS.getPath()));
   }
 }

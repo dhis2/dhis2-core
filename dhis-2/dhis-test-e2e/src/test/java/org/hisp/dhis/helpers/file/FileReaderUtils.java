@@ -32,8 +32,8 @@ import com.google.gson.JsonParser;
 import java.io.File;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.test.e2e.actions.IdGenerator;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

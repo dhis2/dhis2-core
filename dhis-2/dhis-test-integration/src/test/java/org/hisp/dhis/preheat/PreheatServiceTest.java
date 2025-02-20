@@ -49,18 +49,20 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Disabled
-class PreheatServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class PreheatServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PreheatService preheatService;
 
@@ -68,12 +70,9 @@ class PreheatServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private RenderService _renderService;
 
-  @Autowired private UserService _userService;
-
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test

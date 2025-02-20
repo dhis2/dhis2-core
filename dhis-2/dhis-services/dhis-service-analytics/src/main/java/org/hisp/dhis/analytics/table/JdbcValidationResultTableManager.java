@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -52,15 +54,13 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -73,21 +73,40 @@ import org.springframework.stereotype.Service;
 public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "vr.uid"),
-          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
-          new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
+          AnalyticsTableColumn.builder()
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("vr.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pestartdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("ps.startdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("peenddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("ps.enddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("year")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.year")
+              .build());
+
+  private static final List<String> SORT_KEY = List.of("dx");
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
@@ -96,12 +115,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
@@ -117,8 +135,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
+            ? new AnalyticsTable(
+                AnalyticsTableType.VALIDATION_RESULT, List.of(), List.of(), Logged.LOGGED)
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }
@@ -134,73 +153,66 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
-
-  @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     Objects.requireNonNull(year);
     return List.of("year = " + year);
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     String partitionClause = getPartitionClause(partition);
 
-    String sql = "insert into " + tableName + " (";
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
-
-    sql = TextUtils.removeLastComma(sql) + ") select ";
-
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
-
-    sql = TextUtils.removeLastComma(sql) + " ";
+    String sql = "insert into " + tableName + " (";
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
+    sql += ") select ";
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
+    sql += " ";
 
     // Database legacy fix
 
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        "from validationresult vrs "
-            + "inner join period pe on vrs.periodid=pe.periodid "
-            + "inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid "
-            + "inner join validationrule vr on vr.validationruleid=vrs.validationruleid "
-            + "inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid "
-            + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
-            + "left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
-            + "inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "where vrs.created < '"
-            + toLongDate(params.getStartTime())
-            + "' "
-            + "and vrs.created is not null "
-            + partitionClause;
+        replaceQualify(
+            """
+            from ${validationresult} vrs \
+            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid \
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid \
+            where vrs.created < '${startTime}' \
+            and vrs.created is not null ${partitionClause} \
+            and (ougs.startdate is null or ps.monthstartdate=ougs.startdate)""",
+            Map.of(
+                "startTime",
+                toLongDate(params.getStartTime()),
+                "partitionClause",
+                partitionClause));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
-    String sql =
-        "select distinct(extract(year from pe.startdate)) "
-            + "from validationresult vrs "
-            + "inner join period pe on vrs.periodid=pe.periodid "
-            + "where pe.startdate is not null "
-            + "and vrs.created < '"
-            + toLongDate(params.getStartTime())
-            + "' ";
+    String fromDateClause =
+        params.getFromDate() == null
+            ? ""
+            : String.format(
+                " and ps.startdate >= '%s'", DateUtils.toMediumDate(params.getFromDate()));
 
-    if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
-    }
+    String sql =
+        replaceQualify(
+            """
+            select distinct(extract(year from ps.startdate)) \
+            from ${validationresult} vrs \
+            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
+            where ps.startdate is not null \
+            and vrs.created < '${startTime}'${fromDateClause}""",
+            Map.of(
+                "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
@@ -212,18 +224,25 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    return format("and ps.year = %d ", partition.getYear());
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
+    return emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "vrs.created as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("value")
+            .dataType(DATE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("vrs.created as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

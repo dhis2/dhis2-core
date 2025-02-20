@@ -185,6 +185,7 @@
       "attributeValues": [],
       "openingDate": "2016-03-17",
       "id": "Orgunit1000",
+      "code": "Orgunit1000",
       "description": "org desc",
       "programs": [
         {

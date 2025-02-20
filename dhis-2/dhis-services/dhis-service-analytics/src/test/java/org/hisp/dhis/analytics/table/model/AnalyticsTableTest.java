@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.DIMENSION;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -36,11 +37,11 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -55,14 +56,36 @@ import org.junit.jupiter.api.Test;
 class AnalyticsTableTest {
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
-          new AnalyticsTableColumn("id", DataType.BIGINT, "id"),
-          new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
-          new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
+          AnalyticsTableColumn.builder().name("id").dataType(BIGINT).selectExpression("id").build(),
+          AnalyticsTableColumn.builder()
+              .name("data")
+              .dataType(CHARACTER_11)
+              .selectExpression("data")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("value")
+              .dataType(DOUBLE)
+              .selectExpression("value")
+              .build());
+
+  private final List<String> sortKeyA = List.of("data");
+
+  @Test
+  void testConstructor() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
+
+    assertEquals(AnalyticsTableType.DATA_VALUE, table.getTableType());
+    assertTrue(table.getPrimaryKey().isEmpty());
+    assertEquals(sortKeyA, table.getSortKey());
+    assertTrue(table.getChecks().isEmpty());
+    assertEquals(Logged.UNLOGGED, table.getLogged());
+  }
 
   @Test
   void testGetTableNameDataValue() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
     assertEquals("analytics", table.getMainName());
     assertEquals("analytics_temp", table.getName());
   }
@@ -70,7 +93,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameCompleteness() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, sortKeyA, Logged.UNLOGGED);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
   }
@@ -78,7 +101,8 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameValidationResult() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(
+            AnalyticsTableType.VALIDATION_RESULT, columnsA, sortKeyA, Logged.UNLOGGED);
     assertEquals("analytics_validationresult", table.getMainName());
     assertEquals("analytics_validationresult_temp", table.getName());
   }
@@ -108,14 +132,42 @@ class AnalyticsTableTest {
   void testGetDimensionAndFactColumns() {
     List<AnalyticsTableColumn> columns =
         List.of(
-            new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, DIMENSION, "de.uid"),
-            new AnalyticsTableColumn("co", CHARACTER_11, NOT_NULL, "co.uid"),
-            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
-            new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "value"),
-            new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
+            AnalyticsTableColumn.builder()
+                .name("dx")
+                .dataType(CHARACTER_11)
+                .nullable(NOT_NULL)
+                .valueType(DIMENSION)
+                .selectExpression("de.uid")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("co")
+                .dataType(CHARACTER_11)
+                .nullable(NOT_NULL)
+                .selectExpression("co.uid")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("ou")
+                .dataType(CHARACTER_11)
+                .nullable(NOT_NULL)
+                .selectExpression("ou.uid")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("value")
+                .dataType(DOUBLE)
+                .nullable(NULL)
+                .valueType(FACT)
+                .selectExpression("value")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("textvalue")
+                .dataType(TEXT)
+                .nullable(NULL)
+                .valueType(FACT)
+                .selectExpression("textvalue")
+                .build());
 
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED);
 
     assertEquals(3, table.getDimensionColumns().size());
     assertEquals("dx", table.getDimensionColumns().get(0).getName());
@@ -153,9 +205,9 @@ class AnalyticsTableTest {
   @Test
   void testEquals() {
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
     AnalyticsTable tableB =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);

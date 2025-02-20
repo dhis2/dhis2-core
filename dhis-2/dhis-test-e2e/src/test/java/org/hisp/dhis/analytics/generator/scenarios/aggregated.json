@@ -1,0 +1,132 @@
+{
+  "scenarios": [
+    {
+      "name": "queryAnalyticsAggregateProgramOuDim",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateDataSetOuDim",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:DS-BfMAe6Itzgt&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateProgramDataSetOuDim",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:DS-BfMAe6Itzgt;PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateProgramOuFilter",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateDataSetOuFilter",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:DS-BfMAe6Itzgt&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateProgramDataSetOuFilter",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:DS-BfMAe6Itzgt;PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "financialYear2022Sep",
+      "query": "/api/analytics?dimension=dx:Uvn6LCg7dVU,pe:2022Sep&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "weeklyShortNameLabel",
+      "query": "/api/analytics?dimension=dx:fbfJHSPpUQD,pe:2021SunW52&filter=ou:USER_ORGUNIT&displayProperty=SHORTNAME&includeNumDen=true&skipMeta=false&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "weeklyNameLabel",
+      "query": "/api/analytics?dimension=dx:fbfJHSPpUQD,pe:2021SunW52&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "dataElementOperandsAsDimension",
+      "query": "/api/analytics?dimension=pe:MONTHS_THIS_YEAR,dx:cYeuwXTCPkU.pq2XI5kz2BY&filter=ou:ImspTQPwCqd&displayProperty=NAME&relativePeriodDate=2021-10-04",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "dataElementOperandsAsFilter",
+      "query": "/api/analytics?dimension=pe:MONTHS_THIS_YEAR&filter=dx:cYeuwXTCPkU.pq2XI5kz2BY&filter=ou:ImspTQPwCqd&displayProperty=NAME&relativePeriodDate=2021-10-04&skipMeta=true&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "dataElementOperandsAndDataElementsAsDimension",
+      "query": "/api/analytics?dimension=pe:MONTHS_THIS_YEAR,dx:cYeuwXTCPkU.pq2XI5kz2BY;cYeuwXTCPkU&filter=ou:ImspTQPwCqd&displayProperty=NAME&relativePeriodDate=2021-10-04",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "dataElementOperandsAndDataElementsAsFilter",
+      "query": "/api/analytics?dimension=pe:MONTHS_THIS_YEAR&filter=dx:cYeuwXTCPkU.pq2XI5kz2BY;cYeuwXTCPkU&filter=ou:ImspTQPwCqd&displayProperty=NAME&relativePeriodDate=2021-10-04&skipMeta=true&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+
+
+    {
+      "name": "programDataElementOptionSingleDx",
+      "query": "/api/analytics?dimension=dx:WSGAb5XwJ3Y.QFX1FLWBwtq.l8S7SjnQ58G,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programDataElementOptionMultiDx",
+      "query": "/api/analytics?dimension=dx:WSGAb5XwJ3Y.QFX1FLWBwtq.l8S7SjnQ58G;WSGAb5XwJ3Y.QFX1FLWBwtq.rexqxNDqUKg,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programTrackedEntityAttributeOptionMultiDx",
+      "query": "/api/analytics?dimension=dx:M3xtLkYBlKI.KrCahWFMYYz.dEFhuheLj1A;M3xtLkYBlKI.KrCahWFMYYz.HrKHCQUSYZh,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programTrackedEntityAttributeOptionInFilterDx",
+      "query": "/api/analytics?dimension=pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&filter=dx:M3xtLkYBlKI.KrCahWFMYYz.dEFhuheLj1A;M3xtLkYBlKI.KrCahWFMYYz.HrKHCQUSYZh&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programDataElementOptionInFilterDx",
+      "query": "/api/analytics?dimension=pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&filter=dx:WSGAb5XwJ3Y.QFX1FLWBwtq.l8S7SjnQ58G;WSGAb5XwJ3Y.QFX1FLWBwtq.rexqxNDqUKg&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 42
+      }
+    }
+  ]
+}

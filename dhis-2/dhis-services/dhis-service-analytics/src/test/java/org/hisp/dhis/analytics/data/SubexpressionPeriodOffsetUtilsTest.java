@@ -28,12 +28,12 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
@@ -55,36 +55,36 @@ import org.junit.jupiter.api.TestInstance;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SubexpressionPeriodOffsetUtilsTest {
-  private DataElement de0 = createDataElement('A');
+  private final DataElement de0 = createDataElement('A');
 
-  private DataElement dem1 = createDataElementAWithPeriodOffset(-1);
+  private final DataElement dem1 = createDataElementAWithPeriodOffset(-1);
 
-  private DataElement dem2 = createDataElementAWithPeriodOffset(-2);
+  private final DataElement dem2 = createDataElementAWithPeriodOffset(-2);
 
-  private DataElement dep1 = createDataElementAWithPeriodOffset(1);
+  private final DataElement dep1 = createDataElementAWithPeriodOffset(1);
 
-  private String deAUid = de0.getUid();
+  private final String deAUid = de0.getUid();
 
-  private String expression =
+  private final String expression =
       format(
           "subExpression( #{%s} + #{%s}.periodOffset(-1) + #{%s}.periodOffset(-2) + #{%s}.periodOffset(1) )",
           deAUid, deAUid, deAUid, deAUid);
 
-  private List<DimensionalItemObject> items = List.of(de0, dem1, dem2, dep1);
+  private final List<DimensionalItemObject> items = List.of(de0, dem1, dem2, dep1);
 
-  private SubexpressionDimensionItem subex =
+  private final SubexpressionDimensionItem subExpr =
       new SubexpressionDimensionItem(expression, items, null);
 
-  private Period periodA = createPeriod("202309");
+  private final Period periodA = createPeriod("202309");
 
-  private Period periodB = createPeriod("202310");
+  private final Period periodB = createPeriod("202310");
 
-  private DataQueryParams params =
+  private final DataQueryParams params =
       DataQueryParams.newBuilder()
           .withPeriodType("monthly")
           .withPeriods(List.of(periodA, periodB))
           .addDimension(
-              new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subex)))
+              new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subExpr)))
           .build();
 
   @Test
@@ -120,7 +120,7 @@ class SubexpressionPeriodOffsetUtilsTest {
         getPeriodList("202307", "202308", "202309", "202310", "202311");
     assertContainsOnly(expectedPeriods, result.getPeriods());
 
-    List<DimensionalItemObject> expectedData = List.of(subex);
+    List<DimensionalItemObject> expectedData = List.of(subExpr);
     assertContainsOnly(expectedData, result.getAllDataDimensionItems());
   }
 

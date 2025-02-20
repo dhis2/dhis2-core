@@ -68,7 +68,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -166,7 +165,7 @@ public class DefaultValidationService implements ValidationService {
 
     context.setValidationRuleExpressionDetails(details);
 
-    Validator.validate(context, runner, NoopJobProgress.INSTANCE);
+    Validator.validate(context, runner, JobProgress.noop());
 
     details.sortByName();
 

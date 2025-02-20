@@ -28,10 +28,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PI_GEOMETRY;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PSI_GEOMETRY;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TEI_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
@@ -56,6 +56,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -63,6 +64,8 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -75,6 +78,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -87,10 +91,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -100,19 +103,6 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.event.EventDataQueryService")
 @RequiredArgsConstructor
 public class DefaultEventDataQueryService implements EventDataQueryService {
-  private static final String COL_NAME_PROGRAM_STATUS_EVENTS = "pistatus";
-
-  private static final String COL_NAME_PROGRAM_STATUS_ENROLLMENTS = "enrollmentstatus";
-
-  private static final String COL_NAME_EVENT_STATUS = "psistatus";
-
-  private static final String COL_NAME_EVENTDATE = "occurreddate";
-
-  private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
-
-  private static final String COL_NAME_INCIDENTDATE = "incidentdate";
-
-  private static final String COL_NAME_DUEDATE = "scheduleddate";
 
   private final ProgramService programService;
 
@@ -128,8 +118,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private final DataQueryService dataQueryService;
 
-  private final UserSettingService userSettingService;
-
   @Override
   public EventQueryParams getFromRequest(EventDataQueryRequest request) {
     return getFromRequest(request, false);
@@ -141,19 +129,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     IdScheme idScheme = IdScheme.UID;
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
 
     List<OrganisationUnit> userOrgUnits =
-        dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
+        dataQueryService.getUserOrgUnits(dataQueryParams, request.getUserOrgUnit());
 
     Program pr = programService.getProgram(request.getProgram());
-
-    List<String> coordinateFields =
-        getCoordinateFields(
-            request.getProgram(),
-            request.getCoordinateField(),
-            request.getFallbackCoordinateField(),
-            request.isDefaultCoordinateFallback());
 
     if (pr == null) {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
@@ -164,6 +148,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
     }
+
+    List<String> coordinateFields = getCoordinateFields(request);
 
     addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
 
@@ -209,14 +195,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withPageSize(request.getPageSize())
             .withPaging(request.isPaging())
             .withTotalPages(request.isTotalPages())
-            .withProgramStatuses(request.getProgramStatus())
+            .withEnrollmentStatuses(request.getEnrollmentStatus())
             .withApiVersion(request.getApiVersion())
             .withLocale(locale)
             .withEnhancedConditions(request.isEnhancedConditions())
             .withEndpointItem(request.getEndpointItem())
             .withEndpointAction(request.getEndpointAction())
             .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
-            .withRowContext(request.isRowContext());
+            .withRowContext(request.isRowContext())
+            .withUserOrgUnits(userOrgUnits);
 
     if (analyzeOnly) {
       builder = builder.withSkipData(true).withAnalyzeOrderId();
@@ -225,6 +212,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     EventQueryParams eventQueryParams = builder.build();
 
     // Partitioning applies only when default period is specified
+
     // Empty period dimension means default period
 
     if (hasPeriodDimension(eventQueryParams) && hasNotDefaultPeriod(eventQueryParams)) {
@@ -352,7 +340,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Date date = object.getRelativePeriodDate();
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     object.populateAnalyticalProperties();
 
@@ -428,37 +416,40 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * @return the coordinate column list.
    */
   @Override
-  public List<String> getCoordinateFields(
-      String program,
-      String coordinateField,
-      String fallbackCoordinateField,
-      boolean defaultCoordinateFallback) {
+  public List<String> getCoordinateFields(EventDataQueryRequest request) {
+    final String program = request.getProgram();
+    // TODO Remove when all web apps stop using old names of coordinate fields
+    final String coordinateField = mapCoordinateField(request.getCoordinateField());
+    final boolean defaultCoordinateFallback = request.isDefaultCoordinateFallback();
+    final String fallbackCoordinateField = mapCoordinateField(request.getFallbackCoordinateField());
+
     List<String> coordinateFields = new ArrayList<>();
 
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
     } else if (COL_NAME_GEOMETRY_LIST.contains(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(program, coordinateField, ErrorCode.E7221));
+          eventCoordinateService.validateCoordinateField(
+              program, coordinateField, ErrorCode.E7221));
     } else if (EventQueryParams.EVENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
-              program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221));
+          eventCoordinateService.validateCoordinateField(
+              program, COL_NAME_EVENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
-              program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221));
+          eventCoordinateService.validateCoordinateField(
+              program, COL_NAME_ENROLLMENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.TRACKER_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
-              program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221));
+          eventCoordinateService.validateCoordinateField(
+              program, COL_NAME_TRACKED_ENTITY_GEOMETRY, ErrorCode.E7221));
     }
 
     DataElement dataElement = dataElementService.getDataElement(coordinateField);
 
     if (dataElement != null) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               dataElement.getValueType(), coordinateField, ErrorCode.E7219));
     }
 
@@ -466,7 +457,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     if (attribute != null) {
       coordinateFields.add(
-          eventCoordinateService.getCoordinateField(
+          eventCoordinateService.validateCoordinateField(
               attribute.getValueType(), coordinateField, ErrorCode.E7220));
     }
 
@@ -486,6 +477,29 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  // TODO!!! remove when all fe apps stop using old names of the coordinate fields
+  /**
+   * Temporary only, should not be in 2.42 release!!! Retrieves an old name of the coordinate field.
+   *
+   * @param coordinateField a name of the coordinate field
+   * @return old name of the coordinate field.
+   */
+  private String mapCoordinateField(String coordinateField) {
+    if ("pigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_ENROLLMENT_GEOMETRY;
+    }
+
+    if ("psigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_EVENT_GEOMETRY;
+    }
+
+    if ("teigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_TRACKED_ENTITY_GEOMETRY;
+    }
+
+    return coordinateField;
+  }
 
   private QueryItem getQueryItem(
       String dimension, String filter, Program program, EventOutputType type) {
@@ -572,18 +586,27 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   @Getter
   @RequiredArgsConstructor
   enum SortableItems {
-    ENROLLMENT_DATE(ColumnHeader.ENROLLMENT_DATE.getItem(), COL_NAME_ENROLLMENTDATE),
-    INCIDENT_DATE(ColumnHeader.INCIDENT_DATE.getItem(), COL_NAME_INCIDENTDATE),
-    EVENT_DATE(ColumnHeader.EVENT_DATE.getItem(), COL_NAME_EVENTDATE),
-    SCHEDULED_DATE(ColumnHeader.SCHEDULED_DATE.getItem(), COL_NAME_DUEDATE),
+    ENROLLMENT_DATE(
+        ColumnHeader.ENROLLMENT_DATE.getItem(),
+        EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME),
+    INCIDENT_DATE(
+        ColumnHeader.INCIDENT_DATE.getItem(),
+        EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+    EVENT_DATE(
+        ColumnHeader.EVENT_DATE.getItem(), EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+    SCHEDULED_DATE(
+        ColumnHeader.SCHEDULED_DATE.getItem(), EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
     ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
     ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
     ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
     PROGRAM_STATUS(
         ColumnHeader.PROGRAM_STATUS.getItem(),
-        COL_NAME_PROGRAM_STATUS_EVENTS,
-        COL_NAME_PROGRAM_STATUS_ENROLLMENTS),
-    EVENT_STATUS(ColumnHeader.EVENT_STATUS.getItem(), COL_NAME_EVENT_STATUS),
+        EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME),
+    EVENT_STATUS(
+        ColumnHeader.EVENT_STATUS.getItem(), EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
     CREATED_BY_DISPLAY_NAME(ColumnHeader.CREATED_BY_DISPLAY_NAME.getItem()),
     LAST_UPDATED_BY_DISPLAY_NAME(ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME.getItem()),
     LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem());

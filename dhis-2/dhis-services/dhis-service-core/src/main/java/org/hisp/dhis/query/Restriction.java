@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
 
@@ -70,5 +71,12 @@ public final class Restriction implements Criterion {
   @Override
   public String toString() {
     return "[" + path + ", op: " + operator + "]";
+  }
+
+  @Override
+  public boolean isAlwaysFalse() {
+    if (operator instanceof InOperator<?> in)
+      return in.getCollectionArgs().isEmpty() || in.getCollectionArgs().get(0).isEmpty();
+    return false;
   }
 }

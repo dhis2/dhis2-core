@@ -50,7 +50,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
@@ -73,13 +73,15 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author maikel arabori
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(
+    entity = DataItem.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Slf4j
 @ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 @RestController
 public class DataItemQueryController {
-  static final String API_RESOURCE_PATH = "/dataItems";
+  static final String API_RESOURCE_PATH = "/api/dataItems";
 
   private static final String FIELDS = "fields";
 
@@ -143,7 +145,7 @@ public class DataItemQueryController {
     WebOptions options = new WebOptions(urlParameters);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     checkNamesAndOperators(filters);

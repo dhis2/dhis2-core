@@ -38,46 +38,53 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
 @Disabled("until we can inject dhis.conf property overrides")
-class HardDeleteAuditTest extends IntegrationTestBase {
+class HardDeleteAuditTest extends PostgresIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
 
   @Autowired private AuditService auditService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcMaintenanceStore jdbcMaintenanceStore;
 
+  @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private DbmsManager dbmsManager;
+
   @Test
-  void testHardDeleteTei() {
+  void testHardDeleteTrackedEntity() {
     OrganisationUnit ou = createOrganisationUnit('A');
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
     transactionTemplate.execute(
         status -> {
           manager.save(ou);
           manager.save(attribute);
-          trackedEntityService.addTrackedEntity(tei);
-          trackedEntityService.deleteTrackedEntity(tei);
+          manager.save(trackedEntity);
+          manager.delete(trackedEntity);
           dbmsManager.clearSession();
           return null;
         });
-    final AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(tei.getUid())).build();
+    final AuditQuery query =
+        AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) > 0);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(2, audits.size());
@@ -89,7 +96,7 @@ class HardDeleteAuditTest extends IntegrationTestBase {
         });
     final AuditQuery deleteQuery =
         AuditQuery.builder()
-            .uid(Sets.newHashSet(tei.getUid()))
+            .uid(Sets.newHashSet(trackedEntity.getUid()))
             .auditType(Sets.newHashSet(AuditType.DELETE))
             .build();
     audits = auditService.getAudits(deleteQuery);
@@ -100,6 +107,6 @@ class HardDeleteAuditTest extends IntegrationTestBase {
     Audit audit = audits.get(0);
     assertEquals(AuditType.DELETE, audit.getAuditType());
     assertEquals(TrackedEntity.class.getName(), audit.getKlass());
-    assertEquals(tei.getUid(), audit.getUid());
+    assertEquals(trackedEntity.getUid(), audit.getUid());
   }
 }

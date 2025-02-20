@@ -27,19 +27,26 @@
  */
 package org.hisp.dhis.fileresource.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueKey;
+import org.hisp.dhis.document.Document;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.message.Message;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,24 +68,20 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
 
   @Override
   public List<FileResource> getExpiredFileResources(DateTime expires) {
-    List<FileResource> results =
-        getSession()
-            .createNativeQuery(
-                "select fr.* "
-                    + "from fileresource fr "
-                    + "inner join (select dva.value "
-                    + "from datavalueaudit dva "
-                    + "where dva.created < :date "
-                    + "and dva.audittype in ('DELETE', 'UPDATE') "
-                    + "and dva.dataelementid in "
-                    + "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva "
-                    + "on dva.value = fr.uid "
-                    + "where fr.isassigned = true; ",
-                FileResource.class)
-            .setParameter("date", expires.toDate())
-            .getResultList();
-
-    return results;
+    String sql =
+        """
+        select fr.*
+        from fileresource fr
+        inner join (select dva.value
+        from datavalueaudit dva
+        where dva.created < :date
+        and dva.audittype in ('DELETE', 'UPDATE')
+        and dva.dataelementid in
+        (select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva
+        on dva.value = fr.uid
+        where fr.isassigned = true;
+        """;
+    return nativeSynchronizedTypedQuery(sql).setParameter("date", expires.toDate()).getResultList();
   }
 
   @Override
@@ -94,9 +97,8 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
 
   @Override
   public Optional<FileResource> findByStorageKey(@Nonnull String storageKey) {
-    return getSession()
-        .createNativeQuery(
-            "select fr.* from fileresource fr where fr.storagekey = :key", FileResource.class)
+    return nativeSynchronizedTypedQuery(
+            "select fr.* from fileresource fr where fr.storagekey = :key")
         .setParameter("key", storageKey)
         .getResultStream()
         .findFirst();
@@ -105,9 +107,8 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   @Override
   public Optional<FileResource> findByUidAndDomain(
       @Nonnull String uid, @Nonnull FileResourceDomain domain) {
-    return getSession()
-        .createNativeQuery(
-            "select * from fileresource where uid = :uid and domain = :domain", FileResource.class)
+    return nativeSynchronizedTypedQuery(
+            "select * from fileresource where uid = :uid and domain = :domain")
         .setParameter("uid", uid)
         .setParameter("domain", domain.name())
         .getResultList()
@@ -119,28 +120,40 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   public List<String> findOrganisationUnitsByImageFileResource(@Nonnull String uid) {
     String sql =
         "select o.uid from organisationunit o left join fileresource fr on fr.fileresourceid = o.image where fr.uid = :uid";
-    return getSession().createNativeQuery(sql).setParameter("uid", uid).list();
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(OrganisationUnit.class)
+        .setParameter("uid", uid)
+        .list();
   }
 
   @Override
   public List<String> findUsersByAvatarFileResource(@Nonnull String uid) {
     String sql =
         "select u.uid from userinfo u left join fileresource fr on fr.fileresourceid = u.avatar where fr.uid = :uid";
-    return getSession().createNativeQuery(sql).setParameter("uid", uid).list();
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(User.class)
+        .setParameter("uid", uid)
+        .list();
   }
 
   @Override
   public List<String> findDocumentsByFileResource(@Nonnull String uid) {
     String sql =
         "select d.uid from document d left join fileresource fr on fr.fileresourceid = d.fileresource where fr.uid = :uid";
-    return getSession().createNativeQuery(sql).setParameter("uid", uid).list();
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(Document.class)
+        .setParameter("uid", uid)
+        .list();
   }
 
   @Override
   public List<String> findCustomIconByFileResource(@Nonnull String uid) {
     String sql =
         "select ci.key from customicon ci left join fileresource fr on fr.fileresourceid = ci.fileresourceid where fr.uid = :uid";
-    return getSession().createNativeQuery(sql).setParameter("uid", uid).list();
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(Icon.class)
+        .setParameter("uid", uid)
+        .list();
   }
 
   @Override
@@ -149,7 +162,10 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
         "select m.uid from message m "
             + "left join messageattachments ma on m.messageid = ma.messageid "
             + "left join fileresource fr on fr.fileresourceid = ma.fileresourceid where fr.uid = :uid";
-    return getSession().createNativeQuery(sql).setParameter("uid", uid).list();
+    return nativeSynchronizedQuery(sql)
+        .addSynchronizedEntityClass(Message.class)
+        .setParameter("uid", uid)
+        .list();
   }
 
   @Override
@@ -160,7 +176,13 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
             + " inner join organisationunit o on dv.sourceid = o.organisationunitid"
             + " inner join categoryoptioncombo co on dv.categoryoptioncomboid = co.categoryoptioncomboid"
             + " where de.valuetype = 'FILE_RESOURCE' and dv.value = :uid";
-    Stream<Object[]> stream = getSession().createNativeQuery(sql).setParameter("uid", uid).stream();
+    Stream<Object[]> stream =
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedEntityClass(DataValue.class)
+            .addSynchronizedEntityClass(OrganisationUnit.class)
+            .addSynchronizedEntityClass(CategoryOptionCombo.class)
+            .setParameter("uid", uid)
+            .stream();
     return stream
         .map(
             col ->

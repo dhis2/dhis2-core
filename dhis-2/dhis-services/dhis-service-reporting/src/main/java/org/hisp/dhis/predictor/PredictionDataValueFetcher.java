@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_UNIT;
 import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_VALUE;
 import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
@@ -207,7 +207,8 @@ public class PredictionDataValueFetcher implements Runnable {
     this.outputDataElementOperand = outputDataElementOperand;
 
     orgUnitLookup =
-        orgUnits.stream().collect(Collectors.toMap(OrganisationUnit::getPath, Function.identity()));
+        orgUnits.stream()
+            .collect(Collectors.toMap(OrganisationUnit::getStoredPath, Function.identity()));
     dataElementLookup =
         dataElements.stream()
             .collect(toMap(DataElement::getId, Function.identity(), (de1, de2) -> de1));
@@ -359,7 +360,7 @@ public class PredictionDataValueFetcher implements Runnable {
         addValueToMap(dv, map);
       }
 
-      if (ddv.getSourcePath().equals(dv.getSource().getPath())
+      if (ddv.getSourcePath().equals(dv.getSource().getStoredPath())
           && ddv.getDataElementId() == outputDataElementOperand.getDataElement().getId()
           && (outputDataElementOperand.getCategoryOptionCombo() == null
               || ddv.getCategoryOptionComboId()

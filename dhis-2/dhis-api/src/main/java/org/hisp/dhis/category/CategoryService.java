@@ -30,11 +30,14 @@ package org.hisp.dhis.category;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -100,11 +103,13 @@ public interface CategoryService {
   Category getCategoryByName(String name);
 
   /**
-   * Returns all DataElementCategories.
+   * Retrieves the Category with the given name.
    *
-   * @return a list of all DataElementCategories.
+   * @param name the name of the Category to retrieve.
+   * @param userDetails the user details of the acting user.
+   * @return the Category.
    */
-  List<Category> getAllDataElementCategories();
+  Category getCategoryByName(String name, UserDetails userDetails);
 
   /**
    * Retrieves all DataElementCategories of dimension type disaggregation.
@@ -135,6 +140,14 @@ public interface CategoryService {
    * @return a list of CategoryCombos.
    */
   List<Category> getAttributeDataDimensionCategoriesNoAcl();
+
+  /**
+   * Retrieves all Categories with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categories with refs to categoryOptions
+   */
+  List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions);
 
   // -------------------------------------------------------------------------
   // CategoryOption
@@ -311,24 +324,6 @@ public interface CategoryService {
    */
   List<CategoryCombo> getAttributeCategoryCombos();
 
-  /**
-   * Validates the category combo. Possible return values are:
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>category_combo_is_null
-   *   <li>category_combo_must_have_at_least_one_category
-   *   <li>category_combo_cannot_have_duplicate_categories
-   *   <li>categories_must_have_at_least_one_category_option
-   *   <li>categories_cannot_share_category_options
-   * </ul>
-   *
-   * @param categoryCombo the category combo to validate.
-   * @return null if valid, non-empty string if invalid.
-   */
-  String validateCategoryCombo(CategoryCombo categoryCombo);
-
   // -------------------------------------------------------------------------
   // CategoryOptionCombo
   // -------------------------------------------------------------------------
@@ -452,6 +447,23 @@ public interface CategoryService {
   /** Updates the name property of all category option combinations. */
   void updateCategoryOptionComboNames();
 
+  /**
+   * Retrieves all CategoryOptionCombos with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categoryOptionCombos with refs to categoryOptions
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      @Nonnull Collection<UID> categoryOptions);
+
+  /**
+   * Retrieves all CategoryOptionCombos by {@link UID}.
+   *
+   * @param uids {@link UID}s to search for
+   * @return categoryOptionCombos with refs to {@link UID}s
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByUid(@Nonnull Collection<UID> uids);
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------
@@ -500,6 +512,8 @@ public interface CategoryService {
 
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
+  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(Collection<UID> categoryOptions);
+
   /**
    * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user
    * has any CategoryOptionGroupSet constraint(s).
@@ -532,4 +546,12 @@ public interface CategoryService {
   CategoryOption getDefaultCategoryOption();
 
   Category getDefaultCategory();
+
+  List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids);
+
+  void validate(Category category) throws ConflictException;
+
+  void validate(CategoryCombo combo) throws ConflictException;
+
+  void validate(CategoryOptionCombo combo) throws ConflictException;
 }

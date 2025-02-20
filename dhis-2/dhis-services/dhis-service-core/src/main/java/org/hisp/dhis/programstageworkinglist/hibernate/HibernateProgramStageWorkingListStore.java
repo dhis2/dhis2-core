@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.programstageworkinglist.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
 import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListStore;

@@ -28,7 +28,7 @@
 package org.hisp.dhis.organisationunit;
 
 import static java.util.Arrays.asList;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -339,6 +340,35 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest {
     addOrganisationUnitGroupSet('X', groupC, groupD, groupE);
     // unit D is in group D and E which are both in set X
     assertContainsOnly(List.of(ouD), unitStore.getOrganisationUnitsViolatingExclusiveGroupSets());
+  }
+
+  @Test
+  void testOrganisationUnitsUidByUser() {
+    OrganisationUnit ouA = addOrganisationUnit('A');
+    OrganisationUnit ouB = addOrganisationUnit('B');
+    OrganisationUnit ouC = addOrganisationUnit('C');
+    OrganisationUnit ouD = addOrganisationUnit('D');
+    OrganisationUnit ouE = addOrganisationUnit('E');
+    OrganisationUnit ouF = addOrganisationUnit('F');
+
+    User userA = createAndAddUser("userA");
+    userA.addOrganisationUnits(Set.of(ouA, ouB));
+    userA.setTeiSearchOrganisationUnits(Set.of(ouC, ouD));
+    userA.setDataViewOrganisationUnits(Set.of(ouE, ouF));
+
+    userService.updateUser(userA);
+    userService.getUserByUsername(userA.getUsername());
+
+    List<String> organisationUnitsUidsByUser =
+        unitStore.getOrganisationUnitsUidsByUser(userA.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        unitStore.getDataViewOrganisationUnitsUidsByUser(userA.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        unitStore.getSearchOrganisationUnitsUidsByUser(userA.getUsername());
+
+    assertContainsOnly(List.of(ouA.getUid(), ouB.getUid()), organisationUnitsUidsByUser);
+    assertContainsOnly(List.of(ouC.getUid(), ouD.getUid()), searchOrganisationUnitsUidsByUser);
+    assertContainsOnly(List.of(ouE.getUid(), ouF.getUid()), dataViewOrganisationUnitsUidsByUser);
   }
 
   private Program addProgram(char uniqueCharacter, OrganisationUnit... units) {

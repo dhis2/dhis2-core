@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionStore extends IdentifiableObjectStore<Section> {
-  String ID = SectionStore.class.getName();
-
   /**
    * Retrieves the Section with the given name and the given DataSet.
    *
@@ -42,12 +42,27 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
    */
   Section getSectionByName(String name, DataSet dataSet);
 
-  List<Section> getSectionsByDataElement(String dataElementUid);
+  /**
+   * Retrieves sections associated with the data element with the given UID.
+   *
+   * @param uid the data element UID.
+   * @return a list of {@link Section}.
+   */
+  List<Section> getSectionsByDataElement(String uid);
 
   /**
-   * Retrieves all {@link Section}s referencing the provided {@link Indicator}s.
+   * Retrieves sections associated with the given indicators.
    *
-   * @return a Collection of {@link Section}s.
+   * @param indicators the list of {@link Indicator}.
+   * @return a list of {@link Section}.
    */
-  List<Section> getSectionsByIndicators(List<Indicator> indicators);
+  List<Section> getSectionsByIndicators(Collection<Indicator> indicators);
+
+  /**
+   * Retrieves sections associated with the given data elements.
+   *
+   * @param dataElements the list of {@link DataElement}.
+   * @return a list of {@link Section}.
+   */
+  List<Section> getSectionsByDataElement(Collection<DataElement> dataElements);
 }

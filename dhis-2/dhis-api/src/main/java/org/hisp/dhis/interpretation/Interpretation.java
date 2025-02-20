@@ -49,6 +49,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -399,6 +400,7 @@ public class Interpretation extends BaseIdentifiableObject {
     this.likes = likes;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto[].class)
   @JsonProperty("likedBy")
   @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)

@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -51,26 +50,29 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultEventCoordinateService implements EventCoordinateService {
-  public static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+  public static final String COL_NAME_ENROLLMENT_GEOMETRY = "enrollmentgeometry";
 
-  public static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+  public static final String COL_NAME_EVENT_GEOMETRY = "eventgeometry";
 
-  public static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+  public static final String COL_NAME_TRACKED_ENTITY_GEOMETRY = "tegeometry";
 
   public static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
   public static final List<String> COL_NAME_GEOMETRY_LIST =
       List.of(
-          COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY, COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY);
+          COL_NAME_EVENT_GEOMETRY,
+          COL_NAME_ENROLLMENT_GEOMETRY,
+          COL_NAME_TRACKED_ENTITY_GEOMETRY,
+          COL_NAME_OU_GEOMETRY);
 
   public static final List<String> COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST =
-      List.of(COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY);
+      List.of(COL_NAME_EVENT_GEOMETRY, COL_NAME_ENROLLMENT_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
-  @Nonnull private final ProgramService programService;
+  private final ProgramService programService;
 
-  @Nonnull private final DataElementService dataElementService;
+  private final DataElementService dataElementService;
 
-  @Nonnull private final TrackedEntityAttributeService attributeService;
+  private final TrackedEntityAttributeService attributeService;
 
   @Override
   public boolean isFallbackCoordinateFieldValid(boolean isRegistration, String coordinateField) {
@@ -78,7 +80,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
       return false;
     }
 
-    if (COL_NAME_TEI_GEOMETRY.equals(coordinateField)) {
+    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(coordinateField)) {
       return isRegistration;
     }
 
@@ -112,23 +114,21 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
       }
 
       fallbackCoordinateFields.add(fallbackCoordinateField);
-    } else {
-      if (defaultCoordinateFallback) {
-        List<String> items =
-            new ArrayList<>(
-                pr.isRegistration()
-                    ? COL_NAME_GEOMETRY_LIST
-                    : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST);
+    } else if (defaultCoordinateFallback) {
+      List<String> items =
+          new ArrayList<>(
+              pr.isRegistration()
+                  ? COL_NAME_GEOMETRY_LIST
+                  : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST);
 
-        fallbackCoordinateFields.addAll(items);
-      }
+      fallbackCoordinateFields.addAll(items);
     }
 
     return fallbackCoordinateFields;
   }
 
   @Override
-  public String getCoordinateField(ValueType valueType, String field, ErrorCode errorCode) {
+  public String validateCoordinateField(ValueType valueType, String field, ErrorCode errorCode) {
     if (ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType) {
       throwIllegalQueryEx(errorCode, field);
     }
@@ -137,13 +137,13 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
   }
 
   @Override
-  public String getCoordinateField(String program, String coordinateField, ErrorCode errorCode) {
+  public String validateCoordinateField(String program, String field, ErrorCode errorCode) {
     Program pr = programService.getProgram(program);
 
-    if (COL_NAME_TEI_GEOMETRY.equals(coordinateField) && !pr.isRegistration()) {
-      throwIllegalQueryEx(errorCode, coordinateField);
+    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(field) && !pr.isRegistration()) {
+      throwIllegalQueryEx(errorCode, field);
     }
 
-    return coordinateField;
+    return field;
   }
 }

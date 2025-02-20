@@ -28,7 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,7 +39,6 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -47,6 +46,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class PredictionWriterTest extends DhisConvenienceTest {
+class PredictionWriterTest extends TestBase {
 
   @Mock private DataValueService dataValueService;
 
@@ -123,7 +123,7 @@ class PredictionWriterTest extends DhisConvenienceTest {
     cocA.setId(++id);
     cocB.setId(++id);
 
-    orgUnitA = createOrganisationUnit("A");
+    orgUnitA = createOrganisationUnit('A');
 
     orgUnitA.setId(++id);
 

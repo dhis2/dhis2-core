@@ -1,0 +1,967 @@
+
+/*----------------------------------------------------------------------------*/
+/* Scrollbar (Webkit)                                                        */
+/*----------------------------------------------------------------------------*/
+
+::-webkit-scrollbar 
+{
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track:horizontal
+{
+  background-color: #eee;
+}
+
+::-webkit-scrollbar-thumb:horizontal 
+{
+  background-color: #bbb;
+}
+
+::-webkit-scrollbar-track:vertical
+{
+    background-color: #eee;
+}
+
+::-webkit-scrollbar-thumb:vertical 
+{
+  background-color: #bbb;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Right bar                                                                  */
+/*----------------------------------------------------------------------------*/
+
+div#rightBar
+{
+  display:none;
+  background-color: #d5efd5;
+  height: 454px;
+  width: 300px;
+  float: right;
+  position: fixed;
+  top: 85px;
+  right: 10px;
+  border: 1px solid #a4d2a3;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  overflow: auto;
+  box-shadow: #ccc 0 1px 1px 0;
+}
+
+#hideRightBar
+{
+  position: relative;
+  left: 0px;
+  top: 0px;
+}
+
+#rightBar h3 
+{
+  font-weight: lighter;
+  margin-top: 6px;
+  font-size: 13pt;
+  color: #606060;
+}
+
+#rightBar p
+{
+  font-size: 9pt;
+}
+
+#rightBar ul,ol
+{
+  font-size: 9pt;
+  padding-left: 14px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Details area                                                              */
+/*----------------------------------------------------------------------------*/
+
+#detailsData
+{
+  vertical-align: top;
+  width: 0;
+  padding-left: 15px;
+}
+
+#detailsArea 
+{
+  display: none;
+  border: 1px solid #ddd;
+  position: fixed;
+  top: 150px;
+  width: 233px;
+  margin-right: 20px;
+  padding: 15px;
+  overflow: auto;
+  color: #222;
+  box-shadow: #f2f2f2 0 1px 1px 0;
+}
+
+#detailsArea label 
+{
+  font-weight: bold;
+  font-size: 13px;
+}
+
+#hideDetailsArea
+{
+  float: right;
+}
+
+#warningArea
+{
+  display: none;
+  border: 1px solid #9d0000;
+  background-color: #f48d8d;
+  position: fixed;
+  top: 150px;
+  width: 233px;
+  padding: 15px;
+  overflow: auto;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Help page                                                                  */
+/*----------------------------------------------------------------------------*/
+
+div#helpMenu
+{
+  width: 260px;
+  margin-right: 15px;
+}
+
+div#helpMenu ul
+{
+  list-style-type: none;
+  font-size: 9pt;
+}
+
+div#helpMenu a
+{
+  text-decoration: none;
+}
+
+div#helpMenu h6
+{
+  cursor: pointer;
+  padding: 3px 0px 4px 25px;
+}
+
+div#helpContent
+{
+  margin-top: 1px;
+  margin-right: 15px;
+  border: 1px solid #c0c0c0; 
+  padding: 10px 20px 20px 20px;
+  border-radius: 3px;
+}
+
+div#helpContent ul, ol
+{
+  padding-left: 15px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Thingy                                                                     */
+/*----------------------------------------------------------------------------*/
+
+div.thingy 
+{
+  clear: both;
+}
+
+.leftBarIcon
+{
+  height: 16px;
+  width: 16px;
+  color: #666;
+  font-size: 10pt;
+}
+
+#showLeftBar
+{
+  display: none;
+  position: absolute;
+  left: 22px;
+  top: 50px;
+  font-weight: bold;
+  font-size: 9pt;
+  cursor: pointer;
+}
+
+#hideLeftBar
+{
+  position: absolute;
+  right: 2px;
+  font-weight: bold;
+  font-size: 9pt;
+  cursor: pointer;
+}
+
+#mainMenuIcon
+{
+  float:right;
+  cursor: pointer;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Organisation Unit Web Tree                                                 */
+/*----------------------------------------------------------------------------*/
+
+div#orgUnitTree 
+{
+  font-size: 9pt;
+  padding-top: 4px;
+}
+
+div#orgUnitTree 
+{
+  font-size: 9pt;
+  background-color: white;
+  overflow: auto;
+  width: 235px;
+  height: 300px;
+  border-top: 1px solid #e3e3e3;
+  border-bottom: 1px solid #e3e3e3;
+}
+
+div#orgUnitTree ul 
+{
+  margin: 0;
+  padding: 0;
+}
+
+div#orgUnitTree ul li:last-child 
+{
+  background-position: 0pt -1766px;
+}
+
+div#orgUnitTree li 
+{
+  list-style-type: none;
+  white-space: nowrap;
+  margin-top: 0;
+  padding: 0 0 1px 15px;
+  background-color: transparent;
+  background-image: url('../../images/treeview-gray-line.gif');
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-position: 0pt 0pt;
+}
+
+div#orgUnitTree span.toggle 
+{
+  margin-left: -12px;
+  cursor: pointer;
+}
+
+div#orgUnitTree a 
+{
+  display: inline;
+  border: 0;
+  padding: 0;
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+div#orgUnitTree a:hover 
+{
+  color: #555;
+  background-color: #fff;
+}
+
+div#orgUnitTree a.selected 
+{
+  color: orange !important;
+  font-weight: bold;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Organisation Unit Selection Tree                                           */
+/*----------------------------------------------------------------------------*/
+
+div#selectionTree 
+{
+  font-size: 9pt; /* Size to change */
+  background-color: white;
+  height: 300px;
+  width: 493px;  
+  overflow: auto;
+  border: 1px solid #ccc;   
+  padding: 4px 0 0 5px;
+}
+
+div#selectionTree ul 
+{
+  margin: 0em 0em 0em 1.5em;
+}
+
+div#selectionTree>ul 
+{
+  margin-left: 0em;
+}
+
+div#selectionTree li 
+{
+  list-style-type: none;
+  white-space: nowrap; /* Makes list items never wrap */
+}
+
+div#selectionTree span.toggle 
+{
+  font-family: courier new, monospace;
+  font-size: 9pt; /* Size to change */
+  cursor: pointer;
+}
+
+div#selectionTree a 
+{
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+div#selectionTree a:hover 
+{
+  color: #808080;
+}
+
+div#selectionTree a.selected 
+{
+    color: orange !important;
+    font-weight: bold;
+}
+
+div#selectionTree a.locked 
+{
+  color: green;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Message field                                                              */
+/*----------------------------------------------------------------------------*/
+
+#message
+{
+  display: none;
+  padding: 1em;
+  margin: 1em 0;
+  background-color: #f8eab0;
+  border: 1px solid #dbae56;
+  width: 480px;
+  border-radius: 3px;
+}
+
+#info
+{
+  display: block;
+  padding: 1em;
+  margin: 1em 0;
+  background-color: #baffbc;
+  border: 1px solid #12cd17;
+  width: 480px;
+  border-radius: 3px;
+}
+
+#headerMessage
+{
+  top: 3px;
+  left: 155px;
+  position: fixed;
+  display: none;
+  padding: 10px;
+  padding-bottom: 9px;
+  width: 410px;
+  background-color: #f8eab0;
+  border: 1px solid #dbae56;
+  z-index: 1200;
+  font-size: 9pt;
+  text-align: center;
+  border-radius: 3px;
+}
+
+table.notificationTable 
+{
+  background-color: #f9edbe;
+  border: 1px solid #dbae56;
+  padding: 6px;
+  border-radius: 3px;
+}
+
+table.notificationTable td 
+{
+  padding: 3px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Sorting                                                                    */
+/*----------------------------------------------------------------------------*/
+
+table thead tr .header 
+{
+  background-image: url('../../images/bg.gif');	
+}
+
+table thead tr .headerSortUp
+{
+  background-image: url('../../images/asc.gif');	
+}
+
+table thead tr .headerSortDown 
+{
+  background-image: url('../../images/desc.gif');	
+}
+
+table thead tr .headerSortUp,
+table thead tr .headerSortDown,
+table thead tr .header
+{
+  background-repeat:no-repeat;
+  background-position: center right;
+  cursor:pointer;
+}
+
+div.error 
+{ 
+	background: url('../../images/error.png') no-repeat 10px 10px 
+}
+
+div.success 
+{
+	background: url('../../images/success.png') no-repeat 10px 10px
+}
+
+div.warning
+{ 
+	background: url('../../images/warning.png') no-repeat 10px 10px
+}
+
+div.waiting
+{
+	background: url('../../images/wrench.png') no-repeat 10px 10px
+}
+
+div.growlUI h1, div.growlUI h2 
+{
+	color: white; padding: 5px 5px 5px 75px; text-align: left;font-size:medium 
+}
+
+div.growlUI h2 
+{ 
+	font-size: small 
+}
+
+.ui-autocomplete-loading 
+{ 
+	background: white url('../../images/ui-anim_basic.gif') right center no-repeat; 
+}
+
+span.error 
+{
+	color: red;
+}
+
+#cluetip-inner
+{
+	font-size:10pt;
+}
+
+#cluetip-inner label
+{
+	padding-bottom:5px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Criteria                                                                   */
+/*----------------------------------------------------------------------------*/
+
+div.inputCriteria
+{
+  border: 1px solid #a4d2a3;
+  background-color: #d0eBd0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  margin-bottom: 15px;
+  border-radius: 3px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Data entry forms                                                           */
+/*----------------------------------------------------------------------------*/
+
+.alt
+{
+  background-color: #f3f3f3;
+  padding-right: 50px;
+}
+
+.reg
+{
+  padding-right: 50px;
+}
+
+.cent
+{
+  text-align: center;
+}
+
+.formSection
+{
+  border:1px solid #cacaca; 
+  padding:10px;
+  border-radius: 3px;
+}
+
+.formInputField
+{
+  border: 1px solid #aaa;
+  padding: 4px 1px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Settings                                                                   */
+/*----------------------------------------------------------------------------*/
+
+.settingHeader
+{
+  padding: 9px 0 6px 0;
+  font-size: 12pt;
+  color: #373737;
+}
+
+.settingLabel
+{	
+  padding: 2px 0;
+  font-size: 10pt;
+  color: #222;
+}
+
+.setting
+{
+  padding: 2px 0;
+  font-size: 10pt;
+  margin-bottom: 15px;
+  color: #222;
+}
+
+.setting input[type=text],
+.setting input[type=password],
+.setting input[type=number],
+.setting input[type=email],
+.inputForm input[type=text],
+.inputForm input[type=password],
+.inputForm input[type=number],
+.inputForm input[type=email],
+.setting textarea,
+.inputForm textarea
+{
+  width: 25em;
+  border: 1px solid #aaa;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  border-radius: 3px;
+  padding: 6px 5px;
+  margin: 2px 0;
+  color: #222;
+}
+
+.setting select,
+.inputForm select
+{
+  width: 26em;
+  padding: 6px 1px;
+  margin: 2px 0;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  background-color: #fff;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  color: #222;
+}
+
+.setting textarea,
+.inputForm textarea
+{
+  height: 8em;
+}
+
+.inputForm label
+{
+  color: #222;
+}
+
+.settingIndent
+{
+  margin-left: 12px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Paging                                                                     */
+/*----------------------------------------------------------------------------*/
+
+.paging-container
+{
+	text-align: right; 
+}
+
+div.paging 
+{
+	width:300px;
+	float:right; 
+	margin-right:5em; 
+	text-align: center; 
+	height:16px; 
+}
+
+div.paging span, div.paging a 
+{
+    font-weight: bold;
+	padding: 0 5px;
+	font-size: 12px;
+}
+
+div.paging a
+{
+	text-decoration: none; 
+	color: #FF9900;
+}
+
+div.paging a:hover
+{
+	color: #000;
+}
+
+div.paging span.page 
+{
+	color:#000;
+}
+
+div.paging span.seperator 
+{
+	display:none;
+}
+
+ul.pageSizeSelection 
+{
+	list-style:none; 
+	float:left; 
+	width: 300px; 
+	margin: 0; 
+	padding: 0;
+}
+
+ul.pageSizeSelection span 
+{
+	width: 100px; display: block; float :left;
+}
+
+ul.pageSizeSelection input 
+{
+	text-align: right;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Custom forms dynamic style                                                 */
+/*----------------------------------------------------------------------------*/
+
+.cde table 
+{
+  border-collapse: collapse;
+}
+
+.cde-greyfield 
+{
+  background-color: #e0e0e0;
+}
+
+.cde-NORMAL td, .cde-NORMAL th 
+{
+  padding: 12px;
+  border: 1px solid #c0c0c0;
+}
+
+.cde-COMFORTABLE td, .cde-COMFORTABLE th 
+{
+  padding: 18px;
+  border: 1px solid #c0c0c0;
+}
+
+.cde-COMPACT td, .cde-COMPACT th 
+{
+  padding: 5px;
+  border: 1px solid #c0c0c0;
+}
+
+.cde-NONE
+{
+}
+
+.dashboardMenuFlag
+{
+  margin-top: 16px; 
+  margin-left: 16px; 
+  border: 1px solid #D0D0D0; 
+  border-radius: 2px; cursor: pointer;
+  max-width: 160px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Buttons                                                                    */
+/*----------------------------------------------------------------------------*/
+
+.greyButtonLink
+{
+  padding: 6px 12px;
+  height: 25px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  margin-right: 4px;
+  font-weight: bold;
+  font-size: 13px;
+  background-color: #f3f3f3;
+  color: #606060 !important;
+  text-decoration: none !important;
+}
+
+.greyButtonLink:hover
+{
+  text-decoration: none;
+  background-color: #f8f8f8;
+}
+
+.blueButtonLink
+{
+  padding: 6px 12px;
+  height: 25px;
+  border: 1px solid #3281D1;
+  border-radius: 3px;
+  margin-right: 4px;
+  font-weight: bold;
+  font-size: 13px;
+  background-color: #3581CE;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+.blueButtonLink:hover
+{
+  text-decoration: none;
+  background-color: #3176BD;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Multi select/checkbox combo button                                         */
+/*----------------------------------------------------------------------------*/
+
+.multiSelectButton
+{
+    padding: 6px 12px;
+    height: 25px;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    margin-right: 4px;
+    font-weight: bold;
+    font-size: 13px;
+    background-color: #f3f3f3;
+    color: #606060 !important;
+    text-decoration: none !important;
+}
+
+.multiSelectButton:hover
+{
+    text-decoration: none;
+    background-color: #f8f8f8;
+}
+
+.multiSelectButton .downArrow
+{
+    border: thick;
+    border-color: #777777 transparent white;
+    border-style: solid dashed dashed;
+    margin-left: 5px;
+    position: relative;
+    top: 10px;
+}
+
+.multiSelectButton .downArrow:hover
+{
+    border-color: #999999 transparent white;
+}
+
+.multiSelectButton.disabled .downArrow
+{
+    border-color: #e2e2e2 transparent white;
+}
+
+.multiSelectButton input[type='checkbox']
+{
+    margin: 0;
+}
+
+.multiSelectMenu
+{
+    position: absolute;
+    margin-top: -15px;
+    z-index: 999;
+    padding: 1px 1px;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    margin-right: 4px;
+    font-weight: bold;
+    font-size: 13px;
+    background-color: #f3f3f3;
+    color: #606060 !important;
+    text-decoration: none !important;
+}
+
+.multiSelectMenu li
+{
+    float: none !important;
+    display: block;
+    text-decoration: none;
+    color: #606060;
+    padding: 6px 9px;
+}
+
+.multiSelectMenu li:hover
+{
+    cursor: pointer;
+    text-decoration: none;
+    background-color: #f8f8f8;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Placeholders                                                               */
+/*----------------------------------------------------------------------------*/
+
+::-webkit-input-placeholder
+{
+  color: #777;
+}
+
+input:-moz-placeholder
+{
+  color: #777;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Profile                                                                    */
+/*----------------------------------------------------------------------------*/
+
+#updateProfileHeader
+{
+  display: inline-block;
+  font-size: 14pt;
+  color: #606060;
+  padding: 0 0 19px 0;
+}
+
+#updateProfileLink
+{
+  position: relative; 
+  top: -2px; 
+  display: inline-block; 
+  margin-left: 200px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* jQuery overrides                                                           */
+/*----------------------------------------------------------------------------*/
+
+.ui-widget, .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button
+{
+  font-family: LiberationSans, arial, sans-serif !important;
+  font-size: 9pt !important;
+}
+
+.ui-datepicker th 
+{
+  font-family: LiberationSans, arial, sans-serif !important;
+  padding: 0.5em 0 !important;
+  font-size: 9pt !important;
+}
+
+.ui-widget-header, .ui-widget-header a
+{
+  font-family: LiberationSans, arial, sans-serif !important;
+  font-size: 10pt !important;
+}
+
+.ui-datepicker-header
+{
+  margin-bottom: 2px;
+}
+
+.ui-button-text
+{
+  font-family: LiberationSans, arial, sans-serif !important;
+  font-size: 9pt !important;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Messages used for sharing                                                  */
+/*----------------------------------------------------------------------------*/
+
+.message 
+{
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    width: 450px;
+    padding: 9px;
+    margin-bottom: 8px;
+}
+
+.message-info
+{
+    background-color: #f3f3f3;
+	color: #222;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Filter                                                                     */
+/*----------------------------------------------------------------------------*/
+
+.filterInput
+{
+  max-width: 300px;
+  min-width: 120px;
+  width: 50%;
+}
+
+.filterButton
+{
+  width: 55px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Div                                                                        */
+/*----------------------------------------------------------------------------*/
+
+.tipText
+{
+	color: #777;
+	font-weight: normal;
+}
+
+.fa-question-circle
+{
+  color: #276696;
+}
+
+.gridTable
+{
+  border-collapse: collapse;
+}
+
+.gridTable td, 
+.gridTable th
+{
+  border: 1px solid #e1e1e1;
+}
+

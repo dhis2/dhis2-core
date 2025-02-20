@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.metadata.users;
 
-import static org.hisp.dhis.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FIELDS;
-import static org.hisp.dhis.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FILTER;
+import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FIELDS;
+import static org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions.DEFAULT_METADATA_FILTER;
 
 import java.util.Arrays;
 import java.util.Collections;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.MetadataPaginationActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.PasswordGenerator;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataPaginationActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

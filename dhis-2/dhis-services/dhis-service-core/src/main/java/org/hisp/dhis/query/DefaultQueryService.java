@@ -35,6 +35,8 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,11 +51,10 @@ public class DefaultQueryService implements QueryService {
   private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
   private final QueryParser queryParser;
-
   private final QueryPlanner queryPlanner;
+  private final SchemaService schemaService;
 
   private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
-
   private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
   @Override
@@ -85,35 +86,22 @@ public class DefaultQueryService implements QueryService {
   }
 
   @Override
-  public Query getQueryFromUrl(
-      Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination)
+  public Query getQueryFromUrl(Class<?> type, GetObjectListParams params)
       throws QueryParserException {
-    return getQueryFromUrl(klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE);
-  }
+    List<String> filters = params.getFilters();
+    if (filters == null) filters = List.of();
+    Query query = queryParser.parse(type, filters, params.getRootJunction());
 
-  @Override
-  public Query getQueryFromUrl(
-      Class<?> klass,
-      List<String> filters,
-      List<Order> orders,
-      Pagination pagination,
-      Junction.Type rootJunction)
-      throws QueryParserException {
-    Query query = queryParser.parse(klass, filters, rootJunction);
-    query.addOrders(orders);
+    Schema schema = schemaService.getDynamicSchema(type);
+    query.addOrders(QueryUtils.convertOrderStrings(params.getOrders(), schema));
 
+    Pagination pagination = params.getPagination();
     if (pagination.hasPagination()) {
       query.setFirstResult(pagination.getFirstResult());
       query.setMaxResults(pagination.getSize());
     }
 
     return query;
-  }
-
-  @Override
-  public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders)
-      throws QueryParserException {
-    return getQueryFromUrl(klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE);
   }
 
   // ---------------------------------------------------------------------------------------------

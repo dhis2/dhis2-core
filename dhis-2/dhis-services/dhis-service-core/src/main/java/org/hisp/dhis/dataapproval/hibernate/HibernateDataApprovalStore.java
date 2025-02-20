@@ -36,14 +36,15 @@ import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +55,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalState;
@@ -67,8 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -106,7 +107,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private final CategoryService categoryService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public HibernateDataApprovalStore(
       EntityManager entityManager,
@@ -116,7 +117,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       PeriodService periodService,
       PeriodStore periodStore,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
@@ -125,13 +126,13 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     checkNotNull(periodStore);
     checkNotNull(userService);
     checkNotNull(categoryService);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
 
     this.periodService = periodService;
     this.periodStore = periodStore;
     this.userService = userService;
     this.categoryService = categoryService;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
     this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
   }
 
@@ -172,7 +173,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     String hql = "delete from DataApproval d where d.organisationUnit = :unit";
 
-    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override
@@ -284,7 +285,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     User currentUser = userService.getUserByUsername(currentUsername);
 
     final String strArrayUserGroups =
-        (currentUser == null || CollectionUtils.isEmpty(currentUser.getGroups()))
+        (CollectionUtils.isEmpty(currentUser.getGroups()))
             ? null
             : "{"
                 + String.join(
@@ -308,9 +309,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             : "";
 
     List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
-
-    Set<OrganisationUnit> userOrgUnits =
-        currentUser != null ? currentUser.getDataViewOrganisationUnitsWithFallback() : null;
+    Set<OrganisationUnit> userOrgUnits = currentUser.getDataViewOrganisationUnitsWithFallback();
 
     boolean isDefaultCombo =
         attributeOptionCombos != null
@@ -320,9 +319,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                 .equals(attributeOptionCombos.toArray()[0]);
 
     boolean maySeeDefaultCategoryCombo =
-        currentUser != null
-            && (CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
-                && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints()));
+        CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
+            && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints());
 
     // ---------------------------------------------------------------------
     // Validate
@@ -368,7 +366,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     // ---------------------------------------------------------------------
 
     boolean acceptanceRequiredForApproval =
-        systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
+        settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();
 
     final boolean isSuperUser =
         CurrentUserUtil.getCurrentUserDetails() != null
@@ -799,6 +797,33 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     }
 
     return statusList;
+  }
+
+  @Override
+  public List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select da from DataApproval da
+            join da.attributeOptionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
+        .getResultList();
+  }
+
+  @Override
+  public void deleteByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return;
+    String hql =
+        """
+        delete from DataApproval da
+        where da.attributeOptionCombo in
+          (select coc from CategoryOptionCombo coc
+          where coc.uid in :uids)
+        """;
+
+    entityManager.createQuery(hql).setParameter("uids", UID.toValueList(uids)).executeUpdate();
   }
 
   /**

@@ -19,8 +19,5 @@ jobs:
       - name: Check formatting in core
         run: mvn spotless:check --threads 2C --batch-mode --no-transfer-progress -q -f ./dhis-2/pom.xml
 
-      - name: Check formatting in web
-        run: mvn spotless:check --threads 2C --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-web/pom.xml
-
       - name: Check formatting in e2e tests
         run: mvn spotless:check --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-test-e2e/pom.xml

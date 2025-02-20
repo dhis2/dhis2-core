@@ -48,6 +48,7 @@ public interface AppManager {
       Set.of(
           // Javascript apps
           "aggregate-data-entry",
+          "approval",
           "app-management",
           "cache-cleaner",
           "capture",
@@ -70,17 +71,10 @@ public interface AppManager {
           "scheduler",
           "settings",
           "sms-configuration",
-          "tracker-capture",
           "translations",
           "usage-analytics",
           "user",
-          "user-profile",
-          // Struts apps
-          "approval",
-          "dataentry",
-          "maintenance-mobile");
-
-  static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
+          "user-profile");
 
   static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
@@ -153,9 +147,9 @@ public interface AppManager {
    *
    * @param file the app file.
    * @param fileName the name of the app file.
-   * @return outcome of the installation
+   * @return the installed app instance
    */
-  AppStatus installApp(File file, String fileName);
+  App installApp(File file, String fileName);
 
   /**
    * Installs an app from the AppHub with the given ID.
@@ -163,7 +157,7 @@ public interface AppManager {
    * @param appHubId A unqiue ID for a specific app version
    * @return outcome of the installation
    */
-  AppStatus installApp(UUID appHubId);
+  App installApp(UUID appHubId);
 
   /**
    * Indicates whether the app with the given name exist.
@@ -204,9 +198,9 @@ public interface AppManager {
    *
    * @param app the app to look up files for
    * @param pageName the page requested
-   * @return the Resource representing the file, or null if no file was found
+   * @return the {@link ResourceResult}
    */
-  Resource getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String pageName) throws IOException;
 
   /**
    * Sets the app status to DELETION_IN_PROGRESS.
@@ -215,6 +209,8 @@ public interface AppManager {
    * @return true if the status was changed in this method.
    */
   boolean markAppToDelete(App app);
+
+  int getUriContentLength(Resource resource);
 
   // -------------------------------------------------------------------------
   // Static methods for manipulating a collection of apps
@@ -277,9 +273,10 @@ public interface AppManager {
    *
    * @return list of installed apps with given isBundled property
    */
-  public static List<App> filterAppsByPluginType(String pluginType, Collection<App> apps) {
+  static List<App> filterAppsByPluginType(String pluginType, Collection<App> apps) {
     return apps.stream()
+        .filter(app -> app.getPluginType() != null)
         .filter(app -> app.getPluginType().equals(pluginType))
-        .collect(Collectors.toList());
+        .toList();
   }
 }

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
-import static org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE;
-import static org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
@@ -40,13 +40,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationAction;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,28 +56,30 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ValidationExecutorTest extends DhisConvenienceTest {
-  private static final String RULE_UID = "Rule uid";
+class ValidationExecutorTest extends TestBase {
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
   private static final String CONTENT = "SHOW ERROR DATA";
 
   private static final String EVALUATED_DATA = "4.0";
 
-  private static final String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
+  private static final UID ACTIVE_ENROLLMENT_ID = UID.generate();
 
-  private static final String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
+  private static final UID COMPLETED_ENROLLMENT_ID = UID.generate();
 
   private final ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
-      new ShowWarningOnCompleteExecutor(getValidationRuleAction(WARNING));
+      new ShowWarningOnCompleteExecutor(
+          getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING_ON_COMPLETE));
 
   private final ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
-      new ShowErrorOnCompleteExecutor(getValidationRuleAction(ERROR));
+      new ShowErrorOnCompleteExecutor(
+          getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR_ON_COMPLETE));
 
   private final ShowErrorExecutor showErrorExecutor =
-      new ShowErrorExecutor(getValidationRuleAction(ERROR));
+      new ShowErrorExecutor(getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR));
 
   private final ShowWarningExecutor showWarningExecutor =
-      new ShowWarningExecutor(getValidationRuleAction(WARNING));
+      new ShowWarningExecutor(getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING));
 
   private TrackerBundle bundle;
 
@@ -170,8 +174,10 @@ class ValidationExecutorTest extends DhisConvenienceTest {
     return Enrollment.builder().enrollment(COMPLETED_ENROLLMENT_ID).status(COMPLETED).build();
   }
 
-  private ValidationRuleAction getValidationRuleAction(IssueType issueType) {
-    return new ValidationRuleAction(RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
+  private ValidationEffect getValidationRuleAction(
+      IssueType issueType, ValidationAction actionType) {
+    return new ValidationEffect(
+        actionType, RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
   }
 
   private String validationMessage(IssueType issueType) {

@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +39,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -90,14 +94,14 @@ class DataApprovalPermissionsEvaluator {
    * DataApproval objects.
    *
    * @param userService user service
-   * @param systemSettingManager System setting manager
+   * @param settings current settings
    * @param dataApprovalLevelService Data approval level service
    * @return context for determining user permissions
    */
   public static DataApprovalPermissionsEvaluator makePermissionsEvaluator(
       UserService userService,
       IdentifiableObjectManager idObjectManager,
-      SystemSettingManager systemSettingManager,
+      SystemSettings settings,
       DataApprovalLevelService dataApprovalLevelService) {
     DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
 
@@ -106,17 +110,13 @@ class DataApprovalPermissionsEvaluator {
 
     ev.user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    ev.acceptanceRequiredForApproval =
-        systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
-    boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
+    ev.acceptanceRequiredForApproval = settings.getAcceptanceRequiredForApproval();
+    boolean hideUnapprovedData = settings.isHideUnapprovedDataInAnalytics();
 
-    ev.authorizedToApprove = ev.user.isAuthorized(DataApproval.AUTH_APPROVE);
-    ev.authorizedToApproveAtLowerLevels =
-        ev.user.isAuthorized(DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    ev.authorizedToAcceptAtLowerLevels =
-        ev.user.isAuthorized(DataApproval.AUTH_ACCEPT_LOWER_LEVELS);
-    Boolean authorizedToViewUnapprovedData =
-        ev.user.isAuthorized(DataApproval.AUTH_VIEW_UNAPPROVED_DATA);
+    ev.authorizedToApprove = ev.user.isAuthorized(F_APPROVE_DATA);
+    ev.authorizedToApproveAtLowerLevels = ev.user.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
+    ev.authorizedToAcceptAtLowerLevels = ev.user.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
+    boolean authorizedToViewUnapprovedData = ev.user.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     ev.mayViewLowerLevelUnapprovedData = !hideUnapprovedData || authorizedToViewUnapprovedData;
 

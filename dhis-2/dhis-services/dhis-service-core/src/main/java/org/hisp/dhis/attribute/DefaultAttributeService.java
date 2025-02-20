@@ -29,14 +29,15 @@ package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +54,6 @@ public class DefaultAttributeService implements AttributeService {
   // -------------------------------------------------------------------------
 
   private final AttributeStore attributeStore;
-
   private final IdentifiableObjectManager manager;
 
   public DefaultAttributeService(
@@ -86,14 +86,8 @@ public class DefaultAttributeService implements AttributeService {
   }
 
   @Override
-  public void invalidateCachedAttribute(String attributeUid) {
-    attributeCache.invalidate(attributeUid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Attribute getAttribute(long id) {
-    return attributeStore.get(id);
+  public void invalidateCachedAttribute(String attributeId) {
+    attributeCache.invalidate(attributeId);
   }
 
   @Override
@@ -116,14 +110,14 @@ public class DefaultAttributeService implements AttributeService {
 
   @Override
   @Transactional(readOnly = true)
-  public Attribute getAttributeByCode(String code) {
-    return attributeStore.getByCode(code);
+  public List<Attribute> getAllAttributes() {
+    return attributeStore.getAll();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<Attribute> getAllAttributes() {
-    return attributeStore.getAll();
+  public List<Attribute> getAttributesByIds(Collection<String> ids) {
+    return attributeStore.getByUid(ids);
   }
 
   // -------------------------------------------------------------------------
@@ -134,12 +128,12 @@ public class DefaultAttributeService implements AttributeService {
   @Transactional
   @SuppressWarnings({"unchecked", "rawtypes"})
   public <T extends IdentifiableObject> void addAttributeValue(
-      T object, AttributeValue attributeValue) throws NonUniqueAttributeValueException {
-    if (object == null || attributeValue == null || attributeValue.getAttribute() == null) {
+      T object, String attributeId, String value) throws NonUniqueAttributeValueException {
+    if (object == null || attributeId == null || value == null) {
       return;
     }
 
-    Attribute attribute = getAttribute(attributeValue.getAttribute().getUid());
+    Attribute attribute = getAttribute(attributeId);
 
     Class realClass = HibernateProxyUtils.getRealClass(object);
 
@@ -148,41 +142,12 @@ public class DefaultAttributeService implements AttributeService {
     }
 
     if (attribute.isUnique()
-        && !manager.isAttributeValueUnique(realClass, object, attributeValue)) {
-      throw new NonUniqueAttributeValueException(attributeValue);
+        && !manager.isAttributeValueUniqueTo(
+            realClass, UID.of(object), UID.of(attributeId), value)) {
+      throw new NonUniqueAttributeValueException(attributeId, value);
     }
 
-    object.getAttributeValues().add(attributeValue);
+    object.addAttributeValue(attributeId, value);
     manager.update(object);
-  }
-
-  @Override
-  @Transactional
-  public <T extends IdentifiableObject> void deleteAttributeValue(
-      T object, AttributeValue attributeValue) {
-    object.getAttributeValues().removeIf(a -> a.getAttribute() == attributeValue.getAttribute());
-    manager.update(object);
-  }
-
-  @Override
-  @Transactional
-  public <T extends IdentifiableObject> void deleteAttributeValues(
-      T object, Set<AttributeValue> attributeValues) {
-    object.getAttributeValues().removeAll(attributeValues);
-
-    manager.update(object);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> void generateAttributes(List<T> entityList) {
-    entityList.forEach(
-        entity ->
-            entity
-                .getAttributeValues()
-                .forEach(
-                    attributeValue ->
-                        attributeValue.setAttribute(
-                            getAttribute(attributeValue.getAttribute().getUid()))));
   }
 }

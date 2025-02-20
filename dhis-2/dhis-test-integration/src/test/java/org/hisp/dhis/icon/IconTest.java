@@ -27,240 +27,273 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
+import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.SneakyThrows;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
-class IconTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class IconTest extends PostgresIntegrationTestBase {
+
   @Autowired private FileResourceService fileResourceService;
-
   @Autowired private IconService iconService;
-  @Autowired protected UserService _userService;
-  private final String[] keywords = {"k1", "k2", "k3"};
 
-  @SneakyThrows
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  private final Set<String> keywords = Set.of("k1", "k2", "m1");
+  private final String key = "iconKey";
+
+  private Icon icon;
+  private FileResource fileResource;
+  private User currentUser;
+
+  @BeforeAll
+  void setUp() {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
-    User currentUser = userService.getUserByUsername(currentUsername);
+    currentUser = userService.getUserByUsername(currentUsername);
     injectSecurityContextUser(currentUser);
 
-    FileResource fileResource = createAndPersistFileResource('A');
-    iconService.addCustomIcon(
-        new CustomIcon(
-            "iconKey", "description", keywords, fileResource.getUid(), getCurrentUser().getUid()));
+    fileResource = addFileResource('A');
+    icon = assertDoesNotThrow(() -> addIcon(key, "description", keywords, fileResource));
   }
 
   @Test
-  void shouldGetAllIconsByDefault() {
-    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+  void shouldGetIconByKey() throws NotFoundException {
+    assertIcon(iconService.getIcon(key));
+  }
 
-    IconOperationParams operationParams = new IconOperationParams();
+  @Test
+  void shouldGetIconsMatchingILikeKeyOrKeywords() throws Exception {
+    Icon icon1 = addIcon("tb-ward", keywords, addFileResource('I'));
+    Icon icon2 = addIcon("malaria-ward", keywords, addFileResource('J'));
+    Icon icon3 = addIcon("non-matching-key", Set.of("corona-ward"), addFileResource('K'));
 
+    IconQueryParams operationParams = new IconQueryParams();
+    operationParams.setSearch("ward");
     List<Icon> icons = iconService.getIcons(operationParams);
 
-    assertEquals(
-        defaultIconMap.size() + 1,
-        iconService.getIcons(operationParams).size(),
-        String.format(
-            "Expected to find %d icons, but found %d instead: %s",
-            defaultIconMap.size() + 1, icons.size(), icons));
+    assertContainsOnly(List.of(icon1, icon2, icon3), icons);
   }
 
   @Test
-  void shouldGetDefaultIconWhenKeyBelongsToDefaultIcon() throws NotFoundException {
-    String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse(null);
+  void shouldSaveIconWithNoKeywords() throws Exception {
+    Icon iconWithNoKeywords = addIcon("iconKey2", null);
 
-    Icon icon = iconService.getIcon(defaultIconKey);
-
-    assertEquals(defaultIconKey, icon.getKey());
+    assertEquals(Set.of(), iconWithNoKeywords.getKeywords());
   }
 
   @Test
-  void shouldGetAllKeywordsWhenRequested() {
-    Set<String> keywordList =
-        getAllDefaultIcons().values().stream()
-            .map(Icon::getKeywords)
-            .flatMap(Arrays::stream)
-            .collect(Collectors.toSet());
+  void shouldFailWhenUpdatingDefaultIcon() throws BadRequestException, NotFoundException {
+    Icon defaultIcon =
+        addIcon("3G", "description", keywords, addFileResource('G'), DefaultIcon._3G);
 
-    IconOperationParams operationParams = new IconOperationParams();
-    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
-    operationParams.setKeywords(keywordList.stream().toList());
+    UpdateIconRequest update =
+        UpdateIconRequest.builder().keywords(keywords).description("description updated").build();
 
-    assertEquals(
-        keywordList.size() + keywords.length,
-        iconService.getKeywords().size(),
-        String.format(
-            "Expected to find %d icons, but found %d instead",
-            keywordList.size() + keywords.length, iconService.getIcons(operationParams).size()));
+    assertBadRequestException(
+        "Not allowed to update default icon",
+        () -> iconService.updateIcon(defaultIcon.getKey(), update));
   }
 
   @Test
-  void shouldGetAllIconsFilteredByKeywordWhenRequested()
-      throws BadRequestException, NotFoundException {
-    Optional<DefaultIcon> defaultIcon =
-        getAllDefaultIcons().values().stream().filter(si -> si.getKeywords().length > 0).findAny();
+  void shouldUpdate() throws BadRequestException, NotFoundException {
+    UpdateIconRequest update =
+        UpdateIconRequest.builder()
+            .keywords(Set.of("new", "words"))
+            .description("description updated")
+            .build();
 
-    if (defaultIcon.isEmpty()) {
-      return;
+    iconService.updateIcon(icon.getKey(), update);
+
+    Icon fetched = iconService.getIcon(icon.getKey());
+
+    assertEquals("description updated", fetched.getDescription());
+    assertEquals(Set.of("new", "words"), fetched.getKeywords());
+  }
+
+  @Test
+  void shouldFailWhenSavingIconWithNoKey() {
+    assertBadRequestException("Icon key not specified.", () -> addIcon(null, keywords));
+  }
+
+  @Test
+  void shouldFailWhenSavingIconWithEmptyKey() {
+    assertBadRequestException("Icon key not specified.", () -> addIcon("", keywords));
+  }
+
+  @Test
+  void shouldFailWhenSavingIconWithInvalidKey() {
+    assertBadRequestException(
+        "Icon key k1 m1 is not valid. Alphanumeric and special characters '-' and '_' are allowed",
+        () -> addIcon("k1 m1", keywords));
+  }
+
+  @Test
+  void shouldFailWhenSavingIconWithNonExistentFileResourceId() {
+    AddIconRequest addRequest =
+        AddIconRequest.builder()
+            .key("another_key")
+            .keywords(keywords)
+            .fileResourceId("c1234567890")
+            .build();
+    assertNotFoundException(
+        "FileResource with id c1234567890 could not be found.",
+        () -> iconService.addIcon(addRequest, null));
+  }
+
+  @Test
+  void shouldFailWhenSavingIconWithNoFileResourceId() {
+    AddIconRequest addRequest =
+        AddIconRequest.builder().key("another_key").keywords(keywords).fileResourceId(null).build();
+    assertNotFoundException(
+        "FileResource with id null could not be found.",
+        () -> iconService.addIcon(addRequest, null));
+  }
+
+  @Test
+  void shouldFailWhenSavingIconAndIconWithSameKeyExists() {
+    assertBadRequestException("Icon with key iconKey already exists.", () -> addIcon(key, null));
+  }
+
+  @Test
+  void shouldFailWhenIconKeyDoesNotExist() {
+    assertNotFoundException(
+        "Icon with id non-existent-Key could not be found.",
+        () -> iconService.getIcon("non-existent-Key"));
+  }
+
+  @Test
+  void shouldFailWhenSavingIconWithExistingKey() {
+    FileResource fileResource = addFileResource('A');
+    AddIconRequest addRequest =
+        AddIconRequest.builder()
+            .key(key)
+            .description("description")
+            .keywords(keywords)
+            .fileResourceId(fileResource.getUid())
+            .build();
+
+    assertBadRequestException(
+        format("Icon with key %s already exists.", key),
+        () -> iconService.addIcon(addRequest, null));
+  }
+
+  @Test
+  void shouldFailWhenFetchingIconDataWithNonExistentKey() {
+    assertNotFoundException(
+        "Icon with id non-existent-Key could not be found.",
+        () -> iconService.getIcon("non-existent-Key"));
+  }
+
+  @Test
+  void shouldFailWhenUpdatingIconWithoutKey() {
+    UpdateIconRequest update =
+        UpdateIconRequest.builder()
+            .keywords(Set.of("new", "words"))
+            .description("description updated")
+            .build();
+
+    assertNotFoundException(
+        "Icon with id null could not be found.", () -> iconService.updateIcon(null, update));
+  }
+
+  @Test
+  void shouldFailWhenDeletingNonExistingIcon() {
+    assertNotFoundException(
+        "Icon with id unknown could not be found.", () -> iconService.deleteIcon("unknown"));
+  }
+
+  @Test
+  void shouldFailWhenDeletingIconWithoutKey() {
+    assertNotFoundException(
+        "Icon with id null could not be found.", () -> iconService.deleteIcon(null));
+  }
+
+  @Test
+  void shouldDeleteIconWhenKeyPresentAndIconExists() {
+    assertDoesNotThrow(() -> iconService.deleteIcon(icon.getKey()));
+
+    assertNotFoundException(
+        "Icon with id iconKey could not be found.", () -> iconService.getIcon(icon.getKey()));
+  }
+
+  @Test
+  void shouldCreateIconInDatabase() throws Exception {
+    DefaultIcon origin = DefaultIcon.DOCTOR;
+    for (AddIconRequest icon : origin.toVariantIcons()) {
+      String fileResourceId = iconService.addDefaultIconImage(icon.getKey(), origin);
+      iconService.addIcon(icon.toBuilder().fileResourceId(fileResourceId).build(), origin);
     }
 
-    String keyword = defaultIcon.get().getKeywords()[0];
-    FileResource fileResourceD = createAndPersistFileResource('D');
+    IconQueryParams params = new IconQueryParams();
+    params.setSearch("doctor");
+    List<Icon> icons = iconService.getIcons(params);
 
-    IconOperationParams operationParams = new IconOperationParams();
-    operationParams.setIconTypeFilter(IconTypeFilter.ALL);
-    operationParams.setKeywords(List.of(keyword));
+    assertNotEmpty(icons);
+    List<String> keys = icons.stream().map(Icon::getKey).toList();
 
-    iconService.addCustomIcon(
-        new CustomIcon(
-            "iconKeyD",
-            "description",
-            new String[] {keyword},
-            fileResourceD.getUid(),
-            getCurrentUser().getUid()));
-
-    assertGreaterOrEqual(2, iconService.getIcons(operationParams).size());
+    assertEquals(3, keys.size(), format("Should have 3 icons with key %s", origin.getKeyPrefix()));
+    assertTrue(keys.contains("doctor_outline"), "list should contain doctor_outline");
+    assertTrue(keys.contains("doctor_negative"), "list should contain doctor_negative");
+    assertTrue(keys.contains("doctor_positive"), "list should contain doctor_positive");
   }
 
-  @Test
-  void shouldGetCustomIconsFilteredByKeywordWhenRequested()
+  private Icon addIcon(String key, Set<String> keywords)
       throws BadRequestException, NotFoundException {
-
-    FileResource fileResourceB = createAndPersistFileResource('B');
-    CustomIcon iconB =
-        new CustomIcon(
-            "iconKeyB",
-            "description",
-            new String[] {"k4", "k5", "k6"},
-            fileResourceB.getUid(),
-            getCurrentUser().getUid());
-    iconService.addCustomIcon(iconB);
-    FileResource fileResourceC = createAndPersistFileResource('C');
-    CustomIcon iconC =
-        new CustomIcon(
-            "iconKeyC",
-            "description",
-            new String[] {"k6", "k7", "k8"},
-            fileResourceC.getUid(),
-            getCurrentUser().getUid());
-    iconService.addCustomIcon(iconC);
-
-    IconOperationParams operationParams1 = new IconOperationParams();
-    operationParams1.setIconTypeFilter(IconTypeFilter.CUSTOM);
-    operationParams1.setKeywords(List.of("k4", "k5", "k6"));
-
-    IconOperationParams operationParams2 = new IconOperationParams();
-    operationParams2.setIconTypeFilter(IconTypeFilter.CUSTOM);
-    operationParams2.setKeywords(List.of("k6", "k7"));
-
-    IconOperationParams operationParams3 = new IconOperationParams();
-    operationParams3.setIconTypeFilter(IconTypeFilter.CUSTOM);
-    operationParams3.setKeywords(List.of("k6"));
-
-    assertContainsOnly(List.of(iconB), iconService.getIcons(operationParams1));
-    assertContainsOnly(List.of(iconC), iconService.getIcons(operationParams2));
-    assertContainsOnly(List.of(iconB, iconC), iconService.getIcons(operationParams3));
+    return addIcon(key, keywords, addFileResource('Z'));
   }
 
-  @Test
-  void shouldGetIconDataWhenKeyBelongsToDefaultIcon() throws NotFoundException, IOException {
-    String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse(null);
-
-    Resource iconResource = iconService.getDefaultIconResource(defaultIconKey);
-
-    assertNotNull(iconResource.getURL());
-  }
-
-  @Test
-  void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
-    Exception exception =
-        assertThrows(
-            NotFoundException.class, () -> iconService.getDefaultIconResource("madeUpIconKey"));
-
-    assertEquals("No default icon found with key madeUpIconKey.", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists() {
-    Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
-    String defaultIconKey = defaultIconMap.values().iterator().next().getKey();
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                iconService.addCustomIcon(
-                    new CustomIcon(
-                        defaultIconKey,
-                        "description",
-                        new String[] {"keyword1"},
-                        "fileResourceUid",
-                        "userUid")));
-
-    String expectedMessage = String.format("Icon with key %s already exists.", defaultIconKey);
-    assertEquals(expectedMessage, exception.getMessage());
-  }
-
-  @Test
-  void shouldUpdateLastUpdatedWhenCustomIconIsUpdated()
+  private Icon addIcon(String key, Set<String> keywords, FileResource image)
       throws BadRequestException, NotFoundException {
-    FileResource fileResourceC = createAndPersistFileResource('C');
-    CustomIcon original =
-        new CustomIcon(
-            "iconKeyB",
-            "description",
-            new String[] {"k4", "k5"},
-            fileResourceC.getUid(),
-            CurrentUserUtil.getCurrentUserDetails().getUid());
-    iconService.addCustomIcon(original);
-
-    CustomIcon fetched = iconService.getCustomIcon("iconKeyB");
-    Date firstUpdate = fetched.getLastUpdated();
-    fetched.setDescription("updated");
-    iconService.updateCustomIcon(fetched);
-
-    Date secondUpdate = iconService.getCustomIcon("iconKeyB").getLastUpdated();
-
-    assertTrue(secondUpdate.after(firstUpdate));
-    assertFalse(secondUpdate.before(firstUpdate));
+    return addIcon(key, null, keywords, image);
   }
 
-  public FileResource createAndPersistFileResource(char uniqueChar) {
+  private Icon addIcon(String key, String description, Set<String> keywords, FileResource image)
+      throws BadRequestException, NotFoundException {
+    return addIcon(key, description, keywords, image, null);
+  }
+
+  private Icon addIcon(
+      String key, String description, Set<String> keywords, FileResource image, DefaultIcon origin)
+      throws BadRequestException, NotFoundException {
+    AddIconRequest addRequest =
+        AddIconRequest.builder()
+            .key(key)
+            .description(description)
+            .keywords(keywords)
+            .fileResourceId(image.getUid())
+            .build();
+    return iconService.addIcon(addRequest, origin);
+  }
+
+  private FileResource addFileResource(char uniqueChar) {
     byte[] content = "content".getBytes(StandardCharsets.UTF_8);
     String filename = "filename" + uniqueChar;
 
@@ -269,28 +302,36 @@ class IconTest extends TrackerTest {
 
     FileResource fileResource =
         new FileResource(
-            filename,
-            contentType,
-            content.length,
-            contentMd5.toString(),
-            FileResourceDomain.CUSTOM_ICON);
+            filename, contentType, content.length, contentMd5.toString(), FileResourceDomain.ICON);
     fileResource.setAssigned(false);
     fileResource.setCreated(new Date());
     fileResource.setAutoFields();
 
-    String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, content);
-    return fileResourceService.getFileResource(fileResourceUid);
+    try {
+      String fileResourceUid = fileResourceService.syncSaveFileResource(fileResource, content);
+      return fileResourceService.getFileResource(fileResourceUid);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex.getMessage());
+    }
   }
 
-  private Map<String, DefaultIcon> getAllDefaultIcons() {
-    return Arrays.stream(DefaultIcon.Icons.values())
-        .map(DefaultIcon.Icons::getVariants)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toMap(DefaultIcon::getKey, Function.identity()));
+  private void assertBadRequestException(String expectedMsg, Executable task) {
+    Exception exception = assertThrows(BadRequestException.class, task);
+    assertEquals(expectedMsg, exception.getMessage());
   }
 
-  private void assertContainsOnly(List<CustomIcon> listA, List<? extends Icon> listB) {
+  private void assertNotFoundException(String expectedMsg, Executable task) {
+    Exception exception = assertThrows(NotFoundException.class, task);
+    assertEquals(expectedMsg, exception.getMessage());
+  }
 
-    Assertions.assertContainsOnly(listA, listB.stream().map(i -> (CustomIcon) i).toList());
+  private void assertIcon(Icon icon) {
+    assertEquals(key, icon.getKey());
+    assertEquals("description", icon.getDescription());
+    assertEquals(keywords, icon.getKeywords());
+
+    assertThat(icon.getKeywords(), hasSize(3));
+    assertThat(fileResource, is(icon.getFileResource()));
+    assertThat(currentUser, is(icon.getCreatedBy()));
   }
 }

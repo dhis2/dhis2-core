@@ -30,12 +30,12 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -46,12 +46,14 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.responses.ApiTokenCreationResponse;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -59,7 +61,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,13 +68,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"user", "login"})
 @Controller
-@RequestMapping(
-    value = {ApiTokenSchemaDescriptor.API_ENDPOINT_OLD, ApiTokenSchemaDescriptor.API_ENDPOINT_NEW})
+@RequestMapping({"/api/apiToken", "/api/apiTokens"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ApiTokenController extends AbstractCrudController<ApiToken> {
+@OpenApi.Document(
+    entity = Icon.class,
+    classifiers = {"team:platform", "purpose:support"})
+public class ApiTokenController extends AbstractCrudController<ApiToken, GetObjectListParams> {
   public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
   private static final List<String> VALID_METHODS =
@@ -128,14 +130,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
     }
 
     return webMessage;
-  }
-
-  @Override
-  @PostMapping(consumes = {"application/xml", "text/xml"})
-  @ResponseBody
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws HttpRequestMethodNotSupportedException {
-    throw new HttpRequestMethodNotSupportedException(METHOD_TYPE_IS_NOT_SUPPORTED_MSG);
   }
 
   private void validateTokenAttributes(ApiToken token) {

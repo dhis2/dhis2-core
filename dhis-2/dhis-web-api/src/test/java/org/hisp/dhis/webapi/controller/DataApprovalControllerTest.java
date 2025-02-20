@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.mockito.Mockito.when;
 
 import java.util.List;

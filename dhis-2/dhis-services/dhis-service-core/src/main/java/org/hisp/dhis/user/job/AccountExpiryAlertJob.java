@@ -38,8 +38,8 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserService;
@@ -48,9 +48,9 @@ import org.springframework.stereotype.Component;
 /**
  * Sends an email alert to all users that are soon to expire due to an account expire date being set
  * in {@link User#getAccountExpiry()} that is within the next {@link
- * SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
+ * SystemSettings#getAccountExpiresInDays()} interval.
  *
- * <p>The job only works when enabled via {@link SettingKey#ACCOUNT_EXPIRY_ALERT}.
+ * <p>The job only works when enabled via {@link SystemSettings#getAccountExpiryAlert()}.
  *
  * @author Jan Bernitt
  */
@@ -67,11 +67,12 @@ public class AccountExpiryAlertJob implements Job {
 
   private final MessageSender emailMessageSender;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    if (!systemSettingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)) {
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    if (!settings.getAccountExpiryAlert()) {
       log.info(format("%s aborted. Expiry alerts are disabled", getJobType().name()));
       return;
     }
@@ -84,7 +85,7 @@ public class AccountExpiryAlertJob implements Job {
     }
     progress.completedStage(null);
 
-    int inDays = systemSettingManager.getIntSetting(SettingKey.ACCOUNT_EXPIRES_IN_DAYS);
+    int inDays = settings.getAccountExpiresInDays();
     List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts(inDays);
 
     if (soonExpiring.isEmpty()) {

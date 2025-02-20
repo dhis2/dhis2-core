@@ -31,10 +31,10 @@ import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.ENDDATE;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.OU;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.STARTDATE;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.TRACKEDENTITY;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
@@ -58,7 +59,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -67,6 +67,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -77,15 +78,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.invocation.Invocation;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -97,14 +102,14 @@ import org.springframework.jdbc.core.RowCallbackHandler;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
+class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private CategoryService categoryService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private DataApprovalLevelService dataApprovalLevelService;
 
@@ -132,7 +137,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @InjectMocks private JdbcOwnershipAnalyticsTableManager manager;
 
   private static final Program programA = createProgram('A');
 
@@ -144,26 +151,9 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   private static AnalyticsTablePartition partitionA;
 
-  private JdbcOwnershipAnalyticsTableManager target;
-
   @BeforeEach
   public void setUp() {
-    target =
-        new JdbcOwnershipAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            systemSettingManager,
-            dataApprovalLevelService,
-            resourceTableService,
-            tableHookService,
-            partitionManager,
-            databaseInfoProvider,
-            jdbcTemplate,
-            jdbcConfiguration,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
 
     tableA =
         new AnalyticsTable(
@@ -184,7 +174,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
   @Test
   void testGetAnalyticsTableType() {
-    assertEquals(AnalyticsTableType.OWNERSHIP, target.getAnalyticsTableType());
+    assertEquals(AnalyticsTableType.OWNERSHIP, manager.getAnalyticsTableType());
   }
 
   @Test
@@ -193,25 +183,25 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
 
     AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
 
-    assertEquals(List.of(tableA, tableB), target.getAnalyticsTables(params));
+    assertEquals(List.of(tableA, tableB), manager.getAnalyticsTables(params));
 
     params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(AnalyticsTablePartition.LATEST_PARTITION)
+            .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
-    assertEquals(emptyList(), target.getAnalyticsTables(params));
+    assertEquals(emptyList(), manager.getAnalyticsTables(params));
   }
 
   @Test
   void testGetPartitionChecks() {
-    assertTrue(target.getPartitionChecks(1, new Date()).isEmpty());
+    assertTrue(manager.getPartitionChecks(1, new Date()).isEmpty());
   }
 
   @Test
   void testPopulateTable() throws SQLException {
-    String tei1 = "teiUid00001";
-    String tei2 = "teiUid00002";
+    String te1 = "teUid00001";
+    String te2 = "teUid00002";
 
     String ou1 = "orgUnit0001";
     String ou2 = "orgUnit0002";
@@ -246,10 +236,10 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
         .when(jdbcTemplate)
         .query(anyString(), any(RowCallbackHandler.class));
 
-    // TEI uid:
-    when(resultSet1.getObject(1)).thenReturn(tei1);
-    when(resultSet2.getObject(1)).thenReturn(tei2);
-    when(resultSet3.getObject(1)).thenReturn(tei2);
+    // TE uid:
+    when(resultSet1.getObject(1)).thenReturn(te1);
+    when(resultSet2.getObject(1)).thenReturn(te2);
+    when(resultSet3.getObject(1)).thenReturn(te2);
 
     // Start date:
     when(resultSet1.getObject(2)).thenReturn(start1);
@@ -271,7 +261,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
     try (MockedStatic<JdbcOwnershipWriter> mocked = mockStatic(JdbcOwnershipWriter.class)) {
       mocked.when(() -> JdbcOwnershipWriter.getInstance(any())).thenReturn(writer);
 
-      target.populateTable(params, partitionA);
+      manager.populateTable(params, partitionA);
     }
 
     List<Invocation> jdbcInvocations = getInvocations(jdbcTemplate);
@@ -284,23 +274,26 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'");
     assertEquals(
-        "select tei.uid,a.startdate,a.enddate,ou.uid from ("
-            + "select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid "
-            + "from programownershiphistory h "
-            + "where h.programid=0 and h.organisationunitid is not null "
-            + "union "
-            + "select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid "
-            + "from trackedentityprogramowner o "
-            + "where o.programid=0 "
-            + "and exists (select 1 from programownershiphistory p "
-            + "where o.trackedentityid = p.trackedentityid "
-            + "and p.programid=0 and p.organisationunitid is not null)"
-            + ") a "
-            + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
-            + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-            + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-            + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
-            + "order by tei.uid, a.startdate, a.enddate",
+        """
+        select te.uid,a.startdate,a.enddate,ou.uid from (\
+        select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid \
+        from "programownershiphistory" h \
+        where h.programid = 0 \
+        and h.organisationunitid is not null \
+        union distinct \
+        select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid \
+        from "trackedentityprogramowner" o \
+        where o.programid = 0 \
+        and o.trackedentityid in (\
+        select distinct p.trackedentityid \
+        from "programownershiphistory" p \
+        where p.programid = 0 \
+        and p.organisationunitid is not null)) a \
+        inner join "trackedentity" te on a.trackedentityid = te.trackedentityid \
+        inner join "organisationunit" ou on a.organisationunitid = ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+        left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
+        order by te.uid, a.startdate, a.enddate""",
         sqlMasked);
 
     List<Invocation> writerInvocations = getInvocations(writer);
@@ -314,19 +307,36 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
     Map<String, Object> map1 = writerInvocations.get(1).getArgument(0);
     Map<String, Object> map2 = writerInvocations.get(2).getArgument(0);
 
-    assertEquals(Map.of(TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1), map0);
-    assertEquals(Map.of(TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2), map1);
-    assertEquals(Map.of(TEIUID, tei2, STARTDATE, start3, ENDDATE, end3, OU, ou2), map2);
+    assertEquals(Map.of(TRACKEDENTITY, te1, STARTDATE, start1, ENDDATE, end1, OU, ou1), map0);
+    assertEquals(Map.of(TRACKEDENTITY, te2, STARTDATE, start2, ENDDATE, end2, OU, ou2), map1);
+    assertEquals(Map.of(TRACKEDENTITY, te2, STARTDATE, start3, ENDDATE, end3, OU, ou2), map2);
   }
 
   @Test
   void testGetFixedColumns() {
     List<AnalyticsTableColumn> expected =
         List.of(
-            new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-            new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-            new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+            AnalyticsTableColumn.builder()
+                .name("teuid")
+                .dataType(CHARACTER_11)
+                .selectExpression("te.uid")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("startdate")
+                .dataType(DATE)
+                .selectExpression("a.startdate")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("enddate")
+                .dataType(DATE)
+                .selectExpression("a.enddate")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("ou")
+                .dataType(CHARACTER_11)
+                .nullable(NOT_NULL)
+                .selectExpression("ou.uid")
+                .build());
 
     assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }

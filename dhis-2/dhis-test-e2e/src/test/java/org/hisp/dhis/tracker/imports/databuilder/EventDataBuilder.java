@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.databuilder;
 import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.util.List;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -89,8 +89,8 @@ public class EventDataBuilder implements TrackerImporterDataBuilder {
     return this;
   }
 
-  public EventDataBuilder setTei(String tei) {
-    builder.addProperty("trackedEntity", tei);
+  public EventDataBuilder setTrackedEntity(String te) {
+    builder.addProperty("trackedEntity", te);
 
     return this;
   }
@@ -106,7 +106,7 @@ public class EventDataBuilder implements TrackerImporterDataBuilder {
     return this;
   }
 
-  public EventDataBuilder setOu(String ou) {
+  public EventDataBuilder setOrgUnit(String ou) {
     this.builder.addProperty("orgUnit", ou);
     return this;
   }
@@ -126,13 +126,13 @@ public class EventDataBuilder implements TrackerImporterDataBuilder {
   }
 
   public JsonObject array(String ou, String program, String programStage) {
-    setOu(ou).setProgram(program).setProgramStage(programStage);
+    setOrgUnit(ou).setProgram(program).setProgramStage(programStage);
 
     return array();
   }
 
   public JsonObject array(String ou, String program, String programStage, String status) {
-    setOu(ou).setProgram(program).setProgramStage(programStage).setStatus(status);
+    setOrgUnit(ou).setProgram(program).setProgramStage(programStage).setStatus(status);
 
     return array();
   }

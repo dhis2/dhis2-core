@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Set;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityCheck;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.junit.jupiter.api.Test;
 
 /**

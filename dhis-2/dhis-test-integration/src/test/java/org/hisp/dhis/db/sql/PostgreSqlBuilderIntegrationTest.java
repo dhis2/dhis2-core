@@ -41,16 +41,15 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
+class PostgreSqlBuilderIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private Table getTableA() {
     List<Column> columns =
@@ -70,16 +69,28 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
   private List<Index> getIndexesA() {
 
     return List.of(
-        new Index("in_immunization_data", "immunization", List.of("data")),
-        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
-        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-        new Index(
-            "in_immunization_data_period",
-            "immunization",
-            IndexType.BTREE,
-            Unique.NON_UNIQUE,
-            List.of("data", "period"),
-            IndexFunction.LOWER));
+        Index.builder()
+            .name("in_immunization_data")
+            .tableName("immunization")
+            .columns(List.of("data"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_period_created")
+            .tableName("immunization")
+            .columns(List.of("period", "created"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_user")
+            .tableName("immunization")
+            .indexType(IndexType.GIN)
+            .columns(List.of("user"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_data_period")
+            .tableName("immunization")
+            .columns(List.of("data", "period"))
+            .function(IndexFunction.LOWER)
+            .build());
   }
 
   private Table getTableB() {
@@ -91,7 +102,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
 
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
   }
 
   private Table getTableC() {

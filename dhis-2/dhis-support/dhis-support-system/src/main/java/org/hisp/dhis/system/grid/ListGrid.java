@@ -29,7 +29,7 @@ package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,13 +46,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
@@ -63,9 +64,9 @@ import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
-import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -76,6 +77,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
  * @author Lars Helge Overland
  */
 public class ListGrid implements Grid, Serializable {
+  public static final String LEGEND = ".legend";
+
   private static final String REGRESSION_SUFFIX = "_regression";
 
   private static final String CUMULATIVE_SUFFIX = "_cumulative";
@@ -119,6 +122,7 @@ public class ListGrid implements Grid, Serializable {
   private List<Reference> refs;
 
   /** Indicating the current row in the grid for writing data. */
+  @Getter(AccessLevel.PROTECTED)
   private int currentRowWriteIndex = -1;
 
   /** Indicating the current row in the grid for reading data. */
@@ -434,6 +438,7 @@ public class ListGrid implements Grid, Serializable {
   @Override
   @JsonProperty
   @JsonSerialize(using = JacksonRowDataSerializer.class)
+  @OpenApi.Property(String[][].class)
   public List<List<Object>> getRows() {
     return grid;
   }
@@ -498,11 +503,9 @@ public class ListGrid implements Grid, Serializable {
 
     if (grid.size() != columnValues.size()) {
       throw new IllegalStateException(
-          "Number of column values ("
-              + columnValues.size()
-              + ") is not equal to number of rows ("
-              + grid.size()
-              + ")");
+          String.format(
+              "Number of column values (%d) is not equal to number of rows (%d)",
+              columnValues.size(), grid.size()));
     }
 
     for (int i = 0; i < grid.size(); i++) {
@@ -521,11 +524,9 @@ public class ListGrid implements Grid, Serializable {
 
     if (grid.size() != columnValues.size()) {
       throw new IllegalStateException(
-          "Number of column values ("
-              + columnValues.size()
-              + ") is not equal to number of rows ("
-              + grid.size()
-              + ")");
+          String.format(
+              "Number of column values (%d) is not equal to number of rows (%d)",
+              columnValues.size(), grid.size()));
     }
 
     for (int i = 0; i < grid.size(); i++) {
@@ -652,7 +653,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid limitGrid(int startPos, int endPos) {
     if (startPos < 0 || endPos < startPos || endPos > getHeight()) {
       throw new IllegalStateException(
-          "Illegal start / end pos: " + startPos + ", " + endPos + ", " + getHeight());
+          "Illegal start or end pos: " + startPos + ", " + endPos + ", " + getHeight());
     }
 
     grid = grid.subList(startPos, endPos);
@@ -808,8 +809,9 @@ public class ListGrid implements Grid, Serializable {
         header.setName(String.valueOf(headerMetaName));
       }
 
+      // Column cells
+
       if (header.isMeta()) {
-        // Column cells
 
         substituteMetaData(colIndex, colIndex, metaDataMap);
       }
@@ -1006,37 +1008,6 @@ public class ListGrid implements Grid, Serializable {
     return this;
   }
 
-  public Grid addNamedRows(SqlRowSet rs) {
-    String[] cols = headers.stream().map(GridHeader::getName).toArray(String[]::new);
-    Set<String> headersSet = new LinkedHashSet<>();
-    rowContext = new HashMap<>();
-
-    while (rs.next()) {
-      addRow();
-      Map<String, Object> rowContextItems = new HashMap<>();
-
-      for (int i = 0; i < cols.length; i++) {
-        if (headerExists(cols[i])) {
-          String columnLabel = cols[i];
-
-          Object value = rs.getObject(columnLabel);
-          addValue(value);
-          headersSet.add(columnLabel);
-
-          rowContextItems.putAll(getRowContextItem(rs, cols[i], value, i));
-        }
-      }
-      if (!rowContextItems.isEmpty()) {
-        rowContext.put(currentRowWriteIndex, rowContextItems);
-      }
-    }
-
-    // Needs to ensure the ordering of columns based on grid headers.
-    repositionColumns(repositionHeaders(new ArrayList<>(headersSet)));
-
-    return this;
-  }
-
   @Override
   public Grid addPerformanceMetrics(List<ExecutionPlan> plans) {
     if (plans.isEmpty()) {
@@ -1127,7 +1098,8 @@ public class ListGrid implements Grid, Serializable {
       row.addAll(orderedValues);
     }
 
-    // reposition columns in the row context structure
+    // Reposition columns in the row context structure
+
     Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
 
     for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
@@ -1139,7 +1111,8 @@ public class ListGrid implements Grid, Serializable {
           .forEach(
               key -> {
                 if (numberRegex.matcher(key).matches()) {
-                  // reindexing of columns
+                  // Reindexing of columns
+
                   orderedRowContextItems.put(
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
@@ -1177,12 +1150,9 @@ public class ListGrid implements Grid, Serializable {
     for (List<Object> row : grid) {
       if (rowLength != null && rowLength != row.size()) {
         throw new IllegalStateException(
-            "Grid rows do not have the same number of cells, previous: "
-                + rowLength
-                + ", this: "
-                + row.size()
-                + ", at row: "
-                + rowPos);
+            String.format(
+                "Grid rows do not have the same number of cells, previous: %d, this: %d, at row: %d",
+                rowLength, row.size(), rowPos));
       }
 
       rowPos++;
@@ -1202,48 +1172,8 @@ public class ListGrid implements Grid, Serializable {
     }
   }
 
-  /**
-   * The method retrieves row context content that describes the origin of the data value,
-   * indicating whether it is set, not set, or undefined. The column index is used as the map key,
-   * and the corresponding value contains information about the origin, also known as the value
-   * status.
-   *
-   * @param rs the {@link ResultSet},
-   * @param columnName the {@link String}, grid row column name
-   * @param value the {@link Object}, grid row column value
-   * @param rowIndex, row id
-   * @return Map of column index and value status
-   */
-  private Map<String, Object> getRowContextItem(
-      SqlRowSet rs, String columnName, Object value, int rowIndex) {
-    Map<String, Object> rowContextItem = new HashMap<>();
-    String indicatorColumnLabel = columnName + ".exists";
-
-    if (Arrays.stream(rs.getMetaData().getColumnNames())
-        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
-
-      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
-      boolean isSet = isDefined && value != null;
-
-      ValueStatus valueStatus;
-      if (!isDefined) {
-        valueStatus = ValueStatus.NOT_DEFINED;
-      } else {
-        valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
-      }
-
-      if (valueStatus != ValueStatus.SET) {
-        Map<String, String> valueStatusMap = new HashMap<>();
-        valueStatusMap.put("valueStatus", valueStatus.getValue());
-        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
-      }
-    }
-
-    return rowContextItem;
-  }
-
   // -------------------------------------------------------------------------
-  // toString
+  // ToString
   // -------------------------------------------------------------------------
 
   @Override

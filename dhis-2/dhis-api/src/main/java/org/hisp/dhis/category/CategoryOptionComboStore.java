@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -56,4 +57,13 @@ public interface CategoryOptionComboStore extends IdentifiableObjectStore<Catego
    * @return a List of {@link CategoryOptionCombo} or empty List
    */
   List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid(String groupId, String dataElementId);
+
+  /**
+   * Retrieves all CategoryOptionCombos with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categoryOptionCombos with refs to categoryOptions
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      Collection<String> categoryOptions);
 }

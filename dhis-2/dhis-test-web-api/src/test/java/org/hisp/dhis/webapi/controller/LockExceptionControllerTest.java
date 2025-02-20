@@ -28,19 +28,22 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link LockExceptionController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class LockExceptionControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class LockExceptionControllerTest extends H2ControllerIntegrationTestBase {
 
   private String ouId;
 

@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 
@@ -44,7 +46,9 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
 public interface JobSchedulerService {
 
   /**
-   * Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
+   * Ad-hoc execution of existing jobs.
+   *
+   * <p>Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
    * SchedulingType#ONCE_ASAP} for the given job.
    *
    * <p>A job with a {@link JobConfiguration#getCronExpression()} switches back to {@link
@@ -57,6 +61,19 @@ public interface JobSchedulerService {
    *     job is already running or is disabled
    */
   void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
+
+  /**
+   * Reverts the {@link JobStatus} of the job from {@link JobStatus#RUNNING} to the appropriate
+   * status after a failed execution. For an ad-hoc job this is {@link JobStatus#DISABLED}, for a
+   * scheduled job this is {@link JobStatus#SCHEDULED}.
+   *
+   * @param jobId the job to revert to scheduled status
+   * @throws ConflictException when the job is not in running status
+   * @throws NotFoundException when no such job configuration exists
+   * @throws ForbiddenException when the current user lacks the special authority for this operation
+   */
+  void revertNow(@Nonnull UID jobId)
+      throws ConflictException, NotFoundException, ForbiddenException;
 
   /**
    * Request cancellation for job of given type. If no job of that type is currently running the

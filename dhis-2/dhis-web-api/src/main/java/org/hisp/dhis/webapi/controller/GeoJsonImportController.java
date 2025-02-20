@@ -32,11 +32,12 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
@@ -45,18 +46,17 @@ import org.hisp.dhis.dxf2.geojson.GeoJsonService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,17 +68,16 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
-@OpenApi.Tags("data")
-@RequestMapping("/organisationUnits")
+@OpenApi.Document(
+    entity = OrganisationUnit.class,
+    classifiers = {"team:platform", "purpose:metadata"})
+@RequestMapping("/api/organisationUnits")
 @RestController
 @RequiredArgsConstructor
 public class GeoJsonImportController {
+
   private final GeoJsonService geoJsonService;
-
-  private final JobSchedulerService jobSchedulerService;
-
-  private final JobConfigurationService jobConfigurationService;
-
+  private final JobExecutionService jobExecutionService;
   private final UserService userService;
 
   @PostMapping(
@@ -92,7 +91,7 @@ public class GeoJsonImportController {
       @RequestParam(required = false) boolean dryRun,
       @RequestParam(required = false, defaultValue = "false") boolean async,
       HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     GeoJsonImportJobParams params =
         GeoJsonImportJobParams.builder()
             .attributeId(attributeId)
@@ -109,15 +108,14 @@ public class GeoJsonImportController {
 
   private WebMessage runImport(
       boolean async, GeoJsonImportJobParams params, HttpServletRequest request)
-      throws ConflictException, NotFoundException, IOException {
+      throws ConflictException, IOException {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (async) {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
       jobConfig.setExecutedBy(currentUser.getUid());
-      jobSchedulerService.executeNow(
-          jobConfigurationService.create(jobConfig, APPLICATION_JSON, request.getInputStream()));
+      jobExecutionService.executeOnceNow(jobConfig, APPLICATION_JSON, request.getInputStream());
 
       return jobConfigurationReport(jobConfig);
     }
@@ -125,7 +123,7 @@ public class GeoJsonImportController {
     return toWebMessage(geoJsonService.importGeoData(params, request.getInputStream()));
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @DeleteMapping(value = "/geometry")
   public WebMessage deleteImport(@RequestParam(required = false) String attributeId) {
     return toWebMessage(geoJsonService.deleteGeoData(attributeId));

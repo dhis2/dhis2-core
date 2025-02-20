@@ -51,10 +51,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -197,7 +198,7 @@ class UserControllerTest {
     addUserTo(user);
     addUserTo(currentUser);
     // make current user have ALL authority
-    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    setUpUserAuthority(currentUser, Authorities.ALL.toString());
 
     injectSecurityContext(UserDetails.fromUser(currentUser));
 
@@ -229,7 +230,7 @@ class UserControllerTest {
     userController.expireUser(user.getUid(), now);
 
     assertUserUpdatedWithAccountExpiry(now);
-    verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUid()));
+    verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUsername()));
   }
 
   @Test
@@ -275,7 +276,7 @@ class UserControllerTest {
   void updateUserExpireRequiresShareBasedAuthority() {
     addUserTo(user);
     addUserTo(currentUser);
-    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    setUpUserAuthority(currentUser, Authorities.ALL.toString());
     injectSecurityContext(UserDetails.fromUser(currentUser));
     when(aclService.canUpdate(any(UserDetails.class), any())).thenReturn(false);
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
@@ -283,8 +284,7 @@ class UserControllerTest {
 
     Exception ex =
         assertThrows(
-            UpdateAccessDeniedException.class,
-            () -> userController.expireUser(user.getUid(), new Date()));
+            ForbiddenException.class, () -> userController.expireUser(user.getUid(), new Date()));
     assertEquals("You don't have the proper permissions to update this object.", ex.getMessage());
   }
 

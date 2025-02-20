@@ -34,16 +34,18 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
+@Transactional
+class TrackedEntityFieldsParamMapperTest extends H2ControllerIntegrationTestBase {
   @Autowired TrackedEntityFieldsParamMapper mapper;
 
   @ParameterizedTest
@@ -127,11 +129,12 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
         map("enrollments[!uid,!relationships],relationships[relationship]");
 
     assertTrue(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertTrue(params.isIncludeEnrollments());
     assertTrue(params.getEnrollmentParams().isIncludeEvents());
     assertTrue(params.getEnrollmentParams().isIncludeAttributes());
     assertFalse(params.getEnrollmentParams().isIncludeRelationships());
-    assertFalse(params.isIncludeProgramOwners());
   }
 
   @Test
@@ -139,9 +142,12 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
     TrackedEntityParams params = map("enrollments[events,relationships]");
 
     assertFalse(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertTrue(params.isIncludeEnrollments());
     assertTrue(params.getTeEnrollmentParams().isIncludeEvents());
-    assertFalse(params.isIncludeProgramOwners());
+    assertTrue(params.getTeEnrollmentParams().isIncludeRelationships());
+    assertFalse(params.getTeEnrollmentParams().isIncludeAttributes());
   }
 
   @Test
@@ -150,9 +156,10 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
     TrackedEntityParams params = map("relationships,!relationships");
 
     assertFalse(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertFalse(params.isIncludeEnrollments());
     assertFalse(params.getTeEnrollmentParams().isIncludeEvents());
-    assertFalse(params.isIncludeProgramOwners());
 
     params = map("!relationships,relationships");
 
@@ -167,9 +174,12 @@ class TrackedEntityFieldsParamMapperTest extends DhisControllerConvenienceTest {
     TrackedEntityParams params = map("enrollments,enrollments[!status]");
 
     assertFalse(params.isIncludeRelationships());
+    assertFalse(params.isIncludeProgramOwners());
+
     assertTrue(params.isIncludeEnrollments());
     assertTrue(params.getTeEnrollmentParams().isIncludeEvents());
-    assertFalse(params.isIncludeProgramOwners());
+    assertTrue(params.getTeEnrollmentParams().isIncludeAttributes());
+    assertTrue(params.getTeEnrollmentParams().isIncludeRelationships());
   }
 
   static Stream<Arguments> mapEnrollmentsAndEvents() {

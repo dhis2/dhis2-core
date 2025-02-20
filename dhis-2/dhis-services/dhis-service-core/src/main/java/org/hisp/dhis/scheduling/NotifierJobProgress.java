@@ -29,10 +29,12 @@ package org.hisp.dhis.scheduling;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.system.notification.NotificationDataType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -45,15 +47,26 @@ import org.hisp.dhis.system.notification.Notifier;
  */
 @RequiredArgsConstructor
 public class NotifierJobProgress implements JobProgress {
+
   private final Notifier notifier;
-
   private final JobConfiguration jobId;
-
+  private final NotificationLevel level;
   private final AtomicBoolean hasCleared = new AtomicBoolean();
 
   private int stageItems;
-
   private int stageItem;
+
+  private boolean isLoggedLoop() {
+    return NotificationLevel.LOOP.ordinal() >= level.ordinal();
+  }
+
+  private boolean isLoggedInfo() {
+    return NotificationLevel.INFO.ordinal() >= level.ordinal();
+  }
+
+  private boolean isLoggedError() {
+    return NotificationLevel.ERROR.ordinal() >= level.ordinal();
+  }
 
   @Override
   public void startingProcess(String description, Object... args) {
@@ -64,10 +77,11 @@ public class NotifierJobProgress implements JobProgress {
     if (hasCleared.compareAndSet(false, true)) {
       notifier.clear(jobId);
     }
+    // Note: intentionally no log level check - always log first
     notifier.notify(
         jobId,
         NotificationLevel.INFO,
-        message,
+        isLoggedInfo() ? message : "",
         false,
         NotificationDataType.PARAMETERS,
         getJobParameterData());
@@ -75,40 +89,43 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void completedProcess(String summary, Object... args) {
-    notifier.notify(jobId, format(summary, args), true);
+    // Note: intentionally no log level check - always log last
+    notifier.notify(jobId, isLoggedInfo() ? format(summary, args) : "", true);
   }
 
   @Override
-  public void failedProcess(String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
+    // Note: intentionally no log level check - always log last
     notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
   }
 
   @Override
-  public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+  public void startingStage(
+      @Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure) {
     stageItems = workItems;
     stageItem = 0;
-    if (isNotEmpty(description)) {
+    if (isLoggedInfo() && isNotEmpty(description)) {
       notifier.notify(jobId, description);
     }
   }
 
   @Override
   public void completedStage(String summary, Object... args) {
-    if (isNotEmpty(summary)) {
+    if (isLoggedInfo() && isNotEmpty(summary)) {
       notifier.notify(jobId, format(summary, args));
     }
   }
 
   @Override
-  public void failedStage(String error, Object... args) {
-    if (isNotEmpty(error)) {
+  public void failedStage(@Nonnull String error, Object... args) {
+    if (isLoggedError() && isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
   @Override
-  public void startingWorkItem(String description, FailurePolicy onFailure) {
-    if (isNotEmpty(description)) {
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
+    if (isLoggedLoop() && isNotEmpty(description)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + description, false);
     }
@@ -117,26 +134,26 @@ public class NotifierJobProgress implements JobProgress {
 
   @Override
   public void completedWorkItem(String summary, Object... args) {
-    if (isNotEmpty(summary)) {
+    if (isLoggedLoop() && isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + format(summary, args), false);
     }
   }
 
   @Override
-  public void failedWorkItem(String error, Object... args) {
-    if (isNotEmpty(error)) {
+  public void failedWorkItem(@Nonnull String error, Object... args) {
+    if (isLoggedError() && isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
-  private JsonNode getJobParameterData() {
+  private JsonValue getJobParameterData() {
     JobParameters params = jobId.getJobParameters();
     if (params == null) {
       return null;
     }
     try {
-      return new ObjectMapper().valueToTree(params);
+      return JsonValue.of(new ObjectMapper().writeValueAsString(params));
     } catch (Exception ex) {
       return null;
     }

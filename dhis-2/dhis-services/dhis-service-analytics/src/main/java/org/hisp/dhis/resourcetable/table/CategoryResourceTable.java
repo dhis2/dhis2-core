@@ -30,11 +30,13 @@ package org.hisp.dhis.resourcetable.table;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -43,39 +45,38 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
 /**
  * @author Lars Helge Overland
  */
-public class CategoryResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class CategoryResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "analytics_rs_categorystructure";
+
+  private final Logged logged;
 
   private final List<Category> categories;
 
   private final List<CategoryOptionGroupSet> groupSets;
-
-  public CategoryResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<Category> categories,
-      List<CategoryOptionGroupSet> groupSets) {
-    super(sqlBuilder, logged);
-    this.categories = categories;
-    this.groupSets = groupSets;
-  }
 
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
   private List<Column> getColumns() {
     List<Column> columns =
         Lists.newArrayList(
             new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("categoryoptioncomboname", DataType.VARCHAR_255));
 
     UniqueNameContext nameContext = new UniqueNameContext();
@@ -109,16 +110,19 @@ public class CategoryResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " "
-            + "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
+        replace(
+            """
+            insert into ${table_name} \
+            select coc.categoryoptioncomboid as cocid, coc.uid as cocuid, coc.name as cocname, \
+            """,
+            "table_name",
+            toStaging(TABLE_NAME));
 
     for (Category category : categories) {
       sql +=
           replace(
               """
-            (
+              (
               select co.name from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
               inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
@@ -141,7 +145,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
       sql +=
           replace(
               """
-            (
+              (
               select cog.name from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
               inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
@@ -163,7 +167,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from categoryoptioncombo coc ";
+    sql += "from categoryoptioncombo coc;";
 
     return Optional.of(sql);
   }

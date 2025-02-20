@@ -54,13 +54,12 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -91,11 +90,12 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -105,7 +105,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
+class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   private final String ATTRIBUTE_UID = "uh6H2ff562G";
 
   @Autowired private DataElementService dataElementService;
@@ -131,8 +131,6 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private AttributeService attributeService;
-
-  @Autowired private UserService _userService;
 
   private CategoryOptionCombo ocDef;
 
@@ -162,13 +160,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
   private User superUser;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-    //    superUser = preCreateInjectAdminUser();
-    superUser = userService.getUserByUsername("admin_test");
-    injectSecurityContextUser(superUser);
-
+  @BeforeEach
+  void setUp() {
+    superUser = getAdminUser();
     CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     Attribute attribute = new Attribute("CUSTOM_ID", ValueType.TEXT);
     attribute.setUid(ATTRIBUTE_UID);
@@ -252,17 +246,16 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     categoryService.addCategoryCombo(categoryComboA);
     categoryService.addCategoryOptionCombo(ocA);
     categoryService.addCategoryOptionCombo(ocB);
-    AttributeValue av1 = createAttributeValue(attribute, "DE1");
     dataElementService.addDataElement(deA);
     dataElementService.addDataElement(deB);
     dataElementService.addDataElement(deC);
     dataElementService.addDataElement(deD);
     dataElementService.addDataElement(deF);
     dataElementService.addDataElement(deG);
-    attributeService.addAttributeValue(deA, av1);
-    attributeService.addAttributeValue(deB, createAttributeValue(attribute, "DE2"));
-    attributeService.addAttributeValue(deC, createAttributeValue(attribute, "DE3"));
-    attributeService.addAttributeValue(deD, createAttributeValue(attribute, "DE4"));
+    attributeService.addAttributeValue(deA, attribute.getUid(), "DE1");
+    attributeService.addAttributeValue(deB, attribute.getUid(), "DE2");
+    attributeService.addAttributeValue(deC, attribute.getUid(), "DE3");
+    attributeService.addAttributeValue(deD, attribute.getUid(), "DE4");
     idObjectManager.save(osA);
     dsA.addDataSetElement(deA);
     dsA.addDataSetElement(deB);
@@ -271,9 +264,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     organisationUnitService.addOrganisationUnit(ouA);
     organisationUnitService.addOrganisationUnit(ouB);
     organisationUnitService.addOrganisationUnit(ouC);
-    attributeService.addAttributeValue(ouA, createAttributeValue(attribute, "OU1"));
-    attributeService.addAttributeValue(ouB, createAttributeValue(attribute, "OU2"));
-    attributeService.addAttributeValue(ouC, createAttributeValue(attribute, "OU3"));
+    attributeService.addAttributeValue(ouA, attribute.getUid(), "OU1");
+    attributeService.addAttributeValue(ouB, attribute.getUid(), "OU2");
+    attributeService.addAttributeValue(ouC, attribute.getUid(), "OU3");
     dsA.addOrganisationUnit(ouA);
     dsA.addOrganisationUnit(ouC);
     periodService.addPeriod(peA);
@@ -959,7 +952,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   void testImportDataValuesCsv() {
     ImportSummary summary =
         dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, null);
+            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
   }
@@ -972,7 +965,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
         dataValueSetService.importDataValueSetCsv(
             readFile("dxf2/datavalueset/dataValueSetWithDataSetHeader.csv"),
             new ImportOptions().setDataSet("pBOMPrpg1QX"),
-            null);
+            JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
     assertDataValuesCount(3);
@@ -986,7 +979,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
         dataValueSetService.importDataValueSetCsv(
             readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
             new ImportOptions().setFirstRowIsHeader(false),
-            null);
+            JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
     assertDataValuesCount(12);
@@ -996,7 +989,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   void testImportDataValuesBooleanCsv() {
     ImportConflicts summary =
         dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, null);
+            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, JobProgress.noop());
 
     String description = summary.getConflictsDescription();
     assertEquals(4, summary.getTotalConflictOccurrenceCount(), description);
@@ -1322,7 +1315,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(ChangeLogType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
                         })
             .collect(Collectors.toList()));
   }
@@ -1534,10 +1527,6 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
     assertSuccessWithImportedUpdatedDeleted(5, 0, 0, summary);
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
 
   /**
    * Creates a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.

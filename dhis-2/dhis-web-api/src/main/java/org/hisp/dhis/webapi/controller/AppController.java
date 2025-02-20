@@ -29,36 +29,44 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.nimbusds.jose.util.StandardCharset;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppMenuManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppType;
+import org.hisp.dhis.appmanager.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -67,11 +75,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,13 +91,15 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(
+    entity = App.class,
+    classifiers = {"team:extensibility", "purpose:support"})
 @Controller
-@RequestMapping(AppController.RESOURCE_PATH)
+@RequestMapping("/api/apps")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
-  public static final String RESOURCE_PATH = "/apps";
+  public static final String RESOURCE_PATH = "/api/apps";
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 
@@ -112,32 +117,8 @@ public class AppController {
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
-    checkForEmbeddedJettyRuntime(request);
-
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     return Map.of("modules", getAccessibleAppMenu(contextPath));
-  }
-
-  /**
-   * Checks if we are running in embedded Jetty mode. If so, we need to set the SecurityContext
-   * manually from the session object SPRING_SECURITY_CONTEXT. This is done for compatibility with
-   * the old Struts action, which is not 100% ported yet. To be removed when application is ported
-   * away from Struts
-   */
-  private static void checkForEmbeddedJettyRuntime(HttpServletRequest request) {
-    Object springSecurityContext = request.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-    if (springSecurityContext != null) {
-      SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
-      Authentication authentication = context.getAuthentication();
-
-      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-      if (authentication != null && currentUserDetails == null) {
-        SecurityContext newContext = SecurityContextHolder.createEmptyContext();
-        newContext.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-      }
-    }
   }
 
   private List<WebModule> getAccessibleAppMenu(String contextPath) {
@@ -178,25 +159,27 @@ public class AppController {
     return ResponseEntity.ok(apps);
   }
 
-  @PostMapping
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installApp(@RequestParam("file") MultipartFile file)
+  @PostMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
+  public ResponseEntity<App> installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
     File tempFile = File.createTempFile("IMPORT_", "_ZIP");
     file.transferTo(tempFile);
 
-    AppStatus status = appManager.installApp(tempFile, file.getOriginalFilename());
+    App installedApp = appManager.installApp(tempFile, file.getOriginalFilename());
+    AppStatus appStatus = installedApp.getAppState();
 
-    if (!status.ok()) {
-      String message = i18nManager.getI18n().getString(status.getMessage());
+    if (!appStatus.ok()) {
+      String message = i18nManager.getI18n().getString(installedApp.getAppState().getMessage());
 
       throw new WebMessageException(conflict(message));
     }
+
+    return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
   @PutMapping
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reloadApps() {
     appManager.reloadApps();
@@ -205,19 +188,19 @@ public class AppController {
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ForbiddenException {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested
-    String pageName = getUrl(request.getPathInfo(), app);
+    String resource = getUrl(request.getPathInfo(), app);
 
     if (application == null) {
       throw new WebMessageException(notFound("App '" + app + "' not found."));
     }
 
     if (application.isBundled()) {
-      String redirectPath = application.getBaseUrl() + "/" + pageName;
+      String redirectPath = application.getBaseUrl() + "/" + resource;
 
       log.info(String.format("Redirecting to bundled app: %s", redirectPath));
 
@@ -226,17 +209,17 @@ public class AppController {
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ReadAccessDeniedException("You don't have access to application " + app + ".");
+      throw new ForbiddenException("You don't have access to application " + app + ".");
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
       throw new WebMessageException(conflict("App '" + app + "' deletion is still in progress."));
     }
 
-    log.debug(String.format("App page name: '%s'", pageName));
+    log.debug(String.format("App resource name: '%s'", resource));
 
     // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(pageName)) {
+    if ("manifest.webapp".equals(resource)) {
       // If request was for manifest.webapp, check for * and replace with
       // host
       if (application.getActivities() != null
@@ -249,40 +232,70 @@ public class AppController {
 
       jsonMapper.writeValue(response.getOutputStream(), application);
     }
-    // Any other page
+    // Any other resource
     else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(application, pageName);
+      ResourceResult resourceResult = appManager.getAppResource(application, resource);
+      if (resourceResult instanceof ResourceFound found) {
+        serveResource(request, response, found.resource(), contextPath, application.getBaseUrl());
+        return;
+      }
+      if (resourceResult instanceof Redirect redirect) {
+        response.sendRedirect(application.getBaseUrl() + redirect.path());
 
-      if (resource == null) {
+        return;
+      }
+      if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        return;
       }
+    }
+  }
 
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
+  private void serveResource(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      Resource resource,
+      String contextPath,
+      String appBaseUrl)
+      throws IOException {
+    String filename = resource.getFilename();
+    log.debug("App filename: '{}'", filename);
 
-      if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
-        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        return;
+    if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
+      return;
+    }
+
+    String mimeType = request.getSession().getServletContext().getMimeType(filename);
+
+    if (mimeType != null) {
+      response.setContentType(mimeType);
+    }
+
+    if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
+      LineIterator iterator =
+          IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
+      try {
+        while (iterator.hasNext()) {
+          String line = iterator.nextLine();
+          output.println(
+              line.replace("__DHIS2_BASE_URL__", contextPath)
+                  .replace("__DHIS2_APP_ROOT_URL__", appBaseUrl));
+        }
+      } finally {
+        iterator.close();
+        response.setContentLength(bout.size());
+        response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
+        bout.writeTo(response.getOutputStream());
       }
-
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
-
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
-
-      response.setContentLengthLong(resource.contentLength());
-      response.setHeader(
-          "Last-Modified", DateUtils.toHttpDateString(new Date(resource.lastModified())));
-
+    } else {
+      response.setContentLengthLong(appManager.getUriContentLength(resource));
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
   }
 
   @DeleteMapping("/{app}")
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteApp(
       @PathVariable("app") String app, @RequestParam(required = false) boolean deleteAppData)
@@ -302,7 +315,7 @@ public class AppController {
 
   @SuppressWarnings("unchecked")
   @PostMapping(value = "/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setConfig(HttpServletRequest request) throws IOException, WebMessageException {
     Map<String, String> config = renderService.fromJson(request.getInputStream(), Map.class);
@@ -317,10 +330,12 @@ public class AppController {
   // --------------------------------------------------------------------------
 
   private String getUrl(String path, String app) {
-    String prefix = RESOURCE_PATH + "/" + app + "/";
+    String prefix = RESOURCE_PATH + "/" + app;
 
-    if (path.startsWith(prefix)) {
+    if (path.startsWith(prefix + "/")) {
       path = path.substring(prefix.length());
+    } else if (path.equals(prefix)) {
+      path = "";
     }
 
     // if path is prefixed by any protocol, clear it out (this is to ensure

@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static java.util.Collections.emptySet;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -52,13 +52,13 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -68,29 +68,33 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EnrollmentServiceTest extends TransactionalIntegrationTest {
-  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
+@Transactional
+class EnrollmentServiceTest extends PostgresIntegrationTestBase {
+
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
 
-  @Autowired private EnrollmentService programInstanceService;
-
   @Autowired private IdentifiableObjectManager manager;
+
+  private final Date incidentDate = new Date();
 
   private User admin;
 
-  private User userWithoutOrgUnit;
+  private User userWithOrgUnitZ;
 
   private User authorizedUser;
 
@@ -122,10 +126,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit orgUnitChildA;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    admin = preCreateInjectAdminUser();
+  @BeforeEach
+  void setUp() {
     admin = getAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
@@ -138,48 +140,53 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(orgUnitChildA, false);
     OrganisationUnit orgUnitGrandchildA = createOrganisationUnit('E', orgUnitChildA);
     manager.save(orgUnitGrandchildA, false);
+    OrganisationUnit orgUnitZ = createOrganisationUnit('Z');
+    manager.save(orgUnitZ, false);
 
     User user =
         createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
-    userWithoutOrgUnit = createUserWithAuth("userWithoutOrgUnit");
+    userWithOrgUnitZ = createUserWithAuth("userWithoutOrgUnit");
+    userWithOrgUnitZ.setTeiSearchOrganisationUnits(Set.of(orgUnitZ));
     authorizedUser =
         createAndAddUser(
             false,
             "test user",
-            emptySet(),
-            emptySet(),
+            Set.of(orgUnitA),
+            Set.of(orgUnitA),
             "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS");
 
     trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA.getSharing().setOwner(user);
     manager.save(trackedEntityTypeA, false);
 
-    trackedEntityA = createTrackedEntity(orgUnitA);
-    trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityA = createTrackedEntity(orgUnitA, trackedEntityTypeA);
     manager.save(trackedEntityA, false);
 
-    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitB);
-    trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitB, trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
-    trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC, trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
-    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA);
-    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityChildA = createTrackedEntity(orgUnitChildA, trackedEntityTypeA);
     manager.save(trackedEntityChildA, false);
 
-    TrackedEntity trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
-    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityGrandchildA =
+        createTrackedEntity(orgUnitGrandchildA, trackedEntityTypeA);
     manager.save(trackedEntityGrandchildA, false);
 
     programA = createProgram('A', new HashSet<>(), orgUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.getSharing().setOwner(admin);
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA
+        .getSharing()
+        .setPublicAccess(
+            AccessStringHelper.newInstance()
+                .enable(AccessStringHelper.Permission.READ)
+                .enable(AccessStringHelper.Permission.DATA_READ)
+                .build());
     manager.save(programA, false);
 
     Program programB = createProgram('B', new HashSet<>(), orgUnitB);
@@ -227,6 +234,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     relationshipTypeA.getSharing().setOwner(user);
     manager.save(relationshipTypeA, false);
 
+    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA, false);
+
     relationshipA = new Relationship();
     relationshipA.setUid(CodeGenerator.generateUid());
     relationshipA.setRelationshipType(relationshipTypeA);
@@ -242,29 +252,22 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
     manager.save(relationshipA, false);
 
-    enrollmentA =
-        programInstanceService.enrollTrackedEntity(
-            trackedEntityA, programA, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStageA);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+    eventA = createEvent(programStageA, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(incidentDate);
+    manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
-    enrollmentA.setRelationshipItems(Set.of(from, to));
-    manager.save(enrollmentA, false);
+    enrollmentA.setRelationshipItems(Set.of(to));
+    manager.update(enrollmentA);
 
-    enrollmentB =
-        programInstanceService.enrollTrackedEntity(
-            trackedEntityB, programB, new Date(), new Date(), orgUnitB);
+    enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);
+    manager.save(enrollmentB);
 
-    enrollmentChildA =
-        programInstanceService.enrollTrackedEntity(
-            trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
+    enrollmentChildA = createEnrollment(programA, trackedEntityChildA, orgUnitChildA);
+    manager.save(enrollmentChildA);
 
     enrollmentGrandchildA =
-        programInstanceService.enrollTrackedEntity(
-            trackedEntityGrandchildA, programA, new Date(), new Date(), orgUnitGrandchildA);
+        createEnrollment(programA, trackedEntityGrandchildA, orgUnitGrandchildA);
+    manager.save(enrollmentGrandchildA);
 
     injectSecurityContextUser(user);
   }
@@ -276,7 +279,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.updateNoAcl(programA);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(enrollmentA.getUid(), EnrollmentParams.FALSE, false);
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE);
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
@@ -288,8 +291,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    Enrollment enrollment =
-        enrollmentService.getEnrollment(enrollmentA.getUid(), EnrollmentParams.FALSE, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA));
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
@@ -301,12 +303,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withEnrollmentEventsParams(EnrollmentEventsParams.TRUE);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrollmentA.getUid(), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(
-        List.of(eventA.getUid()),
-        enrollment.getEvents().stream().map(Event::getUid).collect(Collectors.toList()));
+        List.of(eventA.getUid()), enrollment.getEvents().stream().map(Event::getUid).toList());
   }
 
   @Test
@@ -319,7 +320,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeEvents(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrollmentA.getUid(), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getEvents());
@@ -331,7 +332,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrollmentA.getUid(), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(Set.of(relationshipA.getUid()), relationshipUids(enrollment));
@@ -346,7 +347,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrollmentA.getUid(), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getRelationshipItems());
@@ -358,7 +359,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeAttributes(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrollmentA.getUid(), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(List.of(trackedEntityAttributeA.getUid()), attributeUids(enrollment));
@@ -370,13 +371,25 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    enrollmentA.getUid(), EnrollmentParams.FALSE, false));
-    assertContains("access to tracked entity type", exception.getMessage());
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertContains("could not be found", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailGettingEnrollmentWhenDoesNotExist() {
+    trackedEntityTypeA.getSharing().setOwner(admin);
+    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityTypeA);
+
+    String nonExistentUid = CodeGenerator.generateUid();
+
+    NotFoundException exception =
+        assertThrows(
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(nonExistentUid)));
+    assertContains(
+        "Enrollment with id " + nonExistentUid + " could not be found.", exception.getMessage());
   }
 
   @Test
@@ -384,15 +397,12 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    enrollmentA.getUid(), EnrollmentParams.FALSE, false));
-    assertContains("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -400,15 +410,12 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
 
-    injectSecurityContextUser(userWithoutOrgUnit);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    enrollmentA.getUid(), EnrollmentParams.FALSE, false));
-    assertContains("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -416,13 +423,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programA);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    enrollmentA.getUid(), EnrollmentParams.FALSE, false));
-    assertContains("access to program", exception.getMessage());
+            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertContains("could not be found", exception.getMessage());
   }
 
   @Test
@@ -434,7 +438,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .programUid(programA.getUid())
+            .program(programA)
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
@@ -454,10 +458,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder()
-            .programUid(programA.getUid())
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        EnrollmentOperationParams.builder().program(programA).orgUnitMode(ACCESSIBLE).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
@@ -494,8 +495,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .programUid(programA.getUid())
-            .enrollmentUids(Set.of(enrollmentA.getUid()))
+            .program(programA)
+            .enrollments(enrollmentA)
             .orgUnitMode(ACCESSIBLE)
             .build();
 
@@ -513,9 +514,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
+            .orgUnits(trackedEntityA.getOrganisationUnit())
             .orgUnitMode(SELECTED)
-            .trackedEntityUid(trackedEntityA.getUid())
+            .trackedEntity(trackedEntityA)
             .build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
@@ -531,7 +532,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .lastUpdated(oneHourBeforeLastUpdated)
             .build();
@@ -548,7 +549,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .lastUpdated(oneHourAfterLastUpdated)
             .build();
@@ -566,9 +567,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .programUid(programA.getUid())
+            .program(programA)
             .programStartDate(oneHourBeforeEnrollmentDate)
             .build();
 
@@ -585,9 +586,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .programUid(programA.getUid())
+            .program(programA)
             .programStartDate(oneHourAfterEnrollmentDate)
             .build();
 
@@ -604,9 +605,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .programUid(programA.getUid())
+            .program(programA)
             .programEndDate(oneHourAfterEnrollmentDate)
             .build();
 
@@ -623,9 +624,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .programUid(programA.getUid())
+            .program(programA)
             .programEndDate(oneHourBeforeEnrollmentDate)
             .build();
 
@@ -653,28 +654,24 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
-    BadRequestException exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
+    assertEquals(
+        "User is not authorized to query across all organisation units", exception.getMessage());
   }
 
   @Test
   void shouldFailWhenUserCanSearchEverywhereModeDescendantsAndOrgUnitNotInSearchScope() {
-    injectSecurityContextUser(authorizedUser);
+    injectSecurityContextUser(userWithOrgUnitZ);
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitMode(DESCENDANTS)
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
-            .build();
+        EnrollmentOperationParams.builder().orgUnitMode(DESCENDANTS).orgUnits(orgUnitA).build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
         exception.getMessage());
   }
@@ -697,10 +694,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
       throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
-            .orgUnitMode(DESCENDANTS)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(DESCENDANTS).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(
@@ -713,10 +707,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
       throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid()))
-            .orgUnitMode(CHILDREN)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(CHILDREN).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
@@ -727,10 +718,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
       throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitChildA.getUid()))
-            .orgUnitMode(CHILDREN)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnitChildA).orgUnitMode(CHILDREN).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(
@@ -744,7 +732,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnitA.getUid(), orgUnitChildA.getUid()))
+            .orgUnits(orgUnitA, orgUnitChildA)
             .orgUnitMode(CHILDREN)
             .build();
 
@@ -754,10 +742,42 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         uids(enrollments));
   }
 
+  @Test
+  void shouldReturnEmptyListFailWhenRequestingEnrollmentsAndTheyAreNotAccessible()
+      throws ForbiddenException {
+    injectSecurityContextUser(admin);
+    programA.getSharing().setPublicAccess("rw------");
+    manager.update(programA);
+
+    injectSecurityContextUser(authorizedUser);
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(UID.of(enrollmentA, enrollmentB));
+    assertIsEmpty(enrollments);
+  }
+
+  @Test
+  void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
+    Note note = new Note();
+    note.setCreator(CodeGenerator.generateUid());
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.setNotes(List.of(note));
+
+    manager.save(enrollmentA);
+
+    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollmentA)));
+
+    manager.delete(enrollmentA);
+
+    assertThrows(
+        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertTrue(manager.exists(Note.class, note.getUid()));
+  }
+
   private static List<String> attributeUids(Enrollment enrollment) {
     return enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .map(v -> v.getAttribute().getUid())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private static Set<String> relationshipUids(Enrollment enrollment) {

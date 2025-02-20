@@ -30,20 +30,17 @@ package org.hisp.dhis.tracker.imports.programrule;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.SetMandatoryFieldExecutor;
@@ -56,23 +53,24 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEnrollmentMapper")
 @RequiredArgsConstructor
 class RuleActionEnrollmentMapper {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
-      List<RuleEffects> ruleEffects, TrackerBundle bundle) {
-    return ruleEffects.stream()
-        .filter(RuleEffects::isEnrollment)
-        .filter(e -> bundle.findEnrollmentByUid(e.getTrackerObjectUid()).isPresent())
+      Map<UID, List<ValidationEffect>> enrollmentValidationEffects, TrackerBundle bundle) {
+    return enrollmentValidationEffects.keySet().stream()
+        .filter(e -> bundle.findEnrollmentByUid(e).isPresent())
         .collect(
             Collectors.toMap(
-                e -> bundle.findEnrollmentByUid(e.getTrackerObjectUid()).get(),
+                e -> bundle.findEnrollmentByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEnrollmentByUid(e.getTrackerObjectUid()).get(), e, bundle)));
+                        bundle.findEnrollmentByUid(e).get(),
+                        enrollmentValidationEffects.get(e),
+                        bundle)));
   }
 
   private List<RuleActionExecutor<Enrollment>> mapRuleEffects(
-      Enrollment enrollment, RuleEffects ruleEffects, TrackerBundle bundle) {
+      Enrollment enrollment, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
     List<Attribute> payloadTeiAttributes =
         bundle
             .findTrackedEntityByUid(enrollment.getTrackedEntity())
@@ -80,43 +78,29 @@ class RuleActionEnrollmentMapper {
             .orElse(Collections.emptyList());
     List<Attribute> attributes = ListUtils.union(enrollment.getAttributes(), payloadTeiAttributes);
 
-    return ruleEffects.getRuleEffects().stream()
-        .map(
-            effect ->
-                buildEnrollmentRuleActionExecutor(
-                    effect.getRuleId(), effect.getData(), effect.getRuleAction(), attributes))
-        .filter(Objects::nonNull)
+    return ruleValidationEffects.stream()
+        .map(effect -> buildEnrollmentRuleActionExecutor(effect, attributes))
         .toList();
   }
 
   private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(
-      String ruleId, String data, RuleAction ruleAction, List<Attribute> attributes) {
-    if (ruleAction.getType().equals(ProgramRuleActionType.ASSIGN.name())) {
-      return new AssignAttributeExecutor(
-          systemSettingManager, ruleId, data, ruleAction.field(), attributes);
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.SETMANDATORYFIELD.name())) {
-      return new SetMandatoryFieldExecutor(ruleId, ruleAction.field());
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWERROR.name())) {
-      return new ShowErrorExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWWARNING.name())) {
-      return new ShowWarningExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.ERRORONCOMPLETE.name())) {
-      return new ShowErrorOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.WARNINGONCOMPLETE.name())) {
-      return new ShowWarningOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals("ERROR")) {
-      return new RuleEngineErrorExecutor(ruleId, data);
-    }
-    return null;
+      ValidationEffect validationEffect, List<Attribute> attributes) {
+    return switch (validationEffect.type()) {
+      case ASSIGN ->
+          new AssignAttributeExecutor(
+              settingsProvider,
+              validationEffect.rule(),
+              validationEffect.data(),
+              validationEffect.field(),
+              attributes);
+      case SET_MANDATORY_FIELD ->
+          new SetMandatoryFieldExecutor(validationEffect.rule(), validationEffect.field());
+      case SHOW_ERROR -> new ShowErrorExecutor(validationEffect);
+      case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
+      case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
+      case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+      case RAISE_ERROR ->
+          new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
+    };
   }
 }

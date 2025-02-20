@@ -58,6 +58,8 @@ public class Query extends Criteria {
 
   private boolean skipSharing;
 
+  private boolean dataSharing;
+
   private Integer firstResult = 0;
 
   private Integer maxResults = Integer.MAX_VALUE;
@@ -150,7 +152,7 @@ public class Query extends Criteria {
   }
 
   @Override
-  public Query add(Collection<Criterion> criterions) {
+  public Query add(Collection<? extends Criterion> criterions) {
     super.add(criterions);
     return this;
   }

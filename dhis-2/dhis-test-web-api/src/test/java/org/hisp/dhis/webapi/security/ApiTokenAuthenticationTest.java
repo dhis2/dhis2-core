@@ -27,26 +27,24 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import static org.hisp.dhis.http.HttpClientAdapter.ApiTokenHeader;
+import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
-import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
-import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.test.webapi.ControllerWithApiTokenAuthTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -54,32 +52,17 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles({"test-h2", "cache-test"})
-class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
+@ActiveProfiles("cache-test")
+class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
   public static final String URI = "/me?fields=settings,id";
 
   public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
 
   @Autowired private ApiTokenService apiTokenService;
 
-  @Autowired private ApiTokenStore apiTokenStore;
-
   @BeforeAll
   static void setUpClass() {
     DhisWebApiWebSecurityConfig.setApiContextPath("");
-  }
-
-  @BeforeEach
-  public void setup() throws Exception {
-    super.setup();
-  }
-
-  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
-    ApiKeyTokenGenerator.TokenWrapper wrapper =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
-    apiTokenService.save(wrapper.getApiToken());
-    return wrapper;
   }
 
   @Test
@@ -114,7 +97,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         GET(URI, ApiTokenHeader(new String(newToken.getPlaintextToken())))
             .content(HttpStatus.OK)
             .as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -136,12 +119,12 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
 
     token.addIpToAllowedList("127.0.0.1");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -158,11 +141,11 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addMethodToAllowedList("GET");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -179,14 +162,14 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addReferrerToAllowedList("https://two.io");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     apiTokenService.update(token);
 
     JsonUser user =
         GET(URI, ApiTokenHeader(plaintext), Header("referer", "https://two.io"))
             .content()
             .as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -207,7 +190,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
     final String token = new String(wrapper.getPlaintextToken());
 
-    User user = adminUser;
+    User user = getAdminUser();
     user.setDisabled(true);
     userService.updateUser(user);
 
@@ -232,18 +215,31 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
 
   @Test
   void testTokenDoesNotExistAndIsDeletedFromCache() {
+    User usera = switchToNewUser("tom", "ALL");
+
     ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
     final String plaintext = new String(wrapper.getPlaintextToken());
 
+    assertEquals(usera, wrapper.getApiToken().getCreatedBy());
+
     // Do a request to cache the token
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(usera.getUid(), user.getId());
 
     ApiToken token = wrapper.getApiToken();
+    injectSecurityContextUser(usera);
     apiTokenService.delete(token);
 
     assertEquals(
         "The API token does not exists",
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
+
+  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
+    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    ApiKeyTokenGenerator.TokenWrapper wrapper =
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
+    apiTokenService.save(wrapper.getApiToken());
+    return wrapper;
   }
 }

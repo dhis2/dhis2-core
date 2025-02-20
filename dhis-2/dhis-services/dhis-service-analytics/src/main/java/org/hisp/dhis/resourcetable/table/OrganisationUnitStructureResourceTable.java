@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
@@ -36,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -43,35 +45,34 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitStructureResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class OrganisationUnitStructureResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_orgunitstructure";
+  public static final int ROOT_LEVEL = 1;
+
+  private final Logged logged;
 
   private final int organisationUnitLevels;
 
   /** A to do is removing this service and finding a way to retrieve with SQL. */
   private final OrganisationUnitService organisationUnitService;
 
-  public OrganisationUnitStructureResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      int organisationUnitLevels,
-      OrganisationUnitService organisationUnitService) {
-    super(sqlBuilder, logged);
-    this.organisationUnitLevels = organisationUnitLevels;
-    this.organisationUnitService = organisationUnitService;
-  }
-
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
+  }
+
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -79,14 +80,19 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
         Lists.newArrayList(
             new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("organisationunituid", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
+            new Column("code", DataType.VARCHAR_50, Nullable.NULL),
+            new Column("name", DataType.VARCHAR_255, Nullable.NOT_NULL),
+            new Column("openingdate", DataType.DATE, Nullable.NULL),
+            new Column("closeddate", DataType.DATE, Nullable.NULL),
+            new Column("level", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("path", DataType.VARCHAR_255, Nullable.NULL));
 
-    for (int k = 1; k <= organisationUnitLevels; k++) {
+    for (int level = ROOT_LEVEL; level <= organisationUnitLevels; level++) {
       columns.addAll(
           List.of(
-              new Column(("idlevel" + k), DataType.BIGINT),
-              new Column(("uidlevel" + k), DataType.CHARACTER_11),
-              new Column(("namelevel" + k), DataType.TEXT)));
+              new Column(("idlevel" + level), DataType.BIGINT),
+              new Column(("uidlevel" + level), DataType.CHARACTER_11),
+              new Column(("namelevel" + level), DataType.TEXT)));
     }
 
     return columns;
@@ -99,11 +105,12 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
   @Override
   public List<Index> getIndexes() {
     return List.of(
-        new Index(
-            appendRandom("in_orgunitstructure_organisationunituid"),
-            toStaging(TABLE_NAME),
-            Unique.UNIQUE,
-            List.of("organisationunituid")));
+        Index.builder()
+            .name(appendRandom("in_orgunitstructure_organisationunituid"))
+            .tableName(toStaging(TABLE_NAME))
+            .unique(Unique.UNIQUE)
+            .columns(List.of("organisationunituid"))
+            .build());
   }
 
   @Override
@@ -118,42 +125,81 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
 
   @Override
   public Optional<List<Object[]>> getPopulateTempTableContent() {
-    List<Object[]> batchArgs = new ArrayList<>();
+    List<Object[]> batchObjects = new ArrayList<>();
 
-    for (int i = 0; i < organisationUnitLevels; i++) {
-      int level = i + 1;
-
+    for (int level = ROOT_LEVEL; level <= organisationUnitLevels; level++) {
       List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsAtLevel(level);
 
-      for (OrganisationUnit unit : units) {
-        List<Object> values = new ArrayList<>();
-
-        values.add(unit.getId());
-        values.add(unit.getUid());
-        values.add(level);
-
-        Map<Integer, Long> identifiers = new HashMap<>();
-        Map<Integer, String> uids = new HashMap<>();
-        Map<Integer, String> names = new HashMap<>();
-
-        for (int j = level; j > 0; j--) {
-          identifiers.put(j, unit.getId());
-          uids.put(j, unit.getUid());
-          names.put(j, unit.getName());
-
-          unit = unit.getParent();
-        }
-
-        for (int k = 1; k <= organisationUnitLevels; k++) {
-          values.add(identifiers.get(k) != null ? identifiers.get(k) : null);
-          values.add(uids.get(k));
-          values.add(names.get(k));
-        }
-
-        batchArgs.add(values.toArray());
-      }
+      batchObjects.addAll(createBatchObjects(units, level));
     }
 
-    return Optional.of(batchArgs);
+    return Optional.of(batchObjects);
+  }
+
+  /**
+   * Creates the list of batch of objects to be added to the org. unit resource table.
+   *
+   * @param units the list of {@link OrganisationUnit}.
+   * @param level the level of the given list of {@link OrganisationUnit}.
+   * @return the list of batch objects.
+   */
+  List<Object[]> createBatchObjects(List<OrganisationUnit> units, int level) {
+    List<Object[]> batchObjects = new ArrayList<>();
+
+    for (OrganisationUnit unit : units) {
+      List<Object> values = new ArrayList<>();
+
+      values.add(unit.getId());
+      values.add(unit.getUid());
+      values.add(unit.getCode());
+      values.add(unit.getName());
+      values.add(unit.getOpeningDate());
+      values.add(unit.getClosedDate());
+      values.add(level);
+      values.add(unit.getStoredPath());
+
+      Map<Integer, Long> identifiers = new HashMap<>();
+      Map<Integer, String> uids = new HashMap<>();
+      Map<Integer, String> names = new HashMap<>();
+
+      for (int j = level; j > 0; j--) {
+        identifiers.put(j, unit.getId());
+        uids.put(j, unit.getUid());
+        names.put(j, unit.getName());
+
+        if (isOrgUnitLevelValid(unit, j)) {
+          unit = unit.getParent();
+        } else {
+          throw new IllegalStateException(
+              format(
+                  "Invalid hierarchy level or missing parent for organisation unit %s.",
+                  unit.getUid()));
+        }
+      }
+
+      for (int k = ROOT_LEVEL; k <= organisationUnitLevels; k++) {
+        values.add(identifiers.get(k) != null ? identifiers.get(k) : null);
+        values.add(uids.get(k));
+        values.add(names.get(k));
+      }
+
+      batchObjects.add(values.toArray());
+    }
+
+    return batchObjects;
+  }
+
+  /**
+   * Verifies if the given {@link OrganisationUnit} matches the given value, as expected.
+   *
+   * @param unit the {@link OrganisationUnit} to check.
+   * @param level the level to be used in the validation.
+   * @return true if the expectation is matched, false otherwise.
+   */
+  private static boolean isOrgUnitLevelValid(OrganisationUnit unit, int level) {
+    boolean isLevelCorrect = unit.getLevel() == level && unit.getHierarchyLevel() == level;
+    boolean hasParent = unit.getParent() != null;
+    return isLevelCorrect
+        && ((hasParent && level > ROOT_LEVEL) || (level == ROOT_LEVEL && !hasParent));
   }
 }

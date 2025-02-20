@@ -228,7 +228,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(63, allClassFieldsIncludingInherited.length);
+    assertEquals(62, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {

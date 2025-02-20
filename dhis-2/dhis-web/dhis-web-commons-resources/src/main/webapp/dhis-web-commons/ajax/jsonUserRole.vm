@@ -1,9 +1,0 @@
-{ "userRole":
-  {
-	"name": "$!encoder.jsonEncode( ${userRole.name} )",
-	"uid": "$!encoder.jsonEncode( ${userRole.uid} )",
-	"members": "$!{userRole.members.size()}",
-	"dataSets": "$!{userRole.dataSets.size()}",
-	"reports": "$!{userRole.reports.size()}"
-  }
-}

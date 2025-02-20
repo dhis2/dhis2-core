@@ -32,12 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 import java.util.Set;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Tests for {@link DefaultVisualizationService}. */
-class DefaultVisualizationServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DefaultVisualizationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private VisualizationService visualizationService;
 
   @Test

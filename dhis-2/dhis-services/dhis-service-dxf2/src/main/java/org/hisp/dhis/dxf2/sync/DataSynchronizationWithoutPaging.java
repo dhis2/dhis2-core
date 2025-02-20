@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.sync;
 
 import java.util.Date;
 import lombok.Getter;
-import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**

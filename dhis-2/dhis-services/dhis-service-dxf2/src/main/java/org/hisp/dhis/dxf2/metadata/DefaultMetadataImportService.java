@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityG
 import com.google.common.base.Enums;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +56,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -76,13 +76,12 @@ public class DefaultMetadataImportService implements MetadataImportService {
   private final ObjectBundleValidationService objectBundleValidationService;
   private final UserService userService;
   private final AclService aclService;
-  private final Notifier notifier;
 
   @Override
   @Transactional
   public ImportReport importMetadata(
       @Nonnull MetadataImportParams params, @Nonnull MetadataObjects objects) {
-    return importMetadata(params, objects, NoopJobProgress.INSTANCE);
+    return importMetadata(params, objects, RecordingJobProgress.transitory());
   }
 
   @Override
@@ -100,14 +99,17 @@ public class DefaultMetadataImportService implements MetadataImportService {
     handleDeprecationIfEventReport(bundleParams);
 
     progress.startingStage("Creating bundle");
-    ObjectBundle bundle = progress.runStage(() -> objectBundleService.create(bundleParams));
+    ObjectBundle bundle =
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> objectBundleService.create(bundleParams)));
 
     progress.startingStage("Running postCreateBundle");
     progress.runStage(() -> postCreateBundle(bundle, bundleParams));
 
     progress.startingStage("Validating bundle");
     ObjectBundleValidationReport validationReport =
-        progress.runStage(() -> objectBundleValidationService.validate(bundle));
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> objectBundleValidationService.validate(bundle)));
     ImportReport report = new ImportReport();
     report.setImportParams(params);
     report.setStatus(Status.OK);
@@ -242,7 +244,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
     String value = String.valueOf(parameters.get(key).get(0));
 
-    return "true".equals(value.toLowerCase());
+    return "true".equalsIgnoreCase(value);
   }
 
   private <T extends Enum<T>> T getEnumWithDefault(
@@ -277,8 +279,8 @@ public class DefaultMetadataImportService implements MetadataImportService {
     object.setLastUpdatedBy(params.getUser());
   }
 
-  private void postCreateBundle(ObjectBundle bundle, ObjectBundleParams params) {
-    if (bundle.getUser() == null) {
+  private void postCreateBundle(@CheckForNull ObjectBundle bundle, ObjectBundleParams params) {
+    if (bundle == null || bundle.getUser() == null) {
       return;
     }
 

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,12 +41,13 @@ public class DefaultPasswordValidationService implements PasswordValidationServi
   public DefaultPasswordValidationService(
       PasswordEncoder passwordEncoder,
       UserService userService,
-      SystemSettingManager systemSettings) {
+      SystemSettingsProvider settingsProvider) {
     this(
         new PasswordMandatoryValidationRule()
-            .then(new PasswordLengthValidationRule(systemSettings))
+            .then(new PasswordLengthValidationRule(settingsProvider))
             .then(new DigitPatternValidationRule())
             .then(new UpperCasePatternValidationRule())
+            .then(new LowerCasePatternValidationRule())
             .then(new SpecialCharacterValidationRule())
             .then(new PasswordDictionaryValidationRule())
             .then(new UserParameterValidationRule())

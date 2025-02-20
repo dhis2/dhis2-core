@@ -33,15 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
@@ -49,13 +47,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class InterpretationServiceTest extends TransactionalIntegrationTest {
-
-  @Autowired private UserService _userService;
+@Transactional
+class InterpretationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
@@ -78,11 +76,6 @@ class InterpretationServiceTest extends TransactionalIntegrationTest {
   private Interpretation interpretationB;
 
   private Interpretation interpretationC;
-
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-  }
 
   @BeforeEach
   void beforeTest() {
@@ -303,7 +296,7 @@ class InterpretationServiceTest extends TransactionalIntegrationTest {
   // TODO enable
   @Test
   @Disabled
-  void testCreateChartAndInterpretationSyncSharing() throws IOException {
+  void testCreateChartAndInterpretationSyncSharing() {
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(userA, userB));
     userGroupService.addUserGroup(userGroup);
     Visualization visualization = createVisualization('A');

@@ -28,13 +28,13 @@
 package org.hisp.dhis.webapi.controller.indicator;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+import static org.hisp.dhis.security.Authorities.F_INDICATOR_MERGE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolverCollection;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -46,12 +46,11 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.merge.MergeParams;
-import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
+import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,19 +61,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
 @Controller
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping(value = IndicatorSchemaDescriptor.API_ENDPOINT)
-public class IndicatorController extends AbstractCrudController<Indicator> {
+@RequestMapping("/api/indicators")
+public class IndicatorController extends AbstractCrudController<Indicator, GetObjectListParams> {
   private final ExpressionService expressionService;
 
   private final ExpressionResolverCollection resolvers;
 
   private final I18nManager i18nManager;
 
-  private final MergeProcessor indicatorMergeProcessor;
+  private final MergeService indicatorMergeService;
 
   @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -99,14 +97,13 @@ public class IndicatorController extends AbstractCrudController<Indicator> {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_MERGE')")
+  @RequiresAuthority(anyOf = F_INDICATOR_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicators(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Indicator merge received");
-    params.setMergeType(MergeType.INDICATOR);
 
-    MergeReport report = indicatorMergeProcessor.processMerge(params);
+    MergeReport report = indicatorMergeService.processMerge(params);
 
     log.info("Indicator merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);

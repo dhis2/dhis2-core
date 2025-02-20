@@ -32,9 +32,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -59,10 +59,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(
+    entity = OrganisationUnitLevel.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequiredArgsConstructor
-@RequestMapping(value = "/filledOrganisationUnitLevels")
+@RequestMapping("/api/filledOrganisationUnitLevels")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class FilledOrganisationUnitLevelController {
   private final ObjectMapper jsonMapper;

@@ -33,8 +33,10 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
+import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -46,16 +48,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
-@RequestMapping
+@RequestMapping("/api/systemUpdates")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SystemUpdateNotifyController {
-  public static final String RESOURCE_PATH = "/systemUpdates";
+  public static final String RESOURCE_PATH = "";
 
   @Autowired private SystemUpdateNotificationService service;
 
-  @GetMapping(SystemUpdateNotifyController.RESOURCE_PATH)
+  @GetMapping
   @ResponseBody
   public WebMessage checkForSystemUpdates(
       @RequestParam(value = "forceVersion", required = false) String forceVersion) {
@@ -68,9 +72,10 @@ public class SystemUpdateNotifyController {
     Map<Semver, Map<String, String>> newerVersions =
         SystemUpdateNotificationService.getLatestNewerThanFetchFirst(currentVersion);
 
-    service.sendMessageForEachVersion(newerVersions, NoopJobProgress.INSTANCE);
+    service.sendMessageForEachVersion(newerVersions, JobProgress.noop());
 
     WebMessage ok = WebMessageUtils.ok();
+
     ok.setResponse(new SoftwareUpdateResponse(newerVersions));
     return ok;
   }

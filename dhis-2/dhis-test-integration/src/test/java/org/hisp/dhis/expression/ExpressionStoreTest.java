@@ -36,15 +36,21 @@ import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class ExpressionStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ExpressionStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired
   @Qualifier("org.hisp.dhis.expression.ExpressionStore")
@@ -68,11 +74,8 @@ class ExpressionStoreTest extends SingleSetupIntegrationTestBase {
 
   private String descriptionB;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     DataElement dataElementA = createDataElement('A');
     DataElement dataElementB = createDataElement('B');
     DataElement dataElementC = createDataElement('C');

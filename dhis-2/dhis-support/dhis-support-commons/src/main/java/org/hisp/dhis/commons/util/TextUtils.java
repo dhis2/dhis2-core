@@ -37,9 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.hisp.dhis.common.RegexUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 /**
@@ -67,6 +70,8 @@ public class TextUtils {
   private static final String OPTION_SEP = ";";
 
   private static final Character DOUBLE_QUOTE = '\"';
+
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
 
   /**
    * Remove all non-alphanumeric characters within string
@@ -546,7 +551,9 @@ public class TextUtils {
    * @return a resolved string.
    */
   public static String replace(String template, Map<String, String> variables) {
-    return new StringSubstitutor(variables).replace(template);
+    return new StringSubstitutor(variables)
+        .setEnableUndefinedVariableException(true)
+        .replace(template);
   }
 
   /**
@@ -559,6 +566,20 @@ public class TextUtils {
    */
   public static String replace(String template, String k1, String v1) {
     return replace(template, Map.of(k1, v1));
+  }
+
+  /**
+   * Replaces variables in the given template string with the given variable key and value.
+   *
+   * @param template the template string.
+   * @param k1 the variable key.
+   * @param v1 the variable value.
+   * @param k2 the variable key.
+   * @param v2 the variable value.
+   * @return a resolved string.
+   */
+  public static String replace(String template, String k1, String v1, String k2, String v2) {
+    return replace(template, Map.of(k1, v1, k2, v2));
   }
 
   /**
@@ -621,10 +642,10 @@ public class TextUtils {
   /**
    * Method to remove a trailing '/' if it's the last char.
    *
-   * @param string
+   * @param string string to update if condition met
    * @return string with no trailing '/' or the string unchanged
    */
-  public static String removeAnyTrailingSlash(String string) {
+  public static String removeAnyTrailingSlash(@Nonnull String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
   }
 
@@ -637,5 +658,16 @@ public class TextUtils {
    */
   public static String format(String pattern, Object... arguments) {
     return MessageFormatter.arrayFormat(pattern, arguments).getMessage();
+  }
+
+  /**
+   * Returns the names of the variables in the given input. The definition of a variable is <code>
+   * ${variableName}</code>.
+   *
+   * @param input the input potentially containing variables.
+   * @return a set of variable names.
+   */
+  public static Set<String> getVariableNames(String input) {
+    return RegexUtils.getMatches(VARIABLE_PATTERN, input, 1);
   }
 }

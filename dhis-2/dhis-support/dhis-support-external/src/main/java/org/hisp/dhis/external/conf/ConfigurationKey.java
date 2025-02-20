@@ -61,12 +61,6 @@ public enum ConfigurationKey {
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
   /**
-   * Disable server-side program rule execution, can be 'on', 'off'. <br>
-   * (default: on)
-   */
-  SYSTEM_PROGRAM_RULE_SERVER_EXECUTION("system.program_rule.server_execution", Constants.ON, false),
-
-  /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
    */
@@ -74,6 +68,12 @@ public enum ConfigurationKey {
 
   /** Node identifier, optional, useful in clusters. */
   NODE_ID("node.id", "", false),
+
+  /**
+   * When true, the node will unconditionally set its node ID during leader election causing it to
+   * win the election as long as it is alive.
+   */
+  NODE_PRIMARY_LEADER("node.primary_leader", "false", false),
 
   /** Encryption password (sensitive). */
   ENCRYPTION_PASSWORD("encryption.password", "", true),
@@ -84,12 +84,17 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
+  /** Analytics database JDBC catalog name. Applies to Apache Doris. */
+  ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
+
+  /** Analytics database JDBC driver filename. Applies to Apache Doris. */
+  ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
   /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS(
-      "analytics.connection.driver_class", "org.postgresql.Driver", false),
+  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
 
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
@@ -106,6 +111,15 @@ public enum ConfigurationKey {
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
 
+  /** Database host (hostname or IP). Applies to ClickHouse. */
+  CONNECTION_HOST("connection.host", "", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_PORT("connection.port", "5432", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_DATABASE("connection.database", "", false),
+
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
 
@@ -114,13 +128,6 @@ public enum ConfigurationKey {
 
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
-
-  /**
-   * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden by the same property
-   * loaded by any class implementing {@link DhisConfigurationProvider} like {@link
-   * DefaultDhisConfigurationProvider} from dhis.conf at runtime
-   */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
 
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
@@ -310,7 +317,8 @@ public enum ConfigurationKey {
   LDAP_SEARCH_FILTER("ldap.search.filter", "(cn={0})", false),
 
   /**
-   * File store provider, currently 'filesystem' and 'aws-s3' are supported. (default: filesystem)
+   * File store provider, currently 'filesystem', 'aws-s3' and 's3' are supported. (default:
+   * filesystem)
    */
   FILESTORE_PROVIDER("filestore.provider", "filesystem", false),
 
@@ -322,6 +330,8 @@ public enum ConfigurationKey {
 
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
+
+  FILESTORE_ENDPOINT("filestore.endpoint", "", false),
 
   /** Public identity / username. */
   FILESTORE_IDENTITY("filestore.identity", "", false),
@@ -343,11 +353,14 @@ public enum ConfigurationKey {
   /** EHCache replication members. */
   CLUSTER_MEMBERS("cluster.members", "", false),
 
-  /** EHCache replication port. */
+  /** DEPRECATED EHCache replication port. */
   CLUSTER_CACHE_PORT("cluster.cache.port", "4001", false),
 
-  /** EHCache replication remote object port. */
+  /** DEPRECATED EHCache replication remote object port. */
   CLUSTER_CACHE_REMOTE_OBJECT_PORT("cluster.cache.remote.object.port", "0", false),
+
+  /** Enable redis cache. (default: false) */
+  REDIS_ENABLED("redis.enabled", Constants.OFF, false),
 
   /** Redis host to use for cache. (default: localhost) */
   REDIS_HOST("redis.host", "localhost", false),
@@ -360,9 +373,6 @@ public enum ConfigurationKey {
 
   /** Use SSL for connecting to redis. (default: false) */
   REDIS_USE_SSL("redis.use.ssl", Constants.OFF, false),
-
-  /** Enable redis cache. (default: false) */
-  REDIS_ENABLED("redis.enabled", Constants.OFF, false),
 
   /**
    * Allows Flyway migrations to be run "out of order".
@@ -378,13 +388,25 @@ public enum ConfigurationKey {
    */
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
 
+  /** Whether to skip Flyway migration on startup. (default: false). */
+  FLYWAY_SKIP_MIGRATION("flyway.skip_migration", Constants.OFF, false),
+
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
-  /** Order analytics tables data on insert. */
-  ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
+  /**
+   * Skip building indexes for dimensional columns on analytics tables for the comma-separated list
+   * of dimension identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
+
+  /**
+   * Skip creating columns for analytics tables for the comma-separated list of dimensional
+   * identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
@@ -639,14 +661,45 @@ public enum ConfigurationKey {
   LINKED_ACCOUNTS_ENABLED("linked_accounts.enabled", Constants.OFF, false),
 
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
+
+  LINKED_ACCOUNTS_LOGOUT_URL("linked_accounts.logout_url", "", false),
+
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
   SWITCH_USER_ALLOW_LISTED_IPS(
-      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false);
+      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
+
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
+
+  /** CSRF feature. Enable or disable the feature. */
+  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
+
+  /** The maximum number of category options in a single category */
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  /** The maximum number of categories per category combo */
+  METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
+  /**
+   * The maximum number of possible category combination. This is computed by multiplying the number
+   * of options in each category in a category combo with each other.
+   */
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false),
+
+  /** Enable email-based 2FA authentication. (default: false) */
+  EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
+
+  /** Enable TOTP-based 2FA authentication. (default: true) */
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
 
   private final String defaultValue;
 
+  /**
+   * Confidential means that the system setting will be encrypted and not visible through the API.
+   * The system setting will be used internally in the backend, but cannot be used by web apps and
+   * clients.
+   */
   private final boolean confidential;
 
   private final String[] aliases;

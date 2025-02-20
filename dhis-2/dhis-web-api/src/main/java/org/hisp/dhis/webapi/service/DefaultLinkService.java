@@ -158,7 +158,7 @@ public class DefaultLinkService implements LinkService {
 
   @Override
   public void generateSchemaLinks(Schema schema) {
-    generateSchemaLinks(schema, contextService.getServletPath());
+    generateSchemaLinks(schema, contextService.getApiPath());
   }
 
   @Override

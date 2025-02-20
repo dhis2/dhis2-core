@@ -37,14 +37,14 @@ import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for analytical object entities.
  *
  * @author Lars Helge Overland
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class AnalyticalObjectOrgUnitMergeHandler {
   private final VisualizationService visualizationService;

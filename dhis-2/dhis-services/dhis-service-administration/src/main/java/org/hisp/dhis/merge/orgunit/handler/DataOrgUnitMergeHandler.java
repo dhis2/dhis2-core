@@ -29,7 +29,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -43,7 +43,7 @@ import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Lars Helge Overland
  */
-@Service
+@Component
 @Transactional
 @RequiredArgsConstructor
 public class DataOrgUnitMergeHandler {

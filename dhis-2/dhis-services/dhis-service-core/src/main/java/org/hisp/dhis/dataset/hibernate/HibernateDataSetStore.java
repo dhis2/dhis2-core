@@ -30,16 +30,17 @@ package org.hisp.dhis.dataset.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -95,19 +96,6 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
   }
 
   @Override
-  public List<DataSet> getDataSetsByPeriodType(PeriodType periodType) {
-    PeriodType refreshedPeriodType = periodService.reloadPeriodType(periodType);
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<DataSet> parameters =
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("periodType"), refreshedPeriodType));
-
-    return getList(builder, parameters);
-  }
-
-  @Override
   public List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm) {
     if (dataEntryForm == null) {
       return Lists.newArrayList();
@@ -118,6 +106,18 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
     Query<DataSet> query = getQuery(hql);
 
     return query.setParameter("dataEntryForm", dataEntryForm).list();
+  }
+
+  @Override
+  public List<DataSetElement> getDataSetElementsByDataElement(
+      Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from DataSetElement dse where dse.dataElement in :dataElements
+            """,
+            DataSetElement.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   @Override

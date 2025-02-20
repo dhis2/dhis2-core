@@ -31,7 +31,6 @@
     <module>dhis-service-core</module>
     <!-- Level 6 -->
     <module>dhis-service-validation</module>
-    <module>dhis-service-program-rule</module>
     <!-- Level 7 -->
     <module>dhis-service-administration</module>
     <module>dhis-service-dxf2</module>

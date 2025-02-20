@@ -40,8 +40,8 @@ import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.calendar.CalendarService")
 public class DefaultCalendarService implements CalendarService {
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final Set<Calendar> calendars;
 
@@ -92,8 +92,9 @@ public class DefaultCalendarService implements CalendarService {
   @Override
   @IndirectTransactional
   public Calendar getSystemCalendar() {
-    String calendarKey = settingManager.getStringSetting(SettingKey.CALENDAR);
-    String dateFormat = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    String calendarKey = settings.getCalendar();
+    String dateFormat = settings.getDateFormat();
 
     Calendar calendar = null;
 
@@ -111,7 +112,7 @@ public class DefaultCalendarService implements CalendarService {
   @Override
   @IndirectTransactional
   public DateFormat getSystemDateFormat() {
-    String dateFormatKey = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
+    String dateFormatKey = settingsProvider.getCurrentSettings().getDateFormat();
 
     for (DateFormat dateFormat : DATE_FORMATS) {
       if (dateFormat.name().equals(dateFormatKey)) {

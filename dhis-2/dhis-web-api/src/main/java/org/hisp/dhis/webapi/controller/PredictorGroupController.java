@@ -29,19 +29,19 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 
 import java.util.Date;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictorGroup;
-import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.schema.descriptors.PredictorGroupSchemaDescriptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,26 +52,25 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = PredictorGroupSchemaDescriptor.API_ENDPOINT)
-public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {
-  @Autowired private PredictionService predictionService;
+@RequestMapping("/api/predictorGroups")
+@RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class PredictorGroupController
+    extends AbstractCrudController<PredictorGroup, GetObjectListParams> {
+
+  private final PredictionService predictionService;
 
   @RequestMapping(
       value = "/{uid}/run",
       method = {RequestMethod.POST, RequestMethod.PUT})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictorGroup(
-      @PathVariable("uid") String uid,
-      @RequestParam Date startDate,
-      @RequestParam Date endDate,
-      TranslateParams translateParams) {
+      @PathVariable("uid") String uid, @RequestParam Date startDate, @RequestParam Date endDate) {
     try {
       PredictionSummary predictionSummary =
-          predictionService.predictAll(
-              startDate, endDate, null, List.of(uid), NoopJobProgress.INSTANCE);
+          predictionService.predictAll(startDate, endDate, null, List.of(uid), JobProgress.noop());
 
       return ok("Generated " + predictionSummary.getPredictions() + " predictions");
     } catch (Exception ex) {

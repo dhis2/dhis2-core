@@ -41,17 +41,22 @@ import java.util.Map;
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.textpattern.TextPatternParser.TextPatternParsingException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ReservedValueServiceIntegrationTest extends IntegrationTestBase {
+class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private ReservedValueService reservedValueService;
+
+  @Autowired private DbmsManager dbmsManager;
 
   @Autowired private ReservedValueStore reservedValueStore;
 
@@ -68,8 +73,8 @@ class ReservedValueServiceIntegrationTest extends IntegrationTestBase {
 
   private static TrackedEntityAttribute simpleStringPattern;
 
-  @Override
-  protected void setUpTest() {
+  @BeforeEach
+  void setUp() {
     // Set up future Date
     Calendar calendar = Calendar.getInstance();
     calendar.add(DATE, 10);
@@ -253,7 +258,7 @@ class ReservedValueServiceIntegrationTest extends IntegrationTestBase {
       trackedEntityAttribute.setTextPattern(textPattern);
       trackedEntityAttribute.setGenerated(true);
       return trackedEntityAttribute;
-    } catch (TextPatternParser.TextPatternParsingException | IllegalAccessException e) {
+    } catch (TextPatternParsingException | IllegalAccessException e) {
       e.printStackTrace();
     }
     return null;

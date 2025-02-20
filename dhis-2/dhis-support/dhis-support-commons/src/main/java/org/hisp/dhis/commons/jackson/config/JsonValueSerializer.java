@@ -41,7 +41,7 @@ public class JsonValueSerializer extends JsonSerializer<JsonValue> {
   @Override
   public void serialize(JsonValue obj, JsonGenerator generator, SerializerProvider provider)
       throws IOException {
-    if (obj == null) {
+    if (obj == null || !obj.exists()) {
       generator.writeNull();
     } else {
       generator.writeRawValue(obj.node().getDeclaration());

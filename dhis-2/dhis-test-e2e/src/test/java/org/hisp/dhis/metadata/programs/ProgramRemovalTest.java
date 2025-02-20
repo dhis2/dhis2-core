@@ -32,11 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.google.gson.JsonObject;
 import java.io.File;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -35,8 +35,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface ProgramMessageStore extends IdentifiableObjectStore<ProgramMessage> {
   List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params);
-
-  List<ProgramMessage> getAllOutboundMessages();
-
-  boolean exists(String uid);
 }

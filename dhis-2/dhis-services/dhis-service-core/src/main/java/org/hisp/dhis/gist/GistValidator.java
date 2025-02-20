@@ -28,21 +28,24 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
+import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Validates a {@link GistQuery} for consistency and access restrictions.
@@ -74,7 +77,7 @@ final class GistValidator {
       return;
     }
     if (!access.canReadObject(owner.getType(), owner.getId())) {
-      throw new ReadAccessDeniedException(
+      throw new AccessDeniedException(
           String.format(
               "User not allowed to view %s %s", owner.getType().getSimpleName(), owner.getId()));
     }
@@ -184,13 +187,24 @@ final class GistValidator {
     if (f.isAttribute()) {
       return;
     }
-    Property filter = context.resolveMandatory(f.getPropertyPath());
-    if (!filter.isPersisted()) {
-      throw createIllegalProperty(filter, "Property `%s` cannot be used as filter property.");
-    }
-
+    validateFilterPath(f, context);
     validateFilterArgument(f);
     validateFilterAccess(f);
+  }
+
+  private void validateFilterPath(Filter f, RelativePropertyContext context) {
+    String propertyPath = f.getPropertyPath();
+    if (isAttributeValuesAttributePropertyPath(propertyPath)) {
+      Property p =
+          context.switchedTo(Attribute.class).resolveMandatory(attributePath(propertyPath));
+      if (!p.isPersisted())
+        throw createIllegalProperty(
+            p, "Property `%s` cannot be used as an attribute filter property");
+      return;
+    }
+    Property filter = context.resolveMandatory(propertyPath);
+    if (!filter.isPersisted())
+      throw createIllegalProperty(filter, "Property `%s` cannot be used as filter property.");
   }
 
   private void validateFilterAccess(Filter f) {
@@ -216,7 +230,7 @@ final class GistValidator {
         }
       }
       if (!access.canFilterByAccessOfUser(ids[0])) {
-        throw new ReadAccessDeniedException(
+        throw new AccessDeniedException(
             String.format(
                 "Filtering by user access in filter `%s` requires permissions to manage the user %s.",
                 f, ids[0]));
@@ -257,13 +271,13 @@ final class GistValidator {
     return new IllegalArgumentException(String.format(message, filter.toString()));
   }
 
-  private ReadAccessDeniedException createNoReadAccess(
+  private AccessDeniedException createNoReadAccess(
       Field field, Class<? extends PrimaryKeyObject> ownerType) {
     if (ownerType == null) {
-      return new ReadAccessDeniedException(
+      return new AccessDeniedException(
           String.format("Property `%s` is not readable.", field.getPropertyPath()));
     }
-    return new ReadAccessDeniedException(
+    return new AccessDeniedException(
         String.format(
             "Field `%s` is not readable as user is not allowed to view objects of type %s.",
             field.getPropertyPath(), ownerType.getSimpleName()));

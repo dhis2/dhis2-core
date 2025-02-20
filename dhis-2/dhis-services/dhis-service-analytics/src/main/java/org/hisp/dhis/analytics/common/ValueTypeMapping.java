@@ -29,20 +29,16 @@ package org.hisp.dhis.analytics.common;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.common.ValueType.DATETIME;
-import static org.hisp.dhis.common.ValueType.INTEGER;
-import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
-import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
-import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TIME;
-import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.toAnalyticsFallbackDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -57,45 +53,85 @@ import org.hisp.dhis.common.ValueType;
  * a function where it can be converted into Java types.
  */
 public enum ValueTypeMapping {
-  NUMERIC(BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE),
-  DECIMAL(BigDecimal::new, NUMBER),
+  NUMERIC(BigInteger::new, Integer.class),
+  DECIMAL(BigDecimal::new, Double.class),
   STRING(s -> s),
   TEXT(s -> s),
-  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME),
+  DATE(ValueTypeMapping::dateConverter, LocalDate.class, LocalDateTime.class),
+  TIME(s -> s, ValueType.TIME, s -> s.replace(".", ":"), "varchar"),
   BOOLEAN(
-      ValueTypeMapping::booleanConverter,
-      ValueTypeMapping::booleanSelectTransformer,
-      ValueType.BOOLEAN,
-      TRUE_ONLY);
+      ValueTypeMapping::booleanConverter, ValueTypeMapping::booleanJsonExtractor, Boolean.class);
 
-  private static final UnaryOperator<String> BOOLEAN_SELECT_TRANSFORMER =
-      columnName ->
-          "case when "
-              + columnName
-              + " = 'true' then 1 when "
-              + columnName
-              + " = 'false' then 0 end";
+  private static final UnaryOperator<String> BOOLEAN_JSON_EXTRACTOR =
+      value -> value.equalsIgnoreCase("true") ? "1" : "0";
+
   private final Function<String, Object> converter;
   @Getter private final UnaryOperator<String> selectTransformer;
   private final ValueType[] valueTypes;
+  @Getter private final UnaryOperator<String> argumentTransformer;
+  @Getter private final String postgresCast;
 
-  ValueTypeMapping(Function<String, Object> converter, ValueType... valueTypes) {
+  ValueTypeMapping(Function<String, Object> converter, Class<?>... classes) {
     this.converter = converter;
-    this.valueTypes = valueTypes;
+    this.valueTypes = fromClasses(classes);
     this.selectTransformer = UnaryOperator.identity();
+    this.argumentTransformer = UnaryOperator.identity();
+    this.postgresCast = name();
+  }
+
+  /**
+   * Converts the given {@link Class} array into an array of {@link ValueType} based on the
+   * supported classes.
+   *
+   * @param classes the classes to be converted
+   * @return the respective {@link ValueType} array
+   */
+  private ValueType[] fromClasses(Class<?>... classes) {
+    return stream(ValueType.values())
+        .filter(valueType -> isAssignableFrom(classes, valueType))
+        .toArray(ValueType[]::new);
+  }
+
+  /**
+   * Checks if the given {@link ValueType} is assignable from the given classes.
+   *
+   * @param classes the classes to be checked
+   * @param valueType the {@link ValueType} to be checked
+   * @return true if the {@link ValueType} is assignable from the given classes, false otherwise
+   */
+  private static boolean isAssignableFrom(Class<?>[] classes, ValueType valueType) {
+    return stream(classes).anyMatch(valueType.getJavaClass()::isAssignableFrom);
   }
 
   ValueTypeMapping(
       Function<String, Object> converter,
       UnaryOperator<String> selectTransformer,
-      ValueType... valueTypes) {
+      Class<?>... classes) {
     this.converter = converter;
-    this.valueTypes = valueTypes;
-    this.selectTransformer = selectTransformer;
+    this.valueTypes = fromClasses(classes);
+    this.selectTransformer = s -> Objects.isNull(s) ? null : selectTransformer.apply(s);
+    this.argumentTransformer = UnaryOperator.identity();
+    this.postgresCast = name();
+  }
+
+  ValueTypeMapping(
+      Function<String, Object> converter,
+      ValueType valueType,
+      UnaryOperator<String> argumentTransformer,
+      String postgresCast) {
+    this.converter = converter;
+    this.valueTypes = new ValueType[] {valueType};
+    this.selectTransformer = UnaryOperator.identity();
+    this.argumentTransformer = s -> Objects.nonNull(s) ? argumentTransformer.apply(s) : null;
+    this.postgresCast = postgresCast;
   }
 
   private static Date dateConverter(String dateAsString) {
-    return toMediumDate(dateAsString);
+    try {
+      return toMediumDate(dateAsString);
+    } catch (Exception ignore) {
+      return toAnalyticsFallbackDate(dateAsString);
+    }
   }
 
   private static Object booleanConverter(String parameterInput) {
@@ -106,8 +142,8 @@ public enum ValueTypeMapping {
     return "1".equals(value) || "true".equalsIgnoreCase(value);
   }
 
-  private static String booleanSelectTransformer(String columnName) {
-    return BOOLEAN_SELECT_TRANSFORMER.apply(columnName);
+  private static String booleanJsonExtractor(String value) {
+    return BOOLEAN_JSON_EXTRACTOR.apply(value);
   }
 
   /**

@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 
 /**
  * @author Lars Helge Overland

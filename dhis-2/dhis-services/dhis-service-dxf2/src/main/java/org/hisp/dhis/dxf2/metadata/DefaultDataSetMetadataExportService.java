@@ -28,9 +28,9 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.sortById;
-import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
-import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.addIfNotNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -72,7 +72,6 @@ import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -135,8 +134,6 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
   private final DataSetService dataSetService;
 
   private final ExpressionService expressionService;
-
-  private final UserService userService;
 
   @Override
   public ObjectNode getDataSetMetadata() {

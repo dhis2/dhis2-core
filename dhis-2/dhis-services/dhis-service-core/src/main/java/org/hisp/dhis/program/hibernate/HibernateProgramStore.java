@@ -28,9 +28,9 @@
 package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -108,9 +108,8 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
   @SuppressWarnings("unchecked")
   public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
     NativeQuery<Long> query =
-        getSession()
-            .createNativeQuery(
-                "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid");
+        nativeSynchronizedQuery(
+            "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid");
     query.setParameter("pid", program.getId());
     query.setParameter("ouid", organisationUnit.getId());
 

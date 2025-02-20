@@ -201,23 +201,27 @@ public class FieldPathHelper {
       if (schema == null) {
         continue;
       }
-      if (FieldPreset.ALL.equals(preset.getName())) {
+      if (FieldPreset.ALL.getName().equals(preset.getName())) {
         schema.getProperties().forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.OWNER.equals(preset.getName())) {
+      } else if (FieldPreset.OWNER.getName().equals(preset.getName())) {
         schema.getProperties().stream()
             .filter(Property::isOwner)
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.PERSISTED.equals(preset.getName())) {
+      } else if (FieldPreset.PERSISTED.getName().equals(preset.getName())) {
         schema.getProperties().stream()
             .filter(Property::isPersisted)
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.IDENTIFIABLE.equals(preset.getName())) {
+      } else if (FieldPreset.IDENTIFIABLE.getName().equals(preset.getName())) {
         schema.getProperties().stream()
-            .filter(p -> FieldPreset.IDENTIFIABLE_FIELDS.contains(p.getName()))
+            .filter(p -> FieldPreset.IDENTIFIABLE.getFields().contains(p.getName()))
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
-      } else if (FieldPreset.SIMPLE.equals(preset.getName())) {
+      } else if (FieldPreset.SIMPLE.getName().equals(preset.getName())) {
         schema.getProperties().stream()
             .filter(p -> p.getPropertyType().isSimple())
+            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
+      } else if (FieldPreset.NAMEABLE.getName().equals(preset.getName())) {
+        schema.getProperties().stream()
+            .filter(p -> FieldPreset.NAMEABLE.getFields().contains(p.getName()))
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
       }
     }

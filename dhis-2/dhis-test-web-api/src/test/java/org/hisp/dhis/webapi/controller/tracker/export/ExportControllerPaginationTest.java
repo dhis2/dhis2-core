@@ -27,48 +27,57 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
- * org.hisp.dhis.tracker.export.Page} to JSON. The tests use the {@link
+ * Page} to JSON. The tests use the {@link
  * org.hisp.dhis.webapi.controller.tracker.export.relationship} controller but hold true for any of
  * the export controllers.
  */
-class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
+@Transactional
+class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -86,6 +95,8 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
   void setUp() {
     owner = makeUser("o");
     manager.save(owner, false);
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -135,12 +146,6 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -164,12 +169,6 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     assertEquals(50, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -193,12 +192,6 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -223,12 +216,6 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
             String.format("mismatch in number of expected relationship(s), got %s", relationships));
     assertEquals(2, page.getPager().getPage());
     assertEquals(1, page.getPager().getPageSize());
-    assertHasNoMember(page.getPager(), "total");
-    assertHasNoMember(page.getPager(), "pageCount");
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
     assertHasNoMember(page.getPager(), "total");
     assertHasNoMember(page.getPager(), "pageCount");
   }
@@ -259,38 +246,6 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(2, page.getPageCount());
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    TrackedEntity to = trackedEntity();
-    Event from1 = event(enrollment(to));
-    Event from2 = event(enrollment(to));
-    Relationship r1 = relationship(from1, to);
-    Relationship r2 = relationship(from2, to);
-
-    JsonPage page =
-        GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    assertContainsOnly(
-        List.of(r1.getUid(), r2.getUid()),
-        page.getList("relationships", JsonRelationship.class)
-            .toList(JsonRelationship::getRelationship));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -311,12 +266,6 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
@@ -347,8 +296,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);
     return te;
@@ -359,7 +307,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment, false);
     te.setEnrollments(Set.of(enrollment));
     manager.save(te, false);
@@ -367,7 +315,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, orgUnit);
+    Event event = new Event(enrollment, programStage, orgUnit, coc);
     event.setAutoFields();
     manager.save(event, false);
     enrollment.setEvents(Set.of(event));

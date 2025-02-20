@@ -15,6 +15,8 @@
     </id>
     &identifiableProperties;
 
+    <property name="name" length="230" />
+
     <property name="description" type="text" />
 
     <property name="layer" not-null="true" />
@@ -47,10 +49,9 @@
 
     <property name="startDate" />
 
-    <property name="endDate" />    
+    <property name="endDate" />
 
-    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
-      cascade="all-delete-orphan" foreign-key="fk_mapview_relativeperiodsid" />
+    <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
 
     <list name="categoryDimensions" table="mapview_categorydimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
@@ -148,7 +149,7 @@
 
     <property name="programStatus" length="40">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="enumClass">org.hisp.dhis.program.EnrollmentStatus</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>

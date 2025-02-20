@@ -29,24 +29,27 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class InterpretationDataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private VisualizationService visualizationService;
 
@@ -55,8 +58,6 @@ class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTe
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private DataOrgUnitMergeHandler mergeHandler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private OrganisationUnit ouA;
 

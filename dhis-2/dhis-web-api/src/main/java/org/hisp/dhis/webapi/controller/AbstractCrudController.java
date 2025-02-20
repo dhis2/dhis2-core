@@ -32,33 +32,33 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
-import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.Maturity.Beta;
+import org.hisp.dhis.common.Maturity.Stable;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -69,6 +69,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -82,9 +83,7 @@ import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
-import org.hisp.dhis.patch.Patch;
-import org.hisp.dhis.patch.PatchParams;
-import org.hisp.dhis.patch.PatchService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -96,8 +95,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,9 +115,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public abstract class AbstractCrudController<T extends IdentifiableObject>
-    extends AbstractFullReadOnlyController<T> {
+@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
+public abstract class AbstractCrudController<
+        T extends IdentifiableObject, P extends GetObjectListParams>
+    extends AbstractFullReadOnlyController<T, P> {
   @Autowired protected SchemaValidator schemaValidator;
 
   @Autowired protected RenderService renderService;
@@ -134,8 +136,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @Autowired protected MetadataMergeService metadataMergeService;
 
   @Autowired protected JsonPatchManager jsonPatchManager;
-
-  @Autowired protected PatchService patchService;
 
   @Autowired
   @Qualifier("xmlMapper")
@@ -164,6 +164,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
    * releases we might also want to support "application/json" after the old patch behavior has been
    * removed.
    */
+  @Beta
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(JsonPatch.class)
@@ -179,9 +180,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           IOException,
           JsonPatchException,
           ConflictException {
-    WebOptions options = new WebOptions(rpParameters);
-
-    final T persistedObject = getEntity(pvUid, options);
+    final T persistedObject = getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
@@ -227,23 +226,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   }
 
   private T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    if (persistedObject instanceof User) {
-      for (JsonPatchOperation op : patch.getOperations()) {
-        JsonPointer userCredentials = op.getPath().matchProperty("userCredentials");
-        if (userCredentials != null) {
-          op.setPath(JsonPointer.empty().append(userCredentials));
-        }
-      }
-    }
 
     final T patchedObject = jsonPatchManager.apply(patch, persistedObject);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    if (patchedObject instanceof User) {
-      User patchingUser = (User) patchedObject;
-      patchingUser.removeLegacyUserCredentials();
-    }
 
     if (patchedObject instanceof User) {
       // Reset to avoid non owning properties (here UserGroups) to be
@@ -306,6 +290,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   // POST
   // --------------------------------------------------------------------------
 
+  @Stable
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(OpenApi.EntityType.class)
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -318,20 +303,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           HttpRequestMethodNotSupportedException,
           NotFoundException {
     return postObject(deserializeJsonEntity(request));
-  }
-
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
-  @ResponseBody
-  @SuppressWarnings("java:S1130")
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          HttpRequestMethodNotSupportedException,
-          NotFoundException {
-    return postObject(deserializeXmlEntity(request));
   }
 
   private WebMessage postObject(T parsed) throws ForbiddenException, ConflictException {
@@ -376,6 +347,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return importReport.getFirstObjectReport();
   }
 
+  @OpenApi.Filter(
+      includes = {
+        Dashboard.class,
+        EventVisualization.class,
+        org.hisp.dhis.mapping.Map.class,
+        Visualization.class
+      })
   @PostMapping(value = "/{uid}/favorite")
   @ResponseBody
   public WebMessage setAsFavorite(
@@ -397,6 +375,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername()));
   }
 
+  @OpenApi.Filter(
+      includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @PostMapping(value = "/{uid}/subscriber")
   @ResponseBody
   public WebMessage subscribe(
@@ -455,7 +435,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
+        importService.importMetadata(params, new MetadataObjects().addObject(parsed), transitory());
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -468,62 +448,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return webMessage;
   }
 
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @PutMapping(
-      value = "/{uid}",
-      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
-  @ResponseBody
-  public WebMessage putXmlObject(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletRequest request,
-      HttpServletResponse response)
-      throws IOException, ConflictException, NotFoundException, ForbiddenException {
-    T persisted = getEntity(pvUid);
-    if (!aclService.canUpdate(currentUser, persisted)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
-
-    T parsed = deserializeXmlEntity(request);
-    ((BaseIdentifiableObject) parsed).setUid(pvUid);
-
-    preUpdateEntity(persisted, parsed);
-
-    MetadataImportParams params =
-        importService
-            .getParamsFromMap(contextService.getParameterValuesMap())
-            .setImportReportMode(ImportReportMode.FULL)
-            .setUser(UID.of(currentUser))
-            .setImportStrategy(ImportStrategy.UPDATE);
-
-    ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
-    WebMessage webMessage = objectReport(importReport);
-
-    if (importReport.getStatus() == Status.OK) {
-      T entity = manager.get(getEntityClass(), pvUid);
-      postUpdateEntity(entity);
-    } else {
-      webMessage.setStatus(Status.ERROR);
-    }
-
-    return webMessage;
-  }
-
-  @OpenApi.Param(value = Translation[].class, asProperty = "translations")
+  @OpenApi.Param(object = @OpenApi.Property(name = "translations", value = Translation[].class))
   @PutMapping(value = "/{uid}/translations")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
   public WebMessage replaceTranslations(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    WebOptions options = new WebOptions(rpParameters);
-
-    BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid, options);
+    BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
@@ -582,6 +516,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return objectReport(importReport);
   }
 
+  @OpenApi.Filter(
+      includes = {
+        Dashboard.class,
+        EventVisualization.class,
+        org.hisp.dhis.mapping.Map.class,
+        Visualization.class
+      })
   @DeleteMapping(value = "/{uid}/favorite")
   @ResponseBody
   public WebMessage removeAsFavorite(
@@ -603,6 +544,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername()));
   }
 
+  @OpenApi.Filter(
+      includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @DeleteMapping(value = "/{uid}/subscriber")
   @ResponseBody
   public WebMessage unsubscribe(
@@ -646,25 +589,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         renderService.fromJson(request.getInputStream(), IdentifiableObjects.class));
   }
 
-  @OpenApi.Param(IdentifiableObjects.class)
-  @PostMapping(value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage addCollectionItemsXml(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
-    return addCollectionItems(
-        pvProperty,
-        getEntity(pvUid),
-        renderService.fromXml(request.getInputStream(), IdentifiableObjects.class));
-  }
-
   private WebMessage addCollectionItems(String pvProperty, T object, IdentifiableObjects items)
       throws ConflictException, ForbiddenException, NotFoundException, BadRequestException {
     preUpdateItems(object, items);
@@ -691,25 +615,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         pvProperty,
         getEntity(pvUid),
         renderService.fromJson(request.getInputStream(), IdentifiableObjects.class));
-  }
-
-  @OpenApi.Param(IdentifiableObjects.class)
-  @PutMapping(value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage replaceCollectionItemsXml(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
-    return replaceCollectionItems(
-        pvProperty,
-        getEntity(pvUid),
-        renderService.fromXml(request.getInputStream(), IdentifiableObjects.class));
   }
 
   private WebMessage replaceCollectionItems(String pvProperty, T object, IdentifiableObjects items)
@@ -760,25 +665,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         pvProperty,
         getEntity(pvUid),
         renderService.fromJson(request.getInputStream(), IdentifiableObjects.class));
-  }
-
-  @OpenApi.Param(IdentifiableObjects.class)
-  @DeleteMapping(value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage deleteCollectionItemsXml(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
-    return deleteCollectionItems(
-        pvProperty,
-        getEntity(pvUid),
-        renderService.fromXml(request.getInputStream(), IdentifiableObjects.class));
   }
 
   private WebMessage deleteCollectionItems(String pvProperty, T object, IdentifiableObjects items)
@@ -890,24 +776,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return isCompatibleWith(type, MediaType.APPLICATION_JSON);
   }
 
-  /**
-   * Are we receiving XML data?
-   *
-   * @param request HttpServletRequest from current session
-   * @return true if XML compatible
-   */
-  private boolean isXml(HttpServletRequest request) {
-    String type = request.getContentType();
-    type = !StringUtils.isEmpty(type) ? type : APPLICATION_JSON_VALUE;
-
-    // allow type to be overridden by path extension
-    if (request.getPathInfo().endsWith(".xml")) {
-      type = APPLICATION_XML_VALUE;
-    }
-
-    return isCompatibleWith(type, MediaType.APPLICATION_XML);
-  }
-
   private boolean isCompatibleWith(String type, MediaType mediaType) {
     try {
       return !StringUtils.isEmpty(type)
@@ -916,20 +784,5 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     return false;
-  }
-
-  protected Patch diff(HttpServletRequest request) throws IOException, BadRequestException {
-    ObjectMapper mapper = isJson(request) ? jsonMapper : isXml(request) ? xmlMapper : null;
-    if (mapper == null) {
-      throw new BadRequestException("Unknown payload format.");
-    }
-    JsonNode jsonNode = mapper.readTree(request.getInputStream());
-    for (JsonNode node : jsonNode) {
-      if (node.isContainerNode()) {
-        throw new BadRequestException("Payload can not contain objects or arrays.");
-      }
-    }
-
-    return patchService.diff(new PatchParams(jsonNode));
   }
 }

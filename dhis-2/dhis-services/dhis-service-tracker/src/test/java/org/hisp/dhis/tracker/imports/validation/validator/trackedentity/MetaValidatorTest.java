@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1005;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1049;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
@@ -56,7 +57,7 @@ class MetaValidatorTest {
 
   private static final String TRACKED_ENTITY_TYPE_UID = "TrackedEntityTypeUid";
 
-  private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
   private MetaValidator validator;
 
@@ -80,7 +81,7 @@ class MetaValidatorTest {
   void verifyTrackedEntityValidationSuccess() {
     TrackedEntity te = validTe();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TRACKED_ENTITY_TYPE_UID)))
         .thenReturn(new TrackedEntityType());
 
@@ -104,7 +105,7 @@ class MetaValidatorTest {
   void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb() {
     TrackedEntity te = validTe();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
 
     validator.validate(reporter, bundle, te);
 

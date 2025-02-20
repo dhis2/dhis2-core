@@ -31,16 +31,18 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
@@ -53,11 +55,15 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
-  private final EnrollmentService enrollmentService;
+  private final EventProgramEnrollmentService eventProgramEnrollmentService;
 
   private final ProgramStageService programStageService;
 
+  private final OrganisationUnitService organisationUnitService;
+
   private final AclService aclService;
+
+  private final IdentifiableObjectManager identifiableObjectManager;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -124,19 +130,21 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
 
   private void addProgramInstance(Program program) {
     if (getProgramInstancesCount(program) == 0 && program.isWithoutRegistration()) {
-      Enrollment pi = new Enrollment();
-      pi.setEnrollmentDate(new Date());
-      pi.setOccurredDate(new Date());
-      pi.setProgram(program);
-      pi.setStatus(ProgramStatus.ACTIVE);
-      pi.setStoredBy("system-process");
+      Enrollment enrollment = new Enrollment();
+      enrollment.setEnrollmentDate(new Date());
+      enrollment.setOccurredDate(new Date());
+      enrollment.setProgram(program);
+      enrollment.setStatus(EnrollmentStatus.ACTIVE);
+      enrollment.setStoredBy("system-process");
+      enrollment.setOrganisationUnit(
+          organisationUnitService.getRootOrganisationUnits().iterator().next());
 
-      this.enrollmentService.addEnrollment(pi);
+      identifiableObjectManager.save(enrollment);
     }
   }
 
   private int getProgramInstancesCount(Program program) {
-    return enrollmentService.getEnrollments(program, ProgramStatus.ACTIVE).size();
+    return eventProgramEnrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
   }
 
   private void validateAttributeSecurity(

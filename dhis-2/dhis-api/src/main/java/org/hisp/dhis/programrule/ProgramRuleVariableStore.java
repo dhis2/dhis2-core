@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -61,4 +62,6 @@ public interface ProgramRuleVariableStore extends IdentifiableObjectStore<Progra
    *     org.hisp.dhis.trackedentity.TrackedEntityAttribute}
    */
   List<ProgramRuleVariable> getVariablesWithNoAttribute();
+
+  List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements);
 }

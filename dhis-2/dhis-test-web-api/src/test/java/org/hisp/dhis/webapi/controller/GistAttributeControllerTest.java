@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,13 +36,13 @@ import java.util.Map;
 import java.util.function.Function;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -209,21 +209,27 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
     assertEquals("different", groups.getObject(0).getString(attrId).string());
   }
 
+  @Test
+  void testFilter_EqAttributeId() {
+    String url =
+        "/userGroups/gist?fields=id,name&headless=true&filter=attributeValues.attribute.id:eq:{attr}";
+    assertEquals(2, GET(url, attrId).content().size());
+    // cross-check with metadata API
+    url = url.replace("/gist", "");
+    assertEquals(2, GET(url, attrId).content().size());
+  }
+
   private String postNewUserGroupWithAttributeValue(String name, String attrId, String value) {
-    return assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/userGroups/",
-            "{"
-                + "'name':'"
-                + name
-                + "', "
-                + "'attributeValues':[{'attribute': {'id':'"
-                + attrId
-                + "'}, 'value':'"
-                + value
-                + "'}]"
-                + "}"));
+    // language=JSON
+    String json =
+        """
+        {
+        "name":"%s",
+        "attributeValues":[{"attribute": {"id":"%s"}, "value":"%s"}]
+        }
+        """
+            .formatted(name, attrId, value);
+    return assertStatus(HttpStatus.CREATED, POST("/userGroups/", json));
   }
 
   private String postNewAttribute(
@@ -232,16 +238,8 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
         HttpStatus.CREATED,
         POST(
             "/attributes",
-            "{"
-                + "'name':'"
-                + name
-                + "', "
-                + "'valueType':'"
-                + valueType.name()
-                + "', "
-                + "'"
-                + objectType.getPropertyName()
-                + "':true}"));
+            "{'name':'%s', 'valueType':'%s', '%s':true}"
+                .formatted(name, valueType.name(), objectType.getPropertyName())));
   }
 
   private static void assertListOfMapEquals(

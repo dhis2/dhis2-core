@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,13 +42,20 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramRuleActionServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramRule programRuleA;
 
@@ -77,8 +83,10 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Override
-  public void setUpTest() {
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
+
+  @BeforeEach
+  void setUp() {
     programStageA = createProgramStage('A', 0);
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(programStageA);
@@ -184,84 +192,6 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
     assertEquals(actionC, actionService.getProgramRuleAction(idC));
     assertEquals(actionD, actionService.getProgramRuleAction(idD));
     assertEquals(actionE, actionService.getProgramRuleAction(idE));
-  }
-
-  @Test
-  void testGetByProgram() {
-    ProgramRuleAction actionD =
-        new ProgramRuleAction(
-            "ActionD",
-            programRuleB,
-            ProgramRuleActionType.ASSIGN,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "$myvar",
-            "true",
-            null,
-            null);
-    ProgramRuleAction actionE =
-        new ProgramRuleAction(
-            "ActionE",
-            programRuleB,
-            ProgramRuleActionType.DISPLAYTEXT,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "con",
-            "Hello",
-            "$placeofliving",
-            null,
-            null);
-    ProgramRuleAction actionF =
-        new ProgramRuleAction(
-            "ActionF",
-            programRuleB,
-            ProgramRuleActionType.HIDEFIELD,
-            dataElementA,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-    // Add an action that is not part of programRuleB....
-    ProgramRuleAction actionG =
-        new ProgramRuleAction(
-            "ActionG",
-            programRuleC,
-            ProgramRuleActionType.HIDEFIELD,
-            dataElementA,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-    actionService.addProgramRuleAction(actionD);
-    actionService.addProgramRuleAction(actionE);
-    actionService.addProgramRuleAction(actionF);
-    actionService.addProgramRuleAction(actionG);
-    // Get all the 3 rules for programB
-    List<ProgramRuleAction> rules = actionService.getProgramRuleAction(programRuleB);
-    assertEquals(3, rules.size());
-    assertTrue(rules.contains(actionD));
-    assertTrue(rules.contains(actionE));
-    assertTrue(rules.contains(actionF));
-    // Make sure that the action connected to rule A is not returned as part
-    // of list of actions in rule B.
-    assertFalse(rules.contains(actionG));
   }
 
   @Test
@@ -411,7 +341,18 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
             "$placeofliving",
             null,
             null);
-    actionI.setTemplateUid("tempUId");
+
+    ProgramNotificationTemplate pnt =
+        createProgramNotificationTemplate(
+            "test123",
+            3,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP);
+
+    programNotificationTemplateService.save(pnt);
+
+    actionI.setTemplateUid(pnt.getUid());
+    actionI.setNotificationTemplate(pnt);
     actionService.addProgramRuleAction(actionI);
     actionService.addProgramRuleAction(actionJ);
     programRuleA.setProgramRuleActions(Sets.newHashSet(actionI, actionJ));

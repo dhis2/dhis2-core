@@ -1,0 +1,2 @@
+# Used to create parent folder structure by Jib
+# Default DHIS2_HOME is /opt/dhis2 which needs to be writeable by the process running Tomcat

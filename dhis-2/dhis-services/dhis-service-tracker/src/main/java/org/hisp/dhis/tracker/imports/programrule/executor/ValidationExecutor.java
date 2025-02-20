@@ -32,9 +32,11 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning
 
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
@@ -46,33 +48,31 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
 
   boolean needsToRun(T t);
 
-  default Optional<ProgramRuleIssue> execute(ValidationRuleAction ruleAction, T t) {
+  default Optional<ProgramRuleIssue> execute(ValidationEffect validationEffect, T t) {
     if (needsToRun(t)) {
-      return mapToIssue(ruleAction);
+      return mapToIssue(validationEffect);
     }
     return Optional.empty();
   }
 
-  private Optional<ProgramRuleIssue> mapToIssue(ValidationRuleAction ruleAction) {
-    StringBuilder validationMessage = new StringBuilder(ruleAction.getContent());
-    String data = ruleAction.getData();
+  private Optional<ProgramRuleIssue> mapToIssue(ValidationEffect validationEffect) {
+    StringBuilder validationMessage = new StringBuilder(validationEffect.message());
+    String data = validationEffect.data();
     if (!StringUtils.isEmpty(data)) {
       validationMessage.append(" ").append(data);
     }
-    String field = ruleAction.getField();
-    if (!StringUtils.isEmpty(field)) {
-      validationMessage.append(" (").append(field).append(")");
+    UID field = validationEffect.field();
+    if (field != null) {
+      validationMessage.append(" (").append(field.getValue()).append(")");
     }
 
-    switch (getIssueType()) {
-      case WARNING:
-        return Optional.of(
-            warning(ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString()));
-      case ERROR:
-        return Optional.of(
-            error(ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString()));
-      default:
-        return Optional.empty();
-    }
+    return switch (getIssueType()) {
+      case WARNING ->
+          Optional.of(
+              warning(validationEffect.rule(), ValidationCode.E1300, validationMessage.toString()));
+      case ERROR ->
+          Optional.of(
+              error(validationEffect.rule(), ValidationCode.E1300, validationMessage.toString()));
+    };
   }
 }

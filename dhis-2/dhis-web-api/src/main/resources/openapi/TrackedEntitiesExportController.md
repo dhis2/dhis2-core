@@ -16,6 +16,10 @@ Get a tracked entity with given UID.
 
 ### `getTrackedEntityByUid.parameter.program`
 
+Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
+program. The ownership of the given `program` will be used to determine access to the tracked
+entity.
+
 ### `getTrackedEntityByUid.parameter.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
@@ -33,8 +37,8 @@ attribute UID. Images are returned in their original dimension.
 ### `getAttributeValueFile.parameter.program`
 
 The program to be used for evaluating the users access to the file content. A program is required
-when requesting a program-specific tracked entity attribute. When no program is specified, access to
-the file content is evaluated based on the users access to the relevant tracked entity type.
+when requesting a program-specific tracked entity attribute. When no program is specified, access
+to the file content is evaluated based on the users access to the relevant tracked entity type.
 
 ### `getAttributeValueImage`
 
@@ -79,15 +83,6 @@ ownership.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
   is not allowed.
 
-### `*.parameter.TrackedEntityRequestParams.orgUnit`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by
-comma!
-
-`<orgUnit1-uid>[;<orgUnit2-uid>...]`
-
-Get tracked entities owned by given `orgUnit`.
-
 ### `*.parameter.TrackedEntityRequestParams.orgUnitMode`
 
 Get tracked entities and enrollments using given `orgUnitMode` and `program` parameters. If a
@@ -104,16 +99,20 @@ the registration organisation unit for the tracked entity would be used to deter
 - When `orgUnitMode=CAPTURE` tracked entities or enrollments that has an enrollment organisation unit
   in the users capture scope will be returned.
 
-### `*.parameter.TrackedEntityRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-Get tracked entities using given organisation unit mode.
-
 ### `*.parameter.TrackedEntityRequestParams.program`
 
-Get tracked entity with tracked entity attribute and enrollment data from the specified program. The
-ownership of the given `program` will be used to determine access to the tracked entities.
+Get tracked entities with tracked entity attribute and enrollment data from the specified tracker
+program. The ownership of the given `program` will be used to determine access to the tracked
+entities. Only tracked entities with an enrollment into the `program` will be returned.
+
+### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
+
+Get tracked entities that have at least one enrollment with the status specified.
+
+Valid options are:
+- `ACTIVE`
+- `COMPLETED`
+- `CANCELLED`
 
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
 
@@ -124,6 +123,9 @@ Valid options are:
 - `COMPLETED`
 - `CANCELLED`
 
+**DEPRECATED as of 2.42:** Use parameter `enrollmentStatus` instead.
+
+
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
 Get tracked entities that has at least one enrollment that is marked with follow up.
@@ -132,29 +134,37 @@ Get tracked entities that has at least one enrollment that is marked with follow
 
 Get tracked entities that is updated after the given time. The update can be on the tracked entity
 or on one of the tracked entity attributes, enrollments or events for that tracked entity.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
 Get tracked entities that is updated before the given time. The update can be on the tracked entity
 or on one of the tracked entity attributes, enrollments or events for that tracked entity.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
+
+Get tracked entities updated since given ISO-8601 duration.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
 Get tracked entities that has at least one enrollment with an enrollment date after this date.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
 Get tracked entities that has at least one enrollment with an enrollment date before this date.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
 Get tracked entities that has at least one enrollment with an occurred date this date.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
 Get tracked entities that has at least one enrollment with an occurred date before this date.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
@@ -166,19 +176,10 @@ Get tracked entities with the given tracked entity type. Required if no `program
 
 Get tracked entities with given UID(s).
 
-### `*.parameter.TrackedEntityRequestParams.trackedEntity`
-
-**DEPRECATED as of 2.41:** Use parameter `trackedEntities` instead where UIDs have to be separated
-by comma!
-
-`<trackedEntity1-uid>[;<trackedEntity2-uid>...]`
-
-Get tracked entities with given UID(s).
-
 ### `*.parameter.TrackedEntityRequestParams.assignedUserMode`
 
-Get tracked entities and enrollments based on the user assignment in the events of these
-enrollments.
+Get tracked entities with events assigned to users according to the specified user mode. By default,
+all events will be retrieved, regardless of whether a user is assigned.
 
 - When `assignedUserMode=ALL` or no `assingedUserMode`(default) is given, tracked entities and
   enrollments are returned irrespective of wether they contain events assigned to a user or not.
@@ -199,32 +200,29 @@ enrollments.
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
 valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
-### `*.parameter.TrackedEntityRequestParams.assignedUser`
-
-**DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by
-comma!
-
-`<user1-uid>[;<user2-uid>...]`
-
-Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
-valid if `assignedUserMode` is either `PROVIDED` or not specified.
-
 ### `*.parameter.TrackedEntityRequestParams.programStage`
 
 Define which programStage the `eventStatus`, `eventOccurredAfter` and `eventOccurredAfter` parameter should be applied to.
 
 ### `*.parameter.TrackedEntityRequestParams.eventStatus`
 
+Get tracked entities that has at least one event with the given status. `eventStatus` must be specified together
+with `eventOccurredAfter` and `eventOccurredBefore`.
+
 Only return tracked entity instances that has at least one event in the specified status. See also
 `programStage`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
-Only return tracked entity instances that has at least one event after this date. See also `programStage`.
+Get tracked entities with an event occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredAfter` must be specified together with `eventStatus` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-Only return tracked entity instances that has at least one event before this date. See also `programStage`.
+Get tracked entities with an event occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredBefore` must be specified together with `eventStatus` and `eventOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 

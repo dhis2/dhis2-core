@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper.toDto;
 
 import java.util.List;
@@ -61,10 +61,12 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
+@RequestMapping("/api/dataEntry")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetValueController {
   private final DataValueService dataValueService;

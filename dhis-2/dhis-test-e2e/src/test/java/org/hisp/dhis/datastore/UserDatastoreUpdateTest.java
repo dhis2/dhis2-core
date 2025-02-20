@@ -31,15 +31,15 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.datastore.DatastoreKeysTest.getEntry;
-import static org.hisp.dhis.helpers.JsonParserUtils.toJsonObject;
+import static org.hisp.dhis.test.e2e.helpers.JsonParserUtils.toJsonObject;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -91,7 +91,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key7",
-            toJsonObject("""
+            toJsonObject(
+                """
                 {"a": 11}
                 """))
         .validate()
@@ -101,7 +102,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key7",
-            toJsonObject("""
+            toJsonObject(
+                """
                 {"a": 99}
                 """))
         .validate()
@@ -122,7 +124,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key6",
-            toJsonObject("""
+            toJsonObject(
+                """
                 {"a": 42}
                 """))
         .validate()
@@ -146,7 +149,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key5",
-            toJsonObject("""
+            toJsonObject(
+                """
                 {"a": 11}
                 """))
         .validate()
@@ -277,7 +281,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key55",
-            toJsonObject("""
+            toJsonObject(
+                """
                 {"a": null}
                 """))
         .validate()
@@ -304,7 +309,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key24",
-            toJsonObject("""
+            toJsonObject(
+                """
                 {"a": null}
                 """))
         .validate()
@@ -332,7 +338,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key2",
-            toJsonObject("""
+            toJsonObject(
+                """
                   {"a":{"b":[]}}
                   """))
         .validate()
@@ -399,7 +406,8 @@ class UserDatastoreUpdateTest extends ApiTest {
     userDatastoreActions
         .update(
             "/" + NAMESPACE + "/key3",
-            toJsonObject("""
+            toJsonObject(
+                """
                   {"a":[{}]}
                   """))
         .validate()

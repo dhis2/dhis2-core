@@ -29,17 +29,16 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,9 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-class DefaultAclStoreTest extends IntegrationTestBase {
-
-  @Autowired private UserService _userService;
+class DefaultAclStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.AclStore")
@@ -63,8 +60,6 @@ class DefaultAclStoreTest extends IntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    // DhisConvenienceTests needs it to be injected/set for createUser
-    userService = _userService;
     user = createUserWithAuth("userWithoutUserGroup");
     owner = createUserWithAuth("owner");
   }

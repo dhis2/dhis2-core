@@ -38,13 +38,18 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-class DataElementWithValueTypeOptionsTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataElementWithValueTypeOptionsTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementStore dataElementStore;
 

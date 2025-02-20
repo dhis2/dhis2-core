@@ -35,14 +35,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UncheckedIOException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DatastoreServiceTest extends PostgresIntegrationTestBase {
 
   private final String namespace = "DOGS";
 
@@ -50,7 +56,7 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 
   @Test
-  void testAddGetObject() throws ConflictException, BadRequestException {
+  void testAddGetObject() throws ConflictException, BadRequestException, ForbiddenException {
     Dog dogA = new Dog("1", "Fido", "Brown");
     Dog dogB = new Dog("2", "Aldo", "Black");
     addValue(namespace, dogA.getId(), dogA);
@@ -65,18 +71,19 @@ class DatastoreServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals("Aldo", dogB.getName());
   }
 
-  private <T> T getValue(String namespace, String key, Class<T> type) {
+  private <T> T getValue(String namespace, String key, Class<T> type) throws ForbiddenException {
     return mapJsonValueTo(type, service.getEntry(namespace, key));
   }
 
   private <T> DatastoreEntry addValue(String namespace, String key, T object)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry(namespace, key, mapValueToJson(object), false);
     service.addEntry(entry);
     return entry;
   }
 
-  public <T> void updateValue(String namespace, String key, T object) throws BadRequestException {
+  public <T> void updateValue(String namespace, String key, T object)
+      throws BadRequestException, ForbiddenException {
     DatastoreEntry entry = service.getEntry(namespace, key);
     if (entry == null) {
       throw new IllegalStateException(

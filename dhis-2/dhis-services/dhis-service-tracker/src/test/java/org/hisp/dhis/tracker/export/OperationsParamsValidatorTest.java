@@ -29,13 +29,18 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -44,13 +49,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -61,32 +65,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OperationsParamsValidatorTest {
-
-  private static final String PARENT_ORG_UNIT_UID = "parent-org-unit";
-
-  private final OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid3");
-
-  private final OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-
   private final Program program = new Program("program");
 
   private final TrackedEntity trackedEntity = new TrackedEntity();
 
   private final TrackedEntityType trackedEntityType = new TrackedEntityType();
 
-  private final OrganisationUnit orgUnit = new OrganisationUnit();
+  private final OrganisationUnit orgUnit = createOrganisationUnit('A');
 
-  private static final String PROGRAM_UID = "PROGRAM_UID";
+  private static final UID PROGRAM_UID = UID.generate();
 
-  private static final String TRACKED_ENTITY_UID = "TRACKED_ENTITY_UID";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
-  private static final String TRACKED_ENTITY_TYPE_UID = "TRACKED_ENTITY_TYPE_UID";
+  private static final UID TRACKED_ENTITY_TYPE_UID = UID.generate();
 
-  private static final String ORG_UNIT_UID = "ORG_UNIT_UID";
+  private static final UID ORG_UNIT_UID = UID.generate();
 
   @Mock private ProgramService programService;
-
-  @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -94,19 +89,18 @@ class OperationsParamsValidatorTest {
 
   @Mock private AclService aclService;
 
+  @Mock private IdentifiableObjectManager manager;
+
+  @Mock private TrackedEntityAuditService trackedEntityAuditService;
+
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
-  @BeforeEach
-  public void setUp() {
-    OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
-    organisationUnit.setChildren(Set.of(captureScopeOrgUnit, searchScopeOrgUnit));
-  }
+  private final UserDetails user = UserDetails.fromUser(new User());
 
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, new User(), program));
+        assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(CAPTURE, program, user));
 
     assertEquals("User needs to be assigned data capture org units", exception.getMessage());
   }
@@ -117,9 +111,10 @@ class OperationsParamsValidatorTest {
       names = {"SELECTED", "ACCESSIBLE", "DESCENDANTS", "CHILDREN"})
   void shouldFailWhenOuModeRequiresUserScopeOrgUnitAndUserHasNoOrgUnitsAssigned(
       OrganisationUnitSelectionMode orgUnitMode) {
+
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, new User(), program));
+        assertThrows(
+            ForbiddenException.class, () -> validateOrgUnitMode(orgUnitMode, program, user));
 
     assertEquals(
         "User needs to be assigned either search or data capture org units",
@@ -129,22 +124,20 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldFailWhenOuModeAllAndNotSuperuser() {
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, new User(), program));
+        assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(ALL, program, user));
 
     assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
+        "User is not authorized to query across all organisation units", exception.getMessage());
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenProgramDoesNotExist() {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(null);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateProgram(PROGRAM_UID, new User()));
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
     assertEquals(
         String.format("Program is specified but does not exist: %s", PROGRAM_UID),
@@ -154,22 +147,20 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnProgramWhenUserHasAccessToProgram()
       throws ForbiddenException, BadRequestException {
-    User user = new User();
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
-
-    assertEquals(program, paramsValidator.validateProgram(PROGRAM_UID, user));
+    assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToProgram() {
-    User user = new User();
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
+        assertThrows(
+            ForbiddenException.class,
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
     assertEquals(
         String.format("User has no access to program: %s", program.getUid()),
@@ -179,53 +170,68 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnProgramWhenUserHasAccessToProgramTrackedEntityType()
       throws ForbiddenException, BadRequestException {
-    User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-    assertEquals(program, paramsValidator.validateProgram(PROGRAM_UID, user));
+    assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToProgramTrackedEntityType() {
-    User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
+        assertThrows(
+            ForbiddenException.class,
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
     assertEquals(
         String.format(
-            "Current user is not authorized to read data from selected program's tracked entity type: %s",
+            "User is not authorized to read data from selected program's tracked entity type: %s",
             trackedEntityType.getUid()),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
-      throws ForbiddenException, BadRequestException {
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+  void shouldThrowBadRequestExceptionWhenRequestingTrackedEntitiesAndProgramIsNotATrackerProgram() {
+    program.setProgramType(WITHOUT_REGISTRATION);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
     assertEquals(
-        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, new User()));
+        String.format("Program specified is not a tracker program: %s", PROGRAM_UID),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
+      throws BadRequestException, ForbiddenException {
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
+
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenTrackedEntityDoesNotExist() {
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(null);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, new User()));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
 
     assertEquals(
         String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
@@ -235,43 +241,75 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity()
       throws ForbiddenException, BadRequestException {
-    User user = new User();
+
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
-    assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity() {
-    User user = new User();
+
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
-            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
 
     assertEquals(
         String.format(
-            "Current user is not authorized to read data from type of selected tracked entity: %s",
+            "User is not authorized to read data from type of selected tracked entity: %s",
             trackedEntity.getUid()),
         exception.getMessage());
   }
 
   @Test
-  void shouldThrowBadRequestExceptionWhenTrackedEntityTypeDoesNotExist() {
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID)).thenReturn(null);
+  void shouldThrowBadRequestExceptionWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
+    softDeletedTrackedEntity.setDeleted(true);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
+        .thenReturn(softDeletedTrackedEntity);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, new User()));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
+
+    assertEquals(
+        String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsTrue()
+      throws BadRequestException, ForbiddenException {
+    TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
+    softDeletedTrackedEntity.setDeleted(true);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
+        .thenReturn(softDeletedTrackedEntity);
+
+    assertEquals(
+        softDeletedTrackedEntity,
+        paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, true));
+  }
+
+  @Test
+  void shouldThrowBadRequestExceptionWhenTrackedEntityTypeDoesNotExist() {
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
+        .thenReturn(null);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
     assertEquals(
         String.format(
@@ -282,43 +320,42 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnTrackedEntityTypeWhenUserHasAccessToTrackedEntityType()
       throws ForbiddenException, BadRequestException {
-    User user = new User();
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
         .thenReturn(trackedEntityType);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
 
     assertEquals(
         trackedEntityType,
-        paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, new User()));
+        paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntityType() {
-    User user = new User();
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
         .thenReturn(trackedEntityType);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
     assertEquals(
         String.format(
-            "Current user is not authorized to read data from selected tracked entity type: %s",
+            "User is not authorized to read data from selected tracked entity type: %s",
             trackedEntityType.getUid()),
         exception.getMessage());
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenOrgUnitDoesNotExist() {
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(null);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), new User()));
+            () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 
     assertEquals(
         String.format("Organisation unit does not exist: %s", ORG_UNIT_UID),
@@ -328,25 +365,22 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnOrgUnitWhenUserHasAccessToOrgUnit()
       throws ForbiddenException, BadRequestException {
-    User user = new User();
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(true);
+    User userWithOrgUnits = new User();
+    userWithOrgUnits.setOrganisationUnits(Set.of(orgUnit));
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
-    assertEquals(Set.of(orgUnit), paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
+    assertEquals(
+        Set.of(orgUnit),
+        paramsValidator.validateOrgUnits(
+            Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithOrgUnits)));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToOrgUnit() {
-    User user = new User();
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
-        .thenReturn(false);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 
@@ -358,20 +392,16 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnOrgUnitsWhenUserIsSuperButHasNoAccessToOrgUnit()
       throws ForbiddenException, BadRequestException {
-    User user = new User();
+
+    User userWithRoles = new User();
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Sets.newHashSet("ALL"));
-    user.setUserRoles(Set.of(userRole));
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
+    userWithRoles.setUserRoles(Set.of(userRole));
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
-    Set<OrganisationUnit> orgUnits = paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user);
+    Set<OrganisationUnit> orgUnits =
+        paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithRoles));
 
     assertEquals(Set.of(orgUnit), orgUnits);
-  }
-
-  private OrganisationUnit createOrgUnit(String name, String uid) {
-    OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(uid);
-    return orgUnit;
   }
 }

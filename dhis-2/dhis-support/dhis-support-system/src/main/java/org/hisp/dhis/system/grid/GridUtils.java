@@ -29,6 +29,7 @@ package org.hisp.dhis.system.grid;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.system.util.PDFUtils.addTableToDocument;
 import static org.hisp.dhis.system.util.PDFUtils.closeDocument;
 import static org.hisp.dhis.system.util.PDFUtils.getEmptyCell;
@@ -47,6 +48,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,6 +74,7 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -84,7 +87,6 @@ import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -106,6 +108,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 @Slf4j
 public class GridUtils {
+
   private static final String EMPTY = "";
 
   private static final char CSV_DELIMITER = ',';
@@ -170,6 +173,9 @@ public class GridUtils {
   private static final String ATTR_FIELD = "field";
 
   private static final String DECIMAL_DIGITS_MASK = "#.##########";
+
+  // 3 comes from org.apache.poi.ss.usermodel.BuiltinFormats and corresponds to the format: #,##0
+  private static final short POI_BUILTIN_FORMAT_INDEX_FOR_INTEGER_TYPES = 3;
 
   private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
@@ -257,12 +263,14 @@ public class GridUtils {
 
     for (int i = 0; i < grids.size(); i++) {
       Grid grid = grids.get(i);
-
       String sheetName =
-          CodecUtils.filenameEncode(
-              StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + (i + 1)));
+          filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + (i + 1)));
+      Sheet sheet = workbook.getSheet(sheetName);
+      if (sheet == null) {
+        sheet = workbook.createSheet(sheetName);
+      }
 
-      toXlsInternal(grid, workbook.createSheet(sheetName), headerCellStyle, cellStyle);
+      toXlsInternal(grid, sheet, headerCellStyle, cellStyle);
     }
 
     workbook.write(out);
@@ -271,11 +279,26 @@ public class GridUtils {
 
   /** Writes a XLS (Excel workbook) representation of the given Grid to the given OutputStream. */
   public static void toXls(Grid grid, OutputStream out) throws IOException {
-    Workbook workbook = new HSSFWorkbook();
+    toWorkbook(new HSSFWorkbook(), grid, out);
+  }
 
+  /** Writes a XLSX (Excel workbook) representation of the given Grid to the given OutputStream. */
+  public static void toXlsx(Grid grid, OutputStream out) throws IOException {
+    toWorkbook(new XSSFWorkbook(), grid, out);
+  }
+
+  /**
+   * Write the workbook of the analytics grid to the output stream.
+   *
+   * @param workbook the {@link Workbook}
+   * @param grid the {@link Grid}
+   * @param out the {@link OutputStream}
+   * @throws IOException
+   */
+  private static void toWorkbook(Workbook workbook, Grid grid, OutputStream out)
+      throws IOException {
     String sheetName =
-        CodecUtils.filenameEncode(
-            StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
+        filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
 
     toXlsInternal(
         grid,
@@ -333,6 +356,7 @@ public class GridUtils {
     rowNumber++;
 
     CellStyle numberCellStyle = getNumberCellStyle(sheet);
+    CellStyle numberCellStyleForIntegerTypes = getNumberCellStyleForIntegerTypes(sheet);
 
     for (List<Object> row : grid.getVisibleRows()) {
       Row xlsRow = sheet.createRow(rowNumber);
@@ -344,7 +368,11 @@ public class GridUtils {
       for (Object column : columns) {
         if (column != null && Number.class.isAssignableFrom(column.getClass())) {
           Cell cell = xlsRow.createCell(columnIndex++, CellType.NUMERIC);
-          cell.setCellStyle(numberCellStyle);
+          if (isIntegerType(column)) {
+            cell.setCellStyle(numberCellStyleForIntegerTypes);
+          } else {
+            cell.setCellStyle(numberCellStyle);
+          }
           cell.setCellValue(((Number) column).doubleValue());
         } else {
           xlsRow
@@ -355,6 +383,19 @@ public class GridUtils {
 
       rowNumber++;
     }
+  }
+
+  /**
+   * determines if the given column is of integer type or not
+   *
+   * @param column the column to check
+   * @return true if the column is of integer type, false otherwise
+   */
+  private static boolean isIntegerType(Object column) {
+    return column instanceof Integer
+        || column instanceof Long
+        || column instanceof Short
+        || column instanceof BigInteger;
   }
 
   /**
@@ -370,6 +411,19 @@ public class GridUtils {
     CellStyle cs = wb.createCellStyle();
     cs.setDataFormat(format.getFormat(DECIMAL_DIGITS_MASK));
 
+    return cs;
+  }
+
+  /**
+   * Returns a {@CellStyle} object with a default number format/mask.
+   *
+   * @param sheet the {@link Sheet}
+   * @return the cell style object
+   */
+  private static CellStyle getNumberCellStyleForIntegerTypes(Sheet sheet) {
+    Workbook wb = sheet.getWorkbook();
+    CellStyle cs = wb.createCellStyle();
+    cs.setDataFormat(POI_BUILTIN_FORMAT_INDEX_FOR_INTEGER_TYPES);
     return cs;
   }
 

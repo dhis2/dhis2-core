@@ -69,17 +69,20 @@ public class D2RelationshipCount extends ProgramExpressionItem {
 
     if (ctx.QUOTED_UID() != null) {
       String relationshipId = trimQuotes(ctx.QUOTED_UID().getText());
-
-      relationshipIdConstraint =
-          " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '"
-              + relationshipId
-              + "'";
+      relationshipIdConstraint = "and relationshiptypeuid = '%s'".formatted(relationshipId);
     }
 
-    return "(select count(*) from relationship r"
-        + relationshipIdConstraint
-        + " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid"
-        + " join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
-        + " where r.deleted is false)";
+    return relationshipIdConstraint.isEmpty()
+        ? """
+            (select sum(relationship_count)
+             from analytics_rs_relationship arr
+             where arr.trackedentityid = ax.trackedentity)
+            """
+        : """
+            (select relationship_count
+             from analytics_rs_relationship arr
+             where arr.trackedentityid = ax.trackedentity %s)
+            """
+            .formatted(relationshipIdConstraint);
   }
 }

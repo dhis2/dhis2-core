@@ -1,6 +1,0 @@
-${systemAuthorities}
-
-#if( $usePaging ),
-	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
-#end
-

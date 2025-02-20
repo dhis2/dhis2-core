@@ -43,24 +43,27 @@ import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 28.07.17. */
-class DataSetNotificationTemplateServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataSetNotificationTemplateServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataSetNotificationTemplateService dsntService;
 
   @Autowired private DataSetService dataSetService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService userService;
 
   @Autowired private UserGroupService userGroupService;
 
@@ -110,11 +113,8 @@ class DataSetNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
 
   private String subject = "subject";
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     ouA = createOrganisationUnit("ouA");
     ouB = createOrganisationUnit("ouB");
     ouC = createOrganisationUnit("ouC");

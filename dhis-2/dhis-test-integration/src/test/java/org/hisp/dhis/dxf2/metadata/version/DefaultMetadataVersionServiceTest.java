@@ -43,19 +43,24 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.MetadataDatastoreService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author sultanm
  */
-class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MetadataVersionService versionService;
 
   @Autowired private MetadataDatastoreService metaDataDatastoreService;
@@ -63,6 +68,9 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private MetadataSystemSettingService metadataSystemSettingService;
+  @Autowired private SystemSettingsService systemSettingsService;
+
+  @Autowired private DbmsManager dbmsManager;
 
   private MetadataVersion versionA;
 
@@ -72,12 +80,8 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest {
 
   private Date endDate;
 
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
-
-  @Override
-  protected void setUpTest() {
+  @BeforeEach
+  void setUp() {
     startDate = new Date();
     versionA = new MetadataVersion("Version_1", VersionType.ATOMIC);
     versionA.setHashCode("12345");
@@ -182,6 +186,7 @@ class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest {
     assertEquals("Version_2", versionService.getCurrentVersion().getName());
     assertEquals(VersionType.ATOMIC, versionService.getCurrentVersion().getType());
 
+    systemSettingsService.clearCurrentSettings();
     // testing if correct version name is saved in system setting
     assertEquals("Version_2", metadataSystemSettingService.getSystemMetadataVersion());
 

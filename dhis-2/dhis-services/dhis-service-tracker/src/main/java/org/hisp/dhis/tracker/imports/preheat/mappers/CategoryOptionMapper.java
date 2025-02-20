@@ -36,7 +36,7 @@ import org.mapstruct.factory.Mappers;
     uses = {
       DebugMapper.class,
       OrganisationUnitMapper.class,
-      AttributeValueMapper.class,
+      AttributeValuesMapper.class,
       SharingMapper.class
     })
 public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {

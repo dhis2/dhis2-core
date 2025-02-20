@@ -34,8 +34,8 @@ import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ public class EventUpdateTests extends TrackerApiTest {
   @BeforeAll
   public void beforeAll() throws Exception {
     loginActions.loginAsSuperUser();
-    eventId = importTeisWithEnrollmentAndEvent().extractImportedEvents().get(0);
+    eventId = importTrackedEntitiesWithEnrollmentAndEvent().extractImportedEvents().get(0);
   }
 
   @Test

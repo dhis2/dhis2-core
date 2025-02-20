@@ -27,21 +27,20 @@
  */
 package org.hisp.dhis.query;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.joining;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserDetails;
@@ -243,7 +242,7 @@ public class JpaQueryUtils {
 
                   return sb.toString();
                 })
-            .collect(Collectors.joining(",")),
+            .collect(joining(",")),
         null);
   }
 
@@ -278,7 +277,7 @@ public class JpaQueryUtils {
 
                   return sb.toString();
                 })
-            .collect(Collectors.joining(",")),
+            .collect(joining(",")),
         null);
   }
 
@@ -317,18 +316,18 @@ public class JpaQueryUtils {
    * NULL if given Set of UserGroup is empty
    *
    * @param builder
-   * @param userGroupUids List of User Group Uids
+   * @param userGroupIds List of User Group Uids
    * @param access Access String
    * @return JPA Predicate
    */
   public static <T> Function<Root<T>, Predicate> checkUserGroupsAccess(
-      CriteriaBuilder builder, Set<String> userGroupUids, String access) {
+      CriteriaBuilder builder, Collection<String> userGroupIds, String access) {
     return root -> {
-      if (CollectionUtils.isEmpty(userGroupUids)) {
+      if (CollectionUtils.isEmpty(userGroupIds)) {
         return null;
       }
 
-      String groupUuIds = "{" + String.join(",", userGroupUids) + "}";
+      String groupUuIds = "{" + String.join(",", userGroupIds) + "}";
 
       return builder.and(
           builder.equal(
@@ -408,7 +407,7 @@ public class JpaQueryUtils {
   }
 
   public static String generateHqlQueryForSharingCheck(
-      String tableName, String access, String userId, List<String> userGroupIds) {
+      String tableName, String access, String userId, Collection<String> userGroupIds) {
     return "("
         + sqlToHql(
             tableName,
@@ -418,13 +417,13 @@ public class JpaQueryUtils {
   }
 
   private static String getGroupsIds(UserDetails user) {
-    return getGroupsIds(new ArrayList<>(user.getUserGroupIds()));
+    return getGroupsIds(user.getUserGroupIds());
   }
 
-  private static String getGroupsIds(List<String> userGroupIds) {
+  private static String getGroupsIds(Collection<String> userGroupIds) {
     return CollectionUtils.isEmpty(userGroupIds)
         ? null
-        : "{" + String.join(",", userGroupIds) + "}";
+        : "{" + userGroupIds.stream().sorted().collect(joining(",")) + "}";
   }
 
   private static String sqlToHql(String tableName, String sql) {

@@ -28,91 +28,41 @@
 package org.hisp.dhis.program;
 
 import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Abyot Asalefew
  */
 public interface EventStore extends IdentifiableObjectStore<Event> {
-  /**
-   * Retrieve an event list on enrollment list with a certain status
-   *
-   * @param enrollments Enrollment list
-   * @param status EventStatus
-   * @return Event list
-   */
-  List<Event> get(Collection<Enrollment> enrollments, EventStatus status);
 
   /**
-   * Get all events by TrackedEntity, optionally filtering by completed.
+   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
+   * used to determine which event data value is kept when merging. Any remaining source
+   * eventDataValues are then deleted.
    *
-   * @param entityInstance TrackedEntity
-   * @param status EventStatus
-   * @return Event list
+   * @param sourceDataElements dataElements to determine which eventDataValues to merge
+   * @param targetDataElement dataElement to use when merging source eventDataValues
    */
-  List<Event> get(TrackedEntity entityInstance, EventStatus status);
+  void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
 
   /**
-   * Get the number of events updates since the given Date.
+   * delete all eventDataValues which have any of the sourceDataElements
    *
-   * @param time the time.
-   * @return the number of events.
+   * @param sourceDataElements dataElements to determine which eventDataValues to delete
    */
-  long getEventCountLastUpdatedAfter(Date time);
+  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
 
   /**
-   * Checks for the existence of an event by UID. The deleted events are not taken into account.
+   * Updates all {@link Event}s with references to {@link CategoryOptionCombo}s, to use the coc
+   * reference.
    *
-   * @param uid event UID to check for
-   * @return true/false depending on result
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
    */
-  boolean exists(String uid);
-
-  /**
-   * Checks for the existence of an event by UID. It takes into account also the deleted events.
-   *
-   * @param uid event UID to check for
-   * @return true/false depending on result
-   */
-  boolean existsIncludingDeleted(String uid);
-
-  /**
-   * Returns UIDs of existing events (including deleted) from the provided UIDs.
-   *
-   * @param uids event UIDs to check
-   * @return List containing UIDs of existing events (including deleted)
-   */
-  List<String> getUidsIncludingDeleted(List<String> uids);
-
-  /**
-   * Fetches Event matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the Event matching the given parameters list
-   */
-  List<Event> getIncludingDeleted(List<String> uids);
-
-  /**
-   * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
-   * on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of Event.
-   */
-  List<Event> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
-
-  /**
-   * Set lastSynchronized timestamp to provided timestamp for provided events.
-   *
-   * @param eventUids UIDs of events where the lastSynchronized flag should be updated
-   * @param lastSynchronized The date of last successful sync
-   */
-  void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized);
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

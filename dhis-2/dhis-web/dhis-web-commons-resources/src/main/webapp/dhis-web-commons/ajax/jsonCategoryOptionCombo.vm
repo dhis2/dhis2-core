@@ -1,8 +1,0 @@
-{ "dataElementCategoryOptionCombo":
-  {
-    "id": "$!{optionCombo.id}",
-    "uid": "$!{optionCombo.uid}",
-    "name": "$encoder.jsonEncode( $!{optionCombo.name} )",
-    "code": "$!{optionCombo.code}"
-  }
-}

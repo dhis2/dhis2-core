@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
-import static org.hisp.dhis.program.ProgramStatus.ACTIVE;
-import static org.hisp.dhis.program.ProgramStatus.COMPLETED;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;
@@ -64,18 +64,18 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author Luciano Fiandesio
  */
 abstract class EventAnalyticsTest {
-  private static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+  private static final String COL_NAME_ENROLLMENT_GEOMETRY = "enrollmentgeometry";
 
-  private static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+  private static final String COL_NAME_EVENT_GEOMETRY = "eventgeometry";
 
-  private static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+  private static final String COL_NAME_TRACKED_ENTITY_GEOMETRY = "tegeometry";
 
   private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
   private static final List<String> COL_NAME_GEOMETRY_LIST =
       List.of(
-          COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
-          COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY);
+          COL_NAME_EVENT_GEOMETRY, COL_NAME_ENROLLMENT_GEOMETRY,
+          COL_NAME_TRACKED_ENTITY_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
   @Mock protected SqlRowSet rowSet;
 
@@ -177,7 +177,7 @@ abstract class EventAnalyticsTest {
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
-    params.withProgramStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
+    params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
     params.withEventStatuses(new LinkedHashSet<>(List.of(SCHEDULE)));
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
     return params.build();
@@ -203,7 +203,7 @@ abstract class EventAnalyticsTest {
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
-    params.withProgramStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
+    params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
     params.withTimeField(timeField);
     return params.build();
@@ -225,8 +225,7 @@ abstract class EventAnalyticsTest {
           RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
           repeatableStageParams.setDimension(
               withProgramStage.getUid() + "[-1]." + dataElementA.getUid());
-          repeatableStageParams.setStartIndex(-1);
-          repeatableStageParams.setCount(1);
+          repeatableStageParams.setIndex(-1);
           queryItem.setRepeatableStageParams(repeatableStageParams);
         }
       }

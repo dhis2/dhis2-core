@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -40,6 +41,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
@@ -92,8 +94,8 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
     return !getCategoryCombos().isEmpty();
   }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryCombo> getCategoryCombos() {
     Set<CategoryCombo> categoryCombos = new HashSet<>();
@@ -218,6 +220,7 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Property(ObjectNode.class)
   public String getDisplayOptions() {
     return displayOptions;
   }

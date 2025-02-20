@@ -46,7 +46,6 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
-import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
@@ -55,10 +54,10 @@ import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
-import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 
 /**
@@ -78,8 +77,6 @@ public enum JobType {
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
   DATA_SYNC(DataSynchronizationJobParameters.class),
-  TRACKER_PROGRAMS_DATA_SYNC(TrackerProgramsDataSynchronizationJobParameters.class),
-  EVENT_PROGRAMS_DATA_SYNC(EventProgramsDataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
   SEND_SCHEDULED_MESSAGE(),
@@ -99,6 +96,7 @@ public enum JobType {
   */
   MOCK(MockJobParameters.class),
   SMS_SEND(SmsJobParameters.class),
+  SMS_INBOUND_PROCESSING(SmsInboundProcessingJobParameters.class),
   TRACKER_IMPORT_JOB(),
   TRACKER_IMPORT_NOTIFICATION_JOB(),
   TRACKER_IMPORT_RULE_ENGINE_JOB(),
@@ -108,9 +106,6 @@ public enum JobType {
   METADATA_IMPORT(),
   DATAVALUE_IMPORT(ImportOptions.class),
   GEOJSON_IMPORT(GeoJsonImportJobParams.class),
-  EVENT_IMPORT(),
-  ENROLLMENT_IMPORT(),
-  TEI_IMPORT(),
   GML_IMPORT(),
 
   /*
@@ -197,6 +192,8 @@ public enum JobType {
   }
 
   /**
+   * @implNote since 2.42 all jobs forward to the {@code Notifier} but those not included here use
+   *     {@link org.hisp.dhis.system.notification.NotificationLevel#ERROR}.
    * @return true, if {@link JobProgress} events should be forwarded to the {@link
    *     org.eclipse.emf.common.notify.Notifier} API, otherwise false
    */
@@ -209,8 +206,6 @@ public enum JobType {
         || this == MONITORING
         || this == VALIDATION_RESULTS_NOTIFICATION
         || this == SYSTEM_VERSION_UPDATE_CHECK
-        || this == EVENT_PROGRAMS_DATA_SYNC
-        || this == TRACKER_PROGRAMS_DATA_SYNC
         || this == DATA_SYNC
         || this == SMS_SEND
         || this == PUSH_ANALYSIS
@@ -231,8 +226,6 @@ public enum JobType {
         || this == VALIDATION_RESULTS_NOTIFICATION
         || this == DATA_SET_NOTIFICATION
         || this == SYSTEM_VERSION_UPDATE_CHECK
-        || this == EVENT_PROGRAMS_DATA_SYNC
-        || this == TRACKER_PROGRAMS_DATA_SYNC
         || this == PROGRAM_NOTIFICATIONS
         || this == DATAVALUE_IMPORT
         || this == METADATA_IMPORT;
@@ -245,9 +238,13 @@ public enum JobType {
    */
   public boolean isUsingContinuousExecution() {
     return this == METADATA_IMPORT
+        || this == RESOURCE_TABLE
+        || this == ANALYTICS_TABLE
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
-        || this == DATA_INTEGRITY_DETAILS;
+        || this == DATA_INTEGRITY_DETAILS
+        || this == SMS_INBOUND_PROCESSING
+        || this == GEOJSON_IMPORT;
   }
 
   public boolean hasJobParameters() {

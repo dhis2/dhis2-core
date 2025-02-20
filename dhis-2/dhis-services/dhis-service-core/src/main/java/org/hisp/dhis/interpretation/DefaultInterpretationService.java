@@ -420,10 +420,6 @@ public class DefaultInterpretationService implements InterpretationService {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    if (currentUser == null) {
-      return false;
-    }
-
     boolean userLike = interpretation.like(currentUser);
     notifySubscribers(interpretation, null, NotificationType.INTERPRETATION_LIKE);
 
@@ -440,10 +436,6 @@ public class DefaultInterpretationService implements InterpretationService {
     }
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    if (currentUser == null) {
-      return false;
-    }
 
     return interpretation.unlike(currentUser);
   }

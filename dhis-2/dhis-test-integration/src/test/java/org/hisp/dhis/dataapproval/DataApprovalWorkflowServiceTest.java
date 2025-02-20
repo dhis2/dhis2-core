@@ -35,23 +35,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
-
-  @Autowired private UserService _userService;
 
   private DataApprovalWorkflow workflowA;
 
@@ -65,14 +65,12 @@ class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest {
 
   private DataApprovalLevel level3;
 
-  PeriodType periodType;
+  private PeriodType periodType;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
+  private CategoryCombo categoryCombo;
+
+  @BeforeEach
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -83,9 +81,13 @@ class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest {
     dataApprovalLevelService.addDataApprovalLevel(level2);
     dataApprovalLevelService.addDataApprovalLevel(level3);
     periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA = new DataApprovalWorkflow("A", periodType, newHashSet(level1, level2));
-    workflowB = new DataApprovalWorkflow("B", periodType, newHashSet(level2, level3));
-    workflowC = new DataApprovalWorkflow("C", periodType, newHashSet(level1, level3));
+    categoryCombo = categoryService.getDefaultCategoryCombo();
+    workflowA =
+        new DataApprovalWorkflow("A", periodType, categoryCombo, newHashSet(level1, level2));
+    workflowB =
+        new DataApprovalWorkflow("B", periodType, categoryCombo, newHashSet(level2, level3));
+    workflowC =
+        new DataApprovalWorkflow("C", periodType, categoryCombo, newHashSet(level1, level3));
   }
 
   // -------------------------------------------------------------------------
@@ -168,7 +170,7 @@ class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest {
     createUserAndInjectSecurityContext(false, "F_DATA_APPROVAL_WORKFLOW");
     long idA =
         dataApprovalService.addWorkflow(
-            new DataApprovalWorkflow("H", periodType, newHashSet(level1, level2)));
+            new DataApprovalWorkflow("H", periodType, categoryCombo, newHashSet(level1, level2)));
     assertEquals("H", dataApprovalService.getWorkflow(idA).getName());
   }
 
@@ -176,10 +178,11 @@ class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest {
   void testSaveWorkFlowWithoutAuthority() {
     createUserAndInjectSecurityContext(false, null);
     assertThrows(
-        CreateAccessDeniedException.class,
+        AccessDeniedException.class,
         () ->
             dataApprovalService.addWorkflow(
-                new DataApprovalWorkflow("F", periodType, newHashSet(level1, level2))));
+                new DataApprovalWorkflow(
+                    "F", periodType, categoryCombo, newHashSet(level1, level2))));
   }
 
   @Test
@@ -193,7 +196,7 @@ class DataApprovalWorkflowServiceTest extends TransactionalIntegrationTest {
   void testSaveLevelWithoutAuthority() {
     createUserAndInjectSecurityContext(false, null);
     assertThrows(
-        UpdateAccessDeniedException.class,
+        AccessDeniedException.class,
         () -> dataApprovalLevelService.addDataApprovalLevel(new DataApprovalLevel("7", 1, null)));
   }
 }

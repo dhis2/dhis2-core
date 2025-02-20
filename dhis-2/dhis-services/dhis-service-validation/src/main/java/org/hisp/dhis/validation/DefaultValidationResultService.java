@@ -28,7 +28,7 @@
 package org.hisp.dhis.validation;
 
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;

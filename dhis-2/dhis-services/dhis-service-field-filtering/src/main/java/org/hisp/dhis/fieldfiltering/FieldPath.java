@@ -104,6 +104,15 @@ public class FieldPath {
     return StringUtils.join(path, FIELD_PATH_SEPARATOR);
   }
 
+  public FieldPath relativeTo(String parentSegment) {
+    return new FieldPath(
+        name,
+        path.subList(path.indexOf(parentSegment) + 1, path.size()),
+        exclude,
+        preset,
+        transformers);
+  }
+
   /**
    * @return true if we have at least one field path transformer
    */

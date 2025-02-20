@@ -38,37 +38,44 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Shared(name = "TrackerEvent")
+@OpenApi.Identifiable(as = org.hisp.dhis.program.Event.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event {
-  @OpenApi.Property({UID.class, Event.class})
+
   @JsonProperty
-  private String event;
+  @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
+  private UID event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
-  @JsonProperty private String program;
+  @JsonProperty
+  @OpenApi.Property({UID.class, org.hisp.dhis.program.Program.class})
+  private String program;
 
-  @JsonProperty private String programStage;
+  @JsonProperty
+  @OpenApi.Property({UID.class, org.hisp.dhis.program.ProgramStage.class})
+  private String programStage;
 
+  @JsonProperty
   @OpenApi.Property({UID.class, Enrollment.class})
-  @JsonProperty
-  private String enrollment;
+  private UID enrollment;
 
-  @OpenApi.Property({UID.class, TrackedEntity.class})
   @JsonProperty
-  private String trackedEntity;
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  private UID trackedEntity;
 
   @JsonProperty private String orgUnit;
 
@@ -78,13 +85,11 @@ public class Event {
 
   @JsonProperty private Instant scheduledAt;
 
-  @JsonProperty private String storedBy;
+  @JsonProperty
+  @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
+  private String storedBy;
 
   @JsonProperty private boolean followUp;
-
-  @Deprecated(since = "2.41", forRemoval = true)
-  @JsonProperty("followup")
-  private boolean legacyFollowUp;
 
   @JsonProperty private boolean deleted;
 

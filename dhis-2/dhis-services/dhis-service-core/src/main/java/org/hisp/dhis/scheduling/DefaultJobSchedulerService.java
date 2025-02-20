@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
@@ -37,10 +41,12 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +60,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultJobSchedulerService implements JobSchedulerService {
 
-  private final JobConfigurationStore jobConfigurationStore;
   private final JobRunner jobRunner;
+  private final JobConfigurationStore jobConfigurationStore;
   private final ObjectMapper jsonMapper;
 
   @Override
@@ -71,11 +77,16 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     return jobId != null && requestCancel(jobId);
   }
 
+  /**
+   * Note that the TX is opened on the store level for {@code tryExecuteNow} so that state changes
+   * to the job are already visible to other threads even when called from within this method as
+   * done in case of continuous execution.
+   */
   @Override
-  @Transactional
+  @NonTransactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobStatus() == JobStatus.RUNNING)
         throw new ConflictException("Job is already running.");
@@ -84,16 +95,32 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
     }
     if (!jobRunner.isScheduling()) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
     } else {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobType().isUsingContinuousExecution()) {
         jobRunner.runIfDue(job);
       }
+    }
+  }
+
+  @Override
+  @Transactional
+  public void revertNow(@Nonnull UID jobId)
+      throws ConflictException, NotFoundException, ForbiddenException {
+    UserDetails currentUser = getCurrentUserDetails();
+    if (!currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
+      throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
+    if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId.getValue());
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId.getValue());
+      if (job.getJobStatus() != JobStatus.RUNNING)
+        throw new ConflictException("Job is not running");
+      throw new ConflictException("Failed to transition job from RUNNING state");
     }
   }
 
@@ -123,9 +150,8 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     if (json == null) return null;
     Progress progress = mapToProgress(json);
     if (progress == null) return null;
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
-    if (user == null || !(user.isSuper() || user.isAuthorized("F_JOB_LOG_READ")))
-      progress.getErrors().clear();
+    UserDetails user = getCurrentUserDetails();
+    if (!(user.isSuper() || user.isAuthorized(F_JOB_LOG_READ))) return progress.withoutErrors();
     return progress;
   }
 

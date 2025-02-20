@@ -22,7 +22,7 @@
             we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
             packages use a logger like shown below. -->
             <AppenderRef ref="console" level="error"/>
-            <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher so we have more
+            <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher, so we have more
              information when debugging failed tests. -->
             <AppenderRef ref="file" level="warn"/>
         </Root>
@@ -47,5 +47,9 @@
         <!-- <Logger name="org.springframework.test.context.cache" level="debug">-->
         <!--     <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
+        <!-- Uncomment to debug Spring bean creation/test configuration -->
+        <!--<Logger name="org.springframework.beans.factory.support.DefaultListableBeanFactory" level="debug" additivity="false">
+                <AppenderRef ref="console"/>
+        </Logger>-->
     </Loggers>
 </Configuration>

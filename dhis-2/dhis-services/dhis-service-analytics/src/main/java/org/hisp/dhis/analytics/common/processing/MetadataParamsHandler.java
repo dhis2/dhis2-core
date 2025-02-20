@@ -49,11 +49,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.MetadataInfo;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
@@ -80,19 +84,26 @@ public class MetadataParamsHandler {
    * Appends the metadata to the given {@link Grid} based on the given arguments.
    *
    * @param grid the current {@link Grid}.
-   * @param commonParams the {@link CommonParams}.
-   * @param rowsCount the total of rows found for the current query.
+   * @param contextParams the {@link ContextParams}.
+   * @param contextParams the total of rows found for the current query.
+   * @param rowsCount the total of rows found.
    */
-  public void handle(Grid grid, CommonParams commonParams, User user, long rowsCount) {
-    if (!commonParams.isSkipMeta()) {
+  public void handle(
+      Grid grid,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      User user,
+      long rowsCount) {
+    CommonRequestParams commonRequest = contextParams.getCommonRaw();
+    CommonParsedParams commonParsed = contextParams.getCommonParsed();
 
+    if (!commonRequest.isSkipMeta()) {
       // Dimensions.
       List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys =
-          getUserOrgUnitsMetadataKeys(commonParams);
+          getUserOrgUnitsMetadataKeys(commonParsed);
       Map<String, Object> items =
-          new HashMap<>(new MetadataItemsHandler().handle(grid, commonParams));
+          new HashMap<>(new MetadataItemsHandler().handle(grid, commonParsed, commonRequest));
 
-      commonParams
+      commonParsed
           .getAllDimensionIdentifiers()
           .forEach(
               dimensionIdentifier ->
@@ -103,14 +114,14 @@ public class MetadataParamsHandler {
       metadataInfo.put(ITEMS.getKey(), items);
 
       metadataInfo.put(
-          DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParams));
+          DIMENSIONS.getKey(), new MetadataDimensionsHandler().handle(grid, commonParsed));
 
       // Org. Units.
-      boolean hierarchyMeta = commonParams.isHierarchyMeta();
-      boolean showHierarchy = commonParams.isShowHierarchy();
+      boolean hierarchyMeta = commonRequest.isHierarchyMeta();
+      boolean showHierarchy = commonRequest.isShowHierarchy();
 
       if (hierarchyMeta || showHierarchy) {
-        List<OrganisationUnit> activeOrgUnits = getActiveOrgUnits(grid, commonParams);
+        List<OrganisationUnit> activeOrgUnits = getActiveOrgUnits(grid, commonParsed);
         Set<OrganisationUnit> roots = getUserOrgUnits(user);
 
         if (hierarchyMeta) {
@@ -124,7 +135,7 @@ public class MetadataParamsHandler {
       }
 
       // Paging.
-      AnalyticsPagingParams pagingParams = commonParams.getPagingParams();
+      AnalyticsPagingParams pagingParams = commonParsed.getPagingParams();
 
       if (pagingParams.isPaging()) {
         metadataInfo.put(
@@ -137,8 +148,8 @@ public class MetadataParamsHandler {
 
   /**
    * Adds an extra entry to metadata items if needed, i.e. if the dimension identifier is a date
-   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate) and for
-   * any specified dimension identifier that has a prefix.
+   * dimension which supports custom labels (enrollmentdate, occurreddate) and for any specified
+   * dimension identifier that has a prefix.
    *
    * @param dimId the dimension identifier
    * @param items the metadata items
@@ -164,7 +175,7 @@ public class MetadataParamsHandler {
 
   /**
    * Returns the custom label for the given static dimension identifier. Dimension identifier is
-   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate, ouname)
+   * dimension which supports custom labels (enrollmentdate, occurreddate, ouname)
    *
    * @param dimensionIdentifier the dimension identifier
    * @return the custom label
@@ -199,11 +210,11 @@ public class MetadataParamsHandler {
    * Returns only the Org. Units currently present in the current grid rows.
    *
    * @param grid the current {@link Grid} object.
-   * @param commonParams the {@link CommonParams}.
+   * @param commonParsed the {@link CommonParsedParams}.
    */
-  private List<OrganisationUnit> getActiveOrgUnits(Grid grid, CommonParams commonParams) {
+  private List<OrganisationUnit> getActiveOrgUnits(Grid grid, CommonParsedParams commonParsed) {
     List<DimensionalItemObject> orgUnitDimensionOrFilterItems =
-        commonParams.delegate().getOrgUnitDimensionOrFilterItems();
+        commonParsed.delegate().getOrgUnitsInDimensionOrFilterItems();
 
     List<OrganisationUnit> organisationUnits = asTypedList(orgUnitDimensionOrFilterItems);
 
@@ -213,11 +224,12 @@ public class MetadataParamsHandler {
   /**
    * Retrieve the analytics metadata keys belong to user organisation unit dimension group
    *
-   * @param commonParams the {@link CommonParams}.
+   * @param commonParsed the {@link CommonParsedParams}.
    * @return list of the {@link AnalyticsMetaDataKey}
    */
-  private static List<AnalyticsMetaDataKey> getUserOrgUnitsMetadataKeys(CommonParams commonParams) {
-    return commonParams.getDimensionIdentifiers().stream()
+  private static List<AnalyticsMetaDataKey> getUserOrgUnitsMetadataKeys(
+      CommonParsedParams commonParsed) {
+    return commonParsed.getDimensionIdentifiers().stream()
         .filter(dimensionIdentifier -> dimensionIdentifier.toString().equals(ORG_UNIT_DIM))
         .flatMap(dimensionIdentifier -> dimensionIdentifier.getDimension().getItems().stream())
         .flatMap(item -> item.getValues().stream())

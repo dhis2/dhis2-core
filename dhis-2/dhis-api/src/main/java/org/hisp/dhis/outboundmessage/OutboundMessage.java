@@ -28,10 +28,16 @@
 package org.hisp.dhis.outboundmessage;
 
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Getter
+@ToString
+@EqualsAndHashCode
 public class OutboundMessage {
   private String subject;
 
@@ -45,24 +51,12 @@ public class OutboundMessage {
     this.recipients = recipients;
   }
 
-  public String getText() {
-    return text;
-  }
-
   public void setText(String text) {
     this.text = text;
   }
 
-  public Set<String> getRecipients() {
-    return recipients;
-  }
-
   public void setRecipients(Set<String> recipients) {
     this.recipients = recipients;
-  }
-
-  public String getSubject() {
-    return subject;
   }
 
   public void setSubject(String subject) {

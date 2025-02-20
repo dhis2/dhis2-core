@@ -34,10 +34,10 @@ import static org.hamcrest.Matchers.hasItems;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -76,7 +76,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .body(
             "message",
             equalTo(
-                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter."));
+                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter, but was: invalid"));
   }
 
   @Test
@@ -97,7 +97,7 @@ class IndicatorTypeMergeTest extends ApiTest {
         .body(
             "message",
             equalTo(
-                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter."));
+                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter, but was: invalid"));
   }
 
   @Test
@@ -150,9 +150,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge complete"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
 
     // and sources & target exist
@@ -230,9 +230,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge complete"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", hasItems(indTypeUid1, indTypeUid2));
 
     // and sources are deleted & target exists
@@ -282,12 +282,12 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
-            equalTo("At least one source indicator type must be specified"))
+            equalTo("At least one source IndicatorType must be specified"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1530"))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
@@ -313,12 +313,12 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
-            equalTo("Target indicator type must be specified"))
+            equalTo("Target IndicatorType must be specified"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1531"))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
@@ -354,12 +354,12 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
-            equalTo("Target indicator type cannot be a source indicator type"))
+            equalTo("Target IndicatorType cannot be a source IndicatorType"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1532"))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
@@ -378,9 +378,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body("response.mergeReport.mergeErrors.size()", equalTo(3))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
@@ -403,7 +403,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Access is denied"));
+        .body(
+            "message",
+            equalTo("Access is denied, requires one Authority from [F_INDICATOR_TYPE_MERGE]"));
   }
 
   private JsonObject getMergeBody(

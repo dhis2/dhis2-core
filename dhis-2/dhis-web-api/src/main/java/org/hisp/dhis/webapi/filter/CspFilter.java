@@ -32,13 +32,13 @@ import static org.hisp.dhis.security.utils.CspConstants.EXTERNAL_STATIC_CONTENT_
 import static org.hisp.dhis.security.utils.CspConstants.LOGIN_PATTERN;
 import static org.hisp.dhis.security.utils.CspConstants.SCRIPT_SOURCE_DEFAULT;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
 import java.util.regex.Pattern;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;

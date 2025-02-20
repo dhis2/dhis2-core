@@ -1,0 +1,61 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: datasets_same_name
+description: Datasets with the same name or short name
+section: Data sets
+section_order: 4
+summary_sql: >-
+  select count(*) as value,
+  100*count(*) / NULLIF( (select count(*) from dataset),0) as percent
+  from (
+  SELECT a.uid,a.name,'NAME' as comment from dataset a
+  INNER JOIN (
+  SELECT name, COUNT(uid) from dataset group by name HAVING count(uid) > 1 ) as name_duplicates
+    ON a.name = name_duplicates.name
+  UNION
+    SELECT b.uid,b.shortname as name,'SHORTNAME' as comment from dataset b
+    INNER JOIN (
+    SELECT shortname, COUNT(uid) from dataset group by shortname HAVING count(uid) > 1 ) as shortname_duplicates
+        ON b.shortname = shortname_duplicates.shortname) as duplicates
+details_sql: >-
+  SELECT a.uid,a.name,'NAME' as comment from dataset a
+  INNER JOIN (
+  SELECT name, COUNT(uid) from dataset group by name HAVING count(uid) > 1 ) as name_duplicates
+    ON a.name = name_duplicates.name
+  UNION
+    SELECT b.uid,b.shortname as name,'SHORTNAME' as comment from dataset b
+    INNER JOIN (
+    SELECT shortname, COUNT(uid) from dataset group by shortname HAVING count(uid) > 1 ) as shortname_duplicates
+        ON b.shortname = shortname_duplicates.shortname
+severity: WARNING
+introduction: >
+  While datasets are not required to have unique names, it is generally a good idea to avoid having datasets 
+  with the same name or short name. This can lead to confusion and make it difficult to distinguish between datasets.
+details_id_type: dataSets
+recommendation: >
+    Consider renaming datasets with the same name or short name to make it easier to distinguish between them.
