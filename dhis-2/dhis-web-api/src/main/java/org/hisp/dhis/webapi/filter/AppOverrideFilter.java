@@ -81,17 +81,15 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    String requestPath = request.getServletPath();
+    String pathInfo = request.getPathInfo();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
 
-    String appUrl = request.getRequestURI().substring(request.getContextPath().length());
-
-    Matcher m = APP_PATH_PATTERN.matcher(appUrl);
+    Matcher m = APP_PATH_PATTERN.matcher(pathInfo);
     if (m.find()) {
       String appName = m.group(1);
       String resourcePath = m.group(2);
 
-      log.debug("AppOverrideFilter :: Matched for path " + requestPath);
+      log.debug("AppOverrideFilter :: Matched for path: " + pathInfo);
 
       App app = appManager.getApp(appName, contextPath);
       if (app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS) {
