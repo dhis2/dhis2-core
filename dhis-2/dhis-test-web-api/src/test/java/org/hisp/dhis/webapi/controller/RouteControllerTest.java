@@ -134,7 +134,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @BeforeAll
-  public static void beforeAll() {
+  static void beforeAll() {
     tokenMockServerContainer =
         new GenericContainer<>("mockserver/mockserver")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
@@ -150,13 +150,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @AfterAll
-  public static void afterAll() {
+  static void afterAll() {
     tokenMockServerContainer.stop();
   }
 
   @Transactional
   @Nested
-  public class IntegrationTest extends PostgresControllerIntegrationTestBase {
+  class IntegrationTest extends PostgresControllerIntegrationTestBase {
 
     private static GenericContainer<?> upstreamMockServerContainer;
     private MockServerClient upstreamMockServerClient;
@@ -177,7 +177,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
       upstreamMockServerClient.reset();
     }
 
