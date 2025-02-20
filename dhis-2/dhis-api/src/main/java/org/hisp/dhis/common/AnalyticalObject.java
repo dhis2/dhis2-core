@@ -36,6 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.visualization.LegendDefinitions;
 
 /**
  * @author Lars Helge Overland
@@ -83,4 +84,8 @@ public interface AnalyticalObject
   boolean hasUserOrgUnit();
 
   void clearTransientState();
+
+  default LegendDefinitions getLegendDefinitions() {
+    return null;
+  }
 }
