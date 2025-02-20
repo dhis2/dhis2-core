@@ -39,6 +39,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -116,6 +117,13 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleVariablePreviousEvent.setSourceType(
         ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT);
     programRuleVariableService.addProgramRuleVariable(programRuleVariablePreviousEvent);
+
+    ProgramRuleVariable calcualtedValue = createProgramRuleVariable('A', program);
+    calcualtedValue.setSourceType(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    calcualtedValue.setValueType(ValueType.TEXT);
+    calcualtedValue.setName("prv_calvalue");
+
+    programRuleVariableService.addProgramRuleVariable(calcualtedValue);
 
     trackerImportService.importTracker(
         new TrackerImportParams(),
@@ -265,6 +273,20 @@ class ProgramRuleAssignActionTest extends TrackerTest {
   }
 
   @Test
+  void shouldImportWithAssignToProgramRuleVariable() throws IOException {
+    assignActionForCalculatedValue();
+
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasOnlyWarnings(importReport, E1308);
+  }
+
+  @Test
   void
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
@@ -312,6 +334,21 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleActionService.addProgramRuleAction(programRuleActionAttribute);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleActionAttribute);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void assignActionForCalculatedValue() {
+    ProgramRule programRule = createProgramRule('I', program, null, "true");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
+    programRuleAction.setProgramRuleActionType(ASSIGN);
+    programRuleAction.setDataElement(null);
+    programRuleAction.setAttribute(null);
+    programRuleAction.setContent("#{prv_calvalue}");
+    programRuleAction.setData("1");
+
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
   }
 
