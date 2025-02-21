@@ -132,8 +132,9 @@ Get tracked entities that have at least one enrollment that is marked with follo
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
-Get tracked entities that is updated after the given time. The update can be on the tracked entity
-or on one of the tracked entity attributes, enrollments or events for that tracked entity.
+Get tracked entities that are updated after the given time. A tracked entity is considered updated if any of its tracked entity attributes,
+enrollments or events have been modified. The `updatedAt` property of the tracked entity reflects the latest time 
+at which any of its tracked entity attributes, enrollments or events were modified.  
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
