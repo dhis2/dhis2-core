@@ -76,10 +76,34 @@ import org.hisp.dhis.analytics.util.optimizer.cte.matcher.RelationshipCountMatch
 import org.hisp.dhis.analytics.util.optimizer.cte.transformer.FunctionTransformer;
 import org.hisp.dhis.analytics.util.optimizer.cte.transformer.SubSelectTransformer;
 
+/**
+ * A SQL expression transformer that handles complex expression transformations while preserving
+ * operator precedence, CASE expressions, and CAST operations. This transformer is specifically
+ * designed to handle correlated subqueries and convert them into CTE-based expressions.
+ *
+ * <p>The transformer implements the Visitor pattern through JSQLParser's ExpressionVisitorAdapter
+ * and provides specialized handling for: - Logical operators (AND, OR) with proper parenthesization
+ * - Arithmetic operators with precedence preservation - CASE expressions including nested cases -
+ * CAST operations - Subquery transformations
+ */
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
+  /**
+   * Holds the current transformed expression during the transformation process. This field is
+   * updated by each visit method as the transformer traverses the expression tree.
+   */
   private Expression currentTransformedExpression;
+
+  /**
+   * Handles the transformation of SubSelect expressions into CTEs. Contains the logic for matching
+   * and transforming different types of subqueries.
+   */
   private final SubSelectTransformer subSelectTransformer;
+
+  /**
+   * Handles the transformation of SQL functions. Provides specialized handling for different
+   * function types.
+   */
   private final FunctionTransformer functionTransformer;
 
   public ExpressionTransformer() {
@@ -175,6 +199,15 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     handleBinaryExpression(notEqualsTo);
   }
 
+  /**
+   * Transforms OR expressions while preserving operator precedence through proper parenthesization.
+   * Ensures that both sides of the OR are properly wrapped in parentheses to maintain the correct
+   * evaluation order.
+   *
+   * <p>Example transformation: (A AND B) OR (C AND D) -> ((A AND B)) OR ((C AND D))
+   *
+   * @param expr The OR expression to transform
+   */
   @Override
   public void visit(OrExpression expr) {
     Expression leftExpr = expr.getLeftExpression();
@@ -203,6 +236,12 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     currentTransformedExpression = new OrExpression(transformedLeft, transformedRight);
   }
 
+  /**
+   * Preserves CAST operations while transforming their inner expressions. Maintains the type
+   * information and ensures proper handling of date arithmetic and other type-sensitive operations.
+   *
+   * @param cast The CAST expression to transform
+   */
   @Override
   public void visit(CastExpression cast) {
 
@@ -219,6 +258,13 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     currentTransformedExpression = newCast;
   }
 
+  /**
+   * Handles CASE expression transformation while preserving the structure and logic of
+   * WHEN/THEN/ELSE clauses. Supports nested CASE expressions and ensures all sub-expressions are
+   * properly transformed.
+   *
+   * @param caseExpression The CASE expression to transform
+   */
   @Override
   public void visit(CaseExpression caseExpression) {
 
@@ -396,7 +442,12 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     return currentTransformedExpression;
   }
 
-  // Helper method for binary expressions
+  /**
+   * Helper method for handling binary expressions (comparison operators, arithmetic operators).
+   * Creates a new instance of the appropriate expression type with transformed operands.
+   *
+   * @param expression The binary expression to transform
+   */
   private void handleBinaryExpression(BinaryExpression expression) {
     expression.getLeftExpression().accept(this);
     Expression leftExpr = currentTransformedExpression;
@@ -417,7 +468,13 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
     }
   }
 
-  // Helper method for arithmetic operators
+  /**
+   * Helper method for arithmetic expressions that handles operator precedence through
+   * parenthesization. Ensures proper evaluation order especially for division and mixed arithmetic
+   * operations.
+   *
+   * @param expr The arithmetic expression to transform
+   */
   private void handleBinaryArithmeticExpression(BinaryExpression expr) {
     expr.getLeftExpression().accept(this);
     Expression leftExpr = currentTransformedExpression;
@@ -447,6 +504,4 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
       currentTransformedExpression = expr;
     }
   }
-
-  private record ProcessedExpressions(List<Expression> expressions, boolean hasChanges) {}
 }
