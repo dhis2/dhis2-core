@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseAttributeFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
@@ -95,8 +95,7 @@ class TrackedEntityRequestParamsMapper {
     validateRequestParams(
         trackedEntityRequestParams, trackedEntityRequestParams.getTrackedEntities());
 
-    Map<UID, List<QueryFilter>> filters =
-        parseAttributeFilters(trackedEntityRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()

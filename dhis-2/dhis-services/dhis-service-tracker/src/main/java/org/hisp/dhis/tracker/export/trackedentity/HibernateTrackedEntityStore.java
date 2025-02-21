@@ -396,7 +396,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
             // WHERE
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
-            .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
+            .append(getFromSubQueryEnrollmentConditions(whereAnd, params))
+            .append(getWhereClauseFromFilterConditions(whereAnd, params));
 
     if (!isCountQuery) {
       // SORT
@@ -557,7 +558,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       String ted = col + ".trackedentityid";
 
       attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+          .append(" LEFT JOIN trackedentityattributevalue ")
           .append(col)
           .append(" ON ")
           .append(teaId)
@@ -568,6 +569,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" = TE.trackedentityid ");
 
       for (QueryFilter filter : filters.getValue()) {
+        if (filter.getOperator().isUnary()) {
+          continue;
+        }
+
         String encodedFilter = escape(filter.getFilter());
         attributes
             .append("AND ")
@@ -844,6 +849,33 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     program.append(") ");
 
     return program.toString();
+  }
+
+  private String getWhereClauseFromFilterConditions(
+      SqlHelper whereAnd, TrackedEntityQueryParams params) {
+    StringBuilder filterClause = new StringBuilder();
+
+    if (params.getFilters().isEmpty()) {
+      return "";
+    }
+
+    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
+        params.getFilters().entrySet()) {
+      String teav_col = quote(filters.getKey().getUid()) + ".value";
+
+      for (QueryFilter queryFilter : filters.getValue()) {
+        filterClause.append(whereAnd.whereAnd());
+        if (queryFilter.getOperator().isNull()) {
+          filterClause.append(teav_col);
+          filterClause.append(" is null ");
+        } else {
+          filterClause.append(teav_col);
+          filterClause.append(" is not null ");
+        }
+      }
+    }
+
+    return filterClause.toString();
   }
 
   /**

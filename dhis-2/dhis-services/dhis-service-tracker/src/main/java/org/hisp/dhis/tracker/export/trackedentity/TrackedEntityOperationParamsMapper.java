@@ -106,6 +106,7 @@ class TrackedEntityOperationParamsMapper {
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    // TODO Merge this one with #validateTrackedEntityAttributeFilters
     mapAttributeFilters(params, operationParams.getFilters());
 
     mapOrderParam(params, operationParams.getOrder());
