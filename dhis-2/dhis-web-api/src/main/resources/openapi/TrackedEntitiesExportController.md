@@ -128,7 +128,7 @@ Valid options are:
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
-Get tracked entities that has at least one enrollment that is marked with follow up.
+Get tracked entities that have at least one enrollment that is marked with follow up.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
