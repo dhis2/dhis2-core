@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1308;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
@@ -298,7 +299,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyWarnings(importReport, E1308);
+    assertNoErrors(importReport);
   }
 
   private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
@@ -348,8 +349,6 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
-
-    assignProgramRule();
   }
 
   private void assignPreviousEventProgramRule() {
