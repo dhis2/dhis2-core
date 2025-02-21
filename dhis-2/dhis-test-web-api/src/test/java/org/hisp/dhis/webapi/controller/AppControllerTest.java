@@ -147,4 +147,14 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     switchToNewUser("hasAuth", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
     assertEquals(HttpStatus.NO_CONTENT, PUT("/apps").status());
   }
+
+  @Test
+  @DisplayName("Redirect for bundled app has correct location header")
+  void redirectLocationTest() throws IOException {
+    appManager.installApp(
+        new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
+
+    HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
+    assertTrue(get.location().contains("/dhis-web-cache-cleaner/index.html"));
+  }
 }
