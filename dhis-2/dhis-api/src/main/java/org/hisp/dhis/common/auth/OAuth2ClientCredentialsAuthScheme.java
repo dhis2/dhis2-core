@@ -77,44 +77,46 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
       Map<String, List<String>> queryParams)
       throws Exception {
 
-    String registrationId = getRegistrationId();
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository =
+    final OAuth2AuthorizedClient newOAuth2AuthorizedClient;
+    final String registrationId = getRegistrationId();
+    final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    final OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository =
         applicationContext.getBean(OAuth2AuthorizedClientRepository.class);
-    OAuth2AuthorizedClient oAuth2AuthorizedClient =
+    final OAuth2AuthorizedClient loadedOAuth2AuthorizedClient =
         oAuth2AuthorizedClientRepository.loadAuthorizedClient(registrationId, authentication, null);
 
-    if (oAuth2AuthorizedClient == null) {
-      ClientRegistration clientRegistration =
+    if (loadedOAuth2AuthorizedClient == null) {
+      final ClientRegistration clientRegistration =
           ClientRegistration.withRegistrationId(registrationId)
               .clientId(clientId)
               .clientSecret(clientSecret)
               .tokenUri(tokenUri)
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
               .build();
-      OAuth2AuthorizationContext oAuth2AuthorizationContext =
+      final OAuth2AuthorizationContext oAuth2AuthorizationContext =
           OAuth2AuthorizationContext.withClientRegistration(clientRegistration)
               .principal(authentication)
               .build();
 
-      OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider =
+      final OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider =
           applicationContext.getBean(OAuth2AuthorizedClientProvider.class);
-      oAuth2AuthorizedClient = oAuth2AuthorizedClientProvider.authorize(oAuth2AuthorizationContext);
+      newOAuth2AuthorizedClient =
+          oAuth2AuthorizedClientProvider.authorize(oAuth2AuthorizationContext);
       oAuth2AuthorizedClientRepository.saveAuthorizedClient(
-          oAuth2AuthorizedClient, authentication, null, null);
+          newOAuth2AuthorizedClient, authentication, null, null);
     } else {
-      OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager =
+      final OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager =
           applicationContext.getBean(OAuth2AuthorizedClientManager.class);
-      oAuth2AuthorizedClient =
+      newOAuth2AuthorizedClient =
           oAuth2AuthorizedClientManager.authorize(
-              OAuth2AuthorizeRequest.withAuthorizedClient(oAuth2AuthorizedClient)
+              OAuth2AuthorizeRequest.withAuthorizedClient(loadedOAuth2AuthorizedClient)
                   .principal(authentication)
                   .build());
     }
 
     headers.put(
         "Authorization",
-        List.of("Bearer " + oAuth2AuthorizedClient.getAccessToken().getTokenValue()));
+        List.of("Bearer " + newOAuth2AuthorizedClient.getAccessToken().getTokenValue()));
   }
 
   @Override
