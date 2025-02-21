@@ -222,7 +222,8 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     if (pageParams != null) {
       query.setFirstResult(pageParams.getOffset());
       query.setMaxResults(
-          pageParams.getPageSize() + 1); // get extra relationship to determine if there is a nextPage
+          pageParams.getPageSize()
+              + 1); // get extra relationship to determine if there is a nextPage
     }
 
     return query.getResultList();

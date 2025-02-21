@@ -169,18 +169,7 @@ public class HibernateEventChangeLogStore {
                 })
             .toList();
 
-    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
-    if (eventChangeLogs.size() > pageParams.getPageSize()) {
-      return Page.withPrevAndNext(
-          eventChangeLogs.subList(0, pageParams.getPageSize()),
-          pageParams.getPage(),
-          pageParams.getPageSize(),
-          prevPage,
-          pageParams.getPage() + 1);
-    }
-
-    return Page.withPrevAndNext(
-        eventChangeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+    return new Page<>(eventChangeLogs, pageParams);
   }
 
   public void deleteEventChangeLog(DataElement dataElement) {
