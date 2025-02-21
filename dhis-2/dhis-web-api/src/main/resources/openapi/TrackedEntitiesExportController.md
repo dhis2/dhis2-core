@@ -226,7 +226,7 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
-Include deleted tracked entities, enrollments and events in the response.
+Include deleted tracked entities, enrollments, events and relationships in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
 
