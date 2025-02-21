@@ -30,9 +30,12 @@ package org.hisp.dhis.eventhook.targets.auth;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
+import java.util.HashMap;
 import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -46,7 +49,7 @@ class HttpBasicAuthSchemeTest extends AbstractAuthSchemeTest {
         new HttpBasicAuthScheme().setUsername("admin").setPassword("district");
 
     MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(null, headers, null);
+    auth.apply(mock(ApplicationContext.class), headers, new HashMap<>());
 
     assertTrue(headers.containsKey("Authorization"));
     assertFalse(headers.get("Authorization").isEmpty());

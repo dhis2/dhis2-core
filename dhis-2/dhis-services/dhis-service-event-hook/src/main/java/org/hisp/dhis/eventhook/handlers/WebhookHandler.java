@@ -70,6 +70,8 @@ public class WebhookHandler implements Handler {
     configure(this.restTemplate);
   }
 
+  // Exceptions thrown in this method cannot be handled in a meaningful way other than logging
+  @SuppressWarnings("java:S112")
   @Override
   public void run(EventHook eventHook, Event event, String payload) {
     HttpHeaders httpHeaders = new HttpHeaders();

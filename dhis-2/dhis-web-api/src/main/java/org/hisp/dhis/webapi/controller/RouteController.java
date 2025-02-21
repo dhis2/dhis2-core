@@ -35,6 +35,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -84,7 +85,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws Exception {
+      throws BadGatewayException, ForbiddenException, NotFoundException {
     return runWithSubpath(id, currentUser, request);
   }
 
@@ -101,7 +102,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws Exception {
+      throws NotFoundException, ForbiddenException, BadGatewayException {
 
     Route route = routeService.getRouteWithDecryptedAuth(id);
 

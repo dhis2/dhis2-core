@@ -30,9 +30,12 @@ package org.hisp.dhis.eventhook.targets.auth;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
+import java.util.HashMap;
 import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -47,7 +50,7 @@ class ApiTokenAuthSchemeTest extends AbstractAuthSchemeTest {
         new ApiTokenAuthScheme().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
 
     MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(null, headers, null);
+    auth.apply(mock(ApplicationContext.class), headers, new HashMap<>());
 
     assertTrue(headers.containsKey("Authorization"));
     assertFalse(headers.get("Authorization").isEmpty());

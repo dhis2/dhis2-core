@@ -48,6 +48,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
@@ -170,7 +171,7 @@ public class RouteService {
    */
   public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
-      throws Exception {
+      throws BadGatewayException {
 
     HttpHeaders headers = filterRequestHeaders(request);
     route.getHeaders().forEach(headers::add);
@@ -186,7 +187,12 @@ public class RouteService {
                     .addAll(Arrays.asList(value)));
 
     if (route.getAuth() != null) {
-      route.getAuth().apply(applicationContext, headers, queryParameters);
+      try {
+        route.getAuth().apply(applicationContext, headers, queryParameters);
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+        throw new BadGatewayException("An error occurred during authentication");
+      }
     }
 
     UriComponentsBuilder uriComponentsBuilder =
@@ -199,7 +205,7 @@ public class RouteService {
 
     if (subPath.isPresent()) {
       if (!route.allowsSubpaths()) {
-        throw new BadRequestException(
+        throw new BadGatewayException(
             String.format("Route '%s' does not allow sub-paths", route.getId()));
       }
       uriComponentsBuilder.path(subPath.get());
@@ -209,10 +215,16 @@ public class RouteService {
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     String targetUri = uriComponentsBuilder.toUriString();
 
-    Flux<DataBuffer> requestBodyFlux =
-        DataBufferUtils.read(
-                new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
-            .doOnNext(DataBufferUtils.releaseConsumer());
+    final Flux<DataBuffer> requestBodyFlux;
+    try {
+      requestBodyFlux =
+          DataBufferUtils.read(
+                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+              .doOnNext(DataBufferUtils.releaseConsumer());
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while reading the upstream response");
+    }
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
         webClient
             .method(httpMethod)
