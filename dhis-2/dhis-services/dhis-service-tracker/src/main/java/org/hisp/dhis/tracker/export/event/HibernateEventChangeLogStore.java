@@ -134,7 +134,8 @@ public class HibernateEventChangeLogStore {
     Query query = entityManager.createQuery(hql);
     query.setParameter("eventUid", event.getValue());
     query.setFirstResult(pageParams.getOffset());
-    query.setMaxResults(pageParams.getPageSize() + 1);
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra changeLog to determine if there is a nextPage
 
     if (filter != null) {
       query.setParameter("filterValue", filter.getValue().getFilter());

@@ -191,7 +191,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
     assertAll(
         () -> assertEquals(1, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
-        () -> assertHasNoMember(pager, "prevPage"),
+        () -> assertHasNoMember(pager, "prevPage", "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
@@ -218,6 +218,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
     assertAll(
         () -> assertEquals(2, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
+        () -> assertHasNoMember(pager, "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
@@ -260,7 +261,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
                 String.format(
                     "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())),
-        () -> assertHasNoMember(pager, "nextPage"));
+        () -> assertHasNoMember(pager, "nextPage", "total", "pageCount"));
   }
 
   @Test
@@ -279,8 +280,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
         () -> assertEquals(3, pagerObject.getPageSize()),
-        () -> assertHasNoMember(pagerObject, "prevPage"),
-        () -> assertHasNoMember(pagerObject, "nextPage"));
+        () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 
   private TrackerObjects fromJson(String path) throws IOException {
