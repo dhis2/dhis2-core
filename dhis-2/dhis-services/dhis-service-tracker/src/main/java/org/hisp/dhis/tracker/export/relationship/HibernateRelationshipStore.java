@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
@@ -147,11 +146,8 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   public Page<Relationship> getRelationships(
       @Nonnull final RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
-
-    return getPage(
-        pageParams,
-        relationshipsList(queryParams, pageParams),
-        () -> countRelationships(queryParams));
+    List<Relationship> relationships = relationshipsList(queryParams, pageParams);
+    return new Page<>(relationships, pageParams, () -> countRelationships(queryParams));
   }
 
   public List<Relationship> getRelationshipsByRelationshipKeys(
@@ -225,7 +221,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     if (pageParams != null) {
       query.setFirstResult(pageParams.getOffset());
-      query.setMaxResults(pageParams.getPageSize());
+      query.setMaxResults(
+          pageParams.getPageSize()
+              + 1); // get extra relationship to determine if there is a nextPage
     }
 
     return query.getResultList();
@@ -366,19 +364,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
                     ? builder.asc(root.get((String) order.getField()))
                     : builder.desc(root.get((String) order.getField())))
         .toList();
-  }
-
-  private Page<Relationship> getPage(
-      PageParams pageParams, List<Relationship> relationships, LongSupplier relationshipsCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          relationships,
-          pageParams.getPage(),
-          pageParams.getPageSize(),
-          relationshipsCount.getAsLong());
-    }
-
-    return Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
   }
 
   public Set<String> getOrderableFields() {
