@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -100,7 +99,7 @@ public class TrackerOwnershipController {
     UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
+        trackedEntityService.getTrackedEntity(trackedEntity),
         programService.getProgram(program.getValue()),
         organisationUnitService.getOrganisationUnit(orgUnitUid.getValue()));
     return ok("Ownership transferred");

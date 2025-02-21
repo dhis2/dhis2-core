@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,10 +133,10 @@ public interface TrackedEntityAttributeService {
    * Get the tracked entity attributes for given tracked entity type i.e. tracked entity type
    * attributes to which the current user must have data read access.
    */
-  Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(TrackedEntityType trackedEntityType);
+  Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(UID trackedEntityType);
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      UserDetails userDetails, List<Program> programs, List<TrackedEntityType> trackedEntityTypes);
+      UserDetails userDetails, List<Program> programs, List<UID> trackedEntityTypes);
 
   /**
    * Returns all {@link TrackedEntityAttribute} that are candidates for creating trigram indexes.

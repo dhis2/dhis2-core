@@ -105,9 +105,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
-    }
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Set<UID> trackedEntityAttributes = Collections.emptySet();
@@ -164,7 +161,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       throws NotFoundException {
     Set<TrackedEntityAttribute> attributes =
         trackedEntityAttributeService.getTrackedEntityTypeAttributes(
-            trackedEntity.getTrackedEntityType());
+            UID.of(trackedEntity.getTrackedEntityType()));
 
     if (attributes.isEmpty()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());

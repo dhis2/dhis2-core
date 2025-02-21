@@ -357,7 +357,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     validateUnsupportedParameter(
         request,
         "dimension",
@@ -376,7 +376,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     return fileResourceRequestHandler.handle(
         request,
         trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));

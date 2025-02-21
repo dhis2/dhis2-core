@@ -123,6 +123,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.save(original);
     manager.save(duplicate);
     program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
     program1 = createProgram('B');
     programService.addProgram(program);
     programService.addProgram(program1);
@@ -223,7 +224,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     assertEquals(
         DeduplicationStatus.MERGED,
         deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
-
+    manager.flush();
+    manager.clear();
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
             .getTrackedEntityChangeLog(

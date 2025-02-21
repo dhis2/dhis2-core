@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -243,7 +244,8 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
     List<Program> programs = programService.getAllPrograms();
     List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
 
-    return getAllUserReadableTrackedEntityAttributes(userDetails, programs, trackedEntityTypes);
+    return getAllUserReadableTrackedEntityAttributes(
+        userDetails, programs, trackedEntityTypes.stream().map(UID::of).toList());
   }
 
   @Override
@@ -255,8 +257,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(
-      TrackedEntityType trackedEntityType) {
+  public Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(UID trackedEntityType) {
     return getAllUserReadableTrackedEntityAttributes(
         CurrentUserUtil.getCurrentUserDetails(), List.of(), List.of(trackedEntityType));
   }
@@ -264,7 +265,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      UserDetails userDetails, List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
+      UserDetails userDetails, List<Program> programs, List<UID> trackedEntityTypes) {
     Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
     if (programs != null && !programs.isEmpty()) {
@@ -272,16 +273,17 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
           programAttributeStore.getAttributes(
               programs.stream()
                   .filter(program -> aclService.canDataRead(userDetails, program))
-                  .collect(toList())));
+                  .toList()));
     }
 
     if (trackedEntityTypes != null && !trackedEntityTypes.isEmpty()) {
       attributes.addAll(
           entityTypeAttributeStore.getAttributes(
               trackedEntityTypes.stream()
+                  .map(tet -> trackedEntityTypeService.getTrackedEntityType(tet.getValue()))
                   .filter(
                       trackedEntityType -> aclService.canDataRead(userDetails, trackedEntityType))
-                  .collect(toList())));
+                  .toList()));
     }
 
     return attributes;

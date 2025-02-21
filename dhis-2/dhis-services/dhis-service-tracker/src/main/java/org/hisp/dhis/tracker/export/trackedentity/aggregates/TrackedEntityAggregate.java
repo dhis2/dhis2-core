@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
@@ -157,67 +156,54 @@ public class TrackedEntityAggregate {
     /*
      * Async Fetch TrackedEntities by id
      */
-    final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
+    final Map<String, TrackedEntity> trackedEntities = trackedEntityStore.getTrackedEntities(ids);
 
     /*
      * Async fetch TrackedEntity Attributes by TrackedEntity id
      */
-    final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
-        supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
+    final Multimap<String, TrackedEntityAttributeValue> attributes =
+        trackedEntityStore.getAttributes(ids);
 
     /*
      * Async fetch Owned TE mapped to the provided program attributes by
      * TrackedEntity id
      */
-    final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
-        conditionalAsyncFetch(
-            user.isPresent(),
-            () -> trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL),
-            getPool());
+    final Multimap<String, String> ownedTeis =
+        trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL);
     /*
      * Execute all queries and merge the results
      */
-    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, ownedTeiAsync)
-        .thenApplyAsync(
-            fn -> {
-              Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
+    while (!allOf(enrollmentsAsync, programOwnersAsync).isDone()) {
+      ;
+    }
 
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-              Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
-              Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              Multimap<String, String> ownedTeis = ownedTeiAsync.join();
+    Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
+    Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
 
-              Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
+    Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
 
-              return teUidStream
-                  .map(
-                      uid -> {
-                        TrackedEntity te = trackedEntities.get(uid);
-                        te.setTrackedEntityAttributeValues(
-                            filterAttributes(
-                                attributes.get(uid),
-                                ownedTeis.get(uid),
-                                teAttributesCache.get(
-                                    "ALL_ATTRIBUTES",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByTrackedEntityTypes()),
-                                programTeAttributesCache.get(
-                                    "ATTRIBUTES_BY_PROGRAM",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByProgram()),
-                                ctx));
-                        te.setEnrollments(
-                            filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
-                        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                        return te;
-                      })
-                  .toList();
-            },
-            getPool())
-        .join();
+    return teUidStream
+        .map(
+            uid -> {
+              TrackedEntity te = trackedEntities.get(uid);
+              te.setTrackedEntityAttributeValues(
+                  filterAttributes(
+                      attributes.get(uid),
+                      ownedTeis.get(uid),
+                      teAttributesCache.get(
+                          "ALL_ATTRIBUTES",
+                          s ->
+                              trackedEntityAttributeService
+                                  .getTrackedEntityAttributesByTrackedEntityTypes()),
+                      programTeAttributesCache.get(
+                          "ATTRIBUTES_BY_PROGRAM",
+                          s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram()),
+                      ctx));
+              te.setEnrollments(filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
+              te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+              return te;
+            })
+        .toList();
   }
 
   /** Filter enrollments based on ownership and super user status. */

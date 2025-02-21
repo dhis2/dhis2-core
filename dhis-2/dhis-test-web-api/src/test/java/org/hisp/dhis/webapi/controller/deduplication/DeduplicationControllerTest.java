@@ -40,7 +40,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -48,17 +50,16 @@ import org.hisp.dhis.tracker.deduplication.MergeObject;
 import org.hisp.dhis.tracker.deduplication.MergeStrategy;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author luca@dhis2.org
  */
-@Transactional
-class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
+class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String ENDPOINT = "/" + "potentialDuplicates/";
 
   @Autowired private IdentifiableObjectManager dbmsManager;
@@ -84,12 +85,16 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     duplicate = createAndSaveTrackedEntity(orgUnit, trackedEntityType);
     TrackedEntity duplicate2 = createAndSaveTrackedEntity(orgUnit, trackedEntityType);
 
+    user = createAndAddUser("regular-user");
+    injectSecurityContextUser(getAdminUser());
+
     potentialDuplicate1 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate));
     save(potentialDuplicate1);
     potentialDuplicate2 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate2));
     save(potentialDuplicate2);
 
-    user = createAndAddUser("regular-user");
+    dbmsManager.flush();
+    dbmsManager.clear();
   }
 
   @Test
@@ -213,37 +218,20 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldThrowBadRequestExceptionWhenPutPotentialDuplicateAlreadyMerged() {
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(UID.of(origin), UID.of(duplicate));
-    potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
-    save(potentialDuplicate);
-
-    PUT(ENDPOINT + potentialDuplicate.getUid() + "?status=" + DeduplicationStatus.INVALID.name())
-        .content(HttpStatus.BAD_REQUEST);
-  }
-
-  @Test
   void shouldThrowBadRequestExceptionWhenPutPotentialDuplicateToMergedStatus() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
-
-    PUT(ENDPOINT + potentialDuplicate.getUid() + "?status=" + DeduplicationStatus.MERGED.name())
+    PUT(ENDPOINT + potentialDuplicate1.getUid() + "?status=" + DeduplicationStatus.MERGED.name())
         .content(HttpStatus.BAD_REQUEST);
   }
 
   @Test
   void shouldUpdatePotentialDuplicateWhenPotentialDuplicateExistsAndCorrectStatus() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
-
-    PUT(ENDPOINT + potentialDuplicate.getUid() + "?status=" + DeduplicationStatus.INVALID.name())
+    PUT(ENDPOINT + potentialDuplicate1.getUid() + "?status=" + DeduplicationStatus.INVALID.name())
         .content(HttpStatus.OK);
   }
 
   @Test
   void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists() {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
-
-    GET(ENDPOINT + potentialDuplicate.getUid()).content(HttpStatus.OK);
+    GET(ENDPOINT + potentialDuplicate1.getUid()).content(HttpStatus.OK);
   }
 
   @Test
@@ -253,24 +241,22 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldAutoMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
     MergeObject mergeObject = MergeObject.builder().build();
 
     POST(
-            ENDPOINT + "/" + potentialDuplicate.getUid() + "/merge",
+            ENDPOINT + "/" + potentialDuplicate1.getUid() + "/merge",
             objectMapper.writeValueAsString(mergeObject))
         .content(HttpStatus.OK);
   }
 
   @Test
   void shouldManualMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    PotentialDuplicate potentialDuplicate = potentialDuplicate(origin.getUid(), duplicate.getUid());
     MergeObject mergeObject = MergeObject.builder().build();
 
     POST(
             ENDPOINT
                 + "/"
-                + potentialDuplicate.getUid()
+                + potentialDuplicate1.getUid()
                 + "/merge?mergeStrategy="
                 + MergeStrategy.MANUAL.name(),
             objectMapper.writeValueAsString(mergeObject))
@@ -313,8 +299,8 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private PotentialDuplicate save(PotentialDuplicate potentialDuplicate) {
-    potentialDuplicate.setLastUpdatedByUserName("user");
-    potentialDuplicate.setCreatedByUserName("user");
+    potentialDuplicate.setLastUpdatedByUserName("regular-user");
+    potentialDuplicate.setCreatedByUserName("regular-user");
     dbmsManager.save(potentialDuplicate);
     dbmsManager.flush();
     return potentialDuplicate;
@@ -330,8 +316,12 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   private TrackedEntityType createAndSaveTrackedEntityType(char uniqueChar) {
     TrackedEntityType trackedEntityType = createTrackedEntityType(uniqueChar);
+    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     dbmsManager.save(trackedEntityType);
-
+    Program program = createProgram(uniqueChar);
+    program.setTrackedEntityType(trackedEntityType);
+    program.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    dbmsManager.save(program);
     return trackedEntityType;
   }
 }
