@@ -309,14 +309,12 @@ class CopyServiceTest extends TestBase {
 
   @Test
   void testCopyProgramFromUidCheckCategoryMappings() throws NotFoundException, ForbiddenException {
-    Set<ProgramCategoryMapping> mappings = original.getCategoryMappings();
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
     injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
-    Set<ProgramCategoryMapping> mappingsCopy = programCopy.getCategoryMappings();
 
     assertEquals(2, programCopy.getProgramAttributes().size());
     assertEquals(original.getCategoryMappings(), programCopy.getCategoryMappings());

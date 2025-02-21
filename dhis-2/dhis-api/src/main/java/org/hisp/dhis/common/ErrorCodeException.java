@@ -42,7 +42,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 public class ErrorCodeException extends RuntimeException {
   private final ErrorCode errorCode;
 
-  private final List<Object> args;
+  private final transient List<Object> args;
 
   /** Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors instead. */
   public ErrorCodeException(String message) {

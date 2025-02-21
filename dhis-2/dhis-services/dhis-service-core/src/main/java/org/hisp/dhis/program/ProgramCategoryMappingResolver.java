@@ -123,8 +123,8 @@ public class ProgramCategoryMappingResolver {
 
     Map<String, ProgramCategoryMapping> mappingMap =
         programIndicator.getProgram().getCategoryMappings().stream()
-            .collect(Collectors.toUnmodifiableMap(mapping -> mapping.getId(), mapping -> mapping));
-    Set<ProgramCategoryMapping> mappings = new HashSet();
+            .collect(Collectors.toUnmodifiableMap(ProgramCategoryMapping::getId, mapping -> mapping));
+    Set<ProgramCategoryMapping> mappings = new HashSet<>();
 
     for (String mappingId : programIndicator.getCategoryMappingIds()) {
       ProgramCategoryMapping mapping = mappingMap.get(mappingId);
@@ -189,7 +189,7 @@ public class ProgramCategoryMappingResolver {
         mapping.getOptionMappings().stream()
             .map(
                 optionMapping ->
-                    resolveOptionMapping(program, mapping, category, optionMapping, optionUidMap))
+                    resolveOptionMapping(program, mapping, optionMapping, optionUidMap))
             .collect(Collectors.toUnmodifiableSet());
     return mapping.toBuilder().category(category).optionMappings(optionMappings).build();
   }
@@ -201,7 +201,6 @@ public class ProgramCategoryMappingResolver {
   private ProgramCategoryOptionMapping resolveOptionMapping(
       Program program,
       ProgramCategoryMapping mapping,
-      Category category,
       ProgramCategoryOptionMapping optionMapping,
       Map<String, CategoryOption> optionUidMap) {
 
