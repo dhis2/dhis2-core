@@ -758,21 +758,24 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
-    Page<Event> firstPage = eventService.getEvents(operationParams, PageParams.single());
+    Page<String> firstPage =
+        eventService
+            .getEvents(operationParams, PageParams.single())
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, firstPage),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), uids(firstPage)));
+    assertEquals(new Page<>(List.of("D9PbzJY8bJM"), 1, 1, null, null, 2), firstPage, "first page");
 
-    Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 1, false));
+    Page<String> secondPage =
+        eventService
+            .getEvents(operationParams, new PageParams(2, 1, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second page is the last page",
-        () -> assertPage(2, 1, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), uids(secondPage)));
+    assertEquals(
+        new Page<>(List.of("pTzf9KYMk72"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
-    assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
+    Page<Event> thirdPage = eventService.getEvents(operationParams, new PageParams(3, 1, false));
+
+    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
 
   @Test
@@ -801,42 +804,29 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy("occurredDate", SortDirection.DESC)
             .build();
 
-    Page<Event> firstPage = eventService.getEvents(operationParams, new PageParams(1, 3, false));
+    Page<String> firstPage =
+        eventService
+            .getEvents(operationParams, new PageParams(1, 3, false))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 3, firstPage),
-        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), uids(firstPage)));
+    assertEquals(
+        new Page<>(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), 1, 3, null, null, 2),
+        firstPage,
+        "first page");
 
-    Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 3, false));
+    Page<String> secondPage =
+        eventService
+            .getEvents(operationParams, new PageParams(2, 3, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second page is the last page",
-        () -> assertPage(2, 3, secondPage),
-        () -> assertEquals(List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), uids(secondPage)));
+    assertEquals(
+        new Page<>(List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), 2, 3, 6L, 1, null),
+        secondPage,
+        "second (last) page");
 
-    assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
-  }
+    Page<Event> thirdPage = eventService.getEvents(operationParams, new PageParams(3, 3, true));
 
-  @Test
-  void shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException {
-    OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
-    Program program = get(Program.class, "iS7eutanDry");
-
-    EventOperationParams params =
-        eventParamsBuilder
-            .orgUnit(orgUnit)
-            .program(program)
-            .orderBy("occurredDate", SortDirection.DESC)
-            .build();
-
-    Page<Event> events = eventService.getEvents(params, new PageParams(1, 2, true));
-
-    assertAll(
-        "page with total counts",
-        () -> assertPage(1, 2, 6, events),
-        () -> assertEquals(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu"), uids(events)));
+    assertEquals(new Page<>(List.of(), 3, 3, 6L, 2, null), thirdPage, "past the last page");
   }
 
   @Test
