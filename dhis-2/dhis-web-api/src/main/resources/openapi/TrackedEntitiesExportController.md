@@ -202,7 +202,7 @@ valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.programStage`
 
-Define which programStage the `eventStatus`, `eventOccurredAfter` and `eventOccurredAfter` parameter should be applied to.
+Define which programStage the `eventStatus`, `eventOccurredBefore` and `eventOccurredAfter` parameters should be applied to.
 
 ### `*.parameter.TrackedEntityRequestParams.eventStatus`
 
