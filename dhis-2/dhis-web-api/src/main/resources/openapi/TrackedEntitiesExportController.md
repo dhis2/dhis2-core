@@ -209,7 +209,7 @@ Define which programStage the `eventStatus`, `eventOccurredBefore` and `eventOcc
 Get tracked entities that has at least one event with the given status. `eventStatus` must be specified together
 with `eventOccurredAfter` and `eventOccurredBefore`.
 
-Only return tracked entity instances that has at least one event in the specified status. See also
+Only return tracked entities that have at least one event in the specified status. See also
 `programStage`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
