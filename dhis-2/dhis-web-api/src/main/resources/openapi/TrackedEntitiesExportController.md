@@ -158,7 +158,7 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
-Get tracked entities that has at least one enrollment with an occurred date this date.
+Get tracked entities that have at least one enrollment with an occurred date after this date.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
