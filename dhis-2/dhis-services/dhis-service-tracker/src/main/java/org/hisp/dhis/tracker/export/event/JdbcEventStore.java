@@ -51,7 +51,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -134,8 +133,6 @@ class JdbcEventStore {
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
-
-  private static final String DOT_NAME = ".name)";
 
   private static final String SPACE = " ";
 
@@ -243,8 +240,7 @@ class JdbcEventStore {
 
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
-    LongSupplier eventCount = () -> getEventCount(queryParams);
-    return getPage(pageParams, events, eventCount);
+    return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
@@ -255,7 +251,9 @@ class JdbcEventStore {
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
     } else {
-      eventsByUid = new HashMap<>(pageParams.getPageSize());
+      eventsByUid =
+          new HashMap<>(
+              pageParams.getPageSize() + 1); // get extra event to determine if there is a nextPage
     }
     List<Event> events = new ArrayList<>();
 
@@ -265,187 +263,201 @@ class JdbcEventStore {
     TrackerIdSchemeParam dataElementIdScheme =
         queryParams.getIdSchemeParams().getDataElementIdScheme();
 
-    return jdbcTemplate.query(
-        sql,
-        mapSqlParameterSource,
-        resultSet -> {
-          Set<String> notes = new HashSet<>();
-          // data elements per event
-          Map<String, Set<String>> dataElementUids = new HashMap<>();
+    return Optional.ofNullable(
+            jdbcTemplate.query(
+                sql,
+                mapSqlParameterSource,
+                resultSet -> {
+                  Set<String> notes = new HashSet<>();
+                  // data elements per event
+                  Map<String, Set<String>> dataElementUids = new HashMap<>();
 
-          while (resultSet.next()) {
-            if (resultSet.getString(COLUMN_EVENT_UID) == null) {
-              continue;
-            }
+                  while (resultSet.next()) {
+                    if (resultSet.getString(COLUMN_EVENT_UID) == null) {
+                      continue;
+                    }
 
-            String eventUid = resultSet.getString(COLUMN_EVENT_UID);
+                    String eventUid = resultSet.getString(COLUMN_EVENT_UID);
 
-            Event event;
-            if (eventsByUid.containsKey(eventUid)) {
-              event = eventsByUid.get(eventUid);
-            } else {
-              event = new Event();
-              event.setId(resultSet.getLong(COLUMN_EVENT_ID));
-              event.setUid(eventUid);
-              eventsByUid.put(eventUid, event);
-              dataElementUids.put(eventUid, new HashSet<>());
+                    Event event;
+                    if (eventsByUid.containsKey(eventUid)) {
+                      event = eventsByUid.get(eventUid);
+                    } else {
+                      event = new Event();
+                      event.setId(resultSet.getLong(COLUMN_EVENT_ID));
+                      event.setUid(eventUid);
+                      eventsByUid.put(eventUid, event);
+                      dataElementUids.put(eventUid, new HashSet<>());
 
-              TrackedEntity te = new TrackedEntity();
-              te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
-              event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
+                      TrackedEntity te = new TrackedEntity();
+                      te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
+                      event.setStatus(
+                          EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
 
-              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-              Program program = new Program();
-              program.setUid(resultSet.getString(COLUMN_PROGRAM_UID));
-              program.setCode(resultSet.getString(COLUMN_PROGRAM_CODE));
-              program.setName(resultSet.getString(COLUMN_PROGRAM_NAME));
-              program.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_ATTRIBUTE_VALUES)));
-              program.setProgramType(programType);
+                      ProgramType programType =
+                          ProgramType.fromValue(resultSet.getString("p_type"));
+                      Program program = new Program();
+                      program.setUid(resultSet.getString(COLUMN_PROGRAM_UID));
+                      program.setCode(resultSet.getString(COLUMN_PROGRAM_CODE));
+                      program.setName(resultSet.getString(COLUMN_PROGRAM_NAME));
+                      program.setAttributeValues(
+                          AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_ATTRIBUTE_VALUES)));
+                      program.setProgramType(programType);
 
-              Enrollment enrollment = new Enrollment();
-              enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
-              enrollment.setProgram(program);
-              enrollment.setTrackedEntity(te);
+                      Enrollment enrollment = new Enrollment();
+                      enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
+                      enrollment.setProgram(program);
+                      enrollment.setTrackedEntity(te);
 
-              OrganisationUnit orgUnit = new OrganisationUnit();
-              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
-              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
-              orgUnit.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
-              event.setOrganisationUnit(orgUnit);
+                      OrganisationUnit orgUnit = new OrganisationUnit();
+                      orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+                      orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
+                      orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
+                      orgUnit.setAttributeValues(
+                          AttributeValues.of(
+                              resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
+                      event.setOrganisationUnit(orgUnit);
 
-              ProgramStage ps = new ProgramStage();
-              ps.setUid(resultSet.getString(COLUMN_PROGRAM_STAGE_UID));
-              ps.setCode(resultSet.getString(COLUMN_PROGRAM_STAGE_CODE));
-              ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
-              ps.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
-              event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
+                      ProgramStage ps = new ProgramStage();
+                      ps.setUid(resultSet.getString(COLUMN_PROGRAM_STAGE_UID));
+                      ps.setCode(resultSet.getString(COLUMN_PROGRAM_STAGE_CODE));
+                      ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
+                      ps.setAttributeValues(
+                          AttributeValues.of(
+                              resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
+                      event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
-              enrollment.setStatus(
-                  EnrollmentStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
-              enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
-              event.setEnrollment(enrollment);
-              event.setProgramStage(ps);
+                      enrollment.setStatus(
+                          EnrollmentStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
+                      enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
+                      event.setEnrollment(enrollment);
+                      event.setProgramStage(ps);
 
-              CategoryOptionCombo coc = new CategoryOptionCombo();
-              coc.setUid(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID));
-              coc.setCode(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE));
-              coc.setName(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME));
-              coc.setAttributeValues(
-                  AttributeValues.of(
-                      resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)));
+                      CategoryOptionCombo coc = new CategoryOptionCombo();
+                      coc.setUid(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID));
+                      coc.setCode(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE));
+                      coc.setName(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME));
+                      coc.setAttributeValues(
+                          AttributeValues.of(
+                              resultSet.getString(
+                                  COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)));
 
-              String cosString = resultSet.getString("co_values");
-              JsonMixed cosJson = JsonMixed.of(cosString);
-              JsonObject object = cosJson.asObject();
-              Set<CategoryOption> options = new HashSet<>(object.names().size());
-              for (String uid : object.names()) {
-                JsonObject categoryOptionJson = object.getObject(uid);
-                CategoryOption option = new CategoryOption();
-                option.setUid(uid);
-                option.setCode(categoryOptionJson.getString("code").string(""));
-                option.setName(categoryOptionJson.getString("name").string(""));
-                option.setAttributeValues(
-                    AttributeValues.of(categoryOptionJson.getObject("attributeValues").toJson()));
-                options.add(option);
-              }
-              coc.setCategoryOptions(options);
-              event.setAttributeOptionCombo(coc);
+                      String cosString = resultSet.getString("co_values");
+                      JsonMixed cosJson = JsonMixed.of(cosString);
+                      JsonObject object = cosJson.asObject();
+                      Set<CategoryOption> options = new HashSet<>(object.names().size());
+                      for (String uid : object.names()) {
+                        JsonObject categoryOptionJson = object.getObject(uid);
+                        CategoryOption option = new CategoryOption();
+                        option.setUid(uid);
+                        option.setCode(categoryOptionJson.getString("code").string(""));
+                        option.setName(categoryOptionJson.getString("name").string(""));
+                        option.setAttributeValues(
+                            AttributeValues.of(
+                                categoryOptionJson.getObject("attributeValues").toJson()));
+                        options.add(option);
+                      }
+                      coc.setCategoryOptions(options);
+                      event.setAttributeOptionCombo(coc);
 
-              event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
-              event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_SCHEDULED_DATE));
-              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
-              event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
-              event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
-              event.setCreatedByUserInfo(
-                  EventUtils.jsonToUserInfo(
-                      resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
-              event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
-              event.setLastUpdatedAtClient(
-                  resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
-              event.setLastUpdatedByUserInfo(
-                  EventUtils.jsonToUserInfo(
-                      resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
+                      event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
+                      event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_SCHEDULED_DATE));
+                      event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
+                      event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
+                      event.setCreatedAtClient(
+                          resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
+                      event.setCreatedByUserInfo(
+                          EventUtils.jsonToUserInfo(
+                              resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
+                      event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
+                      event.setLastUpdatedAtClient(
+                          resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
+                      event.setLastUpdatedByUserInfo(
+                          EventUtils.jsonToUserInfo(
+                              resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
 
-              event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
-              event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
+                      event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
+                      event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
 
-              if (resultSet.getObject("ev_geometry") != null) {
-                try {
-                  Geometry geom = new WKTReader().read(resultSet.getString("ev_geometry"));
+                      if (resultSet.getObject("ev_geometry") != null) {
+                        try {
+                          Geometry geom = new WKTReader().read(resultSet.getString("ev_geometry"));
 
-                  event.setGeometry(geom);
-                } catch (ParseException e) {
-                  log.error("Unable to read geometry for event: '{}'", event.getUid(), e);
-                }
-              }
+                          event.setGeometry(geom);
+                        } catch (ParseException e) {
+                          log.error("Unable to read geometry for event: '{}'", event.getUid(), e);
+                        }
+                      }
 
-              if (resultSet.getObject("user_assigned") != null) {
-                User eventUser = new User();
-                eventUser.setUid(resultSet.getString("user_assigned"));
-                eventUser.setUsername(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_USERNAME));
-                eventUser.setName(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
-                eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
-                eventUser.setSurname(resultSet.getString("user_assigned_surname"));
-                event.setAssignedUser(eventUser);
-              }
+                      if (resultSet.getObject("user_assigned") != null) {
+                        User eventUser = new User();
+                        eventUser.setUid(resultSet.getString("user_assigned"));
+                        eventUser.setUsername(
+                            resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_USERNAME));
+                        eventUser.setName(
+                            resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
+                        eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
+                        eventUser.setSurname(resultSet.getString("user_assigned_surname"));
+                        event.setAssignedUser(eventUser);
+                      }
 
-              if (TrackerIdScheme.UID == dataElementIdScheme.getIdScheme()
-                  && !StringUtils.isEmpty(resultSet.getString(COLUMN_EVENT_DATAVALUES))) {
-                event
-                    .getEventDataValues()
-                    .addAll(
-                        convertEventDataValueJsonIntoSet(
-                            resultSet.getString(COLUMN_EVENT_DATAVALUES)));
-              }
+                      if (TrackerIdScheme.UID == dataElementIdScheme.getIdScheme()
+                          && !StringUtils.isEmpty(resultSet.getString(COLUMN_EVENT_DATAVALUES))) {
+                        event
+                            .getEventDataValues()
+                            .addAll(
+                                convertEventDataValueJsonIntoSet(
+                                    resultSet.getString(COLUMN_EVENT_DATAVALUES)));
+                      }
 
-              events.add(event);
-            }
+                      events.add(event);
+                    }
 
-            if (TrackerIdScheme.UID != dataElementIdScheme.getIdScheme()) {
-              // We get one row per eventdatavalue for idSchemes other than UID due to the need to
-              // join on the dataelement table to get idScheme information. There can only be one
-              // data value per data element. The same data element can be in the result set
-              // multiple times if the event also has notes.
-              String dataElementUid = resultSet.getString("de_uid");
-              if (!dataElementUids.get(eventUid).contains(dataElementUid)) {
-                EventDataValue eventDataValue = parseEventDataValue(dataElementIdScheme, resultSet);
-                if (eventDataValue != null) {
-                  event.getEventDataValues().add(eventDataValue);
-                  dataElementUids.get(eventUid).add(dataElementUid);
-                }
-              }
-            }
+                    if (TrackerIdScheme.UID != dataElementIdScheme.getIdScheme()) {
+                      // We get one row per eventdatavalue for idSchemes other than UID due to the
+                      // need to
+                      // join on the dataelement table to get idScheme information. There can only
+                      // be one
+                      // data value per data element. The same data element can be in the result set
+                      // multiple times if the event also has notes.
+                      String dataElementUid = resultSet.getString("de_uid");
+                      if (!dataElementUids.get(eventUid).contains(dataElementUid)) {
+                        EventDataValue eventDataValue =
+                            parseEventDataValue(dataElementIdScheme, resultSet);
+                        if (eventDataValue != null) {
+                          event.getEventDataValues().add(eventDataValue);
+                          dataElementUids.get(eventUid).add(dataElementUid);
+                        }
+                      }
+                    }
 
-            if (resultSet.getString("note_text") != null
-                && !notes.contains(resultSet.getString("note_id"))) {
-              Note note = new Note();
-              note.setUid(resultSet.getString("note_uid"));
-              note.setNoteText(resultSet.getString("note_text"));
-              note.setCreated(resultSet.getTimestamp("note_created"));
-              note.setCreator(resultSet.getString("note_creator"));
+                    if (resultSet.getString("note_text") != null
+                        && !notes.contains(resultSet.getString("note_id"))) {
+                      Note note = new Note();
+                      note.setUid(resultSet.getString("note_uid"));
+                      note.setNoteText(resultSet.getString("note_text"));
+                      note.setCreated(resultSet.getTimestamp("note_created"));
+                      note.setCreator(resultSet.getString("note_creator"));
 
-              if (resultSet.getObject("note_user_id") != null) {
-                User noteLastUpdatedBy = new User();
-                noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
-                noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
-                noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
-                noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
-                noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
-                noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
-                note.setLastUpdatedBy(noteLastUpdatedBy);
-              }
+                      if (resultSet.getObject("note_user_id") != null) {
+                        User noteLastUpdatedBy = new User();
+                        noteLastUpdatedBy.setId(resultSet.getLong("note_user_id"));
+                        noteLastUpdatedBy.setCode(resultSet.getString("note_user_code"));
+                        noteLastUpdatedBy.setUid(resultSet.getString("note_user_uid"));
+                        noteLastUpdatedBy.setUsername(resultSet.getString("note_user_username"));
+                        noteLastUpdatedBy.setFirstName(resultSet.getString("note_user_firstname"));
+                        noteLastUpdatedBy.setSurname(resultSet.getString("note_user_surname"));
+                        note.setLastUpdatedBy(noteLastUpdatedBy);
+                      }
 
-              event.getNotes().add(note);
-              notes.add(resultSet.getString("note_id"));
-            }
-          }
+                      event.getNotes().add(note);
+                      notes.add(resultSet.getString("note_id"));
+                    }
+                  }
 
-          return events;
-        });
+                  return events;
+                }))
+        .orElse(List.of());
   }
 
   private EventDataValue parseEventDataValue(
@@ -504,15 +516,6 @@ class JdbcEventStore {
       default:
         return resultSet.getString("de_uid");
     }
-  }
-
-  private Page<Event> getPage(PageParams pageParams, List<Event> events, LongSupplier eventCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsLong());
-    }
-
-    return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
   }
 
   public Set<String> getOrderableFields() {
@@ -1502,7 +1505,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
-    return " limit " + pageParams.getPageSize() + " offset " + pageParams.getOffset() + " ";
+    // get extra event to determine if there is a nextPage
+    return " limit " + (pageParams.getPageSize() + 1) + " offset " + pageParams.getOffset() + " ";
   }
 
   private String getOrderQuery(EventQueryParams params) {
