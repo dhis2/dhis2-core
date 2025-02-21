@@ -123,7 +123,8 @@ public class ProgramCategoryMappingResolver {
 
     Map<String, ProgramCategoryMapping> mappingMap =
         programIndicator.getProgram().getCategoryMappings().stream()
-            .collect(Collectors.toUnmodifiableMap(ProgramCategoryMapping::getId, mapping -> mapping));
+            .collect(
+                Collectors.toUnmodifiableMap(ProgramCategoryMapping::getId, mapping -> mapping));
     Set<ProgramCategoryMapping> mappings = new HashSet<>();
 
     for (String mappingId : programIndicator.getCategoryMappingIds()) {

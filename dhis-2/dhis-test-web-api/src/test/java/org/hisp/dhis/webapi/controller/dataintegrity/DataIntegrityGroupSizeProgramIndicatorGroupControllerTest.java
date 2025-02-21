@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
