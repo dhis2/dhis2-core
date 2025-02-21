@@ -104,6 +104,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     // Validate that the user is not configured for external auth only
     //    checkExternalAuth(userDetails, username);
+    ////// SPRINGAUTHSERVER
 
     // If the user’s role requires 2FA enrollment but they haven’t set it up, throw an exception.
     checkTwoFactorEnrolment(userDetails);
