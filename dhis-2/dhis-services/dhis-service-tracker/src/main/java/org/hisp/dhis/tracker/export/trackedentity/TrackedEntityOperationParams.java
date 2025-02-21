@@ -41,7 +41,6 @@ import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -252,12 +251,7 @@ public class TrackedEntityOperationParams {
 
     public TrackedEntityOperationParamsBuilder filter(
         TrackedEntityAttribute attribute, List<QueryFilter> queryFilters) {
-      if (queryFilters.isEmpty()) {
-        this.filters$value =
-            Map.of(UID.of(attribute), List.of(new QueryFilter(QueryOperator.NNULL)));
-      } else {
-        this.filters$value = Map.of(UID.of(attribute), queryFilters);
-      }
+      this.filters$value = Map.of(UID.of(attribute), queryFilters);
       this.filters$set = true;
       return this;
     }
