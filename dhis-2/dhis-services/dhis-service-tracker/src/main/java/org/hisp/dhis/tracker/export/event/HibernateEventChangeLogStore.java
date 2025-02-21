@@ -134,7 +134,8 @@ public class HibernateEventChangeLogStore {
     Query query = entityManager.createQuery(hql);
     query.setParameter("eventUid", event.getValue());
     query.setFirstResult(pageParams.getOffset());
-    query.setMaxResults(pageParams.getPageSize() + 1);
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra changeLog to determine if there is a nextPage
 
     if (filter != null) {
       query.setParameter("filterValue", filter.getValue().getFilter());
@@ -169,18 +170,7 @@ public class HibernateEventChangeLogStore {
                 })
             .toList();
 
-    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
-    if (eventChangeLogs.size() > pageParams.getPageSize()) {
-      return Page.withPrevAndNext(
-          eventChangeLogs.subList(0, pageParams.getPageSize()),
-          pageParams.getPage(),
-          pageParams.getPageSize(),
-          prevPage,
-          pageParams.getPage() + 1);
-    }
-
-    return Page.withPrevAndNext(
-        eventChangeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+    return new Page<>(eventChangeLogs, pageParams);
   }
 
   public void deleteEventChangeLog(DataElement dataElement) {

@@ -51,7 +51,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -134,8 +133,6 @@ class JdbcEventStore {
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
-
-  private static final String DOT_NAME = ".name)";
 
   private static final String SPACE = " ";
 
@@ -243,8 +240,7 @@ class JdbcEventStore {
 
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
-    LongSupplier eventCount = () -> getEventCount(queryParams);
-    return getPage(pageParams, events, eventCount);
+    return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
@@ -255,7 +251,9 @@ class JdbcEventStore {
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
     } else {
-      eventsByUid = new HashMap<>(pageParams.getPageSize());
+      eventsByUid =
+          new HashMap<>(
+              pageParams.getPageSize() + 1); // get extra event to determine if there is a nextPage
     }
     List<Event> events = new ArrayList<>();
 
@@ -406,8 +404,10 @@ class JdbcEventStore {
             }
 
             if (TrackerIdScheme.UID != dataElementIdScheme.getIdScheme()) {
-              // We get one row per eventdatavalue for idSchemes other than UID due to the need to
-              // join on the dataelement table to get idScheme information. There can only be one
+              // We get one row per eventdatavalue for idSchemes other than UID due to the
+              // need to
+              // join on the dataelement table to get idScheme information. There can only
+              // be one
               // data value per data element. The same data element can be in the result set
               // multiple times if the event also has notes.
               String dataElementUid = resultSet.getString("de_uid");
@@ -504,15 +504,6 @@ class JdbcEventStore {
       default:
         return resultSet.getString("de_uid");
     }
-  }
-
-  private Page<Event> getPage(PageParams pageParams, List<Event> events, LongSupplier eventCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsLong());
-    }
-
-    return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
   }
 
   public Set<String> getOrderableFields() {
@@ -1502,7 +1493,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
-    return " limit " + pageParams.getPageSize() + " offset " + pageParams.getOffset() + " ";
+    // get extra event to determine if there is a nextPage
+    return " limit " + (pageParams.getPageSize() + 1) + " offset " + pageParams.getOffset() + " ";
   }
 
   private String getOrderQuery(EventQueryParams params) {
