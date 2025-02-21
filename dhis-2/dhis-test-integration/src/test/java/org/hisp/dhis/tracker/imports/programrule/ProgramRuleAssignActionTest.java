@@ -297,9 +297,9 @@ class ProgramRuleAssignActionTest extends TrackerTest {
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
 
-    assertNoErrors(importReport);
+    assertNoErrors(report);
   }
 
   private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
