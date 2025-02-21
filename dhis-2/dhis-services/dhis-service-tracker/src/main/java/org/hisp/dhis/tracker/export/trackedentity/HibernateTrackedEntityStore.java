@@ -861,15 +861,15 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
-      String teav_col = quote(filters.getKey().getUid()) + ".value";
+      String teavCol = quote(filters.getKey().getUid()) + ".value";
 
       for (QueryFilter queryFilter : filters.getValue()) {
         filterClause.append(whereAnd.whereAnd());
         if (queryFilter.getOperator().isNull()) {
-          filterClause.append(teav_col);
+          filterClause.append(teavCol);
           filterClause.append(" is null ");
         } else {
-          filterClause.append(teav_col);
+          filterClause.append(teavCol);
           filterClause.append(" is not null ");
         }
       }
