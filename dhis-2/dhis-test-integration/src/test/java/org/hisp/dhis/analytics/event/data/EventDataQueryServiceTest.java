@@ -513,7 +513,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
         dataQueryService.getCoordinateFields(
             toRequest(prA.getUid(), null, "eventgeometry", false)));
     assertEquals(
-        List.of(deC.getUid()),
+        List.of(deC.getUid() + "_geom"),
         dataQueryService.getCoordinateFields(toRequest(prA.getUid(), deC.getUid(), null, false)));
   }
 
@@ -548,7 +548,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
         dataQueryService.getCoordinateFields(
             toRequest(prA.getUid(), null, OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, false)));
     assertEquals(
-        List.of(deC.getUid()),
+        List.of(deC.getUid() + "_geom"),
         dataQueryService.getCoordinateFields(toRequest(prA.getUid(), deC.getUid(), null, false)));
   }
 
