@@ -1,11 +1,11 @@
 -- Support program indicator disaggregation
 
-ALTER TABLE program ADD COLUMN IF NOT EXISTS categorymappings jsonb default '{}'::jsonb;
+ALTER TABLE program ADD COLUMN IF NOT EXISTS categorymappings jsonb default '[]'::jsonb;
 
 ALTER TABLE programindicator ADD COLUMN IF NOT EXISTS aggregateexportdataelement varchar(255);
 ALTER TABLE programindicator ADD COLUMN IF NOT EXISTS categorycomboid bigint;
 ALTER TABLE programindicator ADD COLUMN IF NOT EXISTS attributecomboid bigint;
-ALTER TABLE programindicator ADD COLUMN IF NOT EXISTS categorymappingids jsonb default '{}'::jsonb;
+ALTER TABLE programindicator ADD COLUMN IF NOT EXISTS categorymappingids jsonb default '[]'::jsonb;
 ALTER TABLE programindicator DROP CONSTRAINT IF EXISTS fk_programindicator_categorycomboid;
 ALTER TABLE programindicator DROP CONSTRAINT IF EXISTS fk_programindicator_attributecomboid;
 ALTER TABLE programindicator
