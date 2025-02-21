@@ -35,22 +35,6 @@ public interface JsonPage extends JsonObject {
     return get("pager").as(JsonPager.class);
   }
 
-  default Integer getPage() {
-    return getNumber("page").integer();
-  }
-
-  default Integer getPageSize() {
-    return getNumber("pageSize").integer();
-  }
-
-  default Integer getTotal() {
-    return getNumber("total").integer();
-  }
-
-  default Integer getPageCount() {
-    return getNumber("pageCount").integer();
-  }
-
   interface JsonPager extends JsonObject {
     default Integer getPage() {
       return getNumber("page").integer();

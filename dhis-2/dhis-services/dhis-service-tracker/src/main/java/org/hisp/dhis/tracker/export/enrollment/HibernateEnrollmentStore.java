@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -111,28 +110,17 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     Query<Enrollment> query = getQuery(hql);
     query.setFirstResult(pageParams.getOffset());
-    query.setMaxResults(pageParams.getPageSize());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra enrollment to determine if there is a nextPage
+    List<Enrollment> enrollments = query.list();
 
-    LongSupplier enrollmentCount = () -> countEnrollments(params);
-    return getPage(pageParams, query.list(), enrollmentCount);
+    return new Page<>(enrollments, pageParams, () -> countEnrollments(params));
   }
 
   private long countEnrollments(EnrollmentQueryParams params) {
     String hql = buildCountEnrollmentHql(params);
-
     Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().longValue();
-  }
-
-  private Page<Enrollment> getPage(
-      PageParams pageParams, List<Enrollment> enrollments, LongSupplier enrollmentCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
-    }
-
-    return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());
+    return query.getSingleResult();
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {

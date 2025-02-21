@@ -155,7 +155,9 @@ class EventsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEvents(
-      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
+      EventRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
+      HttpServletRequest request)
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
@@ -179,7 +181,9 @@ class EventsExportController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(EVENTS, eventsPage.withItems(objectNodes)));
+          .body(
+              Page.withFullPager(
+                  EVENTS, eventsPage.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =

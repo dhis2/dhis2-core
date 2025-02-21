@@ -90,6 +90,23 @@ public class Page<T> {
     this.pager = new Pager(page, pageSize, null, null, prevPage, nextPage);
   }
 
+  /** Create a page with a pager without a total but with prev and next page links. */
+  private Page(
+      String key,
+      List<T> values,
+      int page,
+      int pageSize,
+      Long total,
+      String prevPage,
+      String nextPage) {
+    this.items.put(key, values);
+    Integer pageCount = null;
+    if (total != null) {
+      pageCount = (int) Math.ceil(total / (double) pageSize);
+    }
+    this.pager = new Pager(page, pageSize, total, pageCount, prevPage, nextPage);
+  }
+
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Pagination details will be serialized as well including totals only if {@link
@@ -115,6 +132,24 @@ public class Page<T> {
 
     return new Page<>(
         key, pager.getItems(), pager.getPage(), pager.getPageSize(), prevPage, nextPage);
+  }
+
+  /**
+   * Returns a page which will serialize the items into {@link #items} under given {@code key}.
+   * Previous and next page links will be generated based on the request if {@link
+   * org.hisp.dhis.tracker.Page#getPrevPage()} or next are not null. Total and page count will also
+   * be set if the pager has a total.
+   */
+  public static <T> Page<T> withFullPager(
+      String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
+    return new Page<>(
+        key,
+        pager.getItems(),
+        pager.getPage(),
+        pager.getPageSize(),
+        pager.getTotal(),
+        getPageLink(requestURL, pager.getPrevPage()),
+        getPageLink(requestURL, pager.getNextPage()));
   }
 
   /**
