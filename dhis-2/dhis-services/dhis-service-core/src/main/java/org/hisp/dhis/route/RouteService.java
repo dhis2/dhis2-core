@@ -216,18 +216,19 @@ public class RouteService {
         responseEntityFlux.getStatusCode());
   }
 
-  protected ResponseEntity<Flux<DataBuffer>> fetch(WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
+  protected ResponseEntity<Flux<DataBuffer>> fetch(
+      WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
     WebClient.ResponseSpec responseSpec =
-            requestHeadersSpec
-                    .retrieve()
-                    .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+        requestHeadersSpec
+            .retrieve()
+            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
 
     return responseSpec
-                    .toEntityFlux(DataBuffer.class)
-                    .onErrorReturn(
-                            throwable -> throwable.getCause() instanceof ReadTimeoutException,
-                            new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
-                    .block();
+        .toEntityFlux(DataBuffer.class)
+        .onErrorReturn(
+            throwable -> throwable.getCause() instanceof ReadTimeoutException,
+            new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+        .block();
   }
 
   protected String createTargetUri(
