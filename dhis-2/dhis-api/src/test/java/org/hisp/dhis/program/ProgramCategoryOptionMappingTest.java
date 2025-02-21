@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.program;
 
-import java.util.Arrays;
-import java.util.List;
-import lombok.Getter;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.category.CategoryOption;
+import org.junit.jupiter.api.Test;
 
 /**
- * Runtime exception which references an {@link ErrorCode}.
- *
- * @author Lars Helge Overland
+ * @author Jim Grace
  */
-@Getter
-public class ErrorCodeException extends RuntimeException {
-  private final ErrorCode errorCode;
+class ProgramCategoryOptionMappingTest {
 
-  private final List<Object> args;
+  private static final String OPTION_ID = "Wluthah6aeC";
 
-  /** Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors instead. */
-  public ErrorCodeException(String message) {
-    super(message);
-    this.errorCode = null;
-    this.args = null;
+  private static final CategoryOption OPTION = new CategoryOption("Option Name");
+
+  private static final String FILTER = "A filter";
+
+  @Test
+  void testSetGetOptionId() {
+    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
+    mapping.setOptionId(OPTION_ID);
+    assertEquals(OPTION_ID, mapping.getOptionId());
   }
 
-  /**
-   * Constructor.
-   *
-   * @param errorCode the {@link ErrorCode}.
-   */
-  public ErrorCodeException(ErrorCode errorCode) {
-    super(errorCode.getMessage());
-    this.errorCode = errorCode;
-    this.args = null;
+  @Test
+  void testSetGetOption() {
+    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
+    mapping.setOption(OPTION);
+    assertEquals(OPTION, mapping.getOption());
   }
 
-  /**
-   * Constructor.
-   *
-   * @param errorMessage the {@link ErrorMessage}.
-   */
-  public ErrorCodeException(ErrorMessage errorMessage) {
-    super(errorMessage.getMessage());
-    this.errorCode = errorMessage.getErrorCode();
-    this.args = null;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param errorCode the {@link ErrorCode}.
-   * @param args the message format arguments.
-   */
-  public ErrorCodeException(ErrorCode errorCode, Object... args) {
-    super(new ErrorMessage(errorCode, args).getMessage());
-    this.errorCode = errorCode;
-    this.args = Arrays.asList(args);
+  @Test
+  void testSetGetFilter() {
+    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
+    mapping.setFilter(FILTER);
+    assertEquals(FILTER, mapping.getFilter());
   }
 }

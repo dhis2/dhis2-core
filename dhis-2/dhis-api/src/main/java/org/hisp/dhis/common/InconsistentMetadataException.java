@@ -27,61 +27,21 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Arrays;
-import java.util.List;
-import lombok.Getter;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
- * Runtime exception which references an {@link ErrorCode}.
+ * Exception for inconsistent metadata, including metadata relationships.
  *
- * @author Lars Helge Overland
+ * @author Jim Grace
  */
-@Getter
-public class ErrorCodeException extends RuntimeException {
-  private final ErrorCode errorCode;
-
-  private final List<Object> args;
-
-  /** Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors instead. */
-  public ErrorCodeException(String message) {
-    super(message);
-    this.errorCode = null;
-    this.args = null;
-  }
-
+public class InconsistentMetadataException extends ErrorCodeException {
   /**
-   * Constructor.
-   *
-   * @param errorCode the {@link ErrorCode}.
-   */
-  public ErrorCodeException(ErrorCode errorCode) {
-    super(errorCode.getMessage());
-    this.errorCode = errorCode;
-    this.args = null;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param errorMessage the {@link ErrorMessage}.
-   */
-  public ErrorCodeException(ErrorMessage errorMessage) {
-    super(errorMessage.getMessage());
-    this.errorCode = errorMessage.getErrorCode();
-    this.args = null;
-  }
-
-  /**
-   * Constructor.
+   * Constructor. Sets the message based on the error code and arguments.
    *
    * @param errorCode the {@link ErrorCode}.
    * @param args the message format arguments.
    */
-  public ErrorCodeException(ErrorCode errorCode, Object... args) {
-    super(new ErrorMessage(errorCode, args).getMessage());
-    this.errorCode = errorCode;
-    this.args = Arrays.asList(args);
+  public InconsistentMetadataException(ErrorCode errorCode, Object... args) {
+    super(errorCode, args);
   }
 }
