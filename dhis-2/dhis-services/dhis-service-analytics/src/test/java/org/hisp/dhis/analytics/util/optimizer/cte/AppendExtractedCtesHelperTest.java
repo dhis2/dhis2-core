@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
 import static org.hisp.dhis.analytics.util.optimizer.cte.AppendExtractedCtesHelper.appendExtractedCtes;
 import static org.junit.jupiter.api.Assertions.assertEquals;

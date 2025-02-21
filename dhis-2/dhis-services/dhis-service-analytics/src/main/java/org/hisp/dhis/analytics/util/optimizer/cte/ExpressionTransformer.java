@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.analytics.util.optimizer.cte;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import net.sf.jsqlparser.expression.BinaryExpression;
+import net.sf.jsqlparser.expression.CaseExpression;
 import net.sf.jsqlparser.expression.CastExpression;
 import net.sf.jsqlparser.expression.DateValue;
 import net.sf.jsqlparser.expression.DoubleValue;
@@ -46,6 +47,7 @@ import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.TimeValue;
 import net.sf.jsqlparser.expression.TimestampValue;
+import net.sf.jsqlparser.expression.WhenClause;
 import net.sf.jsqlparser.expression.operators.arithmetic.Addition;
 import net.sf.jsqlparser.expression.operators.arithmetic.Division;
 import net.sf.jsqlparser.expression.operators.arithmetic.Modulo;
@@ -76,7 +78,6 @@ import org.hisp.dhis.analytics.util.optimizer.cte.transformer.SubSelectTransform
 
 @Getter
 public class ExpressionTransformer extends ExpressionVisitorAdapter {
-  private final Map<SubSelect, FoundSubSelect> extractedSubSelects = new LinkedHashMap<>();
   private Expression currentTransformedExpression;
   private final SubSelectTransformer subSelectTransformer;
   private final FunctionTransformer functionTransformer;
@@ -175,34 +176,107 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
   }
 
   @Override
-  public void visit(Parenthesis parenthesis) {
-    parenthesis.getExpression().accept(this);
-    Expression transformedExpr = currentTransformedExpression;
+  public void visit(OrExpression expr) {
+    Expression leftExpr = expr.getLeftExpression();
+    Expression rightExpr = expr.getRightExpression();
 
-    currentTransformedExpression = new Parenthesis(transformedExpr);
-  }
+    // Transform left side
+    leftExpr.accept(this);
+    Expression transformedLeft = currentTransformedExpression;
+    // Ensure left side is double-parenthesized
+    transformedLeft =
+        new Parenthesis(
+            transformedLeft instanceof Parenthesis
+                ? transformedLeft
+                : new Parenthesis(transformedLeft));
 
-  // Logical Operators
-  @Override
-  public void visit(AndExpression andExpression) {
-    handleBinaryExpression(andExpression);
-  }
+    // Transform right side
+    rightExpr.accept(this);
+    Expression transformedRight = currentTransformedExpression;
+    // Ensure right side is double-parenthesized
+    transformedRight =
+        new Parenthesis(
+            transformedRight instanceof Parenthesis
+                ? transformedRight
+                : new Parenthesis(transformedRight));
 
-  @Override
-  public void visit(OrExpression orExpression) {
-    handleBinaryExpression(orExpression);
+    currentTransformedExpression = new OrExpression(transformedLeft, transformedRight);
   }
 
   @Override
   public void visit(CastExpression cast) {
-    cast.getLeftExpression().accept(this);
-    Expression transformedExpr = currentTransformedExpression;
 
+    // Get the inner expression
+    Expression innerExpr = cast.getLeftExpression();
+    innerExpr.accept(this);
+    Expression transformedInner = currentTransformedExpression;
+
+    // Create new cast with the same type but transformed inner expression
     CastExpression newCast = new CastExpression();
-    newCast.setLeftExpression(transformedExpr);
+    newCast.setLeftExpression(transformedInner);
     newCast.setType(cast.getType());
 
     currentTransformedExpression = newCast;
+  }
+
+  @Override
+  public void visit(CaseExpression caseExpression) {
+
+    // Preserve the original CASE expression structure
+    Expression switchExp = caseExpression.getSwitchExpression();
+    if (switchExp != null) {
+      switchExp.accept(this);
+      switchExp = currentTransformedExpression;
+    }
+
+    List<WhenClause> transformedWhenClauses = new ArrayList<>();
+    for (WhenClause whenClause : caseExpression.getWhenClauses()) {
+      whenClause.getWhenExpression().accept(this);
+      Expression transformedWhen = currentTransformedExpression;
+      whenClause.getThenExpression().accept(this);
+      Expression transformedThen = currentTransformedExpression;
+
+      WhenClause newWhenClause = new WhenClause();
+      newWhenClause.setWhenExpression(transformedWhen);
+      newWhenClause.setThenExpression(transformedThen);
+      transformedWhenClauses.add(newWhenClause);
+    }
+
+    Expression elseExpression = caseExpression.getElseExpression();
+    if (elseExpression != null) {
+      elseExpression.accept(this);
+      elseExpression = currentTransformedExpression;
+    }
+
+    CaseExpression transformedCase = new CaseExpression();
+    transformedCase.setSwitchExpression(switchExp);
+    transformedCase.setWhenClauses(transformedWhenClauses);
+    transformedCase.setElseExpression(elseExpression);
+
+    currentTransformedExpression = transformedCase;
+  }
+
+  @Override
+  public void visit(AndExpression expr) {
+    Expression leftExpr = expr.getLeftExpression();
+    Expression rightExpr = expr.getRightExpression();
+
+    leftExpr.accept(this);
+    Expression transformedLeft = currentTransformedExpression;
+
+    rightExpr.accept(this);
+    Expression transformedRight = currentTransformedExpression;
+
+    currentTransformedExpression = new AndExpression(transformedLeft, transformedRight);
+  }
+
+  @Override
+  public void visit(Parenthesis parenthesis) {
+    Expression inner = parenthesis.getExpression();
+    inner.accept(this);
+    Expression transformedInner = currentTransformedExpression;
+
+    currentTransformedExpression = new Parenthesis(transformedInner);
   }
 
   @Override

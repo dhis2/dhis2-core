@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
+import net.sf.jsqlparser.expression.CaseExpression;
 import net.sf.jsqlparser.expression.CastExpression;
 import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
@@ -50,6 +51,7 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.NotExpression;
 import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.WhenClause;
 import net.sf.jsqlparser.expression.operators.arithmetic.Addition;
 import net.sf.jsqlparser.expression.operators.arithmetic.Division;
 import net.sf.jsqlparser.expression.operators.arithmetic.Multiplication;
@@ -71,7 +73,6 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
-import org.hisp.dhis.analytics.util.optimizer.cte.ExpressionTransformer;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -571,26 +572,37 @@ class ExpressionTransformerTest {
       expr.accept(transformer);
       Expression result = transformer.getTransformedExpression();
 
-      // Assert the parenthesis wrapper
+      // Assert the outer parenthesis
       assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in parentheses");
-      Parenthesis paren = (Parenthesis) result;
+      Parenthesis outerParen = (Parenthesis) result;
 
       // Assert the OR expression inside the parentheses
       assertInstanceOf(
-          OrExpression.class, paren.getExpression(), "Expression inside parentheses should be OR");
-      OrExpression or = (OrExpression) paren.getExpression();
+          OrExpression.class,
+          outerParen.getExpression(),
+          "Expression inside parentheses should be OR");
+      OrExpression or = (OrExpression) outerParen.getExpression();
 
-      // Assert the left side (IS NULL)
-      assertInstanceOf(
-          IsNullExpression.class, or.getLeftExpression(), "Left side should be IS NULL expression");
-      IsNullExpression isNull = (IsNullExpression) or.getLeftExpression();
+      // Navigate through all levels of parentheses on the left side
+      Expression leftSide = or.getLeftExpression();
+      while (leftSide instanceof Parenthesis) {
+        leftSide = ((Parenthesis) leftSide).getExpression();
+      }
+
+      // Navigate through all levels of parentheses on the right side
+      Expression rightSide = or.getRightExpression();
+      while (rightSide instanceof Parenthesis) {
+        rightSide = ((Parenthesis) rightSide).getExpression();
+      }
+
+      // Assert the actual expressions
+      assertInstanceOf(IsNullExpression.class, leftSide, "Expression should resolve to IS NULL");
+      IsNullExpression isNull = (IsNullExpression) leftSide;
       assertEquals(
           "col1", isNull.getLeftExpression().toString(), "IS NULL should be checking col1");
 
-      // Assert the right side (!=)
-      assertInstanceOf(
-          NotEqualsTo.class, or.getRightExpression(), "Right side should be NOT EQUALS expression");
-      NotEqualsTo notEquals = (NotEqualsTo) or.getRightExpression();
+      assertInstanceOf(NotEqualsTo.class, rightSide, "Expression should resolve to NOT EQUALS");
+      NotEqualsTo notEquals = (NotEqualsTo) rightSide;
       assertEquals(
           "col2", notEquals.getLeftExpression().toString(), "NOT EQUALS should be comparing col2");
       assertEquals(
@@ -613,35 +625,38 @@ class ExpressionTransformerTest {
       expr.accept(transformer);
       Expression result = transformer.getTransformedExpression();
 
-      // Assert the structure
+      // Handle potential outer parentheses
+      while (result instanceof Parenthesis) {
+        result = ((Parenthesis) result).getExpression();
+      }
+
+      // Assert the OR structure
       assertInstanceOf(OrExpression.class, result, "Top level expression should be OR");
       OrExpression or = (OrExpression) result;
 
-      // Check left side of OR
+      // Navigate through left side parentheses to find AND
       Expression leftExpr = or.getLeftExpression();
-      assertInstanceOf(
-          Parenthesis.class, leftExpr, "Left side of OR should be wrapped in parentheses");
-      assertInstanceOf(
-          AndExpression.class,
-          ((Parenthesis) leftExpr).getExpression(),
-          "Inside left parentheses should be AND expression");
+      while (leftExpr instanceof Parenthesis) {
+        leftExpr = ((Parenthesis) leftExpr).getExpression();
+      }
+      assertInstanceOf(AndExpression.class, leftExpr, "Left side should resolve to AND expression");
 
-      // Check right side of OR
+      // Navigate through right side parentheses to find AND
       Expression rightExpr = or.getRightExpression();
+      while (rightExpr instanceof Parenthesis) {
+        rightExpr = ((Parenthesis) rightExpr).getExpression();
+      }
       assertInstanceOf(
-          Parenthesis.class, rightExpr, "Right side of OR should be wrapped in parentheses");
-      assertInstanceOf(
-          AndExpression.class,
-          ((Parenthesis) rightExpr).getExpression(),
-          "Inside right parentheses should be AND expression");
+          AndExpression.class, rightExpr, "Right side should resolve to AND expression");
 
-      AndExpression leftAnd = (AndExpression) ((Parenthesis) leftExpr).getExpression();
+      // Check the actual conditions
+      AndExpression leftAnd = (AndExpression) leftExpr;
       assertInstanceOf(
           GreaterThan.class, leftAnd.getLeftExpression(), "First condition should be greater than");
       assertInstanceOf(
           EqualsTo.class, leftAnd.getRightExpression(), "Second condition should be equals");
 
-      AndExpression rightAnd = (AndExpression) ((Parenthesis) rightExpr).getExpression();
+      AndExpression rightAnd = (AndExpression) rightExpr;
       assertInstanceOf(
           IsNullExpression.class,
           rightAnd.getLeftExpression(),
@@ -713,39 +728,36 @@ class ExpressionTransformerTest {
       assertInstanceOf(Parenthesis.class, result, "Result should be wrapped in outer parentheses");
       Parenthesis outerParen = (Parenthesis) result;
 
-      // Assert the OR expression inside outer parentheses
-      assertInstanceOf(
-          OrExpression.class,
-          outerParen.getExpression(),
-          "Expression inside outer parentheses should be OR");
-      OrExpression or = (OrExpression) outerParen.getExpression();
+      // Assert OR expression inside outer parentheses
+      Expression innerExpr = outerParen.getExpression();
+      assertInstanceOf(OrExpression.class, innerExpr, "Inner expression should be OR");
+      OrExpression or = (OrExpression) innerExpr;
 
-      // Assert left side of OR (first AND expression)
-      assertInstanceOf(
-          Parenthesis.class, or.getLeftExpression(), "Left side of OR should be parenthesized");
-      Parenthesis leftParen = (Parenthesis) or.getLeftExpression();
-      assertInstanceOf(
-          AndExpression.class,
-          leftParen.getExpression(),
-          "Expression inside left parentheses should be AND");
+      // Get the left and right sides of the OR
+      Expression leftSide = or.getLeftExpression();
+      Expression rightSide = or.getRightExpression();
 
-      // Assert right side of OR (second AND expression)
-      assertInstanceOf(
-          Parenthesis.class, or.getRightExpression(), "Right side of OR should be parenthesized");
-      Parenthesis rightParen = (Parenthesis) or.getRightExpression();
-      assertInstanceOf(
-          AndExpression.class,
-          rightParen.getExpression(),
-          "Expression inside right parentheses should be AND");
+      // Navigate through the parentheses to get to the AND expressions
+      while (leftSide instanceof Parenthesis) {
+        leftSide = ((Parenthesis) leftSide).getExpression();
+      }
+      while (rightSide instanceof Parenthesis) {
+        rightSide = ((Parenthesis) rightSide).getExpression();
+      }
 
-      // Optionally verify the conditions inside each AND
-      AndExpression leftAnd = (AndExpression) leftParen.getExpression();
+      // Now we should have the AND expressions
+      assertInstanceOf(AndExpression.class, leftSide, "Left side should resolve to AND expression");
+      assertInstanceOf(
+          AndExpression.class, rightSide, "Right side should resolve to AND expression");
+
+      // Verify the conditions inside each AND
+      AndExpression leftAnd = (AndExpression) leftSide;
       assertInstanceOf(
           GreaterThan.class, leftAnd.getLeftExpression(), "First condition should be greater than");
       assertInstanceOf(
           MinorThan.class, leftAnd.getRightExpression(), "Second condition should be less than");
 
-      AndExpression rightAnd = (AndExpression) rightParen.getExpression();
+      AndExpression rightAnd = (AndExpression) rightSide;
       assertInstanceOf(
           EqualsTo.class, rightAnd.getLeftExpression(), "Third condition should be equals");
       assertInstanceOf(
@@ -1645,26 +1657,24 @@ class ExpressionTransformerTest {
       void testIfConditionFunction() throws JSQLParserException {
         String sql =
             """
-              SELECT CASE
-                  WHEN (SELECT "condition_value"
-                       FROM events
-                       WHERE events.enrollment = subax.enrollment
-                       AND "condition_value" IS NOT NULL
-                       AND ps = 'stage1'
-                       ORDER BY occurreddate DESC
-                       LIMIT 1) = 'true'
-                  THEN 1
-                  ELSE 0
-              END""";
+                    SELECT CASE
+                        WHEN (SELECT "condition_value"
+                             FROM events
+                             WHERE events.enrollment = subax.enrollment
+                             AND "condition_value" IS NOT NULL
+                             AND ps = 'stage1'
+                             ORDER BY occurreddate DESC
+                             LIMIT 1) = 'true'
+                        THEN 1
+                        ELSE 0
+                    END""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
         Expression result = transformer.getTransformedExpression();
 
-        assertInstanceOf(LongValue.class, result, "Result should be a LongValue (0 or 1)");
-        assertInstanceOf(LongValue.class, result, "Result should be a LongValue (0 or 1)");
-        // We can't know the exact value, so let's avoid asserting the precise value. We assert it
-        // IS a LongValue
+        // Assert the result is still a CASE expression
+        assertInstanceOf(CaseExpression.class, result, "Result should be a CASE expression");
 
         // Verify that the subselect "condition_value" was captured in the transformer
         Optional<Map.Entry<SubSelect, FoundSubSelect>> foundSubSelect =
@@ -1678,6 +1688,18 @@ class ExpressionTransformerTest {
             "last_value_conditionvalue",
             foundSubSelect.get().getValue().name(),
             "Should be captured as last_value_conditionvalue pattern");
+
+        // Verify the CASE expression structure
+        CaseExpression caseExpr = (CaseExpression) result;
+        WhenClause whenClause = caseExpr.getWhenClauses().get(0);
+        assertInstanceOf(
+            EqualsTo.class,
+            whenClause.getWhenExpression(),
+            "When expression should be an equals comparison");
+        assertInstanceOf(
+            LongValue.class, whenClause.getThenExpression(), "Then expression should be 1");
+        assertInstanceOf(
+            LongValue.class, caseExpr.getElseExpression(), "Else expression should be 0");
       }
     }
   }

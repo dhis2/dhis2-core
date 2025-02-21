@@ -50,6 +50,7 @@ public class CteOptimizationPipeline {
   }
 
   public String optimize(String sql) {
+
     Select statement = (Select) parser.parse(sql);
     if (statement == null) {
       return sql; // TODO throw exception?

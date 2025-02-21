@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util.vis;
+package org.hisp.dhis.analytics.util.optimizer.cte.matcher;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,25 +33,24 @@ import java.util.Optional;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
-import org.hisp.dhis.analytics.util.optimizer.cte.matcher.DataElementCountMatcher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class SubSelectMatchersTest {
+class DataElementCountMatcherTest {
 
   @Test
   void shouldMatchValidDataElementCountPattern() throws Exception {
     // given
     String sql =
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-                AND "fCXKBdc27Bt" = 1
-                AND ps = 'EPEcjy3FWmI'
-            """;
+                    SELECT count("fCXKBdc27Bt")
+                    FROM analytics_event_ur1edk5oe2n
+                    WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND "fCXKBdc27Bt" IS NOT NULL
+                        AND "fCXKBdc27Bt" = 1
+                        AND ps = 'EPEcjy3FWmI'
+                    """;
     SubSelect subSelect = createSubSelect(sql);
 
     // when
@@ -75,49 +74,49 @@ class SubSelectMatchersTest {
       strings = {
         // Missing count function
         """
-            SELECT "fCXKBdc27Bt"
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-                AND "fCXKBdc27Bt" = 1
-            """,
+                        SELECT "fCXKBdc27Bt"
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                            AND "fCXKBdc27Bt" IS NOT NULL
+                            AND "fCXKBdc27Bt" = 1
+                        """,
         // Wrong table name
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM wrong_table
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-                AND "fCXKBdc27Bt" = 1
-            """,
+                        SELECT count("fCXKBdc27Bt")
+                        FROM wrong_table
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                            AND "fCXKBdc27Bt" IS NOT NULL
+                            AND "fCXKBdc27Bt" = 1
+                        """,
         // Missing enrollment condition
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE "fCXKBdc27Bt" IS NOT NULL
-                AND "fCXKBdc27Bt" = 1
-            """,
+                        SELECT count("fCXKBdc27Bt")
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE "fCXKBdc27Bt" IS NOT NULL
+                            AND "fCXKBdc27Bt" = 1
+                        """,
         // Missing IS NOT NULL condition
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" = 1
-            """,
+                        SELECT count("fCXKBdc27Bt")
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                            AND "fCXKBdc27Bt" = 1
+                        """,
         // Missing value comparison
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-            """,
+                        SELECT count("fCXKBdc27Bt")
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                            AND "fCXKBdc27Bt" IS NOT NULL
+                        """,
         // Empty count parameter
         """
-            SELECT count()
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-                AND "fCXKBdc27Bt" = 1
-            """
+                        SELECT count()
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                            AND "fCXKBdc27Bt" IS NOT NULL
+                            AND "fCXKBdc27Bt" = 1
+                        """
       })
   void shouldNotMatchInvalidPatterns(String sql) throws Exception {
     // given
@@ -135,13 +134,13 @@ class SubSelectMatchersTest {
     // given
     String sql =
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE ps = 'EPEcjy3FWmI'
-                AND "fCXKBdc27Bt" = 1
-                AND analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-            """;
+                    SELECT count("fCXKBdc27Bt")
+                    FROM analytics_event_ur1edk5oe2n
+                    WHERE ps = 'EPEcjy3FWmI'
+                        AND "fCXKBdc27Bt" = 1
+                        AND analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND "fCXKBdc27Bt" IS NOT NULL
+                    """;
     SubSelect subSelect = createSubSelect(sql);
 
     // when
@@ -157,13 +156,13 @@ class SubSelectMatchersTest {
     // given
     String sql =
         """
-            SELECT count("different123")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "different123" IS NOT NULL
-                AND "different123" = 1
-                AND ps = 'EPEcjy3FWmI'
-            """;
+                    SELECT count("different123")
+                    FROM analytics_event_ur1edk5oe2n
+                    WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND "different123" IS NOT NULL
+                        AND "different123" = 1
+                        AND ps = 'EPEcjy3FWmI'
+                    """;
     SubSelect subSelect = createSubSelect(sql);
 
     // when
@@ -180,13 +179,13 @@ class SubSelectMatchersTest {
     // given
     String sql =
         """
-            SELECT count("fCXKBdc27Bt")
-            FROM analytics_event_ur1edk5oe2n
-            WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "fCXKBdc27Bt" IS NOT NULL
-                AND "fCXKBdc27Bt" = 1
-                AND ps = 'DifferentStage'
-            """;
+                    SELECT count("fCXKBdc27Bt")
+                    FROM analytics_event_ur1edk5oe2n
+                    WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND "fCXKBdc27Bt" IS NOT NULL
+                        AND "fCXKBdc27Bt" = 1
+                        AND ps = 'DifferentStage'
+                    """;
     SubSelect subSelect = createSubSelect(sql);
 
     // when
@@ -250,12 +249,12 @@ class SubSelectMatchersTest {
     // given
     String sql =
         """
-        SELECT count("fCXKBdc27Bt")
-        FROM analytics_event_ur1edk5oe2n
-        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-            AND "fCXKBdc27Bt" IS NOT NULL
-            AND "fCXKBdc27Bt" = 1
-        """;
+                SELECT count("fCXKBdc27Bt")
+                FROM analytics_event_ur1edk5oe2n
+                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                    AND "fCXKBdc27Bt" IS NOT NULL
+                    AND "fCXKBdc27Bt" = 1
+                """;
     SubSelect subSelect = createSubSelect(sql);
 
     // when
