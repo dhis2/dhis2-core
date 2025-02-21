@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -56,11 +57,16 @@ public class Page<T> {
     return new Page<>(List.of(), 0, 0, 0L, null, null);
   }
 
-  public Page(@Nonnull List<T> items, @Nonnull PageParams pageParams, @Nonnull LongSupplier total) {
+  public Page(@Nonnull List<T> items, @Nonnull PageParams pageParams) {
+    this(items, pageParams, null);
+  }
+
+  public Page(
+      @Nonnull List<T> items, @Nonnull PageParams pageParams, @CheckForNull LongSupplier total) {
     this.page = pageParams.getPage();
     this.pageSize = pageParams.getPageSize();
 
-    if (pageParams.isPageTotal()) {
+    if (pageParams.isPageTotal() && total != null) {
       this.total = total.getAsLong();
     } else {
       this.total = null;

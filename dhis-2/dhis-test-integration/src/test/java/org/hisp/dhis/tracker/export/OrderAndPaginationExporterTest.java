@@ -1421,68 +1421,26 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     RelationshipOperationParams params =
         RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
 
-    Page<Relationship> firstPage =
-        relationshipService.getRelationships(params, PageParams.single());
+    Page<String> firstPage =
+        relationshipService
+            .getRelationships(params, PageParams.single())
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, firstPage),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
+    assertEquals(
+        new Page<>(List.of(expectedOnPage1), 1, 1, null, null, 2), firstPage, "first page");
 
-    Page<Relationship> secondPage =
-        relationshipService.getRelationships(params, new PageParams(2, 1, false));
+    Page<String> secondPage =
+        relationshipService
+            .getRelationships(params, new PageParams(2, 1, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, secondPage),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
-
-    Page<Relationship> thirdPage =
-        relationshipService.getRelationships(params, new PageParams(3, 1, false));
-
-    assertIsEmpty(thirdPage.getItems());
-  }
-
-  @Test
-  void shouldReturnPaginatedRelationshipsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    // relationships can only be ordered by created date which is not under our control during
-    // testing
-    // pagination is tested using default order by primary key desc. We thus need to get the
-    // expected order of the pages beforehand.
-    Relationship oLT07jKRu9e = get(Relationship.class, "oLT07jKRu9e");
-    Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
-    List<String> expected =
-        Stream.of(oLT07jKRu9e, yZxjxJli9mO)
-            .sorted(Comparator.comparing(Relationship::getId).reversed()) // reversed = desc
-            .map(Relationship::getUid)
-            .toList();
-    String expectedOnPage1 = expected.get(0);
-    String expectedOnPage2 = expected.get(1);
-
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
-
-    Page<Relationship> firstPage =
-        relationshipService.getRelationships(params, new PageParams(1, 1, true));
-
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, 2, firstPage),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
-
-    Page<Relationship> secondPage =
-        relationshipService.getRelationships(params, new PageParams(2, 1, true));
-
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, 2, secondPage),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
+    assertEquals(
+        new Page<>(List.of(expectedOnPage2), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Relationship> thirdPage =
         relationshipService.getRelationships(params, new PageParams(3, 1, true));
 
-    assertIsEmpty(thirdPage.getItems());
+    assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }
 
   @Test

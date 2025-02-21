@@ -251,7 +251,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(1, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
-        () -> assertHasNoMember(pager, "prevPage"),
+        () -> assertHasNoMember(pager, "prevPage", "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
@@ -277,6 +277,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(2, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
+        () -> assertHasNoMember(pager, "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
@@ -314,7 +315,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
                 4,
                 1,
                 String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
-        () -> assertHasNoMember(pager, "nextPage"));
+        () -> assertHasNoMember(pager, "nextPage", "total", "pageCount"));
   }
 
   @Test
@@ -333,8 +334,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
         () -> assertEquals(5, pagerObject.getPageSize()),
-        () -> assertHasNoMember(pagerObject, "prevPage"),
-        () -> assertHasNoMember(pagerObject, "nextPage"));
+        () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 
   private TrackedEntity trackedEntity() {
