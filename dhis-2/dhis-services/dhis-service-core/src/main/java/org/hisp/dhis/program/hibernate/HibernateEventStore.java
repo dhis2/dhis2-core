@@ -28,13 +28,8 @@
 package org.hisp.dhis.program.hibernate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -62,17 +57,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Event>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Event postProcessObject(Event event) {
-    return (event == null || event.isDeleted()) ? null : event;
   }
 
   @Override

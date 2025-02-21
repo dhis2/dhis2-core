@@ -69,7 +69,7 @@ public class DefaultJpaQueryParser implements QueryParser {
 
     List<String> mentions = new ArrayList<>();
     for (String filter : filters) {
-      String[] split = filter.split(":");
+      String[] split = rewriteFilter(filter).split(":");
 
       if (split.length < 2) {
         throw new QueryParserException("Invalid filter => " + filter);
@@ -94,6 +94,12 @@ public class DefaultJpaQueryParser implements QueryParser {
       }
     }
     return query;
+  }
+
+  private static String rewriteFilter(String filter) {
+    if (filter.startsWith("attributeValues.attribute.id:eq:"))
+      return filter.substring(filter.lastIndexOf(':') + 1) + ":!null";
+    return filter;
   }
 
   private void handleIdentifiablePath(

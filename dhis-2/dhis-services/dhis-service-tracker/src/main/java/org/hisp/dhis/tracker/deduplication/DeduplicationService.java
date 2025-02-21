@@ -38,8 +38,6 @@ public interface DeduplicationService {
 
   PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid);
 
-  int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
-
   boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
 
   List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria);

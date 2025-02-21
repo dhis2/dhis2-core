@@ -29,6 +29,8 @@ package org.hisp.dhis.support.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -40,6 +42,11 @@ public class ServiceConfig {
   @Bean
   public RestTemplate restTemplate() {
     return new RestTemplate();
+  }
+
+  @Bean
+  public ClientHttpConnector clientHttpConnector() {
+    return new ReactorClientHttpConnector();
   }
 
   @Bean

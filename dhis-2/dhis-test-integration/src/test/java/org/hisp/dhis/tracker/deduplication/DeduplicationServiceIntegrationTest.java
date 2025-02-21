@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
@@ -212,26 +211,6 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(2, list.size());
     assertTrue(list.contains(potentialDuplicate));
     assertFalse(list.contains(potentialDuplicate1));
-  }
-
-  @Test
-  void testCountPotentialDuplicates() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
-    PotentialDuplicate potentialDuplicate1 =
-        new PotentialDuplicate(TRACKED_ENTITY_C, TRACKED_ENTITY_D);
-    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-    deduplicationService.addPotentialDuplicate(potentialDuplicate);
-    deduplicationService.addPotentialDuplicate(potentialDuplicate1);
-    criteria.setStatus(DeduplicationStatus.ALL);
-    assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
-    criteria.setStatus(DeduplicationStatus.OPEN);
-    criteria.setTrackedEntities(Arrays.asList(TRACKED_ENTITY_A, TRACKED_ENTITY_C));
-    assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
-    criteria.setTrackedEntities(Collections.singletonList(TRACKED_ENTITY_C));
-    assertEquals(1, deduplicationService.countPotentialDuplicates(criteria));
-    criteria.setStatus(DeduplicationStatus.INVALID);
-    assertEquals(0, deduplicationService.countPotentialDuplicates(criteria));
   }
 
   @Test

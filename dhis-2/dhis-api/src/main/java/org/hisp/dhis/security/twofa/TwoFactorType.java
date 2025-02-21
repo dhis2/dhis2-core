@@ -32,8 +32,12 @@ import lombok.Getter;
 @Getter
 public enum TwoFactorType {
   NOT_ENABLED,
+
+  // Enabled states
   TOTP_ENABLED,
   EMAIL_ENABLED,
+
+  // Enrolling states
   ENROLLING_TOTP, // User is in the process of enrolling in TOTP 2FA
   ENROLLING_EMAIL; // User is in the process of enrolling in email-based 2FA
 

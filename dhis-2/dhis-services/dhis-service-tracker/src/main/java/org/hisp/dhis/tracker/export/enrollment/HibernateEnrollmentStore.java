@@ -34,14 +34,10 @@ import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,9 +55,9 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -114,7 +110,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     String hql = buildEnrollmentHql(params).getFullQuery();
 
     Query<Enrollment> query = getQuery(hql);
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
+    query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(pageParams.getPageSize());
 
     LongSupplier enrollmentCount = () -> countEnrollments(params);
@@ -294,17 +290,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
           .filter(Objects::nonNull)
           .collect(Collectors.joining(" "));
     }
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Enrollment>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Enrollment postProcessObject(Enrollment enrollment) {
-    return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
   }
 
   public Set<String> getOrderableFields() {

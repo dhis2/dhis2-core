@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationBounds;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateFilter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationBounds;
 
 import java.util.List;
 import java.util.Set;

@@ -81,7 +81,7 @@ public class NotifierJobProgress implements JobProgress {
     notifier.notify(
         jobId,
         NotificationLevel.INFO,
-        message,
+        isLoggedInfo() ? message : "",
         false,
         NotificationDataType.PARAMETERS,
         getJobParameterData());
@@ -90,7 +90,7 @@ public class NotifierJobProgress implements JobProgress {
   @Override
   public void completedProcess(String summary, Object... args) {
     // Note: intentionally no log level check - always log last
-    notifier.notify(jobId, format(summary, args), true);
+    notifier.notify(jobId, isLoggedInfo() ? format(summary, args) : "", true);
   }
 
   @Override

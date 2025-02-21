@@ -118,7 +118,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
     ProgramNotificationTemplateOperationParams result = mapper.map(requestParams);
 
     assertNotNull(result);
-    assertTrue(result.isPaged());
+    assertTrue(result.isPaging());
     assertEquals(1, result.getPage());
     assertEquals(50, result.getPageSize());
   }
@@ -135,7 +135,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
     ProgramNotificationTemplateOperationParams result = mapper.map(requestParams);
 
     assertNotNull(result);
-    assertTrue(result.isPaged());
+    assertTrue(result.isPaging());
     assertEquals(1, result.getPage());
     assertEquals(10, result.getPageSize());
   }

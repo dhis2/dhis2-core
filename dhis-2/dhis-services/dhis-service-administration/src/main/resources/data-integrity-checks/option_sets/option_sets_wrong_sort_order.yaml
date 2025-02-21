@@ -30,43 +30,54 @@ description: Option sets with possibly wrong sort order.
 section: Option sets
 section_order: 3
 summary_sql: >-
-    WITH option_sets_wrong_sort_order as (
-    SELECT DISTINCT optionsetid, sort_order, row_number FROM (
-    SELECT optionsetid,sort_order, row_number()
-    over ( PARTITION BY optionsetid ORDER BY sort_order) as row_number
-    from optionvalue
-    ) as foo where sort_order != row_number
+    WITH option_sets_wrong_sort_order AS (
+    SELECT DISTINCT optionsetid, sort_order, expected_order
+    FROM (
+    SELECT
+    optionsetid,
+    sort_order,
+    row_number() OVER (PARTITION BY optionsetid ORDER BY sort_order)
+    + (MIN(sort_order) OVER (PARTITION BY optionsetid) - 1) AS expected_order
+    FROM optionvalue
+    ) AS foo
+    WHERE sort_order != expected_order
     ORDER BY optionsetid, sort_order
     )
-    SELECT COUNT(*) as value,
-    100 * (SELECT COUNT(*) from (SELECT DISTINCT optionsetid
-    from option_sets_wrong_sort_order ) as bar) /
-    NULLIF( (SELECT COUNT(*) from optionset), 0)  as percent
+    SELECT
+    COUNT(*) AS value,
+    100 * (SELECT COUNT(*) FROM (SELECT DISTINCT optionsetid FROM option_sets_wrong_sort_order) AS bar) /
+    NULLIF((SELECT COUNT(*) FROM optionset), 0) AS percent
     FROM option_sets_wrong_sort_order;
 details_sql: >-
-    SELECT a.uid, a.name, b.sort_order || ' != ' || b.row_number as comment from
-    optionset a
+    SELECT
+    a.uid,
+    a.name,
+    b.sort_order || ' != ' || b.expected_order AS comment
+    FROM optionset a
     INNER JOIN (
-    SELECT DISTINCT optionsetid, sort_order, row_number FROM (
-    SELECT optionsetid,sort_order, row_number()
-    over ( PARTITION BY optionsetid ORDER BY sort_order) as row_number
-    from optionvalue
-    ) as foo where sort_order != row_number
+    SELECT DISTINCT optionsetid, sort_order, expected_order
+    FROM (
+    SELECT
+    optionsetid,
+    sort_order,
+    row_number() OVER (PARTITION BY optionsetid ORDER BY sort_order)
+    + (MIN(sort_order) OVER (PARTITION BY optionsetid) - 1) AS expected_order
+    FROM optionvalue
+    ) AS foo
+    WHERE sort_order != expected_order
     ORDER BY optionsetid, sort_order
-    ) b  on a.optionsetid = b.optionsetid;
+    ) b ON a.optionsetid = b.optionsetid;
 details_id_type: optionSets
-severity: SEVERE
+severity: INFO
 introduction: >
-    Option sets contain options which should be ordered sequentially. The sort_order property should always start 
-    with 1 and have a sequential sequence. If there are three options in the option set, then the sort order
-    should be 1,2,3. 
-    
-    In certain circumstances, options may be deleted from an option set, and the sort
-    order may become corrupted. This may lead to a situation where it becomes impossible to update the
-    option set from the maintenance app, and may lead to problems when attempting to using the option
-    set in the data entry app.
+    In previous versions of DHIS2, it was important that the sort order of option values in an option set
+    not contain any gaps. As an example, consider an option set with options which have sort orders  of 1, 2, 4, 5. 
+    This option set appears to have a gap in the sort order, as the sort order 3 is missing.
+    In current versions of DHIS2, the sort order of options 
+    in an option set is not of particular importance, but for reasons of tidiness, you may want to
+    ensure that the sort order is correct. This check identifies any option sets where the sort
+    contains gaps.
 recommendation: >
-    If it is possible to open the option set in the maintenance app, you can resort the option set,
-    which should correct the problem. Another possible solution is to directly update the sort_order
-    property of in the `optionset` table in the database, ensuring that a valid sequence is present
-    for all options in the option set.
+    To correct the sort order of an option set, you can open the option set in the maintenance app and
+    resort the option set in the user interface to correct the sort order. Save the option set, and the
+    sort order will be corrected.

@@ -50,6 +50,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author maikel arabori
  */
 class ResultProcessor {
+
   private static final String PROGRAM_NAME = "program_name";
 
   private static final String PROGRAM_UID = "program_uid";
@@ -59,6 +60,19 @@ class ResultProcessor {
   private static final String EXPRESSION = "expression";
 
   private static final String OPTION_SET_UID = "optionset_uid";
+  public static final String ITEM_NAME = "item_name";
+  public static final String OPTION_VALUE_NAME = "optionvalue_name";
+  public static final String ITEM_TYPE = "item_type";
+  public static final String ITEM_SHORTNAME = "item_shortname";
+  public static final String PROGRAM_SHORTNAME = "program_shortname";
+  public static final String ITEM_UID = "item_uid";
+  public static final String ITEM_VALUE_TYPE = "item_valuetype";
+  public static final String OPTION_VALUE_UID = "optionvalue_uid";
+  public static final String I18N_THIRD_NAME = "i18n_third_name";
+  public static final String I18N_SECOND_NAME = "i18n_second_name";
+  public static final String I18N_FIRST_NAME = "i18n_first_name";
+  public static final String I18N_FIRST_SHORTNAME = "i18n_first_shortname";
+  public static final String I18N_SECOND_SHORTNAME = "i18n_second_shortname";
 
   private ResultProcessor() {}
 
@@ -83,6 +97,8 @@ class ResultProcessor {
               .code(rowSet.getString(ITEM_CODE))
               .dimensionItemType(getItemType(rowSet))
               .programId(rowSet.getString(PROGRAM_UID))
+              .programDataElementId(getProgramDataElementId(rowSet))
+              .programAttributeId(getProgramAttributeId(rowSet))
               .valueType(getValueType(rowSet))
               .expression(rowSet.getString(EXPRESSION))
               .optionSetId(rowSet.getString(OPTION_SET_UID))
@@ -92,91 +108,117 @@ class ResultProcessor {
     return dataItems;
   }
 
+  private static String getProgramDataElementId(SqlRowSet rowSet) {
+    if (isProgramDataElement(rowSet)) {
+      return getProgramItemId(rowSet);
+    }
+
+    return null;
+  }
+
+  private static String getProgramItemId(SqlRowSet rowSet) {
+    String uid = rowSet.getString(ITEM_UID);
+
+    if (isNotBlank(rowSet.getString(PROGRAM_UID))) {
+      uid = rowSet.getString(PROGRAM_UID) + "." + uid;
+    }
+
+    return uid;
+  }
+
+  private static String getProgramAttributeId(SqlRowSet rowSet) {
+    if (isProgramAttribute(rowSet)) {
+      return getProgramItemId(rowSet);
+    }
+
+    return null;
+  }
+
   private static DimensionItemType getItemType(SqlRowSet rowSet) {
-    if (isNotBlank(rowSet.getString("item_type"))) {
-      return valueOf(rowSet.getString("item_type"));
+    if (isNotBlank(rowSet.getString(ITEM_TYPE))) {
+      return valueOf(rowSet.getString(ITEM_TYPE));
     }
 
     return null;
   }
 
   private static ValueType getValueType(SqlRowSet rowSet) {
-    if (isNotBlank(rowSet.getString("item_valuetype"))) {
-      return fromString(rowSet.getString("item_valuetype"));
+    if (isNotBlank(rowSet.getString(ITEM_VALUE_TYPE))) {
+      return fromString(rowSet.getString(ITEM_VALUE_TYPE));
     }
 
     return null;
   }
 
   private static String getUid(SqlRowSet rowSet) {
-    String uid = rowSet.getString("item_uid");
-    String itemType = rowSet.getString("item_type");
+    String uid = rowSet.getString(ITEM_UID);
+    String itemType = rowSet.getString(ITEM_TYPE);
 
     boolean ignoreProgramUid =
-        PROGRAM_INDICATOR.name().equalsIgnoreCase(rowSet.getString("item_type"));
+        PROGRAM_INDICATOR.name().equalsIgnoreCase(rowSet.getString(ITEM_TYPE));
 
     if (isNotBlank(rowSet.getString(PROGRAM_UID)) && !ignoreProgramUid) {
       uid = rowSet.getString(PROGRAM_UID) + "." + uid;
     }
 
     if (hasOptionUid(itemType)) {
-      uid += "." + rowSet.getString("optionvalue_uid");
+      uid += "." + rowSet.getString(OPTION_VALUE_UID);
     }
 
     return uid;
   }
 
   private static String getDisplayShortName(SqlRowSet rowSet) {
-    String itemType = rowSet.getString("item_type");
+    String itemType = rowSet.getString(ITEM_TYPE);
 
     if (hasOptionUid(itemType)) {
       return String.format(
           "%s (%s, %s)",
-          trimToEmpty(rowSet.getString("i18n_third_name")),
-          trimToEmpty(rowSet.getString("i18n_second_name")),
-          trimToEmpty(rowSet.getString("i18n_first_name")));
+          trimToEmpty(rowSet.getString(I18N_THIRD_NAME)),
+          trimToEmpty(rowSet.getString(I18N_SECOND_NAME)),
+          trimToEmpty(rowSet.getString(I18N_FIRST_NAME)));
     } else if (isNotBlank(rowSet.getString(PROGRAM_NAME))) {
-      return trimToEmpty(rowSet.getString("i18n_first_shortname"))
+      return trimToEmpty(rowSet.getString(I18N_FIRST_SHORTNAME))
           + SPACE
-          + trimToEmpty(rowSet.getString("i18n_second_shortname"));
+          + trimToEmpty(rowSet.getString(I18N_SECOND_SHORTNAME));
     } else {
-      return trimToEmpty(rowSet.getString("i18n_first_shortname"));
+      return trimToEmpty(rowSet.getString(I18N_FIRST_SHORTNAME));
     }
   }
 
   private static String getShortName(SqlRowSet rowSet) {
-    String itemType = rowSet.getString("item_type");
+    String itemType = rowSet.getString(ITEM_TYPE);
 
     if (hasOptionUid(itemType)) {
       return String.format(
           "%s (%s, %s)",
-          trimToEmpty(rowSet.getString("optionvalue_name")),
-          trimToEmpty(rowSet.getString("item_shortname")),
-          trimToEmpty(rowSet.getString("program_shortname")));
-    } else if (isNotBlank(rowSet.getString("program_shortname"))) {
-      return trimToEmpty(rowSet.getString("program_shortname"))
+          trimToEmpty(rowSet.getString(OPTION_VALUE_NAME)),
+          trimToEmpty(rowSet.getString(ITEM_SHORTNAME)),
+          trimToEmpty(rowSet.getString(PROGRAM_SHORTNAME)));
+    } else if (isNotBlank(rowSet.getString(PROGRAM_SHORTNAME))) {
+      return trimToEmpty(rowSet.getString(PROGRAM_SHORTNAME))
           + SPACE
-          + trimToEmpty(rowSet.getString("item_shortname"));
+          + trimToEmpty(rowSet.getString(ITEM_SHORTNAME));
     } else {
-      return trimToEmpty(rowSet.getString("item_shortname"));
+      return trimToEmpty(rowSet.getString(ITEM_SHORTNAME));
     }
   }
 
   private static String getDisplayName(SqlRowSet rowSet) {
-    String itemType = rowSet.getString("item_type");
+    String itemType = rowSet.getString(ITEM_TYPE);
 
     if (hasOptionUid(itemType)) {
       return String.format(
           "%s (%s, %s)",
-          trimToEmpty(rowSet.getString("i18n_third_name")),
-          trimToEmpty(rowSet.getString("i18n_second_name")),
-          trimToEmpty(rowSet.getString("i18n_first_name")));
+          trimToEmpty(rowSet.getString(I18N_THIRD_NAME)),
+          trimToEmpty(rowSet.getString(I18N_SECOND_NAME)),
+          trimToEmpty(rowSet.getString(I18N_FIRST_NAME)));
     } else if (isNotBlank(rowSet.getString(PROGRAM_NAME))) {
-      return trimToEmpty(rowSet.getString("i18n_first_name"))
+      return trimToEmpty(rowSet.getString(I18N_FIRST_NAME))
           + SPACE
-          + trimToEmpty(rowSet.getString("i18n_second_name"));
+          + trimToEmpty(rowSet.getString(I18N_SECOND_NAME));
     } else {
-      return trimToEmpty(rowSet.getString("i18n_first_name"));
+      return trimToEmpty(rowSet.getString(I18N_FIRST_NAME));
     }
   }
 
@@ -185,21 +227,30 @@ class ResultProcessor {
         || PROGRAM_DATA_ELEMENT_OPTION.name().equalsIgnoreCase(itemType);
   }
 
+  private static boolean isProgramAttribute(SqlRowSet rowSet) {
+    DimensionItemType itemType = getItemType(rowSet);
+    return PROGRAM_ATTRIBUTE_OPTION == itemType;
+  }
+
+  private static boolean isProgramDataElement(SqlRowSet rowSet) {
+    return PROGRAM_DATA_ELEMENT_OPTION == getItemType(rowSet);
+  }
+
   private static String getName(SqlRowSet rowSet) {
-    String itemType = rowSet.getString("item_type");
+    String itemType = rowSet.getString(ITEM_TYPE);
 
     if (hasOptionUid(itemType)) {
       return String.format(
           "%s (%s, %s)",
-          trimToEmpty(rowSet.getString("optionvalue_name")),
-          trimToEmpty(rowSet.getString("item_name")),
+          trimToEmpty(rowSet.getString(OPTION_VALUE_NAME)),
+          trimToEmpty(rowSet.getString(ITEM_NAME)),
           trimToEmpty(rowSet.getString(PROGRAM_NAME)));
     } else if (isNotBlank(rowSet.getString(PROGRAM_NAME))) {
       return trimToEmpty(rowSet.getString(PROGRAM_NAME))
           + SPACE
-          + trimToEmpty(rowSet.getString("item_name"));
+          + trimToEmpty(rowSet.getString(ITEM_NAME));
     } else {
-      return trimToEmpty(rowSet.getString("item_name"));
+      return trimToEmpty(rowSet.getString(ITEM_NAME));
     }
   }
 }

@@ -25,17 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.common.OpenApi;
 
 /**
- * {@link PageRequestParams} represent the HTTP request parameters that configure whether it is
- * paginated or not. Tracker supports disabling pagination via {@code skipPaging=true} and enabling
- * pagination via {@code skipPaging=false} and any of the other pagination related parameters.
- * Enabling and disabling parameters are mutually exclusive. We can thus not set default values in
- * our {@code RequestParams} classes as we would not be able to discern a user supplied parameter
- * value from a default value.
+ * {@link PageRequestParams} represent the HTTP request parameters that configure whether the
+ * response should be paginated and if so how. Tracker supports disabling pagination via {@code
+ * paging=false} and enabling pagination via {@code paging=true}. Enabling and disabling parameters
+ * are mutually exclusive. We can thus not set default values in our {@code RequestParams} classes
+ * as we would not be able to discern a user supplied parameter value from a default value.
  *
  * <p>{@code totalPages=true} is only supported on paginated responses.
  */
@@ -48,45 +47,11 @@ public interface PageRequestParams {
   Integer getPageSize();
 
   /** Indicates whether to include the total number of items and pages in the paginated response. */
-  Boolean getTotalPages();
-
-  /**
-   * Indicates whether to return all items {@code skipPaging=true} or a page of items {@code
-   * skipPaging=false}.
-   *
-   * @deprecated use {@link #getPaging} instead
-   */
-  @Deprecated(since = "2.41")
-  Boolean getSkipPaging();
+  boolean isTotalPages();
 
   /**
    * Indicates whether to return all items {@code paging=false} or a page of items {@code
    * paging=true}.
    */
-  Boolean getPaging();
-
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   *
-   * <p>Note: this assumes {@link #getPaging()} and {@link #getSkipPaging()} have been validated.
-   * Preference is given to {@link #getPaging()} as the other parameter is deprecated.
-   */
-  @OpenApi.Ignore
-  default boolean isPaged() {
-    if (getPaging() != null) {
-      return Boolean.TRUE.equals(getPaging());
-    }
-
-    if (getSkipPaging() != null) {
-      return Boolean.FALSE.equals(getSkipPaging());
-    }
-
-    return true;
-  }
-
-  /** Indicates whether to include the total number of items and pages in the paginated response. */
-  @OpenApi.Ignore
-  default boolean isPageTotal() {
-    return Boolean.TRUE.equals(getTotalPages());
-  }
+  boolean isPaging();
 }

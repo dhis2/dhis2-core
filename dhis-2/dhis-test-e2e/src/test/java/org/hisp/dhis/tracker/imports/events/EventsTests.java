@@ -230,7 +230,7 @@ class EventsTests extends TrackerApiTest {
 
     QueryParamsBuilder builder =
         new QueryParamsBuilder()
-            .add("ouMode", "DESCENDANTS")
+            .add("orgUnitMode", "DESCENDANTS")
             .add("orgUnit", OU_ID_2)
             .add("program", programId);
     trackerImportExportActions
