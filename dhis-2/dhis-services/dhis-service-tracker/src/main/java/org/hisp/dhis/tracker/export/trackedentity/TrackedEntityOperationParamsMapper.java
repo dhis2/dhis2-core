@@ -288,9 +288,9 @@ class TrackedEntityOperationParamsMapper {
         validateSearchableAttributes(params, searchableAttributeIds);
       }
 
-      int maxTeiLimit = getMaxTeiLimit(params);
-      checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
-      params.setMaxTeLimit(maxTeiLimit);
+      int maxTeLimit = getMaxTeLimit(params);
+      checkIfMaxTeLimitIsReached(params, maxTeLimit);
+      params.setMaxTeLimit(maxTeLimit);
     }
   }
 
@@ -334,7 +334,7 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private int getMaxTeiLimit(TrackedEntityQueryParams params) {
+  private int getMaxTeLimit(TrackedEntityQueryParams params) {
     int maxTeiLimit = 0;
     if (params.hasTrackedEntityType()) {
       maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
@@ -413,11 +413,11 @@ class TrackedEntityOperationParamsMapper {
                 < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
   }
 
-  private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
-    if (maxTeiLimit > 0) {
+  private void checkIfMaxTeLimitIsReached(TrackedEntityQueryParams params, int maxTeLimit) {
+    if (maxTeLimit > 0) {
       int teCount = trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params);
 
-      if (teCount > maxTeiLimit) {
+      if (teCount > maxTeLimit) {
         throw new IllegalQueryException("maxteicountreached");
       }
     }
