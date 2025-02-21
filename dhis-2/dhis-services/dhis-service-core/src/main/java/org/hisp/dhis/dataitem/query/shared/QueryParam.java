@@ -58,6 +58,8 @@ public class QueryParam {
 
   public static final String OPTION_SET_ID = "optionSetId";
 
+  public static final String OPTION_ID = "optionId";
+
   public static final String MAX_LIMIT = "maxLimit";
 
   public static final String NAME_ORDER = "nameOrder";

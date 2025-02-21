@@ -41,6 +41,6 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
 public class FunctionLog10 extends AntlrFunctionLog10 implements ExpressionItem {
   @Override
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return "log(" + visitor.castStringVisit(ctx.expr(0)) + ")";
+    return visitor.getSqlBuilder().log10(visitor.castStringVisit(ctx.expr(0)));
   }
 }

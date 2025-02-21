@@ -39,9 +39,6 @@ import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,7 +46,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -68,9 +64,9 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -1081,7 +1077,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
     } else if (pageParams != null) {
@@ -1092,7 +1088,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
     } else {
@@ -1104,16 +1100,5 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .toString();
     }
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<TrackedEntity>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected TrackedEntity postProcessObject(TrackedEntity trackedEntity) {
-    return (trackedEntity == null || trackedEntity.isDeleted()) ? null : trackedEntity;
   }
 }

@@ -46,16 +46,8 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 public class ProgramMessageRequestParams {
   private Set<String> ou;
 
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(value = Enrollment.class)
-  private UID programInstance;
-
   @OpenApi.Property({UID.class, Enrollment.class})
   private UID enrollment;
-
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(value = Event.class)
-  private UID programStageInstance;
 
   @OpenApi.Property({UID.class, Event.class})
   private UID event;

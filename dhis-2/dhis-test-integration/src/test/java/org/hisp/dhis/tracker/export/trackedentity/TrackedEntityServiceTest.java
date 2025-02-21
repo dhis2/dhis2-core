@@ -101,9 +101,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -1431,7 +1431,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
         () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
         () -> assertEquals(orgUnitA.getUid(), enrollment.getOrganisationUnit().getUid()),
-        () -> assertEquals(orgUnitA.getName(), enrollment.getOrganisationUnit().getName()),
         () -> assertEquals(programA.getUid(), enrollment.getProgram().getUid()),
         () -> assertEquals(EnrollmentStatus.ACTIVE, enrollment.getStatus()),
         () -> assertFalse(enrollment.isDeleted()),

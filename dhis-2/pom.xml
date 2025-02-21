@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.3</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.6</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -103,7 +103,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.1.12</spring.version>
+    <spring.version>6.1.17</spring.version>
     <spring-session-core.version>3.4.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
@@ -217,7 +217,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.20.4</testcontainers.version>
+    <testcontainers.version>1.20.5</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
     <swagger.version>2.1.25</swagger.version>
@@ -238,8 +238,8 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.0.2</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
+    <dependency-check-maven.version>12.1.0</dependency-check-maven.version>
+    <spotbugs-maven-plugin.version>4.9.1.0</spotbugs-maven-plugin.version>
     <spotless.version>2.44.2</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -247,7 +247,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.12.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.12.0</opentelemetry.version>
+    <opentelemetry.version>2.13.1</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -2152,6 +2152,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
