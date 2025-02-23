@@ -118,7 +118,7 @@ public class RouteService {
         new HttpComponentsClientHttpRequestFactory();
     requestFactory.setConnectionRequestTimeout(1_000);
     requestFactory.setConnectTimeout(5_000);
-    requestFactory.setReadTimeout(10_000);
+    requestFactory.setReadTimeout(30_000);
     requestFactory.setBufferRequestBody(true);
 
     HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
@@ -218,7 +218,7 @@ public class RouteService {
         "Request {} {} responded with HTTP status {} via route {} ({})",
         httpMethod,
         targetUri,
-        response.getStatusCode().toString(),
+        response.getStatusCode(),
         route.getName(),
         route.getUid());
 

@@ -82,11 +82,11 @@ public class RelationshipTypeJoinGenerator {
     String sql = "LEFT JOIN ";
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql + "trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
+        return sql + "trackedentity tei2 on tei2.trackedentityid = ri2.trackedentityid";
       case PROGRAM_STAGE_INSTANCE:
-        return sql + "event psi on psi.eventid = ri2.eventid";
+        return sql + "event psi2 on psi2.eventid = ri2.eventid";
       case PROGRAM_INSTANCE:
-        return sql + "enrollment pi on pi.enrollmentid = ri2.enrollmentid";
+        return sql + "enrollment pi2 on pi2.enrollmentid = ri2.enrollmentid";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
@@ -138,11 +138,11 @@ public class RelationshipTypeJoinGenerator {
 
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql + "tei.uid = ax.tei ";
+        return sql + "tei2.uid = ax.tei ";
       case PROGRAM_STAGE_INSTANCE:
-        return sql + "psi.uid = ax.psi ";
+        return sql + "psi2.uid = ax.psi ";
       case PROGRAM_INSTANCE:
-        return sql + "pi.uid = ax.pi ";
+        return sql + "pi2.uid = ax.pi ";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));

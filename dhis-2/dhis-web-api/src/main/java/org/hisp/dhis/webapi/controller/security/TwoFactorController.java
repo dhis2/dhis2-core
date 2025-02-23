@@ -111,12 +111,13 @@ public class TwoFactorController {
 
     defaultUserService.generateTwoFactorOtpSecretForApproval(currentUser);
 
-    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
-
     List<ErrorCode> errorCodes = new ArrayList<>();
 
     String qrContent =
-        TwoFactoryAuthenticationUtils.generateQrContent(appName, currentUser, errorCodes::add);
+        TwoFactoryAuthenticationUtils.generateQrContent(
+            systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE),
+            currentUser,
+            errorCodes::add);
 
     if (!errorCodes.isEmpty()) {
       throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));

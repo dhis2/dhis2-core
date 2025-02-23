@@ -110,6 +110,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private JdbcEventAnalyticsManager subject;
 
   @Captor private ArgumentCaptor<String> sql;
@@ -138,7 +140,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
   }

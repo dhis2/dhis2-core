@@ -174,8 +174,14 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       AnalyticsCache analyticsCache,
       EnrollmentAnalyticsManager enrollmentAnalyticsManager,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
+      UserService userService,
+      OrganisationUnitResolver organisationUnitResolver) {
+    super(
+        securityManager,
+        queryValidator,
+        schemeIdResponseMapper,
+        userService,
+        organisationUnitResolver);
 
     checkNotNull(dataElementService);
     checkNotNull(trackedEntityAttributeService);

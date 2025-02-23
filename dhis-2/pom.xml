@@ -78,13 +78,13 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.2</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
+    <dhis2-rule-engine.version>3.3.6</dhis2-rule-engine.version>
+    <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>1.5</dhis-json-tree.version>
+    <dhis-json-tree.version>1.6</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>5.8.16</spring-security.version>
@@ -105,14 +105,14 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.3.RELEASE</lettuce.version>
+    <lettuce.version>6.5.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.10.2</c3p0.version>
+    <c3p0.version>0.11.0-pre2</c3p0.version>
     <HikariCP.version>6.2.1</HikariCP.version>
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
@@ -159,7 +159,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.38.0</artemis.version>
-    <netty-all.version>4.1.117.Final</netty-all.version>
+    <netty-all.version>4.1.118.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -181,7 +181,7 @@
     <joda-time.version>2.13.1</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-beanutils.version>1.10.0</commons-beanutils.version>
+    <commons-beanutils.version>1.10.1</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
@@ -209,7 +209,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.20.4</testcontainers.version>
+    <testcontainers.version>1.20.5</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
     <swagger.version>2.1.25</swagger.version>
@@ -230,16 +230,16 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.0.2</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.2</spotless.version>
+    <dependency-check-maven.version>12.1.0</dependency-check-maven.version>
+    <spotbugs-maven-plugin.version>4.9.1.0</spotbugs-maven-plugin.version>
+    <spotless.version>2.44.3</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.12.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.12.0</opentelemetry.version>
+    <opentelemetry.version>2.13.1</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -1964,7 +1964,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.9.0</version>
+              <version>4.9.1</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -2113,6 +2113,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.eclipse.jetty.toolchain:jetty-servlet-api</ignoredUsedUndeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
