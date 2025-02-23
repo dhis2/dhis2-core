@@ -557,8 +557,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
 
+      if (filters.getValue().stream().anyMatch(qf -> qf.getOperator().isNull())) {
+        attributes.append(" LEFT JOIN trackedentityattributevalue ");
+      } else {
+        attributes.append(" INNER JOIN trackedentityattributevalue ");
+      }
       attributes
-          .append(" LEFT JOIN trackedentityattributevalue ")
           .append(col)
           .append(" ON ")
           .append(teaId)
