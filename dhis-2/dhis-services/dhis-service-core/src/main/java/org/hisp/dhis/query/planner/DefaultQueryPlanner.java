@@ -105,7 +105,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private static boolean isDbFilter(Restriction restriction) {
     if (restriction.isVirtual()) return restriction.isIdentifiable() || restriction.isQuery();
     QueryPath path = restriction.getQueryPath();
-    return path.isPersisted()
+    return path != null
+        && path.isPersisted()
         && !path.haveAlias()
         && !Attribute.ObjectType.isValidType(path.getPath());
   }

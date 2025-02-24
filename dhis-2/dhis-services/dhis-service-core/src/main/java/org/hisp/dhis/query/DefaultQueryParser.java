@@ -82,7 +82,7 @@ public class DefaultQueryParser implements QueryParser {
         query.add(getRestriction(schema, path, operator, null));
       }
       if (!mentions.isEmpty()) {
-        query.add(getDisjunctionsFromCustomMentions(mentions, query.getSchema()));
+        query.add(getDisjunctionsFromCustomMentions(mentions));
       }
     }
     return query;
@@ -159,7 +159,7 @@ public class DefaultQueryParser implements QueryParser {
     return values;
   }
 
-  private Restriction getDisjunctionsFromCustomMentions(List<String> mentions, Schema schema) {
+  private Restriction getDisjunctionsFromCustomMentions(List<String> mentions) {
     List<String> items = new ArrayList<>();
     for (String m : mentions) items.addAll(asList(m.substring(1, m.length() - 1).split(",")));
     return Restrictions.in("mentions", items);
