@@ -48,7 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
@@ -70,56 +70,17 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean totalPages = false;
+  private boolean totalPages = false;
 
-  /**
-   * @deprecated use {@link #paging} instead
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean skipPaging;
-
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
-  // enabled
-  @OpenApi.Property(defaultValue = "true")
-  private Boolean paging;
+  private boolean paging = true;
 
   private List<OrderCriteria> order = new ArrayList<>();
-
-  @Deprecated(forRemoval = true, since = "2.41")
-  // Removed field without previous deprecation.
-  // It is still here in order to be validated and warn the client about the removal
-  private String query;
-
-  @Deprecated(forRemoval = true, since = "2.41")
-  // Removed field without previous deprecation.
-  // It is still here in order to be validated and warn the client about the removal
-  private String attribute;
 
   /** Comma separated list of attribute filters */
   private String filter;
 
-  /**
-   * Semicolon-delimited list of organisation unit UIDs.
-   *
-   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private String orgUnit;
-
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
-
-  /**
-   * @deprecated use {@link #orgUnitMode} instead.
-   */
-  @Deprecated(since = "2.41")
-  private OrganisationUnitSelectionMode ouMode;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
@@ -163,29 +124,11 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, TrackedEntityType.class})
   private UID trackedEntityType;
 
-  /**
-   * Semicolon-delimited list of tracked entity UIDs
-   *
-   * @deprecated use {@link #trackedEntities} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, TrackedEntity.class})
-  private String trackedEntity;
-
   @OpenApi.Property({UID[].class, TrackedEntity.class})
   private Set<UID> trackedEntities = new HashSet<>();
 
   /** Selection mode for user assignment of events. */
   private AssignedUserSelectionMode assignedUserMode;
-
-  /**
-   * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
-   *
-   * @deprecated use {@link #assignedUsers} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, User.class})
-  private String assignedUser;
 
   @OpenApi.Property({UID[].class, User.class})
   private Set<UID> assignedUsers = new HashSet<>();
@@ -211,11 +154,6 @@ public class TrackedEntityRequestParams implements PageRequestParams {
    * or not
    */
   private Boolean potentialDuplicate;
-
-  @Deprecated(forRemoval = true, since = "2.41")
-  // Removed field without previous deprecation.
-  // It is still here in order to be validated and warn the client about the removal
-  private String includeAllAttributes;
 
   @OpenApi.Property(value = String[].class)
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);

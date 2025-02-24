@@ -61,12 +61,6 @@ public enum ConfigurationKey {
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
   /**
-   * Disable server-side program rule execution, can be 'on', 'off'. <br>
-   * (default: on)
-   */
-  SYSTEM_PROGRAM_RULE_SERVER_EXECUTION("system.program_rule.server_execution", Constants.ON, false),
-
-  /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
    */
@@ -134,13 +128,6 @@ public enum ConfigurationKey {
 
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
-
-  /**
-   * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden by the same property
-   * loaded by any class implementing {@link DhisConfigurationProvider} like {@link
-   * DefaultDhisConfigurationProvider} from dhis.conf at runtime
-   */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
 
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
@@ -700,7 +687,9 @@ public enum ConfigurationKey {
   EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
 
   /** Enable TOTP-based 2FA authentication. (default: true) */
-  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false);
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
 

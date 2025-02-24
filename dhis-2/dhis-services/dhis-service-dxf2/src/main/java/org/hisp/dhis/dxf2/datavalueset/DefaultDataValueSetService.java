@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
@@ -95,7 +96,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -104,7 +105,6 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.callable.PeriodCallable;
-import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -535,45 +535,47 @@ public class DefaultDataValueSetService implements DataValueSetService {
   @Override
   @Transactional
   public ImportSummary importDataValueSetXml(InputStream in) {
-    return importDataValueSetXml(in, ImportOptions.getDefaultImportOptions(), null);
+    return importDataValueSetXml(in, ImportOptions.getDefaultImportOptions(), JobProgress.noop());
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetJson(InputStream in) {
-    return importDataValueSetJson(in, ImportOptions.getDefaultImportOptions(), null);
+    return importDataValueSetJson(in, ImportOptions.getDefaultImportOptions(), JobProgress.noop());
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetXml(InputStream in, ImportOptions options) {
-    return importDataValueSetXml(in, options, null);
+    return importDataValueSetXml(in, options, JobProgress.noop());
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetJson(InputStream in, ImportOptions options) {
-    return importDataValueSetJson(in, options, null);
+    return importDataValueSetJson(in, options, JobProgress.noop());
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetCsv(InputStream in, ImportOptions options) {
-    return importDataValueSetCsv(in, options, null);
+    return importDataValueSetCsv(in, options, JobProgress.noop());
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSet(DataValueSet dataValueSet, ImportOptions options) {
-    return importDataValueSet(options, () -> new SimpleDataValueSetReader(dataValueSet));
+    return importDataValueSet(
+        options, JobProgress.noop(), () -> new SimpleDataValueSetReader(dataValueSet));
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetXml(
-      InputStream in, ImportOptions options, JobConfiguration id) {
+      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
     return importDataValueSet(
         options,
+        progress,
         () ->
             new XmlDataValueSetReader(XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in))));
   }
@@ -581,17 +583,20 @@ public class DefaultDataValueSetService implements DataValueSetService {
   @Override
   @Transactional
   public ImportSummary importDataValueSetJson(
-      InputStream in, ImportOptions options, JobConfiguration id) {
+      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
     return importDataValueSet(
-        options, () -> new JsonDataValueSetReader(wrapAndCheckCompressionFormat(in), jsonMapper));
+        options,
+        progress,
+        () -> new JsonDataValueSetReader(wrapAndCheckCompressionFormat(in), jsonMapper));
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetCsv(
-      InputStream in, ImportOptions options, JobConfiguration id) {
+      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
     return importDataValueSet(
         options,
+        progress,
         () ->
             new CsvDataValueSetReader(
                 CsvUtils.getReader(wrapAndCheckCompressionFormat(in)), options));
@@ -600,18 +605,26 @@ public class DefaultDataValueSetService implements DataValueSetService {
   @Override
   @Transactional
   public ImportSummary importDataValueSetPdf(
-      InputStream in, ImportOptions options, JobConfiguration id) {
-    return importDataValueSet(options, () -> new PdfDataValueSetReader(in));
+      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
+    return importDataValueSet(options, progress, () -> new PdfDataValueSetReader(in));
   }
 
   @Override
   @Transactional
   public ImportSummary importDataValueSetPdf(InputStream in, ImportOptions options) {
-    return importDataValueSetPdf(in, options, null);
+    return importDataValueSetPdf(in, options, JobProgress.noop());
+  }
+
+  @Override
+  public ImportSummary importDataValueSetAdx(
+      DataValueSetReader reader, ImportOptions options, @Nonnull JobProgress progress) {
+    return importDataValueSet(options, progress, () -> reader);
   }
 
   private ImportSummary importDataValueSet(
-      ImportOptions options, Callable<DataValueSetReader> createReader) {
+      ImportOptions options,
+      @Nonnull JobProgress progress,
+      Callable<DataValueSetReader> createReader) {
     options = ObjectUtils.firstNonNull(options, ImportOptions.getDefaultImportOptions());
 
     try (BatchHandler<DataValue> dvBatch =
@@ -619,7 +632,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
         BatchHandler<DataValueAudit> dvaBatch =
             batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class);
         DataValueSetReader reader = createReader.call()) {
-      ImportSummary summary = importDataValueSet(options, reader, dvBatch, dvaBatch);
+      ImportSummary summary = importDataValueSet(options, progress, reader, dvBatch, dvaBatch);
 
       dvBatch.flush();
       dvaBatch.flush();
@@ -650,35 +663,37 @@ public class DefaultDataValueSetService implements DataValueSetService {
    */
   private ImportSummary importDataValueSet(
       ImportOptions options,
+      @Nonnull JobProgress progress,
       DataValueSetReader reader,
       BatchHandler<DataValue> dataValueBatchHandler,
       BatchHandler<DataValueAudit> auditBatchHandler) {
-    DataValueSet dataValueSet = reader.readHeader();
-    final ImportContext context =
-        createDataValueSetImportContext(
-            options, dataValueSet, dataValueBatchHandler, auditBatchHandler);
+
+    progress.startingStage("Reading data set header");
+    DataValueSet dataValueSet =
+        progress.nonNullStagePostCondition(progress.runStage(reader::readHeader));
+
+    progress.startingStage("Creating import context");
+    ImportContext context =
+        progress.nonNullStagePostCondition(
+            progress.runStage(
+                () ->
+                    createDataValueSetImportContext(
+                        options, dataValueSet, dataValueBatchHandler, auditBatchHandler)));
     logDataValueSetImportContextInfo(context);
 
-    Clock clock =
-        new Clock(log)
-            .startClock()
-            .logTime("Starting data value import, options: " + context.getImportOptions());
+    progress.startingStage("Preheat caches...");
+    progress.runStage(() -> preheatCaches(context));
 
-    // ---------------------------------------------------------------------
-    // Heat caches
-    // ---------------------------------------------------------------------
-    preheatCaches(context);
+    progress.startingStage("Loading base metadata");
+    ImportContext.DataSetContext dataSetContext =
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> createDataSetContext(context, dataValueSet)));
 
-    // ---------------------------------------------------------------------
-    // Get outer meta-data
-    // ---------------------------------------------------------------------
-    ImportContext.DataSetContext dataSetContext = createDataSetContext(context, dataValueSet);
-
-    // ---------------------------------------------------------------------
-    // Validation
-    // ---------------------------------------------------------------------
-
-    if (importValidator.abortDataSetImport(dataValueSet, context, dataSetContext)) {
+    progress.startingStage("Run data set validation");
+    Boolean abort =
+        progress.runStage(
+            () -> importValidator.abortDataSetImport(dataValueSet, context, dataSetContext));
+    if (abort == null || abort) {
       context.getSummary().setDescription("Import process was aborted");
       return context.getSummary();
     }
@@ -705,20 +720,30 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
     Date now = new Date();
 
-    clock.logTime("Validated outer meta-data");
-
     List<? extends DataValueEntry> values = dataValueSet.getDataValues();
     int index = 0;
     if (values != null && !values.isEmpty()) {
+      int size = values.size();
+      progress.startingStage("Importing values (list)", Math.ceil(size / 100d));
+      progress.setWorkItemBucketing(100);
       for (DataValueEntry dataValue : values) {
+        progress.startingWorkItem(index);
         importDataValue(context, dataSetContext, importCount, now, index++, dataValue);
+        progress.completedWorkItem(null);
       }
+      progress.completedStage("Import summary: " + importCount);
     }
     DataValueEntry dataValue = reader.readNext();
+    boolean hasItems = dataValue != null;
+    if (hasItems) progress.startingStage("Importing values (iterator)");
+    progress.setWorkItemBucketing(100);
     while (dataValue != null) {
+      progress.startingWorkItem(index);
       importDataValue(context, dataSetContext, importCount, now, index++, dataValue);
+      progress.completedWorkItem(null);
       dataValue = reader.readNext();
     }
+    if (hasItems) progress.completedStage("Import summary: " + importCount);
 
     context
         .getSummary()
@@ -726,16 +751,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .setStatus(
             !context.getSummary().hasConflicts() ? ImportStatus.SUCCESS : ImportStatus.WARNING)
         .setDescription("Import process completed successfully");
-
-    clock.logTime(
-        "Data value import done, total: "
-            + importCount.getTotalCount()
-            + ", import: "
-            + importCount.getImported()
-            + ", update: "
-            + importCount.getUpdated()
-            + ", delete: "
-            + importCount.getDeleted());
 
     return context.getSummary();
   }

@@ -102,6 +102,10 @@ public enum ErrorCode {
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* CategoryOptionCombo merge */
+  E1540(
+      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
+
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1551(
@@ -470,6 +474,7 @@ public enum ErrorCode {
   E7146("A {0} date was not specified in periods, dimensions, filters"),
   E7147("Query failed because of a missing column: `{0}`"),
   E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
+  E7149("Invalid measure filter operator: `{0}`"),
   /* Analytics outliers */
 
   E7180(

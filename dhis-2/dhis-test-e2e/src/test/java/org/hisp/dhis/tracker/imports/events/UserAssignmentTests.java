@@ -102,7 +102,8 @@ public class UserAssignmentTests extends TrackerApiTest {
 
     JsonObject eventBody =
         trackerImportExportActions
-            .get("/events?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE")
+            .get(
+                "/events?program=" + programId + "&assignedUserMode=CURRENT&orgUnitMode=ACCESSIBLE")
             .validateStatus(200)
             .extractJsonObject("events[0]");
 

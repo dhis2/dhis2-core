@@ -6,7 +6,7 @@
 
 Get relationships matching the given query parameters.
 
-Exactly one parameter of `trackedEntity` (`tei`), `enrollment` or `event` has to be specified.
+Exactly one parameter of `trackedEntity`, `enrollment` or `event` has to be specified.
 
 ### `getRelationshipByUid`
 
@@ -27,12 +27,6 @@ for how to use it.
 ## Common for all endpoints
 
 ### `*.parameter.RelationshipRequestParams.trackedEntity`
-
-Get relationships of the given trackedEntity.
-
-### `*.parameter.RelationshipRequestParams.tei`
-
-**DEPRECATED as of 2.41:** Use parameter `trackedEntity` instead.
 
 Get relationships of the given trackedEntity.
 

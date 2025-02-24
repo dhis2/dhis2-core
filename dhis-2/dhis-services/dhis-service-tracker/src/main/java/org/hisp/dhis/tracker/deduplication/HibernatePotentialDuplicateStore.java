@@ -65,6 +65,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -98,21 +99,6 @@ class HibernatePotentialDuplicateStore
     this.config = config;
   }
 
-  public int getCountPotentialDuplicates(PotentialDuplicateCriteria query) {
-    CriteriaBuilder cb = getCriteriaBuilder();
-
-    CriteriaQuery<Long> countCriteriaQuery = cb.createQuery(Long.class);
-    Root<PotentialDuplicate> root = countCriteriaQuery.from(PotentialDuplicate.class);
-
-    countCriteriaQuery.select(cb.count(root));
-
-    countCriteriaQuery.where(getQueryPredicates(query, cb, root));
-
-    TypedQuery<Long> relationshipTypedQuery = entityManager.createQuery(countCriteriaQuery);
-
-    return relationshipTypedQuery.getSingleResult().intValue();
-  }
-
   public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
 
@@ -133,9 +119,10 @@ class HibernatePotentialDuplicateStore
 
     TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
 
-    if (criteria.isPagingRequest()) {
-      relationshipTypedQuery.setFirstResult(criteria.getFirstResult());
-      relationshipTypedQuery.setMaxResults(criteria.getPageSize());
+    if (criteria.isPaging()) {
+      PageParams pageParams = criteria.getPageParams();
+      relationshipTypedQuery.setFirstResult(pageParams.getOffset());
+      relationshipTypedQuery.setMaxResults(pageParams.getPageSize());
     }
 
     return relationshipTypedQuery.getResultList();
@@ -176,8 +163,10 @@ class HibernatePotentialDuplicateStore
 
     NativeQuery<BigInteger> query =
         nativeSynchronizedQuery(
-            "select count(potentialduplicateid) from potentialduplicate pd "
-                + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
+            """
+            select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
+             :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
+             pd.duplicate = :original)""");
 
     query.setParameter("original", potentialDuplicate.getOriginal().getValue());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());
@@ -256,14 +245,18 @@ class HibernatePotentialDuplicateStore
 
   public void moveRelationships(
       TrackedEntity original, TrackedEntity duplicate, Set<UID> relationships) {
-    duplicate.getRelationshipItems().stream()
-        .filter(r -> relationships.contains(UID.of(r.getRelationship())))
-        .forEach(
-            ri -> {
-              ri.setTrackedEntity(original);
+    List<RelationshipItem> duplicateRelationshipItems =
+        duplicate.getRelationshipItems().stream()
+            .filter(r -> relationships.contains(UID.of(r.getRelationship())))
+            .toList();
+    duplicateRelationshipItems.forEach(
+        ri -> {
+          ri.setTrackedEntity(original);
+          original.getRelationshipItems().add(ri);
+          getSession().update(ri);
+        });
 
-              getSession().update(ri);
-            });
+    duplicateRelationshipItems.forEach(duplicate.getRelationshipItems()::remove);
   }
 
   public void moveEnrollments(

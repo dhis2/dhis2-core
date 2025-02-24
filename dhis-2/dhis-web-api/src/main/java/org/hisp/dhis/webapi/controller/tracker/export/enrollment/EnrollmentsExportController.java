@@ -28,11 +28,13 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -43,7 +45,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -101,26 +103,27 @@ class EnrollmentsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getEnrollments(EnrollmentRequestParams requestParams)
+  ResponseEntity<Page<ObjectNode>> getEnrollments(
+      EnrollmentRequestParams requestParams, HttpServletRequest request)
       throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
-      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.program.Enrollment> page =
           enrollmentService.getEnrollments(operationParams, pageParams);
-      List<Enrollment> enrollments =
-          enrollmentsPage.getItems().stream().map(ENROLLMENT_MAPPER::map).toList();
+      List<Enrollment> enrollments = page.getItems().stream().map(ENROLLMENT_MAPPER::map).toList();
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(ENROLLMENTS, enrollmentsPage.withItems(objectNodes)));
+          .body(
+              Page.withFullPager(ENROLLMENTS, page.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<Enrollment> enrollments =
@@ -145,7 +148,7 @@ class EnrollmentsExportController {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
 
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams, false));
+        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams));
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

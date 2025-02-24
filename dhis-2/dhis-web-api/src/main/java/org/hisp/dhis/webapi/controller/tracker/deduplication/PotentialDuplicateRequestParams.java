@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+@OpenApi.Shared(name = "PotentialDuplicateRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class PotentialDuplicateRequestParams implements PageRequestParams {
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
 
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
+  private boolean totalPages = false;
 
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  private boolean paging = true;
 
-  void delete(@Nonnull Enrollment enrollment);
+  private List<OrderCriteria> order = new ArrayList<>();
+
+  private List<UID> trackedEntities = new ArrayList<>();
+
+  private DeduplicationStatus status = DeduplicationStatus.OPEN;
 }

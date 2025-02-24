@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,23 +41,23 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.RelationshipItemMapper;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.user.UserDetails;
-import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,11 +65,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
-  private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
-      Mappers.getMapper(RelationshipItemMapper.class);
-  private final EnrollmentStore enrollmentStore;
+  private final HibernateEnrollmentStore enrollmentStore;
 
   private final EventService eventService;
+
+  private final RelationshipService relationshipService;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -83,13 +82,12 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Nonnull
   @Override
   public Enrollment getEnrollment(@Nonnull UID uid) throws ForbiddenException, NotFoundException {
-    return getEnrollment(uid, EnrollmentParams.FALSE, false);
+    return getEnrollment(uid, EnrollmentParams.FALSE);
   }
 
   @Nonnull
   @Override
-  public Enrollment getEnrollment(
-      @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
+  public Enrollment getEnrollment(@Nonnull UID uid, @Nonnull EnrollmentParams params)
       throws NotFoundException, ForbiddenException {
     Page<Enrollment> enrollments;
     try {
@@ -97,9 +95,8 @@ class DefaultEnrollmentService implements EnrollmentService {
           EnrollmentOperationParams.builder()
               .enrollments(Set.of(uid))
               .enrollmentParams(params)
-              .includeDeleted(includeDeleted)
               .build();
-      enrollments = getEnrollments(operationParams, new PageParams(1, 1, false));
+      enrollments = getEnrollments(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
@@ -112,26 +109,19 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollments.getItems().get(0);
   }
 
-  // TODO(DHIS2-18883) Pass EnrollmentParams as a parameter
   @Nonnull
   @Override
   public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
-    EnrollmentQueryParams queryParams;
+    if (uids.isEmpty()) {
+      return List.of();
+    }
+
     try {
-      queryParams =
-          paramsMapper.map(
-              EnrollmentOperationParams.builder().enrollments(uids).build(),
-              getCurrentUserDetails());
+      return getEnrollments(EnrollmentOperationParams.builder().enrollments(uids).build());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
     }
-
-    return getEnrollments(
-        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        EnrollmentParams.FALSE,
-        false,
-        queryParams.getOrganisationUnitMode());
   }
 
   @Nonnull
@@ -162,28 +152,6 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
     return enrollmentsPage.withItems(enrollments);
-  }
-
-  @Override
-  public RelationshipItem getEnrollmentInRelationshipItem(@Nonnull UID uid) {
-    Enrollment enrollment;
-    try {
-      enrollment =
-          getEnrollment(
-              uid,
-              EnrollmentParams.TRUE
-                  .withIncludeRelationships(false)
-                  .withEnrollmentEventsParams(
-                      EnrollmentEventsParams.TRUE.withEventParams(EventParams.FALSE)),
-              false);
-    } catch (NotFoundException | ForbiddenException e) {
-      // enrollments are not shown in relationships if the user has no access to them
-      return null;
-    }
-
-    RelationshipItem relationshipItem = new RelationshipItem();
-    relationshipItem.setEnrollment(enrollment);
-    return relationshipItem;
   }
 
   private Set<Event> getEvents(
@@ -222,7 +190,9 @@ class DefaultEnrollmentService implements EnrollmentService {
       trackedEntity.setUid(enrollment.getTrackedEntity().getUid());
       result.setTrackedEntity(trackedEntity);
     }
-    result.setOrganisationUnit(enrollment.getOrganisationUnit());
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    organisationUnit.setUid(enrollment.getOrganisationUnit().getUid());
+    result.setOrganisationUnit(organisationUnit);
     result.setGeometry(enrollment.getGeometry());
     result.setCreated(enrollment.getCreated());
     result.setCreatedAtClient(enrollment.getCreatedAtClient());
@@ -246,7 +216,9 @@ class DefaultEnrollmentService implements EnrollmentService {
               enrollment, params.getEnrollmentEventsParams().getEventParams(), includeDeleted));
     }
     if (params.isIncludeRelationships()) {
-      result.setRelationshipItems(getRelationshipItems(user, enrollment, includeDeleted));
+      result.setRelationshipItems(
+          relationshipService.getRelationshipItems(
+              TrackerType.ENROLLMENT, UID.of(result), includeDeleted));
     }
     if (params.isIncludeAttributes()) {
       result
@@ -255,22 +227,6 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
 
     return result;
-  }
-
-  // TODO(DHIS2-18883) move this into the relationship service/store
-  private Set<RelationshipItem> getRelationshipItems(
-      UserDetails user, Enrollment enrollment, boolean includeDeleted) {
-    Set<RelationshipItem> relationshipItems = new HashSet<>();
-
-    for (RelationshipItem relationshipItem : enrollment.getRelationshipItems()) {
-      org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
-      if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
-          && (includeDeleted || !daoRelationship.isDeleted())) {
-        relationshipItems.add(RELATIONSHIP_ITEM_MAPPER.map(relationshipItem));
-      }
-    }
-
-    return relationshipItems;
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(

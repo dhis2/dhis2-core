@@ -38,6 +38,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
@@ -62,6 +63,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -81,6 +83,7 @@ import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +94,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
@@ -107,9 +111,11 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
@@ -572,6 +578,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // ---------------------------------------------------------------------
+    // Filtering criteria
+    // ---------------------------------------------------------------------
+    if (params.hasMeasureCriteria()) {
+      sql += getMeasureCriteriaSql(params, aggregateClause);
+    }
+
+    // ---------------------------------------------------------------------
     // Limit, add one to max to enable later check against max limit
     // ---------------------------------------------------------------------
 
@@ -628,17 +641,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (params.isAggregateData()) {
         if (params.hasValueDimension()) {
-          String itemId =
-              params.getProgram().getUid()
-                  + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-                  + params.getValue().getUid();
-          grid.addValue(itemId);
+          grid.addValue(getItemId(params));
         } else if (params.hasProgramIndicatorDimension()) {
           grid.addValue(params.getProgramIndicator().getUid());
         }
       } else {
         for (QueryItem queryItem : params.getItems()) {
-
           ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, true);
           String alias = columnAndAlias.getAlias();
 
@@ -701,6 +709,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
       }
     }
+  }
+
+  /**
+   * Builds the item identifier, so it can be identifiable in the response/row object.
+   *
+   * @param params the current {@link EventQueryParams}.
+   * @return the item identifier.
+   */
+  private String getItemId(@Nonnull EventQueryParams params) {
+    String programUid = params.getProgram().getUid();
+    String dimensionUid = params.getValue().getUid();
+    String optionUid = params.getOption() == null ? EMPTY : params.getOption().getUid();
+    String itemId = programUid + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dimensionUid;
+
+    if (isNotBlank(optionUid)) {
+      itemId += COMPOSITE_DIM_OBJECT_PLAIN_SEP + optionUid;
+    }
+
+    return itemId;
   }
 
   /**
@@ -818,7 +845,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param item the {@link QueryItem}.
    * @param suffix the suffix.
-   * @return the the column select statement for the given item.
+   * @return the column select statement for the given item.
    */
   protected String getColumn(QueryItem item, String suffix) {
     return quote(item.getItemName() + suffix);
@@ -1479,6 +1506,44 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected boolean useExperimentalAnalyticsQueryEngine() {
     return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
         || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+  }
+
+  /**
+   * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
+   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. The
+   * expression has to be first cast to a numeric type and then rounded to 10 decimal places,
+   * otherwise the comparison may fail due to floating point precision issues in Postgres.
+   *
+   * @param params the {@link EventQueryParams}
+   * @param aggregateClause the aggregate clause to use in the SQL
+   * @return the "having" clause
+   */
+  protected String getMeasureCriteriaSql(EventQueryParams params, String aggregateClause) {
+    SqlHelper sqlHelper = new SqlHelper();
+    StringBuilder builder = new StringBuilder();
+
+    for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
+      Double criterion = params.getMeasureCriteria().get(filter);
+
+      String sqlFilter =
+          String.format(
+              " round(%s, 10) %s %s ",
+              sqlBuilder.cast(aggregateClause, org.hisp.dhis.analytics.DataType.NUMERIC),
+              getOperatorByMeasureFilter(filter),
+              criterion);
+
+      builder.append(sqlHelper.havingAnd()).append(sqlFilter);
+    }
+
+    return builder.toString();
+  }
+
+  private String getOperatorByMeasureFilter(MeasureFilter filter) {
+    QueryOperator qo = QueryOperator.fromString(filter.toString());
+    if (qo != null) {
+      return qo.getValue();
+    }
+    throw new IllegalQueryException(E7149, filter.toString());
   }
 
   /**

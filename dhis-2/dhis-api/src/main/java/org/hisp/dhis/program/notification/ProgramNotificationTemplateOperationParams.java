@@ -30,7 +30,6 @@ package org.hisp.dhis.program.notification;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.UID;
 
@@ -40,17 +39,11 @@ import org.hisp.dhis.common.UID;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 public class ProgramNotificationTemplateOperationParams extends NotificationPagingParam {
   @Builder
   public ProgramNotificationTemplateOperationParams(
-      Integer page,
-      Integer pageSize,
-      boolean skipPaging,
-      UID program,
-      UID programStage,
-      boolean paged) {
-    super(page, pageSize, skipPaging, paged);
+      Integer page, Integer pageSize, UID program, UID programStage, boolean paged) {
+    super(page, pageSize, paged);
     this.program = program;
     this.programStage = programStage;
   }

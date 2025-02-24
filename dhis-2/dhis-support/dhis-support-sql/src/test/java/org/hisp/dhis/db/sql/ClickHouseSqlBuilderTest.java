@@ -287,6 +287,11 @@ class ClickHouseSqlBuilderTest {
             "a.incidentdate"));
   }
 
+  @Test
+  void testLog10() {
+    assertEquals("log10(value)", sqlBuilder.log10("value"));
+  }
+
   // Statements
 
   @Test

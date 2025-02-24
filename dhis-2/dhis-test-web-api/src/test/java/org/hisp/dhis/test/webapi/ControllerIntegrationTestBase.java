@@ -248,6 +248,13 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     }
   }
 
+  protected final MvcResult webRequestWithAsyncMvcResult(MockHttpServletRequestBuilder request) {
+    return exceptionAsFail(
+        () ->
+            mvc.perform(MockMvcRequestBuilders.asyncDispatch(webRequestWithMvcResult(request)))
+                .andReturn());
+  }
+
   protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
     return exceptionAsFail(() -> mvc.perform(request.session(session)).andReturn());
   }

@@ -25,34 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.security.spring2fa;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.springframework.security.authentication.BadCredentialsException;
 
-public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
-  String ID = TrackedEntityStore.class.getName();
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class TwoFactorCodeSentException extends BadCredentialsException {
+  private final TwoFactorType type;
 
-  /** Get all tracked entity ids matching given params. */
-  List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params);
+  public TwoFactorCodeSentException(String msg, TwoFactorType type) {
+    super(msg);
+    this.type = type;
+  }
 
-  /** Get a page of tracked entities matching given params. */
-  Page<TrackedEntityIdentifiers> getTrackedEntityIds(
-      TrackedEntityQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getTrackedEntityIds(TrackedEntityQueryParams)})} can order tracked entities
-   * by. Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getTrackedEntityIds(TrackedEntityQueryParams)}.
-   */
-  Set<String> getOrderableFields();
-
-  Long getTrackedEntityCount(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params);
+  public TwoFactorType getType() {
+    return type;
+  }
 }

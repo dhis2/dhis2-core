@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -184,7 +185,7 @@ public class LocalAppStorageService implements AppStorageService {
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getAppResource(App app, String pageName) throws IOException {
     List<Resource> locations =
         Lists.newArrayList(
             resourceLoader.getResource(
@@ -199,7 +200,7 @@ public class LocalAppStorageService implements AppStorageService {
 
         // Make sure that file resolves into path app folder
         if (file != null && file.toPath().startsWith(getAppFolderPath())) {
-          return resource;
+          return new ResourceFound(resource);
         }
       }
     }

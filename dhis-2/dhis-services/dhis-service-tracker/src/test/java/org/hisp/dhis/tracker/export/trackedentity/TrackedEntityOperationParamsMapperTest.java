@@ -112,7 +112,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackedEntityStore trackedEntityStore;
+  @Mock private HibernateTrackedEntityStore trackedEntityStore;
 
   @Mock private OperationsParamsValidator paramsValidator;
 
@@ -361,7 +361,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    assertEquals(program, params.getProgram());
+    assertEquals(program, params.getEnrolledInTrackerProgram());
   }
 
   @Test

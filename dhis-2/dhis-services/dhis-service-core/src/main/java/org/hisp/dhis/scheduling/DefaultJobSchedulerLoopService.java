@@ -260,20 +260,24 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   private JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean nonVerboseLogging = isNonVerboseLogging(job, settings);
     NotificationLevel level =
-        job.getJobType().isUsingNotifications()
+        job.getJobType().isUsingNotifications() && !nonVerboseLogging
             ? settings.getNotifierLogLevel()
             : NotificationLevel.ERROR;
     JobProgress tracker = new NotifierJobProgress(notifier, job, level);
-    boolean logInfoOnDebug =
-        job.getSchedulingType() != SchedulingType.ONCE_ASAP
-            && job.getLastExecuted() != null
-            && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
-                < settings.getJobsLogDebugBelowSeconds();
     RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug, false);
+        new RecordingJobProgress(messages, job, tracker, true, observer, nonVerboseLogging, false);
     recordingsById.put(job.getUid(), progress);
     return progress;
+  }
+
+  private static boolean isNonVerboseLogging(
+      @Nonnull JobConfiguration job, SystemSettings settings) {
+    return job.getSchedulingType() != SchedulingType.ONCE_ASAP
+        && job.getLastExecuted() != null
+        && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
+            < settings.getJobsLogDebugBelowSeconds();
   }
 
   private void stopRecording(@Nonnull String jobId) {

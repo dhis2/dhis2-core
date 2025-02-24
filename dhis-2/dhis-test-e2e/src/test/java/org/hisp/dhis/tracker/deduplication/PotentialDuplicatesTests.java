@@ -129,7 +129,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
     potentialDuplicatesActions.createAndValidatePotentialDuplicate(te, createTrackedEntity());
 
     potentialDuplicatesActions
-        .get(new QueryParamsBuilder().add("trackedEntities=" + te).add("skipPaging=true"))
+        .get(new QueryParamsBuilder().add("trackedEntities=" + te).add("paging=false"))
         .validate()
         .body("potentialDuplicates", hasSize(equalTo(3)))
         .body("potentialDuplicates.status", allOf(hasItem("OPEN")));
