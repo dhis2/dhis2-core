@@ -558,7 +558,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       String ted = col + ".trackedentityid";
 
       if (filters.getValue().stream().allMatch(qf -> qf.getOperator().isNull())) {
-        return attributes.toString();
+        continue;
       }
 
       attributes

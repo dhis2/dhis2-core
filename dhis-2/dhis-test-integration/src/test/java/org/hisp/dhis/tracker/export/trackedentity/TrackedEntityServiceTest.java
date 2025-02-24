@@ -59,6 +59,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -413,9 +414,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
     attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "A"));
+        new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "CA"));
     attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "A"));
+        new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "GCA"));
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
     attributeValueService.addTrackedEntityAttributeValue(
@@ -1643,10 +1644,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA)
-            .orgUnitMode(SELECTED)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.EQ, "M'M")))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "M'M"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1659,10 +1660,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA)
-            .orgUnitMode(SELECTED)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.EQ, "A")))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "A"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1675,10 +1676,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA)
-            .orgUnitMode(SELECTED)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.EQ, "Z")))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "Z"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1691,10 +1692,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA, orgUnitB)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of())
+            .filters(Map.of(UID.of(teaA), List.of()))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1710,9 +1711,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .orgUnitMode(ALL)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
             .program(programA)
-            .filter(teaC, List.of(new QueryFilter(QueryOperator.LIKE, "C")))
+            .filters(Map.of(UID.of(teaC), List.of(new QueryFilter(QueryOperator.LIKE, "C"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1728,7 +1730,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1746,7 +1748,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
             .program(programB)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1763,13 +1765,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntity, programB, orgUnitA);
-    injectSecurityContextUser(authorizedUser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .orgUnitMode(ALL)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
             .program(programB)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.NULL)))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NULL))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1782,10 +1784,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA, orgUnitB)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.NNULL)))
+            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NNULL))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1795,16 +1797,37 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEntitiesWithAttributeValueWhenFilterContainsMultipleUnaryOperators()
+  void shouldReturnEmptyWhenFilterContainsNullAndNotNullUnaryOperators()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA, orgUnitB)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(
-                teaA,
-                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL)))
+            .filters(
+                Map.of(
+                    UID.of(teaA),
+                    List.of(
+                        new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL))))
+            .build();
+
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldReturnEmptyWhenFilterContainsNullAndAnyOtherBinaryOperator()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filters(
+                Map.of(
+                    UID.of(teaA),
+                    List.of(new QueryFilter(QueryOperator.NULL)),
+                    UID.of(teaB),
+                    List.of(new QueryFilter(QueryOperator.EQ, "B"))))
             .build();
 
     assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
@@ -1815,13 +1838,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA, orgUnitB)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(
-                teaB,
-                List.of(
-                    new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.EQ, "B")))
+            .filters(
+                Map.of(
+                    UID.of(teaB),
+                    List.of(
+                        new QueryFilter(QueryOperator.NNULL),
+                        new QueryFilter(QueryOperator.EQ, "B"))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
