@@ -78,7 +78,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.6</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.7</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -204,14 +204,14 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.4</junit.version>
+    <junit.version>5.12.0</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
     <testcontainers.version>1.20.5</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
-    <awaitility.version>4.2.2</awaitility.version>
+    <awaitility.version>4.3.0</awaitility.version>
     <swagger.version>2.1.25</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
@@ -220,7 +220,7 @@
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
