@@ -121,8 +121,4 @@ public enum QueryOperator {
   public boolean isUnary() {
     return UNARY_OPERATORS.contains(this);
   }
-
-  public boolean isNull() {
-    return NULL == this;
-  }
 }
