@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -386,19 +387,29 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
   }
 
   /**
+   * We need to handle scenarios when the Resource is a File (knowing the content length) or when
+   * it's URL (not knowing the content length and having to make a call, e.g. remote web link in AWS
+   * S3/MinIO) - otherwise content length can be set to 0 which causes issues at the front-end,
+   * returning an empty body. If it's a URL resource, an underlying HEAD request is made to get the
+   * content length.
+   *
    * @param resource resource to check content length
    * @return the content length or -1 (unknown size) if exception caught
    */
   @Override
-  public int getUriContentLength(Resource resource) {
+  public int getUriContentLength(@Nonnull Resource resource) {
     try {
-      URLConnection urlConnection = resource.getURL().openConnection();
-      return urlConnection.getContentLength();
+      if (resource.isFile()) {
+        return (int) resource.contentLength();
+      } else {
+        URLConnection urlConnection = resource.getURL().openConnection();
+        return urlConnection.getContentLength();
+      }
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
       e.printStackTrace();
