@@ -557,12 +557,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
 
-      if (filters.getValue().stream().anyMatch(qf -> qf.getOperator().isNull())) {
-        attributes.append(" LEFT JOIN trackedentityattributevalue ");
-      } else {
-        attributes.append(" INNER JOIN trackedentityattributevalue ");
+      if (filters.getValue().stream().allMatch(qf -> qf.getOperator().isNull())) {
+        return attributes.toString();
       }
+
       attributes
+          .append(" INNER JOIN trackedentityattributevalue ")
           .append(col)
           .append(" ON ")
           .append(teaId)
@@ -861,17 +861,22 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
-      String teavCol = quote(filters.getKey().getUid()) + ".value";
+      String col = quote(filters.getKey().getUid());
+      String teaId = col + ".trackedentityattributeid";
+      String ted = col + ".trackedentityid";
 
-      for (QueryFilter queryFilter : filters.getValue()) {
-        filterClause.append(whereAnd.whereAnd());
-        if (queryFilter.getOperator().isNull()) {
-          filterClause.append(teavCol);
-          filterClause.append(" is null ");
-        } else {
-          filterClause.append(teavCol);
-          filterClause.append(" is not null ");
-        }
+      if (filters.getValue().stream().anyMatch(qf -> qf.getOperator().isNull())) {
+        filterClause
+            .append(whereAnd.whereAnd())
+            .append(" not exists ( select 1 from trackedentityattributevalue ")
+            .append(col)
+            .append(" where ")
+            .append(teaId)
+            .append(EQUALS)
+            .append(filters.getKey().getId())
+            .append(" AND ")
+            .append(ted)
+            .append(" = TE.trackedentityid ) ");
       }
     }
 
