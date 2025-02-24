@@ -69,7 +69,7 @@ public class AppendExtractedCtesHelper {
           }
         }
       } catch (Exception e) {
-        throw new IllegalQueryException(ErrorCode.E7149, e.getMessage(), e);
+        throw new IllegalQueryException(ErrorCode.E7151, e.getMessage(), e);
       }
     }
     // Prepend the new CTEs.
