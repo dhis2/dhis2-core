@@ -40,6 +40,8 @@
 # Datasource local storage ignored files
 /.idea/dataSources/
 dataSources.local.xml
+dhis-support/dhis-support-test/src/main/resources/db/init-db.sql
+
 
 # Editor-based HTTP Client requests
 /.idea/httpRequests/

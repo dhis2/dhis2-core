@@ -32,26 +32,34 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.nimbusds.jose.util.StandardCharset;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -153,14 +161,14 @@ public class AppController {
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested
-    String pageName = getUrl(request.getPathInfo(), app);
+    String resource = getUrl(request.getPathInfo(), app);
 
     if (application == null) {
       throw new WebMessageException(notFound("App '" + app + "' not found."));
     }
 
     if (application.isBundled()) {
-      String redirectPath = application.getBaseUrl() + "/" + pageName;
+      String redirectPath = (application.getBaseUrl() + "/" + resource).replaceAll("/+", "/");
 
       log.info(String.format("Redirecting to bundled app: %s", redirectPath));
 
@@ -176,10 +184,10 @@ public class AppController {
       throw new WebMessageException(conflict("App '" + app + "' deletion is still in progress."));
     }
 
-    log.debug(String.format("App page name: '%s'", pageName));
+    log.debug(String.format("App resource name: '%s'", resource));
 
     // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(pageName)) {
+    if ("manifest.webapp".equals(resource)) {
       // If request was for manifest.webapp, check for * and replace with
       // host
       if (application.getActivities() != null
@@ -192,34 +200,71 @@ public class AppController {
 
       jsonMapper.writeValue(response.getOutputStream(), application);
     }
-    // Any other page
+    // Any other resource
     else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(application, pageName);
-
-      if (resource == null) {
+      ResourceResult resourceResult = appManager.getAppResource(application, resource);
+      if (resourceResult instanceof ResourceFound) {
+        serveResource(
+            request,
+            response,
+            ((ResourceFound) resourceResult).getResource(),
+            contextPath,
+            application.getBaseUrl());
+        return;
+      }
+      if (resourceResult instanceof Redirect) {
+        response.sendRedirect(
+            (application.getBaseUrl() + "/" + ((Redirect) resourceResult).getPath())
+                .replaceAll("/+", "/"));
+        return;
+      }
+      if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        return;
       }
+    }
+  }
 
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
+  private void serveResource(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      Resource resource,
+      String contextPath,
+      String appBaseUrl)
+      throws IOException {
+    String filename = resource.getFilename();
+    log.debug("App filename: '{}'", filename);
 
-      if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
-        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        return;
+    if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
+      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+      return;
+    }
+
+    String mimeType = request.getSession().getServletContext().getMimeType(filename);
+
+    if (mimeType != null) {
+      response.setContentType(mimeType);
+    }
+
+    if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
+      LineIterator iterator =
+          IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
+      try {
+        while (iterator.hasNext()) {
+          String line = iterator.nextLine();
+          output.println(
+              line.replace("__DHIS2_BASE_URL__", contextPath)
+                  .replace("__DHIS2_APP_ROOT_URL__", appBaseUrl));
+        }
+      } finally {
+        iterator.close();
+        response.setContentLength(bout.size());
+        response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
+        bout.writeTo(response.getOutputStream());
       }
-
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
-
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
-
-      response.setContentLengthLong(resource.contentLength());
-      response.setHeader(
-          "Last-Modified", DateUtils.getHttpDateString(new Date(resource.lastModified())));
-
+    } else {
+      response.setContentLengthLong(appManager.getUriContentLength(resource));
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
   }
@@ -260,10 +305,12 @@ public class AppController {
   // --------------------------------------------------------------------------
 
   private String getUrl(String path, String app) {
-    String prefix = RESOURCE_PATH + "/" + app + "/";
+    String prefix = RESOURCE_PATH + "/" + app;
 
-    if (path.startsWith(prefix)) {
+    if (path.startsWith(prefix + "/")) {
       path = path.substring(prefix.length());
+    } else if (path.equals(prefix)) {
+      path = "";
     }
 
     // if path is prefixed by any protocol, clear it out (this is to ensure
