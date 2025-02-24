@@ -151,11 +151,7 @@ public class RouteService {
       return null;
     }
 
-    if (route.getAuth() != null) {
-      return route.toBuilder().auth(route.getAuth().decrypt(encryptor::decrypt)).build();
-    } else {
-      return route;
-    }
+    return route;
   }
 
   /**
@@ -310,7 +306,10 @@ public class RouteService {
       throws BadGatewayException {
     if (route.getAuth() != null) {
       try {
-        route.getAuth().apply(applicationContext, headers, queryParameters);
+        route
+            .getAuth()
+            .decrypt(encryptor::decrypt)
+            .apply(applicationContext, headers, queryParameters);
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         throw new BadGatewayException("An error occurred during authentication");

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.eventhook;
 
+import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,6 +48,8 @@ import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -59,6 +63,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class EventHookListener {
+  @Qualifier(AES_128_STRING_ENCRYPTOR)
+  private final PBEStringCleanablePasswordEncryptor encryptor;
+
   private final ApplicationContext applicationContext;
 
   private final ObjectMapper objectMapper;
@@ -125,7 +132,7 @@ public class EventHookListener {
         if (WebhookTarget.TYPE.equals(target.getType())) {
           targets
               .get(eh.getUid())
-              .add(new WebhookHandler(applicationContext, (WebhookTarget) target));
+              .add(new WebhookHandler(applicationContext, (WebhookTarget) target, encryptor));
         } else if (ConsoleTarget.TYPE.equals(target.getType())) {
           targets.get(eh.getUid()).add(new ConsoleHandler((ConsoleTarget) target));
         } else if (JmsTarget.TYPE.equals(target.getType())) {
