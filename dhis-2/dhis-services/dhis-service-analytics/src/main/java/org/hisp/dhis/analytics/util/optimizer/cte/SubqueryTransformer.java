@@ -202,32 +202,51 @@ public class SubqueryTransformer {
     if (expr == null) {
       return null;
     }
+
     if (expr instanceof AndExpression andExpr) {
-      Expression left = removeEnrollmentCondition(andExpr.getLeftExpression(), dynamicTableName);
-      Expression right = removeEnrollmentCondition(andExpr.getRightExpression(), dynamicTableName);
-
-      if (left == null) {
-        return right;
-      }
-      if (right == null) {
-        return left;
-      }
-      return new AndExpression(left, right);
-    } else if (expr instanceof EqualsTo equalsExpr) {
-      if (equalsExpr.getLeftExpression() instanceof Column leftCol
-          && equalsExpr.getRightExpression() instanceof Column rightCol) {
-
-        // Check for both orders.
-        if ((isColumnMatch(leftCol, dynamicTableName, "enrollment")
-                && isColumnMatch(rightCol, "subax", "enrollment"))
-            || (isColumnMatch(leftCol, "subax", "enrollment")
-                && isColumnMatch(rightCol, dynamicTableName, "enrollment"))) {
-          return null; // Remove this condition.
-        }
-      }
+      return handleAndExpression(andExpr, dynamicTableName);
     }
+
+    if (expr instanceof EqualsTo equalsExpr) {
+      return handleEqualsExpression(equalsExpr, dynamicTableName);
+    }
+
     // If no match, return the expression unchanged.
     return expr;
+  }
+
+  private static Expression handleAndExpression(AndExpression andExpr, String dynamicTableName) {
+    Expression left = removeEnrollmentCondition(andExpr.getLeftExpression(), dynamicTableName);
+    Expression right = removeEnrollmentCondition(andExpr.getRightExpression(), dynamicTableName);
+
+    if (left == null) {
+      return right;
+    }
+    if (right == null) {
+      return left;
+    }
+    return new AndExpression(left, right);
+  }
+
+  private static Expression handleEqualsExpression(EqualsTo equalsExpr, String dynamicTableName) {
+    if (!(equalsExpr.getLeftExpression() instanceof Column leftCol)
+        || !(equalsExpr.getRightExpression() instanceof Column rightCol)) {
+      return equalsExpr;
+    }
+
+    if (isEnrollmentComparison(leftCol, rightCol, dynamicTableName)) {
+      return null; // Remove this condition
+    }
+
+    return equalsExpr;
+  }
+
+  private static boolean isEnrollmentComparison(
+      Column leftCol, Column rightCol, String dynamicTableName) {
+    return (isColumnMatch(leftCol, dynamicTableName, "enrollment")
+            && isColumnMatch(rightCol, "subax", "enrollment"))
+        || (isColumnMatch(leftCol, "subax", "enrollment")
+            && isColumnMatch(rightCol, dynamicTableName, "enrollment"));
   }
 
   /**

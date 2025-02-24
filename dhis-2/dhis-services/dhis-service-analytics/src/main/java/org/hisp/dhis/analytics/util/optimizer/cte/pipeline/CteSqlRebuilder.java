@@ -192,28 +192,63 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
   }
 
   /**
-   * Handles the GROUP BY clause of the original query, adding table aliases to columns if
+   * Handles the GROUP BY clause of the original query by adding table aliases to columns where
    * necessary.
+   *
+   * @param oldSelect the original PlainSelect to modify
+   * @param fromAlias the alias to use for columns without a table reference
    */
   private void handleGroupBy(PlainSelect oldSelect, String fromAlias) {
     GroupByElement groupBy = oldSelect.getGroupBy();
-    if (groupBy != null) {
-      List<Expression> groupByExpressions = groupBy.getGroupByExpressions();
-      if (groupByExpressions != null) {
-        List<Expression> newGroupByExpressions = new ArrayList<>();
-        for (Expression expr : groupByExpressions) {
-          if (expr instanceof Column col) {
-            if (col.getTable() == null || col.getTable().getName() == null) {
-              col = new Column(new Table(fromAlias), col.getColumnName()); // Add alias
-            }
-            newGroupByExpressions.add(col);
-          } else {
-            newGroupByExpressions.add(expr); // Keep other expressions
-          }
-        }
-        groupBy.setGroupByExpressions(newGroupByExpressions);
-      }
+    if (groupBy == null || groupBy.getGroupByExpressions() == null) {
+      return;
     }
+
+    List<Expression> newGroupByExpressions =
+        transformGroupByExpressions(groupBy.getGroupByExpressions(), fromAlias);
+    groupBy.setGroupByExpressions(newGroupByExpressions);
+  }
+
+  /**
+   * Transforms the list of GROUP BY expressions by adding table aliases to column references where
+   * needed.
+   *
+   * @param expressions the original GROUP BY expressions
+   * @param fromAlias the alias to use for columns without a table reference
+   * @return the transformed list of expressions
+   */
+  private List<Expression> transformGroupByExpressions(
+      List<Expression> expressions, String fromAlias) {
+    return expressions.stream()
+        .map(expr -> transformGroupByExpression(expr, fromAlias))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Transforms a single GROUP BY expression by adding a table alias if it's a column without one.
+   *
+   * @param expr the expression to transform
+   * @param fromAlias the alias to use for columns without a table reference
+   * @return the transformed expression
+   */
+  private Expression transformGroupByExpression(Expression expr, String fromAlias) {
+    if (!(expr instanceof Column column)) {
+      return expr;
+    }
+
+    return needsTableAlias(column)
+        ? new Column(new Table(fromAlias), column.getColumnName())
+        : column;
+  }
+
+  /**
+   * Determines if a column needs a table alias added.
+   *
+   * @param column the column to check
+   * @return true if the column needs a table alias, false otherwise
+   */
+  private boolean needsTableAlias(Column column) {
+    return column.getTable() == null || column.getTable().getName() == null;
   }
 
   private String getLeftExpression(GeneratedCte cte, String defaultExpression) {
