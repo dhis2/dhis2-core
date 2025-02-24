@@ -386,13 +386,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
             // INNER JOIN on constraints
             .append(joinPrograms(params))
-            .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
             .append(getFromSubQueryJoinOrderByAttributes(params))
+            .append(getLeftJoinFromFilterConditions(params))
 
             // WHERE
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
@@ -544,25 +544,21 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case-insensitive.
+   * Generates a single LEFT JOIN for each attribute we are searching on. The filtering of
+   * attributes is done in {@link #getWhereClauseFromFilterConditions(SqlHelper,
+   * TrackedEntityQueryParams)}
    */
-  private String joinAttributeValue(TrackedEntityQueryParams params) {
+  private String getLeftJoinFromFilterConditions(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
       String col = quote(filters.getKey().getUid());
       String teaId = col + ".trackedentityattributeid";
-      String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
 
-      if (filters.getValue().stream().allMatch(qf -> qf.getOperator().isNull())) {
-        continue;
-      }
-
       attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+          .append(" LEFT JOIN trackedentityattributevalue ")
           .append(col)
           .append(" ON ")
           .append(teaId)
@@ -571,21 +567,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" AND ")
           .append(ted)
           .append(" = TE.trackedentityid ");
-
-      for (QueryFilter filter : filters.getValue()) {
-        if (filter.getOperator().isUnary()) {
-          continue;
-        }
-
-        String encodedFilter = escape(filter.getFilter());
-        attributes
-            .append("AND ")
-            .append(teav)
-            .append(SPACE)
-            .append(filter.getSqlOperator())
-            .append(SPACE)
-            .append(StringUtils.lowerCase(filter.getSqlFilter(encodedFilter)));
-      }
     }
 
     return attributes.toString();
@@ -855,6 +836,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return program.toString();
   }
 
+  /**
+   * Generates the WHERE-clause related to the user provided filters. It will find the tracked
+   * entity attributes that match the given user filter criteria. This condition only applies when a
+   * filter is specified.
+   */
   private String getWhereClauseFromFilterConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
     StringBuilder filterClause = new StringBuilder();
@@ -862,21 +848,21 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
       String col = quote(filters.getKey().getUid());
-      String teaId = col + ".trackedentityattributeid";
-      String ted = col + ".trackedentityid";
+      String teav = "lower(" + col + ".value)";
 
-      if (filters.getValue().stream().anyMatch(qf -> qf.getOperator().isNull())) {
-        filterClause
-            .append(whereAnd.whereAnd())
-            .append(" not exists ( select 1 from trackedentityattributevalue ")
-            .append(col)
-            .append(" where ")
-            .append(teaId)
-            .append(EQUALS)
-            .append(filters.getKey().getId())
-            .append(" AND ")
-            .append(ted)
-            .append(" = TE.trackedentityid ) ");
+      for (QueryFilter filter : filters.getValue()) {
+        filterClause.append(whereAnd.whereAnd()).append(teav).append(SPACE);
+
+        filterClause.append(
+            switch (filter.getOperator()) {
+              case NULL, NNULL -> new StringBuilder().append(filter.getSqlOperator()).append(SPACE);
+              default ->
+                  new StringBuilder()
+                      .append(filter.getSqlOperator())
+                      .append(SPACE)
+                      .append(
+                          StringUtils.lowerCase(filter.getSqlFilter(escape(filter.getFilter()))));
+            });
       }
     }
 
