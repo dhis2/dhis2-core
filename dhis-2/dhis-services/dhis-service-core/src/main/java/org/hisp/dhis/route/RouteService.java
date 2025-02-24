@@ -200,7 +200,7 @@ public class RouteService {
         route.getName(),
         route.getUid());
 
-    ResponseEntity<Flux<DataBuffer>> responseEntityFlux = fetch(requestHeadersSpec);
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux = retrieve(requestHeadersSpec);
 
     log.info(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
@@ -216,7 +216,7 @@ public class RouteService {
         responseEntityFlux.getStatusCode());
   }
 
-  protected ResponseEntity<Flux<DataBuffer>> fetch(
+  protected ResponseEntity<Flux<DataBuffer>> retrieve(
       WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
     WebClient.ResponseSpec responseSpec =
         requestHeadersSpec
