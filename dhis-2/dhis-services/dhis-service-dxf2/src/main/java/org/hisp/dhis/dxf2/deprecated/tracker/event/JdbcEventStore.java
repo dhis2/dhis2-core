@@ -2145,7 +2145,7 @@ public class JdbcEventStore implements EventStore {
 
   private String createDescendantsSql(
       UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
@@ -2158,7 +2158,7 @@ public class JdbcEventStore implements EventStore {
 
   private String createChildrenSql(
       UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
         " AND (ou.hierarchylevel = "
@@ -2181,7 +2181,7 @@ public class JdbcEventStore implements EventStore {
 
   private String createSelectedSql(
       UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"

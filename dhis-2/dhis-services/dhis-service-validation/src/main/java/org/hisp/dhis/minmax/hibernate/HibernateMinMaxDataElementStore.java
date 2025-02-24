@@ -177,7 +177,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     getQuery(hql)
         .setParameterList("dataElements", dataElements)
-        .setParameter("path", parent.getPath() + "%")
+        .setParameter("path", parent.getStoredPath() + "%")
         .executeUpdate();
   }
 

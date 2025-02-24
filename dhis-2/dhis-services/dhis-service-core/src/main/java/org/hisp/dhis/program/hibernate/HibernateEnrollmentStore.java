@@ -168,7 +168,10 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
         for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
           ouClause +=
-              orHlp.or() + "en.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
+              orHlp.or()
+                  + "en.organisationUnit.path LIKE '"
+                  + organisationUnit.getStoredPath()
+                  + "%'";
         }
 
         ouClause += ")";
