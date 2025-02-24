@@ -1069,7 +1069,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
-          .append(Math.min(limit + 1, pageParams.getPageSize()))
+          .append(
+              Math.min(
+                  limit + 1,
+                  pageParams.getPageSize() + 1)) // get extra TE to determine if there is a nextPage
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)

@@ -177,6 +177,43 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnPaginatedTrackedEntitiesWithMaxTeCountToReturnOnProgram()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .program(UID.of("BFcipDERJnf"))
+            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
+            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .build();
+
+    Page<String> firstPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(1, 1, false))
+            .withItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of("dUE514NMOlo"), 1, 1, null, null, 2), firstPage, "first page");
+
+    Page<String> secondPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(2, 1, true))
+            .withItems(IdentifiableObject::getUid);
+
+    assertEquals(
+        new Page<>(List.of("QS6w44flWAf"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
+
+    Page<String> thirdPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(3, 1, false))
+            .withItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
   void shouldOrderTrackedEntitiesByInactiveAndByDefaultOrder()
       throws ForbiddenException, BadRequestException, NotFoundException {
     List<String> expected =
